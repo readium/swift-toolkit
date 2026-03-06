@@ -112,6 +112,38 @@ public struct AudioReference: Reference {
     }
 }
 
+/// A reference within a video resource.
+///
+/// A ``VideoReference`` can pinpoint a precise time instant or clip within the
+/// video resource using a ``TemporalSelector``.
+public struct VideoReference: Reference {
+    /// URL of the video resource within the publication.
+    public var href: AnyURL
+
+    /// Progression within the resource, expressed as a percentage between 0 and
+    /// 1.
+    public var progression: Progression?
+
+    /// Selector identifying the time position or clip within the resource, if
+    /// any.
+    public var temporal: TemporalSelector?
+
+    public var isRefined: Bool {
+        temporal.map { !$0.isAtStart } ?? false
+    }
+
+    public init(
+        href: AnyURL,
+        progression: Progression? = nil,
+        temporal: TemporalSelector? = nil
+    ) {
+        let fragment = href.fragment
+        self.href = href.removingFragment().normalized
+        self.progression = progression
+        self.temporal = temporal ?? fragment.flatMap { TemporalSelector(fragment: $0) }
+    }
+}
+
 /// A reference within a PDF resource.
 public struct PDFReference: Reference {
     /// URL of the PDF resource within the publication.

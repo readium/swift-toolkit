@@ -89,22 +89,22 @@ public struct GuidedNavigationObject: Hashable, Sendable {
     /// Readium Guided Navigation Object.
     public struct Refs: Hashable, Sendable {
         /// References a textual resource or a fragment of it.
-        public let text: AnyURL?
+        public let text: WebReference?
 
         /// References an image or a fragment of it.
-        public let img: AnyURL?
+        public let img: ImageReference?
 
         /// References an audio resource or a fragment of it.
-        public let audio: AnyURL?
+        public let audio: AudioReference?
 
         /// References a video clip or a fragment of it.
-        public let video: AnyURL?
+        public let video: VideoReference?
 
         public init?(
-            text: AnyURL? = nil,
-            img: AnyURL? = nil,
-            audio: AnyURL? = nil,
-            video: AnyURL? = nil
+            text: WebReference? = nil,
+            img: ImageReference? = nil,
+            audio: AudioReference? = nil,
+            video: VideoReference? = nil
         ) {
             guard text != nil || img != nil || audio != nil || video != nil else {
                 return nil
@@ -124,10 +124,10 @@ public struct GuidedNavigationObject: Hashable, Sendable {
                 warnings?.log("Invalid Guided Navigation Refs", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
-            let text = (json["textref"] as? String).flatMap(AnyURL.init(string:))
-            let img = (json["imgref"] as? String).flatMap(AnyURL.init(string:))
-            let audio = (json["audioref"] as? String).flatMap(AnyURL.init(string:))
-            let video = (json["videoref"] as? String).flatMap(AnyURL.init(string:))
+            let text = (json["textref"] as? String).flatMap(AnyURL.init(string:)).map { WebReference(href: $0) }
+            let img = (json["imgref"] as? String).flatMap(AnyURL.init(string:)).map { ImageReference(href: $0) }
+            let audio = (json["audioref"] as? String).flatMap(AnyURL.init(string:)).map { AudioReference(href: $0) }
+            let video = (json["videoref"] as? String).flatMap(AnyURL.init(string:)).map { VideoReference(href: $0) }
 
             self.init(text: text, img: img, audio: audio, video: video)
         }

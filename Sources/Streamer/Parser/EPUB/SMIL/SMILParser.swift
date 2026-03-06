@@ -124,7 +124,7 @@ private struct SMILGuidedNavigationDocumentParsing {
 
         return GuidedNavigationObject(
             id: id,
-            refs: textref.flatMap { GuidedNavigationObject.Refs(text: $0) },
+            refs: textref.flatMap { GuidedNavigationObject.Refs(text: WebReference(href: $0)) },
             roles: [.sequence] + roles(for: epubType),
             children: children
         )
@@ -143,14 +143,15 @@ private struct SMILGuidedNavigationDocumentParsing {
         let id = element.attr("id")
         let epubType = element.attr("type", namespace: .epub)
 
-        let audioRef: AnyURL? = element.firstChild(xpath: "smil:audio").flatMap(clipURL(from:))
-        let videoRef: AnyURL? = element.firstChild(xpath: "smil:video").flatMap(clipURL(from:))
+        let audioRef = element.firstChild(xpath: "smil:audio").flatMap(clipURL(from:)).map { AudioReference(href: $0) }
+        let videoRef = element.firstChild(xpath: "smil:video").flatMap(clipURL(from:)).map { VideoReference(href: $0) }
 
-        let imgRef: AnyURL? = element.firstChild(xpath: "smil:img")
+        let imgRef = element.firstChild(xpath: "smil:img")
             .flatMap { $0.attr("src").flatMap { resolveURL($0) } }
+            .map { ImageReference(href: $0) }
 
         let refs = GuidedNavigationObject.Refs(
-            text: textURL,
+            text: WebReference(href: textURL),
             img: imgRef,
             audio: audioRef,
             video: videoRef

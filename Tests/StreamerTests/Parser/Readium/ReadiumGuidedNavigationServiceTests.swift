@@ -97,8 +97,8 @@ import Testing
         let service = makeService(readingOrder: [linkWithGN], guided: guided)
 
         let doc = try await service.guidedNavigationDocument(for: linkWithGN)
-        #expect(try doc == GuidedNavigationDocument(guided: [
-            #require(GuidedNavigationObject(refs: .init(text: AnyURL(string: "chapter01.xhtml#s1")))),
+        #expect(doc == GuidedNavigationDocument(guided: [
+            GuidedNavigationObject(refs: .init(text: WebReference(href: AnyURL(string: "chapter01.xhtml#s1")!)))!,
         ]))
     }
 }

@@ -34,8 +34,8 @@ import Testing
             // First child of the chapter seq is p1
             let p1 = chapter?.children.first
             #expect(p1?.id == "p1")
-            #expect(p1?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml#id_p1"))
-            #expect(p1?.refs?.audio == AnyURL(string: "OEBPS/chapter01.mp3#t=0,5.123"))
+            #expect(p1?.refs?.text == WebReference(href: AnyURL(string: "OEBPS/chapter01.xhtml#id_p1")!))
+            #expect(p1?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/chapter01.mp3#t=0,5.123")!))
             #expect(p1?.roles == [.term])
         }
 
@@ -43,9 +43,9 @@ import Testing
             let doc = try SMILParserTests.parse("par-image.smil")
             let p1 = doc?.guided.first?.children.first
             #expect(p1?.id == "p1")
-            #expect(p1?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml#id1"))
-            #expect(p1?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,5"))
-            #expect(p1?.refs?.img == AnyURL(string: "OEBPS/figure1.jpg"))
+            #expect(p1?.refs?.text == WebReference(href: AnyURL(string: "OEBPS/chapter01.xhtml#id1")!))
+            #expect(p1?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3#t=0,5")!))
+            #expect(p1?.refs?.img == ImageReference(href: AnyURL(string: "OEBPS/figure1.jpg")!))
         }
 
         @Test func audioWithBothClipTimes() throws {
@@ -53,7 +53,7 @@ import Testing
             // s1/p1: clipBegin=0:00:00.000, clipEnd=0:00:05.123
             let p1 = doc?.guided.first?.children[0]
             #expect(p1?.id == "p1")
-            #expect(p1?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,5.123"))
+            #expect(p1?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3#t=0,5.123")!))
         }
 
         @Test func audioWithOnlyClipBegin() throws {
@@ -61,7 +61,7 @@ import Testing
             // s1/p2: clipBegin=0:01:30.000
             let p2 = doc?.guided.first?.children[1]
             #expect(p2?.id == "p2")
-            #expect(p2?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=90,"))
+            #expect(p2?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3#t=90,")!))
         }
 
         @Test func audioWithOnlyClipEnd() throws {
@@ -69,7 +69,7 @@ import Testing
             // s1/p3: clipEnd=0:00:11.000
             let p3 = doc?.guided.first?.children[2]
             #expect(p3?.id == "p3")
-            #expect(p3?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=,11"))
+            #expect(p3?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3#t=,11")!))
         }
 
         @Test func audioWithoutClipTimes() throws {
@@ -77,7 +77,7 @@ import Testing
             // s1/p4: no clip attributes → plain URL
             let p4 = doc?.guided.first?.children[3]
             #expect(p4?.id == "p4")
-            #expect(p4?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3"))
+            #expect(p4?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3")!))
         }
 
         @Test func audioClipEndTrailingZerosStripped() throws {
@@ -85,7 +85,7 @@ import Testing
             // s1/p5: clipEnd=0:00:05.100 → "5.100" formatted, trailing zeros stripped → "5.1"
             let p5 = doc?.guided.first?.children[4]
             #expect(p5?.id == "p5")
-            #expect(p5?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=,5.1"))
+            #expect(p5?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3#t=,5.1")!))
         }
 
         @Test func audioClipEndPartialTrailingZeroStripped() throws {
@@ -93,7 +93,7 @@ import Testing
             // s1/p6: clipEnd=0:00:05.120 → "5.120" formatted, one trailing zero stripped → "5.12"
             let p6 = doc?.guided.first?.children[5]
             #expect(p6?.id == "p6")
-            #expect(p6?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=,5.12"))
+            #expect(p6?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3#t=,5.12")!))
         }
 
         @Test func videoWithBothClipTimes() throws {
@@ -101,7 +101,7 @@ import Testing
             // s1/p1: clipBegin=0:00:00.000, clipEnd=0:00:05.123
             let p1 = doc?.guided.first?.children[0]
             #expect(p1?.id == "p1")
-            #expect(p1?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=0,5.123"))
+            #expect(p1?.refs?.video == VideoReference(href: AnyURL(string: "OEBPS/video.mp4#t=0,5.123")!))
         }
 
         @Test func videoWithOnlyClipBegin() throws {
@@ -109,7 +109,7 @@ import Testing
             // s1/p2: clipBegin=0:01:30.000
             let p2 = doc?.guided.first?.children[1]
             #expect(p2?.id == "p2")
-            #expect(p2?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=90,"))
+            #expect(p2?.refs?.video == VideoReference(href: AnyURL(string: "OEBPS/video.mp4#t=90,")!))
         }
 
         @Test func videoWithOnlyClipEnd() throws {
@@ -117,7 +117,7 @@ import Testing
             // s1/p3: clipEnd=0:00:11.000
             let p3 = doc?.guided.first?.children[2]
             #expect(p3?.id == "p3")
-            #expect(p3?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=,11"))
+            #expect(p3?.refs?.video == VideoReference(href: AnyURL(string: "OEBPS/video.mp4#t=,11")!))
         }
 
         @Test func videoWithoutClipTimes() throws {
@@ -125,15 +125,15 @@ import Testing
             // s1/p4: no clip attributes → plain URL
             let p4 = doc?.guided.first?.children[3]
             #expect(p4?.id == "p4")
-            #expect(p4?.refs?.video == AnyURL(string: "OEBPS/video.mp4"))
+            #expect(p4?.refs?.video == VideoReference(href: AnyURL(string: "OEBPS/video.mp4")!))
         }
 
         @Test func parWithBothAudioAndVideo() throws {
             let doc = try SMILParserTests.parse("par-audio-video.smil")
             let p1 = doc?.guided.first?.children.first
             #expect(p1?.id == "p1")
-            #expect(p1?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,5"))
-            #expect(p1?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=0,5"))
+            #expect(p1?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3#t=0,5")!))
+            #expect(p1?.refs?.video == VideoReference(href: AnyURL(string: "OEBPS/video.mp4#t=0,5")!))
         }
 
         @Test func parWithoutTextIsSkipped() throws {
@@ -170,10 +170,10 @@ import Testing
             let doc = try SMILParserTests.parse("seq-textref.smil")
             // s1: textref without fragment
             let s1 = doc?.guided.first { $0.id == "s1" }
-            #expect(s1?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml"))
+            #expect(s1?.refs?.text == WebReference(href: AnyURL(string: "OEBPS/chapter01.xhtml")!))
             // s2: textref with fragment
             let s2 = doc?.guided.first { $0.id == "s2" }
-            #expect(s2?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml#sec1"))
+            #expect(s2?.refs?.text == WebReference(href: AnyURL(string: "OEBPS/chapter01.xhtml#sec1")!))
         }
 
         @Test func emptySeqIsSkipped() throws {
@@ -200,13 +200,13 @@ import Testing
             let chapter = doc?.guided.first
             #expect(chapter?.id == "s1")
             #expect(chapter?.roles == [.sequence, .chapter])
-            #expect(chapter?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml"))
+            #expect(chapter?.refs?.text == WebReference(href: AnyURL(string: "OEBPS/chapter01.xhtml")!))
             // Two children: p1 and s2
             #expect(chapter?.children.count == 2)
             let s2 = chapter?.children[1]
             #expect(s2?.id == "s2")
             #expect(s2?.roles == [.sequence, .table])
-            #expect(s2?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml#sec1"))
+            #expect(s2?.refs?.text == WebReference(href: AnyURL(string: "OEBPS/chapter01.xhtml#sec1")!))
         }
     }
 
@@ -245,7 +245,7 @@ import Testing
             // Fuzi parses leniently, so malformed/non-SMIL content produces no
             // <smil:body> and the parser returns nil rather than throwing.
             let badData = Data("not xml at all".utf8)
-            let url = try #require(AnyURL(string: "OEBPS/chapter01.smil"))
+            let url = AnyURL(string: "OEBPS/chapter01.smil")!
             let doc = try SMILParser.parseGuidedNavigationDocument(smilData: badData, at: url)
             #expect(doc == nil)
         }
@@ -257,7 +257,7 @@ import Testing
               <body></body>
             </smil>
             """.data(using: .utf8)!
-            let url = try #require(AnyURL(string: "OEBPS/chapter01.smil"))
+            let url = AnyURL(string: "OEBPS/chapter01.smil")!
             let doc = try SMILParser.parseGuidedNavigationDocument(smilData: xml, at: url)
             #expect(doc == nil)
         }

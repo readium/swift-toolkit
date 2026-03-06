@@ -15,7 +15,7 @@ import Testing
                 "textref": "chapter1.html",
             ])
             #expect(sut == GuidedNavigationObject(
-                refs: .init(text: AnyURL(string: "chapter1.html"))
+                refs: .init(text: WebReference(href: AnyURL(string: "chapter1.html")!))
             ))
         }
 
@@ -35,19 +35,19 @@ import Testing
                 "description": ["textref": "desc.html"],
             ])
 
-            #expect(try sut == GuidedNavigationObject(
+            #expect(sut == GuidedNavigationObject(
                 id: "obj1",
                 refs: .init(
-                    text: AnyURL(string: "chapter1.html"),
-                    img: AnyURL(string: "page1.jpg"),
-                    audio: AnyURL(string: "audio.mp3#t=0,20"),
-                    video: AnyURL(string: "video.mp4#t=10,30")
+                    text: WebReference(href: AnyURL(string: "chapter1.html")!),
+                    img: ImageReference(href: AnyURL(string: "page1.jpg")!),
+                    audio: AudioReference(href: AnyURL(string: "audio.mp3#t=0,20")!),
+                    video: VideoReference(href: AnyURL(string: "video.mp4#t=10,30")!)
                 ),
                 text: .init(plain: "Hello", ssml: "<speak>Hello</speak>", language: Language(code: .bcp47("en"))),
                 roles: [.chapter, .heading2],
-                description: .init(refs: .init(text: AnyURL(string: "desc.html"))),
+                description: .init(refs: .init(text: WebReference(href: AnyURL(string: "desc.html")!))),
                 children: [
-                    #require(GuidedNavigationObject(refs: .init(text: AnyURL(string: "child.html")))),
+                    GuidedNavigationObject(refs: .init(text: WebReference(href: AnyURL(string: "child.html")!)))!,
                 ]
             ))
         }
@@ -97,7 +97,7 @@ import Testing
 
             #expect(sut?.children.count == 1)
             #expect(sut?.children.first?.children.count == 1)
-            #expect(sut?.children.first?.children.first?.refs?.text == AnyURL(string: "b.html")!)
+            #expect(sut?.children.first?.children.first?.refs?.text == WebReference(href: AnyURL(string: "b.html")!))
         }
 
         @Test("recursive description parses correctly")
@@ -140,10 +140,10 @@ import Testing
                 "videoref": "clip.mp4",
             ])
             #expect(sut == GuidedNavigationObject.Refs(
-                text: AnyURL(string: "chapter.html"),
-                img: AnyURL(string: "page.jpg"),
-                audio: AnyURL(string: "track.mp3"),
-                video: AnyURL(string: "clip.mp4")
+                text: WebReference(href: AnyURL(string: "chapter.html")!),
+                img: ImageReference(href: AnyURL(string: "page.jpg")!),
+                audio: AudioReference(href: AnyURL(string: "track.mp3")!),
+                video: VideoReference(href: AnyURL(string: "clip.mp4")!)
             ))
         }
 
@@ -160,7 +160,7 @@ import Testing
             let sut = try GuidedNavigationObject.Refs(json: [
                 "audioref": "audio.mp3#t=0,20",
             ])
-            #expect(sut?.audio == AnyURL(string: "audio.mp3#t=0,20")!)
+            #expect(sut?.audio == AudioReference(href: AnyURL(string: "audio.mp3#t=0,20")!))
         }
     }
 
@@ -181,7 +181,7 @@ import Testing
                 "imgref": "desc.jpg",
             ])
             #expect(sut == GuidedNavigationObject.Description(
-                refs: .init(img: AnyURL(string: "desc.jpg"))
+                refs: .init(img: ImageReference(href: AnyURL(string: "desc.jpg")!))
             ))
         }
 

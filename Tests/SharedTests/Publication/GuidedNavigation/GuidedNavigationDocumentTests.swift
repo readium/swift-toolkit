@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Foundation
 @testable import ReadiumShared
 import Testing
 
@@ -17,9 +18,9 @@ import Testing
                 ],
             ])
 
-            #expect(try sut == GuidedNavigationDocument(
+            #expect(sut == GuidedNavigationDocument(
                 guided: [
-                    #require(GuidedNavigationObject(refs: .init(text: AnyURL(string: "chapter1.html")))),
+                    GuidedNavigationObject(refs: .init(text: WebReference(href: AnyURL(string: "chapter1.html")!)))!,
                 ]
             ))
         }

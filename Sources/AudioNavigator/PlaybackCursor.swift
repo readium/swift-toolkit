@@ -214,13 +214,8 @@ public final class GuidedNavigationPlaybackCursor: PlaybackCursor, Loggable {
     ) -> PlaybackItem? {
         let content: PlaybackItem.Content
 
-        if let audioURL = object.refs?.audio {
-            content = .audio(
-                AudioReference(
-                    href: audioURL.removingFragment(),
-                    temporal: audioURL.fragment?.temporalSelector
-                )
-            )
+        if let audioRef = object.refs?.audio {
+            content = .audio(audioRef)
 
         } else if
             let gnoText = object.text,
@@ -239,20 +234,13 @@ public final class GuidedNavigationPlaybackCursor: PlaybackCursor, Loggable {
         }
 
         let readingOrderReference: (any Reference)?
-        if let textURL = object.refs?.text {
+        if let textRef = object.refs?.text {
             // EPUB with Media Overlays
-            readingOrderReference = WebReference(
-                href: textURL.removingFragment(),
-                text: textURL.fragment?.textSelector,
-                cssSelector: textURL.fragment?.cssSelector
-            )
+            readingOrderReference = textRef
 
-        } else if let imgURL = object.refs?.img {
+        } else if let imgRef = object.refs?.img {
             // Divina with GND
-            readingOrderReference = ImageReference(
-                href: imgURL.removingFragment(),
-                spatial: imgURL.fragment?.spatialSelector
-            )
+            readingOrderReference = imgRef
         } else if case let .audio(audioRef) = content {
             // Audiobook
             readingOrderReference = audioRef

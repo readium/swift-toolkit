@@ -183,14 +183,14 @@ public final class GuidedNavigationDocumentCursor: GuidedNavigationCursor {
     /// Returns `true` when `node` matches the given `reference`.
     private func matches(node: GuidedNavigationObject, reference: AudioReference) -> Bool {
         guard
-            let audioURL = node.refs?.audio,
-            audioURL.removingFragment().isEquivalentTo(reference.href)
+            let ref = node.refs?.audio,
+            ref.href.string == reference.href.string
         else {
             return false
         }
 
         if reference.isRefined {
-            return audioURL.fragment?.temporalSelector == reference.temporal
+            return ref.temporal == reference.temporal
         }
 
         return true
@@ -199,18 +199,18 @@ public final class GuidedNavigationDocumentCursor: GuidedNavigationCursor {
     /// Returns `true` when `node` matches the given `reference`.
     private func matches(node: GuidedNavigationObject, reference: WebReference) -> Bool {
         guard
-            let textURL = node.refs?.text,
-            textURL.removingFragment().isEquivalentTo(reference.href)
+            let ref = node.refs?.text,
+            ref.href.string == reference.href.string
         else {
             return false
         }
 
         if reference.isRefined {
-            if let cssSelector = reference.cssSelector {
-                return textURL.fragment?.cssSelector == cssSelector
+            if let css = reference.cssSelector {
+                return ref.cssSelector == css
             }
-            if let textSelector = reference.text {
-                return textURL.fragment?.textSelector == textSelector
+            if let txt = reference.text {
+                return ref.text == txt
             }
             return false
         }
@@ -221,14 +221,14 @@ public final class GuidedNavigationDocumentCursor: GuidedNavigationCursor {
     /// Returns `true` when `node` matches the given `reference`.
     private func matches(node: GuidedNavigationObject, reference: ImageReference) -> Bool {
         guard
-            let imgURL = node.refs?.img,
-            imgURL.removingFragment().isEquivalentTo(reference.href)
+            let ref = node.refs?.img,
+            ref.href.string == reference.href.string
         else {
             return false
         }
 
         if reference.isRefined {
-            return imgURL.fragment?.spatialSelector == reference.spatial
+            return ref.spatial == reference.spatial
         }
 
         return true
