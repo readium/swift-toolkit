@@ -43,10 +43,15 @@ public struct WebReference: Reference {
         text: TextSelector? = nil,
         cssSelector: CSSSelector? = nil
     ) {
-        self.href = href
+        let fragment = href.fragment
+        self.href = href.removingFragment().normalized
         self.progression = progression
-        self.text = text
-        self.cssSelector = cssSelector
+
+        let fragmentText = fragment.flatMap { TextSelector(fragment: $0) }
+        let fragmentCSS = fragmentText == nil ? fragment.map { CSSSelector(fragment: $0) } : nil
+
+        self.text = text ?? fragmentText
+        self.cssSelector = cssSelector ?? fragmentCSS
     }
 }
 
@@ -69,8 +74,9 @@ public struct ImageReference: Reference {
         href: AnyURL,
         spatial: SpatialSelector? = nil
     ) {
-        self.href = href
-        self.spatial = spatial
+        let fragment = href.fragment
+        self.href = href.removingFragment().normalized
+        self.spatial = spatial ?? fragment.flatMap { SpatialSelector(fragment: $0) }
     }
 }
 
@@ -99,9 +105,10 @@ public struct AudioReference: Reference {
         progression: Progression? = nil,
         temporal: TemporalSelector? = nil
     ) {
-        self.href = href
+        let fragment = href.fragment
+        self.href = href.removingFragment().normalized
         self.progression = progression
-        self.temporal = temporal
+        self.temporal = temporal ?? fragment.flatMap { TemporalSelector(fragment: $0) }
     }
 }
 
@@ -130,10 +137,11 @@ public struct PDFReference: Reference {
         text: TextSelector? = nil,
         page: PDFSelector? = nil
     ) {
-        self.href = href
+        let fragment = href.fragment
+        self.href = href.removingFragment().normalized
         self.progression = progression
         self.text = text
-        self.page = page
+        self.page = page ?? fragment.flatMap { PDFSelector(fragment: $0) }
     }
 }
 
