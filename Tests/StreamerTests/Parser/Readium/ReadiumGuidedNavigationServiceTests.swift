@@ -53,50 +53,46 @@ import Testing
         return ReadiumGuidedNavigationService(manifest: manifest, container: container)
     }
 
-    // MARK: - hasGuidedNavigation(for:)
+    // MARK: - hasGuidedNavigation
 
-    @Test func hasGuidedNavigationFalseForLinkWithoutGN() {
-        let service = makeService(readingOrder: [linkWithoutGN])
-        #expect(service.hasGuidedNavigation(for: linkWithoutGN) == false)
-    }
-
-    @Test func hasGuidedNavigationTrueForLinkWithGNAlternate() {
-        let service = makeService(readingOrder: [linkWithGN])
-        #expect(service.hasGuidedNavigation(for: linkWithGN) == true)
-    }
-
-    @Test func hasGuidedNavigationPublicationLevelTrueWhenAnyLinkHasGN() {
+    @Test func hasGuidedNavigationTrueWhenAnyLinkHasGN() {
         let service = makeService(readingOrder: [linkWithoutGN, linkWithGN])
         #expect(service.hasGuidedNavigation == true)
     }
 
-    @Test func hasGuidedNavigationPublicationLevelFalseWhenNoLinkHasGN() {
+    @Test func hasGuidedNavigationFalseWhenNoLinkHasGN() {
         let service = makeService(readingOrder: [linkWithoutGN])
         #expect(service.hasGuidedNavigation == false)
     }
 
-    // MARK: - guidedNavigationDocument(for:) — per-resource
+    // MARK: - guidedNavigationDocumentHREF(for:)
 
-    @Test func returnsNilForLinkWithoutGN() async throws {
+    @Test func documentHREFNilForLinkWithoutGN() {
         let service = makeService(readingOrder: [linkWithoutGN])
-        let result = try await service.guidedNavigationDocument(for: linkWithoutGN)
-        #expect(result == nil)
+        #expect(service.guidedNavigationDocumentHREF(for: linkWithoutGN) == nil)
     }
+
+    @Test func documentHREFReturnedForLinkWithGN() {
+        let service = makeService(readingOrder: [linkWithGN])
+        #expect(service.guidedNavigationDocumentHREF(for: linkWithGN) == gnLink.url())
+    }
+
+    // MARK: - guidedNavigationDocument(at:)
 
     @Test func returnsFailureWhenGNDocumentMissingFromContainer() async {
         let service = makeService(readingOrder: [linkWithGN])
         await #expect(throws: ReadError.self) {
-            try await service.guidedNavigationDocument(for: linkWithGN)
+            try await service.guidedNavigationDocument(at: gnLink.url())
         }
     }
 
-    @Test func returnsDocumentFromPerResourceAlternate() async throws {
+    @Test func returnsDocumentAtGNHREF() async throws {
         let guided: [[String: Any]] = [
             ["textref": "chapter01.xhtml#s1"],
         ]
         let service = makeService(readingOrder: [linkWithGN], guided: guided)
 
-        let doc = try await service.guidedNavigationDocument(for: linkWithGN)
+        let doc = try await service.guidedNavigationDocument(at: gnLink.url())
         #expect(doc == GuidedNavigationDocument(guided: [
             GuidedNavigationObject(refs: .init(text: WebReference(href: AnyURL(string: "chapter01.xhtml#s1")!)))!,
         ]))

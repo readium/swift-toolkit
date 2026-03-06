@@ -37,22 +37,17 @@ actor ReadiumGuidedNavigationService: GuidedNavigationService {
         }
     }
 
-    nonisolated func hasGuidedNavigation(for href: any URLConvertible) -> Bool {
-        manifest.readingOrder.firstWithHREF(href)?
+    nonisolated func guidedNavigationDocumentHREF(for readingOrderHREF: any URLConvertible) -> AnyURL? {
+        manifest.readingOrder.firstWithHREF(readingOrderHREF)?
             .alternates
-            .anyMatchingMediaType(.readiumGuidedNavigationDocument)
-            ?? false
+            .firstWithMediaType(.readiumGuidedNavigationDocument)?
+            .url()
     }
 
     func guidedNavigationDocument(
-        for href: any URLConvertible
+        at href: any URLConvertible
     ) async throws(ReadError) -> GuidedNavigationDocument? {
-        guard
-            let readingOrderLink = manifest.readingOrder.firstWithHREF(href),
-            let gnURL = readingOrderLink.alternates.firstWithMediaType(.readiumGuidedNavigationDocument)?.url()
-        else {
-            return nil
-        }
+        let gnURL = href.anyURL
 
         if let cached = gndCache[gnURL] {
             return cached

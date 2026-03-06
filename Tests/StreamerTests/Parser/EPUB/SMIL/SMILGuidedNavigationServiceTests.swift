@@ -57,46 +57,42 @@ import Testing
         return SMILGuidedNavigationService(readingOrder: readingOrder, container: container)
     }
 
-    // MARK: - hasGuidedNavigation(for:)
+    // MARK: - hasGuidedNavigation
 
-    @Test func hasGuidedNavigationFalseForLinkWithoutSMIL() {
-        let service = makeService(readingOrder: [linkWithoutSMIL])
-        #expect(service.hasGuidedNavigation(for: linkWithoutSMIL) == false)
-    }
-
-    @Test func hasGuidedNavigationTrueForLinkWithSMIL() {
-        let service = makeService(readingOrder: [linkWithSMIL])
-        #expect(service.hasGuidedNavigation(for: linkWithSMIL) == true)
-    }
-
-    @Test func hasGuidedNavigationPublicationLevelTrueWhenAnyLinkHasSMIL() {
+    @Test func hasGuidedNavigationTrueWhenAnyLinkHasSMIL() {
         let service = makeService(readingOrder: [linkWithoutSMIL, linkWithSMIL])
         #expect(service.hasGuidedNavigation == true)
     }
 
-    @Test func hasGuidedNavigationPublicationLevelFalseWhenNoLinkHasSMIL() {
+    @Test func hasGuidedNavigationFalseWhenNoLinkHasSMIL() {
         let service = makeService(readingOrder: [linkWithoutSMIL])
         #expect(service.hasGuidedNavigation == false)
     }
 
-    // MARK: - guidedNavigationDocument(for:)
+    // MARK: - guidedNavigationDocumentHREF(for:)
 
-    @Test func returnsNilForLinkWithoutSMIL() async throws {
+    @Test func documentHREFNilForLinkWithoutSMIL() {
         let service = makeService(readingOrder: [linkWithoutSMIL])
-        let result = try await service.guidedNavigationDocument(for: linkWithoutSMIL)
-        #expect(result == nil)
+        #expect(service.guidedNavigationDocumentHREF(for: linkWithoutSMIL) == nil)
     }
+
+    @Test func documentHREFReturnedForLinkWithSMIL() {
+        let service = makeService(readingOrder: [linkWithSMIL])
+        #expect(service.guidedNavigationDocumentHREF(for: linkWithSMIL) == smilLink.url())
+    }
+
+    // MARK: - guidedNavigationDocument(at:)
 
     @Test func returnsFailureWhenSMILMissingFromContainer() async {
         let service = makeService(readingOrder: [linkWithSMIL], container: EmptyContainer())
         await #expect(throws: ReadError.self) {
-            try await service.guidedNavigationDocument(for: linkWithSMIL)
+            try await service.guidedNavigationDocument(at: smilLink.url())
         }
     }
 
-    @Test func returnsDocumentForLinkWithSMIL() async throws {
+    @Test func returnsDocumentAtSMILHREF() async throws {
         let service = makeService(readingOrder: [linkWithSMIL])
-        let doc = try await service.guidedNavigationDocument(for: linkWithSMIL)
+        let doc = try await service.guidedNavigationDocument(at: smilLink.url())
         #expect(doc != nil)
         #expect(doc?.guided.isEmpty == false)
     }

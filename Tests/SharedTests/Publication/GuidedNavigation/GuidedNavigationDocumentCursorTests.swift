@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumShared
+@testable import ReadiumShared
 import Testing
 
 @Suite("GuidedNavigationDocumentCursor") struct GuidedNavigationDocumentCursorTests {

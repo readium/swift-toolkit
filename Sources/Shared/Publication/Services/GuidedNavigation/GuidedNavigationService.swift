@@ -15,13 +15,13 @@ public protocol GuidedNavigationService: PublicationService {
     /// documents at all.
     var hasGuidedNavigation: Bool { get }
 
-    /// Returns whether a pre-authored ``GuidedNavigationDocument`` exists for
-    /// the given reading order resource, without fetching or parsing it.
-    func hasGuidedNavigation(for href: any URLConvertible) -> Bool
+    /// Returns the HREF of the pre-authored ``GuidedNavigationDocument``
+    /// associated with the given reading order resource.
+    func guidedNavigationDocumentHREF(for readingOrderHREF: any URLConvertible) -> AnyURL?
 
-    /// Returns the pre-authored ``GuidedNavigationDocument`` for the given
-    /// reading order resource, or `nil` if none exists for this resource.
-    func guidedNavigationDocument(for href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument?
+    /// Returns the pre-authored ``GuidedNavigationDocument`` at the given
+    /// `href`, or `nil` if none is found.
+    func guidedNavigationDocument(at href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument?
 }
 
 // MARK: Publication Helpers
@@ -33,19 +33,19 @@ public extension Publication {
         findService(GuidedNavigationService.self)?.hasGuidedNavigation ?? false
     }
 
-    /// Returns whether a pre-authored guided navigation document exists for
-    /// the given reading order resource.
-    func hasGuidedNavigation(for href: any URLConvertible) -> Bool {
-        findService(GuidedNavigationService.self)?.hasGuidedNavigation(for: href) ?? false
+    /// Returns the HREF of the pre-authored ``GuidedNavigationDocument``
+    /// associated with the given reading order resource.
+    func guidedNavigationDocumentHREF(for readingOrderHREF: any URLConvertible) -> AnyURL? {
+        findService(GuidedNavigationService.self)?.guidedNavigationDocumentHREF(for: readingOrderHREF)
     }
 
-    /// Returns the pre-authored guided navigation document for the given
-    /// reading order resource, or `nil` if none exists.
-    func guidedNavigationDocument(for href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument? {
+    /// Returns the pre-authored ``GuidedNavigationDocument`` at the given
+    /// `href`.
+    func guidedNavigationDocument(at href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument? {
         guard let service = findService(GuidedNavigationService.self) else {
             return nil
         }
-        return try await service.guidedNavigationDocument(for: href)
+        return try await service.guidedNavigationDocument(at: href)
     }
 }
 

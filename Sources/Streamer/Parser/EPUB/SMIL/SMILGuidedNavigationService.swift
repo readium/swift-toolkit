@@ -37,22 +37,17 @@ actor SMILGuidedNavigationService: GuidedNavigationService {
         }
     }
 
-    nonisolated func hasGuidedNavigation(for href: any URLConvertible) -> Bool {
-        readingOrder.firstWithHREF(href)?
+    nonisolated func guidedNavigationDocumentHREF(for readingOrderHREF: any URLConvertible) -> AnyURL? {
+        readingOrder.firstWithHREF(readingOrderHREF)?
             .alternates
-            .anyMatchingMediaType(.smil)
-            ?? false
+            .firstWithMediaType(.smil)?
+            .url()
     }
 
     func guidedNavigationDocument(
-        for href: any URLConvertible
+        at href: any URLConvertible
     ) async throws(ReadError) -> GuidedNavigationDocument? {
-        guard
-            let link = readingOrder.firstWithHREF(href),
-            let smilURL = link.alternates.firstWithMediaType(.smil)?.url()
-        else {
-            return nil
-        }
+        let smilURL = href.anyURL
 
         if let cached = gndCache[smilURL] {
             return cached
