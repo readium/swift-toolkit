@@ -46,7 +46,7 @@ public enum PlaybackStatus: Hashable {
 }
 
 /// Coordinates audio playback of a publication by pulling ``PlaybackItem``s
-/// from a ``GuidedNavigationCursor`` and routing them to the active ``Narrator``.
+/// from a ``GuidedNavigationPlaybackCursor`` and routing them to the active ``Narrator``.
 @MainActor public final class AudioNavigator: Sendable {
     /// Registers a block to be called at regular intervals while playing.
     ///
@@ -91,7 +91,7 @@ public enum PlaybackStatus: Hashable {
     private var pendingItem: PlaybackItem?
 
     private let publication: Publication
-    private let cursor: GuidedNavigationCursor
+    private let cursor: GuidedNavigationPlaybackCursor
 
     /// Ordered list of narrators tried in turn for each item.
     /// The first narrator that returns `true` from `supports(_:)` wins.
@@ -107,7 +107,7 @@ public enum PlaybackStatus: Hashable {
 
     public init(publication: Publication, narrators: [any Narrator]) {
         self.publication = publication
-        cursor = GuidedNavigationCursor(publication: publication)
+        cursor = GuidedNavigationPlaybackCursor(publication: publication)
         self.narrators = narrators
         // Register self as the delegate for all narrators up front so that
         // whichever narrator becomes active later can already call back into us.

@@ -17,7 +17,7 @@ import Testing
                 gno(audio: "audio.mp3#t=1,2"),
                 gno(audio: "audio.mp3#t=2,3")
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["chapter1.html"],
                 gnds: ["chapter1.html": doc]
             ))
@@ -54,7 +54,7 @@ import Testing
                     ]
                 )
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["chapter1.html"],
                 gnds: ["chapter1.html": doc]
             ))
@@ -86,7 +86,7 @@ import Testing
                     ]
                 )
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["chapter1.html"],
                 gnds: ["chapter1.html": doc]
             ))
@@ -110,7 +110,7 @@ import Testing
         func acrossResources() async throws {
             let doc1 = gnd(gno(audio: "a1.mp3#t=0,1"))
             let doc2 = gnd(gno(audio: "a2.mp3#t=0,1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html", "r2.html"],
                 gnds: ["r1.html": doc1, "r2.html": doc2]
             ))
@@ -133,7 +133,7 @@ import Testing
         @Test("skips resource with no GND document")
         func skipsResourceWithNoGND() async throws {
             let doc2 = gnd(gno(audio: "a2.mp3#t=0,1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html", "r2.html"],
                 gnds: ["r2.html": doc2] // r1.html has no GND
             ))
@@ -151,7 +151,7 @@ import Testing
         @Test("skips resource when GND fetch fails")
         func skipsResourceOnFetchError() async throws {
             let doc2 = gnd(gno(audio: "a2.mp3#t=0,1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html", "r2.html"],
                 gnds: ["r2.html": doc2],
                 failing: ["r1.html"] // r1.html fetch fails with an error
@@ -170,7 +170,7 @@ import Testing
 
         @Test("returns nil at end")
         func returnsNilAtEnd() async {
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: [:]
             ))
@@ -186,7 +186,7 @@ import Testing
                 gno(audio: "audio.mp3#t=0,1"),
                 gno(audio: "audio.mp3#t=1,2")
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["chapter1.html"],
                 gnds: ["chapter1.html": doc]
             ))
@@ -213,7 +213,7 @@ import Testing
         func wrapsAcrossResourceBoundary() async throws {
             let doc1 = gnd(gno(audio: "a1.mp3#t=0,1"))
             let doc2 = gnd(gno(audio: "a2.mp3#t=0,1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html", "r2.html"],
                 gnds: ["r1.html": doc1, "r2.html": doc2]
             ))
@@ -244,7 +244,7 @@ import Testing
                 gno(audio: "a1.mp3#t=2,3")
             )
             let doc2 = gnd(gno(audio: "a2.mp3#t=0,1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html", "r2.html"],
                 gnds: ["r1.html": doc1, "r2.html": doc2]
             ))
@@ -273,7 +273,7 @@ import Testing
         @Test("returns nil at start")
         func returnsNilAtStart() async {
             let doc = gnd(gno(audio: "audio.mp3#t=0,1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -284,7 +284,7 @@ import Testing
         @Test("returns nil when called repeatedly at start")
         func returnsNilWhenRepeatedAtStart() async {
             let doc = gnd(gno(audio: "audio.mp3#t=0,1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -303,7 +303,7 @@ import Testing
                 gno(audio: "a.mp3#t=0,1", textRef: "r1.html#para1"),
                 gno(audio: "a.mp3#t=1,2", textRef: "r1.html#para2")
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -323,7 +323,7 @@ import Testing
         func seekUnrefinedDifferentResource() async throws {
             let doc1 = gnd(gno(audio: "a1.mp3#t=0,1", textRef: "r1.html#para1"))
             let doc2 = gnd(gno(audio: "a2.mp3#t=0,1", textRef: "r2.html#para1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html", "r2.html"],
                 gnds: ["r1.html": doc1, "r2.html": doc2]
             ))
@@ -347,7 +347,7 @@ import Testing
                 gno(audio: "a.mp3#t=0,1", textRef: "r1.html#para1"),
                 gno(audio: "a.mp3#t=1,2", textRef: "r1.html#para2")
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -372,7 +372,7 @@ import Testing
                 gno(audio: "a.mp3#t=0,1", textRef: "r1.html#para1"),
                 gno(audio: "a.mp3#t=1,2", textRef: "r1.html#para2")
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -394,7 +394,7 @@ import Testing
         @Test("seek fails for unknown resource, state unchanged")
         func seekFailsUnknownResource() async throws {
             let doc = gnd(gno(audio: "a.mp3#t=0,1", textRef: "r1.html#para1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -414,7 +414,7 @@ import Testing
         @Test("seek fails when HTML ID not found in GND, next() state unchanged")
         func seekFailsHTMLIDNotFound() async throws {
             let doc = gnd(gno(audio: "a.mp3#t=0,1", textRef: "r1.html#para1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -440,7 +440,7 @@ import Testing
                 gno(audio: "a.mp3#t=0,1", textRef: "r1.html#para1"),
                 gno(audio: "a.mp3#t=1,2", textRef: "r1.html#para2")
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -485,7 +485,7 @@ import Testing
                     ]
                 )
             )
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -511,7 +511,7 @@ import Testing
                 audio: "audio.mp3#t=0,1",
                 textRef: "chapter.html#section1"
             ))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -529,7 +529,7 @@ import Testing
                 audio: "audio.mp3#t=0,1",
                 imgRef: "page.jpg#xywh=10,20,100,200"
             ))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -544,7 +544,7 @@ import Testing
         @Test("temporal clip parsed from audio URL fragment")
         func temporalClipParsedFromFragment() async throws {
             let doc = gnd(gno(audio: "audio.mp3#t=3.5,7.2"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -562,7 +562,7 @@ import Testing
         @Test("text content created from GNO text node")
         func textContentFromGNO() async {
             let doc = gnd(gno(plainText: "Hello world"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
@@ -579,7 +579,7 @@ import Testing
         @Test("node with only refs.text is not playable")
         func textRefOnlyNotPlayable() async {
             let doc = gnd(gno(textRef: "chapter.html#para1"))
-            var cursor = GuidedNavigationCursor(publication: publication(
+            var cursor = GuidedNavigationPlaybackCursor(publication: publication(
                 readingOrder: ["r1.html"],
                 gnds: ["r1.html": doc]
             ))
