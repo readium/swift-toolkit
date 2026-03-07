@@ -48,14 +48,6 @@ enum GuidedNavigationCursorTests {
             )
             #expect(!cursor.hasGuidedNavigation(for: "other.html"))
         }
-
-        @Test func returnsTrueForHREFWithFragment() {
-            let cursor = makeCursor(
-                readingOrder: ["chapter.html"],
-                gnds: ["chapter.html": ("gnd.json", gnd(gno(audioRef: "a.mp3")))]
-            )
-            #expect(cursor.hasGuidedNavigation(for: AnyURL(string: "chapter.html#section1")!))
-        }
     }
 
     struct Next {

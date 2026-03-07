@@ -60,7 +60,7 @@ public final class GuidedNavigationCursor {
 
         for link in readingOrder {
             let roHREF = link.anyURL.normalized
-            guard let gndHREF = provider.guidedNavigationDocumentHREF(for: link)?.normalized else {
+            guard let gndHREF = provider.guidedNavigationDocumentHREF(for: roHREF)?.normalized else {
                 continue
             }
             let gnIdx: Int
@@ -108,54 +108,55 @@ public final class GuidedNavigationCursor {
     /// Useful for deciding whether to offer "read aloud" for the resource the
     /// user is currently viewing.
     public func hasGuidedNavigation(for readingOrderHREF: AnyURL) -> Bool {
-        provider.guidedNavigationDocumentHREF(for: readingOrderHREF) != nil
+        readingOrderToGndOrderIndex[readingOrderHREF.normalized] != nil
     }
 
     // MARK: - Navigation
 
-    /// Returns the next node across all GNDs, or `nil` at the end.
-    ///
-    /// Transparently advances to the next ``GuidedNavigationDocument`` when
-    /// the current one is exhausted. GND fetches that fail are skipped so a
-    /// single missing document does not halt navigation.
+    /// Returns the next node in the Guided Navigation Document order, or `nil`
+    /// at the end.
     public func next() async -> GuidedNavigationNode? {
         if gndIndex == -1 {
             gndIndex = 0
             documentCursor = await loadDocumentCursor(at: 0)
         }
+
         while gndIndex < gndOrder.count {
-            if let node = documentCursor?.next() { return node }
+            if let node = documentCursor?.next() {
+                return node
+            }
             gndIndex += 1
-            documentCursor = gndIndex < gndOrder.count
-                ? await loadDocumentCursor(at: gndIndex) : nil
+            documentCursor = await loadDocumentCursor(at: gndIndex)
         }
+
         return nil
     }
 
-    /// Returns the previous node across all GNDs, or `nil` at the beginning.
+    /// Returns the previous node in the Guided Navigation Document order, or
+    /// `nil` at the beginning.
     ///
-    /// Transparently retreats into the preceding ``GuidedNavigationDocument``
-    /// when the current one is exhausted. Alternating `next()` and `previous()`
-    /// always returns the same node.
+    /// Alternating `next()` and `previous()` always returns the same node.
     public func previous() async -> GuidedNavigationNode? {
-        if gndIndex < 0 { return nil }
+        guard gndIndex >= 0 else {
+            return nil
+        }
+
         if gndIndex >= gndOrder.count {
             gndIndex = gndOrder.count - 1
-            let cursor = await loadDocumentCursor(at: gndIndex)
-            cursor?.seekToEnd()
-            documentCursor = cursor
+            documentCursor = await loadDocumentCursor(at: gndIndex)
+            documentCursor?.seekToEnd()
         }
+
         while gndIndex >= 0 {
-            if let node = documentCursor?.previous() { return node }
-            gndIndex -= 1
-            if gndIndex >= 0 {
-                let cursor = await loadDocumentCursor(at: gndIndex)
-                cursor?.seekToEnd()
-                documentCursor = cursor
-            } else {
-                documentCursor = nil
+            if let node = documentCursor?.previous() {
+                return node
             }
+
+            gndIndex -= 1
+            documentCursor = await loadDocumentCursor(at: gndIndex)
+            documentCursor?.seekToEnd()
         }
+
         return nil
     }
 
@@ -166,9 +167,14 @@ public final class GuidedNavigationCursor {
     /// and the method returns `false`.
     @discardableResult
     public func seek(to reference: any Reference) async -> Bool {
-        guard let targetIndex = readingOrderToGndOrderIndex[reference.href.string] else { return false }
-        guard let cursor = await loadDocumentCursor(at: targetIndex) else { return false }
-        guard cursor.seek(to: reference) else { return false }
+        guard
+            let targetIndex = readingOrderToGndOrderIndex[reference.href],
+            let cursor = await loadDocumentCursor(at: targetIndex),
+            cursor.seek(to: reference)
+        else {
+            return false
+        }
+
         gndIndex = targetIndex
         documentCursor = cursor
         return true
@@ -208,15 +214,14 @@ public final class GuidedNavigationCursor {
         documentCursor = await loadDocumentCursor(at: gndIndex)
     }
 
-    // MARK: - Private helpers
-
     private func loadDocumentCursor(at index: Int) async -> GuidedNavigationDocumentCursor? {
-        guard index >= 0, index < gndOrder.count else { return nil }
-        do {
-            guard let doc = try await provider.guidedNavigationDocument(at: gndOrder[index]) else { return nil }
-            return GuidedNavigationDocumentCursor(document: doc)
-        } catch {
+        guard
+            gndOrder.indices.contains(index),
+            let doc = try? await provider.guidedNavigationDocument(at: gndOrder[index])
+        else {
             return nil
         }
+
+        return GuidedNavigationDocumentCursor(document: doc)
     }
 }
