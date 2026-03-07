@@ -7,10 +7,10 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite("GuidedNavigationDocumentCursor") struct GuidedNavigationDocumentCursorTests {
+enum GuidedNavigationDocumentCursorTests {
     // MARK: - next()
 
-    @Suite("next()") struct Next {
+    struct Next {
         @Test func emptyDocument() {
             let cursor = GuidedNavigationDocumentCursor(document: gnd())
             #expect(cursor.next() == nil)
@@ -79,7 +79,7 @@ import Testing
 
     // MARK: - previous()
 
-    @Suite("previous()") struct Previous {
+    struct Previous {
         @Test func atStartReturnsNil() {
             let cursor = GuidedNavigationDocumentCursor(document: gnd(gno(audio: "a.mp3")))
             #expect(cursor.previous() == nil)
@@ -161,7 +161,7 @@ import Testing
 
     // MARK: - Round-trip
 
-    @Suite("round-trip") struct RoundTrip {
+    struct RoundTrip {
         @Test func forwardThenBackward() {
             // Full forward then full backward should yield items in reverse order.
             let d = gno(audio: "d.mp3")
@@ -187,7 +187,7 @@ import Testing
 
     // MARK: - seekToEnd()
 
-    @Suite("seekToEnd()") struct SeekToEnd {
+    struct SeekToEnd {
         @Test func emptyDocument() {
             let cursor = GuidedNavigationDocumentCursor(document: gnd())
             cursor.seekToEnd()
@@ -272,7 +272,7 @@ import Testing
 
     // MARK: - seek(to:)
 
-    @Suite("seek(to:)") struct Seek {
+    struct Seek {
         @Test func audioReference() throws {
             let href = try #require(AnyURL(string: "audio.mp3"))
             let a = gno(audio: "audio.mp3#t=0,1")
@@ -449,7 +449,7 @@ import Testing
 
     // MARK: - 5 — previous() ancestors across two sibling subtrees
 
-    @Suite("previous() ancestors across subtrees") struct PreviousAncestorsAcrossSubtrees {
+    struct PreviousAncestorsAcrossSubtrees {
         @Test func twoSubtrees() {
             // Tree: A → [B → [D, E], C → [F, G]]
             // DFS pre-order: A, B, D, E, C, F, G

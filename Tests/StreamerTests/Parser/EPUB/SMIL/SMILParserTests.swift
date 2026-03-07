@@ -9,7 +9,7 @@ import ReadiumShared
 @testable import ReadiumStreamer
 import Testing
 
-@Suite enum SMILParserTests {
+enum SMILParserTests {
     static let fixtures = Fixtures(path: "SMIL")
 
     /// Returns the parsed document for the given SMIL fixture filename.
@@ -24,7 +24,7 @@ import Testing
 
     // MARK: - par parsing
 
-    @Suite("par parsing") struct ParParsing {
+    struct ParParsing {
         @Test func basicParWithTextAndAudio() throws {
             let doc = try SMILParserTests.parse("basic.smil")
             #expect(doc != nil)
@@ -147,7 +147,7 @@ import Testing
 
     // MARK: - seq parsing
 
-    @Suite("seq parsing") struct SeqParsing {
+    struct SeqParsing {
         @Test func seqWithNoTypeGetsSequenceRole() throws {
             let doc = try SMILParserTests.parse("seq-types.smil")
             let noType = doc?.guided.first { $0.id == "s-no-type" }
@@ -212,7 +212,7 @@ import Testing
 
     // MARK: - epub:type mapping
 
-    @Suite("epub:type mapping") struct EpubTypeMapping {
+    struct EpubTypeMapping {
         @Test func pageListSpecialCase() throws {
             let doc = try SMILParserTests.parse("seq-types.smil")
             let pagelist = doc?.guided.first { $0.id == "s-pagelist" }
@@ -234,7 +234,7 @@ import Testing
 
     // MARK: - document-level
 
-    @Suite("document") struct DocumentParsing {
+    struct DocumentParsing {
         @Test func bodyChildrenBecomeTopLevelGuided() throws {
             let doc = try SMILParserTests.parse("basic.smil")
             // basic.smil has one top-level seq in the body
@@ -264,8 +264,8 @@ import Testing
     }
 
     /// https://www.w3.org/TR/SMIL/smil-timing.html#Timing-ClockValueSyntax
-    @Suite("parseClockValue") struct ParseClockValue {
-        @Suite("full clock: hh:mm:ss[.fraction]") struct FullClock {
+    enum ParseClockValue {
+        struct FullClock {
             @Test func basic() {
                 #expect(SMILParser.parseClockValue("1:32:29") == 5549.0)
             }
@@ -283,7 +283,7 @@ import Testing
             }
         }
 
-        @Suite("partial clock: mm:ss[.fraction]") struct PartialClock {
+        struct PartialClock {
             @Test func basic() {
                 #expect(SMILParser.parseClockValue("23:45") == 1425.0)
             }
@@ -301,7 +301,7 @@ import Testing
             }
         }
 
-        @Suite("timecount values") struct Timecount {
+        struct Timecount {
             @Test func hours() {
                 #expect(SMILParser.parseClockValue("2h") == 7200.0)
             }
@@ -344,7 +344,7 @@ import Testing
             }
         }
 
-        @Suite("whitespace handling") struct Whitespace {
+        struct Whitespace {
             @Test func leadingAndTrailingSpaces() {
                 #expect(SMILParser.parseClockValue("  30s  ") == 30.0)
             }
@@ -354,7 +354,7 @@ import Testing
             }
         }
 
-        @Suite("invalid input returns nil") struct Invalid {
+        struct Invalid {
             @Test func empty() {
                 #expect(SMILParser.parseClockValue("") == nil)
             }

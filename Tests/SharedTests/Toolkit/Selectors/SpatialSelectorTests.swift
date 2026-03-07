@@ -7,7 +7,7 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite("SpatialSelector") struct SpatialSelectorTests {
+struct SpatialSelectorTests {
     @Test("pixel default")
     func pixelDefault() {
         #expect(

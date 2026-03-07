@@ -7,8 +7,8 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite enum GuidedNavigationObjectTests {
-    @Suite("Parsing") struct Parsing {
+enum GuidedNavigationObjectTests {
+    struct Parsing {
         @Test("minimal JSON with only textref")
         func minimalTextref() throws {
             let sut = try GuidedNavigationObject(json: [
@@ -130,7 +130,7 @@ import Testing
         }
     }
 
-    @Suite("Refs") struct RefsTests {
+    struct RefsTests {
         @Test("parses all ref types from JSON")
         func parsesAllRefs() throws {
             let sut = try GuidedNavigationObject.Refs(json: [
@@ -164,7 +164,7 @@ import Testing
         }
     }
 
-    @Suite("Description") struct DescriptionTests {
+    struct DescriptionTests {
         @Test("parses description with text")
         func withText() throws {
             let sut = try GuidedNavigationObject.Description(json: [
@@ -195,7 +195,7 @@ import Testing
         }
     }
 
-    @Suite("Text") struct TextTests {
+    struct TextTests {
         @Test("returns nil when both plain and ssml are nil")
         func nilWhenBothNil() {
             let text = GuidedNavigationObject.Text()

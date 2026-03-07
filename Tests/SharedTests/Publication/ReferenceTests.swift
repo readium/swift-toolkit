@@ -9,8 +9,8 @@ import Testing
 
 private let href = AnyURL(string: "res.html")!
 
-@Suite("WebReference") struct WebReferenceTests {
-    @Suite("init") struct InitTests {
+enum WebReferenceTests {
+    struct InitTests {
         @Test("no fragment - no auto-selector") func noFragment() throws {
             let ref = try WebReference(href: #require(AnyURL(string: "res.html")))
             #expect(ref.cssSelector == nil)
@@ -52,7 +52,7 @@ private let href = AnyURL(string: "res.html")!
         }
     }
 
-    @Suite("isRefined") struct IsRefinedTests {
+    struct IsRefinedTests {
         @Test("bare href") func bareHref() {
             #expect(WebReference(href: href).isRefined == false)
         }
@@ -81,8 +81,8 @@ private let href = AnyURL(string: "res.html")!
     }
 }
 
-@Suite("AudioReference") struct AudioReferenceTests {
-    @Suite("init") struct InitTests {
+enum AudioReferenceTests {
+    struct InitTests {
         @Test("no fragment - no auto-selector") func noFragment() throws {
             let ref = try AudioReference(href: #require(AnyURL(string: "audio.mp3")))
             #expect(ref.temporal == nil)
@@ -108,7 +108,7 @@ private let href = AnyURL(string: "res.html")!
         }
     }
 
-    @Suite("isRefined") struct IsRefinedTests {
+    struct IsRefinedTests {
         @Test("no temporal") func noTemporal() {
             #expect(AudioReference(href: href).isRefined == false)
         }
@@ -135,8 +135,8 @@ private let href = AnyURL(string: "res.html")!
     }
 }
 
-@Suite("ImageReference") struct ImageReferenceTests {
-    @Suite("init") struct InitTests {
+enum ImageReferenceTests {
+    struct InitTests {
         @Test("no fragment - no auto-selector") func noFragment() throws {
             let ref = try ImageReference(href: #require(AnyURL(string: "img.jpg")))
             #expect(ref.spatial == nil)
@@ -162,7 +162,7 @@ private let href = AnyURL(string: "res.html")!
         }
     }
 
-    @Suite("isRefined") struct IsRefinedTests {
+    struct IsRefinedTests {
         @Test("no spatial") func noSpatial() {
             #expect(ImageReference(href: href).isRefined == false)
         }
@@ -174,8 +174,8 @@ private let href = AnyURL(string: "res.html")!
     }
 }
 
-@Suite("PDFReference") struct PDFReferenceTests {
-    @Suite("init") struct InitTests {
+enum PDFReferenceTests {
+    struct InitTests {
         @Test("no fragment - no auto-selector") func noFragment() throws {
             let ref = try PDFReference(href: #require(AnyURL(string: "doc.pdf")))
             #expect(ref.page == nil)
@@ -201,7 +201,7 @@ private let href = AnyURL(string: "res.html")!
         }
     }
 
-    @Suite("isRefined") struct IsRefinedTests {
+    struct IsRefinedTests {
         @Test("bare href") func bareHref() {
             #expect(PDFReference(href: href).isRefined == false)
         }

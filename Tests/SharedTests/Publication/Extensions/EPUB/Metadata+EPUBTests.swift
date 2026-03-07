@@ -7,9 +7,9 @@
 import ReadiumShared
 import Testing
 
-@Suite enum MetadataEPUBTests {
-    @Suite("EPUBMediaOverlay") enum EPUBMediaOverlayTests {
-        @Suite("JSON parsing") struct JSONParsing {
+enum MetadataEPUBTests {
+    enum EPUBMediaOverlayTests {
+        struct JSONParsing {
             @Test("full content")
             func fullContent() {
                 let sut = EPUBMediaOverlay(json: [
@@ -51,7 +51,7 @@ import Testing
             }
         }
 
-        @Suite("JSON encoding") struct JSONEncoding {
+        struct JSONEncoding {
             @Test("round-trip preserves all values")
             func roundTrip() {
                 let original = EPUBMediaOverlay(
@@ -70,7 +70,7 @@ import Testing
         }
     }
 
-    @Suite("Metadata.mediaOverlay accessor") struct MediaOverlayAccessorTests {
+    struct MediaOverlayAccessorTests {
         @Test("returns nil when absent")
         func returnsNilWhenAbsent() {
             let metadata = Metadata(title: "Test")

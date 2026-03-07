@@ -7,13 +7,13 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite("CSSSelector") struct CSSSelectorTests {
+struct CSSSelectorTests {
     @Test("id converted to CSS selector")
     func idToCSSSelector() {
         #expect(CSSSelector(fragment: "section1") == CSSSelector(cssSelector: "#section1"))
     }
 
-    @Suite("init(id:)") struct InitID {
+    struct InitID {
         @Test("produces hash-prefixed CSS selector")
         func producesHashPrefixedSelector() {
             #expect(CSSSelector(id: "section1") == CSSSelector(cssSelector: "#section1"))

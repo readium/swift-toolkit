@@ -8,10 +8,10 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum ReadResultDataTests {
+enum ReadResultDataTests {
     static let accessError: ReadError = .access(.fileSystem(.fileNotFound(nil)))
 
-    @Suite("decode") struct Decode {
+    struct Decode {
         @Test("success") func success() {
             let result: ReadResult<Data> = .success(Data([0x41, 0x42]))
             let decoded: ReadResult<String> = result.decode { String(data: $0, encoding: .utf8)! }
@@ -35,7 +35,7 @@ import Testing
         }
     }
 
-    @Suite("asString") struct AsString {
+    struct AsString {
         @Test("UTF-8 success") func utf8() throws {
             let result: ReadResult<Data> = try .success(#require("hello".data(using: .utf8)))
             #expect(result.asString() == .success("hello"))
@@ -57,7 +57,7 @@ import Testing
         }
     }
 
-    @Suite("asJSONObject") struct AsJSONObject {
+    struct AsJSONObject {
         @Test("valid JSON object") func valid() throws {
             let result: ReadResult<Data> = try .success(#require(#"{"key":"value"}"#.data(using: .utf8)))
             let decoded: ReadResult<[String: Any]> = result.asJSONObject()
@@ -86,10 +86,10 @@ import Testing
     }
 }
 
-@Suite enum ReadResultOptionalDataTests {
+enum ReadResultOptionalDataTests {
     static let accessError: ReadError = .access(.fileSystem(.fileNotFound(nil)))
 
-    @Suite("decode") struct Decode {
+    struct Decode {
         @Test("nil data passes through as success(nil)")
         func nilPassthrough() {
             let result: ReadResult<Data?> = .success(nil)
@@ -120,7 +120,7 @@ import Testing
         }
     }
 
-    @Suite("asString") struct AsString {
+    struct AsString {
         @Test("nil passthrough") func nilPassthrough() {
             let result: ReadResult<Data?> = .success(nil)
             #expect(result.asString() == .success(nil))
@@ -132,7 +132,7 @@ import Testing
         }
     }
 
-    @Suite("asJSONObject") struct AsJSONObject {
+    struct AsJSONObject {
         @Test("nil passthrough") func nilPassthrough() throws {
             let result: ReadResult<Data?> = .success(nil)
             let decoded: ReadResult<[String: Any]?> = result.asJSONObject()

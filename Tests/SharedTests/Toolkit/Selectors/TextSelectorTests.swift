@@ -7,7 +7,7 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite("TextSelector") struct TextSelectorTests {
+struct TextSelectorTests {
     @Test("simple start only")
     func simpleStartOnly() {
         #expect(TextSelector(fragment: ":~:text=hello") == .quote(TextQuote(start: "hello")))

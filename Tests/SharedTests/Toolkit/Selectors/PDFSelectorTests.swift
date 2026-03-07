@@ -7,7 +7,7 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite("PDFSelector") struct PDFSelectorTests {
+struct PDFSelectorTests {
     @Test("page only")
     func pageOnly() {
         #expect(PDFSelector(fragment: "page=3") == PDFSelector(page: 3))

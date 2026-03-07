@@ -8,8 +8,8 @@
 import ReadiumShared
 import Testing
 
-@Suite enum EPUBSpreadTests {
-    @Suite("Single pages") struct SinglePages {
+enum EPUBSpreadTests {
+    struct SinglePages {
         @Test("with an empty reading order")
         func emptyReadingOrder() {
             let pub = fxlPublication(readingOrder: [])
@@ -37,7 +37,7 @@ import Testing
         }
     }
 
-    @Suite("Dual pages") struct DualPages {
+    struct DualPages {
         @Test("never combines reflowable pages")
         func neverCombinesReflowable() {
             let pub = reflowablePublication(readingOrder: [
@@ -56,8 +56,8 @@ import Testing
             }
         }
 
-        @Suite("FXL") enum FXL {
-            @Suite("First page position") struct FirstPagePosition {
+        enum FXL {
+            struct FirstPagePosition {
                 @Test("defaults to center when no page property")
                 func firstPageDefaultsToCenter() {
                     let pub = fxlPublication(readingOrder: [
@@ -126,7 +126,7 @@ import Testing
                 }
             }
 
-            @Suite("Page pairing (LTR)") struct PairingLTR {
+            struct PairingLTR {
                 @Test("left + right pages are combined")
                 func leftRightCombined() {
                     let pub = fxlPublication(readingProgression: .ltr, readingOrder: [
@@ -218,7 +218,7 @@ import Testing
                 }
             }
 
-            @Suite("Page pairing (RTL)") struct PairingRTL {
+            struct PairingRTL {
                 @Test("right + left pages are combined")
                 func rightLeftCombined() {
                     let pub = fxlPublication(readingProgression: .rtl, readingOrder: [
@@ -268,8 +268,8 @@ import Testing
         }
     }
 
-    @Suite enum Properties {
-        @Suite struct SingleSpread {
+    enum Properties {
+        struct SingleSpread {
             @Test func readingOrderIndices() {
                 let spread = EPUBSpread.single(EPUBSingleSpread(
                     resource: EPUBSpreadResource(index: 3, link: link("p.html"))
@@ -294,7 +294,7 @@ import Testing
             }
         }
 
-        @Suite struct DoubleSpread {
+        struct DoubleSpread {
             @Test func readingOrderIndices() {
                 let spread = EPUBSpread.double(EPUBDoubleSpread(
                     first: EPUBSpreadResource(index: 2, link: link("p1.html")),
@@ -345,7 +345,7 @@ import Testing
         }
     }
 
-    @Suite struct PositionCount {
+    struct PositionCount {
         @Test("for a single spread")
         func single() {
             let readingOrder: ReadingOrder = [
@@ -404,7 +404,7 @@ import Testing
         }
     }
 
-    @Suite struct FirstIndexWithReadingOrderIndex {
+    struct FirstIndexWithReadingOrderIndex {
         @Test("finds the spread index containing a reading order index")
         func findsSpreadIndex() {
             let spreads: [EPUBSpread] = [

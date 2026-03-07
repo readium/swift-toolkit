@@ -7,7 +7,7 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite("TemporalSelector") struct TemporalSelectorTests {
+struct TemporalSelectorTests {
     @Test("position: start only")
     func positionStartOnly() {
         #expect(TemporalSelector(fragment: "t=10.0") == .position(TemporalPosition(time: 10)))
