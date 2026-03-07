@@ -6,9 +6,8 @@
 
 import Foundation
 
-/// A ``GuidedNavigationCursor`` that iterates over a single
-/// ``GuidedNavigationDocument`` in DFS pre-order.
-public final class GuidedNavigationDocumentCursor: GuidedNavigationCursor {
+/// Iterates over a single ``GuidedNavigationDocument`` in DFS pre-order.
+final class GuidedNavigationDocumentCursor {
     private let root: [GuidedNavigationObject]
 
     /// The last node returned by `next()`, or nil if before start.
@@ -23,18 +22,20 @@ public final class GuidedNavigationDocumentCursor: GuidedNavigationCursor {
     /// their respective `siblings[index]`.
     private var breadcrumbs: [(siblings: [GuidedNavigationObject], index: Int)] = []
 
-    public init(document: GuidedNavigationDocument) {
+    init(document: GuidedNavigationDocument) {
         root = document.guided
     }
 
     // MARK: - Iteration
 
-    public func next() -> GuidedNavigationNode? {
+    /// Returns the next node, or `nil` at the end.
+    func next() -> GuidedNavigationNode? {
         guard dfsNext() != nil else { return nil }
         return makeNode()
     }
 
-    public func previous() -> GuidedNavigationNode? {
+    /// Returns the previous node, or `nil` at the beginning.
+    func previous() -> GuidedNavigationNode? {
         guard current != nil else { return nil }
         let node = makeNode()
         dfsPrev()
@@ -124,8 +125,22 @@ public final class GuidedNavigationDocumentCursor: GuidedNavigationCursor {
 
     // MARK: - Seeking
 
+    /// Positions the cursor after the last node so that the next call to
+    /// ``previous()`` returns the last node in DFS order.
+    func seekToEnd() {
+        guard !root.isEmpty else { return }
+        let lastIdx = root.count - 1
+        breadcrumbs = [(root, lastIdx)]
+        current = root[lastIdx]
+        descendToLastLeaf()
+    }
+
+    /// Repositions the cursor so that the next call to ``next()`` returns the
+    /// node matching the given ``reference``.
+    ///
+    /// - Returns: Whether the reference could be resolved.
     @discardableResult
-    public func seek(to reference: any Reference) -> Bool {
+    func seek(to reference: any Reference) -> Bool {
         guard !root.isEmpty else { return false }
 
         var prev: GuidedNavigationObject? = nil

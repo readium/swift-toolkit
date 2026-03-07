@@ -35,7 +35,7 @@ import Testing
         }
 
         @Test func nestedTree() {
-            // Tree:  A → [B → [D, E], C]
+            // Tree:  [A → [B → [D, E]], C]
             // DFS pre-order: A, B, D, E, C
             let d = gno(audio: "d.mp3")
             let e = gno(audio: "e.mp3")
@@ -182,6 +182,91 @@ import Testing
             }
 
             #expect(backward == forward.reversed())
+        }
+    }
+
+    // MARK: - seekToEnd()
+
+    @Suite("seekToEnd()") struct SeekToEnd {
+        @Test func emptyDocument() {
+            let cursor = GuidedNavigationDocumentCursor(document: gnd())
+            cursor.seekToEnd()
+            #expect(cursor.previous() == nil)
+        }
+
+        @Test func singleNode() {
+            let a = gno(audio: "a.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a))
+            cursor.seekToEnd()
+            #expect(cursor.previous()?.object == a)
+            #expect(cursor.previous() == nil)
+        }
+
+        @Test func flatList() {
+            let a = gno(audio: "a.mp3")
+            let b = gno(audio: "b.mp3")
+            let c = gno(audio: "c.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, b, c))
+            cursor.seekToEnd()
+            #expect(cursor.previous()?.object == c)
+            #expect(cursor.previous()?.object == b)
+            #expect(cursor.previous()?.object == a)
+            #expect(cursor.previous() == nil)
+        }
+
+        @Test func nestedTree() {
+            // Tree: A → [B → [D, E], C]
+            // DFS pre-order: A, B, D, E, C — last node is C
+            let d = gno(audio: "d.mp3")
+            let e = gno(audio: "e.mp3")
+            let b = gno(audio: "b.mp3", children: [d, e])
+            let a = gno(audio: "a.mp3", children: [b])
+            let c = gno(audio: "c.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, c))
+            cursor.seekToEnd()
+
+            let nodeC = cursor.previous()
+            #expect(nodeC?.object == c)
+            #expect(nodeC?.ancestors == [])
+
+            let nodeE = cursor.previous()
+            #expect(nodeE?.object == e)
+            #expect(nodeE?.ancestors == [a, b])
+        }
+
+        @Test func matchesReversedForwardTraversal() {
+            // Full backward from end must match full forward in reverse.
+            let d = gno(audio: "d.mp3")
+            let e = gno(audio: "e.mp3")
+            let b = gno(audio: "b.mp3", children: [d, e])
+            let a = gno(audio: "a.mp3", children: [b])
+            let c = gno(audio: "c.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, c))
+
+            var forward: [GuidedNavigationObject] = []
+            while let node = cursor.next() {
+                forward.append(node.object)
+            }
+
+            cursor.seekToEnd()
+
+            var backward: [GuidedNavigationObject] = []
+            while let node = cursor.previous() {
+                backward.append(node.object)
+            }
+
+            #expect(backward == forward.reversed())
+        }
+
+        @Test func resetsStateAfterPartialNavigation() {
+            // seekToEnd() mid-traversal should fully reposition to the end.
+            let a = gno(audio: "a.mp3")
+            let b = gno(audio: "b.mp3")
+            let c = gno(audio: "c.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, b, c))
+            _ = cursor.next() // advance to A
+            cursor.seekToEnd()
+            #expect(cursor.previous()?.object == c)
         }
     }
 
