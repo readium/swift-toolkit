@@ -165,10 +165,12 @@ public final class GuidedNavigationPlaybackCursor: PlaybackCursor, Loggable {
         let link = publication.readingOrder[index]
         print("[GuidedNavigationPlaybackCursor] fetching GND for resource[\(index)]: \(link.href)")
         do {
-            let doc = try await publication.guidedNavigationDocument(for: link.url())
-            if doc == nil {
+            guard let gndHREF = publication.guidedNavigationDocumentHREF(for: link.url()) else {
                 print("[GuidedNavigationPlaybackCursor] no GND found for \(link.href)")
+                cachedItems[index] = []
+                return []
             }
+            let doc = try await publication.guidedNavigationDocument(at: gndHREF)
             let items = doc.map { makeItems(from: $0.guided) } ?? []
             print("[GuidedNavigationPlaybackCursor] resource[\(index)] \(link.href) → \(items.count) items")
 

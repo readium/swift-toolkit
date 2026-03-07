@@ -9,19 +9,11 @@ import Foundation
 public typealias GuidedNavigationServiceFactory = (PublicationServiceContext) -> GuidedNavigationService?
 
 /// Provides pre-authored ``GuidedNavigationDocument`` objects for individual
-/// reading order resources.
-public protocol GuidedNavigationService: PublicationService {
+/// reading order resources of a ``Publication``.
+public protocol GuidedNavigationService: PublicationService, GuidedNavigationDocumentProvider {
     /// Whether this publication has any pre-authored guided navigation
     /// documents at all.
     var hasGuidedNavigation: Bool { get }
-
-    /// Returns the HREF of the pre-authored ``GuidedNavigationDocument``
-    /// associated with the given reading order resource.
-    func guidedNavigationDocumentHREF(for readingOrderHREF: any URLConvertible) -> AnyURL?
-
-    /// Returns the pre-authored ``GuidedNavigationDocument`` at the given
-    /// `href`, or `nil` if none is found.
-    func guidedNavigationDocument(at href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument?
 }
 
 // MARK: Publication Helpers
