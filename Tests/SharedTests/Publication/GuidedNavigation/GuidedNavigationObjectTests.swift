@@ -39,7 +39,7 @@ enum GuidedNavigationObjectTests {
                 id: "obj1",
                 refs: .init(
                     text: WebReference(href: AnyURL(string: "chapter1.html")!),
-                    img: ImageReference(href: AnyURL(string: "page1.jpg")!),
+                    image: ImageReference(href: AnyURL(string: "page1.jpg")!),
                     audio: AudioReference(href: AnyURL(string: "audio.mp3#t=0,20")!),
                     video: VideoReference(href: AnyURL(string: "video.mp4#t=10,30")!)
                 ),
@@ -141,7 +141,7 @@ enum GuidedNavigationObjectTests {
             ])
             #expect(sut == GuidedNavigationObject.Refs(
                 text: WebReference(href: AnyURL(string: "chapter.html")!),
-                img: ImageReference(href: AnyURL(string: "page.jpg")!),
+                image: ImageReference(href: AnyURL(string: "page.jpg")!),
                 audio: AudioReference(href: AnyURL(string: "track.mp3")!),
                 video: VideoReference(href: AnyURL(string: "clip.mp4")!)
             ))
@@ -181,7 +181,7 @@ enum GuidedNavigationObjectTests {
                 "imgref": "desc.jpg",
             ])
             #expect(sut == GuidedNavigationObject.Description(
-                refs: .init(img: ImageReference(href: AnyURL(string: "desc.jpg")!))
+                refs: .init(image: ImageReference(href: AnyURL(string: "desc.jpg")!))
             ))
         }
 

@@ -516,7 +516,7 @@ private func gno(
     guard let obj = GuidedNavigationObject(
         refs: GuidedNavigationObject.Refs(
             text: textRef.flatMap { AnyURL(string: $0).map { WebReference(href: $0) } },
-            img: imgRef.flatMap { AnyURL(string: $0).map { ImageReference(href: $0) } },
+            image: imgRef.flatMap { AnyURL(string: $0).map { ImageReference(href: $0) } },
             audio: audio.flatMap { AnyURL(string: $0).map { AudioReference(href: $0) } }
         ),
         roles: roles,

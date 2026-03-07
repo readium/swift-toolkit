@@ -236,7 +236,7 @@ final class GuidedNavigationDocumentCursor {
     /// Returns `true` when `node` matches the given `reference`.
     private func matches(node: GuidedNavigationObject, reference: ImageReference) -> Bool {
         guard
-            let ref = node.refs?.img,
+            let ref = node.refs?.image,
             ref.href.string == reference.href.string
         else {
             return false

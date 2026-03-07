@@ -92,7 +92,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         public let text: WebReference?
 
         /// References an image or a fragment of it.
-        public let img: ImageReference?
+        public let image: ImageReference?
 
         /// References an audio resource or a fragment of it.
         public let audio: AudioReference?
@@ -102,16 +102,16 @@ public struct GuidedNavigationObject: Hashable, Sendable {
 
         public init?(
             text: WebReference? = nil,
-            img: ImageReference? = nil,
+            image: ImageReference? = nil,
             audio: AudioReference? = nil,
             video: VideoReference? = nil
         ) {
-            guard text != nil || img != nil || audio != nil || video != nil else {
+            guard text != nil || image != nil || audio != nil || video != nil else {
                 return nil
             }
 
             self.audio = audio
-            self.img = img
+            self.image = image
             self.text = text
             self.video = video
         }
@@ -125,11 +125,11 @@ public struct GuidedNavigationObject: Hashable, Sendable {
                 throw JSONError.parsing(Self.self)
             }
             let text = (json["textref"] as? String).flatMap(AnyURL.init(string:)).map { WebReference(href: $0) }
-            let img = (json["imgref"] as? String).flatMap(AnyURL.init(string:)).map { ImageReference(href: $0) }
+            let image = (json["imgref"] as? String).flatMap(AnyURL.init(string:)).map { ImageReference(href: $0) }
             let audio = (json["audioref"] as? String).flatMap(AnyURL.init(string:)).map { AudioReference(href: $0) }
             let video = (json["videoref"] as? String).flatMap(AnyURL.init(string:)).map { VideoReference(href: $0) }
 
-            self.init(text: text, img: img, audio: audio, video: video)
+            self.init(text: text, image: image, audio: audio, video: video)
         }
     }
 

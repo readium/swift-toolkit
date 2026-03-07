@@ -152,7 +152,7 @@ private struct SMILGuidedNavigationDocumentParsing {
 
         let refs = GuidedNavigationObject.Refs(
             text: WebReference(href: textURL),
-            img: imgRef,
+            image: imgRef,
             audio: audioRef,
             video: videoRef
         )

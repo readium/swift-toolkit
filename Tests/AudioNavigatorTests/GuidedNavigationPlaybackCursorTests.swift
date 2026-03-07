@@ -8,8 +8,9 @@
 import ReadiumShared
 import Testing
 
-@Suite struct GuidedNavigationCursorTests {
-    @Suite("next()") struct Next {
+@MainActor
+enum GuidedNavigationCursorTests {
+    @MainActor struct Next {
         @Test("flat GND returns items in order")
         func flatGNDInOrder() async throws {
             let doc = gnd(
@@ -179,7 +180,7 @@ import Testing
         }
     }
 
-    @Suite("previous()") struct Previous {
+    @MainActor struct Previous {
         @Test("reverses next()")
         func reversesNext() async throws {
             let doc = gnd(
@@ -296,7 +297,7 @@ import Testing
         }
     }
 
-    @Suite("seek(to:)") struct Seek {
+    @MainActor struct Seek {
         @Test("unrefined reference seeks to start of resource")
         func seekUnrefinedMovesToStart() async throws {
             let doc = gnd(
@@ -464,7 +465,7 @@ import Testing
         }
     }
 
-    @Suite("PlaybackItem conversion") struct Conversion {
+    @MainActor struct Conversion {
         @Test("enclosingRoles propagated from parent containers")
         func enclosingRolesPropagated() async {
             // chapter (roles: [.chapter]) contains
@@ -517,7 +518,7 @@ import Testing
             ))
 
             let item = await cursor.next()
-            let textAlt = item?.textAlternate as? WebReference
+            let textAlt = item?.readingOrderReference as? WebReference
 
             #expect(textAlt?.href == AnyURL(string: "chapter.html")!)
             #expect(textAlt?.cssSelector == CSSSelector(id: "section1"))
@@ -536,7 +537,7 @@ import Testing
 
             let item = await cursor.next()
 
-            let imgAlt = item?.imageAlternate as? ImageReference
+            let imgAlt = item?.readingOrderReference as? ImageReference
             #expect(imgAlt?.href == AnyURL(string: "page.jpg")!)
             #expect(imgAlt?.spatial == SpatialSelector(x: 10, y: 20, width: 100, height: 200, unit: .pixel))
         }
@@ -604,9 +605,9 @@ private func gno(
 ) -> GuidedNavigationObject {
     guard let obj = GuidedNavigationObject(
         refs: GuidedNavigationObject.Refs(
-            text: textRef.flatMap(AnyURL.init(string:)),
-            img: imgRef.flatMap(AnyURL.init(string:)),
-            audio: audio.flatMap(AnyURL.init(string:)),
+            text: textRef.flatMap { AnyURL(string: $0).map { WebReference(href: $0) } },
+            image: imgRef.flatMap { AnyURL(string: $0).map { ImageReference(href: $0) } },
+            audio: audio.flatMap { AnyURL(string: $0).map { AudioReference(href: $0) } },
             video: nil
         ),
         text: GuidedNavigationObject.Text(
@@ -656,11 +657,14 @@ private final class MockGuidedNavigationService: GuidedNavigationService {
         !gnds.isEmpty
     }
 
-    func hasGuidedNavigation(for href: any URLConvertible) -> Bool {
-        gnds[href.anyURL.string] != nil
+    /// The mock uses the reading order HREF as the GND HREF directly.
+    func guidedNavigationDocumentHREF(for readingOrderHREF: any URLConvertible) -> AnyURL? {
+        let key = readingOrderHREF.anyURL.removingFragment().string
+        guard gnds[key] != nil else { return nil }
+        return readingOrderHREF.anyURL.removingFragment()
     }
 
-    func guidedNavigationDocument(for href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument? {
+    func guidedNavigationDocument(at href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument? {
         let key = href.anyURL.removingFragment().string
         if failing.contains(key) {
             throw ReadError.access(AccessError.fileSystem(

@@ -45,7 +45,7 @@ enum SMILParserTests {
             #expect(p1?.id == "p1")
             #expect(p1?.refs?.text == WebReference(href: AnyURL(string: "OEBPS/chapter01.xhtml#id1")!))
             #expect(p1?.refs?.audio == AudioReference(href: AnyURL(string: "OEBPS/audio.mp3#t=0,5")!))
-            #expect(p1?.refs?.img == ImageReference(href: AnyURL(string: "OEBPS/figure1.jpg")!))
+            #expect(p1?.refs?.image == ImageReference(href: AnyURL(string: "OEBPS/figure1.jpg")!))
         }
 
         @Test func audioWithBothClipTimes() throws {
@@ -265,6 +265,7 @@ enum SMILParserTests {
 
     /// https://www.w3.org/TR/SMIL/smil-timing.html#Timing-ClockValueSyntax
     enum ParseClockValue {
+        /// Full clock: hh:mm:ss[.fraction]
         struct FullClock {
             @Test func basic() {
                 #expect(SMILParser.parseClockValue("1:32:29") == 5549.0)
@@ -283,6 +284,7 @@ enum SMILParserTests {
             }
         }
 
+        /// Partial clock: mm:ss[.fraction]
         struct PartialClock {
             @Test func basic() {
                 #expect(SMILParser.parseClockValue("23:45") == 1425.0)
