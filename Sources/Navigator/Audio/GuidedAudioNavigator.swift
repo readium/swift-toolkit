@@ -7,20 +7,20 @@
 import Foundation
 @preconcurrency import ReadiumShared
 
-/// Receives high-level playback events from an ``AudioNavigator``.
-@MainActor public protocol AudioNavigatorDelegate: AnyObject {
+/// Receives high-level playback events from an ``GuidedAudioNavigator``.
+@MainActor public protocol GuidedAudioNavigatorDelegate: AnyObject {
     /// Called when the navigator's playback status changes.
-    func navigator(_ navigator: AudioNavigator, didChangeStatus status: PlaybackStatus)
+    func navigator(_ navigator: GuidedAudioNavigator, didChangeStatus status: PlaybackStatus)
 
     /// Called when the actively narrated location changes.
     // FIXME: Periodic time observer?
-    func navigator(_ navigator: AudioNavigator, didChangeLocation location: any Location)
+    func navigator(_ navigator: GuidedAudioNavigator, didChangeLocation location: any Location)
 
     /// Called when an unrecoverable error occurs.
     ///
     /// The navigator transitions to ``PlaybackStatus/paused`` status. The
     /// delegate should surface the error to the user and may attempt to resume.
-    func navigator(_ navigator: AudioNavigator, didFailWithError error: Error)
+    func navigator(_ navigator: GuidedAudioNavigator, didFailWithError error: Error)
 }
 
 /// The reference frame for a time or duration query.
@@ -32,7 +32,7 @@ public enum TimeScope {
     case resource
 }
 
-/// The playback state of an ``AudioNavigator``.
+/// The playback state of an ``GuidedAudioNavigator``.
 public enum PlaybackStatus: Hashable {
     /// Playback is paused or has not yet started.
     case paused
@@ -47,7 +47,7 @@ public enum PlaybackStatus: Hashable {
 
 /// Coordinates audio playback of a publication by pulling ``PlaybackItem``s
 /// from a ``GuidedNavigationPlaybackCursor`` and routing them to the active ``Narrator``.
-@MainActor public final class AudioNavigator: Sendable {
+@MainActor public final class GuidedAudioNavigator: Sendable {
     /// Registers a block to be called at regular intervals while playing.
     ///
     /// - Parameters:
@@ -60,7 +60,7 @@ public enum PlaybackStatus: Hashable {
     ///   observer.
     public func addPeriodicTimeObserver(
         forInterval interval: TimeInterval = 0.5,
-        using block: @escaping (AudioNavigator) -> Void
+        using block: @escaping (GuidedAudioNavigator) -> Void
     ) -> Any {
         let id = UUID()
         periodicObservers[id] = { [weak self] in
@@ -79,7 +79,7 @@ public enum PlaybackStatus: Hashable {
     }
 
     /// Event callbacks for the navigator.
-    public weak var delegate: (any AudioNavigatorDelegate)?
+    public weak var delegate: (any GuidedAudioNavigatorDelegate)?
 
     /// The last activated ``PlaybackItem`` — the ground truth for the current
     /// playback position.
@@ -154,13 +154,13 @@ public enum PlaybackStatus: Hashable {
     /// appropriate ``Narrator``, and starts narration. Has no effect if the
     /// cursor is exhausted.
     public func play() {
-        print("[AudioNavigator] play() called")
+        print("[GuidedAudioNavigator] play() called")
         Task {
             guard let item = await cursor.next() else {
-                print("[AudioNavigator] play() — cursor returned nil, nothing to play")
+                print("[GuidedAudioNavigator] play() — cursor returned nil, nothing to play")
                 return
             }
-            print("[AudioNavigator] play() — got first item from cursor: \(item)")
+            print("[GuidedAudioNavigator] play() — got first item from cursor: \(item)")
             startNarrating(from: item)
         }
     }
@@ -310,7 +310,7 @@ private final class CompositeToken {
 
 // MARK: - NarratorDelegate
 
-extension AudioNavigator: NarratorDelegate {
+extension GuidedAudioNavigator: NarratorDelegate {
     public func narrator(_ narrator: any Narrator, didChangeStatus status: NarratorStatus) {
         guard narrator === activeNarrator else { return }
         delegate?.navigator(self, didChangeStatus: self.status)
@@ -325,7 +325,7 @@ extension AudioNavigator: NarratorDelegate {
             next = pending
         } else {
             guard let fetched = await cursor.next() else {
-                print("[AudioNavigator] nextItemAfter — cursor exhausted")
+                print("[GuidedAudioNavigator] nextItemAfter — cursor exhausted")
                 return nil
             }
             next = fetched
@@ -334,7 +334,7 @@ extension AudioNavigator: NarratorDelegate {
             // The item belongs to a different narrator type. Stash it so the
             // navigator can route it to the right narrator after the current
             // batch finishes, rather than consuming it from the cursor again.
-            print("[AudioNavigator] nextItemAfter — item not supported by narrator, holding as pending: \(next)")
+            print("[GuidedAudioNavigator] nextItemAfter — item not supported by narrator, holding as pending: \(next)")
             pendingItem = next
             return nil
         }
@@ -345,12 +345,12 @@ extension AudioNavigator: NarratorDelegate {
            case let .audio(nextRef) = next.content,
            !nextRef.href.isEquivalentTo(currentRef.href)
         {
-            print("[AudioNavigator] nextItemAfter — different href, holding as pending: \(next)")
+            print("[GuidedAudioNavigator] nextItemAfter — different href, holding as pending: \(next)")
             pendingItem = next
             return nil
         }
 
-        print("[AudioNavigator] nextItemAfter — returning item: \(next)")
+        print("[GuidedAudioNavigator] nextItemAfter — returning item: \(next)")
         return next
     }
 
@@ -358,11 +358,11 @@ extension AudioNavigator: NarratorDelegate {
         // Ignore stale callbacks from a narrator that was stopped and replaced.
         guard narrator === activeNarrator else { return }
         currentItem = item
-        print("[AudioNavigator] willPlayItem: \(item)")
+        print("[GuidedAudioNavigator] willPlayItem: \(item)")
     }
 
     public func narratorDidFinish(_ narrator: any Narrator) {
-        print("[AudioNavigator] narratorDidFinish")
+        print("[GuidedAudioNavigator] narratorDidFinish")
         guard narrator === activeNarrator else { return }
         if let pending = pendingItem {
             // An item was stashed (different resource or unsupported narrator type).

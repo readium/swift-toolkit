@@ -63,19 +63,6 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.navigator
       INFOPLIST_FILE: Info.plist
 
-  ReadiumAudioNavigator:
-    type: framework
-    platform: iOS
-    deploymentTarget: "15.0"
-    sources:
-      - path: ../../Sources/AudioNavigator
-    dependencies:
-      - target: ReadiumShared
-      - target: ReadiumNavigator
-    settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.audio-navigator
-      INFOPLIST_FILE: Info.plist
-
   ReadiumOPDS:
     type: framework
     platform: iOS
@@ -157,10 +144,6 @@ schemes:
     build:
       targets:
         ReadiumNavigator: all
-  ReadiumAudioNavigator:
-    build:
-      targets:
-        ReadiumAudioNavigator: all
   ReadiumOPDS:
     build:
       targets:

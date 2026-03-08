@@ -44,6 +44,8 @@ targets:
       - package: Readium
         product: ReadiumNavigator
       - package: Readium
+        product: ReadiumAudioNavigator
+      - package: Readium
         product: ReadiumAdapterGCDWebServer
       - package: Readium
         product: ReadiumOPDS

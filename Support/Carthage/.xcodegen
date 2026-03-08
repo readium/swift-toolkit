@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.44.1
+2.45.2
 
 # SPEC
 {
@@ -22,13 +22,6 @@
       "build" : {
         "targets" : {
           "ReadiumAdapterLCPSQLite" : "all"
-        }
-      }
-    },
-    "ReadiumAudioNavigator" : {
-      "build" : {
-        "targets" : {
-          "ReadiumAudioNavigator" : "all"
         }
       }
     },
@@ -122,28 +115,6 @@
       "sources" : [
         {
           "path" : "..\/..\/Sources\/Adapters\/LCPSQLite"
-        }
-      ],
-      "type" : "framework"
-    },
-    "ReadiumAudioNavigator" : {
-      "dependencies" : [
-        {
-          "target" : "ReadiumShared"
-        },
-        {
-          "target" : "ReadiumNavigator"
-        }
-      ],
-      "deploymentTarget" : "15.0",
-      "platform" : "iOS",
-      "settings" : {
-        "INFOPLIST_FILE" : "Info.plist",
-        "PRODUCT_BUNDLE_IDENTIFIER" : "org.readium.swift-toolkit.audio-navigator"
-      },
-      "sources" : [
-        {
-          "path" : "..\/..\/Sources\/AudioNavigator"
         }
       ],
       "type" : "framework"
@@ -337,17 +308,6 @@
 ../../Sources/Adapters/LCPSQLite/Database.swift
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPLicenseRepository.swift
 ../../Sources/Adapters/LCPSQLite/SQLiteLCPPassphraseRepository.swift
-../../Sources/AudioNavigator
-../../Sources/AudioNavigator/Audio
-../../Sources/AudioNavigator/Audio/AudioClip.swift
-../../Sources/AudioNavigator/Audio/AudioClipPlayer.swift
-../../Sources/AudioNavigator/Audio/AudioNarrator.swift
-../../Sources/AudioNavigator/Audio/DefaultAudioClipPlayer.swift
-../../Sources/AudioNavigator/AudioNavigator.swift
-../../Sources/AudioNavigator/GuidedNavigationCursor.swift
-../../Sources/AudioNavigator/Narrator.swift
-../../Sources/AudioNavigator/PlaybackCursor.swift
-../../Sources/AudioNavigator/PlaybackItem.swift
 ../../Sources/Internal
 ../../Sources/Internal/Extensions
 ../../Sources/Internal/Extensions/Array.swift
@@ -438,6 +398,16 @@
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
 ../../Sources/LCP/Toolkit/ReadResult.swift
 ../../Sources/Navigator
+../../Sources/Navigator/Audio
+../../Sources/Navigator/Audio/AudioClip
+../../Sources/Navigator/Audio/AudioClip/AudioClip.swift
+../../Sources/Navigator/Audio/AudioClip/AudioClipPlayer.swift
+../../Sources/Navigator/Audio/AudioClip/AudioNarrator.swift
+../../Sources/Navigator/Audio/AudioClip/DefaultAudioClipPlayer.swift
+../../Sources/Navigator/Audio/GuidedAudioNavigator.swift
+../../Sources/Navigator/Audio/Narrator.swift
+../../Sources/Navigator/Audio/PlaybackCursor.swift
+../../Sources/Navigator/Audio/PlaybackItem.swift
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
 ../../Sources/Navigator/Audiobook/Preferences
@@ -682,7 +652,11 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
 ../../Sources/Shared/Publication/GuidedNavigation
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationCursor.swift
 ../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationDocument.swift
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationDocumentCursor.swift
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationDocumentProvider.swift
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationNode.swift
 ../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationObject.swift
 ../../Sources/Shared/Publication/HREFNormalizer.swift
 ../../Sources/Shared/Publication/Layout.swift
