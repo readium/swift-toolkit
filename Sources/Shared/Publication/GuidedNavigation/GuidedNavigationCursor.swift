@@ -26,13 +26,19 @@ public final class GuidedNavigationCursor {
     /// deduplicated.
     private let gndOrder: [AnyURL]
 
-    /// Maps reading order HREF strings to their index in `gndOrder`.
-    private let readingOrderToGndOrderIndex: [AnyURL: Int]
-
     /// Current index in the `gndOrder`.
     ///
     /// -1 = before start, gndOrder.count = after end.
     private var gndIndex: Int = -1
+
+    /// Publication reading order, provided at construction.
+    private let readingOrder: [AnyURL]
+
+    /// Maps reading order HREF strings to their index in `gndOrder`.
+    private let readingOrderToGndOrderIndex: [AnyURL: Int]
+
+    /// Source of GND HREFs and ``GuidedNavigationDocument`` objects.
+    private let provider: any GuidedNavigationDocumentProvider
 
     /// Cursor over the nodes of the currently active GND.
     ///
@@ -40,8 +46,9 @@ public final class GuidedNavigationCursor {
     /// after the last document.
     private var documentCursor: GuidedNavigationDocumentCursor?
 
-    /// Source of GND HREFs and ``GuidedNavigationDocument`` objects.
-    private let provider: any GuidedNavigationDocumentProvider
+    /// Last node returned by ``next()`` or ``previous()``, nil before the
+    /// first call or after exhaustion.
+    private var lastNode: GuidedNavigationNode?
 
     /// Creates a cursor over the given reading order and document provider.
     ///
@@ -49,17 +56,18 @@ public final class GuidedNavigationCursor {
     ///   - readingOrder: Reading order used to derive the GND order.
     ///   - provider: Source of GND HREFs and documents.
     public init(
-        readingOrder: [Link],
+        readingOrder: [AnyURL],
         provider: any GuidedNavigationDocumentProvider
     ) {
+        let readingOrder = readingOrder.map(\.normalized)
+        self.readingOrder = readingOrder
         self.provider = provider
 
         var gndOrder: [AnyURL] = []
         var gndHREFToIndex: [AnyURL: Int] = [:]
         var readingOrderToGndOrderIndex: [AnyURL: Int] = [:]
 
-        for link in readingOrder {
-            let roHREF = link.anyURL.normalized
+        for roHREF in readingOrder {
             guard let gndHREF = provider.guidedNavigationDocumentHREF(for: roHREF)?.normalized else {
                 continue
             }
@@ -87,7 +95,7 @@ public final class GuidedNavigationCursor {
     /// - Returns: `nil` if the publication has no associated GNDs.
     public convenience init?(
         publication: Publication,
-        readingOrder: [Link]? = nil
+        readingOrder: [AnyURL]? = nil
     ) {
         guard
             let service = publication.findService(GuidedNavigationService.self),
@@ -97,7 +105,7 @@ public final class GuidedNavigationCursor {
         }
 
         self.init(
-            readingOrder: readingOrder ?? publication.readingOrder,
+            readingOrder: readingOrder ?? publication.readingOrder.map(\.anyURL),
             provider: service
         )
     }
@@ -123,12 +131,14 @@ public final class GuidedNavigationCursor {
 
         while gndIndex < gndOrder.count {
             if let node = documentCursor?.next() {
+                lastNode = node
                 return node
             }
             gndIndex += 1
             documentCursor = await loadDocumentCursor(at: gndIndex)
         }
 
+        lastNode = nil
         return nil
     }
 
@@ -149,6 +159,7 @@ public final class GuidedNavigationCursor {
 
         while gndIndex >= 0 {
             if let node = documentCursor?.previous() {
+                lastNode = node
                 return node
             }
 
@@ -157,6 +168,7 @@ public final class GuidedNavigationCursor {
             documentCursor?.seekToEnd()
         }
 
+        lastNode = nil
         return nil
     }
 
@@ -180,40 +192,90 @@ public final class GuidedNavigationCursor {
         return true
     }
 
-    /// Whether the cursor can skip to the next publication resource.
-    ///
-    /// `false` when the current node is the last one in the sequence, or when
-    /// no node referencing a different publication resource exists after the
-    /// current position.
-    public var canSkipToNextResource: Bool {
-        gndIndex >= 0 && gndIndex < gndOrder.count - 1
-    }
-
-    /// Advances the cursor to the first node that references a different
-    /// publication reading order resource than the node at the current
-    /// position.
-    public func skipToNextResource() async {
-        guard canSkipToNextResource else { return }
-        gndIndex += 1
-        documentCursor = await loadDocumentCursor(at: gndIndex)
-    }
-
-    /// Whether the cursor can skip to the previous publication resource.
-    ///
-    /// `false` when the cursor is at or before the first node.
+    /// Whether the cursor can skip to the previous Guided Navigation Document.
     public var canSkipToPreviousResource: Bool {
-        gndIndex > 0
+        lastNode != nil && gndIndex > 0
     }
 
     /// Retreats the cursor to the first node that references a different
     /// publication reading order resource than the node at the current
     /// position, scanning backward through the GND node sequence.
     public func skipToPreviousResource() async {
-        guard canSkipToPreviousResource else { return }
-        gndIndex -= 1
-        documentCursor = await loadDocumentCursor(at: gndIndex)
+        guard
+            let last = lastNode,
+            let current = readingOrderHREF(of: last.object)
+        else {
+            return
+        }
+
+        // Phase 1: go backward until a different resource is found.
+        var prev: AnyURL? = nil
+        while let node = await previous() {
+            if
+                let href = readingOrderHREF(of: node.object),
+                !current.isEquivalentTo(href)
+            {
+                prev = href
+                break
+            }
+        }
+        guard let prev else {
+            return
+        }
+
+        // Phase 2: keep going backward within prevRes to find its first node.
+        while let node = await previous() {
+            if
+                let href = readingOrderHREF(of: node.object),
+                !prev.isEquivalentTo(href)
+            {
+                _ = await next() // overshot — restore forward by one
+                return
+            }
+        }
     }
 
+    /// Whether the cursor can skip to the next Guided Navigation Document.
+    public var canSkipToNextResource: Bool {
+        lastNode != nil && gndIndex < gndOrder.count - 1
+    }
+
+    /// Advances the cursor to the first node that references a different
+    /// publication reading order resource than the node at the current
+    /// position.
+    public func skipToNextResource() async {
+        guard
+            let last = lastNode,
+            let current = readingOrderHREF(of: last.object)
+        else {
+            return
+        }
+
+        while let node = await next() {
+            if
+                let href = readingOrderHREF(of: node.object),
+                !current.isEquivalentTo(href)
+            {
+                _ = await previous() // step back so next() re-returns this node
+                return
+            }
+        }
+
+        // reached end — stay exhausted
+    }
+
+    // MARK: - Helpers
+
+    /// Returns the reading order resource HREF for `object`.
+    private func readingOrderHREF(of object: GuidedNavigationObject) -> AnyURL? {
+        readingOrder.firstMemberFrom(
+            object.refs?.text?.href,
+            object.refs?.image?.href,
+            object.refs?.audio?.href
+        )
+    }
+
+    /// Loads the GND document at `index` and returns a fresh document cursor.
     private func loadDocumentCursor(at index: Int) async -> GuidedNavigationDocumentCursor? {
         guard
             gndOrder.indices.contains(index),
@@ -221,7 +283,6 @@ public final class GuidedNavigationCursor {
         else {
             return nil
         }
-
         return GuidedNavigationDocumentCursor(document: doc)
     }
 }

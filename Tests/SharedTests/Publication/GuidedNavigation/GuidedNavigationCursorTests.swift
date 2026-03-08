@@ -393,116 +393,223 @@ enum GuidedNavigationCursorTests {
     }
 
     struct SkipToNextResource {
-        @Test func canSkipIsFalseAtStart() {
-            let cursor = makeCursor(
-                readingOrder: ["ch1.html", "ch2.html"],
-                gnds: [
-                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "a.mp3"))),
-                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "b.mp3"))),
-                ]
-            )
+        @Test func returnsFalseForEmptyCursor() {
+            let cursor = makeCursor(readingOrder: [], gnds: [:])
             #expect(!cursor.canSkipToNextResource)
         }
 
-        @Test func canSkipIsTrueOnFirstOfTwo() async {
+        @Test func returnsFalseInSingleResourceGND() async {
+            let a = gno(audioRef: "audio.mp3#t=0,1", textRef: "ch.html#p1")
+            let b = gno(audioRef: "audio.mp3#t=1,2", textRef: "ch.html#p2")
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(a, b))]
+            )
+            // At initial state.
+            #expect(!cursor.canSkipToNextResource)
+            // In the middle.
+            _ = await cursor.next()
+            #expect(!cursor.canSkipToNextResource)
+        }
+
+        // This is not supported because too costly to compute. We simplify
+        // by only checking whether there is a GND after the current one.
+//        @Test func returnsFalseWhenBothGNDsReferenceTheSameResource() async {
+//            // Two distinct GNDs, but every node references the same reading
+//            // order resource (ch1.html); there is no "next different resource"
+//            // to skip to.
+//            let cursor = makeCursor(
+//                readingOrder: ["ch1.html", "ch2.html"],
+//                gnds: [
+//                    "ch1.html": ("gnd1.json", gnd(
+//                        gno(audioRef: "audio.mp3#t=0,1", textRef: "ch1.html#p1"),
+//                        gno(audioRef: "audio.mp3#t=1,2", textRef: "ch1.html#p2")
+//                    )),
+//                    "ch2.html": ("gnd2.json", gnd(
+//                        gno(audioRef: "audio.mp3#t=2,3", textRef: "ch1.html#p3")
+//                    )),
+//                ]
+//            )
+//            _ = await cursor.next()
+//            #expect(!cursor.canSkipToNextResource)
+//        }
+
+        @Test func returnsFalseWhenExhausted() async {
             let cursor = makeCursor(
                 readingOrder: ["ch1.html", "ch2.html"],
                 gnds: [
-                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "a.mp3"))),
-                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "b.mp3"))),
+                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1"))),
+                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1"))),
                 ]
             )
-            _ = await cursor.next()
+            _ = await cursor.next() // a
+            _ = await cursor.next() // b
+            _ = await cursor.next() // nil — cursor past the end
+            #expect(!cursor.canSkipToNextResource)
+        }
+
+        // This is not supported because too costly to compute. We simplify
+        // by only checking whether there is a GND after the current one.
+//        @Test func singleGNDSpanningTwoResources() async {
+//            // One GND covers two reading order resources.
+//            let a1 = gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1")
+//            let a2 = gno(audioRef: "audio1.mp3#t=1,2", textRef: "ch1.html#p2")
+//            let b1 = gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1")
+//            let b2 = gno(audioRef: "audio2.mp3#t=1,2", textRef: "ch2.html#p2")
+//            let doc = gnd(a1, a2, b1, b2)
+//            let cursor = makeCursor(
+//                readingOrder: ["ch1.html", "ch2.html"],
+//                gnds: [
+//                    "ch1.html": ("gnd.json", doc),
+//                    "ch2.html": ("gnd.json", doc),
+//                ]
+//            )
+//            _ = await cursor.next() // a1 — references ch1.html
+//            #expect(cursor.canSkipToNextResource)
+//            _ = await cursor.next() // a2 — references ch1.html
+//            #expect(cursor.canSkipToNextResource)
+//            _ = await cursor.next() // b1 — references ch2.html, no further resource
+//            #expect(!cursor.canSkipToNextResource)
+//        }
+
+        @Test func multipleGNDsEachWithDistinctResource() async {
+            let a1 = gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1")
+            let a2 = gno(audioRef: "audio1.mp3#t=1,2", textRef: "ch1.html#p2")
+            let b1 = gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1")
+            let b2 = gno(audioRef: "audio2.mp3#t=1,2", textRef: "ch2.html#p2")
+            let cursor = makeCursor(
+                readingOrder: ["ch1.html", "ch2.html"],
+                gnds: [
+                    "ch1.html": ("gnd1.json", gnd(a1, a2)),
+                    "ch2.html": ("gnd2.json", gnd(b1, b2)),
+                ]
+            )
+            _ = await cursor.next() // a1 — in gnd1, not the last GND
             #expect(cursor.canSkipToNextResource)
-        }
-
-        @Test func canSkipIsFalseOnLastGND() async {
-            let cursor = makeCursor(
-                readingOrder: ["ch1.html", "ch2.html"],
-                gnds: [
-                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "a.mp3"))),
-                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "b.mp3"))),
-                ]
-            )
-            _ = await cursor.next()
-            _ = await cursor.next()
+            _ = await cursor.next() // a2 — in gnd1, not the last GND
+            #expect(cursor.canSkipToNextResource)
+            _ = await cursor.next() // b1 — in gnd2, the last GND
             #expect(!cursor.canSkipToNextResource)
         }
 
-        @Test func canSkipIsFalseWhenExhausted() async {
+        @Test func skipsToFirstNodeOfNextResourceAcrossGNDs() async {
+            let a1 = gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1")
+            let a2 = gno(audioRef: "audio1.mp3#t=1,2", textRef: "ch1.html#p2")
+            let b1 = gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1")
+            let b2 = gno(audioRef: "audio2.mp3#t=1,2", textRef: "ch2.html#p2")
             let cursor = makeCursor(
                 readingOrder: ["ch1.html", "ch2.html"],
                 gnds: [
-                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "a.mp3"))),
-                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "b.mp3"))),
+                    "ch1.html": ("gnd1.json", gnd(a1, a2)),
+                    "ch2.html": ("gnd2.json", gnd(b1, b2)),
                 ]
             )
-            _ = await cursor.next()
-            _ = await cursor.next()
-            _ = await cursor.next() // exhaust
-            #expect(!cursor.canSkipToNextResource)
+            _ = await cursor.next() // a1
+            await cursor.skipToNextResource()
+            // Must land on b1, not a2.
+            #expect(await cursor.next()?.object == b1)
         }
 
-        @Test func skipPositionsBeforeFirstNodeOfNextGND() async {
-            let a = gno(audioRef: "a.mp3")
-            let b = gno(audioRef: "b.mp3")
+        @Test func skipsToFirstNodeOfNextResourceInSingleGND() async {
+            // Same GND covers both resources; skip must land on the first node
+            // of ch2.html, bypassing the second node of ch1.html.
+            let a1 = gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1")
+            let a2 = gno(audioRef: "audio1.mp3#t=1,2", textRef: "ch1.html#p2")
+            let b = gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1")
+            let doc = gnd(a1, a2, b)
             let cursor = makeCursor(
                 readingOrder: ["ch1.html", "ch2.html"],
                 gnds: [
-                    "ch1.html": ("gnd1.json", gnd(a)),
-                    "ch2.html": ("gnd2.json", gnd(b)),
+                    "ch1.html": ("gnd.json", doc),
+                    "ch2.html": ("gnd.json", doc),
                 ]
             )
-            _ = await cursor.next() // positions on first GND
+            _ = await cursor.next() // a1
             await cursor.skipToNextResource()
             #expect(await cursor.next()?.object == b)
         }
     }
 
     struct SkipToPreviousResource {
-        @Test func canSkipIsFalseAtStartAndOnFirstGND() async {
-            let cursor = makeCursor(
-                readingOrder: ["ch1.html", "ch2.html"],
-                gnds: [
-                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "a.mp3"))),
-                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "b.mp3"))),
-                ]
-            )
-            #expect(!cursor.canSkipToPreviousResource)
-            _ = await cursor.next()
+        @Test func returnsFalseForEmptyCursor() {
+            let cursor = makeCursor(readingOrder: [], gnds: [:])
             #expect(!cursor.canSkipToPreviousResource)
         }
 
-        @Test func canSkipIsTrueOnSecondGND() async {
+        @Test func returnsFalseInSingleResourceGND() async {
+            let a = gno(audioRef: "audio.mp3#t=0,1", textRef: "ch.html#p1")
+            let b = gno(audioRef: "audio.mp3#t=1,2", textRef: "ch.html#p2")
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(a, b))]
+            )
+            // At initial state.
+            #expect(!cursor.canSkipToPreviousResource)
+            // In the middle.
+            _ = await cursor.next()
+            #expect(!cursor.canSkipToPreviousResource)
+        }
+
+        // This is not supported because too costly to compute. We simplify
+        // by only checking whether there is a GND before the current one.
+//        @Test func returnsFalseWhenBothGNDsReferenceTheSameResource() async {
+//            let cursor = makeCursor(
+//                readingOrder: ["ch1.html", "ch2.html"],
+//                gnds: [
+//                    "ch1.html": ("gnd1.json", gnd(
+//                        gno(audioRef: "audio.mp3#t=0,1", textRef: "ch1.html#p1"),
+//                        gno(audioRef: "audio.mp3#t=1,2", textRef: "ch1.html#p2")
+//                    )),
+//                    "ch2.html": ("gnd2.json", gnd(
+//                        gno(audioRef: "audio.mp3#t=2,3", textRef: "ch1.html#p3")
+//                    )),
+//                ]
+//            )
+//            _ = await cursor.next() // gnd1, node 1
+//            _ = await cursor.next() // gnd1, node 2
+//            _ = await cursor.next() // gnd2, node — still ch1.html
+//            // At the end; no different resource ever appeared before us.
+//            #expect(!cursor.canSkipToPreviousResource)
+//        }
+
+        @Test func returnsFalseWhenExhausted() async {
             let cursor = makeCursor(
                 readingOrder: ["ch1.html", "ch2.html"],
                 gnds: [
-                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "a.mp3"))),
-                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "b.mp3"))),
+                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1"))),
+                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1"))),
                 ]
             )
-            _ = await cursor.next()
-            _ = await cursor.next()
-            #expect(cursor.canSkipToPreviousResource)
+            _ = await cursor.next() // a
+            _ = await cursor.next() // b
+            _ = await cursor.previous() // b
+            _ = await cursor.previous() // a
+            _ = await cursor.previous() // nil — cursor before the beginning
+            #expect(!cursor.canSkipToPreviousResource)
         }
 
-        @Test func canSkipToPreviousResourceAfterExhausting() async {
-            let cursor = makeCursor(
-                readingOrder: ["ch1.html", "ch2.html"],
-                gnds: [
-                    "ch1.html": ("gnd1.json", gnd(gno(audioRef: "a.mp3"))),
-                    "ch2.html": ("gnd2.json", gnd(gno(audioRef: "b.mp3"))),
-                ]
-            )
-            _ = await cursor.next()
-            _ = await cursor.next()
-            _ = await cursor.next() // exhaust
-            #expect(cursor.canSkipToPreviousResource)
-        }
+        // This is not supported because too costly to compute. We simplify
+        // by only checking whether there is a GND before the current one.
+//        @Test func singleGNDSpanningTwoResources() async {
+//            let a = gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1")
+//            let b = gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1")
+//            let doc = gnd(a, b)
+//            let cursor = makeCursor(
+//                readingOrder: ["ch1.html", "ch2.html"],
+//                gnds: [
+//                    "ch1.html": ("gnd.json", doc),
+//                    "ch2.html": ("gnd.json", doc),
+//                ]
+//            )
+//            _ = await cursor.next() // a — references ch1.html, nothing different before
+//            #expect(!cursor.canSkipToPreviousResource)
+//            _ = await cursor.next() // b — references ch2.html, ch1.html is before
+//            #expect(cursor.canSkipToPreviousResource)
+//        }
 
-        @Test func skipPositionsBeforeFirstNodeOfPreviousGND() async {
-            let a = gno(audioRef: "a.mp3")
-            let b = gno(audioRef: "b.mp3")
+        @Test func multipleGNDsEachWithDistinctResource() async {
+            let a = gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1")
+            let b = gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1")
             let cursor = makeCursor(
                 readingOrder: ["ch1.html", "ch2.html"],
                 gnds: [
@@ -510,8 +617,50 @@ enum GuidedNavigationCursorTests {
                     "ch2.html": ("gnd2.json", gnd(b)),
                 ]
             )
+            _ = await cursor.next() // a — in gnd1, the first GND
+            #expect(!cursor.canSkipToPreviousResource)
+            _ = await cursor.next() // b — in gnd2, gnd1 is before
+            #expect(cursor.canSkipToPreviousResource)
+        }
+
+        @Test func skipsToFirstNodeOfPreviousResourceAcrossGNDs() async {
+            let a1 = gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1")
+            let a2 = gno(audioRef: "audio1.mp3#t=1,2", textRef: "ch1.html#p2")
+            let b1 = gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1")
+            let b2 = gno(audioRef: "audio2.mp3#t=1,2", textRef: "ch2.html#p2")
+            let cursor = makeCursor(
+                readingOrder: ["ch1.html", "ch2.html"],
+                gnds: [
+                    "ch1.html": ("gnd1.json", gnd(a1, a2)),
+                    "ch2.html": ("gnd2.json", gnd(b1, b2)),
+                ]
+            )
+            _ = await cursor.next() // a1
+            _ = await cursor.next() // a2
+            _ = await cursor.next() // b1
+            _ = await cursor.next() // b2 — positioned on b2
+            await cursor.skipToPreviousResource()
+            // Must land on a1, not b1 or a2.
+            #expect(await cursor.next()?.object == a1)
+        }
+
+        @Test func skipsToFirstNodeOfPreviousResourceInSingleGND() async {
+            // Same GND covers both resources; skip back must land on the first
+            // node of ch1.html, not on b1 (second node of ch2.html).
+            let a = gno(audioRef: "audio1.mp3#t=0,1", textRef: "ch1.html#p1")
+            let b1 = gno(audioRef: "audio2.mp3#t=0,1", textRef: "ch2.html#p1")
+            let b2 = gno(audioRef: "audio2.mp3#t=1,2", textRef: "ch2.html#p2")
+            let doc = gnd(a, b1, b2)
+            let cursor = makeCursor(
+                readingOrder: ["ch1.html", "ch2.html"],
+                gnds: [
+                    "ch1.html": ("gnd.json", doc),
+                    "ch2.html": ("gnd.json", doc),
+                ]
+            )
             _ = await cursor.next() // a
-            _ = await cursor.next() // b
+            _ = await cursor.next() // b1
+            _ = await cursor.next() // b2 — positioned on b2
             await cursor.skipToPreviousResource()
             #expect(await cursor.next()?.object == a)
         }
@@ -563,7 +712,7 @@ private func makeCursor(
     }
 
     let provider = MockProvider(gnds: gndMap, roMap: roMap, failing: failing)
-    let links = readingOrder.map { Link(href: $0) }
+    let links = readingOrder.map { AnyURL(string: $0)! }
     return GuidedNavigationCursor(readingOrder: links, provider: provider)
 }
 

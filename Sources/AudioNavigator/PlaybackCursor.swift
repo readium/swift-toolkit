@@ -240,7 +240,7 @@ public final class GuidedNavigationPlaybackCursor: PlaybackCursor, Loggable {
             // EPUB with Media Overlays
             readingOrderReference = textRef
 
-        } else if let imgRef = object.refs?.img {
+        } else if let imgRef = object.refs?.image {
             // Divina with GND
             readingOrderReference = imgRef
         } else if case let .audio(audioRef) = content {
