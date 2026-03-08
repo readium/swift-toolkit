@@ -13,7 +13,7 @@ import Foundation
 /// the first node. ``previous()`` retreats one node and returns it, so
 /// alternating ``next()`` / ``previous()`` always returns the same node.
 /// Both methods cross GND boundaries transparently.
-public final class GuidedNavigationCursor {
+@MainActor public final class GuidedNavigationCursor: Sendable {
     /// Guided Navigation Documents order.
     ///
     /// GNDs do not follow the publication reading order one-to-one. A single
