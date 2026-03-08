@@ -45,10 +45,11 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
 
     /// Plays the given clip immediately, replacing any current playback.
     ///
-    /// The player plays from `clip.start` to `clip.end` (or the end of the
-    /// file when `end` is `nil`), firing
-    /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didReachMarker:)`` as each marker
-    /// position is passed.
+    /// The player plays from the first segment's start to the last segment's
+    /// end (or the end of the file when `end` is `nil`), firing
+    /// ``AudioClipPlayerDelegate/audioClipPlayer(_:willStartSegmentAt:in:)`` and
+    /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didFinishSegmentAt:in:)`` at each
+    /// segment boundary.
     func play(_ clip: AudioClip)
 
     /// Pauses playback.
@@ -62,14 +63,10 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
 
     /// Seeks to the given position within the current clip, in seconds.
     ///
-    /// Any markers between the current position and `time` are skipped without
-    /// firing. If `time` is past the clip's `end`, the player behaves as if
-    /// the clip finished naturally and fires
+    /// Any segment observers between the current position and `time` are
+    /// skipped without firing. If `time` is past the clip's last segment end,
+    /// the player behaves as if the clip finished naturally and fires
     /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didFinishPlaying:)``.
-    ///
-    /// This may be called from within a
-    /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didReachMarker:)`` callback,
-    /// for example to skip a gap to the start of the next playback item.
     func seek(to time: TimeInterval)
 
     // MARK: - Preparation
@@ -91,12 +88,17 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
     /// The player calls this to open a publication resource by link.
     func audioClipPlayer(_ player: any AudioClipPlayer, resourceFor link: Link) throws -> Resource
 
-    /// Called when the player finishes playing a clip, either because it
-    /// reached `clip.end` or because `seek(to:)` was called past that point.
-    func audioClipPlayer(_ player: any AudioClipPlayer, didFinishPlaying clip: AudioClip)
+    /// Called when playback will begin playing the segment at the given `index`
+    /// in the `clip`.
+    func audioClipPlayer(_ player: any AudioClipPlayer, willStartSegmentAt index: Int, in clip: AudioClip)
 
-    /// Called when playback reaches a marker position within the current clip.
-    func audioClipPlayer(_ player: any AudioClipPlayer, didReachMarker marker: AudioClip.Marker)
+    /// Called when playback reaches the end of the segment at the given `index`
+    /// in the `clip`.
+    func audioClipPlayer(_ player: any AudioClipPlayer, didFinishSegmentAt index: Int, in clip: AudioClip)
+
+    /// Called when the player finishes playing a clip, either because it
+    /// reached the last segment's end or because `seek(to:)` was called past that point.
+    func audioClipPlayer(_ player: any AudioClipPlayer, didFinishPlaying clip: AudioClip)
 
     /// Called when the player's playback status changes.
     func audioClipPlayer(_ player: any AudioClipPlayer, didChangeStatus status: AudioClipPlayerStatus)

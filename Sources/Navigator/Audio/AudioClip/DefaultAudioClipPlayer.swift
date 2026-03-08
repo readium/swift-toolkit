@@ -48,13 +48,18 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
         return duration
     }
 
-    override public init() {
+    /// - Parameter segmentGapSeekThreshold: Minimum gap duration in seconds
+    ///   between a segment's `end` and the next segment's `start` before the
+    ///   player seeks over the gap rather than letting it play through.
+    public init(segmentGapSeekThreshold: TimeInterval = 1) {
+        self.segmentGapSeekThreshold = segmentGapSeekThreshold
         super.init()
         player.automaticallyWaitsToMinimizeStalling = false
         addPlayerObservers(on: player)
     }
 
     private let player = AVPlayer()
+    private let segmentGapSeekThreshold: TimeInterval
     private lazy var resourceLoader = ResourceLoaderDelegate(player: self)
 
     private typealias Item = (clip: AudioClip, item: AVPlayerItem)
@@ -73,7 +78,7 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
     private var playWhenReady = false
 
     /// Opaque tokens returned by `addBoundaryTimeObserver`.
-    private var markerObservers: [Any] = []
+    private var segmentObservers: [Any] = []
 
     /// Blocks registered via `addPeriodicTimeObserver`, keyed by UUID so they
     /// can be removed when the token is released.
@@ -121,9 +126,13 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             toleranceAfter: .zero
         ) { [weak self] finished in
             Task { @MainActor [weak self] in
-                if finished, let self, self.playWhenReady {
-                    self.player.play()
+                guard finished, let self, self.playWhenReady else {
+                    return
                 }
+                if !clip.segments.isEmpty {
+                    self.delegate?.audioClipPlayer(self, willStartSegmentAt: 0, in: clip)
+                }
+                self.player.play()
             }
         }
     }
@@ -166,14 +175,14 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
         player.pause()
         playWhenReady = false
 
-        removeMarkerObservers()
+        removeSegmentObservers()
 
         currentItem = item
         player.replaceCurrentItem(with: item?.item)
 
         if let item = item {
             status = .paused
-            addMarkerObservers(for: item.clip.markers)
+            addSegmentObservers(for: item.clip)
         } else {
             status = .idle
         }
@@ -237,6 +246,9 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
         replaceCurrentItem(nil)
 
         if let item = finishedItem {
+            if let lastIndex = item.clip.segments.indices.last {
+                delegate?.audioClipPlayer(self, didFinishSegmentAt: lastIndex, in: item.clip)
+            }
             delegate?.audioClipPlayer(self, didFinishPlaying: item.clip)
         }
     }
@@ -256,27 +268,69 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
         }
     }
 
-    private func addMarkerObservers(for markers: [AudioClip.Marker]) {
-        for marker in markers {
-            // One observer per marker so the marker is captured directly,
-            // avoiding an async time-proximity lookup that can miss under
-            // main-thread load.
-            let time = NSValue(time: makeTime(seconds: marker.time))
-            let token = player.addBoundaryTimeObserver(forTimes: [time], queue: .main) { [weak self, marker] in
-                MainActor.assumeIsolated {
-                    guard let self else { return }
-                    self.delegate?.audioClipPlayer(self, didReachMarker: marker)
+    private func addSegmentObservers(for clip: AudioClip) {
+        for (i, segment) in clip.segments.enumerated() {
+            guard let nextStart = clip.segments.getOrNil(i + 1)?.start else {
+                // The last segment's didFinishSegmentAt is fired in
+                // didPlayToEndTime.
+                continue
+            }
+
+            if
+                let end = segment.end,
+                nextStart - end >= segmentGapSeekThreshold
+            {
+                // The gap between this segment's end and the next segment's
+                // start exceeds the threshold. Observe the end time: fire
+                // didFinish, seek over the gap, then fire willStart after the
+                // seek lands.
+                addSegmentObserver(at: end) { [weak self] in
+                    guard let self, let item = self.currentItem else { return }
+
+                    self.delegate?.audioClipPlayer(self, didFinishSegmentAt: i, in: item.clip)
+
+                    let capturedItem = item
+                    self.player.seek(
+                        to: self.makeTime(seconds: nextStart),
+                        toleranceBefore: .zero,
+                        toleranceAfter: .zero
+                    ) { [weak self] finished in
+                        guard finished else { return }
+
+                        Task { @MainActor [weak self] in
+                            guard let self, self.currentItem?.item == capturedItem.item else { return }
+                            self.delegate?.audioClipPlayer(self, willStartSegmentAt: i + 1, in: item.clip)
+                        }
+                    }
+                }
+
+            } else {
+                // Contiguous segments – observe at the next segment's start time.
+                addSegmentObserver(at: nextStart) { [weak self] in
+                    guard let self, let item = self.currentItem else { return }
+                    self.delegate?.audioClipPlayer(self, didFinishSegmentAt: i, in: item.clip)
+                    self.delegate?.audioClipPlayer(self, willStartSegmentAt: i + 1, in: item.clip)
                 }
             }
-            markerObservers.append(token)
         }
     }
 
-    private func removeMarkerObservers() {
-        for observer in markerObservers {
+    private func addSegmentObserver(at time: TimeInterval, _ block: @MainActor @escaping () -> Void) {
+        let timeValue = NSValue(time: makeTime(seconds: time))
+        let token = player.addBoundaryTimeObserver(forTimes: [timeValue], queue: .main) {
+            MainActor.assumeIsolated {
+                block()
+            }
+        }
+
+        segmentObservers.append(token)
+    }
+
+    private func removeSegmentObservers() {
+        for observer in segmentObservers {
             player.removeTimeObserver(observer)
         }
-        markerObservers = []
+        segmentObservers = []
     }
 
     // MARK: - Helpers
