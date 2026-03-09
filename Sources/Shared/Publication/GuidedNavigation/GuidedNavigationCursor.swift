@@ -186,18 +186,24 @@ import Foundation
         let targetGndIndex = indexPath[0]
         let treeIndexPath = Array(indexPath.dropFirst())
 
-        guard gndOrder.indices.contains(targetGndIndex) else { return false }
+        guard gndOrder.indices.contains(targetGndIndex) else {
+            return false
+        }
 
         // Reuse the already-loaded cursor when seeking within the current GND.
         let cursor: GuidedNavigationDocumentCursor
         if targetGndIndex == gndIndex, let existing = documentCursor {
             cursor = existing
         } else {
-            guard let loaded = await loadDocumentCursor(at: targetGndIndex) else { return false }
+            guard let loaded = await loadDocumentCursor(at: targetGndIndex) else {
+                return false
+            }
             cursor = loaded
         }
 
-        guard await cursor.seek(to: treeIndexPath) else { return false }
+        guard cursor.seek(to: treeIndexPath) else {
+            return false
+        }
 
         gndIndex = targetGndIndex
         documentCursor = cursor
@@ -220,11 +226,15 @@ import Foundation
         if targetIndex == gndIndex, let existing = documentCursor {
             cursor = existing
         } else {
-            guard let loaded = await loadDocumentCursor(at: targetIndex) else { return false }
+            guard let loaded = await loadDocumentCursor(at: targetIndex) else {
+                return false
+            }
             cursor = loaded
         }
 
-        guard cursor.seek(to: reference) else { return false }
+        guard cursor.seek(to: reference) else {
+            return false
+        }
 
         gndIndex = targetIndex
         documentCursor = cursor

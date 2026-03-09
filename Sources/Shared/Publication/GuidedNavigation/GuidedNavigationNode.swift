@@ -20,4 +20,12 @@ public struct GuidedNavigationNode {
 
     /// Ancestors from the root down to the parent of ``object``.
     public let ancestors: [GuidedNavigationObject]
+
+    /// All enclosing roles in the hierarchy for this node, ordered outermost to
+    /// innermost.
+    ///
+    /// The roles of the `object` itself are included.
+    public var enclosingRoles: [ContentRole] {
+        ancestors.flatMap(\.roles) + object.roles
+    }
 }

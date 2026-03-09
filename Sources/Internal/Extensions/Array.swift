@@ -44,6 +44,10 @@ public extension Array {
 
 public extension Array where Element: Equatable {
     @inlinable func containsAny(_ elements: Element...) -> Bool {
+        containsAny(elements)
+    }
+
+    @inlinable func containsAny<S: Sequence<Element>>(_ elements: S) -> Bool {
         contains { elements.contains($0) }
     }
 }
