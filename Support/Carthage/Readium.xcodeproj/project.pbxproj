@@ -2140,8 +2140,8 @@
 		F389B1290B1CAA8E5F65573B /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				866AEA533E1F119928F17990 /* Localizable.strings */,
 				9BD31F314E7B3A61C55635E5 /* prod-license.lcpl */,
+				866AEA533E1F119928F17990 /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -2376,9 +2376,10 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1250;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = 5A872BCD95ECE5673BC89051 /* Build configuration list for PBXProject "Readium" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -2390,6 +2391,7 @@
 			mainGroup = 2C63ECC3CC1230CCA416F55F;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = AE0099F78A65150DDA19FF5A /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
