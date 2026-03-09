@@ -58,7 +58,7 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
     /// Resumes paused playback.
     func resume()
 
-    /// Stops playback and clears any prepared audio clips.
+    /// Stops playback and clears state.
     func stop()
 
     /// Seeks to the given position within the current clip, in seconds.
@@ -68,17 +68,6 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
     /// the player behaves as if the clip finished naturally and fires
     /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didFinishPlaying:)``.
     func seek(to time: TimeInterval)
-
-    // MARK: - Preparation
-
-    /// Best-effort hint to start buffering a clip before it is needed.
-    ///
-    /// Called while the current clip is playing so the next clip's asset is
-    /// ready when `play()` is called. Implementations that cannot benefit (e.g.
-    /// local files that load instantly) may ignore this.
-    ///
-    /// It is always possible to call `play()` on an unprepared clip.
-    func prepare(_ clip: AudioClip)
 }
 
 /// Receives playback events from an ``AudioClipPlayer``.

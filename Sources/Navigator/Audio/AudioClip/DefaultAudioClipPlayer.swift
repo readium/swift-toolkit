@@ -67,10 +67,6 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
     /// The item currently loaded into `player`, if any.
     private var currentItem: Item?
 
-    /// An asset pre-loaded by `prepare(_:)`, ready to be consumed by `play(_:)`
-    /// if called for the same clip.
-    private var preparedItem: Item?
-
     /// Bridging intent across async gaps: `play()` sets this before kicking
     /// off an async seek. After the seek, we check it before calling
     /// `player.play()`, so a `pause()` or `stop()` issued during the seek is
@@ -89,23 +85,8 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
 
     // MARK: - AudioClipPlayer
 
-    public func prepare(_ clip: AudioClip) {
-        guard let item = makeItem(for: clip) else {
-            preparedItem = nil
-            log(.warning, "Failed to prepare audio asset: \(clip.link.href)")
-            return
-        }
-
-        preparedItem = item
-    }
-
     public func play(_ clip: AudioClip) {
-        let item: Item? = preparedItem.takeIf { $0.clip == clip }
-            ?? makeItem(for: clip)
-
-        preparedItem = nil
-
-        guard let item else {
+        guard let item = makeItem(for: clip) else {
             replaceCurrentItem(nil)
             delegate?.audioClipPlayer(self, didFailPlaying: clip, withError: DefaultAudioClipPlayerError.failedToLoadClip)
             return
@@ -150,7 +131,6 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
 
     public func stop() {
         replaceCurrentItem(nil)
-        preparedItem = nil
     }
 
     public func seek(to time: TimeInterval) {
