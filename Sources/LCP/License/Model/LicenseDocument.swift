@@ -65,9 +65,9 @@ public struct LicenseDocument {
               let provider = json.pop("provider")?.string,
               let id = json.pop("id")?.string,
               let issued = parseDate(json.pop("issued")),
-              let encryptionValue = json.pop("encryption"), encryptionValue.object != nil,
-              let linksValue = json.pop("links"), linksValue.array != nil,
-              let signatureValue = json.pop("signature"), signatureValue.object != nil
+              let encryptionValue = json.pop("encryption"),
+              let linksValue = json.pop("links"),
+              let signatureValue = json.pop("signature")
         else {
             throw ParsingError.licenseDocument
         }

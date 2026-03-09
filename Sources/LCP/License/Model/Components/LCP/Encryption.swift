@@ -18,15 +18,16 @@ public struct Encryption {
     init(json: JSONValue?) throws {
         guard var json = JSONDictionary(json),
               let profile = json.pop("profile")?.string,
-              let contentKey = try? ContentKey(json: json.pop("content_key")),
-              let userKey = try? UserKey(json: json.pop("user_key"))
+              let contentKeyJSON = json.pop("content_key"),
+              let userKeyJSON = json.pop("user_key")
         else {
             throw ParsingError.encryption
         }
 
         self.profile = profile
-        self.contentKey = contentKey
-        self.userKey = userKey
+
+        contentKey = try ContentKey(json: contentKeyJSON)
+        userKey = try UserKey(json: userKeyJSON)
     }
 
     init(json: [String: Any]) throws {

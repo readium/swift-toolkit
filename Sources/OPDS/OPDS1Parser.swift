@@ -195,9 +195,7 @@ public class OPDS1Parser: Loggable {
                     rels.append(.self)
                 }
 
-                if let countString = link.attr("count"),
-                   let facetElementCount = Int(countString)
-                {
+                if let facetElementCount = link.attr("count").flatMap(Int.init) {
                     properties["numberOfItems"] = .integer(facetElementCount)
                 }
             }
