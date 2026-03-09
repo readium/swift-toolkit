@@ -83,7 +83,7 @@ public enum PlaybackStatus: Hashable {
         guard let cursor = GuidedNavigationCursor(publication: publication, readingOrder: readingOrder) else {
             return nil
         }
-        
+
         self.publication = publication
         self.cursor = cursor
         self.player = player ?? DefaultAudioClipPlayer()
@@ -115,31 +115,24 @@ public enum PlaybackStatus: Hashable {
     // MARK: - Playback control
 
     /// Begins playback from the current cursor position.
-    public func play() {
-    }
+    public func play() {}
 
     /// Pauses the playback. Has no effect when already paused or idle.
-    public func pause() {
-    }
+    public func pause() {}
 
     /// Resumes the playback from the current position. Has no effect when not
     /// paused.
-    public func resume() {
-    }
+    public func resume() {}
 
     /// Skips to the next playback item.
-    public func skipForward() {
-    }
+    public func skipForward() {}
 
     /// Skips to the previous playback item.
-    public func skipBackward() {
-    }
+    public func skipBackward() {}
 
     /// Skips to the next reading order resource.
-    public func skipToNextResource() async {
-    }
+    public func skipToNextResource() async {}
 
     /// Skips to the previous reading order resource.
-    public func skipToPreviousResource() async {
-    }
+    public func skipToPreviousResource() async {}
 }

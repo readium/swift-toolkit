@@ -174,7 +174,6 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
         
         pod repo push readium ReadiumStreamer.podspec
         pod repo push readium ReadiumNavigator.podspec
-        pod repo push readium ReadiumAudioNavigator.podspec
         pod repo push readium ReadiumOPDS.podspec
         pod repo push readium ReadiumLCP.podspec
         pod repo push readium ReadiumAdapterGCDWebServer.podspec
