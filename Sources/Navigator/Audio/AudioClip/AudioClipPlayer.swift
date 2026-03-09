@@ -61,13 +61,33 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
     /// Stops playback and clears state.
     func stop()
 
+    // MARK: - Seeking and Skipping
+
     /// Seeks to the given position within the current clip, in seconds.
     ///
+    /// If the current clip has segments, and `time` falls outside of all
+    /// segments, the position will be moved to the start of the next closest
+    /// segment.
+    ///
     /// Any segment observers between the current position and `time` are
-    /// skipped without firing. If `time` is past the clip's last segment end,
-    /// the player behaves as if the clip finished naturally and fires
+    /// skipped without firing.
+    ///
+    /// If `time` is past the clip's end, the player behaves as if the clip
+    /// finished naturally and fires
     /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didFinishPlaying:)``.
     func seek(to time: TimeInterval)
+
+    /// Skips to the next segment in the audio clip.
+    ///
+    /// - Returns: `true` if there is a next segment to skip to, `false`
+    /// otherwise.
+    func skipToNextSegment() -> Bool
+
+    /// Skips to the previous segment in the audio clip.
+    ///
+    /// - Returns: `true` if there is a previous segment to skip to, `false`
+    /// otherwise.
+    func skipToPreviousSegment() -> Bool
 }
 
 /// Receives playback events from an ``AudioClipPlayer``.

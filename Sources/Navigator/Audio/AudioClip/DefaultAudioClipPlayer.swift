@@ -142,12 +142,84 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             return
         }
 
-        let time = max(time, currentItem.clip.start)
+        // Snap to nearest segment if time falls in a gap.
+        let target = snappedTime(time, in: currentItem.clip)
         player.seek(
-            to: makeTime(seconds: time),
+            to: makeTime(seconds: target),
             toleranceBefore: .zero,
             toleranceAfter: .zero
         )
+    }
+
+    /// Returns the effective seek target for `time` within `clip`, snapping
+    /// to the start of the next segment when `time` falls in a gap.
+    private func snappedTime(_ time: TimeInterval, in clip: AudioClip) -> TimeInterval {
+        let segments = clip.segments
+        guard !segments.isEmpty else {
+            return max(time, clip.start)
+        }
+
+        // Before the first segment.
+        if time < segments[0].start {
+            return clip.start
+        }
+
+        for (i, segment) in segments.enumerated() {
+            // Within this segment.
+            if let end = segment.end {
+                if time >= segment.start, time < end {
+                    return time
+                }
+                // In the gap between this segment and the next.
+                if let next = segments.getOrNil(i + 1), time >= end, time < next.start {
+                    return next.start
+                }
+            } else {
+                if time >= segment.start {
+                    return time
+                }
+            }
+        }
+
+        // Past the last segment's end but before clip.end — no next segment.
+        return time
+    }
+
+    public func skipToNextSegment() -> Bool {
+        guard
+            let segments = currentItem?.clip.segments,
+            !segments.isEmpty
+        else {
+            return false
+        }
+
+        let now = time
+        guard let next = segments.first(where: { $0.start > now }) else {
+            return false
+        }
+
+        seek(to: next.start)
+        return true
+    }
+
+    public func skipToPreviousSegment() -> Bool {
+        guard
+            let segments = currentItem?.clip.segments,
+            !segments.isEmpty
+        else {
+            return false
+        }
+
+        let now = time
+        let currentIndex = segments.indices.last { segments[$0].start <= now } ?? 0
+        let targetIndex = currentIndex > 0 ? currentIndex - 1 : 0
+        let target = segments[targetIndex]
+        guard now > target.start else {
+            return false
+        }
+
+        seek(to: target.start)
+        return currentIndex > 0
     }
 
     private func replaceCurrentItem(_ item: Item?) {
