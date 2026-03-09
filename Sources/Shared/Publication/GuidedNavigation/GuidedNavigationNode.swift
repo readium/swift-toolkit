@@ -8,6 +8,13 @@ import Foundation
 
 /// A reference to a ``GuidedNavigationObject`` and its ancestors in the tree.
 public struct GuidedNavigationNode {
+    public typealias IndexPath = [Int]
+
+    /// Index path in the whole tree.
+    ///
+    /// Can be used as a unique identifier for this node in the tree.
+    public let indexPath: IndexPath
+
     /// The referenced object.
     public let object: GuidedNavigationObject
 

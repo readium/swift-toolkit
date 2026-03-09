@@ -270,10 +270,125 @@ enum GuidedNavigationDocumentCursorTests {
         }
     }
 
+    // MARK: - seek(to: IndexPath)
+
+    struct SeekIndexPath {
+        @Test func emptyIndexPathReturnsFalse() {
+            let a = gno(audio: "a.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a))
+            #expect(!cursor.seek(to: []))
+            // State unchanged: next() still returns the first node.
+            #expect(cursor.next()?.object == a)
+        }
+
+        @Test func singleRootNode() {
+            let a = gno(audio: "a.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a))
+            #expect(cursor.seek(to: [0]))
+            #expect(cursor.next()?.object == a)
+        }
+
+        @Test func secondRootNode() {
+            let a = gno(audio: "a.mp3")
+            let b = gno(audio: "b.mp3")
+            let c = gno(audio: "c.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, b, c))
+            #expect(cursor.seek(to: [1]))
+            #expect(cursor.next()?.object == b)
+        }
+
+        @Test func nestedNode() {
+            // Tree: A → [B, C]
+            let b = gno(audio: "b.mp3")
+            let c = gno(audio: "c.mp3")
+            let a = gno(audio: "a.mp3", children: [b, c])
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a))
+            #expect(cursor.seek(to: [0, 0]))
+            let node = cursor.next()
+            #expect(node?.object == b)
+            #expect(node?.ancestors == [a])
+        }
+
+        @Test func deepNestedNode() {
+            // Tree: A → [B → [D, E]]
+            let d = gno(audio: "d.mp3")
+            let e = gno(audio: "e.mp3")
+            let b = gno(audio: "b.mp3", children: [d, e])
+            let a = gno(audio: "a.mp3", children: [b])
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a))
+            #expect(cursor.seek(to: [0, 0, 1]))
+            let node = cursor.next()
+            #expect(node?.object == e)
+            #expect(node?.ancestors == [a, b])
+        }
+
+        @Test func outOfBoundsReturnsFalse() {
+            let a = gno(audio: "a.mp3")
+            let b = gno(audio: "b.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, b))
+            _ = cursor.next() // advance to a
+            #expect(!cursor.seek(to: [5]))
+            // State unchanged: next() returns b (we were on a).
+            #expect(cursor.next()?.object == b)
+        }
+
+        @Test func outOfBoundsChildReturnsFalse() {
+            let c1 = gno(audio: "c1.mp3")
+            let c2 = gno(audio: "c2.mp3")
+            let a = gno(audio: "a.mp3", children: [c1, c2])
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a))
+            #expect(!cursor.seek(to: [0, 3]))
+        }
+
+        @Test func seekFirstNodeThenPrevious() {
+            let a = gno(audio: "a.mp3")
+            let b = gno(audio: "b.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, b))
+            #expect(cursor.seek(to: [0]))
+            #expect(cursor.previous() == nil)
+            #expect(cursor.next()?.object == a)
+        }
+
+        @Test func seekThenContinueForward() {
+            let a = gno(audio: "a.mp3")
+            let b = gno(audio: "b.mp3")
+            let c = gno(audio: "c.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, b, c))
+            #expect(cursor.seek(to: [1]))
+            #expect(cursor.next()?.object == b)
+            #expect(cursor.next()?.object == c)
+            #expect(cursor.next() == nil)
+        }
+
+        @Test func seekThenPrevious() {
+            let a = gno(audio: "a.mp3")
+            let b = gno(audio: "b.mp3")
+            let c = gno(audio: "c.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, b, c))
+            // Seek to b; previous() should return a then nil.
+            #expect(cursor.seek(to: [1]))
+            #expect(cursor.previous()?.object == a)
+            #expect(cursor.previous() == nil)
+        }
+
+        @Test func indexPathReflectsTreePosition() {
+            // Tree: A → [B → [D, E]], C
+            let d = gno(audio: "d.mp3")
+            let e = gno(audio: "e.mp3")
+            let b = gno(audio: "b.mp3", children: [d, e])
+            let a = gno(audio: "a.mp3", children: [b])
+            let c = gno(audio: "c.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a, c))
+            #expect(cursor.seek(to: [0, 0, 1]))
+            let node = cursor.next()
+            #expect(node?.indexPath == [0, 0, 1])
+        }
+    }
+
     // MARK: - seek(to:)
 
     struct Seek {
-        @Test func audioReference() throws {
+        @Test func unrefinedAudioReference() throws {
             let href = try #require(AnyURL(string: "audio.mp3"))
             let a = gno(audio: "audio.mp3#t=0,1")
             let b = gno(audio: "audio.mp3#t=1,2")
@@ -350,6 +465,15 @@ enum GuidedNavigationDocumentCursorTests {
             let cursor = GuidedNavigationDocumentCursor(document: gnd(a))
 
             let ref = try AudioReference(href: #require(AnyURL(string: "unknown.mp3")))
+            #expect(!cursor.seek(to: ref))
+        }
+
+        @Test func videoReferenceReturnsFalse() {
+            // VideoReference is not handled by matches(node:reference:) — the
+            // default: false branch must return false without crashing.
+            let a = gno(audio: "a.mp3")
+            let cursor = GuidedNavigationDocumentCursor(document: gnd(a))
+            let ref = VideoReference(href: AnyURL(string: "video.mp4")!)
             #expect(!cursor.seek(to: ref))
         }
 

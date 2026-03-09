@@ -8,8 +8,9 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
+@MainActor
 enum GuidedNavigationCursorTests {
-    struct Init {
+    @MainActor struct Init {
         @Test func emptyReadingOrder() async {
             let cursor = makeCursor(readingOrder: [], gnds: [:])
             #expect(await cursor.next() == nil)
@@ -32,7 +33,7 @@ enum GuidedNavigationCursorTests {
         }
     }
 
-    struct HasGuidedNavigation {
+    @MainActor struct HasGuidedNavigation {
         @Test func returnsTrueForCoveredHREF() {
             let cursor = makeCursor(
                 readingOrder: ["chapter.html"],
@@ -50,7 +51,7 @@ enum GuidedNavigationCursorTests {
         }
     }
 
-    struct Next {
+    @MainActor struct Next {
         @Test func singleGND() async {
             let b = gno(audioRef: "b.mp3")
             let a = gno(audioRef: "a.mp3", children: [b])
@@ -132,7 +133,7 @@ enum GuidedNavigationCursorTests {
         }
     }
 
-    struct Previous {
+    @MainActor struct Previous {
         @Test func returnsNilAtStart() async {
             let a = gno(audioRef: "a.mp3")
             let cursor = makeCursor(
@@ -254,7 +255,131 @@ enum GuidedNavigationCursorTests {
         }
     }
 
-    struct Seek {
+    @MainActor struct SeekIndexPath {
+        @Test func emptyIndexPathReturnsFalse() async {
+            let a = gno(audioRef: "a.mp3")
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(a))]
+            )
+            #expect(await !cursor.seek(to: []))
+            #expect(await !cursor.seek(to: [0])) // only gnd index, no tree path
+        }
+
+        @Test func seekFirstNodeFirstGND() async {
+            let a = gno(audioRef: "a.mp3")
+            let b = gno(audioRef: "b.mp3")
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(a, b))]
+            )
+            #expect(await cursor.seek(to: [0, 0]))
+            #expect(await cursor.next()?.object == a)
+        }
+
+        @Test func seekFirstNodeSecondGND() async {
+            let a = gno(audioRef: "a.mp3")
+            let b = gno(audioRef: "b.mp3")
+            let cursor = makeCursor(
+                readingOrder: ["ch1.html", "ch2.html"],
+                gnds: [
+                    "ch1.html": ("gnd1.json", gnd(a)),
+                    "ch2.html": ("gnd2.json", gnd(b)),
+                ]
+            )
+            #expect(await cursor.seek(to: [1, 0]))
+            #expect(await cursor.next()?.object == b)
+        }
+
+        @Test func seekNestedNode() async {
+            // Tree: A → [B, C]
+            let b = gno(audioRef: "b.mp3")
+            let c = gno(audioRef: "c.mp3")
+            let a = gno(audioRef: "a.mp3", children: [b, c])
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(a))]
+            )
+            #expect(await cursor.seek(to: [0, 0, 1]))
+            let node = await cursor.next()
+            #expect(node?.object == c)
+            #expect(node?.ancestors == [a])
+        }
+
+        @Test func outOfBoundsGNDIndexReturnsFalse() async {
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(gno(audioRef: "a.mp3")))]
+            )
+            #expect(await !cursor.seek(to: [5, 0]))
+        }
+
+        @Test func outOfBoundsTreeIndexReturnsFalse() async {
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(gno(audioRef: "a.mp3")))]
+            )
+            #expect(await !cursor.seek(to: [0, 99]))
+        }
+
+        @Test func outOfBoundsLeavesStateUnchanged() async {
+            let a = gno(audioRef: "a.mp3")
+            let b = gno(audioRef: "b.mp3")
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(a, b))]
+            )
+            _ = await cursor.next() // a
+            #expect(await !cursor.seek(to: [0, 99]))
+            // State unchanged: next() returns b, not a restart.
+            #expect(await cursor.next()?.object == b)
+        }
+
+        @Test func gndFetchFailureReturnsFalse() async {
+            let a = gno(audioRef: "a.mp3")
+            let cursor = makeCursor(
+                readingOrder: ["ch.html"],
+                gnds: ["ch.html": ("gnd.json", gnd(a))],
+                failing: ["gnd.json"]
+            )
+            #expect(await !cursor.seek(to: [0, 0]))
+        }
+
+        @Test func seekThenPreviousCrossesGNDBoundary() async {
+            let a = gno(audioRef: "a.mp3")
+            let b = gno(audioRef: "b.mp3")
+            let cursor = makeCursor(
+                readingOrder: ["ch1.html", "ch2.html"],
+                gnds: [
+                    "ch1.html": ("gnd1.json", gnd(a)),
+                    "ch2.html": ("gnd2.json", gnd(b)),
+                ]
+            )
+            // Seek into gnd2, then navigate backward into gnd1.
+            #expect(await cursor.seek(to: [1, 0]))
+            #expect(await cursor.next()?.object == b)
+            #expect(await cursor.previous()?.object == b)
+            #expect(await cursor.previous()?.object == a)
+            #expect(await cursor.previous() == nil)
+        }
+
+        @Test func nodeIndexPathPrependsGNDIndex() async {
+            let a = gno(audioRef: "a.mp3")
+            let b = gno(audioRef: "b.mp3")
+            let cursor = makeCursor(
+                readingOrder: ["ch1.html", "ch2.html"],
+                gnds: [
+                    "ch1.html": ("gnd1.json", gnd(a)),
+                    "ch2.html": ("gnd2.json", gnd(b)),
+                ]
+            )
+            #expect(await cursor.seek(to: [1, 0]))
+            let node = await cursor.next()
+            #expect(node?.indexPath == [1, 0])
+        }
+    }
+
+    @MainActor struct Seek {
         @Test func unrefinedWebReferenceFirstGND() async {
             let a = gno(audioRef: "a.mp3", textRef: "ch.html#p1")
             let b = gno(audioRef: "b.mp3", textRef: "ch.html#p2")
@@ -307,11 +432,15 @@ enum GuidedNavigationCursorTests {
         }
 
         @Test func unknownHREFReturnsFalse() async {
+            let a = gno(audioRef: "a.mp3")
             let cursor = makeCursor(
                 readingOrder: ["ch.html"],
-                gnds: ["ch.html": ("gnd.json", gnd(gno(audioRef: "a.mp3")))]
+                gnds: ["ch.html": ("gnd.json", gnd(a))]
             )
+            // Seek to unknown HREF — cursor state must be unchanged.
             #expect(await !(cursor.seek(to: WebReference(href: "unknown.html"))))
+            // State unchanged: cursor is still at start, next() returns a.
+            #expect(await cursor.next()?.object == a)
         }
 
         @Test func seekViaSecondHREFInDeduplicatedGND() async {
@@ -392,7 +521,7 @@ enum GuidedNavigationCursorTests {
         }
     }
 
-    struct SkipToNextResource {
+    @MainActor struct SkipToNextResource {
         @Test func returnsFalseForEmptyCursor() {
             let cursor = makeCursor(readingOrder: [], gnds: [:])
             #expect(!cursor.canSkipToNextResource)
@@ -407,7 +536,10 @@ enum GuidedNavigationCursorTests {
             )
             // At initial state.
             #expect(!cursor.canSkipToNextResource)
-            // In the middle.
+            // After first node — still the only GND.
+            _ = await cursor.next()
+            #expect(!cursor.canSkipToNextResource)
+            // After second node — still the only GND.
             _ = await cursor.next()
             #expect(!cursor.canSkipToNextResource)
         }
@@ -530,7 +662,7 @@ enum GuidedNavigationCursorTests {
         }
     }
 
-    struct SkipToPreviousResource {
+    @MainActor struct SkipToPreviousResource {
         @Test func returnsFalseForEmptyCursor() {
             let cursor = makeCursor(readingOrder: [], gnds: [:])
             #expect(!cursor.canSkipToPreviousResource)
@@ -545,9 +677,30 @@ enum GuidedNavigationCursorTests {
             )
             // At initial state.
             #expect(!cursor.canSkipToPreviousResource)
-            // In the middle.
+            // After first node — still the first (and only) GND.
             _ = await cursor.next()
             #expect(!cursor.canSkipToPreviousResource)
+            // After second node — still the first (and only) GND.
+            _ = await cursor.next()
+            #expect(!cursor.canSkipToPreviousResource)
+        }
+
+        @Test func canSkipToPreviousResourceAfterSeekToSecondGND() async {
+            // seek() positions before the node (lastNode is nil until next() is
+            // called). canSkipToPreviousResource requires lastNode to be set.
+            let a = gno(audioRef: "a.mp3")
+            let b = gno(audioRef: "b.mp3")
+            let cursor = makeCursor(
+                readingOrder: ["ch1.html", "ch2.html"],
+                gnds: [
+                    "ch1.html": ("gnd1.json", gnd(a)),
+                    "ch2.html": ("gnd2.json", gnd(b)),
+                ]
+            )
+            #expect(await cursor.seek(to: [1, 0]))
+            #expect(!cursor.canSkipToPreviousResource) // lastNode is nil before next()
+            _ = await cursor.next() // b — now lastNode is set, gndIndex == 1
+            #expect(cursor.canSkipToPreviousResource)
         }
 
         // This is not supported because too costly to compute. We simplify
@@ -698,6 +851,7 @@ private struct MockProvider: GuidedNavigationDocumentProvider {
 ///   - readingOrder: HREF strings for the reading order links.
 ///   - gnds: Maps reading-order HREF string → (gndHREF string, document).
 ///   - failing: Set of GND HREF strings that should fail on fetch.
+@MainActor
 private func makeCursor(
     readingOrder: [String],
     gnds: [String: (String, GuidedNavigationDocument)],

@@ -119,7 +119,7 @@ import Foundation
         readingOrderToGndOrderIndex[readingOrderHREF.normalized] != nil
     }
 
-    // MARK: - Navigation
+    // MARK: - Iteration
 
     /// Returns the next node in the Guided Navigation Document order, or `nil`
     /// at the end.
@@ -131,8 +131,9 @@ import Foundation
 
         while gndIndex < gndOrder.count {
             if let node = documentCursor?.next() {
-                lastNode = node
-                return node
+                let wrapped = wrapNode(node)
+                lastNode = wrapped
+                return wrapped
             }
             gndIndex += 1
             documentCursor = await loadDocumentCursor(at: gndIndex)
@@ -159,8 +160,9 @@ import Foundation
 
         while gndIndex >= 0 {
             if let node = documentCursor?.previous() {
-                lastNode = node
-                return node
+                let wrapped = wrapNode(node)
+                lastNode = wrapped
+                return wrapped
             }
 
             gndIndex -= 1
@@ -172,6 +174,36 @@ import Foundation
         return nil
     }
 
+    // MARK: - Seeking
+
+    /// Repositions the cursor to the node at `indexPath` in the tree.
+    ///
+    /// If the `indexPath` cannot be resolved the cursor state is left unchanged
+    /// and the method returns `false`.
+    @discardableResult
+    public func seek(to indexPath: GuidedNavigationNode.IndexPath) async -> Bool {
+        guard indexPath.count >= 2 else { return false }
+        let targetGndIndex = indexPath[0]
+        let treeIndexPath = Array(indexPath.dropFirst())
+
+        guard gndOrder.indices.contains(targetGndIndex) else { return false }
+
+        // Reuse the already-loaded cursor when seeking within the current GND.
+        let cursor: GuidedNavigationDocumentCursor
+        if targetGndIndex == gndIndex, let existing = documentCursor {
+            cursor = existing
+        } else {
+            guard let loaded = await loadDocumentCursor(at: targetGndIndex) else { return false }
+            cursor = loaded
+        }
+
+        guard await cursor.seek(to: treeIndexPath) else { return false }
+
+        gndIndex = targetGndIndex
+        documentCursor = cursor
+        return true
+    }
+
     /// Repositions the cursor to the node matching `reference` in the
     /// publication reading order resources.
     ///
@@ -179,18 +211,27 @@ import Foundation
     /// and the method returns `false`.
     @discardableResult
     public func seek(to reference: any Reference) async -> Bool {
-        guard
-            let targetIndex = readingOrderToGndOrderIndex[reference.href],
-            let cursor = await loadDocumentCursor(at: targetIndex),
-            cursor.seek(to: reference)
-        else {
+        guard let targetIndex = readingOrderToGndOrderIndex[reference.href] else {
             return false
         }
+
+        // Reuse the already-loaded cursor when seeking within the current GND.
+        let cursor: GuidedNavigationDocumentCursor
+        if targetIndex == gndIndex, let existing = documentCursor {
+            cursor = existing
+        } else {
+            guard let loaded = await loadDocumentCursor(at: targetIndex) else { return false }
+            cursor = loaded
+        }
+
+        guard cursor.seek(to: reference) else { return false }
 
         gndIndex = targetIndex
         documentCursor = cursor
         return true
     }
+
+    // MARK: - Skipping
 
     /// Whether the cursor can skip to the previous Guided Navigation Document.
     public var canSkipToPreviousResource: Bool {
@@ -265,6 +306,15 @@ import Foundation
     }
 
     // MARK: - Helpers
+
+    /// Wraps a document-level node with the GND index prepended to its index path.
+    private func wrapNode(_ node: GuidedNavigationNode) -> GuidedNavigationNode {
+        GuidedNavigationNode(
+            indexPath: [gndIndex] + node.indexPath,
+            object: node.object,
+            ancestors: node.ancestors
+        )
+    }
 
     /// Returns the reading order resource HREF for `object`.
     private func readingOrderHREF(of object: GuidedNavigationObject) -> AnyURL? {

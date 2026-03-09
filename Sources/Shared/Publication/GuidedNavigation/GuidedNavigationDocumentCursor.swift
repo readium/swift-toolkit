@@ -45,7 +45,8 @@ final class GuidedNavigationDocumentCursor {
     private func makeNode() -> GuidedNavigationNode? {
         guard let obj = current else { return nil }
         let ancestors = breadcrumbs.dropLast().map { $0.siblings[$0.index] }
-        return GuidedNavigationNode(object: obj, ancestors: ancestors)
+        let indexPath = breadcrumbs.map(\.index)
+        return GuidedNavigationNode(indexPath: indexPath, object: obj, ancestors: ancestors)
     }
 
     /// Advances `current` and `breadcrumbs` to the next node in DFS pre-order
@@ -133,6 +134,33 @@ final class GuidedNavigationDocumentCursor {
         breadcrumbs = [(root, lastIdx)]
         current = root[lastIdx]
         descendToLastLeaf()
+    }
+
+    /// Repositions the cursor to the node at `indexPath` in the tree.
+    ///
+    /// If the `indexPath` cannot be resolved the cursor state is left unchanged
+    /// and the method returns `false`.
+    @discardableResult
+    func seek(to indexPath: GuidedNavigationNode.IndexPath) -> Bool {
+        guard !indexPath.isEmpty else { return false }
+
+        var siblings = root
+        var newBreadcrumbs: [(siblings: [GuidedNavigationObject], index: Int)] = []
+
+        for i in indexPath.indices {
+            let idx = indexPath[i]
+            guard idx < siblings.count else { return false }
+            newBreadcrumbs.append((siblings, idx))
+            if i < indexPath.count - 1 {
+                siblings = siblings[idx].children
+            }
+        }
+
+        // Position AT the target, then step back so next() returns it.
+        current = newBreadcrumbs.last.map { $0.siblings[$0.index] }
+        breadcrumbs = newBreadcrumbs
+        dfsPrev()
+        return true
     }
 
     /// Repositions the cursor so that the next call to ``next()`` returns the
