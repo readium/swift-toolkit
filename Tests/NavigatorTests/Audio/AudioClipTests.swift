@@ -202,53 +202,42 @@ enum AudioClipTests {
         }
     }
 
-    // MARK: - elapsedTime(segmentIndex:fileTime:fileDuration:)
+    // MARK: - computeCumulativeElapsed()
 
-    struct ElapsedTime {
-        @Test("at the start of the first segment")
-        func startOfFirstSegment() {
-            let clip = AudioClip(link: link, segments: [seg(10, 20), seg(30, 40)])
-            #expect(clip.elapsedTime(segmentIndex: 0, fileTime: 10, fileDuration: 60) == 0)
+    struct CumulativeElapsed {
+        @Test("empty segments returns empty array")
+        func emptySegments() {
+            let clip = AudioClip(link: link, segments: [])
+            #expect(clip.computeCumulativeElapsed() == [])
         }
 
-        @Test("mid-way through the first segment")
-        func midFirstSegment() {
-            let clip = AudioClip(link: link, segments: [seg(10, 20), seg(30, 40)])
-            #expect(clip.elapsedTime(segmentIndex: 0, fileTime: 15, fileDuration: 60) == 5)
-        }
-
-        @Test("at the start of the second segment accumulates first segment duration")
-        func startOfSecondSegment() {
-            // Segment 0: 10-20 (10s); now at start of segment 1 (file time 30)
-            let clip = AudioClip(link: link, segments: [seg(10, 20), seg(30, 40)])
-            #expect(clip.elapsedTime(segmentIndex: 1, fileTime: 30, fileDuration: 60) == 10)
-        }
-
-        @Test("mid-way through the second segment")
-        func midSecondSegment() {
-            // Segment 0: 10-20 (10s); 5s into segment 1 → 15s elapsed
-            let clip = AudioClip(link: link, segments: [seg(10, 20), seg(30, 40)])
-            #expect(clip.elapsedTime(segmentIndex: 1, fileTime: 35, fileDuration: 60) == 15)
-        }
-
-        @Test("segment with nil end: elapsed time within it is still computable without fileDuration")
-        func nilEndSegmentElapsedTimeComputable() {
-            // fileDuration is irrelevant for the current segment's own offset;
-            // it is only used for durations of *preceding* segments.
-            let clip = AudioClip(link: link, segments: [seg(10, nil)])
-            #expect(clip.elapsedTime(segmentIndex: 0, fileTime: 15, fileDuration: nil) == 5)
-        }
-
-        @Test("fileTime before segment start is clamped to zero")
-        func fileTimeBeforeSegmentStart() {
+        @Test("single segment with explicit end")
+        func singleExplicitEnd() {
             let clip = AudioClip(link: link, segments: [seg(10, 20)])
-            #expect(clip.elapsedTime(segmentIndex: 0, fileTime: 5, fileDuration: 60) == 0)
+            #expect(clip.computeCumulativeElapsed() == [0])
         }
 
-        @Test("out-of-range segmentIndex returns nil")
-        func outOfRangeIndex() {
-            let clip = AudioClip(link: link, segments: [seg(0, 10)])
-            #expect(clip.elapsedTime(segmentIndex: 5, fileTime: 0, fileDuration: 60) == nil)
+        @Test("multiple segments with gaps: prefix sums exclude gaps")
+        func multipleWithGaps() {
+            // Segments: 10-20 (10s), gap, 35-50 (15s)
+            let clip = AudioClip(link: link, segments: [seg(10, 20), seg(35, 50)])
+            #expect(clip.computeCumulativeElapsed() == [0, 10])
+        }
+
+        @Test("intermediate nil-end segment (overlap-resolved) uses next segment start")
+        func intermediateNilEnd() {
+            // Input: (0,15) and (10,20) → normalised to (0,nil),(10,20)
+            // Segment 0 duration = 10-0 = 10; prefix before seg 1 = 10
+            let clip = AudioClip(link: link, segments: [seg(0, 15), seg(10, 20)])
+            #expect(clip.computeCumulativeElapsed() == [0, 10])
+        }
+
+        @Test("last segment with nil end: prefix sums still fully computed")
+        func lastNilEnd() {
+            // Segment 0: 10-20 (10s); segment 1: 30-nil (duration unknown without fileDuration)
+            // Prefix before seg 0 = 0, before seg 1 = 10; last segment's own duration not needed.
+            let clip = AudioClip(link: link, segments: [seg(10, 20), seg(30, nil)])
+            #expect(clip.computeCumulativeElapsed() == [0, 10])
         }
     }
 }

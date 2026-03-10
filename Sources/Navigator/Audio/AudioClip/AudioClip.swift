@@ -145,20 +145,23 @@ public struct AudioClip: Hashable, Sendable {
         return total
     }
 
-    /// Returns elapsed playback time at the given `segmentIndex` and absolute
-    /// `fileTime` position.
+    /// Returns an array where `result[i]` is the total playback time elapsed
+    /// before segment `i` begins, with `result[0] == 0`.
     ///
-    /// Sums the durations of all segments before `segmentIndex`, then adds
-    /// the offset within the active segment (`fileTime − segment.start`).
-    /// Returns `nil` if any preceding segment's duration cannot be determined.
-    public func elapsedTime(segmentIndex: Int, fileTime: TimeInterval, fileDuration: TimeInterval?) -> TimeInterval? {
-        guard segmentIndex < segments.count else { return nil }
+    /// Intermediate nil-end segment durations are resolved from the next
+    /// segment's start, so no `fileDuration` is needed. The last segment's own
+    /// duration is never required for a prefix sum (nothing follows it), so the
+    /// result is always fully deterministic at clip-load time.
+    func computeCumulativeElapsed() -> [TimeInterval] {
+        var result: [TimeInterval] = []
+        result.reserveCapacity(segments.count)
         var elapsed: TimeInterval = 0
-        for i in 0 ..< segmentIndex {
-            guard let dur = segmentDuration(at: i, fileDuration: fileDuration) else { return nil }
-            elapsed += dur
+        for i in segments.indices {
+            result.append(elapsed)
+            if let dur = segmentDuration(at: i, fileDuration: nil) {
+                elapsed += dur
+            }
         }
-        elapsed += max(0, fileTime - segments[segmentIndex].start)
-        return elapsed
+        return result
     }
 }
