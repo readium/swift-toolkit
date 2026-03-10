@@ -20,17 +20,16 @@ public extension Properties {
             self.isEntryCompressed = isEntryCompressed
         }
 
-        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-            if json == nil {
+        public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+            guard let json = json else {
                 return nil
             }
             guard
-                let jsonObject = json as? [String: Any],
-                let length: UInt64 = (jsonObject["entryLength"] as? NSNumber)?.uint64Value,
-                length >= 0,
-                let isCompressed = jsonObject["isEntryCompressed"] as? Bool
+                let jsonObject = JSONDictionary(json)?.json,
+                let length = jsonObject["entryLength"]?.double.flatMap({ UInt64($0) }),
+                let isCompressed = jsonObject["isEntryCompressed"]?.bool
             else {
-                warnings?.log("`entryLength` and `isEntryCompressed` are required", model: Self.self, source: json)
+                warnings?.log("`entryLength` and `isEntryCompressed` are required", model: Self.self, source: json.any)
                 throw JSONError.parsing(Self.self)
             }
 
@@ -40,10 +39,14 @@ public extension Properties {
             )
         }
 
-        public var json: [String: Any] {
+        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+            try self.init(json: JSONValue(json), warnings: warnings)
+        }
+
+        public var json: [String: JSONValue] {
             [
-                "entryLength": entryLength as NSNumber,
-                "isEntryCompressed": isEntryCompressed,
+                "entryLength": .double(Double(entryLength)),
+                "isEntryCompressed": .bool(isEntryCompressed),
             ]
         }
     }

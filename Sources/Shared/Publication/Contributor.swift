@@ -45,27 +45,38 @@ public struct Contributor: Hashable, Sendable {
         self.links = links
     }
 
-    public init?(json: Any, warnings: WarningLogger? = nil) throws {
-        if let name = json as? String {
-            self.init(name: name)
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
+            return nil
+        }
 
-        } else if let json = json as? [String: Any], let name = try? LocalizedString(json: json["name"], warnings: warnings) {
+        switch json {
+        case let .string(name):
+            self.init(name: name)
+        case let .object(dict):
+            guard let name = try? LocalizedString(json: dict["name"], warnings: warnings) else {
+                warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)
+                throw JSONError.parsing(Self.self)
+            }
             self.init(
                 name: name,
-                identifier: json["identifier"] as? String,
-                sortAs: json["sortAs"] as? String,
-                roles: parseArray(json["role"], allowingSingle: true),
-                position: parseDouble(json["position"]),
-                links: .init(json: json["links"], warnings: warnings)
+                identifier: dict["identifier"]?.string,
+                sortAs: dict["sortAs"]?.string,
+                roles: parseArray(dict["role"], allowingSingle: true),
+                position: dict["position"]?.double,
+                links: .init(json: dict["links"], warnings: warnings)
             )
-
-        } else {
+        default:
             warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
     }
 
-    public var json: [String: Any] {
+    public init?(json: Any, warnings: WarningLogger? = nil) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
+    }
+
+    public var json: [String: JSONValue] {
         makeJSON([
             "name": localizedName.json,
             "identifier": encodeIfNotNil(identifier),
@@ -73,28 +84,35 @@ public struct Contributor: Hashable, Sendable {
             "role": encodeIfNotEmpty(roles),
             "position": encodeIfNotNil(position),
             "links": encodeIfNotEmpty(links.json),
-        ])
+        ] as [String: JSONValue])
     }
 }
 
 public extension Array where Element == Contributor {
     /// Parses multiple JSON contributors into an array of Contributors.
     /// eg. let authors = [Contributor](json: ["Apple", "Pear"])
-    init(json: Any?, warnings: WarningLogger? = nil) {
+    init(json: JSONValue?, warnings: WarningLogger? = nil) {
         self.init()
         guard let json = json else {
             return
         }
 
-        if let json = json as? [Any] {
-            let contributors = json.compactMap { try? Contributor(json: $0, warnings: warnings) }
+        switch json {
+        case let .array(array):
+            let contributors = array.compactMap { try? Contributor(json: $0, warnings: warnings) }
             append(contentsOf: contributors)
-        } else if let contributor = try? Contributor(json: json, warnings: warnings) {
-            append(contributor)
+        default:
+            if let contributor = try? Contributor(json: json, warnings: warnings) {
+                append(contributor)
+            }
         }
     }
 
-    var json: [[String: Any]] {
+    init(json: Any?, warnings: WarningLogger? = nil) {
+        self.init(json: JSONValue(json), warnings: warnings)
+    }
+
+    var json: [[String: JSONValue]] {
         map(\.json)
     }
 }

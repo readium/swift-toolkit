@@ -155,9 +155,9 @@ public class OPDS1Parser: Loggable {
                       let href = link.attr("href"),
                       let absoluteHref = URLHelper.getAbsolute(href: href, base: feedURL)
             {
-                var properties: [String: Any] = [:]
-                if let facetElementCount = link.attr("count").map(Int.init) {
-                    properties["numberOfItems"] = facetElementCount
+                var properties: [String: JSONValue] = [:]
+                if let facetElementCount = link.attr("count").flatMap(Int.init) {
+                    properties["numberOfItems"] = .integer(facetElementCount)
                 }
 
                 let newLink = Link(
@@ -186,7 +186,7 @@ public class OPDS1Parser: Loggable {
             if let rel = link.attributes["rel"], !rel.isEmpty {
                 rels.append(.init(rel))
             }
-            var properties: [String: Any] = [:]
+            var properties: [String: JSONValue] = [:]
 
             let isFacet = rels.contains(.opdsFacet)
             if isFacet {
@@ -195,8 +195,8 @@ public class OPDS1Parser: Loggable {
                     rels.append(.self)
                 }
 
-                if let facetElementCount = link.attr("count").map(Int.init) {
-                    properties["numberOfItems"] = facetElementCount
+                if let facetElementCount = link.attr("count").flatMap(Int.init) {
+                    properties["numberOfItems"] = .integer(facetElementCount)
                 }
             }
 
@@ -354,8 +354,8 @@ public class OPDS1Parser: Loggable {
             publishers: tags("publisher").map { Contributor(name: $0) },
             description: tag("content") ?? tag("summary"),
             otherMetadata: [
-                "rights": tags("rights").joined(separator: " "),
-            ]
+                "rights": .string(tags("rights").joined(separator: " ")),
+            ] as [String: JSONValue]
         )
 
         // Links.
@@ -366,13 +366,13 @@ public class OPDS1Parser: Loggable {
                 continue
             }
 
-            var properties: [String: Any] = [:]
+            var properties: [String: JSONValue] = [:]
             if let price = parsePrice(link: linkElement)?.json, !price.isEmpty {
-                properties["price"] = price
+                properties["price"] = .object(price)
             }
             let indirectAcquisition = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition")).json
             if !indirectAcquisition.isEmpty {
-                properties["indirectAcquisition"] = indirectAcquisition
+                properties["indirectAcquisition"] = .array(indirectAcquisition.map { .object($0) })
             }
 
             let link = Link(

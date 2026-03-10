@@ -15,7 +15,7 @@ import Testing
                 let sut = EPUBMediaOverlay(json: [
                     "activeClass": "-epub-media-overlay-active",
                     "playbackActiveClass": "-epub-media-overlay-playing",
-                ] as [String: Any])
+                ])
 
                 #expect(sut?.activeClass == "-epub-media-overlay-active")
                 #expect(sut?.playbackActiveClass == "-epub-media-overlay-playing")
@@ -23,21 +23,21 @@ import Testing
 
             @Test("only activeClass returns non-nil")
             func onlyActiveClassReturnsNonNil() {
-                let sut = EPUBMediaOverlay(json: ["activeClass": "-epub-media-overlay-active"] as [String: Any])
+                let sut = EPUBMediaOverlay(json: ["activeClass": "-epub-media-overlay-active"])
                 #expect(sut?.activeClass == "-epub-media-overlay-active")
                 #expect(sut?.playbackActiveClass == nil)
             }
 
             @Test("only playbackActiveClass returns non-nil")
             func onlyPlaybackActiveClassReturnsNonNil() {
-                let sut = EPUBMediaOverlay(json: ["playbackActiveClass": "-epub-media-overlay-playing"] as [String: Any])
+                let sut = EPUBMediaOverlay(json: ["playbackActiveClass": "-epub-media-overlay-playing"])
                 #expect(sut?.playbackActiveClass == "-epub-media-overlay-playing")
                 #expect(sut?.activeClass == nil)
             }
 
             @Test("empty dictionary returns nil")
             func emptyDictionaryReturnsNil() {
-                #expect(EPUBMediaOverlay(json: [:] as [String: Any]) == nil)
+                #expect(EPUBMediaOverlay(json: [:]) == nil)
             }
 
             @Test("nil returns nil")
@@ -80,9 +80,9 @@ import Testing
         @Test("returns value when present in otherMetadata")
         func returnsValueWhenPresent() {
             var metadata = Metadata(title: "Test")
-            metadata.otherMetadata["mediaOverlay"] = [
-                "activeClass": "-epub-media-overlay-active",
-            ] as [String: Any]
+            metadata.otherMetadata["mediaOverlay"] = .object([
+                "activeClass": .string("-epub-media-overlay-active"),
+            ])
 
             #expect(metadata.mediaOverlay?.activeClass == "-epub-media-overlay-active")
         }

@@ -23,14 +23,19 @@ public struct EPUBMediaOverlay: Equatable, Sendable {
         self.playbackActiveClass = playbackActiveClass
     }
 
-    public init?(json: Any?) {
-        guard let json = json as? [String: Any] else { return nil }
-        activeClass = json["activeClass"] as? String
-        playbackActiveClass = json["playbackActiveClass"] as? String
+    public init?(json: JSONValue?) {
+        guard let jsonDict = JSONDictionary(json) else { return nil }
+        let json = jsonDict.json
+        activeClass = json["activeClass"]?.string
+        playbackActiveClass = json["playbackActiveClass"]?.string
         guard activeClass != nil || playbackActiveClass != nil else { return nil }
     }
 
-    public var json: [String: Any] {
+    public init?(json: Any?) {
+        self.init(json: JSONValue(json))
+    }
+
+    public var json: [String: JSONValue] {
         makeJSON([
             "activeClass": encodeIfNotNil(activeClass),
             "playbackActiveClass": encodeIfNotNil(playbackActiveClass),

@@ -14,7 +14,7 @@ public actor FormatSnifferBlob {
     private var length: ReadResult<UInt64?>?
     private var bytes: ReadResult<Data?>?
     private var string: ReadResult<String?>?
-    private var json: ReadResult<Any?>?
+    private var json: ReadResult<JSONValue?>?
     private var xml: ReadResult<XMLDocument?>?
 
     public init(source: Streamable) {
@@ -58,12 +58,16 @@ public actor FormatSnifferBlob {
     }
 
     /// Reads the whole content as JSON.
-    func readAsJSON() async -> ReadResult<Any?> {
+    func readAsJSON() async -> ReadResult<JSONValue?> {
         if json == nil {
-            json = await read().map {
-                $0.flatMap {
-                    try? JSONSerialization.jsonObject(with: $0)
+            json = await read().map { data in
+                guard let data = data,
+                      let jsonObject = try? JSONSerialization.jsonObject(with: data),
+                      let value = JSONValue(jsonObject)
+                else {
+                    return nil
                 }
+                return value
             }
         }
         return json!

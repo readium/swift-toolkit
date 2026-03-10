@@ -62,9 +62,9 @@ private class PositionsResource: Resource {
 
     func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         await positions().flatMap { positions in
-            let response: [String: Any] = [
-                "total": positions.count,
-                "positions": positions.json,
+            let response: [String: JSONValue] = [
+                "total": .integer(positions.count),
+                "positions": .array(positions.json.map { .object($0) }),
             ]
 
             guard let jsonResponse = serializeJSONData(response) else {
@@ -106,8 +106,10 @@ public extension Publication {
         await links.firstWithMediaType(.readiumPositions)
             .flatMap { get($0) }?
             .read()
-            .asJSONObject()
-            .map { [Locator](json: $0["positions"]) }
+            .asJSONObjectValue()
+            .map { json in
+                [Locator](json: json["positions"])
+            }
             ?? .success([])
     }
 }

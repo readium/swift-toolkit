@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumShared
 import SwiftSoup
 import UIKit
 
@@ -46,11 +47,11 @@ public struct HTMLDecorationTemplate {
         self.init(layout: layout, width: width, element: { _ in element }, stylesheet: stylesheet)
     }
 
-    public var json: [String: Any] {
+    public var json: [String: JSONValue] {
         [
-            "layout": layout.rawValue,
-            "width": width.rawValue,
-            "stylesheet": stylesheet as Any,
+            "layout": .string(layout.rawValue),
+            "width": .string(width.rawValue),
+            "stylesheet": encodeIfNotNil(stylesheet),
         ]
     }
 

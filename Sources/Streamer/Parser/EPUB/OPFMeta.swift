@@ -255,7 +255,7 @@ struct OPFMetaList {
 
     /// Returns the JSON representation of the unknown metadata
     /// (for RWPM's `Metadata.otherMetadata`)
-    var otherMetadata: [String: Any] {
+    var otherMetadata: [String: JSONValue] {
         var metadata: [String: NSMutableOrderedSet] = [:]
 
         for meta in metas {
@@ -269,14 +269,21 @@ struct OPFMetaList {
         }
 
         return metadata.compactMapValues { values in
-            switch values.count {
-            case 0:
+            func toJSONValue(_ value: Any) -> JSONValue? {
+                if let v = value as? String { return .string(v) }
+                if let v = value as? [String: JSONValue] { return .object(v) }
                 return nil
-            case 1:
-                return values[0]
-            default:
-                return values.array
             }
+
+            let jsonValues = values.array.compactMap(toJSONValue)
+
+            if jsonValues.isEmpty {
+                return nil
+            }
+            if jsonValues.count == 1 {
+                return jsonValues[0]
+            }
+            return .array(jsonValues)
         }
     }
 
@@ -289,9 +296,9 @@ struct OPFMetaList {
         if let id = meta.id {
             let refines = metas.filter { $0.refines == id }
             if !refines.isEmpty {
-                var value: [String: Any] = ["@value": meta.content]
+                var value: [String: JSONValue] = ["@value": .string(meta.content)]
                 for refine in refines {
-                    value[refine.vocabularyURI + refine.property] = refine.content
+                    value[refine.vocabularyURI + refine.property] = .string(refine.content)
                 }
                 return value
             }

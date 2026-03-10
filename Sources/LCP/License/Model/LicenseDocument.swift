@@ -55,18 +55,19 @@ public struct LicenseDocument {
     public init(data: Data) throws {
         guard
             let jsonString = String(data: data, encoding: .utf8),
-            let deserializedJSON = try? JSONSerialization.jsonObject(with: data)
+            let deserializedJSON = try? JSONSerialization.jsonObject(with: data),
+            let jsonValue = JSONValue(deserializedJSON)
         else {
             throw ParsingError.malformedJSON
         }
 
-        guard let json = deserializedJSON as? [String: Any],
-              let provider = json["provider"] as? String,
-              let id = json["id"] as? String,
-              let issued = (json["issued"] as? String)?.dateFromISO8601,
-              let encryption = json["encryption"] as? [String: Any],
-              let links = json["links"] as? [[String: Any]],
-              let signature = json["signature"] as? [String: Any]
+        guard var json = JSONDictionary(jsonValue),
+              let provider = json.pop("provider")?.string,
+              let id = json.pop("id")?.string,
+              let issued = parseDate(json.pop("issued")),
+              let encryptionValue = json.pop("encryption"),
+              let linksValue = json.pop("links"),
+              let signatureValue = json.pop("signature")
         else {
             throw ParsingError.licenseDocument
         }
@@ -74,12 +75,12 @@ public struct LicenseDocument {
         self.provider = provider
         self.id = id
         self.issued = issued
-        updated = (json["updated"] as? String)?.dateFromISO8601 ?? issued
-        self.encryption = try Encryption(json: encryption)
-        self.links = try Links(json: links)
-        user = try User(json: json["user"] as? [String: Any])
-        rights = try Rights(json: json["rights"] as? [String: Any])
-        self.signature = try Signature(json: signature)
+        updated = parseDate(json.pop("updated")) ?? issued
+        encryption = try Encryption(json: encryptionValue)
+        links = try Links(json: linksValue)
+        user = try User(json: json.pop("user"))
+        rights = try Rights(json: json.pop("rights"))
+        signature = try Signature(json: signatureValue)
         jsonData = data
         self.jsonString = jsonString
 

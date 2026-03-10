@@ -74,10 +74,10 @@ actor ReadiumGuidedNavigationService: GuidedNavigationService {
         }
 
         return await resource.read()
-            .asJSONObject()
+            .asJSONObjectValue()
             .flatMap { json in
                 do {
-                    return try .success(GuidedNavigationDocument(json: json))
+                    return try .success(GuidedNavigationDocument(json: .object(json)))
                 } catch {
                     return .failure(.decoding(error))
                 }

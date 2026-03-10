@@ -156,7 +156,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
     }
 
     public init(
-        json: Any?,
+        json: JSONValue?,
         warnings: WarningLogger? = nil
     ) throws {
         guard var json = JSONDictionary(json),
@@ -165,8 +165,8 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             throw JSONError.parsing(Metadata.self)
         }
 
-        identifier = json.pop("identifier") as? String
-        type = json.pop("@type") as? String ?? json.pop("type") as? String
+        identifier = json.pop("identifier")?.string
+        type = json.pop("@type")?.string ?? json.pop("type")?.string
         conformsTo = parseArray(json.pop("conformsTo"), allowingSingle: true)
             .map { Publication.Profile($0) }
         localizedTitle = title
@@ -176,7 +176,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         published = parseDate(json.pop("published"))
         languages = parseArray(json.pop("language"), allowingSingle: true)
         language = languages.first.map { Language(code: .bcp47($0)) }
-        sortAs = json.pop("sortAs") as? String
+        sortAs = json.pop("sortAs")?.string
         subjects = [Subject](json: json.pop("subject"), warnings: warnings)
         authors = [Contributor](json: json.pop("author"), warnings: warnings)
         translators = [Contributor](json: json.pop("translator"), warnings: warnings)
@@ -193,14 +193,21 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
         imprints = [Contributor](json: json.pop("imprint"), warnings: warnings)
         layout = parseRaw(json.pop("layout"))
         readingProgression = parseRaw(json.pop("readingProgression")) ?? .auto
-        description = json.pop("description") as? String
+        description = json.pop("description")?.string
         duration = parsePositiveDouble(json.pop("duration"))
         numberOfPages = parsePositive(json.pop("numberOfPages"))
-        belongsTo = (json.pop("belongsTo") as? JSONDictionary.Wrapped)?
+        belongsTo = json.pop("belongsTo")?.object?
             .compactMapValues { item in [Collection](json: item, warnings: warnings) }
             ?? [:]
         tdm = try? TDM(json: json.pop("tdm"), warnings: warnings)
         otherMetadataJSON = json
+    }
+
+    public init(
+        json: Any?,
+        warnings: WarningLogger? = nil
+    ) throws {
+        try self.init(json: JSONValue(json), warnings: warnings)
     }
 
     public var json: JSONDictionary.Wrapped {
@@ -230,13 +237,13 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable {
             "publisher": encodeIfNotEmpty(publishers.json),
             "imprint": encodeIfNotEmpty(imprints.json),
             "layout": encodeIfNotNil(layout?.rawValue),
-            "readingProgression": readingProgression.rawValue,
+            "readingProgression": .string(readingProgression.rawValue),
             "description": encodeIfNotNil(description),
             "duration": encodeIfNotNil(duration),
             "numberOfPages": encodeIfNotNil(numberOfPages),
             "belongsTo": encodeIfNotEmpty(belongsTo.mapValues { $0.json }),
             "tdm": encodeIfNotEmpty(tdm?.json),
-        ], additional: otherMetadata)
+        ] as [String: JSONValue], additional: otherMetadata)
     }
 
     public var belongsToCollections: [Collection] {
