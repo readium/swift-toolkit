@@ -1,13 +1,12 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
+@testable import ReadiumOPDS
 import ReadiumShared
 import XCTest
-
-@testable import ReadiumOPDS
 
 class readium_opds2_0_test: XCTestCase {
     var feed: Feed?

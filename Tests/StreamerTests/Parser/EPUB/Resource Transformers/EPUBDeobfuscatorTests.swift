@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -29,7 +29,7 @@ class EPUBDeobfuscatorTests: XCTestCase {
         XCTAssertEqual(result, .success(font))
     }
 
-    // Fix for https://github.com/readium/r2-streamer-swift/issues/208
+    /// Fix for https://github.com/readium/r2-streamer-swift/issues/208
     func testEmptyPublicationID() async throws {
         let file = fixtures.data(at: "nav.xhtml")
 

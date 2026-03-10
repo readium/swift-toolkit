@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -21,7 +21,8 @@ private func parseRPFEncryptionData(in container: Container) async -> ReadResult
     }
 
     return await manifestResource
-        .readAsJSONObject()
+        .read()
+        .asJSONObject()
         .flatMap { json in
             do {
                 return try .success(Manifest(json: json))
@@ -49,7 +50,7 @@ private func parseEPUBEncryptionData(in container: Container) async -> ReadResul
     return await encryptionResource.read()
         .asyncFlatMap { data -> ReadResult<XMLDocument> in
             do {
-                let doc = try await DefaultXMLDocumentFactory().open(
+                let doc = try DefaultXMLDocumentFactory().open(
                     data: data,
                     namespaces: [.enc, .ds, .comp]
                 )

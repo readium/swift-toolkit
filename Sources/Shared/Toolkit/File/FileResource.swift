@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -14,7 +14,9 @@ public actor FileResource: Resource, Loggable {
         fileURL = file
     }
 
-    public nonisolated var sourceURL: AbsoluteURL? { fileURL }
+    public nonisolated var sourceURL: AbsoluteURL? {
+        fileURL
+    }
 
     private var _length: ReadResult<UInt64?>?
 
@@ -28,7 +30,7 @@ public actor FileResource: Resource, Loggable {
                     _length = .failure(.access(.fileSystem(.fileNotFound(nil))))
                 }
             } catch {
-                _length = .failure(.access(.fileSystem(.io(error))))
+                _length = .failure(.access(.fileSystem(.wrap(error) ?? .io(error))))
             }
         }
         return _length!

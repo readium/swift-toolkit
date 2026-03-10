@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -33,7 +33,6 @@ class CSSRSPropertiesTests: XCTestCase {
                 "--RS__visitedColor": nil,
                 "--RS__primaryColor": nil,
                 "--RS__secondaryColor": nil,
-                "--RS__typeScale": nil,
                 "--RS__baseFontFamily": nil,
                 "--RS__baseLineHeight": nil,
                 "--RS__oldStyleTf": nil,
@@ -53,7 +52,7 @@ class CSSRSPropertiesTests: XCTestCase {
 
     func testOverrideProperties() {
         let props = CSSRSProperties(
-            colCount: .one,
+            colCount: 1,
             overrides: [
                 "--RS__colCount": "2",
                 "--RS__custom": "value",
@@ -68,7 +67,7 @@ class CSSRSPropertiesTests: XCTestCase {
         XCTAssertEqual(
             CSSRSProperties(
                 colWidth: CSSCmLength(1.2),
-                colCount: .two,
+                colCount: 2,
                 colGap: CSSPtLength(2.3),
                 pageGutter: CSSPcLength(3.4),
                 flowSpacing: CSSMmLength(4.5),
@@ -87,7 +86,6 @@ class CSSRSPropertiesTests: XCTestCase {
                 visitedColor: CSSHexColor("#0000FF"),
                 primaryColor: CSSHexColor("#FA4358"),
                 secondaryColor: CSSHexColor("#CBC322"),
-                typeScale: 10.11,
                 baseFontFamily: ["Palatino", "Comic Sans MS"],
                 baseLineHeight: .length(CSSVhLength(11.12)),
                 oldStyleTf: ["Old", "Style"],
@@ -123,7 +121,6 @@ class CSSRSPropertiesTests: XCTestCase {
                 "--RS__visitedColor": "#0000FF",
                 "--RS__primaryColor": "#FA4358",
                 "--RS__secondaryColor": "#CBC322",
-                "--RS__typeScale": "10.11000",
                 "--RS__baseFontFamily": #"Palatino, "Comic Sans MS""#,
                 "--RS__baseLineHeight": "11.12000vh",
                 "--RS__oldStyleTf": #"Old, Style"#,

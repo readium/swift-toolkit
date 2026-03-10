@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -51,7 +51,7 @@ public struct DocumentTypes {
             .flatMap(\.utis)
             .removingDuplicates()
 
-        let utis = supportedUTIs.map(UTI.init(stringLiteral:))
+        let utis = supportedUTIs.compactMap { UTI($0) }
 
         let utisMediaTypes = utis
             .flatMap { $0.tags(withClass: .mediaType) }
@@ -91,18 +91,18 @@ public struct DocumentTypes {
 
 /// Metadata about a Document Type declared in `CFBundleDocumentTypes`.
 public struct DocumentType: Equatable, Loggable {
-    // Abstract name for the document type, used to refer to the type.
+    /// Abstract name for the document type, used to refer to the type.
     public let name: String
 
-    // Uniform Type Identifiers supported by this document type.
+    /// Uniform Type Identifiers supported by this document type.
     public let utis: [String]
 
-    // The preferred media type used to identify this document type.
+    /// The preferred media type used to identify this document type.
     public let preferredMediaType: MediaType?
 
-    // Media (MIME) types recognized by this document type.
+    /// Media (MIME) types recognized by this document type.
     public let mediaTypes: [MediaType]
-    // File extensions recognized by this document type.
+    /// File extensions recognized by this document type.
     public let fileExtensions: [String]
 
     init(
@@ -127,7 +127,7 @@ public struct DocumentType: Equatable, Loggable {
 
         self.name = name
         self.utis = (dictionary["LSItemContentTypes"] as? [String] ?? [])
-        let utis = utis.map(UTI.init(stringLiteral:))
+        let utis = utis.compactMap { UTI($0) }
 
         let fileExtensions =
             utis.flatMap { $0.tags(withClass: .fileExtension) } +

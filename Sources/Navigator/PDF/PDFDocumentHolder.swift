@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -26,7 +26,7 @@ extension PDFDocumentHolder: ReadiumShared.PDFDocumentFactory {
         return document
     }
 
-    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> ReadiumShared.PDFDocument {
+    func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> ReadiumShared.PDFDocument {
         guard let document = document, self.href == href.anyURL else {
             throw PDFDocumentError.openFailed
         }

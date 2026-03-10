@@ -1,0 +1,51 @@
+name: NavigatorUITests
+options:
+  bundleIdPrefix: org.readium.test
+packages:
+  Readium:
+    path: ../../..
+schemes:
+  NavigatorTestHost:
+    build:
+      targets:
+        NavigatorTestHost: all
+    test:
+      targets:
+        - NavigatorUITests
+targets:
+  NavigatorTestHost:
+    type: application
+    platform: iOS
+    deploymentTarget: 15.0
+    sources:
+      - path: NavigatorTestHost
+      - path: ../../Publications/Publications
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: Readium
+        product: ReadiumShared
+      - package: Readium
+        product: ReadiumStreamer
+      - package: Readium
+        product: ReadiumNavigator
+      - package: Readium
+        product: ReadiumAdapterGCDWebServer
+    settings:
+      INFOPLIST_FILE: NavigatorTestHost/Info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.test.NavigatorTestHost
+
+  NavigatorUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: 15.0
+    sources:
+      - NavigatorUITests
+      - NavigatorTestHost/AccessibilityID.swift
+      - NavigatorTestHost/Fixtures
+    dependencies:
+      - target: NavigatorTestHost
+    settings:
+      INFOPLIST_FILE: NavigatorUITests/Info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: org.readium.test.NavigatorUITests
+      TEST_TARGET_NAME: NavigatorTestHost

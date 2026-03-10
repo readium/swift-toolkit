@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -53,7 +53,9 @@ public struct Language: Hashable, Sendable {
         locale.regionCode.flatMap { Region(code: $0) }
     }
 
-    public var locale: Locale { Locale(identifier: code.bcp47) }
+    public var locale: Locale {
+        Locale(identifier: code.bcp47)
+    }
 
     public func localizedDescription(in locale: Locale = Locale.current) -> String {
         locale.localizedString(forIdentifier: code.bcp47)

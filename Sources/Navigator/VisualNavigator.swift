@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -19,20 +19,18 @@ public protocol VisualNavigator: Navigator, InputObservable {
     /// Moves to the left content portion (eg. page) relative to the reading
     /// progression direction.
     ///
-    /// - Parameter completion: Called when the transition is completed.
-    /// - Returns: Whether the navigator is able to move to the previous
-    ///   content portion. The completion block is only called if true was
-    ///   returned.
+    /// - Parameter options: Options for moving the content to the left.
+    /// - Returns: Whether the navigator was able to move to the left content
+    ///   portion.
     @discardableResult
     func goLeft(options: NavigatorGoOptions) async -> Bool
 
     /// Moves to the right content portion (eg. page) relative to the reading
     /// progression direction.
     ///
-    /// - Parameter completion: Called when the transition is completed.
-    /// - Returns: Whether the navigator is able to move to the previous
-    ///   content portion. The completion block is only called if true was
-    ///   returned.
+    /// - Parameter options: Options for moving the content to the right.
+    /// - Returns: Whether the navigator was able to move to the right content
+    ///   portion.
     @discardableResult
     func goRight(options: NavigatorGoOptions) async -> Bool
 

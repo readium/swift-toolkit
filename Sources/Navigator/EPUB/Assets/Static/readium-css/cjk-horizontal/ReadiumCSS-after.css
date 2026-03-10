@@ -1,10 +1,17 @@
-/*
- * Readium CSS (v. 2.0.0-beta.18)
- * Developers: Jiminy Panoz 
- * Copyright (c) 2017. Readium Foundation. All rights reserved.
+/*!
+ * Readium CSS v.2.0.0
+ * Copyright (c) 2017–2026. Readium Foundation. All rights reserved.
  * Use of this source code is governed by a BSD-style license which is detailed in the
  * LICENSE file present in the project repository where this source code is maintained.
-*/
+ * Core maintainer: Jiminy Panoz <jiminy.panoz@edrlab.org> 
+ * Contributors: 
+ * Daniel Weck
+ * Hadrien Gardeur
+ * Innovimax
+ * L. Le Meur
+ * Mickaël Menu
+ * k_taka
+ */
 
 @namespace url("http://www.w3.org/1999/xhtml");
 
@@ -20,7 +27,7 @@
 
   --RS__pageGutter:0;
 
-  --RS__defaultLineLength:40rem;
+  --RS__defaultLineLength:100%;
 
   --RS__colGap:0;
 
@@ -64,9 +71,12 @@
 body{
   width:100%;
   max-width:var(--RS__defaultLineLength) !important;
-  padding:0 var(--RS__pageGutter) !important;
   margin:0 auto !important;
   box-sizing:border-box;
+}
+
+:root:not([style*="readium-scroll-on"]) body{
+  padding:0 var(--RS__pageGutter) !important;
 }
 
 :root:not([style*="readium-noOverflow-on"]) body{
@@ -131,145 +141,6 @@ body{
 
 :root[style*="readium-scroll-on"][style*="--RS__scrollPaddingRight"] body{
   padding-right:var(--RS__scrollPaddingRight) !important;
-}
-
-:root[style*="readium-night-on"]{
-
-  --RS__selectionTextColor:inherit;
-
-  --RS__selectionBackgroundColor:#b4d8fe;
-
-  --RS__visitedColor:#0099E5;
-
-  --RS__linkColor:#63caff;
-
-  --RS__textColor:#FEFEFE;
-
-  --RS__backgroundColor:#000000;
-}
-
-:root[style*="readium-night-on"] *:not(a){
-  color:inherit !important;
-  background-color:transparent !important;
-  border-color:currentcolor !important;
-}
-
-:root[style*="readium-night-on"] svg text{
-  fill:currentcolor !important;
-  stroke:none !important;
-}
-
-:root[style*="readium-night-on"] a:link,
-:root[style*="readium-night-on"] a:link *{
-  color:var(--RS__linkColor) !important;
-}
-
-:root[style*="readium-night-on"] a:visited,
-:root[style*="readium-night-on"] a:visited *{
-  color:var(--RS__visitedColor) !important;
-}
-
-:root[style*="readium-night-on"] img[class*="gaiji"],
-:root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child,
-:root[style*="readium-night-on"] *[epub|type~="titlepage"] img:only-child{
-  -webkit-filter:invert(100%);
-  filter:invert(100%);
-}
-
-:root[style*="readium-sepia-on"]{
-
-  --RS__selectionTextColor:inherit;
-
-  --RS__selectionBackgroundColor:#b4d8fe;
-
-  --RS__visitedColor:#551A8B;
-
-  --RS__linkColor:#0000EE;
-
-  --RS__textColor:#121212;
-
-  --RS__backgroundColor:#faf4e8;
-}
-
-:root[style*="readium-sepia-on"] *:not(a){
-  color:inherit !important;
-  background-color:transparent !important;
-}
-
-:root[style*="readium-sepia-on"] a:link,
-:root[style*="readium-sepia-on"] a:link *{
-  color:var(--RS__linkColor);
-}
-
-:root[style*="readium-sepia-on"] a:visited,
-:root[style*="readium-sepia-on"] a:visited *{
-  color:var(--RS__visitedColor);
-}
-
-@media screen and (-ms-high-contrast: active){
-
-  :root{
-    color:windowText !important;
-    background-color:window !important;
-  }
-
-  :root :not(#\#):not(#\#):not(#\#),
-  :root :not(#\#):not(#\#):not(#\#) :not(#\#):not(#\#):not(#\#)
-  :root :not(#\#):not(#\#):not(#\#) :not(#\#):not(#\#):not(#\#) :not(#\#):not(#\#):not(#\#){
-    color:inherit !important;
-    background-color:inherit !important;
-  }
-
-  .readiumCSS-mo-active-default{
-    color:highlightText !important;
-    background-color:highlight !important;
-  }
-}
-
-@media screen and (-ms-high-contrast: white-on-black){
-
-  :root[style*="readium-night-on"] img[class*="gaiji"],
-  :root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child,
-  :root[style*="readium-night-on"] *[epub|type~="titlepage"] img:only-child{
-    -webkit-filter:none !important;
-    filter:none !important;
-  }
-
-  :root[style*="readium-night-on"][style*="readium-invert-on"] img{
-    -webkit-filter:none !important;
-    filter:none !important;
-  }
-
-  :root[style*="readium-night-on"][style*="readium-darken-on"][style*="readium-invert-on"] img{
-    -webkit-filter:brightness(80%);
-    filter:brightness(80%);
-  }
-}
-
-@media screen and (inverted-colors){
-
-  :root[style*="readium-night-on"] img[class*="gaiji"],
-  :root[style*="readium-night-on"] *[epub\:type~="titlepage"] img:only-child,
-  :root[style*="readium-night-on"] *[epub|type~="titlepage"] img:only-child{
-    -webkit-filter:none !important;
-    filter:none !important;
-  }
-
-  :root[style*="readium-night-on"][style*="readium-invert-on"] img{
-    -webkit-filter:none !important;
-    filter:none !important;
-  }
-
-  :root[style*="readium-night-on"][style*="readium-darken-on"][style*="readium-invert-on"] img{
-    -webkit-filter:brightness(80%);
-    filter:brightness(80%);
-  }
-}
-
-@media screen and (monochrome){
-}
-
-@media screen and (prefers-reduced-motion){
 }
 
 :root[style*="--USER__backgroundColor"]{
@@ -353,8 +224,34 @@ body{
   zoom:var(--USER__fontSize) !important;
 }
 
-:root[style*="readium-iOSPatch-on"][style*="--USER__fontSize"] body{
+:root:not([style*="readium-deprecatedFontSize-on"])[style*="readium-iOSPatch-on"][style*="--USER__fontSize"] body{
   -webkit-text-size-adjust:var(--USER__fontSize) !important;
+}
+
+@supports selector(figure:has(> img)){
+
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] figure:has(> img),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] figure:has(> video),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] figure:has(> svg),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] figure:has(> canvas),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] figure:has(> iframe),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] figure:has(> audio),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] div:has(> img:only-child),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] div:has(> video:only-child),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] div:has(> svg:only-child),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] div:has(> canvas:only-child),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] div:has(> iframe:only-child),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] div:has(> audio:only-child),
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] table{
+    zoom:calc(100% / var(--USER__fontSize)) !important;
+  }
+
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] figcaption,
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] caption,
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] td,
+  :root[style*="readium-experimentalZoom-on"]:not([style*="readium-deprecatedFontSize-on"]):not([style*="readium-iOSPatch-on"])[style*="--USER__fontSize"] th{
+    zoom:var(--USER__fontSize) !important;
+  }
 }
 
 @supports not (zoom: 1){

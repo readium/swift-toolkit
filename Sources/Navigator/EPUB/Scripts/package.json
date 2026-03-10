@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "bundle": "webpack",
+    "bundle:minify": "MINIFY_CSS=true webpack",
     "lint": "eslint src",
     "checkformat": "prettier --check '**/*.js'",
     "format": "prettier --list-different --write '**/*.js'"
@@ -17,7 +18,10 @@
   "devDependencies": {
     "@babel/core": "^7.23.9",
     "@babel/preset-env": "^7.23.9",
+    "@readium/css": "^2.0.0",
     "babel-loader": "^8.3.0",
+    "clean-css": "^5.3.3",
+    "copy-webpack-plugin": "^14.0.0",
     "eslint": "^7.32.0",
     "prettier": "2.3.1",
     "webpack": "^5.90.1",

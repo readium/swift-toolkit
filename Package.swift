@@ -1,6 +1,6 @@
 // swift-tools-version:5.10
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,7 +10,7 @@ import PackageDescription
 let package = Package(
     name: "Readium",
     defaultLocalization: "en",
-    platforms: [.iOS("13.4")],
+    platforms: [.iOS("15.0")],
     products: [
         .library(name: "ReadiumShared", targets: ["ReadiumShared"]),
         .library(name: "ReadiumStreamer", targets: ["ReadiumStreamer"]),
@@ -28,9 +28,10 @@ let package = Package(
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
         .package(url: "https://github.com/readium/Fuzi.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
-        .package(url: "https://github.com/readium/ZIPFoundation.git", from: "3.0.0"),
-        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
+        .package(url: "https://github.com/readium/ZIPFoundation.git", from: "3.0.1"),
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.13.0"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.15.0"),
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.3.0"),
     ],
     targets: [
         .target(
@@ -53,7 +54,10 @@ let package = Package(
         ),
         .testTarget(
             name: "ReadiumSharedTests",
-            dependencies: ["ReadiumShared"],
+            dependencies: [
+                "ReadiumShared",
+                "TestPublications",
+            ],
             path: "Tests/SharedTests",
             resources: [
                 .copy("Fixtures"),
@@ -101,7 +105,10 @@ let package = Package(
         .testTarget(
             name: "ReadiumNavigatorTests",
             dependencies: ["ReadiumNavigator"],
-            path: "Tests/NavigatorTests"
+            path: "Tests/NavigatorTests",
+            exclude: [
+                "UITests",
+            ]
         ),
 
         .target(
@@ -125,6 +132,7 @@ let package = Package(
             name: "ReadiumLCP",
             dependencies: [
                 "CryptoSwift",
+                "ReadiumInternal",
                 "ReadiumShared",
                 .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],
@@ -140,7 +148,7 @@ let package = Package(
         //     dependencies: ["ReadiumLCP"],
         //     path: "Tests/LCPTests",
         //     resources: [
-        //         .copy("Fixtures"),
+        //         .copy("../Fixtures"),
         //     ]
         // ),
 
@@ -170,6 +178,15 @@ let package = Package(
             name: "ReadiumInternalTests",
             dependencies: ["ReadiumInternal"],
             path: "Tests/InternalTests"
+        ),
+
+        // Shared test publications used across multiple test targets.
+        .target(
+            name: "TestPublications",
+            path: "Tests/Publications",
+            resources: [
+                .copy("Publications"),
+            ]
         ),
     ]
 )

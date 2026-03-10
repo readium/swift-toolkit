@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -17,7 +17,9 @@ protocol HTMLInjectable {
 }
 
 extension HTMLInjectable {
-    func willInject(in html: String) -> String { html }
+    func willInject(in html: String) -> String {
+        html
+    }
 
     /// Injects the receiver in the given `html` document.
     func inject(in html: String) throws -> String {

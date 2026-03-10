@@ -1,12 +1,10 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import Foundation
-
-public typealias ReadResult<Success> = Result<Success, ReadError>
 
 /// Errors occurring while reading a resource.
 public enum ReadError: Error {
@@ -33,6 +31,17 @@ public enum ReadError: Error {
     public static func decoding(_ message: String, cause: Error? = nil) -> ReadError {
         .decoding(DebugError(message, cause: cause))
     }
+
+    /// Wraps a native error into a `ReadError`, if possible.
+    ///
+    /// Returns `nil` if the error cannot be mapped to a known `ReadError`.
+    public static func wrap(_ error: Error) -> ReadError? {
+        if let error = AccessError.wrap(error) {
+            return .access(error)
+        } else {
+            return nil
+        }
+    }
 }
 
 public enum AccessError: Error {
@@ -44,4 +53,17 @@ public enum AccessError: Error {
 
     /// For extension purposes. This is not used in the Readium toolkit.
     case other(Error)
+
+    /// Wraps a native error into an `AccessError`, if possible.
+    ///
+    /// Returns `nil` if the error cannot be mapped to a known `AccessError`.
+    public static func wrap(_ error: Error) -> AccessError? {
+        if let error = HTTPError.wrap(error) {
+            return .http(error)
+        } else if let error = FileSystemError.wrap(error) {
+            return .fileSystem(error)
+        } else {
+            return nil
+        }
+    }
 }

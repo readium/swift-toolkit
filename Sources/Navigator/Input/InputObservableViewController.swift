@@ -1,12 +1,12 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
 
 import UIKit
 
-/// Base implementation of ``UIViewController`` which implements
+/// Base implementation of `UIViewController` which implements
 /// ``InputObservable`` to forward UIKit touches and presses events to
 /// observers.
 open class InputObservableViewController: UIViewController, InputObservable {
@@ -31,7 +31,9 @@ open class InputObservableViewController: UIViewController, InputObservable {
 
     // MARK: - UIResponder
 
-    override open var canBecomeFirstResponder: Bool { true }
+    override open var canBecomeFirstResponder: Bool {
+        true
+    }
 
     override open func resignFirstResponder() -> Bool {
         // Force end editing of the view to make sure any subview is also
@@ -197,7 +199,6 @@ extension Key {
             self = .shift
         case .keyboardEscape:
             self = .escape
-
         default:
             let character = key.charactersIgnoringModifiers
             guard character != "" else {

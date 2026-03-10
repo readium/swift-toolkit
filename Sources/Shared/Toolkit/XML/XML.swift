@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -73,33 +73,44 @@ public protocol XMLElement: XMLNode {
 public protocol XMLDocumentFactory {
     /// Opens an XML document from a local file path.
     ///
-    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
+    /// - Parameters:
+    ///   - file: The local file URL of the XML document.
+    ///   - namespaces: List of namespace prefixes to declare in the document.
+    /// - Throws: An error if the file cannot be read or the XML is malformed.
     func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument
 
     /// Opens an XML document from its raw data content.
     ///
-    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
-    func open(data: Data, namespaces: [XMLNamespace]) async throws -> XMLDocument
+    /// - Parameters:
+    ///   - data: The raw data containing the XML content.
+    ///   - namespaces: List of namespace prefixes to declare in the document.
+    /// - Throws: An error if the XML parsing fails.
+    func open(data: Data, namespaces: [XMLNamespace]) throws -> XMLDocument
 
     /// Opens an XML document from its raw string content.
     ///
-    /// - Parameter namespaces: List of namespace prefixes to declare in the document.
-    func open(string: String, namespaces: [XMLNamespace]) async throws -> XMLDocument
+    /// - Parameters:
+    ///   - string: The string containing the XML content.
+    ///   - namespaces: List of namespace prefixes to declare in the document.
+    /// - Throws: An error if the XML parsing fails.
+    func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument
 }
 
 public class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
     public init() {}
 
     public func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument {
-        warnIfMainThread()
-        return try await open(string: String(contentsOf: file.url), namespaces: namespaces)
+        let string = try await Task.detached(priority: Task.currentPriority) {
+            try String(contentsOf: file.url)
+        }.value
+        return try open(string: string, namespaces: namespaces)
     }
 
-    public func open(string: String, namespaces: [XMLNamespace]) async throws -> XMLDocument {
+    public func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument {
         try FuziXMLDocument(string: string, namespaces: namespaces)
     }
 
-    public func open(data: Data, namespaces: [XMLNamespace]) async throws -> XMLDocument {
+    public func open(data: Data, namespaces: [XMLNamespace]) throws -> XMLDocument {
         try FuziXMLDocument(data: data, namespaces: namespaces)
     }
 }

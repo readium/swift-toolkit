@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -37,16 +37,6 @@ public enum ReadingProgression: String, Codable, Hashable {
         default: return nil
         }
     }
-
-    /// Returns the starting page for the reading progression.
-    var startingPage: Properties.Page {
-        switch self {
-        case .ltr:
-            return .right
-        case .rtl:
-            return .left
-        }
-    }
 }
 
 extension ReadiumShared.ReadingProgression {
@@ -58,12 +48,15 @@ extension ReadiumShared.ReadingProgression {
     }
 }
 
-/// Method for constraining a resource inside the viewport.
+/// Method for fitting the content within the viewport.
 public enum Fit: String, Codable, Hashable {
-    case cover
-    case contain
+    /// Use the best fitting strategy depending on the current settings and
+    /// content.
+    case auto
+    /// The content is scaled to fit both dimensions within the viewport.
+    case page
+    /// The content is scaled to fit the viewport width.
     case width
-    case height
 }
 
 /// Reader theme for reflowable documents.
@@ -222,7 +215,7 @@ public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable,
     // Modern (serif)
     public static let athelas: FontFamily = "Athelas"
     public static let georgia: FontFamily = "Georgia"
-    // Neutral (sans)
+    /// Neutral (sans)
     public static let helveticaNeue: FontFamily = "Helvetica Neue"
     // Humanist (sans)
     public static let seravek: FontFamily = "Seravek"

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -42,7 +42,7 @@ class OPDSPlaceholderListView: OPDSPlaceholderView, Placeholder {}
 // MARK: - Placeholder protocol specific to publication screen
 
 extension OPDSPlaceholderPublicationView {
-    public func add(to imageView: KFCrossPlatformImageView) {
+    func add(to imageView: KFCrossPlatformImageView) {
         imageView.addSubview(self)
 
         translatesAutoresizingMaskIntoConstraints = false

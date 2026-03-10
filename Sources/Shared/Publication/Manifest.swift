@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -120,7 +120,7 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
         case .epub:
             // EPUB needs to be explicitly indicated in `conformsTo`, otherwise
             // it could be a regular Web Publication.
-            return readingOrder.allAreHTML && metadata.conformsTo.contains(.epub)
+            return metadata.conformsTo.contains(.epub)
         case .pdf:
             return readingOrder.allMatchingMediaType(.pdf)
         default:

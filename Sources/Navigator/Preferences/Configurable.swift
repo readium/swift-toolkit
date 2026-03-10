@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -67,7 +67,9 @@ public class AnyConfigurable<
         _editor = configurable.editor(of:)
     }
 
-    public var settings: Settings { _settings() }
+    public var settings: Settings {
+        _settings()
+    }
 
     public func submitPreferences(_ preferences: Preferences) {
         _submitPreferences(preferences)

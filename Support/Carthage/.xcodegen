@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.44.1
+2.45.2
 
 # SPEC
 {
@@ -81,7 +81,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -106,7 +106,7 @@
           "target" : "ReadiumLCP"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -120,7 +120,7 @@
       "type" : "framework"
     },
     "ReadiumInternal" : {
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -151,7 +151,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -182,7 +182,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -215,7 +215,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -249,7 +249,7 @@
           "sdk" : "CoreServices.framework"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -277,7 +277,7 @@
           "target" : "ReadiumInternal"
         }
       ],
-      "deploymentTarget" : "13.4",
+      "deploymentTarget" : "15.0",
       "platform" : "iOS",
       "settings" : {
         "INFOPLIST_FILE" : "Info.plist",
@@ -327,12 +327,12 @@
 ../../Sources/Internal/Extensions/UInt64.swift
 ../../Sources/Internal/Extensions/URL.swift
 ../../Sources/Internal/JSON.swift
+../../Sources/Internal/Keychain.swift
 ../../Sources/Internal/Measure.swift
 ../../Sources/Internal/UTI.swift
 ../../Sources/LCP
+../../Sources/LCP/.DS_Store
 ../../Sources/LCP/Authentications
-../../Sources/LCP/Authentications/Base.lproj
-../../Sources/LCP/Authentications/Base.lproj/LCPDialogViewController.xib
 ../../Sources/LCP/Authentications/LCPAuthenticating.swift
 ../../Sources/LCP/Authentications/LCPDialog.swift
 ../../Sources/LCP/Authentications/LCPDialogAuthentication.swift
@@ -376,9 +376,17 @@
 ../../Sources/LCP/License/Model/Components/LSD/PotentialRights.swift
 ../../Sources/LCP/License/Model/LicenseDocument.swift
 ../../Sources/LCP/License/Model/StatusDocument.swift
+../../Sources/LCP/Repositories
+../../Sources/LCP/Repositories/Keychain
+../../Sources/LCP/Repositories/Keychain/LCPKeychainLicenseRepository.swift
+../../Sources/LCP/Repositories/Keychain/LCPKeychainPassphraseRepository.swift
 ../../Sources/LCP/Resources
 ../../Sources/LCP/Resources/en.lproj
 ../../Sources/LCP/Resources/en.lproj/Localizable.strings
+../../Sources/LCP/Resources/fr.lproj
+../../Sources/LCP/Resources/fr.lproj/Localizable.strings
+../../Sources/LCP/Resources/it.lproj
+../../Sources/LCP/Resources/it.lproj/Localizable.strings
 ../../Sources/LCP/Resources/prod-license.lcpl
 ../../Sources/LCP/Services
 ../../Sources/LCP/Services/CRLService.swift
@@ -389,8 +397,9 @@
 ../../Sources/LCP/Toolkit/Bundle.swift
 ../../Sources/LCP/Toolkit/DataCompression.swift
 ../../Sources/LCP/Toolkit/ReadiumLCPLocalizedString.swift
-../../Sources/LCP/Toolkit/Streamable.swift
+../../Sources/LCP/Toolkit/ReadResult.swift
 ../../Sources/Navigator
+../../Sources/Navigator/.DS_Store
 ../../Sources/Navigator/Audiobook
 ../../Sources/Navigator/Audiobook/AudioNavigator.swift
 ../../Sources/Navigator/Audiobook/Preferences
@@ -407,6 +416,7 @@
 ../../Sources/Navigator/DirectionalNavigationAdapter.swift
 ../../Sources/Navigator/EditingAction.swift
 ../../Sources/Navigator/EPUB
+../../Sources/Navigator/EPUB/.DS_Store
 ../../Sources/Navigator/EPUB/Assets
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-one.html
 ../../Sources/Navigator/EPUB/Assets/fxl-spread-two.html
@@ -426,10 +436,14 @@
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-vertical/ReadiumCSS-before.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/cjk-vertical/ReadiumCSS-default.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts
-../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/AccessibleDfA.otf
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/AccessibleDfA-Bold.woff2
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/AccessibleDfA-Italic.woff2
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/AccessibleDfA-Regular.woff
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/AccessibleDfA-Regular.woff2
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/iAWriterDuospace-Regular.ttf
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/LICENSE-AccessibleDfa
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/fonts/LICENSE-IaWriterDuospace.md
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/HEAD
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/ReadiumCSS-after.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/ReadiumCSS-before.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/ReadiumCSS-default.css
@@ -439,6 +453,8 @@
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-after.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-before.css
 ../../Sources/Navigator/EPUB/Assets/Static/readium-css/rtl/ReadiumCSS-default.css
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/webPub
+../../Sources/Navigator/EPUB/Assets/Static/readium-css/webPub/ReadiumCSS-webPub.css
 ../../Sources/Navigator/EPUB/Assets/Static/scripts
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/.gitignore
 ../../Sources/Navigator/EPUB/Assets/Static/scripts/readium-fixed-wrapper-one.js
@@ -455,6 +471,7 @@
 ../../Sources/Navigator/EPUB/CSS/HTMLFontFamilyDeclaration.swift
 ../../Sources/Navigator/EPUB/CSS/ReadiumCSS.swift
 ../../Sources/Navigator/EPUB/DiffableDecoration+HTML.swift
+../../Sources/Navigator/EPUB/EPUBExtensions.swift
 ../../Sources/Navigator/EPUB/EPUBFixedSpreadView.swift
 ../../Sources/Navigator/EPUB/EPUBNavigatorViewController.swift
 ../../Sources/Navigator/EPUB/EPUBNavigatorViewModel.swift
@@ -468,6 +485,7 @@
 ../../Sources/Navigator/EPUB/Preferences/EPUBPreferencesEditor.swift
 ../../Sources/Navigator/EPUB/Preferences/EPUBSettings.swift
 ../../Sources/Navigator/EPUB/Scripts
+../../Sources/Navigator/EPUB/Scripts/.DS_Store
 ../../Sources/Navigator/EPUB/Scripts/.eslintrc.json
 ../../Sources/Navigator/EPUB/Scripts/.gitignore
 ../../Sources/Navigator/EPUB/Scripts/.prettierignore
@@ -518,6 +536,7 @@
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/anchoring/xpath.js
 ../../Sources/Navigator/EPUB/Scripts/src/vendor/hypothesis/README.md
 ../../Sources/Navigator/EPUB/Scripts/webpack.config.js
+../../Sources/Navigator/EPUB/WebViewServer.swift
 ../../Sources/Navigator/Input
 ../../Sources/Navigator/Input/CompositeInputObserver.swift
 ../../Sources/Navigator/Input/InputObservable.swift
@@ -532,6 +551,7 @@
 ../../Sources/Navigator/Input/Key/KeyObserver.swift
 ../../Sources/Navigator/Input/Pointer
 ../../Sources/Navigator/Input/Pointer/ActivatePointerObserver.swift
+../../Sources/Navigator/Input/Pointer/DragPointerObserver.swift
 ../../Sources/Navigator/Input/Pointer/PointerEvent.swift
 ../../Sources/Navigator/Navigator.swift
 ../../Sources/Navigator/PDF
@@ -586,6 +606,7 @@
 ../../Sources/OPDS/URLHelper.swift
 ../../Sources/OPDS/XMLNamespace.swift
 ../../Sources/Shared
+../../Sources/Shared/.DS_Store
 ../../Sources/Shared/Logger
 ../../Sources/Shared/Logger/Loggable.swift
 ../../Sources/Shared/Logger/Logger.swift
@@ -616,6 +637,8 @@
 ../../Sources/Shared/Publication/Extensions/Encryption/Properties+Encryption.swift
 ../../Sources/Shared/Publication/Extensions/EPUB
 ../../Sources/Shared/Publication/Extensions/EPUB/EPUBLayout.swift
+../../Sources/Shared/Publication/Extensions/EPUB/EPUBMediaOverlay.swift
+../../Sources/Shared/Publication/Extensions/EPUB/Metadata+EPUB.swift
 ../../Sources/Shared/Publication/Extensions/EPUB/Properties+EPUB.swift
 ../../Sources/Shared/Publication/Extensions/EPUB/Publication+EPUB.swift
 ../../Sources/Shared/Publication/Extensions/HTML
@@ -628,6 +651,9 @@
 ../../Sources/Shared/Publication/Extensions/Presentation/Metadata+Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Presentation.swift
 ../../Sources/Shared/Publication/Extensions/Presentation/Properties+Presentation.swift
+../../Sources/Shared/Publication/GuidedNavigation
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationDocument.swift
+../../Sources/Shared/Publication/GuidedNavigation/GuidedNavigationObject.swift
 ../../Sources/Shared/Publication/HREFNormalizer.swift
 ../../Sources/Shared/Publication/Layout.swift
 ../../Sources/Shared/Publication/Link.swift
@@ -636,9 +662,6 @@
 ../../Sources/Shared/Publication/Locator.swift
 ../../Sources/Shared/Publication/Manifest.swift
 ../../Sources/Shared/Publication/ManifestTransformer.swift
-../../Sources/Shared/Publication/Media Overlays
-../../Sources/Shared/Publication/Media Overlays/MediaOverlayNode.swift
-../../Sources/Shared/Publication/Media Overlays/MediaOverlays.swift
 ../../Sources/Shared/Publication/Metadata.swift
 ../../Sources/Shared/Publication/Properties.swift
 ../../Sources/Shared/Publication/Protection
@@ -661,6 +684,9 @@
 ../../Sources/Shared/Publication/Services/Cover
 ../../Sources/Shared/Publication/Services/Cover/CoverService.swift
 ../../Sources/Shared/Publication/Services/Cover/GeneratedCoverService.swift
+../../Sources/Shared/Publication/Services/Cover/ResourceCoverService.swift
+../../Sources/Shared/Publication/Services/GuidedNavigation
+../../Sources/Shared/Publication/Services/GuidedNavigation/GuidedNavigationService.swift
 ../../Sources/Shared/Publication/Services/Locator
 ../../Sources/Shared/Publication/Services/Locator/DefaultLocatorService.swift
 ../../Sources/Shared/Publication/Services/Locator/LocatorService.swift
@@ -678,8 +704,12 @@
 ../../Sources/Shared/Publication/Subject.swift
 ../../Sources/Shared/Publication/TDM.swift
 ../../Sources/Shared/Resources
-../../Sources/Shared/Resources/en-US.lproj
-../../Sources/Shared/Resources/en-US.lproj/W3CAccessibilityMetadataDisplayGuide.strings
+../../Sources/Shared/Resources/en.lproj
+../../Sources/Shared/Resources/en.lproj/W3CAccessibilityMetadataDisplayGuide.strings
+../../Sources/Shared/Resources/fr.lproj
+../../Sources/Shared/Resources/fr.lproj/W3CAccessibilityMetadataDisplayGuide.strings
+../../Sources/Shared/Resources/it.lproj
+../../Sources/Shared/Resources/it.lproj/W3CAccessibilityMetadataDisplayGuide.strings
 ../../Sources/Shared/Toolkit
 ../../Sources/Shared/Toolkit/Archive
 ../../Sources/Shared/Toolkit/Archive/ArchiveOpener.swift
@@ -699,6 +729,7 @@
 ../../Sources/Shared/Toolkit/Data/Container/SingleResourceContainer.swift
 ../../Sources/Shared/Toolkit/Data/Container/TransformingContainer.swift
 ../../Sources/Shared/Toolkit/Data/ReadError.swift
+../../Sources/Shared/Toolkit/Data/ReadResult.swift
 ../../Sources/Shared/Toolkit/Data/Resource
 ../../Sources/Shared/Toolkit/Data/Resource/BorrowedResource.swift
 ../../Sources/Shared/Toolkit/Data/Resource/BufferingResource.swift
@@ -764,6 +795,7 @@
 ../../Sources/Shared/Toolkit/HTTP/HTTPResourceFactory.swift
 ../../Sources/Shared/Toolkit/HTTP/HTTPServer.swift
 ../../Sources/Shared/Toolkit/JSON.swift
+../../Sources/Shared/Toolkit/JSONValue.swift
 ../../Sources/Shared/Toolkit/Language.swift
 ../../Sources/Shared/Toolkit/Logging
 ../../Sources/Shared/Toolkit/Logging/WarningLogger.swift
@@ -780,6 +812,7 @@
 ../../Sources/Shared/Toolkit/Tokenizer
 ../../Sources/Shared/Toolkit/Tokenizer/TextTokenizer.swift
 ../../Sources/Shared/Toolkit/Tokenizer/Tokenizer.swift
+../../Sources/Shared/Toolkit/UncheckedSendable.swift
 ../../Sources/Shared/Toolkit/URL
 ../../Sources/Shared/Toolkit/URL/Absolute URL
 ../../Sources/Shared/Toolkit/URL/Absolute URL/AbsoluteURL.swift
@@ -807,6 +840,7 @@
 ../../Sources/Shared/Toolkit/ZIP/ZIPFoundation/ZIPFoundationArchiveOpener.swift
 ../../Sources/Shared/Toolkit/ZIP/ZIPFoundation/ZIPFoundationContainer.swift
 ../../Sources/Streamer
+../../Sources/Streamer/.DS_Store
 ../../Sources/Streamer/Assets
 ../../Sources/Streamer/Assets/fonts
 ../../Sources/Streamer/Assets/fonts/OpenDyslexic-Regular.otf
@@ -835,8 +869,12 @@
 ../../Sources/Streamer/Parser/EPUB/Resource Transformers/EPUBDeobfuscator.swift
 ../../Sources/Streamer/Parser/EPUB/Services
 ../../Sources/Streamer/Parser/EPUB/Services/EPUBPositionsService.swift
+../../Sources/Streamer/Parser/EPUB/SMIL
+../../Sources/Streamer/Parser/EPUB/SMIL/SMILGuidedNavigationService.swift
+../../Sources/Streamer/Parser/EPUB/SMIL/SMILParser.swift
 ../../Sources/Streamer/Parser/EPUB/XMLNamespace.swift
 ../../Sources/Streamer/Parser/Image
+../../Sources/Streamer/Parser/Image/ComicInfoParser.swift
 ../../Sources/Streamer/Parser/Image/ImageParser.swift
 ../../Sources/Streamer/Parser/PDF
 ../../Sources/Streamer/Parser/PDF/PDFParser.swift
@@ -846,6 +884,7 @@
 ../../Sources/Streamer/Parser/PDF/Services/PDFPositionsService.swift
 ../../Sources/Streamer/Parser/PublicationParser.swift
 ../../Sources/Streamer/Parser/Readium
+../../Sources/Streamer/Parser/Readium/ReadiumGuidedNavigationService.swift
 ../../Sources/Streamer/Parser/Readium/ReadiumWebPubParser.swift
 ../../Sources/Streamer/PublicationOpener.swift
 ../../Sources/Streamer/Toolkit

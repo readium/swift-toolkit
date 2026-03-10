@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -99,7 +99,8 @@ public class HTMLResourceContentIterator: ContentIterator {
 
     private lazy var elementsTask = Task {
         await resource
-            .readAsString()
+            .read()
+            .asString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
             .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
@@ -227,7 +228,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             }
         }
 
-        public func head(_ node: Node, _ depth: Int) throws {
+        func head(_ node: Node, _ depth: Int) throws {
             if let node = node as? Element {
                 let parent = ParentElement(element: node)
                 if node.isBlock() {

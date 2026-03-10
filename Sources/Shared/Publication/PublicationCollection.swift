@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -21,7 +21,7 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
     /// Subcollections indexed by their role in this collection.
     public var subcollections: [String: [PublicationCollection]]
 
-    // Trick to keep the struct hashable despite [String: Any]
+    /// Trick to keep the struct hashable despite [String: Any]
     private var metadataJSON: JSONDictionary
 
     public init(metadata: [String: Any] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -29,7 +29,9 @@ public final class TransformingContainer: Container {
     }
 
     public let sourceURL: AbsoluteURL? = nil
-    public var entries: Set<AnyURL> { container.entries }
+    public var entries: Set<AnyURL> {
+        container.entries
+    }
 
     public subscript(url: any URLConvertible) -> Resource? {
         let url = url.anyURL

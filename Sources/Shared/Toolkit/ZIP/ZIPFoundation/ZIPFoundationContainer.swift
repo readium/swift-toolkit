@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -35,15 +35,18 @@ final class ZIPFoundationContainer: Container, Loggable {
             return .success(Self(archiveFactory: archiveFactory, entries: entries))
 
         } catch {
-            return .failure(.reading(.decoding(error)))
+            return .failure(.reading(.wrap(error) ?? .decoding(error)))
         }
     }
 
     private let archiveFactory: ZIPFoundationArchiveFactory
     private let entriesByPath: [RelativeURL: Entry]
 
-    public var sourceURL: AbsoluteURL? { archiveFactory.sourceURL }
-    public let entries: Set<AnyURL>
+    var sourceURL: AbsoluteURL? {
+        archiveFactory.sourceURL
+    }
+
+    let entries: Set<AnyURL>
 
     private init(
         archiveFactory: ZIPFoundationArchiveFactory,
@@ -85,7 +88,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
         self.entry = entry
     }
 
-    public let sourceURL: AbsoluteURL? = nil
+    let sourceURL: AbsoluteURL? = nil
 
     func estimatedLength() async -> ReadResult<UInt64?> {
         .success(entry.uncompressedSize)
@@ -117,7 +120,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
                 }
                 return .success(())
             } catch {
-                return .failure(.decoding(error))
+                return .failure(.wrap(error) ?? .decoding(error))
             }
         }
     }
@@ -128,7 +131,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
             do {
                 _archive = try await .success(archiveFactory.make())
             } catch {
-                _archive = .failure(.decoding(error))
+                _archive = .failure(.wrap(error) ?? .decoding(error))
             }
         }
         return _archive!

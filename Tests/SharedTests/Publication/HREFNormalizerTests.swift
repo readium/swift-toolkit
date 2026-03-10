@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -85,7 +85,7 @@ class HREFNormalizerTests: XCTestCase {
 
     func testNormalizeManifestHREFsToBaseURL() throws {
         var sut = manifest
-        try sut.normalizeHREFs(to: AnyURL(string: "https://other/dir/")!)
+        try sut.normalizeHREFs(to: XCTUnwrap(AnyURL(string: "https://other/dir/")))
 
         XCTAssertEqual(
             sut,
@@ -149,7 +149,7 @@ class HREFNormalizerTests: XCTestCase {
                 ),
             ]
         )
-        try sut.normalizeHREFs(to: AnyURL(string: "https://other/dir/")!)
+        try sut.normalizeHREFs(to: XCTUnwrap(AnyURL(string: "https://other/dir/")))
 
         XCTAssertEqual(
             sut,

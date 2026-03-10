@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,7 +12,7 @@ import ReadiumInternal
 public struct OPDSPrice: Equatable {
     public var currency: String // eg. EUR
 
-    // Should only be used for display purposes, because of precision issues inherent with Double and the JSON parsing.
+    /// Should only be used for display purposes, because of precision issues inherent with Double and the JSON parsing.
     public var value: Double
 
     public init(currency: String, value: Double) {

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -21,12 +21,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         metadata: Metadata,
         defaults: EPUBDefaults
     ) {
-        switch metadata.layout {
-        case .fixed:
-            layout = .fixed
-        default:
-            layout = .reflowable
-        }
+        layout = metadata.epubLayout
         self.defaults = defaults
 
         super.init(
@@ -101,6 +96,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
+        )
+
+    /// Method for fitting the content within the viewport.
+    ///
+    /// Only effective with fixed-layout publications.
+    public lazy var fit: AnyEnumPreference<Fit> =
+        enumPreference(
+            preference: \.fit,
+            setting: \.fit,
+            defaultEffectiveValue: defaults.fit ?? .auto,
+            isEffective: { [layout] _ in layout == .fixed },
+            supportedValues: [.auto, .page, .width]
         )
 
     /// Default typeface for the text.
@@ -288,6 +295,25 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
+    /// Indicates whether the first page should be displayed alone and centered
+    /// instead of alongside the second page.
+    ///
+    /// When `nil`, the publication metadata is used to determine if the first
+    /// page will be displayed alone.
+    ///
+    /// Only effective when:
+    ///  - the publication is fixed-layout
+    ///  - `spread` is not `.never`
+    public lazy var offsetFirstPage: AnyPreference<Bool?> =
+        preference(
+            preference: \.offsetFirstPage,
+            setting: \.offsetFirstPage,
+            isEffective: { [layout] in
+                layout == .fixed
+                    && $0.settings.spread != .never
+            }
+        )
+
     /// Text indentation for paragraphs.
     ///
     /// Only effective when:
@@ -457,14 +483,22 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         )
 
     @available(*, unavailable, renamed: "horizontalMargins")
-    public var pageMargins: AnyRangePreference<Double> { fatalError() }
+    public var pageMargins: AnyRangePreference<Double> {
+        fatalError()
+    }
 
     @available(*, unavailable, message: "Not available anymore")
-    public var typeScale: AnyRangePreference<Double> { fatalError() }
+    public var typeScale: AnyRangePreference<Double> {
+        fatalError()
+    }
 
     @available(*, unavailable, message: "Not needed anymore")
-    public var publisherStyles: AnyPreference<Bool> { fatalError() }
+    public var publisherStyles: AnyPreference<Bool> {
+        fatalError()
+    }
 
     @available(*, unavailable, message: "Use darkenImages and invertImages instead")
-    public var imageFilter: AnyEnumPreference<ImageFilter?> { fatalError() }
+    public var imageFilter: AnyEnumPreference<ImageFilter?> {
+        fatalError()
+    }
 }

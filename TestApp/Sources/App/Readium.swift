@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -12,7 +12,6 @@ import ReadiumStreamer
 
 #if LCP
     import R2LCPClient
-    import ReadiumAdapterLCPSQLite
     import ReadiumLCP
 #endif
 
@@ -45,8 +44,8 @@ final class Readium {
 
         lazy var lcpService = LCPService(
             client: LCPClient(),
-            licenseRepository: try! LCPSQLiteLicenseRepository(),
-            passphraseRepository: try! LCPSQLitePassphraseRepository(),
+            licenseRepository: LCPKeychainLicenseRepository(),
+            passphraseRepository: LCPKeychainPassphraseRepository(),
             assetRetriever: assetRetriever,
             httpClient: httpClient
         )
@@ -130,6 +129,8 @@ extension ReadiumShared.FileSystemError: UserErrorConvertible {
                 return "error_not_found".localized
             case .forbidden:
                 return "error_forbidden".localized
+            case .outOfSpace:
+                return "error_out_of_space".localized
             case .io:
                 return "error_io".localized
             }
@@ -240,6 +241,7 @@ extension ReadiumNavigator.TTSError: UserErrorConvertible {
                     switch error {
                     case let .cancelled(date):
                         return "lcp_error_status_cancelled".localized(dateFormatter.string(from: date))
+
                     case let .returned(date):
                         return "lcp_error_status_returned".localized(dateFormatter.string(from: date))
 

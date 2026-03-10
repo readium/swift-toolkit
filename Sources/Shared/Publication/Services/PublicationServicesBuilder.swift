@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -15,7 +15,8 @@ public struct PublicationServicesBuilder {
     public init(
         content: ContentServiceFactory? = nil,
         contentProtection: ContentProtectionServiceFactory? = nil,
-        cover: CoverServiceFactory? = nil,
+        cover: CoverServiceFactory? = ResourceCoverService.makeFactory(),
+        guidedNavigation: GuidedNavigationServiceFactory? = nil,
         locator: LocatorServiceFactory? = { DefaultLocatorService(publication: $0.publication) },
         positions: PositionsServiceFactory? = nil,
         search: SearchServiceFactory? = nil,
@@ -24,6 +25,7 @@ public struct PublicationServicesBuilder {
         setContentServiceFactory(content)
         setContentProtectionServiceFactory(contentProtection)
         setCoverServiceFactory(cover)
+        setGuidedNavigationServiceFactory(guidedNavigation)
         setLocatorServiceFactory(locator)
         setPositionsServiceFactory(positions)
         setSearchServiceFactory(search)

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -14,14 +14,31 @@ public class Publication: Closeable, Loggable {
     private let container: Container
     private let services: [PublicationService]
 
-    public var context: [String] { manifest.context }
-    public var metadata: Metadata { manifest.metadata }
-    public var links: [Link] { manifest.links }
+    public var context: [String] {
+        manifest.context
+    }
+
+    public var metadata: Metadata {
+        manifest.metadata
+    }
+
+    public var links: [Link] {
+        manifest.links
+    }
+
     /// Identifies a list of resources in reading order for the publication.
-    public var readingOrder: [Link] { manifest.readingOrder }
+    public var readingOrder: [Link] {
+        manifest.readingOrder
+    }
+
     /// Identifies resources that are necessary for rendering the publication.
-    public var resources: [Link] { manifest.resources }
-    public var subcollections: [String: [PublicationCollection]] { manifest.subcollections }
+    public var resources: [Link] {
+        manifest.resources
+    }
+
+    public var subcollections: [String: [PublicationCollection]] {
+        manifest.subcollections
+    }
 
     public init(
         manifest: Manifest,
@@ -66,7 +83,9 @@ public class Publication: Closeable, Loggable {
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
-    public var baseURL: HTTPURL? { manifest.baseURL }
+    public var baseURL: HTTPURL? {
+        manifest.baseURL
+    }
 
     /// Finds the first Link having the given `href` in the publication's links.
     public func linkWithHREF<T: URLConvertible>(_ href: T) -> Link? {
@@ -169,7 +188,7 @@ public class Publication: Closeable, Loggable {
             _ manifest: inout Manifest,
             _ container: inout Container,
             _ services: inout PublicationServicesBuilder
-        ) -> Void
+        ) async -> Void
 
         private var manifest: Manifest
         private var container: Container
@@ -185,12 +204,12 @@ public class Publication: Closeable, Loggable {
             self.servicesBuilder = servicesBuilder
         }
 
-        public mutating func apply(_ transform: Transform?) {
+        public mutating func apply(_ transform: Transform?) async {
             guard let transform = transform else {
                 return
             }
 
-            transform(&manifest, &container, &servicesBuilder)
+            await transform(&manifest, &container, &servicesBuilder)
         }
 
         /// Builds the `Publication` from its parts.

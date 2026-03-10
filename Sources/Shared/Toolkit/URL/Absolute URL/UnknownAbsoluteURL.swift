@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -31,7 +31,7 @@ struct UnknownAbsoluteURL: AbsoluteURL, Hashable {
     /// To ignore this warning, compare `UnknownAbsoluteURL.string` instead of
     /// `UnknownAbsoluteURL` itself.
     @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
-    public static func == (lhs: UnknownAbsoluteURL, rhs: UnknownAbsoluteURL) -> Bool {
+    static func == (lhs: UnknownAbsoluteURL, rhs: UnknownAbsoluteURL) -> Bool {
         lhs.string == rhs.string
     }
 }

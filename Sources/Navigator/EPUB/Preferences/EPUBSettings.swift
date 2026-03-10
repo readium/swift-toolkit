@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -15,6 +15,7 @@ public struct EPUBSettings: ConfigurableSettings {
     public var blendImages: Bool?
     public var columnCount: Int
     public var darkenImages: Double?
+    public var fit: Fit
     public var fontFamily: FontFamily?
     public var fontSize: Double
     public var fontWeight: Double?
@@ -26,6 +27,7 @@ public struct EPUBSettings: ConfigurableSettings {
     public var ligatures: Bool?
     public var lineLength: Double
     public var lineHeight: Double?
+    public var offsetFirstPage: Bool?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
     public var readingProgression: ReadingProgression
@@ -49,6 +51,7 @@ public struct EPUBSettings: ConfigurableSettings {
         blendImages: Bool?,
         columnCount: Int,
         darkenImages: Double?,
+        fit: Fit,
         fontFamily: FontFamily?,
         fontSize: Double,
         fontWeight: Double?,
@@ -60,6 +63,7 @@ public struct EPUBSettings: ConfigurableSettings {
         ligatures: Bool?,
         lineLength: Double,
         lineHeight: Double?,
+        offsetFirstPage: Bool?,
         paragraphIndent: Double?,
         paragraphSpacing: Double?,
         readingProgression: ReadingProgression,
@@ -76,6 +80,7 @@ public struct EPUBSettings: ConfigurableSettings {
         self.blendImages = blendImages
         self.columnCount = columnCount
         self.darkenImages = darkenImages
+        self.fit = fit
         self.fontFamily = fontFamily
         self.fontSize = fontSize
         self.fontWeight = fontWeight
@@ -87,6 +92,7 @@ public struct EPUBSettings: ConfigurableSettings {
         self.ligatures = ligatures
         self.lineLength = lineLength
         self.lineHeight = lineHeight
+        self.offsetFirstPage = offsetFirstPage
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
         self.readingProgression = readingProgression
@@ -131,8 +137,8 @@ public struct EPUBSettings: ConfigurableSettings {
             ?? defaults.scroll
             ?? false
 
-        /// We disable pagination with vertical text, because CSS columns don't support it properly.
-        /// See https://github.com/readium/swift-toolkit/discussions/370
+        // We disable pagination with vertical text, because CSS columns don't support it properly.
+        // See https://github.com/readium/swift-toolkit/discussions/370
         if verticalText {
             scroll = true
         }
@@ -144,6 +150,9 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.columnCount
                 ?? 1,
             darkenImages: preferences.darkenImages,
+            fit: preferences.fit
+                ?? defaults.fit
+                ?? .auto,
             fontFamily: preferences.fontFamily,
             fontSize: preferences.fontSize
                 ?? defaults.fontSize
@@ -164,6 +173,8 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? 1.0,
             lineHeight: preferences.lineHeight
                 ?? defaults.lineHeight,
+            offsetFirstPage: preferences.offsetFirstPage
+                ?? defaults.offsetFirstPage,
             paragraphIndent: preferences.paragraphIndent
                 ?? defaults.paragraphIndent,
             paragraphSpacing: preferences.paragraphSpacing
@@ -188,13 +199,19 @@ public struct EPUBSettings: ConfigurableSettings {
     }
 
     @available(*, unavailable, message: "Not supported anymore")
-    public var typeScale: Double? { nil }
+    public var typeScale: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use lineLength")
-    public var pageMargins: Double? { nil }
+    public var pageMargins: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not needed anymore")
-    public var publisherStyles: Bool? { nil }
+    public var publisherStyles: Bool? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(
@@ -223,7 +240,9 @@ public struct EPUBSettings: ConfigurableSettings {
         typeScale: Double?,
         verticalText: Bool,
         wordSpacing: Double?
-    ) { fatalError() }
+    ) {
+        fatalError()
+    }
 }
 
 /// Default setting values for the EPUB navigator.
@@ -234,6 +253,7 @@ public struct EPUBSettings: ConfigurableSettings {
 /// See `EPUBPreferences`.
 public struct EPUBDefaults {
     public var columnCount: Int?
+    public var fit: Fit?
     public var fontSize: Double?
     public var fontWeight: Double?
     public var hyphens: Bool?
@@ -242,6 +262,7 @@ public struct EPUBDefaults {
     public var ligatures: Bool?
     public var lineLength: Double?
     public var lineHeight: Double?
+    public var offsetFirstPage: Bool?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
     public var readingProgression: ReadingProgression?
@@ -253,6 +274,7 @@ public struct EPUBDefaults {
 
     public init(
         columnCount: Int? = nil,
+        fit: Fit? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
@@ -261,6 +283,7 @@ public struct EPUBDefaults {
         ligatures: Bool? = nil,
         lineLength: Double? = nil,
         lineHeight: Double? = nil,
+        offsetFirstPage: Bool? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
@@ -268,10 +291,10 @@ public struct EPUBDefaults {
         spread: Spread? = nil,
         textAlign: TextAlignment? = nil,
         textNormalization: Bool? = nil,
-        typeScale: Double? = nil,
         wordSpacing: Double? = nil
     ) {
         self.columnCount = columnCount
+        self.fit = fit
         self.fontSize = fontSize
         self.fontWeight = fontWeight
         self.hyphens = hyphens
@@ -280,6 +303,7 @@ public struct EPUBDefaults {
         self.ligatures = ligatures
         self.lineLength = lineLength
         self.lineHeight = lineHeight
+        self.offsetFirstPage = offsetFirstPage
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
         self.readingProgression = readingProgression
@@ -291,20 +315,29 @@ public struct EPUBDefaults {
     }
 
     @available(*, unavailable, message: "Use lineLength instead")
-    public var pageMargins: Double? { nil }
+    public var pageMargins: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not supported anymore")
-    public var typeScale: Double? { nil }
+    public var typeScale: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not needed anymore")
-    public var publisherStyles: Bool? { nil }
+    public var publisherStyles: Bool? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not supported anymore as a defaults")
-    public var imageFilter: ImageFilter? { nil }
+    public var imageFilter: ImageFilter? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(
         columnCount: ColumnCount? = nil,
+        fit: Fit? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
@@ -313,6 +346,7 @@ public struct EPUBDefaults {
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
         lineHeight: Double? = nil,
+        offsetFirstPage: Bool? = nil,
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
@@ -324,7 +358,9 @@ public struct EPUBDefaults {
         textNormalization: Bool? = nil,
         typeScale: Double? = nil,
         wordSpacing: Double? = nil
-    ) { fatalError() }
+    ) {
+        fatalError()
+    }
 }
 
 private extension Language {

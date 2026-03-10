@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -164,6 +164,7 @@ public struct FormatSpecification: RawRepresentable, Hashable {
     public static let bmp = FormatSpecification(rawValue: "bmp")
     public static let gif = FormatSpecification(rawValue: "gif")
     public static let jpeg = FormatSpecification(rawValue: "jpeg")
+    public static let jxl = FormatSpecification(rawValue: "jxl")
     public static let png = FormatSpecification(rawValue: "png")
     public static let tiff = FormatSpecification(rawValue: "tiff")
     public static let webp = FormatSpecification(rawValue: "webp")

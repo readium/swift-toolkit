@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -26,12 +26,13 @@ public struct RPFFormatSniffer: FormatSniffer {
         return nil
     }
 
-    public func sniffContainer<C>(_ container: C, refining format: Format) async -> ReadResult<Format?> where C: Container {
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
         guard let resource = container[AnyURL(path: "manifest.json")!] else {
             return .success(nil)
         }
 
-        return await resource.readAsJSONObject()
+        return await resource.read()
+            .asJSONObject()
             .map {
                 guard let manifest = try? Manifest(json: $0) else {
                     return nil

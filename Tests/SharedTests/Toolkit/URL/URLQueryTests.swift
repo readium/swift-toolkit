@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,13 +10,13 @@ import XCTest
 
 class URLQueryTests: XCTestCase {
     func testParseEmptyQuery() throws {
-        let query = URLQuery(url: URL(string: "foo")!)
+        let query = try URLQuery(url: XCTUnwrap(URL(string: "foo")))
         XCTAssertNil(query)
     }
 
     func testGetFirstQueryParameterNamedX() throws {
-        let query = try XCTUnwrap(URLQuery(
-            url: URL(string: "foo?query=param&fruit=banana&query=other&empty")!
+        let query = try XCTUnwrap(try URLQuery(
+            url: XCTUnwrap(URL(string: "foo?query=param&fruit=banana&query=other&empty"))
         ))
 
         XCTAssertEqual(query.first(named: "query"), "param")
@@ -26,8 +26,8 @@ class URLQueryTests: XCTestCase {
     }
 
     func testGetAllQueryParametersNamedX() throws {
-        let query = try XCTUnwrap(URLQuery(
-            url: URL(string: "foo?query=param&fruit=banana&query=other&empty")!
+        let query = try XCTUnwrap(try URLQuery(
+            url: XCTUnwrap(URL(string: "foo?query=param&fruit=banana&query=other&empty"))
         ))
 
         XCTAssertEqual(query.all(named: "query"), ["param", "other"])
@@ -37,8 +37,8 @@ class URLQueryTests: XCTestCase {
     }
 
     func testQueryParameterArePercentDecoded() throws {
-        let query = try XCTUnwrap(URLQuery(
-            url: URL(string: "foo?query=hello%20world")!
+        let query = try XCTUnwrap(try URLQuery(
+            url: XCTUnwrap(URL(string: "foo?query=hello%20world"))
         ))
         XCTAssertEqual(query.first(named: "query"), "hello world")
     }

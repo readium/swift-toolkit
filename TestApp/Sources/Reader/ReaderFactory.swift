@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -47,7 +47,7 @@ extension ReaderFactory: OutlineTableViewControllerFactory {
 
 /// This is a wrapper for the "OutlineTableView" to encapsulate the  "Cancel" button behaviour
 class OutlineHostingController: UIHostingController<OutlineTableView> {
-    override public init(rootView: OutlineTableView) {
+    override init(rootView: OutlineTableView) {
         super.init(rootView: rootView)
         navigationItem.setLeftBarButton(UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed)), animated: true)
     }

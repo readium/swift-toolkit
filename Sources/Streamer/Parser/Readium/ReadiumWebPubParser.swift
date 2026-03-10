@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -23,9 +23,12 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     private let httpClient: HTTPClient
     private let epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
 
-    /// - Parameter epubReflowablePositionsStrategy: Strategy used to calculate
-    ///   the number of positions in a reflowable resource of a web publication
-    ///   conforming to the EPUB profile.
+    /// - Parameters:
+    ///   - pdfFactory: Factory used to open PDF documents, if available.
+    ///   - httpClient: The HTTP client used to fetch remote resources.
+    ///   - epubReflowablePositionsStrategy: Strategy used to calculate
+    ///     the number of positions in a reflowable resource of a web publication
+    ///     conforming to the EPUB profile.
     public init(pdfFactory: PDFDocumentFactory?, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
         self.pdfFactory = pdfFactory
         self.httpClient = httpClient
@@ -53,7 +56,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             return .failure(.formatNotSupported)
         }
 
-        return await resource.readAsRWPM(warnings: warnings)
+        return await resource.read()
+            .asRWPM(warnings: warnings)
             .flatMap { manifest in
                 let baseURL = manifest.baseURL
                 if baseURL == nil {
@@ -98,7 +102,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             return .failure(.reading(.decoding("Cannot find a manifest.json file in the RPF package.")))
         }
 
-        return await manifestResource.readAsRWPM(warnings: warnings)
+        return await manifestResource.read()
+            .asRWPM(warnings: warnings)
             .flatMap(checkProfileRequirements(of:))
             .map { manifest in
                 var manifest = manifest
@@ -136,6 +141,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                                 ]
                             ))
                         }
+
+                        $0.setGuidedNavigationServiceFactory(ReadiumGuidedNavigationService.makeFactory())
                     })
                 )
             }
@@ -161,16 +168,17 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     }
 }
 
-private extension Streamable {
-    /// Reads the whole content as a Readium Web Pub Manifest.
-    func readAsRWPM(warnings: WarningLogger?) async -> ReadResult<Manifest> {
-        await readAsJSON().flatMap {
-            do {
-                return try .success(Manifest(json: $0, warnings: warnings))
-            } catch {
-                return .failure(.decoding(error))
+private extension ReadResult<Data> {
+    /// Decodes the data as a Readium Web Pub Manifest.
+    func asRWPM(warnings: WarningLogger?) -> ReadResult<Manifest> {
+        asJSONObject()
+            .flatMap { data in
+                do {
+                    return try .success(Manifest(json: data, warnings: warnings))
+                } catch {
+                    return .failure(.decoding(error))
+                }
             }
-        }
     }
 }
 
@@ -179,5 +187,7 @@ public struct RWPMWarning: Warning {
     public let message: String
     public let severity: WarningSeverityLevel
 
-    public var tag: String { "rwpm" }
+    public var tag: String {
+        "rwpm"
+    }
 }

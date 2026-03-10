@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Parses a Publication from an asset.
 public protocol PublicationParser {
-    /// Constructs a ``Publication.Builder`` to build a ``Publication`` from a
+    /// Constructs a `Publication.Builder` to build a `Publication` from a
     /// publication asset.
     ///
     /// - Parameters:

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -22,6 +22,13 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     /// Darkens images by the given percentage.
     public var darkenImages: Double?
+
+    /// Method for fitting the content of a fixed-layout publication within the
+    /// viewport.
+    ///
+    /// - `auto` or `page`: Fit entire page within viewport (default).
+    /// - `width`: Fit page width, allow vertical scrolling if needed.
+    public var fit: Fit?
 
     /// Default typeface for the text.
     public var fontFamily: FontFamily?
@@ -55,6 +62,12 @@ public struct EPUBPreferences: ConfigurablePreferences {
 
     /// Leading line height.
     public var lineHeight: Double?
+
+    /// Indicates whether the first page should be displayed alone and centered
+    /// instead of alongside the second page.
+    ///
+    /// This is only effective if spreads are enabled.
+    public var offsetFirstPage: Bool?
 
     /// Text indentation for paragraphs.
     public var paragraphIndent: Double?
@@ -99,6 +112,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         blendImages: Bool? = nil,
         columnCount: Int? = nil,
         darkenImages: Double? = nil,
+        fit: Fit? = nil,
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
@@ -110,6 +124,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         ligatures: Bool? = nil,
         lineLength: Double? = nil,
         lineHeight: Double? = nil,
+        offsetFirstPage: Bool? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
         readingProgression: ReadingProgression? = nil,
@@ -126,6 +141,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.blendImages = blendImages
         self.columnCount = columnCount
         self.darkenImages = darkenImages
+        self.fit = fit
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
@@ -137,6 +153,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.ligatures = ligatures
         self.lineLength = lineLength.map { max($0, 0) }
         self.lineHeight = lineHeight
+        self.offsetFirstPage = offsetFirstPage
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
         self.readingProgression = readingProgression
@@ -156,6 +173,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
             blendImages: other.blendImages ?? blendImages,
             columnCount: other.columnCount ?? columnCount,
             darkenImages: other.darkenImages ?? darkenImages,
+            fit: other.fit ?? fit,
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
@@ -167,6 +185,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
             ligatures: other.ligatures ?? ligatures,
             lineLength: other.lineLength ?? lineLength,
             lineHeight: other.lineHeight ?? lineHeight,
+            offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
             readingProgression: other.readingProgression ?? readingProgression,
@@ -186,6 +205,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
     public func filterSharedPreferences() -> EPUBPreferences {
         var prefs = self
         prefs.language = nil
+        prefs.offsetFirstPage = nil
         prefs.readingProgression = nil
         prefs.spread = nil
         prefs.verticalText = nil
@@ -197,6 +217,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
     public func filterPublicationPreferences() -> EPUBPreferences {
         EPUBPreferences(
             language: language,
+            offsetFirstPage: offsetFirstPage,
             readingProgression: readingProgression,
             spread: spread,
             verticalText: verticalText
@@ -204,16 +225,24 @@ public struct EPUBPreferences: ConfigurablePreferences {
     }
 
     @available(*, unavailable, message: "Use lineLength instead")
-    public var pageMargins: Double? { nil }
+    public var pageMargins: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not available anymore")
-    public var typeScale: Double? { nil }
+    public var typeScale: Double? {
+        nil
+    }
 
     @available(*, unavailable, message: "Not needed anymore")
-    public var publisherStyles: Bool? { nil }
+    public var publisherStyles: Bool? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use invertImages or darkenImages instead")
-    public var imageFilter: ImageFilter? { nil }
+    public var imageFilter: ImageFilter? {
+        nil
+    }
 
     @available(*, unavailable, message: "Use the other initializer")
     public init(
@@ -242,5 +271,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         typeScale: Double? = nil,
         verticalText: Bool? = nil,
         wordSpacing: Double? = nil
-    ) { fatalError() }
+    ) {
+        fatalError()
+    }
 }

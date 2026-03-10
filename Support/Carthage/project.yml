@@ -9,7 +9,7 @@ targets:
   ReadiumShared:
     type: framework
     platform: iOS
-    deploymentTarget: "13.4"
+    deploymentTarget: "15.0"
     sources: 
       - path: ../../Sources/Shared
     dependencies:
@@ -26,7 +26,7 @@ targets:
   ReadiumStreamer:
     type: framework
     platform: iOS
-    deploymentTarget: "13.4"
+    deploymentTarget: "15.0"
     sources: 
       - path: ../../Sources/Streamer
         excludes:
@@ -45,7 +45,7 @@ targets:
   ReadiumNavigator:
     type: framework
     platform: iOS
-    deploymentTarget: "13.4"
+    deploymentTarget: "15.0"
     sources: 
       - path: ../../Sources/Navigator
         excludes:
@@ -66,7 +66,7 @@ targets:
   ReadiumOPDS:
     type: framework
     platform: iOS
-    deploymentTarget: "13.4"
+    deploymentTarget: "15.0"
     sources: 
       - path: ../../Sources/OPDS
     dependencies:
@@ -80,7 +80,7 @@ targets:
   ReadiumLCP:
     type: framework
     platform: iOS
-    deploymentTarget: "13.4"
+    deploymentTarget: "15.0"
     sources: 
       - path: ../../Sources/LCP
     dependencies:
@@ -96,7 +96,7 @@ targets:
   ReadiumAdapterGCDWebServer:
     type: framework
     platform: iOS
-    deploymentTarget: "13.4"
+    deploymentTarget: "15.0"
     sources: 
       - path: ../../Sources/Adapters/GCDWebServer
     dependencies:
@@ -110,7 +110,7 @@ targets:
   ReadiumAdapterLCPSQLite:
     type: framework
     platform: iOS
-    deploymentTarget: "13.4"
+    deploymentTarget: "15.0"
     sources: 
       - path: ../../Sources/Adapters/LCPSQLite
     dependencies:
@@ -124,7 +124,7 @@ targets:
   ReadiumInternal:
     type: framework
     platform: iOS
-    deploymentTarget: "13.4"
+    deploymentTarget: "15.0"
     sources: 
       - path: ../../Sources/Internal
     settings:

@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -27,9 +27,17 @@ public protocol LocatorService: PublicationService {
 }
 
 public extension LocatorService {
-    func locate(_ locator: Locator) async -> Locator? { nil }
-    func locate(_ link: Link) async -> Locator? { nil }
-    func locate(progression: Double) async -> Locator? { nil }
+    func locate(_ locator: Locator) async -> Locator? {
+        nil
+    }
+
+    func locate(_ link: Link) async -> Locator? {
+        nil
+    }
+
+    func locate(progression: Double) async -> Locator? {
+        nil
+    }
 }
 
 // MARK: Publication Helpers

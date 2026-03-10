@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -49,7 +49,9 @@ public struct JSONWarning: Warning {
     /// Source JSON object.
     public let source: Any?
     public let severity: WarningSeverityLevel
-    public var tag: String { "json" }
+    public var tag: String {
+        "json"
+    }
 
     public var message: String {
         "JSON \(modelType): \(reason)"

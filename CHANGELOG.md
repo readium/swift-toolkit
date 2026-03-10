@@ -2,7 +2,151 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [3.8.0]
+
+### Added
+
+#### LCP
+
+* New Keychain-based implementations of the LCP license and passphrase repositories: `LCPKeychainLicenseRepository` and `LCPKeychainPassphraseRepository`.
+    * Stored securely in the iOS/macOS Keychain.
+    * Persist across app reinstalls.
+    * Optionally synchronized across devices via iCloud Keychain.
+
+### Changed
+
+#### Navigator
+
+* The EPUB navigator no longer requires an HTTP server. Publication resources are now served directly to the web views using a custom URL scheme handler.
+    * The `httpServer` parameter of `EPUBNavigatorViewController` is deprecated and ignored.
+
+### Deprecated
+
+#### Navigator
+
+* `CBZNavigatorViewController` is now deprecated.
+    * Open CBZ publications with `EPUBNavigatorViewController` instead, which has more configuration options and preferences.
+
+#### LCP
+
+* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
+
+### Fixed
+
+* Fixed casting of `ResourceProperties`'s `mediaType` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/719)).
+
+#### Navigator
+
+* The first resource of a fixed-layout EPUB is now displayed on its own by default, matching Apple Books behavior.
+* Fixed the default spread position for single fixed-layout EPUB spreads that are not the first page.
+
+#### LCP
+
+* Fixed the `print` method consuming copy rights instead of print rights.
+
+
+## [3.7.0]
+
+### Added
+
+#### Shared
+
+* Added support for JXL (JPEG XL) bitmap images. JXL is decoded natively on iOS 17+.
+* `Publication.cover()` now falls back on the first reading order resource if it's a bitmap image and no cover is declared.
+
+#### Navigator
+
+* Support for displaying Divina (image-based publications like CBZ) in the fixed-layout EPUB navigator.
+* Bitmap images in the EPUB reading order are now supported as a fixed layout resource.
+* Added `offsetFirstPage` preference for fixed-layout EPUBs to control whether the first page is displayed alone or alongside the second page when spreads are enabled.
+
+#### Streamer
+
+* The `ImageParser` now extracts metadata from `ComicInfo.xml` files in CBZ archives.
+* EPUB manifest item fallbacks are now exposed as `alternates` in the corresponding `Link`.
+* EPUBs with only bitmap images in the spine are now treated as Divina publications with fixed layout.
+    * When an EPUB spine item is HTML with a bitmap image fallback (or vice versa), the image is preferred as the primary link.
+* Standalone audio files (e.g. MP3) metadata extraction now includes `narrators` (from the composer metadata fields) and merges artist metadata into `authors`, following conventions used by common audiobook tools.
+
+### Changed
+
+* The iOS minimum deployment target is now iOS 15.0.
+
+#### Shared
+
+* Accessibility display strings are now sourced from the [thorium-locales](https://github.com/edrlab/thorium-locales/) repository (instead of W3C's repository). Contributions are welcome on [Weblate](https://hosted.weblate.org/projects/thorium-reader/publication-metadata/).
+
+#### LCP
+
+* The LCP dialog used by `LCPDialogAuthentication` has been redesigned.
+    * **Breaking:** The LCP dialog localization string keys have been renamed. If you overrode these strings in your app, you must update them. [See the migration guide](docs/Migration%20Guide.md) for the key mapping.
+* LCP localized strings are now sourced from the [thorium-locales](https://github.com/edrlab/thorium-locales/) repository. Contributions are welcome on [Weblate](https://hosted.weblate.org/projects/thorium-reader/readium-lcp/).
+
+### Deprecated
+
+#### Streamer
+
+* The EPUB manifest item `id` attribute is no longer exposed in `Link.properties`.
+* Removed title inference based on folder names within image and audio archives. Use the archive's filename instead.
+
+### Fixed
+
+#### Navigator
+
+* PDF documents are now opened off the main thread, preventing UI freezes with large files.
+* Fixed providing a custom reading order to the `EPUBNavigatorViewController` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/694)).
+
+
+## [3.6.0]
+
+### Added
+
+#### Navigator
+
+* Added `DragPointerObserver` to recognize drag gestures with pointer events.
+* Added `DirectionalNavigationAdapter.onNavigation` callback to be notified when a navigation action is triggered.
+    * This callback is called before executing any navigation action.
+    * Useful for hiding UI elements when the user navigates, or implementing analytics.
+* Added swipe gesture support for navigating in PDF paginated spread mode.
+* Added `fit` preference for fixed-layout publications (PDF and FXL EPUB) to control how pages are scaled within the viewport.
+    * In the PDF navigator, it is only effective in scroll mode. Paginated mode always uses `page` fit due to PDFKit limitations.
+
+### Deprecated
+
+#### Navigator
+
+* `PDFNavigatorViewController.scalesDocumentToFit` is now deprecated and non-functional. The navigator always scales the document to fit the viewport.
+
+### Changed
+
+#### Streamer
+
+* Support for asynchronous callbacks with `onCreatePublication` (contributed by [@smoores-dev](https://github.com/readium/swift-toolkit/pull/673)).
+
+#### Navigator
+
+* The `Fit` enum has been redesigned to fit the PDF implementation.
+    * **Breaking change:** Update any code using the old `Fit` enum values.
+* The fixed-layout navigators (PDF and FXL EPUB)'s content inset behavior has changed:
+    * iPhone: Continues to apply window safe area insets (to account for notch/Dynamic Island).
+    * iPad/macOS: Now displays edge-to-edge with no automatic safe area insets.
+    * You can customize this behavior with `VisualNavigatorDelegate.navigatorContentInset(_:)`.
+
+### Fixed
+
+#### Navigator
+
+* Fixed EPUB fixed-layout spread settings not updating after device rotation when the app was in the background.
+* Fixed zoom-to-fit scaling in PDF paginated spread mode when `offsetFirstPage` is enabled.
+
+#### LCP
+
+* Fixed crash when an EPUB resource is declared as LCP-encrypted in the manifest but contains unencrypted data.
+
+
+## [3.5.0]
 
 ### Added
 
@@ -12,6 +156,8 @@ All notable changes to this project will be documented in this file. Take a look
     * By default, the navigator uses the window's `safeAreaInsets`, which can cause content to shift when the status bar is shown or hidden (since those insets change). To avoid this, implement `navigatorContentInset(_:)` and return insets that remain stable across status bar visibility changes — for example, a top inset large enough to accommodate the maximum expected status bar height.
 * Added `[TTSVoice].filterByLanguage(_:)` to filter TTS voices by language and region.
 * Added `[TTSVoice].sorted()` to sort TTS voices by region, quality, and gender.
+* New experimental positioning of EPUB decorations that places highlights behind text to improve legibility with opaque decorations (contributed by [@ddfreiling](https://github.com/readium/swift-toolkit/pull/665)).
+    * To opt-in, initialize the `EPUBNavigatorViewController.Configuration` object with `decorationTemplates: HTMLDecorationTemplate.defaultTemplates(alpha: 1.0, experimentalPositioning: true)`.
 
 #### LCP
 
@@ -472,8 +618,8 @@ All notable changes to this project will be documented in this file. Take a look
 
 * New `VisualNavigatorDelegate` APIs to handle keyboard events (contributed by [@lukeslu](https://github.com/readium/swift-toolkit/pull/267)).
     * This can be used to turn pages with the arrow keys, for example.
-* [Support for custom fonts with the EPUB navigator](docs/Guides/EPUB%20Fonts.md).
-* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](docs/Guides/Navigator%20Preferences.md) and [migration guide](docs/Migration%20Guide.md).
+* [Support for custom fonts with the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md).
+* A brand new user preferences API for configuring the EPUB and PDF Navigators. This new API is easier and safer to use. To learn how to integrate it in your app, [please refer to the user guide](docs/Guides/Navigator/Preferences.md) and [migration guide](docs/Migration%20Guide.md).
     * New EPUB user preferences:
         * `fontWeight` - Base text font weight.
         * `textNormalization` - Normalize font style, weight and variants, which improves accessibility.
@@ -1004,3 +1150,7 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.2.0]: https://github.com/readium/swift-toolkit/compare/3.1.0...3.2.0
 [3.3.0]: https://github.com/readium/swift-toolkit/compare/3.2.0...3.3.0
 [3.4.0]: https://github.com/readium/swift-toolkit/compare/3.3.0...3.4.0
+[3.5.0]: https://github.com/readium/swift-toolkit/compare/3.4.0...3.5.0
+[3.6.0]: https://github.com/readium/swift-toolkit/compare/3.5.0...3.6.0
+[3.7.0]: https://github.com/readium/swift-toolkit/compare/3.6.0...3.7.0
+[3.8.0]: https://github.com/readium/swift-toolkit/compare/3.7.0...3.8.0

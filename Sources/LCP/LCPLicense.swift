@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -42,8 +42,10 @@ public protocol LCPLicense: UserRights {
 
     /// Renews the loan by starting a renew LSD interaction.
     ///
-    /// - Parameter prefersWebPage: Indicates whether the loan should be renewed through a web page if available,
-    ///   instead of programmatically.
+    /// - Parameters:
+    ///   - delegate: The delegate used to handle the user interactions required during the renewal process.
+    ///   - prefersWebPage: Indicates whether the loan should be renewed through a web page if available,
+    ///     instead of programmatically.
     func renewLoan(
         with delegate: LCPRenewDelegate,
         prefersWebPage: Bool

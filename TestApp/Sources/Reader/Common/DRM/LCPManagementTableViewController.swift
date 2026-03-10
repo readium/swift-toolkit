@@ -1,5 +1,5 @@
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -29,7 +29,7 @@ import UIKit
         @IBOutlet var renewButton: UIButton!
         @IBOutlet var returnButton: UIButton!
 
-        public var viewModel: LCPViewModel!
+        var viewModel: LCPViewModel!
 
         weak var moduleDelegate: ReaderModuleDelegate?
 
@@ -99,7 +99,7 @@ import UIKit
             present(alert, animated: true)
         }
 
-        internal func reload() {
+        func reload() {
             typeLabel.text = "Readium LCP"
             stateLabel.text = viewModel.state
             providerLabel.text = viewModel.provider
