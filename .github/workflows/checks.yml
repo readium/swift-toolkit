@@ -39,6 +39,9 @@ jobs:
           make podspecs
           git diff --exit-code Support/CocoaPods/
           if git ls-files --others --exclude-standard Support/CocoaPods/ | grep -q .; then echo "Untracked podspec files found. Run 'make podspecs' and commit the result."; exit 1; fi
+      - name: Print Swift package versions
+        run: |
+          jq -r '.pins[] | "\(.identity): \(.state.version)"' Package.resolved
       - name: Build
         run: |
           set -eo pipefail
