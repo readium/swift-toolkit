@@ -29,6 +29,7 @@
 "error_io" = "A file system error occurred.";
 "error_network" = "A networking error occurred.";
 "error_not_found" = "The resource was not found.";
+"error_out_of_space" = "Your storage is full. Please free up some space to continue.";
 "error_read" = "Failed to read the resource.";
 
 

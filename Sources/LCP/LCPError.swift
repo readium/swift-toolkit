@@ -45,7 +45,7 @@ public enum LCPError: Error {
     case parsing(ParsingError)
 
     /// A network request failed with the given error.
-    case network(Error?)
+    case network(HTTPError?)
 
     /// An unexpected LCP error occured. Please post an issue on r2-lcp-swift with the error message and how to reproduce it.
     case runtime(String)

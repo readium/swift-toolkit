@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.44.1
+2.45.2
 
 # SPEC
 {
@@ -795,6 +795,7 @@
 ../../Sources/Shared/Toolkit/HTTP/HTTPResourceFactory.swift
 ../../Sources/Shared/Toolkit/HTTP/HTTPServer.swift
 ../../Sources/Shared/Toolkit/JSON.swift
+../../Sources/Shared/Toolkit/JSONValue.swift
 ../../Sources/Shared/Toolkit/Language.swift
 ../../Sources/Shared/Toolkit/Logging
 ../../Sources/Shared/Toolkit/Logging/WarningLogger.swift
@@ -811,6 +812,7 @@
 ../../Sources/Shared/Toolkit/Tokenizer
 ../../Sources/Shared/Toolkit/Tokenizer/TextTokenizer.swift
 ../../Sources/Shared/Toolkit/Tokenizer/Tokenizer.swift
+../../Sources/Shared/Toolkit/UncheckedSendable.swift
 ../../Sources/Shared/Toolkit/URL
 ../../Sources/Shared/Toolkit/URL/Absolute URL
 ../../Sources/Shared/Toolkit/URL/Absolute URL/AbsoluteURL.swift

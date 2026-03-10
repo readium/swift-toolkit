@@ -489,7 +489,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 if case .failure = state {
                     // No-op, we don't want to overwrite the failure state in this case.
                 } else if let continuation = state.continuation {
-                    state = .failure(continuation: continuation, error: HTTPError(error: error))
+                    state = .failure(continuation: continuation, error: .wrap(error) ?? .other(error))
                 } else {
                     state = .finished
                 }
@@ -511,35 +511,6 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                     completion(.rejectProtectionSpace, nil)
                 }
             }
-        }
-    }
-}
-
-private extension HTTPError {
-    /// Maps a native `URLError` to `HTTPError`.
-    init(error: Error) {
-        switch error {
-        case let error as URLError:
-            switch error.code {
-            case .httpTooManyRedirects, .redirectToNonExistentLocation:
-                self = .redirection(error)
-            case .secureConnectionFailed, .clientCertificateRejected, .clientCertificateRequired, .appTransportSecurityRequiresSecureConnection, .userAuthenticationRequired:
-                self = .security(error)
-            case .badServerResponse, .zeroByteResource, .cannotDecodeContentData, .cannotDecodeRawData, .dataLengthExceedsMaximum:
-                self = .malformedResponse(error)
-            case .notConnectedToInternet, .networkConnectionLost:
-                self = .offline(error)
-            case .cannotConnectToHost, .cannotFindHost:
-                self = .unreachable(error)
-            case .timedOut:
-                self = .timeout(error)
-            case .cancelled, .userCancelledAuthentication:
-                self = .cancelled
-            default:
-                self = .other(error)
-            }
-        default:
-            self = .other(error)
         }
     }
 }

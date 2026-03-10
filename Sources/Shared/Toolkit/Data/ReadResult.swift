@@ -41,6 +41,16 @@ public extension ReadResult<Data> {
     func asXML(using factory: XMLDocumentFactory, namespaces: [XMLNamespace] = []) -> ReadResult<XMLDocument> {
         decode { try $0.asXML(using: factory, namespaces: namespaces) }
     }
+
+    /// Decodes the data as a `JSONValue`.
+    func asJSONValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<JSONValue> {
+        decode { try $0.asJSONValue(options: options) }
+    }
+
+    /// Decodes the data as a JSON object.
+    func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: JSONValue]> {
+        decode { try $0.asJSONObjectValue(options: options) }
+    }
 }
 
 public extension ReadResult<Data?> {
@@ -80,6 +90,16 @@ public extension ReadResult<Data?> {
     func asXML(using factory: XMLDocumentFactory, namespaces: [XMLNamespace] = []) -> ReadResult<XMLDocument?> {
         decode { try $0.asXML(using: factory, namespaces: namespaces) }
     }
+
+    /// Decodes the data as a `JSONValue`.
+    func asJSONValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<JSONValue?> {
+        decode { try $0.asJSONValue(options: options) }
+    }
+
+    /// Decodes the data as a JSON object.
+    func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) -> ReadResult<[String: JSONValue]?> {
+        decode { try $0.asJSONObjectValue(options: options) }
+    }
 }
 
 private extension Data {
@@ -107,5 +127,23 @@ private extension Data {
     /// Decodes the data as an XML document.
     func asXML(using factory: XMLDocumentFactory, namespaces: [XMLNamespace] = []) throws -> XMLDocument {
         try factory.open(data: self, namespaces: namespaces)
+    }
+
+    /// Decodes the data as a `JSONValue`.
+    func asJSONValue(options: JSONSerialization.ReadingOptions = []) throws -> JSONValue {
+        let json = try JSONSerialization.jsonObject(with: self, options: options)
+        guard let value = JSONValue(json) else {
+            throw JSONError.parsing(JSONValue.self)
+        }
+        return value
+    }
+
+    /// Decodes the data as a JSON object.
+    func asJSONObjectValue(options: JSONSerialization.ReadingOptions = []) throws -> [String: JSONValue] {
+        let value = try asJSONValue(options: options)
+        guard let dict = value.object else {
+            throw JSONError.parsing([String: JSONValue].self)
+        }
+        return dict
     }
 }
