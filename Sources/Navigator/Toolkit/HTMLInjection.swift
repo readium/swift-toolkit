@@ -70,15 +70,16 @@ struct HTMLElement: Hashable {
 
     /// Locates the `location` of this element in the given `html` document.
     func locate(_ location: Location, in html: String) -> String.Index? {
+        let nsRange = NSRange(html.startIndex..., in: html)
         switch location {
         case .start:
-            return startRegex.matches(in: html).first?
+            return startRegex.firstMatch(in: html, range: nsRange)?
                 .range(in: html)?.upperBound
         case .end:
-            return endRegex.matches(in: html).first?
+            return endRegex.firstMatch(in: html, range: nsRange)?
                 .range(in: html)?.lowerBound
         case .attributes:
-            return startRegex.matches(in: html).first
+            return startRegex.firstMatch(in: html, range: nsRange)
                 .flatMap { $0.range(in: html) }
                 .map { html.index($0.lowerBound, offsetBy: tag.count + 1) }
         }
@@ -92,6 +93,46 @@ struct HTMLElement: Hashable {
         case end
         /// Injects an attribute of the element.
         case attributes
+    }
+}
+
+extension HTMLElement {
+    /// Returns the value of the first attribute from `names` found in this element's
+    /// opening tag in `html`. Names are tried in order; the first non-empty match wins.
+    /// Returns `nil` if none are found.
+    func attribute(firstOf names: [String], in html: String) -> String? {
+        guard let tagRange = startTagRange(in: html) else { return nil }
+        let tag = String(html[tagRange])
+        let nsRange = NSRange(tag.startIndex..., in: tag)
+        for name in names {
+            let escaped = NSRegularExpression.escapedPattern(for: name)
+            let regex = NSRegularExpression("\\s\(escaped)\\s*=\\s*[\"']([^\"']*)[\"']", options: [.caseInsensitive])
+            if let match = regex.firstMatch(in: tag, range: nsRange),
+               let valueRange = Range(match.range(at: 1), in: tag)
+            {
+                let value = String(tag[valueRange])
+                if !value.isEmpty { return value }
+            }
+        }
+        return nil
+    }
+
+    /// Returns true if this element's opening tag in `html` has any attribute from `names`.
+    func hasAttribute(anyOf names: [String], in html: String) -> Bool {
+        guard let tagRange = startTagRange(in: html) else { return false }
+        let tag = String(html[tagRange])
+        let nsRange = NSRange(tag.startIndex..., in: tag)
+        for name in names {
+            let escaped = NSRegularExpression.escapedPattern(for: name)
+            let regex = NSRegularExpression("\\s\(escaped)\\s*=", options: [.caseInsensitive])
+            if regex.firstMatch(in: tag, range: nsRange) != nil { return true }
+        }
+        return false
+    }
+
+    private func startTagRange(in html: String) -> Range<String.Index>? {
+        let nsRange = NSRange(html.startIndex..., in: html)
+        return startRegex.firstMatch(in: html, range: nsRange)?.range(in: html)
     }
 }
 

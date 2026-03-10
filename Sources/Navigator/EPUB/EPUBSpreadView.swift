@@ -5,7 +5,6 @@
 //
 
 import ReadiumShared
-import SwiftSoup
 @preconcurrency import WebKit
 
 protocol EPUBSpreadViewDelegate: AnyObject {
