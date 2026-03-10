@@ -47,6 +47,9 @@ jobs:
         run: |
           set -eo pipefail
           xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+      - name: Print Swift package versions
+        run: |
+          jq -r '.pins[] | "\(.identity): \(.state.version)"' Package.resolved
 
   # navigator-ui-tests:
   #   name: Navigator UI Tests

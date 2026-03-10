@@ -277,7 +277,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         </html>
         """
 
-        let iter = iterator(nbspHtml, start: locator(selector: ":root > :nth-child(2) > :nth-child(2)"))
+        let iter = iterator(nbspHtml, start: locator(selector: ":root > :nth-child(1) > :nth-child(2)"))
 
         let expectedElement = TextContentElement(
             locator: locator(
