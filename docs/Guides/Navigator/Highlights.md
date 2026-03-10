@@ -1,6 +1,6 @@
 # Implementing Highlights
 
-Highlighting let users mark up passages in a publication for later reference - a core feature of any reading app. In Readium, highlights are built on top of the **Decoration API**. If you want to understand that API in depth or build a custom decoration style, see the [Decorations guide](Decorations.md).
+Highlighting lets users mark up passages in a publication for later reference - a core feature of any reading app. In Readium, highlights are built on top of the **Decoration API**. If you want to understand that API in depth or build a custom decoration style, see the [Decorations guide](Decorations.md).
 
 **Readium is only responsible for *rendering* highlights over the publication content**. Persisting highlights to a database, and any UI around them (color pickers, annotation editors, highlight lists, etc.) are entirely the responsibility of your app. This guide assumes you already have a `Highlight` model and a repository to store and observe it.
 

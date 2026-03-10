@@ -119,7 +119,7 @@ struct PageListConfig: Hashable {
 ```swift
 extension HTMLDecorationTemplate {
     static var pageList: HTMLDecorationTemplate {
-        let className = "testapp-page-number"
+        let className = "app-page-number"
 
         return HTMLDecorationTemplate(
             // One rectangle for the whole range
