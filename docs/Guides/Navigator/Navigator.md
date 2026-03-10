@@ -53,7 +53,7 @@ Navigators enabling users to select parts of the content implement `SelectableNa
 
 A Decorable Navigator is able to render decorations over a publication, such as highlights or margin icons.
 
-[See the corresponding proposal for more information](https://readium.org/architecture/proposals/008-decorator-api.html).
+To implement user highlights in your app, see the [Highlights guide](Highlights.md). For a deeper look at the API or to build a custom decoration style, see the [Decorations guide](Decorations.md).
 
 ## Instantiating a Navigator
 
@@ -102,9 +102,9 @@ You can observe the current position in the publication by implementing a `Navig
 ```swift
 navigator.delegate = MyNavigatorDelegate()
 
-class MyNavigatorDelegate: NavigatorDelegate {
+@MainActor class MyNavigatorDelegate: NavigatorDelegate {
 
-    override func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
+    func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
         if let position = locator.locations.position {
             print("At position \(position)")
         }
@@ -124,7 +124,7 @@ class MyNavigatorDelegate: NavigatorDelegate {
 The `Locator` object may be serialized to JSON in your database, and deserialized to set the initial location when creating the navigator.
 
 ```swift
-let lastReadLocation = Locator(jsonString: dabase.lastReadLocation())
+let lastReadLocation = try? Locator(jsonString: database.lastReadLocation())
 
 let navigator = try EPUBNavigatorViewController(
     publication: publication,
@@ -167,7 +167,7 @@ Bind it to your `Navigator` instance before adding your own input observers, so 
 DirectionalNavigationAdapter().bind(to: navigator)
 
 // Toggle the navigation bar when the user taps outside the edge zones.
-navigator.addObserver(.tap { [weak self] _ in
+token = navigator.addObserver(.tap { [weak self] _ in
     self?.toggleNavigationBar()
     return true
 })
