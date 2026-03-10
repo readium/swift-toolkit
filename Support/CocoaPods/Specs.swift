@@ -5,7 +5,7 @@
 //
 
 /// Readium toolkit version — bump this when releasing a new version, then run `make podspecs`.
-let version = "3.7.0"
+let version = "3.8.0"
 
 /// Minimum iOS deployment target shared by all modules.
 let iosTarget = "15.0"
