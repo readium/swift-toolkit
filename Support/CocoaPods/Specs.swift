@@ -55,7 +55,7 @@ let modules: [ModuleSpec] = [
         dependencies: [
             .readium("ReadiumInternal"),
             .pod("Minizip", "~> 1.0.0"),
-            .pod("SwiftSoup", "~> 2.7.0"),
+            .pod("SwiftSoup", "~> 2.13.0"),
             .pod("ReadiumFuzi", "~> 4.0.0"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
         ]

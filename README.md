@@ -86,8 +86,9 @@ Guides are available to help you make the most of the toolkit.
 
 * [Navigator](docs/Guides/Navigator/Navigator.md) - an overview of the Navigator to render a `Publication`'s content to the user
 * [Configuring the Navigator](docs/Guides/Navigator/Preferences.md) – setup and render Navigator user preferences (font size, colors, etc.)
-* [Font families in the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md) – support custom font families with reflowable EPUB publications
 * [Integrating the Navigator with SwiftUI](docs/Guides/Navigator/SwiftUI.md) – glue to setup the Navigator in a SwiftUI application
+* [Implementing Highlights](docs/Guides/Navigator/Highlights.md) – add and manage highlights in a publication
+* [Font families in the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md) – support custom font families with reflowable EPUB publications
 
 ### DRM
 
