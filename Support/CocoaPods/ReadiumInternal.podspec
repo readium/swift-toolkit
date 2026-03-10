@@ -4,7 +4,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumInternal"
-  s.version       = "3.7.0"
+  s.version       = "3.8.0"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Private utilities used by the Readium modules"
   s.homepage      = "http://readium.github.io"
@@ -16,5 +16,6 @@ Pod::Spec.new do |s|
   s.platform      = :ios
   s.ios.deployment_target = "15.0"
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
+  s.pod_target_xcconfig = { 'OTHER_SWIFT_FLAGS' => '-package-name Readium' }
 
 end

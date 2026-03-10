@@ -5,13 +5,17 @@
 //
 
 /// Readium toolkit version — bump this when releasing a new version, then run `make podspecs`.
-let version = "3.7.0"
+let version = "3.8.0"
 
 /// Minimum iOS deployment target shared by all modules.
 let iosTarget = "15.0"
 
 /// Swift version requirement shared by all modules.
 let swiftVersion = "5.10"
+
+/// Swift package name (from Package.swift). All modules share this so that `package` access
+/// level works across module boundaries, matching the SPM build behaviour.
+let packageName = "Readium"
 
 // MARK: - Data model
 
@@ -55,7 +59,7 @@ let modules: [ModuleSpec] = [
         dependencies: [
             .readium("ReadiumInternal"),
             .pod("Minizip", "~> 1.0.0"),
-            .pod("SwiftSoup", "~> 2.13.0"),
+            .pod("SwiftSoup", "~> 2.11.0"),
             .pod("ReadiumFuzi", "~> 4.0.0"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
         ]
@@ -89,7 +93,7 @@ let modules: [ModuleSpec] = [
             .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
             .pod("DifferenceKit", "~> 1.0"),
-            .pod("SwiftSoup", "~> 2.7.0"),
+            .pod("SwiftSoup", "~> 2.11.0"),
         ]
     ),
     ModuleSpec(
