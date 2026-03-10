@@ -178,6 +178,7 @@ public final class AudioClipPlayer: NSObject, Loggable {
             didPlayToEndTime()
             return
         }
+        
         avPlayer.seek(
             to: makeTime(seconds: target),
             toleranceBefore: .zero,
@@ -197,7 +198,12 @@ public final class AudioClipPlayer: NSObject, Loggable {
             return false
         }
 
-        let now = time
+        // Fix an issue when calling skipToNextSegment() consecutively quickly,
+        // by using a small tolerance when finding the current segment to absorb
+        // AVPlayer timescale quantization (e.g. seeking to 9.839 lands at
+        // 9.838979..., which would otherwise re-match the same segment).
+        let now = time + 0.002
+        
         guard let next = segments.first(where: { $0.start > now }) else {
             return false
         }
