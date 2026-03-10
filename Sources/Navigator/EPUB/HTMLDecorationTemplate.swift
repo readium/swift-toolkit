@@ -10,15 +10,21 @@ import UIKit
 
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
 public struct HTMLDecorationTemplate {
-    /// Determines the number of created HTML elements and their position relative to the matching DOM range.
+    
+    /// Controls how the template's bounding rectangle is computed.
+    ///
+    /// Determines the number of created HTML elements and their position
+    /// relative to the matching DOM range.
     public enum Layout: String {
-        /// A single HTML element covering the smallest region containing all CSS border boxes.
+        /// A single HTML element covering the smallest region containing all
+        /// CSS border boxes.
         case bounds
         /// One HTML element for each CSS border box (e.g. line of text).
         case boxes
     }
 
-    /// Indicates how the width of each created HTML element expands in the viewport.
+    /// Indicates how the width of each created HTML element expands in the
+    /// viewport.
     public enum Width: String {
         /// Smallest width fitting the CSS border box.
         case wrap
