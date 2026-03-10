@@ -135,7 +135,7 @@ public struct GuidedAudioClip {
 
         // Scan backward to count non-skipped same-file nodes before the target.
         var startIndex = 0
-        while let (node, ref) = await previousPlayableNode() {
+        while let (_, ref) = await previousPlayableNode() {
             if targetRef.href.isEquivalentTo(ref.href) {
                 startIndex += 1
             } else {
@@ -165,13 +165,13 @@ public struct GuidedAudioClip {
             return nil
         }
 
-        var nodes: [GuidedNavigationNode] = [firstNode]
-        var segments: [AudioClip.Segment] = [segment(from: firstRef)]
+        var nodes: [(node: GuidedNavigationNode, segment: AudioClip.Segment)] = [
+            (firstNode, segment(from: firstRef)),
+        ]
 
         while let (node, ref) = await step() {
             if firstRef.href.isEquivalentTo(ref.href) {
-                nodes.append(node)
-                segments.append(segment(from: ref))
+                nodes.append((node, segment(from: ref)))
             } else {
                 // Backtracks as the last node returned by `step()` was not consumed.
                 _ = forward ? await cursor.previous() : await cursor.next()
@@ -179,18 +179,21 @@ public struct GuidedAudioClip {
             }
         }
 
+        if !forward {
+            nodes.reverse()
+        }
+
+        // Apply the same filter + sort + dedup steps as AudioClip.init so that
+        // nodes[i] always corresponds to clip.segments[i].
+        nodes = AudioClip.normalizeSegments(nodes, extracting: \.segment)
+
         guard !nodes.isEmpty else {
             return nil
         }
 
-        if !forward {
-            nodes.reverse()
-            segments.reverse()
-        }
-
         return GuidedAudioClip(
-            clip: AudioClip(link: link, segments: segments),
-            nodes: nodes
+            clip: AudioClip(link: link, segments: nodes.map(\.segment)),
+            nodes: nodes.map(\.node)
         )
     }
 

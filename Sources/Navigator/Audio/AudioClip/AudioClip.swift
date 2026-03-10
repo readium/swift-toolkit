@@ -41,6 +41,12 @@ public struct AudioClip: Hashable, Sendable {
         /// audio file.
         public var end: TimeInterval?
 
+        /// A segment is valid when it has positive length: `end` is `nil`
+        /// (open-ended) or strictly greater than `start`.
+        public var isValid: Bool {
+            end == nil || end! > start
+        }
+
         public init(
             id: UUID = UUID(),
             start: TimeInterval,
@@ -52,34 +58,107 @@ public struct AudioClip: Hashable, Sendable {
         }
     }
 
-    /// Creates an ``AudioClip`` with segments validated and normalized:
-    ///
-    /// - Segments are sorted by their `start` property.
-    /// - Segments with duplicate `start` values are deduplicated (first one wins).
-    /// - Overlapping segments have the earlier segment's `end` set to `nil` so it
-    ///   continues until the next segment begins.
+    /// Creates an ``AudioClip`` with segments validated and normalized.
     public init(
         link: Link,
         segments: [Segment]
     ) {
-        let sorted = segments.sorted { $0.start < $1.start }
+        var normalized = AudioClip.normalizeSegments(segments) { $0 }
 
-        var normalized: [Segment] = []
-        for segment in sorted {
-            // Deduplicate segments with the same start (keep first).
-            if normalized.last?.start == segment.start {
-                continue
+        // Segment-specific overlap resolution: clear the end of an earlier
+        // segment when a later one begins before it would finish.
+        for i in normalized.indices.dropFirst() {
+            if let previousEnd = normalized[i - 1].end, previousEnd > normalized[i].start {
+                normalized[i - 1].end = nil
             }
-            // Fix overlap: if the previous segment's end is past this segment's start,
-            // clear it so it naturally ends when this one begins.
-            if var previous = normalized.last, let previousEnd = previous.end, previousEnd > segment.start {
-                previous.end = nil
-                normalized[normalized.count - 1] = previous
-            }
-            normalized.append(segment)
         }
 
         self.link = link
         self.segments = normalized
+    }
+
+    /// Filters, sorts, and deduplicates `elements` based on the ``Segment``
+    /// extracted from each element by `extractSegment`.
+    ///
+    /// 1. **Sort** — elements are ordered by ascending `segment.start`.
+    /// 2. **Filter** — elements whose segment is invalid (zero or negative
+    ///    length) are removed.
+    /// 3. **Deduplicate** — when two elements share the same `segment.start`,
+    ///    the first one wins and the second is discarded.
+    ///
+    /// - Returns: normalized elements in ascending `segment.start` order.
+    static func normalizeSegments<T>(
+        _ elements: [T],
+        extracting extractSegment: (T) -> Segment
+    ) -> [T] {
+        elements
+            .filter { extractSegment($0).isValid }
+            .sorted { extractSegment($0).start < extractSegment($1).start }
+            .reduce(into: []) { acc, element in
+                // Deduplicate elements with the same segment start (keep first).
+                if acc.last.map({ extractSegment($0).start }) != extractSegment(element).start {
+                    acc.append(element)
+                }
+            }
+    }
+
+    // MARK: - Time Calculations
+
+    /// Returns the playable duration of the segment at `index`.
+    ///
+    /// Returns `nil` if `index` is out of range or the last segment has no
+    /// explicit `end` and `fileDuration` is not yet known.
+    public func segmentDuration(at index: Int, fileDuration: TimeInterval?) -> TimeInterval? {
+        guard segments.indices.contains(index) else {
+            return nil
+        }
+        
+        let segment = segments[index]
+        if let end = segment.end {
+            return end - segment.start
+        } else if index < segments.count - 1 {
+            return segments[index + 1].start - segment.start
+        } else {
+            return fileDuration.map { $0 - segment.start }
+        }
+    }
+
+    /// Returns the sum of all segment durations (gaps between segments
+    /// excluded), or `nil` if the duration cannot be determined.
+    ///
+    /// When there are no segments the clip covers the whole audio file, so
+    /// `fileDuration` is returned directly (or `nil` if unknown).
+    /// When the last segment has no explicit `end`, `fileDuration` is required
+    /// to compute its contribution; `nil` is returned if it is unknown.
+    public func duration(fileDuration: TimeInterval?) -> TimeInterval? {
+        guard !segments.isEmpty else {
+            return fileDuration
+        }
+        
+        var total: TimeInterval = 0
+        for i in segments.indices {
+            guard let dur = segmentDuration(at: i, fileDuration: fileDuration) else {
+                return nil
+            }
+            total += dur
+        }
+        return total
+    }
+
+    /// Returns elapsed playback time at the given `segmentIndex` and absolute
+    /// `fileTime` position.
+    ///
+    /// Sums the durations of all segments before `segmentIndex`, then adds
+    /// the offset within the active segment (`fileTime − segment.start`).
+    /// Returns `nil` if any preceding segment's duration cannot be determined.
+    public func elapsedTime(segmentIndex: Int, fileTime: TimeInterval, fileDuration: TimeInterval?) -> TimeInterval? {
+        guard segmentIndex < segments.count else { return nil }
+        var elapsed: TimeInterval = 0
+        for i in 0 ..< segmentIndex {
+            guard let dur = segmentDuration(at: i, fileDuration: fileDuration) else { return nil }
+            elapsed += dur
+        }
+        elapsed += max(0, fileTime - segments[segmentIndex].start)
+        return elapsed
     }
 }

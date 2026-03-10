@@ -29,10 +29,10 @@ public struct AudioLocation: ReferenceLocation {
 
     public var reference: AudioReference?
 
-    init(
+    public init(
         progression: Double,
         temporal: TemporalSelector? = nil,
-        reference: AudioReference
+        reference: AudioReference? = nil
     ) {
         self.progression = progression
         self.temporal = temporal

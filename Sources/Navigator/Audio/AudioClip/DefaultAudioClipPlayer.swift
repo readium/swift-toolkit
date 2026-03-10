@@ -164,7 +164,7 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             return clip.start
         }
 
-        for (i, segment) in segments.enumerated() {
+        for segment in segments {
             // In the gap between the previous segment and this one.
             if time < segment.start {
                 return segment.start
