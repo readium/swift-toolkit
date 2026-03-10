@@ -43,6 +43,12 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     func spreadViewDidTerminate()
 }
 
+extension EPUBSpreadViewDelegate {
+    /// Called when a chapter failed to load (e.g. network error) or content is an XML/parsing error page.
+    /// The spread view may have already replaced the content with a user-friendly error page.
+    func spreadView(_ spreadView: EPUBSpreadView, didFailToLoadChapter link: Link, error: Error) {}
+}
+
 class EPUBSpreadView: UIView, Loggable, PageView {
     weak var delegate: EPUBSpreadViewDelegate?
     let viewModel: EPUBNavigatorViewModel
@@ -60,6 +66,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     private var activityIndicatorStopWorkItem: DispatchWorkItem?
 
     private(set) var isSpreadLoaded = false
+
+    /// True when the WebView is currently showing the chapter error page (so we can refresh it when theme changes).
+    private var isShowingChapterErrorPage = false
 
     required init(
         viewModel: EPUBNavigatorViewModel,
@@ -153,6 +162,11 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     func loadSpread() {
         fatalError("loadSpread() must be implemented in subclasses")
+    }
+
+    /// Call from subclass loadSpread() before loading URL. Resets chapter error state so we don't treat the new load as error page.
+    func resetChapterErrorStateBeforeLoad() {
+        isShowingChapterErrorPage = false
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
@@ -288,6 +302,97 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
+    /// Runs script to detect if the loaded document is an XML/parser error page.
+    private func detectChapterContentError() async -> Bool {
+        let script = """
+        (function(){
+            try {
+                var body = document.body;
+                var root = document.documentElement;
+                var text = '';
+                if (body) text += (body.innerText || body.textContent || '');
+                if (root && root !== body) text += (root.innerText || root.textContent || '');
+                text = text.trim();
+                return text.indexOf('This page contains the following errors') >= 0
+                    || text.indexOf('error on line') >= 0
+                    || text.indexOf('Extra content at the end') >= 0
+                    || text.indexOf('Below is a rendering') >= 0;
+            } catch(e) { return false; }
+        })();
+        """
+        return await withCheckedContinuation { continuation in
+            webView.evaluateJavaScript(script) { result, _ in
+                let isError: Bool
+                if let boolResult = result as? Bool {
+                    isError = boolResult
+                } else if let stringResult = result as? String {
+                    let raw = stringResult.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+                    isError = raw.lowercased() == "true"
+                } else {
+                    isError = false
+                }
+                continuation.resume(returning: isError)
+            }
+        }
+    }
+
+    /// Replaces the WebView content with a user-friendly chapter error page (matches Android behavior).
+    func showChapterErrorPage() {
+        isShowingChapterErrorPage = true
+        let settings = viewModel.settings
+        let bgColor = settings.backgroundColor ?? settings.theme.backgroundColor
+        let textColor = settings.textColor ?? settings.theme.contentColor
+        webView.backgroundColor = bgColor.uiColor
+        scrollView.backgroundColor = bgColor.uiColor
+        let html = Self.buildChapterErrorHTML(
+            backgroundColorHex: colorToHex(bgColor),
+            textColorHex: colorToHex(textColor)
+        )
+        webView.loadHTMLString(html, baseURL: URL(string: "https://readium/error/"))
+    }
+
+    private static func buildChapterErrorHTML(backgroundColorHex: String, textColorHex: String) -> String {
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+        html, body { height: 100%; margin: 0; background-color: \(backgroundColorHex); color: \(textColorHex); }
+        body {
+            font-family: sans-serif;
+            padding: 2em;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        h2 { font-size: 1.2em; margin-bottom: 0.5em; }
+        p { margin: 0; font-size: 1em; }
+        </style>
+        </head>
+        <body>
+        <h2>Display Error</h2>
+        <p>Unable to load this chapter.</p>
+        </body>
+        </html>
+        """
+    }
+
+    private func colorToHex(_ color: Color) -> String {
+        let r = (color.rawValue >> 16) & 0xFF
+        let g = (color.rawValue >> 8) & 0xFF
+        let b = color.rawValue & 0xFF
+        return String(format: "#%02X%02X%02X", r, g, b)
+    }
+
+    /// Error used when chapter content is an XML/parsing error page.
+    enum ChapterContentError: Error {
+        case xmlParsingError
+    }
+
     /// To be overriden to customize the behavior after the spread is loaded.
     func spreadDidLoad() async {}
 
@@ -352,6 +457,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// To override in subclasses.
     func applySettings() {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
+        if isShowingChapterErrorPage {
+            showChapterErrorPage()
+        }
     }
 
     // MARK: - Location and progression.
@@ -536,10 +644,27 @@ extension EPUBSpreadView: WKScriptMessageHandler {
 extension EPUBSpreadView: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         log(.error, error)
+        if let link = viewModel.readingOrder.getOrNil(spread.leading) {
+            showChapterErrorPage()
+            showSpread()
+            delegate?.spreadView(self, didFailToLoadChapter: link, error: error)
+        }
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         setNeedsStopActivityIndicator()
+
+        // Detect XML parser error page (e.g. "This page contains the following errors") after load.
+        // spreadLoaded may never fire for error pages, so we run detection here like Android's onPageFinished.
+        Task { [weak self] in
+            guard let self else { return }
+            let isChapterError = await self.detectChapterContentError()
+            if isChapterError, let link = self.viewModel.readingOrder.getOrNil(self.spread.leading) {
+                self.showChapterErrorPage()
+                self.showSpread()
+                self.delegate?.spreadView(self, didFailToLoadChapter: link, error: ChapterContentError.xmlParsingError)
+            }
+        }
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {

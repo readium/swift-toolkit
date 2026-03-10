@@ -91,6 +91,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             log(.error, "Only one document at a time can be displayed in a reflowable spread")
             return
         }
+        resetChapterErrorStateBeforeLoad()
         let link = viewModel.readingOrder[spread.leading]
         let url = viewModel.url(to: link)
         webView.load(URLRequest(url: url.url))

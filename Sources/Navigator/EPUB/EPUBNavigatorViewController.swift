@@ -1181,6 +1181,12 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         delegate?.navigator(self, presentExternalURL: url)
     }
 
+    func spreadView(_ spreadView: EPUBSpreadView, didFailToLoadChapter link: Link, error: Error) {
+        guard let href = RelativeURL(string: link.href) ?? RelativeURL(path: link.href) else { return }
+        let readError = ReadError.access(.other(error))
+        delegate?.navigator(self, didFailToLoadResourceAt: href, withError: readError)
+    }
+
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?) {
         guard
             let url = AnyURL(string: href),
