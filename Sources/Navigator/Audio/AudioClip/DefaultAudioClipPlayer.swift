@@ -83,9 +83,7 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
     private var itemDidPlayToEndTimeObserver: NSObjectProtocol?
     private var playerTimeControlStatusObservation: NSKeyValueObservation?
 
-    // MARK: - AudioClipPlayer
-
-    public func play(_ clip: AudioClip) {
+    public func play(_ clip: AudioClip, startAt: Int = 0) {
         guard let item = makeItem(for: clip) else {
             replaceCurrentItem(nil)
             delegate?.audioClipPlayer(self, didFailPlaying: clip, withError: DefaultAudioClipPlayerError.failedToLoadClip)
@@ -101,8 +99,9 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
 
         playWhenReady = true
 
+        let startTime = clip.segments.getOrNil(startAt)?.start ?? clip.start
         player.seek(
-            to: makeTime(seconds: clip.start),
+            to: makeTime(seconds: startTime),
             toleranceBefore: .zero,
             toleranceAfter: .zero
         ) { [weak self] finished in
@@ -111,7 +110,7 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
                     return
                 }
                 if !clip.segments.isEmpty {
-                    self.delegate?.audioClipPlayer(self, willStartSegmentAt: 0, in: clip)
+                    self.delegate?.audioClipPlayer(self, willStartSegmentAt: startAt, in: clip)
                 }
                 self.player.play()
             }
@@ -144,6 +143,10 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
 
         // Snap to nearest segment if time falls in a gap.
         let target = snappedTime(time, in: currentItem.clip)
+        if let end = currentItem.clip.end, target >= end {
+            didPlayToEndTime()
+            return
+        }
         player.seek(
             to: makeTime(seconds: target),
             toleranceBefore: .zero,
@@ -175,8 +178,8 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
             }
         }
 
-        // Past the last segment's end but before clip.end — no next segment.
-        return time
+        // Past the last segment's end — treat as end-of-clip.
+        return clip.end ?? time
     }
 
     public func skipToNextSegment() -> Bool {
@@ -264,8 +267,6 @@ public final class DefaultAudioClipPlayer: NSObject, AudioClipPlayer, Loggable {
                 Task { @MainActor [weak self] in self?.playerTimeControlStatusDidChange() }
             }
     }
-
-    // MARK: - AudioClipPlayer
 
     public func addPeriodicTimeObserver(forInterval interval: TimeInterval, using block: @escaping () -> Void) -> Any {
         let avToken = player.addPeriodicTimeObserver(

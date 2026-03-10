@@ -45,12 +45,14 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
 
     /// Plays the given clip immediately, replacing any current playback.
     ///
-    /// The player plays from the first segment's start to the last segment's
-    /// end (or the end of the file when `end` is `nil`), firing
+    /// The player starts at `segments[startAt].start` (or `clip.start` when
+    /// there are no segments), firing
     /// ``AudioClipPlayerDelegate/audioClipPlayer(_:willStartSegmentAt:in:)`` and
     /// ``AudioClipPlayerDelegate/audioClipPlayer(_:didFinishSegmentAt:in:)`` at each
     /// segment boundary.
-    func play(_ clip: AudioClip)
+    ///
+    /// - Parameter startAt: Index of the first segment to play. Defaults to 0.
+    func play(_ clip: AudioClip, startAt: Int)
 
     /// Pauses playback.
     func pause()
@@ -88,6 +90,12 @@ public protocol AudioClipPlayer: AnyObject, Sendable {
     /// - Returns: `true` if there is a previous segment to skip to, `false`
     /// otherwise.
     func skipToPreviousSegment() -> Bool
+}
+
+public extension AudioClipPlayer {
+    func play(_ clip: AudioClip) {
+        play(clip, startAt: 0)
+    }
 }
 
 /// Receives playback events from an ``AudioClipPlayer``.

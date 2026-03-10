@@ -380,7 +380,7 @@ private func makeSequencer(
         resources: resources.map { Link(href: $0) }
     ))
     let cursor = makeCursor(readingOrder: readingOrder, gnds: gnds, failing: failing)
-    return GuidedAudioSequencer(publication: publication, cursor: cursor, skippedroles: skippedRoles)
+    return GuidedAudioSequencer(publication: publication, cursor: cursor, skippedRoles: skippedRoles)
 }
 
 @MainActor

@@ -45,10 +45,10 @@ public struct WebLocation: ReferenceLocation {
     public var position: Int?
     public var reference: WebReference?
 
-    init(
+    public init(
         progression: Double,
         position: Int? = nil,
-        reference: WebReference
+        reference: WebReference? = nil
     ) {
         self.progression = progression
         self.position = position

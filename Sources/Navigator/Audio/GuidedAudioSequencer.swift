@@ -55,11 +55,11 @@ public struct GuidedAudioClip {
     public init(
         publication: Publication,
         cursor: GuidedNavigationCursor,
-        skippedroles: Set<ContentRole> = []
+        skippedRoles: Set<ContentRole> = []
     ) {
         self.publication = publication
         self.cursor = cursor
-        skippedRoles = skippedroles
+        self.skippedRoles = skippedRoles
     }
 
     /// Advances the cursor and returns the next coalesced clip, or `nil` when
