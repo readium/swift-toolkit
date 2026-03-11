@@ -146,7 +146,7 @@ function findNearestMediaElement(element) {
   const mediaTags = ["IMG", "SVG", "VIDEO", "AUDIO", "CANVAS"];
   let current = element;
   while (current && current !== document.documentElement) {
-    if (mediaTags.includes(current.tagName)) {
+    if (mediaTags.includes(current.tagName.toUpperCase())) {
       return current;
     }
     current = current.parentElement;

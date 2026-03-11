@@ -208,6 +208,57 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     // MARK: - VisualNavigatorDelegate
 
+    func navigator(_ navigator: VisualNavigator, didDoubleTapAt event: DoubleTapEvent) -> Bool {
+        guard
+            let target = event.target,
+            case .media = target.content
+        else {
+            return false
+        }
+        presentImageZoom(target: target)
+        return true
+    }
+
+    func navigator(_ navigator: VisualNavigator, didPinchAt event: PinchEvent) -> Bool {
+        // Only handle pinch start on media elements.
+        guard
+            event.phase == .start,
+            let target = event.target,
+            case .media = target.content
+        else {
+            return false
+        }
+        presentImageZoom(target: target)
+        return true
+    }
+
+    private func presentImageZoom(target: GestureTarget) {
+        guard case let .media(link) = target.content else {
+            return
+        }
+        // Convert the target frame from the navigator's coordinate space to
+        // the presenting view controller's coordinate space for the animation.
+        let navigatorView = (navigator as? VisualNavigator)?.view ?? view
+        let sourceFrame = view.convert(target.frame, from: navigatorView)
+        // Extract alt text from the raw HTML content if available.
+        let altText: String? = target.rawContent.flatMap { raw in
+            let html = raw.data
+            guard let range = html.range(of: "(?<=alt=\")[^\"]*", options: .regularExpression) else {
+                return nil
+            }
+            let text = String(html[range])
+            return text.isEmpty ? nil : text
+        }
+        let viewer = ImageZoomViewController(
+            link: link,
+            sourceFrame: sourceFrame,
+            publication: publication,
+            altText: altText,
+            backgroundColor: navigator.view.backgroundColor ?? .black
+        )
+        present(viewer, animated: false)
+    }
+
     override func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
         super.navigator(navigator, locationDidChange: locator)
 
