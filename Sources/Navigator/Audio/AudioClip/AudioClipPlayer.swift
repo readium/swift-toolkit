@@ -51,11 +51,19 @@ public final class AudioClipPlayer: NSObject, Loggable {
         return duration
     }
 
-    /// - Parameter segmentGapSeekThreshold: Minimum gap duration in seconds
-    ///   between a segment's `end` and the next segment's `start` before the
-    ///   player seeks over the gap rather than letting it play through.
-    public init(segmentGapSeekThreshold: TimeInterval = 1) {
+    /// - Parameters:
+    ///   - segmentGapSeekThreshold: Minimum gap duration in seconds
+    ///     between a segment's `end` and the next segment's `start` before the
+    ///     player seeks over the gap rather than letting it play through.
+    ///   - skipToPreviousSegmentElapsedThreshold: Minimum elapsed time in a
+    ///     segment before calling `skipToPreviousSegment` replays the current
+    ///     segment instead of skipping to the previous one.
+    public init(
+        segmentGapSeekThreshold: TimeInterval = 1,
+        skipToPreviousSegmentElapsedThreshold: TimeInterval = 1
+    ) {
         self.segmentGapSeekThreshold = segmentGapSeekThreshold
+        self.skipToPreviousSegmentElapsedThreshold = skipToPreviousSegmentElapsedThreshold
         super.init()
         avPlayer.automaticallyWaitsToMinimizeStalling = false
         addPlayerObservers(on: avPlayer)
@@ -63,6 +71,7 @@ public final class AudioClipPlayer: NSObject, Loggable {
 
     private let avPlayer = AVPlayer()
     private let segmentGapSeekThreshold: TimeInterval
+    private let skipToPreviousSegmentElapsedThreshold: TimeInterval
     private lazy var resourceLoader = ResourceLoaderDelegate(player: self)
 
     private typealias Item = (clip: AudioClip, item: AVPlayerItem)
@@ -230,14 +239,21 @@ public final class AudioClipPlayer: NSObject, Loggable {
             return false
         }
 
-        let now = time
-        let currentIndex = segments.indices.last { segments[$0].start <= now } ?? 0
-        guard currentIndex > 0 else {
+        let currentIndex = currentSegmentIndex ?? 0
+        // Time elapsed is after `skipToPreviousSegmentElapsedThreshold` in the
+        // current segment? Replay it instead of skipping to the previous
+        // segment.
+        if time > segments[currentIndex].start + skipToPreviousSegmentElapsedThreshold {
+            seekToSegment(currentIndex)
+            return true
+
+        } else if currentIndex > 0 {
+            seekToSegment(currentIndex - 1)
+            return true
+
+        } else {
             return false
         }
-
-        seekToSegment(currentIndex - 1)
-        return true
     }
 
     private func seekToSegment(_ index: Int) {
