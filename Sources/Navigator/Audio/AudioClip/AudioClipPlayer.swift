@@ -323,8 +323,6 @@ public final class AudioClipPlayer: NSObject, Loggable {
     }
 
     private func replaceCurrentItem(_ item: Item?, segmentIndex: Int? = nil) {
-        // Pause immediately so no audio bleeds through while we swap items.
-        avPlayer.pause()
         playWhenReady = false
 
         removeSegmentObservers()
@@ -334,7 +332,7 @@ public final class AudioClipPlayer: NSObject, Loggable {
         avPlayer.replaceCurrentItem(with: item?.item)
 
         if let item = item {
-            status = .paused
+            status = .loading
             addSegmentObservers(for: item.clip)
         } else {
             status = .idle
