@@ -145,9 +145,8 @@ enum GuidedAudioSequencerTests {
                 gnds: ["ch.xhtml": ("ch-gnd.json", gnd(a))]
             )
             _ = await seq.next()
-            let clip = await seq.previous()
-            #expect(clip?.nodes.count == 1)
-            #expect(clip?.nodes[0].object == a)
+            // previous() repositions before the first node then goes backward → nil
+            #expect(await seq.previous() == nil)
         }
 
         @Test func multipleNodesSameFile() async {
@@ -159,11 +158,8 @@ enum GuidedAudioSequencerTests {
                 gnds: ["ch.xhtml": ("ch-gnd.json", gnd(a, b))]
             )
             _ = await seq.next()
-            let clip = await seq.previous()
-            #expect(clip?.nodes.count == 2)
-            #expect(clip?.clip.segments.count == 2)
-            #expect(clip?.nodes[0].object == a)
-            #expect(clip?.nodes[1].object == b)
+            // previous() repositions before the first node of the clip then goes backward → nil
+            #expect(await seq.previous() == nil)
         }
 
         @Test func twoFilesReturnsTwoClips() async {
@@ -179,9 +175,8 @@ enum GuidedAudioSequencerTests {
             )
             _ = await seq.next() // ch1
             _ = await seq.next() // ch2
-            let clip2 = await seq.previous()
+            // previous() repositions before ch2's first node → returns ch1
             let clip1 = await seq.previous()
-            #expect(clip2?.nodes[0].object == b)
             #expect(clip1?.nodes[0].object == a)
             #expect(await seq.previous() == nil)
         }
@@ -196,9 +191,8 @@ enum GuidedAudioSequencerTests {
                 skippedRoles: [.footnote]
             )
             _ = await seq.next()
-            let clip = await seq.previous()
-            #expect(clip?.nodes.count == 1)
-            #expect(clip?.nodes[0].object == a)
+            // previous() repositions before the first node of the clip then goes backward → nil
+            #expect(await seq.previous() == nil)
         }
     }
 
@@ -351,18 +345,172 @@ enum GuidedAudioSequencerTests {
             #expect(result?.clip.nodes.first?.object == child0)
         }
     }
+
+    @MainActor struct DirectionSwitching {
+        @Test func previousAfterNextOnFirstClipReturnsNil() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml"],
+                resources: ["ch1-audio.mp3"],
+                gnds: ["ch1.xhtml": ("ch1-gnd.json", gnd(a))]
+            )
+            let clipA = await seq.next()
+            #expect(clipA?.nodes[0].object == a)
+            #expect(await seq.previous() == nil)
+        }
+
+        @Test func previousAfterNextReturnsPreviousClip() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let b = gno(audioRef: "ch2-audio.mp3#t=0,1", textRef: "ch2.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml", "ch2.xhtml"],
+                resources: ["ch1-audio.mp3", "ch2-audio.mp3"],
+                gnds: [
+                    "ch1.xhtml": ("ch1-gnd.json", gnd(a)),
+                    "ch2.xhtml": ("ch2-gnd.json", gnd(b)),
+                ]
+            )
+            _ = await seq.next() // A
+            _ = await seq.next() // B
+            let prev = await seq.previous()
+            #expect(prev?.nodes[0].object == a)
+        }
+
+        @Test func nextAfterPreviousReturnsSameClip() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let b = gno(audioRef: "ch2-audio.mp3#t=0,1", textRef: "ch2.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml", "ch2.xhtml"],
+                resources: ["ch1-audio.mp3", "ch2-audio.mp3"],
+                gnds: [
+                    "ch1.xhtml": ("ch1-gnd.json", gnd(a)),
+                    "ch2.xhtml": ("ch2-gnd.json", gnd(b)),
+                ]
+            )
+            _ = await seq.next() // A
+            _ = await seq.next() // B
+            _ = await seq.previous() // A
+            let next = await seq.next()
+            #expect(next?.nodes[0].object == b)
+        }
+
+        @Test func alternatingNavigation() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let b = gno(audioRef: "ch2-audio.mp3#t=0,1", textRef: "ch2.xhtml#p1")
+            let c = gno(audioRef: "ch3-audio.mp3#t=0,1", textRef: "ch3.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml", "ch2.xhtml", "ch3.xhtml"],
+                resources: ["ch1-audio.mp3", "ch2-audio.mp3", "ch3-audio.mp3"],
+                gnds: [
+                    "ch1.xhtml": ("ch1-gnd.json", gnd(a)),
+                    "ch2.xhtml": ("ch2-gnd.json", gnd(b)),
+                    "ch3.xhtml": ("ch3-gnd.json", gnd(c)),
+                ]
+            )
+            _ = await seq.next() // A
+            let clipB1 = await seq.next() // B
+            #expect(clipB1?.nodes[0].object == b)
+            let clipC1 = await seq.next() // C
+            #expect(clipC1?.nodes[0].object == c)
+            let clipB2 = await seq.previous() // B
+            #expect(clipB2?.nodes[0].object == b)
+            let clipC2 = await seq.next() // C
+            #expect(clipC2?.nodes[0].object == c)
+        }
+
+        @Test func previousBeforeAnyNextReturnsNil() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml"],
+                resources: ["ch1-audio.mp3"],
+                gnds: ["ch1.xhtml": ("ch1-gnd.json", gnd(a))]
+            )
+            #expect(await seq.previous() == nil)
+        }
+
+        @Test func seekThenPreviousReturnsPreviousClip() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let b = gno(audioRef: "ch2-audio.mp3#t=0,1", textRef: "ch2.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml", "ch2.xhtml"],
+                resources: ["ch1-audio.mp3", "ch2-audio.mp3"],
+                gnds: [
+                    "ch1.xhtml": ("ch1-gnd.json", gnd(a)),
+                    "ch2.xhtml": ("ch2-gnd.json", gnd(b)),
+                ]
+            )
+            _ = await seq.seek(to: [1, 0]) // seek to B
+            let prev = await seq.previous()
+            #expect(prev?.nodes[0].object == a)
+        }
+
+        @Test func seekThenNextReturnsNextClip() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let b = gno(audioRef: "ch2-audio.mp3#t=0,1", textRef: "ch2.xhtml#p1")
+            let c = gno(audioRef: "ch3-audio.mp3#t=0,1", textRef: "ch3.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml", "ch2.xhtml", "ch3.xhtml"],
+                resources: ["ch1-audio.mp3", "ch2-audio.mp3", "ch3-audio.mp3"],
+                gnds: [
+                    "ch1.xhtml": ("ch1-gnd.json", gnd(a)),
+                    "ch2.xhtml": ("ch2-gnd.json", gnd(b)),
+                    "ch3.xhtml": ("ch3-gnd.json", gnd(c)),
+                ]
+            )
+            _ = await seq.seek(to: [1, 0]) // seek to B
+            let next = await seq.next()
+            #expect(next?.nodes[0].object == c)
+        }
+
+        @Test func nextAfterPreviousAtStartReturnsSecondClip() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let b = gno(audioRef: "ch2-audio.mp3#t=0,1", textRef: "ch2.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml", "ch2.xhtml"],
+                resources: ["ch1-audio.mp3", "ch2-audio.mp3"],
+                gnds: [
+                    "ch1.xhtml": ("ch1-gnd.json", gnd(a)),
+                    "ch2.xhtml": ("ch2-gnd.json", gnd(b)),
+                ]
+            )
+            let clipA1 = await seq.next()
+            #expect(clipA1?.nodes[0].object == a)
+            #expect(await seq.previous() == nil)
+            let clipA2 = await seq.next()
+            #expect(clipA2?.nodes[0].object == b)
+        }
+
+        /// Regression: previous()→nil at start must not cause next() to re-return
+        /// the first clip a second time (double-play bug).
+        @Test func noDoublePlayAfterPreviousAtStart() async {
+            let a = gno(audioRef: "ch1-audio.mp3#t=0,1", textRef: "ch1.xhtml#p1")
+            let b = gno(audioRef: "ch2-audio.mp3#t=0,1", textRef: "ch2.xhtml#p1")
+            let seq = makeSequencer(
+                readingOrder: ["ch1.xhtml", "ch2.xhtml"],
+                resources: ["ch1-audio.mp3", "ch2-audio.mp3"],
+                gnds: [
+                    "ch1.xhtml": ("ch1-gnd.json", gnd(a)),
+                    "ch2.xhtml": ("ch2-gnd.json", gnd(b)),
+                ]
+            )
+            _ = await seq.next() // A
+            #expect(await seq.previous() == nil)
+            // The navigator restarts A; when A finishes it calls next() expecting B.
+            let clipB = await seq.next()
+            #expect(clipB?.nodes[0].object == b)
+        }
+    }
 }
 
 // MARK: - Helpers
 
-/// Builds a ``GuidedAudioSequencer`` from simplified EPUB+MediaOverlays test
-/// parameters.
+/// Builds a ``GuidedAudioSequencer`` from simplified test parameters.
 ///
 /// - Parameters:
-///   - readingOrder: XHTML HREF strings for the publication reading order and
+///   - readingOrder: HREF strings for the publication reading order and
 ///     the ``GuidedNavigationCursor``.
 ///   - resources: Audio file HREFs added to the publication resources.
-///   - gnds: Maps reading-order XHTML HREF → (GND HREF, document).
+///   - gnds: Maps reading-order HREF → (GND HREF, document).
 ///   - skippedRoles: Roles passed to ``GuidedAudioSequencer/skippedRoles``.
 ///   - failing: GND HREF strings that should throw on fetch.
 @MainActor

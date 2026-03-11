@@ -45,6 +45,16 @@ public struct GuidedAudioClip {
     private let publication: Publication
     private let cursor: GuidedNavigationCursor
 
+    /// Index paths of the first and last nodes of the most recently returned
+    /// clip.
+    ///
+    /// Used to reposition the cursor to the correct boundary before each
+    /// `next()` / `previous()` call, giving index-on-clip semantics.
+    private var currentClipIndexPaths: (
+        first: GuidedNavigationNode.IndexPath,
+        last: GuidedNavigationNode.IndexPath
+    )?
+
     /// Creates a sequencer.
     ///
     /// - Parameters:
@@ -68,7 +78,14 @@ public struct GuidedAudioClip {
     /// All nodes sharing the same audio file are merged into a single
     /// ``GuidedAudioClip``. Playback should start at `segments[0]`.
     public func next() async -> GuidedAudioClip? {
-        await buildClip(forward: true)
+        // Repositions past the last node of the current clip to prevent
+        // returning it again.
+        if let currentNodes = currentClipIndexPaths {
+            _ = await cursor.seek(to: currentNodes.last)
+            _ = await cursor.next()
+        }
+
+        return await buildClip(forward: true)
     }
 
     /// Retreats the cursor and returns the previous coalesced clip, or `nil`
@@ -78,7 +95,13 @@ public struct GuidedAudioClip {
     /// ``GuidedAudioClip``. Playback should start at the last segment
     /// (`segments[nodes.count - 1]`).
     public func previous() async -> GuidedAudioClip? {
-        await buildClip(forward: false)
+        // Repositions to the first node of the current clip to prevent
+        // returning it again.
+        if let currentNodes = currentClipIndexPaths {
+            _ = await cursor.seek(to: currentNodes.first)
+        }
+
+        return await buildClip(forward: false)
     }
 
     /// Seeks to the given node `indexPath` and returns the clip that contains
@@ -100,7 +123,12 @@ public struct GuidedAudioClip {
         guard await cursor.seek(to: indexPath) else {
             return nil
         }
-        return await buildClipFromSeek()
+        guard let result = await buildClipFromSeek() else { return nil }
+        currentClipIndexPaths = (
+            first: result.clip.nodes.first!.indexPath,
+            last: result.clip.nodes.last!.indexPath
+        )
+        return result
     }
 
     /// Seeks to `reference` and returns the clip that contains it.
@@ -115,7 +143,12 @@ public struct GuidedAudioClip {
         guard await cursor.seek(to: reference) else {
             return nil
         }
-        return await buildClipFromSeek()
+        guard let result = await buildClipFromSeek() else { return nil }
+        currentClipIndexPaths = (
+            first: result.clip.nodes.first!.indexPath,
+            last: result.clip.nodes.last!.indexPath
+        )
+        return result
     }
 
     /// Builds a full-file clip after the cursor has been seeked.
@@ -190,6 +223,13 @@ public struct GuidedAudioClip {
         guard !nodes.isEmpty else {
             return nil
         }
+
+        // Save the index paths of the created clip to repositions the cursor
+        // during the future `next()` or `previous()` call.
+        currentClipIndexPaths = (
+            first: nodes.first!.node.indexPath,
+            last: nodes.last!.node.indexPath
+        )
 
         return GuidedAudioClip(
             clip: AudioClip(link: link, segments: nodes.map(\.segment)),
