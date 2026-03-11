@@ -20,6 +20,35 @@ public struct PointerEvent: Equatable {
     /// Key modifiers pressed alongside the pointer.
     public var modifiers: KeyModifiers
 
+    /// Metadata about the element under the pointer, if available.
+    ///
+    /// This is typically provided by the EPUB navigator's JavaScript bridge
+    /// when the pointer is over a media element (img, svg, video, etc.).
+    public var targetElementInfo: TargetElementInfo?
+
+    /// Metadata about the DOM element under a pointer event, extracted from
+    /// the JavaScript layer.
+    public struct TargetElementInfo: Equatable {
+        /// Tag name of the element (e.g. "img", "svg").
+        public let tag: String
+
+        /// Source URL of the media element, if available.
+        public let src: String?
+
+        /// Frame of the element relative to the navigator's view.
+        public let frame: CGRect
+
+        /// Outer HTML of the element.
+        public let outerHTML: String?
+
+        public init(tag: String, src: String?, frame: CGRect, outerHTML: String? = nil) {
+            self.tag = tag
+            self.src = src
+            self.frame = frame
+            self.outerHTML = outerHTML
+        }
+    }
+
     /// Phase of a pointer event.
     public enum Phase: Equatable, CustomStringConvertible {
         /// Fired when a pointer becomes active.

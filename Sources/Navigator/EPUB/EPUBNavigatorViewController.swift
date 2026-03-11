@@ -368,6 +368,17 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             }
         )
 
+        setupGestureCallbacks(
+            onDoubleTap: { [weak self] event in
+                guard let self else { return false }
+                return self.delegate?.navigator(self, didDoubleTapAt: event) ?? false
+            },
+            onPinch: { [weak self] event in
+                guard let self else { return false }
+                return self.delegate?.navigator(self, didPinchAt: event) ?? false
+            }
+        )
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(didBecomeActive),
@@ -1101,6 +1112,14 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         Task {
             var event = event
             event.location = view.convert(event.location, from: spreadView)
+            if let info = event.targetElementInfo {
+                event.targetElementInfo = PointerEvent.TargetElementInfo(
+                    tag: info.tag,
+                    src: info.src,
+                    frame: view.convert(info.frame, from: spreadView),
+                    outerHTML: info.outerHTML
+                )
+            }
             _ = await inputObservers.didReceive(event)
         }
     }

@@ -75,6 +75,8 @@ open class PDFNavigatorViewController:
     private var clickGestureController: PDFTapGestureController?
     private var swipeLeftGestureRecognizer: UISwipeGestureRecognizer?
     private var swipeRightGestureRecognizer: UISwipeGestureRecognizer?
+    private var doubleTapGestureRecognizer: UITapGestureRecognizer?
+    private var pinchGestureRecognizer: UIPinchGestureRecognizer?
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
@@ -264,6 +266,16 @@ open class PDFNavigatorViewController:
         swipeLeftGestureRecognizer = recognizeSwipe(in: pdfView, direction: .left)
         swipeRightGestureRecognizer = recognizeSwipe(in: pdfView, direction: .right)
 
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(didDoubleTap))
+        doubleTap.numberOfTapsRequired = 2
+        doubleTap.numberOfTouchesRequired = 1
+        pdfView.addGestureRecognizer(doubleTap)
+        doubleTapGestureRecognizer = doubleTap
+
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(didPinch))
+        pdfView.addGestureRecognizer(pinch)
+        pinchGestureRecognizer = pinch
+
         apply(settings: settings, to: pdfView)
         delegate?.navigator(self, setupPDFView: pdfView)
 
@@ -370,6 +382,25 @@ open class PDFNavigatorViewController:
         }
 
         delegate?.navigator(self, didTapAt: location)
+    }
+
+    @objc private func didDoubleTap(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: view)
+        let event = DoubleTapEvent(location: location)
+        _ = delegate?.navigator(self, didDoubleTapAt: event)
+    }
+
+    @objc private func didPinch(_ gesture: UIPinchGestureRecognizer) {
+        let center = gesture.location(in: view)
+        let phase: PinchEvent.Phase = switch gesture.state {
+        case .began: .start
+        case .changed: .changed
+        case .ended: .end
+        case .cancelled, .failed: .cancel
+        default: .cancel
+        }
+        let event = PinchEvent(phase: phase, center: center, scale: gesture.scale)
+        _ = delegate?.navigator(self, didPinchAt: event)
     }
 
     private func recognizeSwipe(in view: UIView, direction: UISwipeGestureRecognizer.Direction) -> UISwipeGestureRecognizer {

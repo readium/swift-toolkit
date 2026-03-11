@@ -239,6 +239,17 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
 
         event.location = convertPointToNavigatorSpace(event.location)
+
+        if var info = PointerEvent.TargetElementInfo(json: json["targetElementInfo"]) {
+            info = PointerEvent.TargetElementInfo(
+                tag: info.tag,
+                src: info.src,
+                frame: convertRectToNavigatorSpace(info.frame),
+                outerHTML: info.outerHTML
+            )
+            event.targetElementInfo = info
+        }
+
         delegate?.spreadView(self, didReceive: event)
     }
 
@@ -711,6 +722,30 @@ private extension PointerEvent {
         // FIXME:
 //        targetElement = dict["targetElement"] as? String ?? ""
 //        interactiveElement = dict["interactiveElement"] as? String
+    }
+}
+
+/// Produced by gestures.js `extractTargetElementInfo`
+extension PointerEvent.TargetElementInfo {
+    init?(json: Any?) {
+        guard
+            let dict = json as? [String: Any],
+            let tag = dict["tag"] as? String,
+            let frameDict = dict["frame"] as? [String: Any],
+            let x = frameDict["x"] as? Double,
+            let y = frameDict["y"] as? Double,
+            let width = frameDict["width"] as? Double,
+            let height = frameDict["height"] as? Double
+        else {
+            return nil
+        }
+
+        self.init(
+            tag: tag,
+            src: dict["src"] as? String,
+            frame: CGRect(x: x, y: y, width: width, height: height),
+            outerHTML: dict["outerHTML"] as? String
+        )
     }
 }
 

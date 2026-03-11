@@ -118,6 +118,17 @@ open class CBZNavigatorViewController:
                 self.delegate?.navigator(self, didReleaseKey: event)
             }
         )
+
+        setupGestureCallbacks(
+            onDoubleTap: { [weak self] event in
+                guard let self else { return false }
+                return self.delegate?.navigator(self, didDoubleTapAt: event) ?? false
+            },
+            onPinch: { [weak self] event in
+                guard let self else { return false }
+                return self.delegate?.navigator(self, didPinchAt: event) ?? false
+            }
+        )
     }
 
     private func didLoadPositions(_ positions: [Locator]?) {

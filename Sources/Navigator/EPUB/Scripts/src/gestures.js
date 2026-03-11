@@ -84,6 +84,7 @@ function onPointerEvent(phase, event) {
     buttons: event.buttons,
     targetElement: event.target.outerHTML,
     interactiveElement: findNearestInteractiveElement(event.target),
+    targetElementInfo: extractTargetElementInfo(event.target),
     option: event.altKey,
     control: event.ctrlKey,
     shift: event.shiftKey,
@@ -102,4 +103,53 @@ function onPointerEvent(phase, event) {
   // We don't want to disable the default WebView behavior as it breaks some features without bringing any value.
   // event.stopPropagation();
   // event.preventDefault();
+}
+
+/// Extracts metadata about the target element for gesture handling.
+///
+/// Returns an object with the element's bounding rectangle, tag name, and
+/// media source URL if available. This information is used on the Swift side
+/// to build a `GestureTarget`.
+function extractTargetElementInfo(element) {
+  if (!element || !element.getBoundingClientRect) {
+    return null;
+  }
+
+  let mediaElement = findNearestMediaElement(element);
+  if (!mediaElement) {
+    return null;
+  }
+
+  let rect = mediaElement.getBoundingClientRect();
+  let adjustedOrigin = adjustPointToViewport({ x: rect.left, y: rect.top });
+  let adjustedEnd = adjustPointToViewport({
+    x: rect.left + rect.width,
+    y: rect.top + rect.height,
+  });
+
+  return {
+    tag: mediaElement.tagName.toLowerCase(),
+    src: mediaElement.src || mediaElement.getAttribute("href") || null,
+    frame: {
+      x: adjustedOrigin.x,
+      y: adjustedOrigin.y,
+      width: adjustedEnd.x - adjustedOrigin.x,
+      height: adjustedEnd.y - adjustedOrigin.y,
+    },
+    outerHTML: mediaElement.outerHTML,
+  };
+}
+
+/// Walks up the DOM tree from the given element to find the nearest media
+/// element (img, svg, video, audio, canvas).
+function findNearestMediaElement(element) {
+  const mediaTags = ["IMG", "SVG", "VIDEO", "AUDIO", "CANVAS"];
+  let current = element;
+  while (current && current !== document.documentElement) {
+    if (mediaTags.includes(current.tagName)) {
+      return current;
+    }
+    current = current.parentElement;
+  }
+  return null;
 }
