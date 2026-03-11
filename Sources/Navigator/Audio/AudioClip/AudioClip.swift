@@ -112,7 +112,7 @@ public struct AudioClip: Hashable, Sendable {
         guard segments.indices.contains(index) else {
             return nil
         }
-        
+
         let segment = segments[index]
         if let end = segment.end {
             return end - segment.start
@@ -134,7 +134,7 @@ public struct AudioClip: Hashable, Sendable {
         guard !segments.isEmpty else {
             return fileDuration
         }
-        
+
         var total: TimeInterval = 0
         for i in segments.indices {
             guard let dur = segmentDuration(at: i, fileDuration: fileDuration) else {

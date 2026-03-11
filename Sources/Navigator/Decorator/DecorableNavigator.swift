@@ -10,7 +10,6 @@ import UIKit
 
 /// A navigator able to render arbitrary decorations over a publication.
 public protocol DecorableNavigator {
-    
     /// Declares the desired state of a named decoration `group`.
     ///
     /// Internally the navigator diffs the new list against the previous one
@@ -47,14 +46,14 @@ public protocol DecorableNavigator {
 public struct OnDecorationActivatedEvent {
     /// Activated decoration.
     public let decoration: Decoration
-    
+
     /// Name of the group the decoration belongs to.
     public let group: String
-    
+
     /// Frame of the bounding rect for the decoration, in the coordinate of the
     /// navigator view. This is only useful in the context of a VisualNavigator.
     public let rect: CGRect?
-    
+
     /// Event point of the interaction, in the coordinate of the navigator view.
     /// This is only useful in the context of a VisualNavigator.
     public let point: CGPoint?
@@ -65,7 +64,6 @@ public struct OnDecorationActivatedEvent {
 /// It pairs a `locator` with a `style` and carries a stable id used to track
 /// changes across updates.
 public struct Decoration: Hashable {
-    
     /// Uniquely identifies a decoration within its group.
     ///
     /// Tip: Use your model's database primary key here so you can look it up
@@ -112,7 +110,7 @@ public struct Decoration: Hashable {
 
             /// Semi-transparent color fill over the text.
             public static let highlight: Id = "highlight"
-            
+
             /// Underline stroke beneath the text.
             public static let underline: Id = "underline"
         }

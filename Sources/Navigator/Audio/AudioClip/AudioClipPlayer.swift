@@ -70,6 +70,19 @@ public final class AudioClipPlayer: NSObject, Loggable {
     /// The item currently loaded into `avPlayer`, if any.
     private var currentItem: Item?
 
+    /// Index of the segment at the current position, if any.
+    private var currentSegmentIndex: Int? {
+        didSet {
+            guard oldValue != currentSegmentIndex, let clip = currentItem?.clip else {
+                return
+            }
+
+            if let index = currentSegmentIndex {
+                delegate?.audioClipPlayer(self, willStartSegmentAt: index, in: clip)
+            }
+        }
+    }
+
     /// Bridging intent across async gaps: `play()` sets this before kicking
     /// off an async seek. After the seek, we check it before calling
     /// `avPlayer.play()`, so a `pause()` or `stop()` issued during the seek is
@@ -109,7 +122,7 @@ public final class AudioClipPlayer: NSObject, Loggable {
             item.item.forwardPlaybackEndTime = makeTime(seconds: end)
         }
 
-        replaceCurrentItem(item)
+        replaceCurrentItem(item, segmentIndex: startAt)
 
         playWhenReady = true
 
@@ -122,9 +135,6 @@ public final class AudioClipPlayer: NSObject, Loggable {
             Task { @MainActor [weak self] in
                 guard finished, let self, self.playWhenReady else {
                     return
-                }
-                if !clip.segments.isEmpty {
-                    self.delegate?.audioClipPlayer(self, willStartSegmentAt: startAt, in: clip)
                 }
                 self.avPlayer.play()
             }
@@ -166,19 +176,15 @@ public final class AudioClipPlayer: NSObject, Loggable {
     public func seek(to time: TimeInterval) {
         guard let currentItem else { return }
 
+        // Snap to nearest segment if time falls in a gap.
+        let target = snappedTime(time, in: currentItem.clip)
+
         // Treat a seek past the clip boundary as a natural end-of-clip.
-        if let end = currentItem.clip.end, time >= end {
-            didPlayToEndTime()
+        if let end = currentItem.clip.end, target >= end {
+            didFinishPlaying()
             return
         }
 
-        // Snap to nearest segment if time falls in a gap.
-        let target = snappedTime(time, in: currentItem.clip)
-        if let end = currentItem.clip.end, target >= end {
-            didPlayToEndTime()
-            return
-        }
-        
         avPlayer.seek(
             to: makeTime(seconds: target),
             toleranceBefore: .zero,
@@ -203,12 +209,12 @@ public final class AudioClipPlayer: NSObject, Loggable {
         // AVPlayer timescale quantization (e.g. seeking to 9.839 lands at
         // 9.838979..., which would otherwise re-match the same segment).
         let now = time + 0.002
-        
-        guard let next = segments.first(where: { $0.start > now }) else {
+
+        guard let nextIndex = segments.firstIndex(where: { $0.start > now }) else {
             return false
         }
 
-        seek(to: next.start)
+        seekToSegment(nextIndex)
         return true
     }
 
@@ -226,14 +232,20 @@ public final class AudioClipPlayer: NSObject, Loggable {
 
         let now = time
         let currentIndex = segments.indices.last { segments[$0].start <= now } ?? 0
-        let targetIndex = currentIndex > 0 ? currentIndex - 1 : 0
-        let target = segments[targetIndex]
-        guard now > target.start else {
+        guard currentIndex > 0 else {
             return false
         }
 
-        seek(to: target.start)
-        return currentIndex > 0
+        seekToSegment(currentIndex - 1)
+        return true
+    }
+
+    private func seekToSegment(_ index: Int) {
+        guard let segment = currentItem?.clip.segments.getOrNil(index) else {
+            return
+        }
+        currentSegmentIndex = index
+        seek(to: segment.start)
     }
 
     /// Registers a block to be called at regular intervals while playing.
@@ -294,7 +306,7 @@ public final class AudioClipPlayer: NSObject, Loggable {
         return clip.end ?? time
     }
 
-    private func replaceCurrentItem(_ item: Item?) {
+    private func replaceCurrentItem(_ item: Item?, segmentIndex: Int? = nil) {
         // Pause immediately so no audio bleeds through while we swap items.
         avPlayer.pause()
         playWhenReady = false
@@ -302,6 +314,7 @@ public final class AudioClipPlayer: NSObject, Loggable {
         removeSegmentObservers()
 
         currentItem = item
+        currentSegmentIndex = segmentIndex
         avPlayer.replaceCurrentItem(with: item?.item)
 
         if let item = item {
@@ -328,12 +341,17 @@ public final class AudioClipPlayer: NSObject, Loggable {
                 MainActor.assumeIsolated {
                     guard
                         let self = self,
-                        let currentItem = self.currentItem,
-                        currentItem.item == notification.object as? AVPlayerItem
+                        let item = self.currentItem,
+                        item.item == notification.object as? AVPlayerItem
                     else {
                         return
                     }
-                    self.didPlayToEndTime()
+
+                    if let lastIndex = item.clip.segments.indices.last {
+                        self.didFinishSegmentAt(lastIndex)
+                    }
+
+                    self.didFinishPlaying()
                 }
             }
 
@@ -343,17 +361,28 @@ public final class AudioClipPlayer: NSObject, Loggable {
             }
     }
 
-    /// Called when the player notifies `AVPlayerItemDidPlayToEndTime`.
-    private func didPlayToEndTime() {
-        let finishedItem = currentItem
+    /// Called when the player reached the end of the clip.
+    private func didFinishPlaying() {
+        guard let item = currentItem else {
+            return
+        }
+
         replaceCurrentItem(nil)
 
-        if let item = finishedItem {
-            if let lastIndex = item.clip.segments.indices.last {
-                delegate?.audioClipPlayer(self, didFinishSegmentAt: lastIndex, in: item.clip)
-            }
-            delegate?.audioClipPlayer(self, didFinishPlaying: item.clip)
+        delegate?.audioClipPlayer(self, didFinishPlaying: item.clip)
+    }
+
+    /// Called when a segment finished naturally, without being interrupted by
+    /// a seek.
+    private func didFinishSegmentAt(_ index: Int) {
+        guard
+            let clip = currentItem?.clip,
+            currentSegmentIndex == index
+        else {
+            return
         }
+
+        delegate?.audioClipPlayer(self, didFinishSegmentAt: index, in: clip)
     }
 
     /// Called when the player changes its `timeControlStatus`.
@@ -375,7 +404,7 @@ public final class AudioClipPlayer: NSObject, Loggable {
         for (i, segment) in clip.segments.enumerated() {
             guard let nextStart = clip.segments.getOrNil(i + 1)?.start else {
                 // The last segment's didFinishSegmentAt is fired in
-                // didPlayToEndTime.
+                // the AVPlayerItemDidPlayToEndTime observer.
                 continue
             }
 
@@ -384,35 +413,28 @@ public final class AudioClipPlayer: NSObject, Loggable {
                 nextStart - end >= segmentGapSeekThreshold
             {
                 // The gap between this segment's end and the next segment's
-                // start exceeds the threshold. Observe the end time: fire
-                // didFinish, seek over the gap, then fire willStart after the
-                // seek lands.
+                // start exceeds the threshold. Observe the end time and seek
+                // over the gap.
                 addSegmentObserver(at: end) { [weak self] in
-                    guard let self, let item = self.currentItem else { return }
+                    guard let self else { return }
 
-                    self.delegate?.audioClipPlayer(self, didFinishSegmentAt: i, in: item.clip)
+                    didFinishSegmentAt(i)
+                    self.currentSegmentIndex = i + 1
 
-                    let capturedItem = item
                     self.avPlayer.seek(
                         to: self.makeTime(seconds: nextStart),
                         toleranceBefore: .zero,
                         toleranceAfter: .zero
-                    ) { [weak self] finished in
-                        guard finished else { return }
-
-                        Task { @MainActor [weak self] in
-                            guard let self, self.currentItem?.item == capturedItem.item else { return }
-                            self.delegate?.audioClipPlayer(self, willStartSegmentAt: i + 1, in: item.clip)
-                        }
-                    }
+                    )
                 }
 
             } else {
                 // Contiguous segments – observe at the next segment's start time.
                 addSegmentObserver(at: nextStart) { [weak self] in
-                    guard let self, let item = self.currentItem else { return }
-                    self.delegate?.audioClipPlayer(self, didFinishSegmentAt: i, in: item.clip)
-                    self.delegate?.audioClipPlayer(self, willStartSegmentAt: i + 1, in: item.clip)
+                    guard let self else { return }
+
+                    didFinishSegmentAt(i)
+                    self.currentSegmentIndex = i + 1
                 }
             }
         }
@@ -468,10 +490,15 @@ public final class AudioClipPlayer: NSObject, Loggable {
 
     /// Called when playback will begin playing the segment at the given `index`
     /// in the `clip`.
+    ///
+    /// This is called even if the segment is seeked through and does not start
+    /// from the beginning.
     func audioClipPlayer(_ player: AudioClipPlayer, willStartSegmentAt index: Int, in clip: AudioClip)
 
-    /// Called when playback reaches the end of the segment at the given `index`
-    /// in the `clip`.
+    /// Called when playback reaches the natural end of the segment at the given
+    /// `index` in the `clip`.
+    ///
+    /// If the segment is interrupted, it will not be called.
     func audioClipPlayer(_ player: AudioClipPlayer, didFinishSegmentAt index: Int, in clip: AudioClip)
 
     /// Called when the player finishes playing a clip, either because it

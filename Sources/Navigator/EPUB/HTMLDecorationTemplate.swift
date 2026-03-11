@@ -10,7 +10,6 @@ import UIKit
 
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
 public struct HTMLDecorationTemplate {
-    
     /// Controls how the template's bounding rectangle is computed.
     ///
     /// Determines the number of created HTML elements and their position
