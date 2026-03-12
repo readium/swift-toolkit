@@ -8,20 +8,19 @@ import Foundation
 import OSLog
 
 /// Observes files in a directory.
-@MainActor final class DirectoryWatcher: ObservableObject {
-    /// The current list of file URLs in the observed directory.
-    @Published private(set) var files: [URL] = []
-
+final class DirectoryWatcher {
     private let directoryURL: URL
     private var dispatchSource: DispatchSourceFileSystemObject?
     private var logger: Logger!
+    private let onChange: @MainActor ([URL]) -> Void
 
     /// Initializes the watcher with a specific directory URL.
-    init(url: URL) {
+    init(url: URL, onChange: @MainActor @escaping ([URL]) -> Void) {
         precondition(url.isFileURL)
 
         directoryURL = url
         logger = Logger(for: DirectoryWatcher.self)
+        self.onChange = onChange
 
         let fileDescriptor = open(url.path, O_EVTONLY)
         guard fileDescriptor != -1 else {
@@ -36,7 +35,9 @@ import OSLog
         )
 
         dispatchSource?.setEventHandler { [weak self] in
-            self?.watch()
+            Task { @MainActor in
+                self?.watch()
+            }
         }
 
         dispatchSource?.resume()
@@ -46,24 +47,25 @@ import OSLog
         logger.notice("Watching directory at \(url.path)")
     }
 
-    /// Updates the list of `files` at `directoryURL`.
+    /// Broadcasts the list of `files` at `directoryURL` to `onChange`.
     private func watch() {
-        let files: [URL]
         do {
-            files = try FileManager.default
+            let files = try FileManager.default
                 .contentsOfDirectory(
                     at: directoryURL,
-                    includingPropertiesForKeys: [.isRegularFileKey],
-                    options: [.skipsHiddenFiles]
+                    includingPropertiesForKeys: [.isDirectoryKey],
+                    options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
                 )
+                // Filter out directories.
+                .filter { url in
+                    !((try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false)
+                }
                 .sorted { $0.lastPathComponent < $1.lastPathComponent }
+
+            onChange(files)
+
         } catch {
             logger.error(error)
-            files = []
-        }
-
-        Task { @MainActor in
-            self.files = files
         }
     }
 }

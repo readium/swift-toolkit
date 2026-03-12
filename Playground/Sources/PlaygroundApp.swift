@@ -9,22 +9,37 @@ import SwiftUI
 
 @main
 struct PlaygroundApp: App {
+    @StateObject private var documentRepository = DocumentRepository()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(documentRepository)
         }
     }
 }
 
 struct ContentView: View {
-    /// Watches the content of the Documents/ folder.
-    @StateObject private var watcher = DirectoryWatcher(
-        url: FileManager.default.documentDirectory
-    )
+    @State private var selectedFile: URL?
 
     var body: some View {
-        List(watcher.files, id: \.self) { file in
-            Text(file.lastPathComponent)
+        NavigationSplitView {
+            DocumentList(selectedFile: $selectedFile)
+        } detail: {
+            if let selectedFile {
+                FileDetailView(file: selectedFile)
+            } else {
+                Text("No file selected")
+                    .font(.title)
+            }
         }
+    }
+}
+
+struct FileDetailView: View {
+    let file: URL
+
+    var body: some View {
+        Text(file.path)
     }
 }

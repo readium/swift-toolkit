@@ -7,7 +7,6 @@
 import Foundation
 
 extension FileManager {
-    
     /// URL to the Documents/ folder.
     var documentDirectory: URL {
         try! url(
