@@ -1,0 +1,37 @@
+name: Playground
+options:
+  bundleIdPrefix: org.readium
+packages:
+  Readium:
+    path: ..
+schemes:
+  Playground:
+    build:
+      targets:
+        Playground: none
+    # test:
+    #   testPlans:
+    #     - path: Playground.xctestplan
+    #       defaultPlan: true
+targets:
+  Playground:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources: 
+      - path: Sources
+    dependencies:
+      - package: Readium
+        product: ReadiumShared
+      - package: Readium
+        product: ReadiumStreamer
+      - package: Readium
+        product: ReadiumNavigator
+      - package: Readium
+        product: ReadiumAdapterGCDWebServer
+      - package: Readium
+        product: ReadiumOPDS
+    settings:
+      SWIFT_APPROACHABLE_CONCURRENCY: Yes
+      SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+
