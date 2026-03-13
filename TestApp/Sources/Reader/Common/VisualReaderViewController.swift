@@ -91,18 +91,16 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         )
         directionalNavigationAdapter?.bind(to: navigator)
 
-        // Present an image zoom viewer on double-tap over a media element.
-        // Registered before .activate so the double-tap observer sees raw
-        // pointer events before they are consumed by single-tap handlers.
-        navigator.addObserver(.doubleTap { [weak self] event in
+        // Present an image zoom viewer when tapping a media element.
+        navigator.addObserver(.tap { [weak self] event in
             guard
                 let self,
-                let target = event.target,
-                case .media = target.content
+                let info = event.targetElementInfo,
+                info.src != nil
             else {
                 return false
             }
-            self.presentImageZoom(target: target)
+            self.presentImageZoom(elementInfo: info)
             return true
         })
 
@@ -223,17 +221,15 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     // MARK: - VisualNavigatorDelegate
 
-    private func presentImageZoom(target: GestureTarget) {
-        guard case let .media(link) = target.content else {
-            return
-        }
-        // Convert the target frame from the navigator's coordinate space to
+    private func presentImageZoom(elementInfo info: PointerEvent.TargetElementInfo) {
+        guard let src = info.src else { return }
+        let link = Link(href: src)
+        // Convert the element frame from the navigator's coordinate space to
         // the presenting view controller's coordinate space for the animation.
         let navigatorView = (navigator as? VisualNavigator)?.view ?? view
-        let sourceFrame = view.convert(target.frame, from: navigatorView)
-        // Extract alt text from the raw HTML content if available.
-        let altText: String? = target.rawContent.flatMap { raw in
-            let html = raw.data
+        let sourceFrame = view.convert(info.frame, from: navigatorView)
+        // Extract alt text from the outer HTML if available.
+        let altText: String? = info.outerHTML.flatMap { html in
             guard let range = html.range(of: "(?<=alt=\")[^\"]*", options: .regularExpression) else {
                 return nil
             }

@@ -109,7 +109,7 @@ function onPointerEvent(phase, event) {
 ///
 /// Returns an object with the element's bounding rectangle, tag name, and
 /// media source URL if available. This information is used on the Swift side
-/// to build a `GestureTarget`.
+/// to build a `TargetElementInfo`.
 function extractTargetElementInfo(element) {
   if (!element || !element.getBoundingClientRect) {
     return null;
