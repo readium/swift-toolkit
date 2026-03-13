@@ -106,20 +106,6 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             return true
         })
 
-        // Present an image zoom viewer on pinch over a media element.
-        navigator.addObserver(.pinch { [weak self] event in
-            guard
-                event.phase == .start,
-                let self,
-                let target = event.target,
-                case .media = target.content
-            else {
-                return false
-            }
-            self.presentImageZoom(target: target)
-            return true
-        })
-
         // Clear the current search highlight on tap.
         navigator.addObserver(.activate { [weak self] _ in
             guard
