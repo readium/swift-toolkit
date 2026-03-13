@@ -91,6 +91,35 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         )
         directionalNavigationAdapter?.bind(to: navigator)
 
+        // Present an image zoom viewer on double-tap over a media element.
+        // Registered before .activate so the double-tap observer sees raw
+        // pointer events before they are consumed by single-tap handlers.
+        navigator.addObserver(.doubleTap { [weak self] event in
+            guard
+                let self,
+                let target = event.target,
+                case .media = target.content
+            else {
+                return false
+            }
+            self.presentImageZoom(target: target)
+            return true
+        })
+
+        // Present an image zoom viewer on pinch over a media element.
+        navigator.addObserver(.pinch { [weak self] event in
+            guard
+                event.phase == .start,
+                let self,
+                let target = event.target,
+                case .media = target.content
+            else {
+                return false
+            }
+            self.presentImageZoom(target: target)
+            return true
+        })
+
         // Clear the current search highlight on tap.
         navigator.addObserver(.activate { [weak self] _ in
             guard
@@ -207,30 +236,6 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     }
 
     // MARK: - VisualNavigatorDelegate
-
-    func navigator(_ navigator: VisualNavigator, didDoubleTapAt event: DoubleTapEvent) -> Bool {
-        guard
-            let target = event.target,
-            case .media = target.content
-        else {
-            return false
-        }
-        presentImageZoom(target: target)
-        return true
-    }
-
-    func navigator(_ navigator: VisualNavigator, didPinchAt event: PinchEvent) -> Bool {
-        // Only handle pinch start on media elements.
-        guard
-            event.phase == .start,
-            let target = event.target,
-            case .media = target.content
-        else {
-            return false
-        }
-        presentImageZoom(target: target)
-        return true
-    }
 
     private func presentImageZoom(target: GestureTarget) {
         guard case let .media(link) = target.content else {

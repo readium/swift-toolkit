@@ -29,12 +29,4 @@ extension InputObservable {
             return false
         })
     }
-
-    func setupGestureCallbacks(
-        onDoubleTap: @MainActor @escaping (DoubleTapEvent) async -> Bool,
-        onPinch: @MainActor @escaping (PinchEvent) async -> Bool
-    ) {
-        addObserver(.doubleTap(onDoubleTap: onDoubleTap))
-        addObserver(.pinch(onPinch: onPinch))
-    }
 }

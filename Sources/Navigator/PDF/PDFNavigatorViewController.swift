@@ -75,8 +75,11 @@ open class PDFNavigatorViewController:
     private var clickGestureController: PDFTapGestureController?
     private var swipeLeftGestureRecognizer: UISwipeGestureRecognizer?
     private var swipeRightGestureRecognizer: UISwipeGestureRecognizer?
-    private var doubleTapGestureRecognizer: UITapGestureRecognizer?
     private var pinchGestureRecognizer: UIPinchGestureRecognizer?
+    /// Stable pointer IDs used to synthesize two-finger pinch events.
+    private let pinchPointerID1 = TouchPointer(id: UUID())
+    private let pinchPointerID2 = TouchPointer(id: UUID())
+    private var pinchInitialDistance: CGFloat = 0
 
     private let server: HTTPServer?
     private let publicationEndpoint: HTTPServerEndpoint?
@@ -266,12 +269,6 @@ open class PDFNavigatorViewController:
         swipeLeftGestureRecognizer = recognizeSwipe(in: pdfView, direction: .left)
         swipeRightGestureRecognizer = recognizeSwipe(in: pdfView, direction: .right)
 
-        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(didDoubleTap))
-        doubleTap.numberOfTapsRequired = 2
-        doubleTap.numberOfTouchesRequired = 1
-        pdfView.addGestureRecognizer(doubleTap)
-        doubleTapGestureRecognizer = doubleTap
-
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(didPinch))
         pdfView.addGestureRecognizer(pinch)
         pinchGestureRecognizer = pinch
@@ -384,23 +381,48 @@ open class PDFNavigatorViewController:
         delegate?.navigator(self, didTapAt: location)
     }
 
-    @objc private func didDoubleTap(_ gesture: UITapGestureRecognizer) {
-        let location = gesture.location(in: view)
-        let event = DoubleTapEvent(location: location)
-        _ = delegate?.navigator(self, didDoubleTapAt: event)
-    }
-
     @objc private func didPinch(_ gesture: UIPinchGestureRecognizer) {
         let center = gesture.location(in: view)
-        let phase: PinchEvent.Phase = switch gesture.state {
-        case .began: .start
-        case .changed: .changed
-        case .ended: .end
-        case .cancelled, .failed: .cancel
-        default: .cancel
+        // Forward pinch as two-pointer events so PinchPointerObserver
+        // can recognize them through the standard input system.
+        let pointer1 = Pointer.touch(pinchPointerID1)
+        let pointer2 = Pointer.touch(pinchPointerID2)
+        let offset: CGFloat = 50
+
+        switch gesture.state {
+        case .began:
+            let initialDistance = offset * 2
+            pinchInitialDistance = initialDistance
+            let loc1 = CGPoint(x: center.x - offset, y: center.y)
+            let loc2 = CGPoint(x: center.x + offset, y: center.y)
+            Task {
+                _ = await inputObservers.didReceive(PointerEvent(pointer: pointer1, phase: .down, location: loc1, modifiers: []))
+                _ = await inputObservers.didReceive(PointerEvent(pointer: pointer2, phase: .down, location: loc2, modifiers: []))
+            }
+        case .changed:
+            let scaledOffset = offset * gesture.scale
+            let loc1 = CGPoint(x: center.x - scaledOffset, y: center.y)
+            let loc2 = CGPoint(x: center.x + scaledOffset, y: center.y)
+            Task {
+                _ = await inputObservers.didReceive(PointerEvent(pointer: pointer1, phase: .move, location: loc1, modifiers: []))
+                _ = await inputObservers.didReceive(PointerEvent(pointer: pointer2, phase: .move, location: loc2, modifiers: []))
+            }
+        case .ended:
+            let scaledOffset = offset * gesture.scale
+            let loc1 = CGPoint(x: center.x - scaledOffset, y: center.y)
+            let loc2 = CGPoint(x: center.x + scaledOffset, y: center.y)
+            Task {
+                _ = await inputObservers.didReceive(PointerEvent(pointer: pointer1, phase: .up, location: loc1, modifiers: []))
+                _ = await inputObservers.didReceive(PointerEvent(pointer: pointer2, phase: .up, location: loc2, modifiers: []))
+            }
+        case .cancelled, .failed:
+            Task {
+                _ = await inputObservers.didReceive(PointerEvent(pointer: pointer1, phase: .cancel, location: center, modifiers: []))
+                _ = await inputObservers.didReceive(PointerEvent(pointer: pointer2, phase: .cancel, location: center, modifiers: []))
+            }
+        default:
+            break
         }
-        let event = PinchEvent(phase: phase, center: center, scale: gesture.scale)
-        _ = delegate?.navigator(self, didPinchAt: event)
     }
 
     private func recognizeSwipe(in view: UIView, direction: UISwipeGestureRecognizer.Direction) -> UISwipeGestureRecognizer {

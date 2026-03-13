@@ -368,17 +368,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             }
         )
 
-        setupGestureCallbacks(
-            onDoubleTap: { [weak self] event in
-                guard let self else { return false }
-                return self.delegate?.navigator(self, didDoubleTapAt: event) ?? false
-            },
-            onPinch: { [weak self] event in
-                guard let self else { return false }
-                return self.delegate?.navigator(self, didPinchAt: event) ?? false
-            }
-        )
-
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(didBecomeActive),

@@ -118,25 +118,6 @@ public struct VisualNavigatorPresentation {
     /// present the link yourself
     func navigator(_ navigator: VisualNavigator, shouldNavigateToLink link: Link) -> Bool
 
-    /// Called when the user double-taps on the publication.
-    ///
-    /// Use the ``DoubleTapEvent/target`` to determine what element was
-    /// double-tapped. For example, you can present a fullscreen image viewer
-    /// when the target contains a media element.
-    ///
-    /// - Returns: Whether the event was handled. Returning `true` will
-    ///   prevent other observers from receiving the event.
-    func navigator(_ navigator: VisualNavigator, didDoubleTapAt event: DoubleTapEvent) -> Bool
-
-    /// Called when the user performs a pinch gesture on the publication.
-    ///
-    /// Use this to implement custom zoom behavior. The ``PinchEvent/target``
-    /// provides the element at the center of the pinch gesture, and the
-    /// ``PinchEvent/scale`` gives the relative scale factor.
-    ///
-    /// - Returns: Whether the event was handled. Returning `true` will
-    ///   prevent other observers from receiving the event.
-    func navigator(_ navigator: VisualNavigator, didPinchAt event: PinchEvent) -> Bool
 }
 
 public extension VisualNavigatorDelegate {
@@ -164,11 +145,4 @@ public extension VisualNavigatorDelegate {
         true
     }
 
-    func navigator(_ navigator: VisualNavigator, didDoubleTapAt event: DoubleTapEvent) -> Bool {
-        false
-    }
-
-    func navigator(_ navigator: VisualNavigator, didPinchAt event: PinchEvent) -> Bool {
-        false
-    }
 }
