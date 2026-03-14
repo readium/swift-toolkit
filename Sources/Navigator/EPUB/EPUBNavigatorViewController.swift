@@ -250,6 +250,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         case moved
     }
 
+    /// Queued page turn direction when a swipe occurs during a `.moving` state.
+    private var pendingMove: EPUBSpreadView.Direction? = nil
+
     /// Current navigation state.
     private var state: State = .initializing {
         didSet {
@@ -258,11 +261,24 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             }
 
             // Disable user interaction while transitioning, to avoid UX issues.
+            // `.moving` keeps interaction enabled so swipe gestures can be
+            // captured and queued via pendingMove.
             switch state {
-            case .initializing, .loading, .jumping, .moving:
+            case .initializing, .jumping:
                 paginationView?.isUserInteractionEnabled = false
+            case .moving:
+                break
+            case .loading:
+                paginationView?.isUserInteractionEnabled = false
+                pendingMove = nil
             case .idle:
                 paginationView?.isUserInteractionEnabled = true
+                if let direction = pendingMove {
+                    pendingMove = nil
+                    Task {
+                        await go(to: direction, options: .init(animated: true))
+                    }
+                }
             }
         }
     }
@@ -508,10 +524,16 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     /// Goes to the next or previous page in the given scroll direction.
     private func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions) async -> Bool {
-        guard
-            let paginationView = paginationView,
-            on(.move(direction))
-        else {
+        guard let paginationView = paginationView else {
+            return false
+        }
+
+        guard on(.move(direction)) else {
+            // Queue the swipe if we're mid-transition, so the user doesn't
+            // have to swipe twice at chapter boundaries.
+            if case .moving = state {
+                pendingMove = direction
+            }
             return false
         }
 
@@ -865,6 +887,89 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             }()
             return await go(to: direction, options: options)
         }
+    }
+
+    // MARK: - Quick page turn (for slide mode)
+
+    /// Attempts a non-blocking within-chapter page turn by scrolling one CSS
+    /// column directly. Returns `true` if the turn succeeded (within chapter),
+    /// `false` if at a chapter boundary.
+    ///
+    /// This bypasses the state machine entirely so fast swiping is not throttled
+    /// by the 0.3 s animation sleep in `EPUBReflowableSpreadView.go()`.
+    public func tryQuickPageTurn(forward: Bool) -> Bool {
+        guard
+            let spreadView = paginationView?.currentView as? EPUBSpreadView,
+            !viewModel.scroll
+        else {
+            return false
+        }
+
+        let direction: EPUBSpreadView.Direction = {
+            switch (forward, viewModel.readingProgression) {
+            case (true, .ltr), (false, .rtl): return .right
+            case (false, .ltr), (true, .rtl): return .left
+            }
+        }()
+
+        let sv = spreadView.scrollView
+        let offsetX = sv.bounds.width * (direction == .left ? -1.0 : 1.0)
+        var newOffset = sv.contentOffset
+        newOffset.x += offsetX
+        newOffset.x = round(newOffset.x / offsetX) * offsetX
+
+        guard 0 ..< sv.contentSize.width ~= newOffset.x else {
+            return false
+        }
+
+        sv.setContentOffset(newOffset, animated: true)
+        return true
+    }
+
+    /// Performs a chapter transition without fade animation.
+    /// The new spread's `showSpread()` handles its own reveal.
+    public func quickChapterTransition(forward: Bool) async -> Bool {
+        let direction: EPUBSpreadView.Direction = {
+            switch (forward, viewModel.readingProgression) {
+            case (true, .ltr), (false, .rtl): return .right
+            case (false, .ltr), (true, .rtl): return .left
+            }
+        }()
+
+        guard
+            let paginationView = paginationView,
+            on(.move(direction))
+        else {
+            if case .moving = state {
+                pendingMove = direction
+            }
+            return false
+        }
+
+        let isRTL = (viewModel.readingProgression == .rtl)
+        let delta = isRTL ? -1 : 1
+        let newIndex: Int
+        let location: PageLocation
+
+        switch direction {
+        case .left:
+            newIndex = currentSpreadIndex - delta
+            location = isRTL ? .start : .end
+        case .right:
+            newIndex = currentSpreadIndex + delta
+            location = isRTL ? .end : .start
+        }
+
+        guard 0 ..< paginationView.pageCount ~= newIndex else {
+            on(.moved)
+            return false
+        }
+
+        // Skip fade — go directly to the new chapter.
+        await paginationView.goToIndex(newIndex, location: location, options: .init(animated: false))
+
+        on(.moved)
+        return true
     }
 
     // MARK: - SelectableNavigator
