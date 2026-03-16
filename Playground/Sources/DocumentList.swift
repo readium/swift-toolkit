@@ -13,7 +13,7 @@ struct DocumentList: View {
     @EnvironmentObject var documentRepository: DocumentRepository
 
     @State private var showFileImporter: Bool = false
-    @State private var error: Error?
+    @State private var error: UserError?
 
     var body: some View {
         List(selection: $selectedFile) {
@@ -50,7 +50,7 @@ struct DocumentList: View {
         do {
             try documentRepository.add(file: file)
         } catch {
-            self.error = error
+            self.error = UserError(error)
         }
     }
 
@@ -58,7 +58,7 @@ struct DocumentList: View {
         do {
             try documentRepository.remove(atOffsets: offsets)
         } catch {
-            self.error = error
+            self.error = UserError(error)
         }
     }
 }

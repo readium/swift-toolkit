@@ -42,10 +42,10 @@ import Foundation
             .forEach { file in
                 try remove(file)
             }
-        
+
         watcher.watch()
     }
-    
+
     func remove(_ file: URL) throws {
         try FileManager.default.removeItem(at: file)
     }
