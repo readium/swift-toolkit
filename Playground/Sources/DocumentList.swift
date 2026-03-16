@@ -19,15 +19,9 @@ struct DocumentList: View {
         List(selection: $selectedFile) {
             ForEach(documentRepository.documents, id: \.self) { file in
                 Text(file.lastPathComponent)
-                    .swipeActions(edge: .trailing) {
-                        // We can't use `role: destructive` or `onDelete()`,
-                        // because it will remove the item from the list even
-                        // if the deletion fails.
-                        Button("Delete") {
-                            delete(file)
-                        }
-                        .tint(.red)
-                    }
+            }
+            .onDelete {
+                delete(atOffsets: $0)
             }
         }
         .navigationTitle("Documents")
@@ -60,9 +54,9 @@ struct DocumentList: View {
         }
     }
 
-    private func delete(_ file: URL) {
+    private func delete(atOffsets offsets: IndexSet) {
         do {
-            try documentRepository.remove(file)
+            try documentRepository.remove(atOffsets: offsets)
         } catch {
             self.error = error
         }

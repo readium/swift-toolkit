@@ -36,6 +36,16 @@ import Foundation
         try FileManager.default.copyItem(at: file, to: target)
     }
 
+    func remove(atOffsets offsets: IndexSet) throws {
+        try offsets
+            .map { documents[$0] }
+            .forEach { file in
+                try remove(file)
+            }
+        
+        watcher.watch()
+    }
+    
     func remove(_ file: URL) throws {
         try FileManager.default.removeItem(at: file)
     }

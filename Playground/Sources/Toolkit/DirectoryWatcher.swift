@@ -48,7 +48,7 @@ final class DirectoryWatcher {
     }
 
     /// Broadcasts the list of `files` at `directoryURL` to `onChange`.
-    private func watch() {
+    func watch() {
         do {
             let files = try FileManager.default
                 .contentsOfDirectory(
