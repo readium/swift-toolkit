@@ -27,19 +27,11 @@ struct ContentView: View {
             DocumentList(selectedFile: $selectedFile)
         } detail: {
             if let selectedFile {
-                FileDetailView(file: selectedFile)
+                PublicationView(file: selectedFile)
             } else {
                 Text("No file selected")
                     .font(.title)
             }
         }
-    }
-}
-
-struct FileDetailView: View {
-    let file: URL
-
-    var body: some View {
-        Text(file.path)
     }
 }
