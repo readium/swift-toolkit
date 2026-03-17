@@ -2,7 +2,7 @@ SCRIPTS_PATH := Sources/Navigator/EPUB/Scripts
 
 help:
 	@echo "Usage: make <target>\n\n\
-	  playground\t\tGenerate and open the Playground project\n\
+	  playground\t\tGenerate the Playground project\n\
 	  carthage-project\tGenerate the Carthage Xcode project\n\
 	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
@@ -15,8 +15,8 @@ help:
 .PHONY: playground
 playground:
 	cd Playground; \
-	xcodegen; \
-	open Playground.xcworkspace
+	find . -name ".DS_Store" -delete; \
+	xcodegen --use-cache --cache-path .xcodegen
 
 .PHONY: podspecs
 podspecs:
