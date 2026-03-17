@@ -28,6 +28,8 @@ struct ContentView: View {
         } detail: {
             if let selectedFile {
                 PublicationView(file: selectedFile)
+                    .id(selectedFile)
+
             } else {
                 Text("No file selected")
                     .font(.title)
