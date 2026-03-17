@@ -23,6 +23,7 @@
 		AD55D7FC3E0D42E695C0E2D1 /* ReadiumOPDS in Frameworks */ = {isa = PBXBuildFile; productRef = 41FF3979DE8082AF5E23D69D /* ReadiumOPDS */; };
 		CA6204854C325EE686871A2C /* ReadiumNavigator in Frameworks */ = {isa = PBXBuildFile; productRef = 872E0CB31611AD93E229C627 /* ReadiumNavigator */; };
 		D7459B5AFCF31547E4C67A42 /* Readium.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80FC4C7740713C7BD2E50079 /* Readium.swift */; };
+		DC1CE884B9779EE1A82BB78A /* JSONView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FA44142F64406F3C70101ED /* JSONView.swift */; };
 		E139B5E247CDB07EF68AD2FF /* UserError+Readium.swift in Sources */ = {isa = PBXBuildFile; fileRef = F83B948446CD28B17B62DDB2 /* UserError+Readium.swift */; };
 		E46744897A309BECE20573D9 /* ReadiumShared in Frameworks */ = {isa = PBXBuildFile; productRef = E01892658E366AE70B7B1386 /* ReadiumShared */; };
 /* End PBXBuildFile section */
@@ -36,6 +37,7 @@
 		4AFC47F17C862511C0CBDEB5 /* UserError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserError.swift; sourceTree = "<group>"; };
 		59844953100C517348EF23D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		633A465CD95908D0202FD93A /* DocumentRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentRepository.swift; sourceTree = "<group>"; };
+		7FA44142F64406F3C70101ED /* JSONView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONView.swift; sourceTree = "<group>"; };
 		80FC4C7740713C7BD2E50079 /* Readium.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Readium.swift; sourceTree = "<group>"; };
 		85C8F12729B7E0233CC4D17F /* Logger+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+Ext.swift"; sourceTree = "<group>"; };
 		BDA9169E926B14087F3B1BA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -87,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				3D7CDDB93DB3D613D589669A /* HTMLText.swift */,
+				7FA44142F64406F3C70101ED /* JSONView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -236,6 +239,7 @@
 				4AFA4BDA23B1739BABAE24E6 /* DocumentRepository.swift in Sources */,
 				1C5D3E65580492A27331373F /* FileManager+Ext.swift in Sources */,
 				43A8C19AAD9E70DF17F6FCC3 /* HTMLText.swift in Sources */,
+				DC1CE884B9779EE1A82BB78A /* JSONView.swift in Sources */,
 				8BA23694BFE17B2D667A16CA /* Logger+Ext.swift in Sources */,
 				553F94B4D033BCA44B07AC4E /* PlaygroundApp.swift in Sources */,
 				1DEBAE203D584A87AA98FDB6 /* PublicationMetadataView.swift in Sources */,

@@ -44,9 +44,10 @@ import OSLog
     // MARK: - Load and Watch Documents
 
     private func watchDirectory() {
-        let fileDescriptor = open(directory.path, O_EVTONLY)
+        let path = directory.path
+        let fileDescriptor = open(path, O_EVTONLY)
         guard fileDescriptor != -1 else {
-            logger.fault("Failed to open directory at \(directory.path)")
+            logger.fault("Failed to open directory at \(path)")
             return
         }
 
@@ -66,7 +67,7 @@ import OSLog
 
         loadDocuments()
 
-        logger.notice("Watching directory at \(directory.path)")
+        logger.notice("Watching directory at \(path)")
     }
 
     private func loadDocuments() {

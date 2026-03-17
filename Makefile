@@ -2,6 +2,7 @@ SCRIPTS_PATH := Sources/Navigator/EPUB/Scripts
 
 help:
 	@echo "Usage: make <target>\n\n\
+	  playground\t\tGenerate and open the Playground project\n\
 	  carthage-project\tGenerate the Carthage Xcode project\n\
 	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
@@ -10,6 +11,12 @@ help:
 	  format\t\tFormat sources\n\
 	  update-locales\tUpdate the localization files\n\
 	"
+
+.PHONY: playground
+playground:
+	cd Playground; \
+	xcodegen; \
+	open Playground.xcworkspace
 
 .PHONY: podspecs
 podspecs:

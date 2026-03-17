@@ -24,6 +24,11 @@ struct PublicationView: View {
                         NavigationLink("Metadata") {
                             PublicationMetadataView(publication: publication)
                         }
+
+                        NavigationLink("JSON Manifest") {
+                            JSONView(json: publication.manifest.json)
+                                .navigationTitle("JSON Manifest")
+                        }
                     }
                     .listStyle(.insetGrouped)
                 } else {

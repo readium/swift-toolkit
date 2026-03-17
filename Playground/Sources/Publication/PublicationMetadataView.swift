@@ -51,6 +51,14 @@ struct PublicationMetadataView: View {
                 LabeledContent("Language", value: languages)
             }
 
+            if let pages = metadata.numberOfPages {
+                LabeledContent("Pages", value: "\(pages)")
+            }
+
+            if let duration = metadata.duration?.formatted(.time) {
+                LabeledContent("Duration", value: duration)
+            }
+
             if let subjects = formatSubjects(metadata.subjects) {
                 LabeledContent("Subjects", value: subjects)
             }
@@ -68,17 +76,13 @@ struct PublicationMetadataView: View {
             }
         }
 
-        Section("Details") {
+        Section("Technical") {
             if let identifier = metadata.identifier {
                 LabeledContent("Identifier", value: identifier)
             }
 
-            if let pages = metadata.numberOfPages {
-                LabeledContent("Pages", value: "\(pages)")
-            }
-
-            if let duration = metadata.duration?.formatted(.time) {
-                LabeledContent("Duration", value: duration)
+            ForEach(publication.manifest.metadata.conformsTo, id: \.self) { profile in
+                LabeledContent("Profile", value: profile.uri)
             }
 
             if let layout = metadata.layout {
