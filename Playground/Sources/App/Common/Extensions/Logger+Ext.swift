@@ -12,6 +12,7 @@ extension Logger {
         self.init(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: type))
     }
 
+    /// Logs `error.localizedDescription` at the `.error` level.
     func error(_ error: Error) {
         self.error("\(error.localizedDescription)")
     }

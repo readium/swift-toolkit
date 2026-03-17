@@ -7,12 +7,22 @@
 import ReadiumShared
 import SwiftUI
 
+/// Sidebar list of publication files stored in the app's Documents directory.
+///
+/// Provides a toolbar button to import new files via the system file picker,
+/// handles files opened from other apps via `onOpenURL`, and supports swipe-to-
+/// delete.
 struct DocumentList: View {
+    /// The currently selected file URL, shared with the detail pane.
     @Binding var selectedFile: URL?
 
+    /// Injected store that tracks the Documents directory.
     @EnvironmentObject var documentRepository: DocumentRepository
 
+    /// Controls whether the system file picker sheet is shown.
     @State private var showFileImporter: Bool = false
+
+    /// Holds the last error to be displayed in an alert.
     @State private var error: UserError?
 
     var body: some View {
@@ -46,6 +56,7 @@ struct DocumentList: View {
         .alert(error: $error)
     }
 
+    /// Copies `file` into the Documents/ directory via the repository.
     private func add(file: URL) {
         do {
             try documentRepository.add(file: file)
@@ -54,6 +65,7 @@ struct DocumentList: View {
         }
     }
 
+    /// Deletes the files at `offsets`.
     private func delete(atOffsets offsets: IndexSet) {
         do {
             for file in documentRepository.get(atOffsets: offsets) {

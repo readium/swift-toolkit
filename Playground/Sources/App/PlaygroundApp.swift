@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct PlaygroundApp: App {
+    /// Shared store for publication files in the app's Documents directory.
     @StateObject private var documentRepository = DocumentRepository()
 
     var body: some Scene {
@@ -19,7 +20,10 @@ struct PlaygroundApp: App {
     }
 }
 
+/// Root layout: a two-column split view with the document list in the sidebar
+/// and a `PublicationView` in the detail column.
 struct ContentView: View {
+    /// The file URL selected in the sidebar, or `nil` when nothing is selected.
     @State private var selectedFile: URL?
 
     var body: some View {
@@ -31,8 +35,8 @@ struct ContentView: View {
                     .id(selectedFile)
 
             } else {
-                Text("No file selected")
-                    .font(.title)
+                Text("No Publication Selected")
+                    .font(.title2)
             }
         }
     }

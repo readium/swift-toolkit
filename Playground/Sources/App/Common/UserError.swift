@@ -13,9 +13,13 @@ import SwiftUI
 /// It is similar to a `LocalizedError`, but the message is mandatory, and it
 /// references a lower-level error.
 struct UserError: LocalizedError {
+    /// The human-readable message shown to the user.
     let message: String
+
+    /// The underlying technical error.
     let cause: Error?
 
+    /// Creates a `UserError` from any `Error`.
     init(_ error: Error) {
         if let error = error as? UserErrorConvertible {
             self = error.userError
@@ -24,6 +28,7 @@ struct UserError: LocalizedError {
         }
     }
 
+    /// Creates a `UserError` with an explicit message and an optional cause.
     init(
         _ message: String,
         cause: Error? = nil
@@ -32,13 +37,7 @@ struct UserError: LocalizedError {
         self.cause = cause
     }
 
-    init(
-        cause: Error? = nil,
-        message: () -> String
-    ) {
-        self.init(message(), cause: cause)
-    }
-
+    /// Satisfies `LocalizedError` — routes `localizedDescription` to `message`.
     var errorDescription: String? {
         message
     }
@@ -89,6 +88,10 @@ extension View {
     }
 }
 
+/// ViewModifier that presents a system alert whenever `error` is non-nil.
+///
+/// Clears the binding when the user dismisses the alert so it can be triggered
+/// again by subsequent errors.
 private struct UserErrorAlertModifier: ViewModifier {
     @Binding var error: UserError?
 

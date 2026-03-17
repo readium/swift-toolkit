@@ -7,10 +7,18 @@
 import ReadiumShared
 import SwiftUI
 
+/// A scrollable view that displays a JSON dictionary with syntax highlighting.
+///
+/// Serialization and colorization run on a detached background task to keep the UI
+/// responsive for large manifests. A `ProgressView` is shown until the result is ready.
 struct JSONView: View {
+    /// The JSON dictionary to render.
     var json: [String: Any]
 
+    /// The colorized attributed text; `nil` while the background task is running.
     @State private var attributedText: AttributedString?
+
+    /// Holds any serialization error to display in an alert.
     @State private var error: UserError?
 
     var body: some View {
@@ -38,6 +46,17 @@ struct JSONView: View {
         }
     }
 
+    /// Serializes `json` to a pretty-printed string and applies token-level syntax highlighting.
+    ///
+    /// Uses a greedy left-to-right regex pass with a `claimed` bitmap to ensure each
+    /// character is colored by at most one pattern (keys take precedence over string values).
+    ///
+    /// Color scheme:
+    /// - **Keys** (string before `:`): green + bold
+    /// - **String values**: blue
+    /// - **Numbers**: orange
+    /// - **Booleans**: purple
+    /// - **null**: grey
     @concurrent private func colorizeJSON(_ json: [String: Any]) async throws -> AttributedString {
         let data = try JSONSerialization.data(
             withJSONObject: json,

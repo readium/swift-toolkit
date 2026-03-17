@@ -6,10 +6,15 @@
 
 import SwiftUI
 
+/// A SwiftUI `Text` view that renders an HTML string as rich attributed text.
 struct HTMLText: View {
+    /// The raw HTML string to render.
     private var text: String
-    @State private var attributedText: AttributedString?
 
+    /// The parsed `AttributedString`; `nil` until the async parse completes.
+    @State private var attributedText: AttributedString??
+
+    /// Creates an `HTMLText` view for the given HTML string.
     init(_ text: String) {
         self.text = text
     }
@@ -17,9 +22,14 @@ struct HTMLText: View {
     var body: some View {
         Group {
             if let attributedText {
-                Text(attributedText)
+                if let attributedText {
+                    Text(attributedText)
+                } else {
+                    // Show the raw string as a fallback.
+                    Text(text)
+                }
             } else {
-                Text(text)
+                // Loading...
             }
         }
         .task(id: text) {
@@ -27,6 +37,11 @@ struct HTMLText: View {
         }
     }
 
+    /// Converts an HTML string into an `AttributedString` on a background
+    /// thread.
+    ///
+    /// Returns `nil` if parsing fails (e.g. malformed HTML), in which case the
+    /// raw text will be used as fallback.
     private func parseHTML(_ html: String) async -> AttributedString? {
         await Task.detached {
             try? AttributedString(
