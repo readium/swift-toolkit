@@ -121,6 +121,18 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Readium Web Publication Manifest</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.json</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Readium Audiobook</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>

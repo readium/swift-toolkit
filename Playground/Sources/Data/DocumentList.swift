@@ -56,7 +56,14 @@ struct DocumentList: View {
 
     private func delete(atOffsets offsets: IndexSet) {
         do {
-            try documentRepository.remove(atOffsets: offsets)
+            for file in documentRepository.get(atOffsets: offsets) {
+                try documentRepository.remove(file)
+
+                if selectedFile == file {
+                    selectedFile = nil
+                }
+            }
+
         } catch {
             self.error = UserError(error)
         }
