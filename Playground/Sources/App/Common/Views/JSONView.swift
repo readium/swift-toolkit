@@ -25,7 +25,6 @@ struct JSONView: View {
         ScrollView {
             if let attributedText {
                 Text(attributedText)
-                    .font(.body.monospaced())
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
@@ -70,20 +69,7 @@ struct JSONView: View {
         let attributed = NSMutableAttributedString(string: jsonString)
         var claimed = [Bool](repeating: false, count: length)
 
-        let boldFont = UIFont.monospacedSystemFont(
-            ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize,
-            weight: .bold
-        )
-
-        let patterns: [(NSRegularExpression, UIColor, bold: Bool)] = [
-            (try! NSRegularExpression(pattern: #""(?:[^"\\]|\\.)*"(?=\s*:)"#), .systemGreen, true),
-            (try! NSRegularExpression(pattern: #""(?:[^"\\]|\\.)*""#), .systemBlue, false),
-            (try! NSRegularExpression(pattern: #"-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?"#), .systemOrange, false),
-            (try! NSRegularExpression(pattern: #"\b(?:true|false)\b"#), .systemPurple, false),
-            (try! NSRegularExpression(pattern: #"\bnull\b"#), .systemGray, false),
-        ]
-
-        for (regex, color, bold) in patterns {
+        for (regex, color) in await Self.patterns {
             for match in regex.matches(in: jsonString, range: fullRange) {
                 let range = match.range
                 let end = range.location + range.length
@@ -92,12 +78,17 @@ struct JSONView: View {
                     claimed[i] = true
                 }
                 attributed.addAttribute(.foregroundColor, value: color, range: range)
-                if bold {
-                    attributed.addAttribute(.font, value: boldFont, range: range)
-                }
             }
         }
 
         return try AttributedString(attributed, including: \.uiKit)
     }
+
+    static let patterns: [(NSRegularExpression, UIColor)] = [
+        (try! NSRegularExpression(pattern: #""(?:[^"\\]|\\.)*"(?=\s*:)"#), .systemGreen),
+        (try! NSRegularExpression(pattern: #""(?:[^"\\]|\\.)*""#), .systemBlue),
+        (try! NSRegularExpression(pattern: #"-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?"#), .systemOrange),
+        (try! NSRegularExpression(pattern: #"\b(?:true|false)\b"#), .systemPurple),
+        (try! NSRegularExpression(pattern: #"\bnull\b"#), .systemGray),
+    ]
 }

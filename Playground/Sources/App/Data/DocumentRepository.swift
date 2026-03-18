@@ -26,6 +26,10 @@ import OSLog
         watchDirectory()
     }
 
+    deinit {
+        dispatchSource?.cancel()
+    }
+
     /// Returns the files at the given index offsets in the current `documents`
     /// list.
     func get(atOffsets offsets: IndexSet) -> [URL] {
@@ -77,6 +81,10 @@ import OSLog
             Task { @MainActor in
                 self?.loadDocuments()
             }
+        }
+
+        dispatchSource?.setCancelHandler {
+            close(fileDescriptor)
         }
 
         dispatchSource?.resume()

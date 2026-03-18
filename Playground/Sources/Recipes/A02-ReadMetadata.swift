@@ -136,7 +136,7 @@ func readMetadata(of publication: Publication) -> PublicationMetadata {
         published: m.published,
         modified: m.modified,
         language: m.language,
-        subjects: m.subjects.map(\.name),
+        subjects: subjects(m.subjects),
         numberOfPages: m.numberOfPages,
         duration: m.duration,
         description: m.description,

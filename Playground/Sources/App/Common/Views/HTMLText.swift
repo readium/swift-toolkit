@@ -11,8 +11,13 @@ struct HTMLText: View {
     /// The raw HTML string to render.
     private var text: String
 
-    /// The parsed `AttributedString`; `nil` until the async parse completes.
-    @State private var attributedText: AttributedString??
+    private enum ParsingResult {
+        case parsing
+        case parsed(AttributedString)
+        case failure(Error)
+    }
+
+    @State private var state: ParsingResult = .parsing
 
     /// Creates an `HTMLText` view for the given HTML string.
     init(_ text: String) {
@@ -21,19 +26,18 @@ struct HTMLText: View {
 
     var body: some View {
         Group {
-            if let attributedText {
-                if let attributedText {
-                    Text(attributedText)
-                } else {
-                    // Show the raw string as a fallback.
-                    Text(text)
-                }
-            } else {
-                // Loading...
+            switch state {
+            case .parsing:
+                ProgressView()
+            case let .parsed(text):
+                Text(text)
+            case .failure:
+                // Show the raw string as a fallback.
+                Text(text)
             }
         }
         .task(id: text) {
-            attributedText = await parseHTML(text)
+            state = await parseHTML(text)
         }
     }
 
@@ -42,19 +46,23 @@ struct HTMLText: View {
     ///
     /// Returns `nil` if parsing fails (e.g. malformed HTML), in which case the
     /// raw text will be used as fallback.
-    private func parseHTML(_ html: String) async -> AttributedString? {
+    private func parseHTML(_ html: String) async -> ParsingResult {
         await Task.detached {
-            try? AttributedString(
-                NSAttributedString(
-                    data: Data(html.utf8),
-                    options: [
-                        .documentType: NSAttributedString.DocumentType.html,
-                        .characterEncoding: String.Encoding.utf8.rawValue,
-                    ],
-                    documentAttributes: nil
-                ),
-                including: \.swiftUI
-            )
+            do {
+                return try .parsed(AttributedString(
+                    NSAttributedString(
+                        data: Data(html.utf8),
+                        options: [
+                            .documentType: NSAttributedString.DocumentType.html,
+                            .characterEncoding: String.Encoding.utf8.rawValue,
+                        ],
+                        documentAttributes: nil
+                    ),
+                    including: \.swiftUI
+                ))
+            } catch {
+                return .failure(error)
+            }
         }.value
     }
 }
