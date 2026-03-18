@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+#### Shared
+
+* Fixed parsing of URI templates.
+    * Fixed `URITemplate` not recognizing `{&...}` (form-style query continuation) expressions.
+    * Fixed `URITemplate` expanding a form-style expression (`{?...}` or `{&...}`) to a bare `?` or `&` when none of the listed variables are provided. It now correctly expands to an empty string.
+
 #### Streamer
 
 * Fixed parsing of EPUB contributors.
