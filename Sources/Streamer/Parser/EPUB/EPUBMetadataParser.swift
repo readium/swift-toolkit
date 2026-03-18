@@ -414,7 +414,7 @@ final class EPUBMetadataParser: Loggable {
         let role: String? = element.attr("id")
             .map { id in metas["role", refining: id].map(\.content) }?.first
             ?? element.attr("role") // falls back to EPUB 2 role attribute
-        
+
         let isKnownRole = role.map { knownRoles.contains($0) } ?? false
 
         let contributor = Contributor(
