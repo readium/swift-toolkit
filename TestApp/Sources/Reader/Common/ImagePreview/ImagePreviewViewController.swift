@@ -92,6 +92,9 @@ extension ImagePreviewViewController: ImagePreviewTransitioning {
         if isPresenting {
             imageView.frame = sourceFrame
             view.backgroundColor = .clear
+        } else {
+            scrollView.zoomScale = scrollView.minimumZoomScale
+            scrollView.contentInset = .zero
         }
     }
 

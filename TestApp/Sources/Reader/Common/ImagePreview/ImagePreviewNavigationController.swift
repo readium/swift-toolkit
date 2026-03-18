@@ -9,7 +9,7 @@ import UIKit
 /// A navigation controller wrapper for image preview that owns the custom
 /// transition and forwards `ImagePreviewTransitioning` to its top view
 /// controller.
-final class ImagePreviewNavigationController: UINavigationController, ImagePreviewTransitioning {
+final class ImagePreviewNavigationController: UINavigationController {
     override init(rootViewController: UIViewController) {
         super.init(rootViewController: rootViewController)
 
@@ -22,8 +22,11 @@ final class ImagePreviewNavigationController: UINavigationController, ImagePrevi
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
 
-    // MARK: - ImagePreviewTransitioning
+// MARK: - ImagePreviewTransitioning
+
+extension ImagePreviewNavigationController: ImagePreviewTransitioning {
 
     func prepareForTransition(isPresenting: Bool) {
         (topViewController as? ImagePreviewTransitioning)?
