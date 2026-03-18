@@ -12,6 +12,15 @@ All notable changes to this project will be documented in this file. Take a look
     * `Recipes/` contains self-contained and explained code you can reuse in your own application.
     * `App/` folder contains the scaffolding (file management, navigation, error handling) needed to run the Playground.
 
+### Fixed
+
+#### Streamer
+
+* Fixed parsing of EPUB contributors.
+    * Fixed `media:narrator` contributors not being recognized as narrators.
+    * Fixed `dc:creator` elements with a known MARC relator role (e.g. `opf:role="trl"`) being incorrectly routed to the `author` collection instead of the role's collection.
+    * A known role on a contributor no longer leaks into the `roles` field of the `Contributor` object when it is already expressed by the contributor's collection (e.g. `authors`, `publishers`).
+
 
 ## [3.8.0]
 

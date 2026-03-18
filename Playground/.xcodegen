@@ -106,9 +106,7 @@ Sources/Assets.xcassets/AppIcon.appiconset/Contents.json
 Sources/Assets.xcassets/AppIcon.appiconset/icon_1024x1024.png
 Sources/Assets.xcassets/AppIcon.appiconset/readiumlogo_2048-83.5@2x.png
 Sources/Assets.xcassets/Contents.json
-Sources/Data
 Sources/Info.plist
-Sources/Publication
 Sources/Recipes
 Sources/Recipes/A01-OpenPublication.swift
 Sources/Recipes/A02-ReadMetadata.swift"

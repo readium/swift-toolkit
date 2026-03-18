@@ -1,83 +1,84 @@
 <?xml version="1.0"?>
-<!-- DOCTYPE package 
-  PUBLIC "+//ISBN 0-9673008-1-9//DTD OEB 1.2 Package//EN"
-  "http://openebook.org/dtds/oeb-1.2/oebpkg12.dtd" -->
-<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0" >
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"
       xmlns:dc-alias="http://purl.org/dc/elements/1.1/"
       xmlns:dcterms="http://purl.org/dc/terms/"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:opf="http://www.idpf.org/2007/opf">
-    <dc:title>Alice's Adventures in Wonderland</dc:title> 
+    <dc:title>Contributors Test</dc:title>
 
-    <!-- dc:creator is by default an Author -->
+    <!-- ── EPUB 2.x: dc:creator with opf:role attribute ────────────────────────── -->
+
+    <!-- No role: defaults to author -->
     <dc:creator>Author 1</dc:creator>
-    <!-- dc:publisher is by default a Publisher -->
-    <dc:publisher>Publisher 1</dc:publisher>
-    <!-- dc:contributor is by default a Contributor -->
+    <!-- Known role on dc:creator overrides the author default -->
+    <dc:creator opf:role="pbl">Creator As Publisher</dc:creator>
+    <!-- Unknown role on dc:creator still falls back to author; role is preserved on the object -->
+    <dc:creator opf:role="xyz">Creator Unknown Role</dc:creator>
+
+    <!-- ── EPUB 2.x: dc:contributor with opf:role attribute ─────────────────────── -->
+
+    <!-- No role: defaults to contributor -->
     <dc:contributor>Contributor 1</dc:contributor>
+    <!-- Each known MARC relator code routes the contributor to the correct bucket -->
+    <dc:contributor opf:role="aut">Author 2</dc:contributor>
+    <dc:contributor opf:role="pbl">Publisher 2</dc:contributor>
+    <dc:contributor opf:role="trl">Translator 1</dc:contributor>
+    <dc:contributor opf:role="edt">Editor 1</dc:contributor>
+    <dc:contributor opf:role="art">Artist 1</dc:contributor>
+    <!-- opf:file-as is carried through to sortAs -->
+    <dc:contributor opf:role="ill" opf:file-as="Illustrator, The First">Illustrator 1</dc:contributor>
+    <dc:contributor opf:role="clr">Colorist 1</dc:contributor>
+    <dc:contributor opf:role="nrt">Narrator 1</dc:contributor>
+    <!-- Unknown role: stays in contributor bucket; role is preserved on the object -->
+    <dc:contributor opf:role="unknown">Unknown 1</dc:contributor>
 
-    <dc:contributor id="author-2">Author 2</dc:contributor>
-    <meta refines="#author-2" property="role">aut</meta>
+    <!-- ── EPUB 2.x: dc:publisher ──────────────────────────────────────────────── -->
 
-    <dc:contributor id="translator">Translator</dc:contributor> 
-    <meta refines="#translator" property="role">trl</meta>
+    <!-- dc:publisher is always routed to publisher, regardless of any role -->
+    <dc:publisher>Publisher 1</dc:publisher>
 
-    <dc:contributor id="editor">Editor</dc:contributor> 
-    <meta refines="#editor" property="role">edt</meta>
+    <!-- ── EPUB 3.x: dc:* elements with meta refines ───────────────────────────── -->
 
-    <dc:contributor id="artist">Artist</dc:contributor> 
-    <meta refines="#artist" property="role">art</meta>
+    <!-- No refine: same defaults as EPUB 2.x -->
+    <dc:creator id="creator-a">Author A</dc:creator>
+    <dc:contributor id="contributor-a">Contributor A</dc:contributor>
+    <!-- Known role via refine routes to the correct bucket -->
+    <dc:contributor id="author-b">Author B</dc:contributor>
+    <meta refines="#author-b" property="role">aut</meta>
+    <!-- Known role refine on dc:creator overrides the author default -->
+    <dc:creator id="creator-b">Creator B As Publisher</dc:creator>
+    <meta refines="#creator-b" property="role">pbl</meta>
+    <!-- dc:publisher with a conflicting role refine is still always a publisher -->
+    <dc:publisher id="publisher-a">Publisher A</dc:publisher>
+    <meta refines="#publisher-a" property="role">aut</meta>
+    <!-- Unknown role via refine: stays in contributor bucket; role is preserved on the object -->
+    <dc:contributor id="unknown-a">Unknown A</dc:contributor>
+    <meta refines="#unknown-a" property="role">unknown</meta>
+    <!-- Only the first role refine is used when multiple are present -->
+    <dc:contributor id="multi-role">Author Multi-Role</dc:contributor>
+    <meta refines="#multi-role" property="role">aut</meta>
+    <meta refines="#multi-role" property="role">pbl</meta>
 
-    <dc:contributor id="illustrator-1">Illustrator 1</dc:contributor> 
-    <meta refines="#illustrator-1" property="role">ill</meta>
+    <!-- ── EPUB 3.x: dcterms: meta elements ────────────────────────────────────── -->
 
-    <dc:contributor id="colorist">Colorist</dc:contributor> 
-    <meta refines="#colorist" property="role">clr</meta>
-
-    <dc:contributor id="narrator">Narrator</dc:contributor> 
-    <meta refines="#narrator" property="role">nrt</meta>
-
-    <dc:contributor id="publisher">Publisher 2</dc:contributor> 
-    <meta refines="#publisher" property="role">pbl</meta>
-
-    <!-- sortAs and role as attributes -->
-    <dc:contributor opf:file-as="sorting" opf:role="ill">Illustrator 2</dc:contributor> 
-
-    <dc:contributor id="unknown">Unknown</dc:contributor> 
-    <meta refines="#unknown" property="role">unknown</meta>
-
-    <!-- Only the first role is used -->
-    <dc:contributor id="cameleon-1">Cameleon 1</dc:contributor>
-    <meta refines="#cameleon-1" property="role">aut</meta>
-    <meta refines="#cameleon-1" property="role">pbl</meta>
-
-    <!-- Without namespace prefix -->
-    <creator xmlns="http://purl.org/dc/elements/1.1/">Author 3</creator>
-
-    <!-- With a "non-standard" namespace prefix -->
-    <dc-alias:creator>Author 4</dc-alias:creator>
-
-
-    <!-- EPUB 3 contributors -->
-
-    <!-- dcterms:creator is by default an Author -->
-    <meta property="dcterms:creator">Author A</meta>
-    <!-- dcterms:publisher is by default a Publisher -->
-    <meta property="dcterms:publisher">Publisher A</meta>
-    <!-- dcterms:contributor is by default a Contributor -->
-    <meta property="dcterms:contributor">Contributor A</meta>
-
-    <meta id="publisher—b" property="dcterms:publisher">Publisher B</meta>
+    <!-- Default routing mirrors dc:* behaviour -->
+    <meta property="dcterms:creator">Author C</meta>
+    <meta property="dcterms:contributor">Contributor B</meta>
+    <!-- dcterms:publisher with a conflicting role refine is still always a publisher -->
+    <meta id="publisher-b" property="dcterms:publisher">Publisher B</meta>
     <meta refines="#publisher-b" property="role">aut</meta>
 
-    <!-- sortAs and role as attributes -->
-    <meta property="dcterms:contributor" opf:file-as="sorting" opf:role="ill">Illustrator A</meta> 
+    <!-- ── EPUB 3.x: media:narrator ────────────────────────────────────────────── -->
 
-    <!-- Only the first role is used -->
-    <meta id="cameleon-a" property="dcterms:contributor">Cameleon A</meta>
-    <meta refines="#cameleon-a" property="role">aut</meta>
-    <meta refines="#cameleon-a" property="role">pbl</meta>
+    <!-- media:narrator is always routed to narrator -->
+    <meta property="media:narrator">Narrator 2</meta>
+
+    <!-- ── Namespace variants ──────────────────────────────────────────────────── -->
+
+    <!-- dc:creator without a namespace prefix is recognised as a creator -->
+    <creator xmlns="http://purl.org/dc/elements/1.1/">Author NS-Default</creator>
+    <!-- dc:creator with a non-standard namespace prefix is recognised as a creator -->
+    <dc-alias:creator>Author NS-Alias</dc-alias:creator>
 
   </metadata>
   <manifest>
