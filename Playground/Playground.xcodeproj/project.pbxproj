@@ -10,7 +10,6 @@
 		07FE4C9817951411354484C0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 59844953100C517348EF23D0 /* Assets.xcassets */; };
 		1BCA1AEC8E94F11FFEF3A0C8 /* ReadiumAdapterGCDWebServer in Frameworks */ = {isa = PBXBuildFile; productRef = 00010B91AF7FECD80C7CBF85 /* ReadiumAdapterGCDWebServer */; };
 		2EE593DC2038FDF776324278 /* FileManager+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5AE9B43C414342BBB5CDDEF /* FileManager+Ext.swift */; };
-		33CF7D9AEDC3B0B1E41F3CB8 /* TimeFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB4A0096B988F3EA0237222C /* TimeFormatStyle.swift */; };
 		3FA679B6B90C8BD7B5A7DF58 /* JSONView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB6D3C4C19C2038573D2B90 /* JSONView.swift */; };
 		52805E26E8DF05E511042B97 /* UserError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9F2917BE7D720CB89EBC9C /* UserError.swift */; };
 		52AF5B85A8E5285B966E7CB5 /* DocumentList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D8B2B0C8575F4648E445A44 /* DocumentList.swift */; };
@@ -44,7 +43,6 @@
 		B75178DB65AF67E034F3C4A5 /* A01-OpenPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "A01-OpenPublication.swift"; sourceTree = "<group>"; };
 		B77C0B458C816697C5C670E9 /* PlaygroundApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaygroundApp.swift; sourceTree = "<group>"; };
 		BDA9169E926B14087F3B1BA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		CB4A0096B988F3EA0237222C /* TimeFormatStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFormatStyle.swift; sourceTree = "<group>"; };
 		CCB6D3C4C19C2038573D2B90 /* JSONView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONView.swift; sourceTree = "<group>"; };
 		D608867E2F9CC0B751114DE9 /* A02-ReadMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "A02-ReadMetadata.swift"; sourceTree = "<group>"; };
 		E40DD68F934F5F0D2981ACA1 /* Playground.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Playground.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -73,14 +71,6 @@
 				CCB6D3C4C19C2038573D2B90 /* JSONView.swift */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		1677A71648FB45A0D15EDE6A /* Toolkit */ = {
-			isa = PBXGroup;
-			children = (
-				CB4A0096B988F3EA0237222C /* TimeFormatStyle.swift */,
-			);
-			path = Toolkit;
 			sourceTree = "<group>";
 		};
 		3F42D23B0ABB28C66695E5A5 /* Recipes */ = {
@@ -163,7 +153,6 @@
 				3A9F2917BE7D720CB89EBC9C /* UserError.swift */,
 				A7E5C61917B53108BA01753E /* UserError+Readium.swift */,
 				64AF3FB125E0EA956222B31B /* Extensions */,
-				1677A71648FB45A0D15EDE6A /* Toolkit */,
 				125CAF6B72840AFE3F05FC95 /* Views */,
 			);
 			path = Common;
@@ -265,7 +254,6 @@
 				B19623280F8C457F051B3110 /* PlaygroundApp.swift in Sources */,
 				6C9BEF9E1487605B673E48AA /* PublicationMetadataView.swift in Sources */,
 				7EBCAA279457CB27B0A3F136 /* PublicationView.swift in Sources */,
-				33CF7D9AEDC3B0B1E41F3CB8 /* TimeFormatStyle.swift in Sources */,
 				D2EF387DADE049BCBDBEE738 /* UserError+Readium.swift in Sources */,
 				52805E26E8DF05E511042B97 /* UserError.swift in Sources */,
 			);

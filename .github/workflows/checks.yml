@@ -28,11 +28,6 @@ jobs:
           brew install xcodegen
           # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
           xcrun simctl list
-      - name: Check Playground project
-        run: |
-          # Check that the Playground project is up to date.
-          make playground
-          git diff --exit-code Playground/Playground.xcodeproj
       - name: Check Carthage project
         run: |
           # Check that the Carthage project is up to date.

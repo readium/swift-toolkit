@@ -16,8 +16,16 @@
     "Playground" : {
       "build" : {
         "targets" : {
-          "Playground" : "none"
+          "Playground" : ""
         }
+      },
+      "test" : {
+        "testPlans" : [
+          {
+            "defaultPlan" : true,
+            "path" : "Playground.xctestplan"
+          }
+        ]
       }
     }
   },
@@ -68,8 +76,6 @@ Sources/App/Common
 Sources/App/Common/Extensions
 Sources/App/Common/Extensions/FileManager+Ext.swift
 Sources/App/Common/Extensions/Logger+Ext.swift
-Sources/App/Common/Toolkit
-Sources/App/Common/Toolkit/TimeFormatStyle.swift
 Sources/App/Common/UserError.swift
 Sources/App/Common/UserError+Readium.swift
 Sources/App/Common/Views

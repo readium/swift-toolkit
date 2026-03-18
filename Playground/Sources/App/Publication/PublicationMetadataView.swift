@@ -58,7 +58,7 @@ struct PublicationMetadataView: View {
                 LabeledContent("Pages", value: "\(pages)")
             }
 
-            if let duration = metadata.duration?.formatted(.time) {
+            if let duration = metadata.duration?.formatted() {
                 LabeledContent("Duration", value: duration)
             }
 

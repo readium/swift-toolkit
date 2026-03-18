@@ -38,7 +38,7 @@ struct PublicationMetadata {
     let numberOfPages: Int?
 
     /// Duration in seconds in an audio publication.
-    let duration: Double?
+    let duration: Duration?
 
     /// A description for the publication.
     /// Warning: It may contain HTML markup.
@@ -124,7 +124,7 @@ func readMetadata(of publication: Publication) -> PublicationMetadata {
             .map {
                 var name = $0.name
                 if let position = $0.position {
-                    name += " \(position.formatted(.number))"
+                    name += " (\(position.formatted(.number)))"
                 }
                 return name
             }
@@ -138,7 +138,7 @@ func readMetadata(of publication: Publication) -> PublicationMetadata {
         language: m.language,
         subjects: subjects(m.subjects),
         numberOfPages: m.numberOfPages,
-        duration: m.duration,
+        duration: m.duration.map { Duration.seconds($0) },
         description: m.description,
         series: collections(m.belongsToSeries),
         collections: collections(m.belongsToCollections),

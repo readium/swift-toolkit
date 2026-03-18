@@ -8,11 +8,11 @@ schemes:
   Playground:
     build:
       targets:
-        Playground: none
-    # test:
-    #   testPlans:
-    #     - path: Playground.xctestplan
-    #       defaultPlan: true
+        Playground:
+    test:
+      testPlans:
+        - path: Playground.xctestplan
+          defaultPlan: true
 targets:
   Playground:
     type: application

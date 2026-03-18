@@ -21,7 +21,7 @@ struct OpenedPublication {
 }
 
 /// Opens a publication file.
-func openPublication(at url: AbsoluteURL, mediaType: MediaType? = nil) async throws -> OpenedPublication {
+func openPublication(at url: AbsoluteURL) async throws -> OpenedPublication {
     // MARK: 1. Setup dependencies
 
     // An HTTP client is required even for local files because some publications
