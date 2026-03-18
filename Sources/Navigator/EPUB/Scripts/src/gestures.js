@@ -115,12 +115,12 @@ function extractTargetElementInfo(element) {
     return null;
   }
 
-  let mediaElement = findNearestMediaElement(element);
-  if (!mediaElement) {
+  let imageElement = findNearestImageElement(element);
+  if (!imageElement) {
     return null;
   }
 
-  let rect = mediaElement.getBoundingClientRect();
+  let rect = imageElement.getBoundingClientRect();
   let adjustedOrigin = adjustPointToViewport({ x: rect.left, y: rect.top });
   let adjustedEnd = adjustPointToViewport({
     x: rect.left + rect.width,
@@ -128,21 +128,21 @@ function extractTargetElementInfo(element) {
   });
 
   return {
-    tag: mediaElement.tagName.toLowerCase(),
-    src: mediaElement.src || mediaElement.getAttribute("href") || null,
+    tag: imageElement.tagName.toLowerCase(),
+    src: imageElement.src || imageElement.getAttribute("href") || null,
     frame: {
       x: adjustedOrigin.x,
       y: adjustedOrigin.y,
       width: adjustedEnd.x - adjustedOrigin.x,
       height: adjustedEnd.y - adjustedOrigin.y,
     },
-    outerHTML: mediaElement.outerHTML,
+    alt: imageElement.getAttribute("alt") || null,
   };
 }
 
 /// Walks up the DOM tree from the given element to find the nearest image
 /// element (img, svg).
-function findNearestMediaElement(element) {
+function findNearestImageElement(element) {
   const imageTags = ["img", "svg"];
   let current = element;
   while (current && current !== document.documentElement) {

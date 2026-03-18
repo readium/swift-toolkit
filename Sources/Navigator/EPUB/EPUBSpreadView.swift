@@ -251,8 +251,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             info = PointerEvent.TargetElementInfo(
                 tag: info.tag,
                 src: relativeSrc,
-                frame: convertRectToNavigatorSpace(info.frame),
-                outerHTML: info.outerHTML
+                alt: info.alt,
+                frame: convertRectToNavigatorSpace(info.frame)
             )
             event.targetElementInfo = info
         }
@@ -750,8 +750,8 @@ extension PointerEvent.TargetElementInfo {
         self.init(
             tag: tag,
             src: dict["src"] as? String,
-            frame: CGRect(x: x, y: y, width: width, height: height),
-            outerHTML: dict["outerHTML"] as? String
+            alt: dict["alt"] as? String,
+            frame: CGRect(x: x, y: y, width: width, height: height)
         )
     }
 }

@@ -35,17 +35,17 @@ public struct PointerEvent: Equatable {
         /// Source URL of the media element, if available.
         public let src: String?
 
+        /// Alt text of the element, if available.
+        public let alt: String?
+
         /// Frame of the element relative to the navigator's view.
         public let frame: CGRect
 
-        /// Outer HTML of the element.
-        public let outerHTML: String?
-
-        public init(tag: String, src: String?, frame: CGRect, outerHTML: String? = nil) {
+        public init(tag: String, src: String?, alt: String? = nil, frame: CGRect) {
             self.tag = tag
             self.src = src
+            self.alt = alt
             self.frame = frame
-            self.outerHTML = outerHTML
         }
     }
 

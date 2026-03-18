@@ -228,18 +228,10 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         // the presenting view controller's coordinate space for the animation.
         let navigatorView = (navigator as? VisualNavigator)?.view ?? view
         let sourceFrame = view.convert(info.frame, from: navigatorView)
-        // Extract alt text from the outer HTML if available.
-        let altText: String? = info.outerHTML.flatMap { html in
-            guard let range = html.range(of: "(?<=alt=\")[^\"]*", options: .regularExpression) else {
-                return nil
-            }
-            let text = String(html[range])
-            return text.isEmpty ? nil : text
-        }
         let viewer = ImagePreviewViewController(
             link: link,
             publication: publication,
-            altText: altText,
+            altText: info.alt,
             sourceFrame: sourceFrame,
             backgroundColor: navigator.view.backgroundColor ?? .black
         )
