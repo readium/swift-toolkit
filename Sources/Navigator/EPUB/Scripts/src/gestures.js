@@ -140,13 +140,13 @@ function extractTargetElementInfo(element) {
   };
 }
 
-/// Walks up the DOM tree from the given element to find the nearest media
-/// element (img, svg, video, audio, canvas).
+/// Walks up the DOM tree from the given element to find the nearest image
+/// element (img, svg).
 function findNearestMediaElement(element) {
-  const mediaTags = ["IMG", "SVG", "VIDEO", "AUDIO", "CANVAS"];
+  const imageTags = ["img", "svg"];
   let current = element;
   while (current && current !== document.documentElement) {
-    if (mediaTags.includes(current.tagName.toUpperCase())) {
+    if (imageTags.includes(current.tagName.toLowerCase())) {
       return current;
     }
     current = current.parentElement;

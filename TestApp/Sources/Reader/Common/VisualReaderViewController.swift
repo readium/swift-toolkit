@@ -91,7 +91,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         )
         directionalNavigationAdapter?.bind(to: navigator)
 
-        // Present an image zoom viewer when tapping a media element.
+        // Present an image zoom viewer when tapping an image element.
         navigator.addObserver(.tap { [weak self] event in
             guard
                 let self,
