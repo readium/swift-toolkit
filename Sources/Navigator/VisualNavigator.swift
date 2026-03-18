@@ -117,7 +117,6 @@ public struct VisualNavigatorPresentation {
     /// Return `true` to navigate to the link, or `false` if you intend to
     /// present the link yourself
     func navigator(_ navigator: VisualNavigator, shouldNavigateToLink link: Link) -> Bool
-
 }
 
 public extension VisualNavigatorDelegate {
@@ -144,5 +143,4 @@ public extension VisualNavigatorDelegate {
     func navigator(_ navigator: VisualNavigator, shouldNavigateToLink link: Link) -> Bool {
         true
     }
-
 }

@@ -100,7 +100,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             else {
                 return false
             }
-            self.presentImageZoom(elementInfo: info)
+            self.presentImagePreview(elementInfo: info)
             return true
         })
 
@@ -221,7 +221,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     // MARK: - VisualNavigatorDelegate
 
-    private func presentImageZoom(elementInfo info: PointerEvent.TargetElementInfo) {
+    private func presentImagePreview(elementInfo info: PointerEvent.TargetElementInfo) {
         guard let src = info.src else { return }
         let link = Link(href: src)
         // Convert the element frame from the navigator's coordinate space to
@@ -236,14 +236,14 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             let text = String(html[range])
             return text.isEmpty ? nil : text
         }
-        let viewer = ImageZoomViewController(
+        let viewer = ImagePreviewViewController(
             link: link,
-            sourceFrame: sourceFrame,
             publication: publication,
             altText: altText,
+            sourceFrame: sourceFrame,
             backgroundColor: navigator.view.backgroundColor ?? .black
         )
-        present(viewer, animated: false)
+        present(viewer, animated: true)
     }
 
     override func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {

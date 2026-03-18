@@ -118,7 +118,6 @@ open class CBZNavigatorViewController:
                 self.delegate?.navigator(self, didReleaseKey: event)
             }
         )
-
     }
 
     private func didLoadPositions(_ positions: [Locator]?) {
