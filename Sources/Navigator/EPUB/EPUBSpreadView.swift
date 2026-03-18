@@ -240,21 +240,16 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         event.location = convertPointToNavigatorSpace(event.location)
 
-        if var info = PointerEvent.TargetElementInfo(json: json["targetElementInfo"]) {
+        if var targetElement = PointerEvent.TargetElement(json: json["targetElement"]) {
             // The src from JS is a fully-resolved readium:// URL.
             // Relativize it against the publication base URL to get a
             // publication-relative href usable with Publication.get().
-            let relativeSrc: String? = info.src.flatMap { src in
+            targetElement.src = targetElement.src.flatMap { src in
                 guard let srcURL = URL(string: src) else { return src }
                 return viewModel.publicationBaseURL.relativize(srcURL)?.string ?? src
             }
-            info = PointerEvent.TargetElementInfo(
-                tag: info.tag,
-                src: relativeSrc,
-                alt: info.alt,
-                frame: convertRectToNavigatorSpace(info.frame)
-            )
-            event.targetElementInfo = info
+            targetElement.frame = convertRectToNavigatorSpace(targetElement.frame)
+            event.targetElement = targetElement
         }
 
         delegate?.spreadView(self, didReceive: event)
@@ -732,8 +727,8 @@ private extension PointerEvent {
     }
 }
 
-/// Produced by gestures.js `extractTargetElementInfo`
-extension PointerEvent.TargetElementInfo {
+/// Produced by gestures.js `extractTargetElement`
+extension PointerEvent.TargetElement {
     init?(json: Any?) {
         guard
             let dict = json as? [String: Any],

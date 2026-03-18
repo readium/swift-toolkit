@@ -27,7 +27,6 @@ final class ImagePreviewNavigationController: UINavigationController {
 // MARK: - ImagePreviewTransitioning
 
 extension ImagePreviewNavigationController: ImagePreviewTransitioning {
-
     func prepareForTransition(isPresenting: Bool) {
         (topViewController as? ImagePreviewTransitioning)?
             .prepareForTransition(isPresenting: isPresenting)

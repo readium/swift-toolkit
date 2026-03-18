@@ -24,22 +24,22 @@ public struct PointerEvent: Equatable {
     ///
     /// This is typically provided by the EPUB navigator's JavaScript bridge
     /// when the pointer is over a media element (img, svg, video, etc.).
-    public var targetElementInfo: TargetElementInfo?
+    public var targetElement: TargetElement?
 
     /// Metadata about the DOM element under a pointer event, extracted from
     /// the JavaScript layer.
-    public struct TargetElementInfo: Equatable {
+    public struct TargetElement: Equatable {
         /// Tag name of the element (e.g. "img", "svg").
-        public let tag: String
+        public var tag: String
 
         /// Source URL of the media element, if available.
-        public let src: String?
+        public var src: String?
 
         /// Alt text of the element, if available.
-        public let alt: String?
+        public var alt: String?
 
         /// Frame of the element relative to the navigator's view.
-        public let frame: CGRect
+        public var frame: CGRect
 
         public init(tag: String, src: String?, alt: String? = nil, frame: CGRect) {
             self.tag = tag

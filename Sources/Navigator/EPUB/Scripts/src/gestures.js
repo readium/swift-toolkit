@@ -82,9 +82,8 @@ function onPointerEvent(phase, event) {
     x: point.x,
     y: point.y,
     buttons: event.buttons,
-    targetElement: event.target.outerHTML,
     interactiveElement: findNearestInteractiveElement(event.target),
-    targetElementInfo: extractTargetElementInfo(event.target),
+    targetElement: extractTargetElement(event.target),
     option: event.altKey,
     control: event.ctrlKey,
     shift: event.shiftKey,
@@ -109,8 +108,8 @@ function onPointerEvent(phase, event) {
 ///
 /// Returns an object with the element's bounding rectangle, tag name, and
 /// media source URL if available. This information is used on the Swift side
-/// to build a `TargetElementInfo`.
-function extractTargetElementInfo(element) {
+/// to build a `TargetElement`.
+function extractTargetElement(element) {
   if (!element || !element.getBoundingClientRect) {
     return null;
   }

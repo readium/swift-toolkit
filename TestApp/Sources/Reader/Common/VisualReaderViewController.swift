@@ -95,7 +95,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         navigator.addObserver(.tap { [weak self] event in
             guard
                 let self,
-                let info = event.targetElementInfo,
+                let info = event.targetElement,
                 info.src != nil
             else {
                 return false
@@ -221,7 +221,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     // MARK: - VisualNavigatorDelegate
 
-    private func presentImagePreview(elementInfo info: PointerEvent.TargetElementInfo) {
+    private func presentImagePreview(elementInfo info: PointerEvent.TargetElement) {
         guard let src = info.src else { return }
         let link = Link(href: src)
         // Convert the element frame from the navigator's coordinate space to
