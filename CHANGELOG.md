@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Playground
+
+* New `Playground` iOS app – a minimal SwiftUI sample demonstrating how to use the Readium Swift Toolkit and to test its API.
+    * `Recipes/` contains self-contained and explained code you can reuse in your own application.
+    * `App/` folder contains the scaffolding (file management, navigation, error handling) needed to run the Playground.
+
 
 ## [3.8.0]
 
