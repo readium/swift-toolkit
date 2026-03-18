@@ -243,7 +243,10 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             sourceFrame: sourceFrame,
             backgroundColor: navigator.view.backgroundColor ?? .black
         )
-        present(viewer, animated: true)
+        let navController = ImagePreviewNavigationController(
+            rootViewController: viewer
+        )
+        present(navController, animated: true)
     }
 
     override func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
