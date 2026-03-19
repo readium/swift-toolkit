@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file. Take a look
     * Fixed `URITemplate` not recognizing `{&...}` (form-style query continuation) expressions.
     * Fixed `URITemplate` expanding a form-style expression (`{?...}` or `{&...}`) to a bare `?` or `&` when none of the listed variables are provided. It now correctly expands to an empty string.
 
+#### Navigator
+
+* [#737](https://github.com/readium/swift-toolkit/issues/737) Fixed screen flashes when turning pages without animation in the EPUB navigator.
+
 #### Streamer
 
 * Fixed parsing of EPUB contributors.
