@@ -201,6 +201,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             // Waits for the scroll animation to finish.
             await withCheckedContinuation { continuation in
                 let request = ScrollAnimationRequest(continuation)
+                pendingScrollAnimation?.resume()
                 pendingScrollAnimation = request
 
                 // Safety net in case `scrollDidEnd` never fires. The identity
