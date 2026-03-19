@@ -180,19 +180,22 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }()
 
         let offsetX = scrollView.bounds.width * factor
-        var newOffset = scrollView.contentOffset
-        newOffset.x += offsetX
-        let rounded = round(newOffset.x / offsetX) * offsetX
-        newOffset.x = rounded
-        guard 0 ..< scrollView.contentSize.width ~= newOffset.x else {
+        let targetX = round((scrollView.contentOffset.x + offsetX) / offsetX) * offsetX
+        guard 0 ..< scrollView.contentSize.width ~= targetX else {
             return false
         }
 
         // We use JavaScript instead of `UIScrollView.setContentOffset()` to
         // prevent glitches when turning pages without animation.
         // See https://github.com/readium/swift-toolkit/issues/737#issuecomment-4090386881
+        //
+        // `scrollBy` is used instead of `scrollTo` because RTL content uses
+        // negative `window.scrollX` values in WKWebView, whereas UIKit's
+        // `contentOffset.x` is always non-negative. A relative displacement
+        // (`offsetX`) is coordinate-system agnostic and works for both LTR and
+        // RTL.
         let behavior = options.animated ? "smooth" : "instant"
-        await evaluateScript("window.scrollTo({ left: \(newOffset.x), behavior: '\(behavior)' });")
+        await evaluateScript("window.scrollBy({ left: \(offsetX), behavior: '\(behavior)' });")
 
         if options.animated {
             // Waits for the scroll animation to finish.
@@ -204,7 +207,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
                 // check on `request` ensures a stale timeout from a previous
                 // request does not resume a newer one.
                 Task { @MainActor in
-                    try? await Task.sleep(seconds: 0.5)
+                    try? await Task.sleep(seconds: 0.8)
                     scrollDidEnd(for: request)
                 }
             }
