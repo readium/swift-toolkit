@@ -46,7 +46,7 @@ final class ZIPFoundationArchiveFactory {
             let bufferSize = 6.MB
             var resource: Resource = resource.buffered(size: bufferSize)
 
-            if let optionalLength = await resource.estimatedLength().getOrNil(), let length = optionalLength {
+            if let length = try? await resource.estimatedLength().flatMap({ $0 }) {
                 // The End of Central Directory Record, located at the end of
                 // the ZIP file, will be read each time we create a new
                 // `Archive` object. To optimize requests, we cache the end of
@@ -107,7 +107,7 @@ private actor ResourceDataSource: ReadiumZIPFoundation.DataSource {
     let isWritable: Bool = false
 
     func length() async throws -> UInt64 {
-        guard let length = try await resource.estimatedLength().get() else {
+        guard let length = try await resource.estimatedLength() else {
             throw ResourceDataSourceError.unknownContentLength
         }
         return length
@@ -140,7 +140,7 @@ private actor ResourceDataSource: ReadiumZIPFoundation.DataSource {
                 return Data()
             }
             let range = _position ..< (_position + UInt64(length))
-            let data = try await resource.read(range: range).get()
+            let data = try await resource.read(range: range)
             _position += UInt64(data.count)
             return data
         }

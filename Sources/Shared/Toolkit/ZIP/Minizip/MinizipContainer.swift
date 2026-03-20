@@ -14,12 +14,12 @@ final class MinizipContainer: Container, Loggable {
         case reading(ReadError)
     }
 
-    static func make(file: FileURL) async -> Result<MinizipContainer, MakeError> {
+    static func make(file: FileURL) async throws(MakeError) -> MinizipContainer {
         guard await (try? file.exists()) ?? false else {
-            return .failure(.reading(.access(.fileSystem(.fileNotFound(nil)))))
+            throw .reading(.access(.fileSystem(.fileNotFound(nil))))
         }
         guard let zipFile = MinizipFile(url: file.url) else {
-            return .failure(.notAZIP)
+            throw .notAZIP
         }
         defer { try? zipFile.close() }
 
@@ -39,10 +39,10 @@ final class MinizipContainer: Container, Loggable {
                 }
             } while try zipFile.goToNextEntry()
 
-            return .success(Self(file: file, entries: entries))
+            return Self(file: file, entries: entries)
 
         } catch {
-            return .failure(.reading(.wrap(error) ?? .decoding(error)))
+            throw .reading(.wrap(error) ?? .decoding(error))
         }
     }
 
@@ -94,7 +94,7 @@ private actor MinizipResource: Resource, Loggable {
 
     func doClose() async {
         do {
-            try _zipFile?.getOrNil()?.close()
+            try (try? _zipFile?.get())?.close()
             _zipFile = .failure(.unsupportedOperation(DebugError("The Minizip resource is already closed")))
         } catch {
             log(.error, error)
@@ -103,36 +103,33 @@ private actor MinizipResource: Resource, Loggable {
 
     let sourceURL: AbsoluteURL? = nil
 
-    func estimatedLength() async -> ReadResult<UInt64?> {
-        .success(metadata.length)
+    func estimatedLength() async throws(ReadError) -> UInt64? {
+        metadata.length
     }
 
-    func properties() async -> ReadResult<ResourceProperties> {
-        .success(ResourceProperties {
+    func properties() async throws(ReadError) -> ResourceProperties {
+        ResourceProperties {
             $0.filename = RelativeURL(path: entryPath)?.lastPathSegment
             $0.archive = ArchiveProperties(
                 entryLength: metadata.compressedLength ?? metadata.length,
                 isEntryCompressed: metadata.compressedLength != nil
             )
-        })
-    }
-
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        let range = range ?? 0 ..< metadata.length
-
-        return await zipFile().flatMap { zipFile in
-            do {
-                try zipFile.openEntry(at: entryPath, offset: range.lowerBound)
-                try consume(zipFile.readFromCurrentOffset(length: UInt64(range.count)))
-                return .success(())
-            } catch {
-                return .failure(.wrap(error) ?? .decoding(error))
-            }
         }
     }
 
-    private var _zipFile: ReadResult<MinizipFile>?
-    private func zipFile() async -> ReadResult<MinizipFile> {
+    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
+        let range = range ?? 0 ..< metadata.length
+        let zipFile = try await zipFile()
+        do {
+            try zipFile.openEntry(at: entryPath, offset: range.lowerBound)
+            try consume(zipFile.readFromCurrentOffset(length: UInt64(range.count)))
+        } catch {
+            throw .wrap(error) ?? .decoding(error)
+        }
+    }
+
+    private var _zipFile: Result<MinizipFile, ReadError>?
+    private func zipFile() async throws(ReadError) -> MinizipFile {
         if _zipFile == nil {
             if let zipFile = MinizipFile(url: file.url) {
                 _zipFile = .success(zipFile)
@@ -140,7 +137,10 @@ private actor MinizipResource: Resource, Loggable {
                 _zipFile = .failure(.decoding("Failed to open the ZIP file with Minizip"))
             }
         }
-        return _zipFile!
+        switch _zipFile! {
+        case let .success(file): return file
+        case let .failure(error): throw error
+        }
     }
 }
 

@@ -69,7 +69,7 @@ public final class PDFKitPDFDocumentFactory: PDFDocumentFactory, Sendable {
         // Unfortunately, PDFKit doesn't support streams, so we need to load the full document in
         // memory. If this is an issue for you, use `CPDFDocumentFactory` instead.
         guard
-            let data = try? await resource.read().get(),
+            let data = try? await resource.read(),
             let document = PDFKit.PDFDocument(data: data)
         else {
             throw PDFDocumentError.openFailed

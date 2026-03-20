@@ -260,10 +260,9 @@ public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable 
                 let semaphore = DispatchSemaphore(value: 0)
                 let holder = DataHolder()
                 Task {
-                    switch await context.resource.read(range: context.offset ..< end) {
-                    case let .success(result):
-                        holder.data = result
-                    case let .failure(error):
+                    do {
+                        holder.data = try await context.resource.read(range: context.offset ..< end)
+                    } catch {
                         CGPDFDocumentFactory.log(.error, error)
                     }
                     semaphore.signal()
@@ -337,7 +336,7 @@ public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable 
 
         init(resource: Resource) async {
             self.resource = resource
-            length = await (resource.estimatedLength().getOrNil() ?? 0) ?? 0
+            length = await (try? resource.estimatedLength()) ?? 0
         }
     }
 

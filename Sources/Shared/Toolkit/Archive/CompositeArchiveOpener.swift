@@ -15,39 +15,37 @@ public class CompositeArchiveOpener: ArchiveOpener {
         self.archiveOpeners = archiveOpeners
     }
 
-    public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
+    public func open(resource: any Resource, format: Format) async throws(ArchiveOpenError) -> ContainerAsset {
         for opener in archiveOpeners {
-            switch await opener.open(resource: resource, format: format) {
-            case let .success(asset):
-                return .success(asset)
-            case let .failure(error):
+            do {
+                return try await opener.open(resource: resource, format: format)
+            } catch {
                 switch error {
                 case .formatNotSupported:
                     continue
                 case .reading:
-                    return .failure(error)
+                    throw error
                 }
             }
         }
 
-        return .failure(.formatNotSupported(format))
+        throw .formatNotSupported(format)
     }
 
-    public func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
+    public func sniffOpen(resource: any Resource) async throws(ArchiveSniffOpenError) -> ContainerAsset {
         for opener in archiveOpeners {
-            switch await opener.sniffOpen(resource: resource) {
-            case let .success(asset):
-                return .success(asset)
-            case let .failure(error):
+            do {
+                return try await opener.sniffOpen(resource: resource)
+            } catch {
                 switch error {
                 case .formatNotRecognized:
                     continue
                 case .reading:
-                    return .failure(error)
+                    throw error
                 }
             }
         }
 
-        return .failure(.formatNotRecognized)
+        throw .formatNotRecognized
     }
 }

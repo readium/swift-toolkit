@@ -14,7 +14,7 @@ final class ZIPFoundationContainer: Container, Loggable {
         case reading(ReadError)
     }
 
-    static func make(resource: Resource) async -> Result<ZIPFoundationContainer, MakeError> {
+    static func make(resource: Resource) async throws(MakeError) -> ZIPFoundationContainer {
         do {
             let archiveFactory = await ZIPFoundationArchiveFactory(resource: resource)
             let archive = try await archiveFactory.make()
@@ -32,10 +32,10 @@ final class ZIPFoundationContainer: Container, Loggable {
                 entries[url] = entry
             }
 
-            return .success(Self(archiveFactory: archiveFactory, entries: entries))
+            return Self(archiveFactory: archiveFactory, entries: entries)
 
         } catch {
-            return .failure(.reading(.wrap(error) ?? .decoding(error)))
+            throw .reading(.wrap(error) ?? .decoding(error))
         }
     }
 
@@ -90,43 +90,39 @@ private actor ZIPFoundationResource: Resource, Loggable {
 
     let sourceURL: AbsoluteURL? = nil
 
-    func estimatedLength() async -> ReadResult<UInt64?> {
-        .success(entry.uncompressedSize)
+    func estimatedLength() async throws(ReadError) -> UInt64? {
+        entry.uncompressedSize
     }
 
-    func properties() async -> ReadResult<ResourceProperties> {
-        .success(ResourceProperties {
+    func properties() async throws(ReadError) -> ResourceProperties {
+        ResourceProperties {
             $0.filename = RelativeURL(path: entry.path)?.lastPathSegment
             $0.archive = ArchiveProperties(
                 entryLength: entry.isCompressed ? entry.compressedSize : entry.uncompressedSize,
                 isEntryCompressed: entry.isCompressed
             )
-        })
-    }
-
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        if range != nil {}
-
-        return await archive().asyncFlatMap { archive in
-            do {
-                if let range = range {
-                    try await archive.extractRange(range, of: entry) { data in
-                        consume(data)
-                    }
-                } else {
-                    _ = try await archive.extract(entry, skipCRC32: true) { data in
-                        consume(data)
-                    }
-                }
-                return .success(())
-            } catch {
-                return .failure(.wrap(error) ?? .decoding(error))
-            }
         }
     }
 
-    private var _archive: ReadResult<ReadiumZIPFoundation.Archive>?
-    private func archive() async -> ReadResult<ReadiumZIPFoundation.Archive> {
+    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
+        let archive = try await archive()
+        do {
+            if let range = range {
+                try await archive.extractRange(range, of: entry) { data in
+                    consume(data)
+                }
+            } else {
+                _ = try await archive.extract(entry, skipCRC32: true) { data in
+                    consume(data)
+                }
+            }
+        } catch {
+            throw .wrap(error) ?? .decoding(error)
+        }
+    }
+
+    private var _archive: Result<ReadiumZIPFoundation.Archive, ReadError>?
+    private func archive() async throws(ReadError) -> ReadiumZIPFoundation.Archive {
         if _archive == nil {
             do {
                 _archive = try await .success(archiveFactory.make())
@@ -134,6 +130,9 @@ private actor ZIPFoundationResource: Resource, Loggable {
                 _archive = .failure(.wrap(error) ?? .decoding(error))
             }
         }
-        return _archive!
+        switch _archive! {
+        case let .success(archive): return archive
+        case let .failure(error): throw error
+        }
     }
 }

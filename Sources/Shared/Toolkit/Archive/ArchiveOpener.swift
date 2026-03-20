@@ -10,11 +10,11 @@ import Foundation
 public protocol ArchiveOpener {
     /// Creates a new ``ContainerAsset`` to access the entries of an archive
     /// with a known `format`.
-    func open(resource: Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError>
+    func open(resource: Resource, format: Format) async throws(ArchiveOpenError) -> ContainerAsset
 
     /// Creates a new ``ContainerAsset`` to access the entries of an archive
     /// after sniffing its format.
-    func sniffOpen(resource: Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError>
+    func sniffOpen(resource: Resource) async throws(ArchiveSniffOpenError) -> ContainerAsset
 }
 
 public enum ArchiveOpenError: Error, Sendable {

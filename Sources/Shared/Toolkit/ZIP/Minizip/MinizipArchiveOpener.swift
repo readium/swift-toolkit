@@ -15,49 +15,51 @@ import Foundation
 public final class MinizipArchiveOpener: ArchiveOpener, Sendable {
     public init() {}
 
-    public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
+    public func open(resource: any Resource, format: Format) async throws(ArchiveOpenError) -> ContainerAsset {
         guard
             format.conformsTo(.zip),
             let file = resource.sourceURL?.fileURL
         else {
-            return .failure(.formatNotSupported(format))
+            throw .formatNotSupported(format)
         }
 
-        return await MinizipContainer.make(file: file)
-            .mapError {
-                switch $0 {
-                case .notAZIP:
-                    return .formatNotSupported(format)
-                case let .reading(error):
-                    return .reading(error)
-                }
+        let container: MinizipContainer
+        do {
+            container = try await MinizipContainer.make(file: file)
+        } catch {
+            switch error {
+            case .notAZIP:
+                throw .formatNotSupported(format)
+            case let .reading(readError):
+                throw .reading(readError)
             }
-            .map { ContainerAsset(container: $0, format: format) }
+        }
+        return ContainerAsset(container: container, format: format)
     }
 
-    public func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
+    public func sniffOpen(resource: any Resource) async throws(ArchiveSniffOpenError) -> ContainerAsset {
         guard let file = resource.sourceURL?.fileURL else {
-            return .failure(.formatNotRecognized)
+            throw .formatNotRecognized
         }
 
-        return await MinizipContainer.make(file: file)
-            .mapError {
-                switch $0 {
-                case .notAZIP:
-                    return .formatNotRecognized
-                case let .reading(error):
-                    return .reading(error)
-                }
+        let container: MinizipContainer
+        do {
+            container = try await MinizipContainer.make(file: file)
+        } catch {
+            switch error {
+            case .notAZIP:
+                throw .formatNotRecognized
+            case let .reading(readError):
+                throw .reading(readError)
             }
-            .map {
-                ContainerAsset(
-                    container: $0,
-                    format: Format(
-                        specifications: .zip,
-                        mediaType: .zip,
-                        fileExtension: "zip"
-                    )
-                )
-            }
+        }
+        return ContainerAsset(
+            container: container,
+            format: Format(
+                specifications: .zip,
+                mediaType: .zip,
+                fileExtension: "zip"
+            )
+        )
     }
 }
