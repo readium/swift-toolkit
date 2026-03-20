@@ -22,7 +22,7 @@ public protocol ContentProtection {
         credentials: String?,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError>
+    ) async throws(ContentProtectionOpenError) -> ContentProtectionAsset
 }
 
 public enum ContentProtectionOpenError: Error, Sendable {

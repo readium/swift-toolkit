@@ -10,18 +10,18 @@ public typealias TableOfContentsServiceFactory = (PublicationServiceContext) -> 
 
 /// Returns or computes a table of contents for the publication.
 public protocol TableOfContentsService: PublicationService {
-    func tableOfContents() async -> ReadResult<[Link]>
+    func tableOfContents() async throws(ReadError) -> [Link]
 }
 
 // MARK: Publication Helpers
 
 public extension Publication {
     /// Returns the table of contents for this publication.
-    func tableOfContents() async -> ReadResult<[Link]> {
+    func tableOfContents() async throws(ReadError) -> [Link] {
         if let service = findService(TableOfContentsService.self) {
-            return await service.tableOfContents()
+            return try await service.tableOfContents()
         } else {
-            return .success(manifest.tableOfContents)
+            return manifest.tableOfContents
         }
     }
 }

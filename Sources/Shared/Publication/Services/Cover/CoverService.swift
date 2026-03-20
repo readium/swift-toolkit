@@ -29,16 +29,16 @@ public protocol CoverService: PublicationService {
     ///
     /// If the cover is not a bitmap format (e.g. SVG), it will be rendered at its intrinsic size,
     /// or scaled down to a reasonable maximum to avoid excessive memory usage.
-    func cover() async -> ReadResult<UIImage?>
+    func cover() async throws(ReadError) -> UIImage?
 
     /// Returns the publication cover as a bitmap, scaled down to fit within `maxSize` while
     /// preserving the aspect ratio. The cover might be cached in memory for next calls.
-    func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?>
+    func coverFitting(maxSize: CGSize) async throws(ReadError) -> UIImage?
 }
 
 public extension CoverService {
-    func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?> {
-        await cover().map { $0?.scaleToFit(maxSize: maxSize) }
+    func coverFitting(maxSize: CGSize) async throws(ReadError) -> UIImage? {
+        try await cover()?.scaleToFit(maxSize: maxSize)
     }
 }
 
@@ -46,19 +46,19 @@ public extension CoverService {
 
 public extension Publication {
     /// Returns the publication cover as a bitmap at its maximum size.
-    func cover() async -> ReadResult<UIImage?> {
+    func cover() async throws(ReadError) -> UIImage? {
         guard let service = findService(CoverService.self) else {
-            return .success(nil)
+            return nil
         }
-        return await service.cover()
+        return try await service.cover()
     }
 
     /// Returns the publication cover as a bitmap, scaled down to fit the given `maxSize`.
-    func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?> {
+    func coverFitting(maxSize: CGSize) async throws(ReadError) -> UIImage? {
         guard let service = findService(CoverService.self) else {
-            return .success(nil)
+            return nil
         }
-        return await service.coverFitting(maxSize: maxSize)
+        return try await service.coverFitting(maxSize: maxSize)
     }
 }
 

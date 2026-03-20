@@ -19,8 +19,8 @@ public final class PerResourcePositionsService: PositionsService {
         self.fallbackMediaType = fallbackMediaType
     }
 
-    public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        .success(positions)
+    public func positionsByReadingOrder() async throws(ReadError) -> [[Locator]] {
+        positions
     }
 
     private lazy var pageCount: Int = readingOrder.count

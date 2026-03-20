@@ -23,36 +23,36 @@ public final class ResourceCoverService: CoverService {
         self.context = context
     }
 
-    public func cover() async -> ReadResult<UIImage?> {
-        await loadCover(maxSize: nil)
+    public func cover() async throws(ReadError) -> UIImage? {
+        try await loadCover(maxSize: nil)
     }
 
-    public func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?> {
-        await loadCover(maxSize: maxSize)
+    public func coverFitting(maxSize: CGSize) async throws(ReadError) -> UIImage? {
+        try await loadCover(maxSize: maxSize)
     }
 
-    private func loadCover(maxSize: CGSize?) async -> ReadResult<UIImage?> {
+    private func loadCover(maxSize: CGSize?) async -> UIImage? {
         // Try resources with explicit `cover` relation
         for link in context.manifest.linksWithRel(.cover) {
             if let image = await loadImage(from: link, maxSize: maxSize) {
-                return .success(image)
+                return image
             }
         }
 
         // Fallback: first reading order bitmap/SVG or alternate
         if let firstLink = context.manifest.readingOrder.first {
             if let image = await loadImage(from: firstLink, maxSize: maxSize) {
-                return .success(image)
+                return image
             }
 
             for alternate in firstLink.alternates {
                 if let image = await loadImage(from: alternate, maxSize: maxSize) {
-                    return .success(image)
+                    return image
                 }
             }
         }
 
-        return .success(nil)
+        return nil
     }
 
     private func loadImage(from link: Link, maxSize: CGSize?) async -> UIImage? {
@@ -60,7 +60,7 @@ public final class ResourceCoverService: CoverService {
             let mediaType = link.mediaType,
             mediaType.isBitmap || mediaType.matches(.svg),
             let resource = context.container[link.url()],
-            let data = try? await resource.read().get()
+            let data = try? await resource.read()
         else {
             return nil
         }

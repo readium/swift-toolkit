@@ -11,15 +11,15 @@ public typealias PositionsServiceFactory = (PublicationServiceContext) -> Positi
 /// Provides a list of discrete locations in the publication, no matter what the original format is.
 public protocol PositionsService: PublicationService {
     /// List of all the positions in the publication, grouped by the resource reading order index.
-    func positionsByReadingOrder() async -> ReadResult<[[Locator]]>
+    func positionsByReadingOrder() async throws(ReadError) -> [[Locator]]
 
     /// List of all the positions in the publication.
-    func positions() async -> ReadResult<[Locator]>
+    func positions() async throws(ReadError) -> [Locator]
 }
 
 public extension PositionsService {
-    func positions() async -> ReadResult<[Locator]> {
-        await positionsByReadingOrder().map { $0.flatMap { $0 } }
+    func positions() async throws(ReadError) -> [Locator] {
+        try await positionsByReadingOrder().flatMap { $0 }
     }
 }
 
@@ -44,36 +44,34 @@ public extension PositionsService {
 }
 
 private class PositionsResource: Resource {
-    private let positions: () async -> ReadResult<[Locator]>
+    private let positions: () async throws(ReadError) -> [Locator]
 
-    init(positions: @escaping () async -> ReadResult<[Locator]>) {
+    init(positions: @escaping () async throws(ReadError) -> [Locator]) {
         self.positions = positions
     }
 
     let sourceURL: AbsoluteURL? = nil
 
-    func estimatedLength() async -> ReadResult<UInt64?> {
-        .success(nil)
+    func estimatedLength() async throws(ReadError) -> UInt64? {
+        nil
     }
 
-    func properties() async -> ReadResult<ResourceProperties> {
-        .success(ResourceProperties())
+    func properties() async throws(ReadError) -> ResourceProperties {
+        ResourceProperties()
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        await positions().flatMap { positions in
-            let response: [String: JSONValue] = .init([
-                "total": positions.count,
-                "positions": positions,
-            ])
+    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
+        let positions = try await positions()
+        let response: [String: JSONValue] = .init([
+            "total": positions.count,
+            "positions": positions,
+        ])
 
-            guard let jsonResponse = try? response.jsonData() else {
-                return .failure(.decoding(JSONError.serializing(PositionsService.self)))
-            }
-
-            consume(jsonResponse)
-            return .success(())
+        guard let jsonResponse = try? response.jsonData() else {
+            throw ReadError.decoding(JSONError.serializing(PositionsService.self))
         }
+
+        consume(jsonResponse)
     }
 }
 
@@ -81,34 +79,35 @@ private class PositionsResource: Resource {
 
 public extension Publication {
     /// List of all the positions in the publication, grouped by the resource reading order index.
-    func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
+    func positionsByReadingOrder() async throws(ReadError) -> [[Locator]] {
         if let service = findService(PositionsService.self) {
-            return await service.positionsByReadingOrder()
+            return try await service.positionsByReadingOrder()
         } else {
-            return await positionsFromManifest().map { positions in
-                let positionsByResource = Dictionary(grouping: positions, by: { $0.href })
-                return readingOrder.map { positionsByResource[$0.url()] ?? [] }
-            }
+            let positions = try await positionsFromManifest()
+            let positionsByResource = Dictionary(grouping: positions, by: { $0.href })
+            return readingOrder.map { positionsByResource[$0.url()] ?? [] }
         }
     }
 
     /// List of all the positions in the publication.
-    func positions() async -> ReadResult<[Locator]> {
+    func positions() async throws(ReadError) -> [Locator] {
         if let service = findService(PositionsService.self) {
-            return await service.positions()
+            return try await service.positions()
         } else {
-            return await positionsFromManifest()
+            return try await positionsFromManifest()
         }
     }
 
     /// Fetches the positions from a web service declared in the manifest, if there's one.
-    private func positionsFromManifest() async -> ReadResult<[Locator]> {
-        await links.firstWithMediaType(.readiumPositions)
-            .flatMap { get($0) }?
-            .read()
-            .asJSONObjectValue()
-            .map { json -> [Locator] in json["positions"]?.decode() ?? [] }
-            ?? .success([])
+    private func positionsFromManifest() async throws(ReadError) -> [Locator] {
+        guard let link = links.firstWithMediaType(.readiumPositions),
+              let resource = get(link)
+        else {
+            return []
+        }
+        let data = try await resource.read()
+        let json = try data.asJSONObjectValue()
+        return json["positions"]?.decode() ?? []
     }
 }
 

@@ -21,7 +21,7 @@ public protocol GuidedNavigationService: PublicationService {
 
     /// Returns the pre-authored ``GuidedNavigationDocument`` for the given
     /// reading order resource, or `nil` if none exists for this resource.
-    func guidedNavigationDocument(for href: any URLConvertible) async -> ReadResult<GuidedNavigationDocument?>
+    func guidedNavigationDocument(for href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument?
 }
 
 // MARK: Publication Helpers
@@ -41,11 +41,11 @@ public extension Publication {
 
     /// Returns the pre-authored guided navigation document for the given
     /// reading order resource, or `nil` if none exists.
-    func guidedNavigationDocument(for href: any URLConvertible) async -> ReadResult<GuidedNavigationDocument?> {
+    func guidedNavigationDocument(for href: any URLConvertible) async throws(ReadError) -> GuidedNavigationDocument? {
         guard let service = findService(GuidedNavigationService.self) else {
-            return .success(nil)
+            return nil
         }
-        return await service.guidedNavigationDocument(for: href)
+        return try await service.guidedNavigationDocument(for: href)
     }
 }
 

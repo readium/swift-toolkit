@@ -71,7 +71,7 @@ open class DefaultLocatorService: LocatorService, Loggable {
         }
 
         guard
-            let positions = await publication()?.positionsByReadingOrder().getOrNil(),
+            let positions = try? await publication()?.positionsByReadingOrder(),
             let (readingOrderIndex, position) = findClosest(to: totalProgression, in: positions)
         else {
             return nil

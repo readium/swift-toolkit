@@ -13,15 +13,15 @@ public final class GeneratedCoverService: CoverService {
         case generationFailed
     }
 
-    private var _cover: ReadResult<UIImage>?
-    private let makeCover: () async -> ReadResult<UIImage>
+    private var _cover: Result<UIImage, ReadError>?
+    private let makeCover: () async throws(ReadError) -> UIImage
 
-    public init(makeCover: @escaping () async -> ReadResult<UIImage>) {
+    public init(makeCover: @escaping () async throws(ReadError) -> UIImage) {
         self.makeCover = makeCover
     }
 
     public convenience init(cover: UIImage) {
-        self.init(makeCover: { .success(cover) })
+        self.init(makeCover: { cover })
     }
 
     private let coverLink = Link(
@@ -30,15 +30,19 @@ public final class GeneratedCoverService: CoverService {
         rel: .cover
     )
 
-    private func cachedCover() async -> ReadResult<UIImage> {
+    private func cachedCover() async throws(ReadError) -> UIImage {
         if _cover == nil {
-            _cover = await makeCover()
+            do {
+                _cover = try await .success(makeCover())
+            } catch {
+                _cover = .failure(error)
+            }
         }
-        return _cover!
+        return try _cover!.get()
     }
 
-    public func cover() async -> ReadResult<UIImage?> {
-        await cachedCover().map { $0 as UIImage? }
+    public func cover() async throws(ReadError) -> UIImage? {
+        try await cachedCover() as UIImage?
     }
 
     public var links: [Link] {
@@ -53,7 +57,7 @@ public final class GeneratedCoverService: CoverService {
         return CoverResource(cover: cachedCover)
     }
 
-    public static func makeFactory(makeCover: @escaping () async -> ReadResult<UIImage>) -> (PublicationServiceContext) -> GeneratedCoverService? {
+    public static func makeFactory(makeCover: @escaping () async throws(ReadError) -> UIImage) -> (PublicationServiceContext) -> GeneratedCoverService? {
         { _ in GeneratedCoverService(makeCover: makeCover) }
     }
 
@@ -62,30 +66,28 @@ public final class GeneratedCoverService: CoverService {
     }
 
     private class CoverResource: Resource {
-        private let cover: () async -> ReadResult<UIImage>
+        private let cover: () async throws(ReadError) -> UIImage
 
-        init(cover: @escaping () async -> ReadResult<UIImage>) {
+        init(cover: @escaping () async throws(ReadError) -> UIImage) {
             self.cover = cover
         }
 
         let sourceURL: AbsoluteURL? = nil
 
-        func estimatedLength() async -> ReadResult<UInt64?> {
-            .success(nil)
+        func estimatedLength() async throws(ReadError) -> UInt64? {
+            nil
         }
 
-        func properties() async -> ReadResult<ResourceProperties> {
-            .success(ResourceProperties())
+        func properties() async throws(ReadError) -> ResourceProperties {
+            ResourceProperties()
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-            await cover().flatMap {
-                guard let data = $0.pngData() else {
-                    return .failure(.decoding("Failed to convert the cover bitmap to PNG data"))
-                }
-                consume(data)
-                return .success(())
+        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
+            let image = try await cover()
+            guard let data = image.pngData() else {
+                throw ReadError.decoding("Failed to convert the cover bitmap to PNG data")
             }
+            consume(data)
         }
     }
 }

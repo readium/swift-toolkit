@@ -114,20 +114,21 @@ public final class StringSearchService: SearchService, Sendable {
                     continue
                 }
 
-                switch await extractor.extractText(of: resource) {
-                case let .success(text):
-                    let locators = await findLocators(in: link, resourceIndex: index, text: text)
-                    // If no occurrences were found in the current resource, skip to the next one automatically.
-                    guard !locators.isEmpty else {
-                        continue
-                    }
-
-                    resultCount = (resultCount ?? 0) + locators.count
-                    return .success(LocatorCollection(locators: locators))
-
-                case let .failure(error):
+                let text: String
+                do {
+                    text = try await extractor.extractText(of: resource)
+                } catch {
                     return .failure(.reading(error))
                 }
+
+                let locators = await findLocators(in: link, resourceIndex: index, text: text)
+                // If no occurrences were found in the current resource, skip to the next one automatically.
+                guard !locators.isEmpty else {
+                    continue
+                }
+
+                resultCount = (resultCount ?? 0) + locators.count
+                return .success(LocatorCollection(locators: locators))
             }
 
             return .success(nil)
@@ -141,7 +142,7 @@ public final class StringSearchService: SearchService, Sendable {
                 return []
             }
 
-            let title = await publication.tableOfContents().getOrNil()?.titleMatchingHREF(link.href)
+            let title = await (try? publication.tableOfContents())?.titleMatchingHREF(link.href)
             resourceLocator = resourceLocator.copy(
                 title: Optional(title ?? link.title)
             )
@@ -165,7 +166,7 @@ public final class StringSearchService: SearchService, Sendable {
             let progression = max(0.0, min(1.0, Double(range.lowerBound.utf16Offset(in: text)) / Double(text.endIndex.utf16Offset(in: text))))
 
             var totalProgression: Double? = nil
-            let positions = await publication.positionsByReadingOrder().getOrNil() ?? []
+            let positions = await (try? publication.positionsByReadingOrder()) ?? []
             if let resourceStartTotalProg = positions.getOrNil(resourceIndex)?.first?.locations.totalProgression {
                 let resourceEndTotalProg = positions.getOrNil(resourceIndex + 1)?.first?.locations.totalProgression ?? 1.0
                 totalProgression = resourceStartTotalProg + progression * (resourceEndTotalProg - resourceStartTotalProg)

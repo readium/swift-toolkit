@@ -16,9 +16,9 @@ public final class _FallbackContentProtection: ContentProtection, Sendable {
         credentials: String?,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
+    ) async throws(ContentProtectionOpenError) -> ContentProtectionAsset {
         guard case .container = asset else {
-            return .failure(.assetNotSupported(nil))
+            throw .assetNotSupported(nil)
         }
 
         let scheme: ContentProtectionScheme
@@ -27,17 +27,17 @@ public final class _FallbackContentProtection: ContentProtection, Sendable {
         } else if asset.format.conformsTo(.adept) {
             scheme = .adept
         } else {
-            return .failure(.assetNotSupported(nil))
+            throw .assetNotSupported(nil)
         }
 
-        return .success(ContentProtectionAsset(
+        return ContentProtectionAsset(
             asset: asset,
             onCreatePublication: { _, _, services in
                 services.setContentProtectionServiceFactory { _ in
                     Service(scheme: scheme)
                 }
             }
-        ))
+        )
     }
 
     private final class Service: ContentProtectionService {

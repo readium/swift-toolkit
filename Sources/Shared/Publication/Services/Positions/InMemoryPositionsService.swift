@@ -14,8 +14,8 @@ public final class InMemoryPositionsService: PositionsService, Sendable {
         _positions = positionsByReadingOrder
     }
 
-    public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        .success(_positions)
+    public func positionsByReadingOrder() async throws(ReadError) -> [[Locator]] {
+        _positions
     }
 
     public static func makeFactory(positionsByReadingOrder: [[Locator]]) -> (PublicationServiceContext) -> InMemoryPositionsService {

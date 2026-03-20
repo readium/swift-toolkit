@@ -36,7 +36,7 @@ public final class HTMLResourceContentIterator: ContentIterator {
             return HTMLResourceContentIterator(
                 resource: resource,
                 totalProgressionRange: {
-                    let positions = await publication.positionsByReadingOrder().getOrNil() ?? []
+                    let positions = await (try? publication.positionsByReadingOrder()) ?? []
                     return positions.getOrNil(readingOrderIndex)?
                         .first?.locations.totalProgression
                         .map { start in
@@ -94,17 +94,15 @@ public final class HTMLResourceContentIterator: ContentIterator {
     private var currentIndex: Int?
 
     private func elements() async throws -> ParsedElements {
-        try await elementsTask.value.get()
+        try await elementsTask.value
     }
 
-    private lazy var elementsTask = Task {
-        await resource
-            .read()
-            .asString()
-            .eraseToAnyError()
-            .tryMap { try SwiftSoup.parse($0) }
-            .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
-            .asyncMap { await adjustProgressions(of: $0) }
+    private lazy var elementsTask = Task<ParsedElements, any Error> {
+        let data = try await resource.read()
+        let string = try data.asString() as String
+        let document = try SwiftSoup.parse(string)
+        let parsed = try parse(document: document, locator: locator, beforeMaxLength: beforeMaxLength)
+        return await adjustProgressions(of: parsed)
     }
 
     private func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
