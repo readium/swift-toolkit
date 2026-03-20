@@ -188,7 +188,7 @@ enum EPUBScriptScope {
         if let mediaType = publication.linkWithHREF(href)?.mediaType {
             return mediaType
         }
-        if let mediaType = await resource.properties().getOrNil()?.mediaType {
+        if let mediaType = await (try? resource.properties())?.mediaType {
             return mediaType
         }
 

@@ -74,13 +74,13 @@ public final class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate
     public func speak(
         _ utterance: TTSUtterance,
         onSpeakRange: @escaping (Range<String.Index>) -> Void
-    ) async -> Result<Void, TTSError> {
+    ) async throws(TTSError) {
         let task = Task(
             utterance: utterance,
             onSpeakRange: onSpeakRange
         )
 
-        return await withTaskCancellationHandler {
+        let result: Result<Void, TTSError> = await withTaskCancellationHandler {
             await withCheckedContinuation {
                 task.continuation = $0
                 on(.play(task))
@@ -89,6 +89,7 @@ public final class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate
             task.cancel()
             on(.stop(task))
         }
+        try result.get()
     }
 
     private class Task: Equatable, CustomStringConvertible {

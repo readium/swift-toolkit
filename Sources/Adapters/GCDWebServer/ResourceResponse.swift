@@ -26,7 +26,7 @@ class ResourceResponse: ReadiumGCDWebServerResponse, Loggable {
     private var range: Range<UInt64>
     private let length: UInt64
     private var offset: UInt64 = 0
-    private var lastReadData: ReadResult<Data>?
+    private var lastReadData: Result<Data, ReadError>?
     private lazy var totalNumberOfBytesRead = UInt64(0)
 
     init(resource: Resource, length: UInt64, range: NSRange?, mediaType: MediaType) {
@@ -104,12 +104,15 @@ class ResourceResponse: ReadiumGCDWebServerResponse, Loggable {
             return Data()
         }
         // Read
-        lastReadData = await resource.read(range: offset ..< (offset + UInt64(len)))
-        if case let .success(data) = lastReadData {
+        do {
+            let data = try await resource.read(range: offset ..< (offset + UInt64(len)))
+            lastReadData = .success(data)
             totalNumberOfBytesRead += UInt64(data.count)
             offset += UInt64(data.count)
+            return data
+        } catch {
+            lastReadData = .failure(error)
+            return Data()
         }
-
-        return (try? lastReadData?.get()) ?? Data()
     }
 }

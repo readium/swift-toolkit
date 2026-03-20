@@ -150,7 +150,7 @@ open class CBZNavigatorViewController:
         view.addGestureRecognizer(InputObservingGestureRecognizerAdapter(observer: inputObservers))
 
         tasks.add {
-            try? await didLoadPositions(publication.positions().get())
+            try? await didLoadPositions(publication.positions())
             await goToResourceAtIndex(initialIndex, options: NavigatorGoOptions(animated: false), isJump: false)
         }
     }

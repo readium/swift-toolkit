@@ -267,42 +267,45 @@ public final class PublicationSpeechSynthesizer: Loggable {
     private func play(_ utterance: Utterance) async {
         state = .playing(utterance, range: nil)
 
-        let result = await engine.speak(
-            TTSUtterance(
-                text: utterance.text,
-                delay: 0,
-                voiceOrLanguage: voiceOrLanguage(for: utterance)
-            ),
-            onSpeakRange: { [weak self] range in
-                guard let self = self else {
-                    return
-                }
+        do {
+            try await engine.speak(
+                TTSUtterance(
+                    text: utterance.text,
+                    delay: 0,
+                    voiceOrLanguage: voiceOrLanguage(for: utterance)
+                ),
+                onSpeakRange: { [weak self] range in
+                    guard let self = self else {
+                        return
+                    }
 
-                self.state = .playing(
-                    utterance,
-                    range: utterance.locator.copy(
-                        text: { text in
-                            guard
-                                let highlight = text.highlight,
-                                highlight.startIndex <= range.lowerBound, highlight.endIndex >= range.upperBound
-                            else {
-                                return
+                    self.state = .playing(
+                        utterance,
+                        range: utterance.locator.copy(
+                            text: { text in
+                                guard
+                                    let highlight = text.highlight,
+                                    highlight.startIndex <= range.lowerBound, highlight.endIndex >= range.upperBound
+                                else {
+                                    return
+                                }
+                                text = text[range]
                             }
-                            text = text[range]
-                        }
+                        )
                     )
-                )
+                }
+            )
+
+            guard !Task.isCancelled else {
+                return
             }
-        )
 
-        guard !Task.isCancelled else {
-            return
-        }
-
-        switch result {
-        case .success:
             await playNextUtterance(.forward)
-        case let .failure(error):
+        } catch {
+            guard !Task.isCancelled else {
+                return
+            }
+
             state = .paused(utterance)
             await delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
         }

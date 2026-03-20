@@ -24,7 +24,7 @@ public protocol TTSEngine: AnyObject {
     func speak(
         _ utterance: TTSUtterance,
         onSpeakRange: @escaping (Range<String.Index>) -> Void
-    ) async -> Result<Void, TTSError>
+    ) async throws(TTSError)
 }
 
 public extension TTSEngine {

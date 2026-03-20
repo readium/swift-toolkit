@@ -232,14 +232,13 @@ import WebKit
         // Try to serve a byte range if the client requested one and the
         // resource length is known.
         if
-            let totalLength = await (try? resource.estimatedLength().get()).flatMap({ $0 }),
+            let totalLength = try? await resource.estimatedLength(),
             let range = urlSchemeTask.request.byteRange(in: totalLength)
         {
-            let result = await resource.read(range: range)
-            switch result {
-            case let .success(data):
+            do {
+                let data = try await resource.read(range: range)
                 await respond(urlSchemeTask, with: data, range: range, totalLength: totalLength, mediaType: mediaType, url: requestURL)
-            case let .failure(error):
+            } catch {
                 log(.error, "Failed to read resource \(requestURL.path) range \(range): \(error)")
                 await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
             }
@@ -247,11 +246,10 @@ import WebKit
         }
 
         // Full read fallback.
-        let result = await resource.read()
-        switch result {
-        case let .success(data):
+        do {
+            let data = try await resource.read()
             await respond(urlSchemeTask, with: data, range: nil, totalLength: UInt64(data.count), mediaType: mediaType, url: requestURL)
-        case let .failure(error):
+        } catch {
             log(.error, "Failed to read resource \(requestURL.path): \(error)")
             await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
         }

@@ -168,7 +168,7 @@ open class PDFNavigatorViewController:
         super.viewDidLoad()
 
         Task {
-            try? await didLoadPositions(publication.positionsByReadingOrder().get())
+            try? await didLoadPositions(publication.positionsByReadingOrder())
             resetPDFView(at: initialLocation)
         }
     }

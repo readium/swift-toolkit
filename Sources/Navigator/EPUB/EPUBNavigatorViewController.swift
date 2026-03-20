@@ -267,7 +267,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     private let readingOrder: [Link]
     public private(set) var currentLocation: Locator?
-    private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
+    private let loadPositionsByReadingOrder: () async throws(ReadError) -> [[Locator]]
     private var positionsByReadingOrder: [[Locator]] = []
 
     private let viewModel: EPUBNavigatorViewModel
@@ -316,7 +316,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // provided with a different reading order, we should assume the
             // positions list is empty, and also not compute the
             // totalProgression when calculating the current locator.
-            (readingOrder != nil) ? { .success([]) } : publication.positionsByReadingOrder
+            (readingOrder != nil) ? { [] } : publication.positionsByReadingOrder
         )
     }
 
@@ -341,7 +341,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         viewModel: EPUBNavigatorViewModel,
         initialLocation: Locator?,
         readingOrder: [Link],
-        positionsByReadingOrder: @escaping () async -> ReadResult<[[Locator]]>
+        positionsByReadingOrder: @escaping () async throws(ReadError) -> [[Locator]]
     ) {
         self.viewModel = viewModel
         currentLocation = initialLocation
@@ -427,7 +427,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     private func initialize() async {
         do {
-            positionsByReadingOrder = try await loadPositionsByReadingOrder().get()
+            positionsByReadingOrder = try await loadPositionsByReadingOrder()
         } catch {
             log(.error, DebugError("Failed to load positions.", cause: error))
         }
@@ -515,7 +515,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return result
         }
 
-        guard let toc = try? await publication.tableOfContents().get() else {
+        guard let toc = try? await publication.tableOfContents() else {
             return [:]
         }
 

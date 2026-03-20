@@ -121,7 +121,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         // According to https://jaredsinclair.com/2016/09/03/implementing-avassetresourceload.html, we should not
         // honor the `dataRequest` if there is a `contentInformationRequest`.
         //
-        // > Warning: do not pass the two requested bytes of data to the loading request’s dataRequest. This will
+        // > Warning: do not pass the two requested bytes of data to the loading request's dataRequest. This will
         // > lead to an undocumented bug where no further loading requests will be made, stalling playback
         // > indefinitely.
         if let infoRequest = loadingRequest.contentInformationRequest {
@@ -143,12 +143,11 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
             infoRequest.isByteRangeAccessSupported = true
             infoRequest.contentType = link.mediaType?.uti
 
-            switch await resource.length() {
-            case let .success(length):
+            do {
+                let length = try await resource.length()
                 infoRequest.contentLength = Int64(length)
                 request.finishLoading()
-
-            case let .failure(error):
+            } catch {
                 log(.error, error)
                 request.finishLoading(with: error)
             }
@@ -164,20 +163,21 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         }
 
         let task = Task {
-            let result = await resource.stream(
-                range: range,
-                consume: { dataRequest.respond(with: $0) }
-            )
+            do {
+                try await resource.stream(
+                    range: range,
+                    consume: { dataRequest.respond(with: $0) }
+                )
 
-            queue.async { [weak self] in
-                switch result {
-                case .success:
+                queue.async { [weak self] in
                     request.finishLoading()
-                case let .failure(error):
-                    request.finishLoading(with: error)
+                    self?.finishRequest(request)
                 }
-
-                self?.finishRequest(request)
+            } catch {
+                queue.async { [weak self] in
+                    request.finishLoading(with: error)
+                    self?.finishRequest(request)
+                }
             }
         }
 
@@ -206,14 +206,12 @@ extension URL {
 }
 
 extension Resource {
-    func length() async -> ReadResult<UInt64> {
-        await estimatedLength()
-            .asyncFlatMap { length in
-                if let length = length {
-                    return .success(length)
-                } else {
-                    return await read().map { UInt64($0.count) }
-                }
-            }
+    func length() async throws(ReadError) -> UInt64 {
+        if let length = try await estimatedLength() {
+            return length
+        } else {
+            let data = try await read()
+            return UInt64(data.count)
+        }
     }
 }

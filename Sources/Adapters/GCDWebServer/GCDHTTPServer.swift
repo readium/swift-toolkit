@@ -333,15 +333,17 @@ public final class GCDHTTPServer: HTTPServer, Loggable {
 }
 
 private extension Resource {
-    func length() async -> ReadResult<UInt64> {
-        await estimatedLength()
-            .asyncFlatMap { length in
-                if let length = length {
-                    return .success(length)
-                } else {
-                    return await read().map { UInt64($0.count) }
-                }
+    func length() async -> Result<UInt64, ReadError> {
+        do {
+            if let length = try await estimatedLength() {
+                return .success(length)
+            } else {
+                let data = try await read()
+                return .success(UInt64(data.count))
             }
+        } catch {
+            return .failure(error)
+        }
     }
 }
 
@@ -351,7 +353,7 @@ private extension HTTPServerResponse {
             return mediaType
         }
 
-        if let properties = try? await resource.properties().get() {
+        if let properties = try? await resource.properties() {
             if let mediaType = properties.mediaType {
                 return mediaType
             }
@@ -365,7 +367,7 @@ private extension HTTPServerResponse {
             }
         }
 
-        if let mediaType = try? await assetRetriever.sniffFormat(of: resource).get().mediaType {
+        if let mediaType = try? await assetRetriever.sniffFormat(of: resource).mediaType {
             return mediaType
         }
 
