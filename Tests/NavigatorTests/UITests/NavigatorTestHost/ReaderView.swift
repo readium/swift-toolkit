@@ -71,7 +71,7 @@ struct ReaderView: View {
         Task {
             let publication = navigator.publication
             let readingOrder = publication.readingOrder
-            guard let positionsByReadingOrder = await publication.positionsByReadingOrder().getOrNil() else { return }
+            guard let positionsByReadingOrder = try? await publication.positionsByReadingOrder() else { return }
 
             for _ in 0 ..< 100 {
                 let positions = positionsByReadingOrder[Int.random(in: 0 ..< readingOrder.count)]

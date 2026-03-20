@@ -48,13 +48,13 @@ final class LibraryService: Loggable {
         sender: UIViewController?
     ) async throws -> (Publication, Format) {
         do {
-            let asset = try await readium.assetRetriever.retrieve(url: url).get()
+            let asset = try await readium.assetRetriever.retrieve(url: url)
 
             let publication = try await readium.publicationOpener.open(
                 asset: asset,
                 allowUserInteraction: allowUserInteraction,
                 sender: sender
-            ).get()
+            )
 
             return (publication, asset.format)
 

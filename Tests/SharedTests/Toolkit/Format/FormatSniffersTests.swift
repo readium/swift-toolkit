@@ -38,21 +38,29 @@ class FormatSniffersTests: XCTestCase {
     }
 
     func testSniffBlobReadError() async {
-        let error = ReadError.access(.fileSystem(.fileNotFound(DebugError("error"))))
+        let expectedError = ReadError.access(.fileSystem(.fileNotFound(DebugError("error"))))
 
-        let result = await sut.sniffBlob(FormatSnifferBlob(source: FailureResource(error: error)))
-        XCTAssertEqual(result, .failure(error))
+        do {
+            _ = try await sut.sniffBlob(FormatSnifferBlob(source: FailureResource(error: expectedError)))
+            XCTFail("Expected an error")
+        } catch {
+            XCTAssertEqual(error, expectedError)
+        }
     }
 
     func testSniffContainerReadError() async {
-        let error = ReadError.access(.fileSystem(.fileNotFound(DebugError("error"))))
+        let expectedError = ReadError.access(.fileSystem(.fileNotFound(DebugError("error"))))
 
         let container = ProxyContainer { _ in
-            FailureResource(error: error)
+            FailureResource(error: expectedError)
         }
 
-        let result = await sut.sniffContainer(container)
-        XCTAssertEqual(result, .failure(error))
+        do {
+            _ = try await sut.sniffContainer(container)
+            XCTFail("Expected an error")
+        } catch {
+            XCTAssertEqual(error, expectedError)
+        }
     }
 
     func testSniffAudio() {
@@ -187,88 +195,88 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(fileExtension: "cbr"), cbr)
     }
 
-    func testSniffCBZ() async {
+    func testSniffCBZ() async throws {
         let cbz = Format(specifications: .zip, .informalComic, mediaType: .cbz, fileExtension: "cbz")
         XCTAssertEqual(sut.sniffHints(mediaType: "application/vnd.comicbook+zip"), cbz)
         XCTAssertEqual(sut.sniffHints(mediaType: "application/x-cbz"), cbz)
         XCTAssertEqual(sut.sniffHints(fileExtension: "cbz"), cbz)
 
-        let result = await sut.sniffContainer(zip("cbz.unknown"), refining: .zip)
-        XCTAssertEqual(result, .success(cbz))
+        let result = try await sut.sniffContainer(zip("cbz.unknown"), refining: .zip)
+        XCTAssertEqual(result, cbz)
     }
 
-    func testSniffEPUB() async {
+    func testSniffEPUB() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .epub), .epub)
         XCTAssertEqual(sut.sniffHints(fileExtension: "epub"), .epub)
 
-        var result = await sut.sniffContainer(zip("epub.unknown"), refining: .zip)
-        XCTAssertEqual(result, .success(.epub))
+        var result = try await sut.sniffContainer(zip("epub.unknown"), refining: .zip)
+        XCTAssertEqual(result, .epub)
 
-        result = await sut.sniffContainer(folder("epub"))
-        XCTAssertEqual(result, .success(Format(specifications: .epub)))
+        result = try await sut.sniffContainer(folder("epub"))
+        XCTAssertEqual(result, Format(specifications: .epub))
     }
 
-    func testSniffHTML() async {
+    func testSniffHTML() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .html), .html)
         XCTAssertEqual(sut.sniffHints(fileExtension: "html"), .html)
         XCTAssertEqual(sut.sniffHints(fileExtension: "htm"), .html)
 
-        var result = await sut.sniffBlob(file("html.unknown"))
-        XCTAssertEqual(result, .success(.html))
+        var result = try await sut.sniffBlob(file("html.unknown"))
+        XCTAssertEqual(result, .html)
 
-        result = await sut.sniffBlob(file("html-doctype-case.unknown"))
-        XCTAssertEqual(result, .success(.html))
+        result = try await sut.sniffBlob(file("html-doctype-case.unknown"))
+        XCTAssertEqual(result, .html)
     }
 
-    func testSniffJSON() async {
+    func testSniffJSON() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .json), .json)
         XCTAssertEqual(sut.sniffHints(mediaType: .problemDetails), .jsonProblemDetails)
         XCTAssertEqual(sut.sniffHints(fileExtension: "json"), .json)
 
-        let result = await sut.sniffBlob(file("json.unknown"))
-        XCTAssertEqual(result, .success(.json))
+        let result = try await sut.sniffBlob(file("json.unknown"))
+        XCTAssertEqual(result, .json)
     }
 
-    func testSniffLCPLicense() async {
+    func testSniffLCPLicense() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .lcpLicenseDocument), .lcpLicense)
         XCTAssertEqual(sut.sniffHints(fileExtension: "lcpl"), .lcpLicense)
 
-        let result = await sut.sniffBlob(file("lcpl.unknown"))
-        XCTAssertEqual(result, .success(.lcpLicense))
+        let result = try await sut.sniffBlob(file("lcpl.unknown"))
+        XCTAssertEqual(result, .lcpLicense)
     }
 
-    func testSniffLCPProtectedAudiobook() async {
+    func testSniffLCPProtectedAudiobook() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .lcpProtectedAudiobook), .lcpa)
         XCTAssertEqual(sut.sniffHints(fileExtension: "lcpa"), .lcpa)
 
-        let result = await sut.sniffContainer(zip("audiobook-lcp.unknown"))
-        XCTAssertEqual(result, .success(.lcpa))
+        let result = try await sut.sniffContainer(zip("audiobook-lcp.unknown"))
+        XCTAssertEqual(result, .lcpa)
     }
 
-    func testSniffLCPProtectedDivina() async {
-        let result = await sut.sniffContainer(zip("divina-lcp.unknown"))
-        XCTAssertEqual(result, .success(.lcpDivina))
+    func testSniffLCPProtectedDivina() async throws {
+        let result = try await sut.sniffContainer(zip("divina-lcp.unknown"))
+        XCTAssertEqual(result, .lcpDivina)
     }
 
-    func testSniffLCPProtectedEPUB() async {
+    func testSniffLCPProtectedEPUB() async throws {
         let expected = Format(specifications: .zip, .epub, .lcp, mediaType: .epub, fileExtension: "epub")
 
-        var result = await sut.sniffContainer(zip("epub-lcp.unknown"), refining: .zip)
-        XCTAssertEqual(result, .success(expected))
+        var result = try await sut.sniffContainer(zip("epub-lcp.unknown"), refining: .zip)
+        XCTAssertEqual(result, expected)
 
-        result = await sut.sniffContainer(zip("epub-lcp-without-license.unknown"), refining: .zip)
-        XCTAssertEqual(result, .success(expected))
+        result = try await sut.sniffContainer(zip("epub-lcp-without-license.unknown"), refining: .zip)
+        XCTAssertEqual(result, expected)
     }
 
-    func testSniffLCPProtectedPDF() async {
+    func testSniffLCPProtectedPDF() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .lcpProtectedPDF), .lcpdf)
         XCTAssertEqual(sut.sniffHints(fileExtension: "lcpdf"), .lcpdf)
 
-        let result = await sut.sniffContainer(zip("pdf-lcp.unknown"))
-        XCTAssertEqual(result, .success(.lcpdf))
+        let result = try await sut.sniffContainer(zip("pdf-lcp.unknown"))
+        XCTAssertEqual(result, .lcpdf)
     }
 
-    func testSniffOPDS1Feed() async {
+    func testSniffOPDS1Feed() async throws {
         let opds1 = Format(
             specifications: .xml, .opds1Catalog,
             mediaType: .opds1,
@@ -277,11 +285,11 @@ class FormatSniffersTests: XCTestCase {
 
         XCTAssertEqual(sut.sniffHints(mediaType: "application/atom+xml;profile=opds-catalog"), opds1)
 
-        let result = await sut.sniffBlob(file("opds1-feed.unknown"))
-        XCTAssertEqual(result, .success(opds1))
+        let result = try await sut.sniffBlob(file("opds1-feed.unknown"))
+        XCTAssertEqual(result, opds1)
     }
 
-    func testSniffOPDS1Entry() async {
+    func testSniffOPDS1Entry() async throws {
         let opds1 = Format(
             specifications: .xml, .opds1Entry,
             mediaType: .opds1Entry,
@@ -290,11 +298,11 @@ class FormatSniffersTests: XCTestCase {
 
         XCTAssertEqual(sut.sniffHints(mediaType: "application/atom+xml;type=entry;profile=opds-catalog"), opds1)
 
-        let result = await sut.sniffBlob(file("opds1-entry.unknown"))
-        XCTAssertEqual(result, .success(opds1))
+        let result = try await sut.sniffBlob(file("opds1-entry.unknown"))
+        XCTAssertEqual(result, opds1)
     }
 
-    func testSniffOPDS2Feed() async {
+    func testSniffOPDS2Feed() async throws {
         let opds2 = Format(
             specifications: .json, .opds2Catalog,
             mediaType: .opds2,
@@ -303,11 +311,11 @@ class FormatSniffersTests: XCTestCase {
 
         XCTAssertEqual(sut.sniffHints(mediaType: "application/opds+json"), opds2)
 
-        let result = await sut.sniffBlob(file("opds2-feed.json"))
-        XCTAssertEqual(result, .success(opds2))
+        let result = try await sut.sniffBlob(file("opds2-feed.json"))
+        XCTAssertEqual(result, opds2)
     }
 
-    func testSniffOPDS2Publication() async {
+    func testSniffOPDS2Publication() async throws {
         let opds2 = Format(
             specifications: .json, .opds2Publication,
             mediaType: .opds2Publication,
@@ -316,11 +324,11 @@ class FormatSniffersTests: XCTestCase {
 
         XCTAssertEqual(sut.sniffHints(mediaType: "application/opds-publication+json"), opds2)
 
-        let result = await sut.sniffBlob(file("opds2-publication.json"))
-        XCTAssertEqual(result, .success(opds2))
+        let result = try await sut.sniffBlob(file("opds2-publication.json"))
+        XCTAssertEqual(result, opds2)
     }
 
-    func testSniffOPDSAuthentication() async {
+    func testSniffOPDSAuthentication() async throws {
         let opdsAuth = Format(
             specifications: .json, .opdsAuthentication,
             mediaType: .opdsAuthentication,
@@ -330,48 +338,48 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(mediaType: "application/opds-authentication+json"), opdsAuth)
         XCTAssertEqual(sut.sniffHints(mediaType: "application/vnd.opds.authentication.v1.0+json"), opdsAuth)
 
-        let result = await sut.sniffBlob(file("opds-authentication.json"))
-        XCTAssertEqual(result, .success(opdsAuth))
+        let result = try await sut.sniffBlob(file("opds-authentication.json"))
+        XCTAssertEqual(result, opdsAuth)
     }
 
-    func testSniffPDF() async {
+    func testSniffPDF() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .pdf), .pdf)
         XCTAssertEqual(sut.sniffHints(fileExtension: "pdf"), .pdf)
 
-        let result = await sut.sniffBlob(file("pdf.unknown"))
-        XCTAssertEqual(result, .success(.pdf))
+        let result = try await sut.sniffBlob(file("pdf.unknown"))
+        XCTAssertEqual(result, .pdf)
     }
 
-    func testSniffRPF() async {
+    func testSniffRPF() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .readiumWebPub), .rpfWebPub)
         XCTAssertEqual(sut.sniffHints(mediaType: .readiumAudiobook), .rpfAudiobook)
         XCTAssertEqual(sut.sniffHints(fileExtension: "audiobook"), .rpfAudiobook)
         XCTAssertEqual(sut.sniffHints(mediaType: .divina), .rpfDivina)
         XCTAssertEqual(sut.sniffHints(fileExtension: "divina"), .rpfDivina)
 
-        var result = await sut.sniffContainer(zip("webpub-package.unknown"))
-        XCTAssertEqual(result, .success(.rpfWebPub))
+        var result = try await sut.sniffContainer(zip("webpub-package.unknown"))
+        XCTAssertEqual(result, .rpfWebPub)
 
-        result = await sut.sniffContainer(zip("divina-package.unknown"))
-        XCTAssertEqual(result, .success(.rpfDivina))
+        result = try await sut.sniffContainer(zip("divina-package.unknown"))
+        XCTAssertEqual(result, .rpfDivina)
 
-        result = await sut.sniffContainer(zip("audiobook-package.unknown"))
-        XCTAssertEqual(result, .success(.rpfAudiobook))
+        result = try await sut.sniffContainer(zip("audiobook-package.unknown"))
+        XCTAssertEqual(result, .rpfAudiobook)
     }
 
-    func testSniffRWPM() async {
+    func testSniffRWPM() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .readiumWebPubManifest), .rwpmWebPub)
         XCTAssertEqual(sut.sniffHints(mediaType: .readiumAudiobookManifest), .rwpmAudiobook)
         XCTAssertEqual(sut.sniffHints(mediaType: .divinaManifest), .rwpmDivina)
 
-        var result = await sut.sniffBlob(file("webpub.json"))
-        XCTAssertEqual(result, .success(.rwpmWebPub))
+        var result = try await sut.sniffBlob(file("webpub.json"))
+        XCTAssertEqual(result, .rwpmWebPub)
 
-        result = await sut.sniffBlob(file("divina.json"))
-        XCTAssertEqual(result, .success(.rwpmDivina))
+        result = try await sut.sniffBlob(file("divina.json"))
+        XCTAssertEqual(result, .rwpmDivina)
 
-        result = await sut.sniffBlob(file("audiobook.json"))
-        XCTAssertEqual(result, .success(.rwpmAudiobook))
+        result = try await sut.sniffBlob(file("audiobook.json"))
+        XCTAssertEqual(result, .rwpmAudiobook)
     }
 
     func testSniffRAR() throws {
@@ -383,13 +391,13 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(fileExtension: "rar"), rar)
     }
 
-    func testSniffXHTML() async {
+    func testSniffXHTML() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .xhtml), .xhtml)
         XCTAssertEqual(sut.sniffHints(fileExtension: "xhtml"), .xhtml)
         XCTAssertEqual(sut.sniffHints(fileExtension: "xht"), .xhtml)
 
-        let result = await sut.sniffBlob(file("xhtml.unknown"))
-        XCTAssertEqual(result, .success(.xhtml))
+        let result = try await sut.sniffBlob(file("xhtml.unknown"))
+        XCTAssertEqual(result, .xhtml)
     }
 
     func testSniffXML() {
@@ -397,21 +405,21 @@ class FormatSniffersTests: XCTestCase {
         XCTAssertEqual(sut.sniffHints(fileExtension: "xml"), .xml)
     }
 
-    func testSniffZAB() async {
+    func testSniffZAB() async throws {
         let zab = Format(specifications: .zip, .informalAudiobook, mediaType: .zab, fileExtension: "zab")
         XCTAssertEqual(sut.sniffHints(mediaType: .zab), zab)
         XCTAssertEqual(sut.sniffHints(fileExtension: "zab"), zab)
 
-        let result = await sut.sniffContainer(zip("zab.unknown"), refining: .zip)
-        XCTAssertEqual(result, .success(zab))
+        let result = try await sut.sniffContainer(zip("zab.unknown"), refining: .zip)
+        XCTAssertEqual(result, zab)
     }
 
-    func testSniffZIP() async {
+    func testSniffZIP() async throws {
         XCTAssertEqual(sut.sniffHints(mediaType: .zip), .zip)
         XCTAssertEqual(sut.sniffHints(fileExtension: "zip"), .zip)
 
-        let result = await sut.sniffBlob(file("unknown.zip"))
-        XCTAssertEqual(result, .success(.zip))
+        let result = try await sut.sniffBlob(file("unknown.zip"))
+        XCTAssertEqual(result, .zip)
     }
 
     private func file(_ path: String) async -> Resource {
@@ -422,7 +430,7 @@ class FormatSniffersTests: XCTestCase {
         try! await ZIPArchiveOpener().open(
             resource: file(path),
             format: .zip
-        ).get().container
+        ).container
     }
 
     private func folder(_ path: String) async -> Container {

@@ -51,7 +51,7 @@ extension LCPModuleAPI {
                         progress(Double(percent))
                     }
                 }
-            ).get()
+            )
 
             // Removes the license file, but only if it's in the App directory (e.g. Inbox/).
             // Otherwise we might delete something from a shared location (e.g. iCloud).

@@ -19,7 +19,7 @@ class AssetRetrieverTests: XCTestCase {
         try! await ZIPArchiveOpener().open(
             resource: file(path),
             format: .zip
-        ).get().container
+        ).container
     }
 
     private func folder(_ path: String) async -> Container {

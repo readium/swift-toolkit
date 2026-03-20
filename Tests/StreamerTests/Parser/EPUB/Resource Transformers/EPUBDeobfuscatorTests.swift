@@ -19,14 +19,14 @@ class EPUBDeobfuscatorTests: XCTestCase {
 
     func testDeobfuscateIDPF() async throws {
         let sut = try sut(resourcePath: "cut-cut.obf.woff", algorithm: "http://www.idpf.org/2008/embedding")
-        let result = await sut.deobfuscate()
-        XCTAssertEqual(result, .success(font))
+        let result = try await sut.deobfuscate()
+        XCTAssertEqual(result, font)
     }
 
     func testDeobfuscateAdobe() async throws {
         let sut = try sut(resourcePath: "cut-cut.adb.woff", algorithm: "http://ns.adobe.com/pdf/enc#RC")
-        let result = await sut.deobfuscate()
-        XCTAssertEqual(result, .success(font))
+        let result = try await sut.deobfuscate()
+        XCTAssertEqual(result, font)
     }
 
     /// Fix for https://github.com/readium/r2-streamer-swift/issues/208
@@ -34,12 +34,12 @@ class EPUBDeobfuscatorTests: XCTestCase {
         let file = fixtures.data(at: "nav.xhtml")
 
         var sut = try sut(publicationID: "urn:uuid:", resourcePath: "nav.xhtml", algorithm: "http://www.idpf.org/2008/embedding")
-        var result = await sut.deobfuscate()
-        XCTAssertEqual(result, .success(file))
+        var result = try await sut.deobfuscate()
+        XCTAssertEqual(result, file)
 
         sut = try self.sut(publicationID: "", resourcePath: "nav.xhtml", algorithm: "http://www.idpf.org/2008/embedding")
-        result = await sut.deobfuscate()
-        XCTAssertEqual(result, .success(file))
+        result = try await sut.deobfuscate()
+        XCTAssertEqual(result, file)
     }
 
     private func sut(
@@ -47,7 +47,7 @@ class EPUBDeobfuscatorTests: XCTestCase {
         resourcePath path: String,
         algorithm: String
     ) throws -> (
-        deobfuscate: () async -> ReadResult<Data>,
+        deobfuscate: () async throws(ReadError) -> Data,
         resource: DataResource,
         encryptions: [RelativeURL: Encryption]
     ) {
@@ -60,8 +60,8 @@ class EPUBDeobfuscatorTests: XCTestCase {
             encryptions: encryptions
         )
         return (
-            deobfuscate: {
-                await deobfuscator.deobfuscate(resource: resource, at: url.anyURL).read()
+            deobfuscate: { () async throws(ReadError) -> Data in
+                try await deobfuscator.deobfuscate(resource: resource, at: url.anyURL).read()
             },
             resource: resource,
             encryptions: [url: Encryption(algorithm: algorithm)]

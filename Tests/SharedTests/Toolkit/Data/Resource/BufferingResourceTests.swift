@@ -13,9 +13,9 @@ class BufferingResourceTests: XCTestCase {
         XCTAssertEqual(sut().sourceURL?.fileURL, file)
     }
 
-    func testEstimatedLength() async {
-        let result = await sut().estimatedLength()
-        XCTAssertEqual(result, .success(161_291))
+    func testEstimatedLength() async throws {
+        let result = try await sut().estimatedLength()
+        XCTAssertEqual(result, 161_291)
     }
 
     func testReadFully() async throws {
@@ -109,10 +109,9 @@ class BufferingResourceTests: XCTestCase {
     }
 
     func testRead(_ sut: BufferingResource, range: Range<UInt64>? = nil, file: StaticString = #file, line: UInt = #line) async throws {
-        let res = await sut.read(range: range)
-        let expected = await resource.read(range: range)
-        XCTAssertEqual(res, expected, file: file, line: line)
-        let readData = try XCTUnwrap(res.getOrNil())
+        let readData = try await sut.read(range: range)
+        let expected = try await resource.read(range: range)
+        XCTAssertEqual(readData, expected, file: file, line: line)
         if let range = range {
             XCTAssertEqual(readData, data[range], file: file, line: line)
         } else {

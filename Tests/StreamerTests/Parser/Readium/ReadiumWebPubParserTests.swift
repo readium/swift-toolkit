@@ -27,21 +27,21 @@ class ReadiumWebPubParserTests: XCTestCase {
         packageAsset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "audiotest.lcpa")),
             format: Format(specifications: .zip, .rpf, .lcp, mediaType: .lcpProtectedAudiobook, fileExtension: "lcpa")
-        ).get())
+        ))
 
         lcpdfAsset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "daisy.lcpdf")),
             format: Format(specifications: .zip, .rpf, .lcp, mediaType: .lcpProtectedPDF, fileExtension: "lcpdf")
-        ).get())
+        ))
     }
 
     func testRefusesNonReadiumWebPub() async throws {
         let asset: Asset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "audiotest.zab")),
             format: Format(specifications: .zip, .informalAudiobook, mediaType: .zab, fileExtension: "zab")
-        ).get())
+        ))
         do {
-            _ = try await parser.parse(asset: asset, warnings: nil).get()
+            _ = try await parser.parse(asset: asset, warnings: nil)
         } catch PublicationParseError.formatNotSupported {
             return
         } catch {}
@@ -49,12 +49,12 @@ class ReadiumWebPubParserTests: XCTestCase {
     }
 
     func testAcceptsManifest() async throws {
-        let result = try await parser.parse(asset: manifestAsset, warnings: nil).get()
+        let result = try await parser.parse(asset: manifestAsset, warnings: nil)
         XCTAssertNotNil(result)
     }
 
     func testAcceptsPackage() async throws {
-        let result = try await parser.parse(asset: packageAsset, warnings: nil).get()
+        let result = try await parser.parse(asset: packageAsset, warnings: nil)
         XCTAssertNotNil(result)
     }
 }

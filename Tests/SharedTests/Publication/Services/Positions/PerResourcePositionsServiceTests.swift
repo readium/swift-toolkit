@@ -8,19 +8,19 @@
 import XCTest
 
 class PerResourcePositionsServiceTests: XCTestCase {
-    func testFromAnEmptyReadingOrder() async {
+    func testFromAnEmptyReadingOrder() async throws {
         let service = PerResourcePositionsService(readingOrder: [], fallbackMediaType: .text)
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([]))
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [])
     }
 
-    func testFromReadingOrderWithOneResource() async {
+    func testFromReadingOrderWithOneResource() async throws {
         let service = PerResourcePositionsService(readingOrder: [
             Link(href: "res", mediaType: .png),
         ], fallbackMediaType: .text)
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [
             [Locator(
                 href: "res",
                 mediaType: .png,
@@ -29,10 +29,10 @@ class PerResourcePositionsServiceTests: XCTestCase {
                     position: 1
                 )
             )],
-        ]))
+        ])
     }
 
-    func testFromReadingOrderWithFewResources() async {
+    func testFromReadingOrderWithFewResources() async throws {
         let service = PerResourcePositionsService(
             readingOrder: [
                 Link(href: "res"),
@@ -42,8 +42,8 @@ class PerResourcePositionsServiceTests: XCTestCase {
             fallbackMediaType: .text
         )
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [
             [Locator(
                 href: "res",
                 mediaType: .text,
@@ -69,7 +69,7 @@ class PerResourcePositionsServiceTests: XCTestCase {
                     position: 3
                 )
             )],
-        ]))
+        ])
     }
 
     func testFallsBackOnGivenMediaType() async throws {
@@ -78,8 +78,8 @@ class PerResourcePositionsServiceTests: XCTestCase {
             fallbackMediaType: XCTUnwrap(MediaType("image/*"))
         )
 
-        let result = await services.positionsByReadingOrder()
-        XCTAssertEqual(result, try .success([[
+        let result = try await services.positionsByReadingOrder()
+        XCTAssertEqual(result, try [[
             Locator(
                 href: "res",
                 mediaType: XCTUnwrap(MediaType("image/*")),
@@ -88,6 +88,6 @@ class PerResourcePositionsServiceTests: XCTestCase {
                     position: 1
                 )
             ),
-        ]]))
+        ]])
     }
 }

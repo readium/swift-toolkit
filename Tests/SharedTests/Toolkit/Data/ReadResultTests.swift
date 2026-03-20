@@ -8,147 +8,116 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum ReadResultDataTests {
-    static let accessError: ReadError = .access(.fileSystem(.fileNotFound(nil)))
-
+@Suite enum DataDecodeTests {
     @Suite("decode") struct Decode {
-        @Test("success") func success() {
-            let result: ReadResult<Data> = .success(Data([0x41, 0x42]))
-            let decoded: ReadResult<String> = result.decode { String(data: $0, encoding: .utf8)! }
-            #expect(decoded == .success("AB"))
+        @Test("success") func success() throws(ReadError) {
+            let data = Data([0x41, 0x42])
+            let decoded: String = try data.decode { String(data: $0, encoding: .utf8)! }
+            #expect(decoded == "AB")
         }
 
         @Test("decoding failure wraps in ReadError.decoding")
         func decodingFailure() {
-            let result: ReadResult<Data> = .success(Data([0xFF]))
-            let decoded: ReadResult<String> = result.decode { _ in throw DebugError("bad") }
-            guard case .failure(.decoding) = decoded else {
-                Issue.record("Expected ReadError.decoding, got \(decoded)")
-                return
+            let data = Data([0xFF])
+            #expect(throws: ReadError.self) {
+                let _: String = try data.decode { _ in throw DebugError("bad") }
             }
-        }
-
-        @Test("read error is preserved unchanged")
-        func readErrorPreserved() {
-            let decoded: ReadResult<String> = accessError.asResult().decode { String(data: $0, encoding: .utf8)! }
-            #expect(decoded == accessError.asResult())
         }
     }
 
     @Suite("asString") struct AsString {
         @Test("UTF-8 success") func utf8() throws {
-            let result: ReadResult<Data> = try .success(#require("hello".data(using: .utf8)))
-            #expect(result.asString() == .success("hello"))
+            let data = try #require("hello".data(using: .utf8))
+            #expect(try data.asString() == "hello")
         }
 
         @Test("custom encoding") func customEncoding() throws {
-            let result: ReadResult<Data> = try .success(#require("café".data(using: .isoLatin1)))
-            #expect(result.asString(encoding: .isoLatin1) == .success("café"))
+            let data = try #require("café".data(using: .isoLatin1))
+            #expect(try data.asString(encoding: .isoLatin1) == "café")
         }
 
         @Test("invalid encoding produces ReadError.decoding")
         func invalidEncoding() {
             // 0x80 alone is invalid UTF-8
-            let result: ReadResult<Data> = .success(Data([0x80]))
-            guard case .failure(.decoding) = result.asString() else {
-                Issue.record("Expected ReadError.decoding for invalid UTF-8")
-                return
+            let data = Data([0x80])
+            #expect(throws: ReadError.self) {
+                try data.asString()
             }
         }
     }
 
     @Suite("asJSONObject") struct AsJSONObject {
         @Test("valid JSON object") func valid() throws {
-            let result: ReadResult<Data> = try .success(#require(#"{"key":"value"}"#.data(using: .utf8)))
-            let decoded: ReadResult<[String: Any]> = result.asJSONObject()
-            #expect(try decoded.get()["key"] as? String == "value")
+            let data = try #require(#"{"key":"value"}"#.data(using: .utf8))
+            let decoded: [String: Any] = try data.asJSONObject()
+            #expect(decoded["key"] as? String == "value")
         }
 
         @Test("invalid JSON produces ReadError.decoding")
         func invalidJSON() throws {
-            let result: ReadResult<Data> = try .success(#require("not json".data(using: .utf8)))
-            let decoded: ReadResult<[String: Any]> = result.asJSONObject()
-            guard case .failure(.decoding) = decoded else {
-                Issue.record("Expected ReadError.decoding for invalid JSON")
-                return
+            let data = try #require("not json".data(using: .utf8))
+            #expect(throws: ReadError.self) {
+                try data.asJSONObject() as [String: Any]
             }
         }
 
         @Test("JSON array root produces ReadError.decoding")
         func wrongType() throws {
-            let result: ReadResult<Data> = try .success(#require("[1,2,3]".data(using: .utf8)))
-            let decoded: ReadResult<[String: Any]> = result.asJSONObject()
-            guard case .failure(.decoding) = decoded else {
-                Issue.record("Expected ReadError.decoding when JSON root is not an object")
-                return
+            let data = try #require("[1,2,3]".data(using: .utf8))
+            #expect(throws: ReadError.self) {
+                try data.asJSONObject() as [String: Any]
             }
         }
     }
 }
 
-@Suite enum ReadResultOptionalDataTests {
-    static let accessError: ReadError = .access(.fileSystem(.fileNotFound(nil)))
-
+@Suite enum OptionalDataDecodeTests {
     @Suite("decode") struct Decode {
-        @Test("nil data passes through as success(nil)")
-        func nilPassthrough() {
-            let result: ReadResult<Data?> = .success(nil)
-            let decoded: ReadResult<String?> = result.decode { String(data: $0, encoding: .utf8)! }
-            #expect(decoded == .success(nil))
+        @Test("nil data passes through as nil")
+        func nilPassthrough() throws(ReadError) {
+            let data: Data? = nil
+            let decoded: String? = try data.decode { String(data: $0, encoding: .utf8)! }
+            #expect(decoded == nil)
         }
 
-        @Test("present data is decoded") func dataPresent() {
-            let result: ReadResult<Data?> = .success("hello".data(using: .utf8))
-            let decoded: ReadResult<String?> = result.decode { String(data: $0, encoding: .utf8)! }
-            #expect(decoded == .success("hello"))
+        @Test("present data is decoded") func dataPresent() throws(ReadError) {
+            let data: Data? = "hello".data(using: .utf8)
+            let decoded: String? = try data.decode { String(data: $0, encoding: .utf8)! }
+            #expect(decoded == "hello")
         }
 
         @Test("decoding failure wraps in ReadError.decoding")
         func decodingFailure() {
-            let result: ReadResult<Data?> = .success(Data([0xFF]))
-            let decoded: ReadResult<String?> = result.decode { _ in throw DebugError("bad") }
-            guard case .failure(.decoding) = decoded else {
-                Issue.record("Expected ReadError.decoding, got \(decoded)")
-                return
+            let data: Data? = Data([0xFF])
+            #expect(throws: ReadError.self) {
+                let _: String? = try data.decode { _ in throw DebugError("bad") }
             }
-        }
-
-        @Test("read error is preserved unchanged")
-        func readErrorPreserved() {
-            let decoded: ReadResult<String?> = accessError.asResult().decode { String(data: $0, encoding: .utf8)! }
-            #expect(decoded == accessError.asResult())
         }
     }
 
     @Suite("asString") struct AsString {
-        @Test("nil passthrough") func nilPassthrough() {
-            let result: ReadResult<Data?> = .success(nil)
-            #expect(result.asString() == .success(nil))
+        @Test("nil passthrough") func nilPassthrough() throws(ReadError) {
+            let data: Data? = nil
+            #expect(try data.asString() == nil)
         }
 
-        @Test("present data is decoded") func dataPresent() {
-            let result: ReadResult<Data?> = .success("world".data(using: .utf8))
-            #expect(result.asString() == .success("world"))
+        @Test("present data is decoded") func dataPresent() throws(ReadError) {
+            let data: Data? = "world".data(using: .utf8)
+            #expect(try data.asString() == "world")
         }
     }
 
     @Suite("asJSONObject") struct AsJSONObject {
         @Test("nil passthrough") func nilPassthrough() throws {
-            let result: ReadResult<Data?> = .success(nil)
-            let decoded: ReadResult<[String: Any]?> = result.asJSONObject()
-            #expect(try decoded.get() == nil)
+            let data: Data? = nil
+            let decoded: [String: Any]? = try data.asJSONObject()
+            #expect(decoded == nil)
         }
 
         @Test("present data is decoded") func dataPresent() throws {
-            let result: ReadResult<Data?> = .success(#"{"k":1}"#.data(using: .utf8))
-            let decoded: ReadResult<[String: Any]?> = result.asJSONObject()
-            #expect(try decoded.get()?["k"] as? Int == 1)
+            let data: Data? = #"{"k":1}"#.data(using: .utf8)
+            let decoded: [String: Any]? = try data.asJSONObject()
+            #expect(decoded?["k"] as? Int == 1)
         }
-    }
-}
-
-private extension ReadError {
-    func asResult<T>() -> ReadResult<T> {
-        .failure(self)
     }
 }

@@ -672,56 +672,52 @@ import Testing
         }
     }
 
-    @Suite struct ReadResultExtensions {
+    @Suite struct DataJSONExtensions {
         @Suite struct NonOptionalData {
-            @Test func asJSONValue() {
+            @Test func asJSONValue() throws {
                 let data = #"{"foo": "bar"}"#.data(using: .utf8)!
-                let result: ReadResult<Data> = .success(data)
-                #expect(result.asJSONValue() == .success(.object(["foo": .string("bar")])))
+                #expect(try data.asJSONValue() == .object(["foo": .string("bar")]))
             }
 
             @Test func asJSONValueFailsOnInvalidData() {
                 let data = "not valid json".data(using: .utf8)!
                 #expect(throws: (any Error).self) {
-                    try ReadResult<Data>.success(data).asJSONValue().get()
+                    try data.asJSONValue()
                 }
             }
 
-            @Test func asJSONObjectValue() {
+            @Test func asJSONObjectValue() throws {
                 let data = #"{"foo": "bar"}"#.data(using: .utf8)!
-                let result: ReadResult<Data> = .success(data)
-                #expect(result.asJSONObjectValue() == .success(["foo": .string("bar")]))
+                #expect(try data.asJSONObjectValue() == ["foo": .string("bar")])
             }
 
             @Test func asJSONObjectValueFailsOnNonObject() {
                 let data = "[1, 2, 3]".data(using: .utf8)!
                 #expect(throws: (any Error).self) {
-                    try ReadResult<Data>.success(data).asJSONObjectValue().get()
+                    try data.asJSONObjectValue()
                 }
             }
         }
 
         @Suite struct OptionalData {
-            @Test func asJSONValue() {
-                let data = #"{"foo": "bar"}"#.data(using: .utf8)!
-                let result: ReadResult<Data?> = .success(data)
-                #expect(result.asJSONValue() == .success(.object(["foo": .string("bar")])))
+            @Test func asJSONValue() throws {
+                let data: Data? = #"{"foo": "bar"}"#.data(using: .utf8)!
+                #expect(try data.asJSONValue() == .object(["foo": .string("bar")]))
             }
 
-            @Test func asJSONValueWithNilData() {
-                let result: ReadResult<Data?> = .success(nil)
-                #expect(result.asJSONValue() == .success(nil))
+            @Test func asJSONValueWithNilData() throws {
+                let data: Data? = nil
+                #expect(try data.asJSONValue() == nil)
             }
 
-            @Test func asJSONObjectValue() {
-                let data = #"{"foo": "bar"}"#.data(using: .utf8)!
-                let result: ReadResult<Data?> = .success(data)
-                #expect(result.asJSONObjectValue() == .success(["foo": .string("bar")]))
+            @Test func asJSONObjectValue() throws {
+                let data: Data? = #"{"foo": "bar"}"#.data(using: .utf8)!
+                #expect(try data.asJSONObjectValue() == ["foo": .string("bar")])
             }
 
-            @Test func asJSONObjectValueWithNilData() {
-                let result: ReadResult<Data?> = .success(nil)
-                #expect(result.asJSONObjectValue() == .success(nil))
+            @Test func asJSONObjectValueWithNilData() throws {
+                let data: Data? = nil
+                #expect(try data.asJSONObjectValue() == nil)
             }
         }
     }

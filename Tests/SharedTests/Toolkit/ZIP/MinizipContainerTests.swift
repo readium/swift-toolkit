@@ -11,7 +11,7 @@ private let fixtures = Fixtures(path: "Archive")
 
 class MinizipContainerTests: XCTestCase {
     private func container(for filename: String) async throws -> Container {
-        try await MinizipContainer.make(file: fixtures.url(for: filename)).get()
+        try await MinizipContainer.make(file: fixtures.url(for: filename))
     }
 
     func testOpenSuccess() async throws {
@@ -69,7 +69,7 @@ class MinizipContainerTests: XCTestCase {
     func testReadCompressedEntry() async throws {
         let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
-        let data = try await entry.read().get()
+        let data = try await entry.read()
         let string = try XCTUnwrap(String(data: data, encoding: .utf8))
         XCTAssertEqual(string.count, 29609)
         XCTAssertTrue(string.hasPrefix("I'm inside\nthe ZIP."))
@@ -78,7 +78,7 @@ class MinizipContainerTests: XCTestCase {
     func testReadUncompressedEntry() async throws {
         let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
-        let data = try await entry.read().get()
+        let data = try await entry.read()
         XCTAssertNotNil(data)
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
@@ -90,7 +90,7 @@ class MinizipContainerTests: XCTestCase {
         // FIXME: It looks like unzseek64 starts from the beginning of the file header, instead of the content. Reading a first byte solves this but then Minizip crashes randomly... Note that this only fails in the test case. I didn't see actual issues in LCPDF or videos embedded in EPUBs.
         let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
-        let data = try await entry.read(range: 14 ..< 20).get()
+        let data = try await entry.read(range: 14 ..< 20)
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
             " ZIP.\n"
@@ -100,7 +100,7 @@ class MinizipContainerTests: XCTestCase {
     func testReadCompressedRange() async throws {
         let container = try await container(for: "test.zip")
         let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
-        let data = try await entry.read(range: 14 ..< 20).get()
+        let data = try await entry.read(range: 14 ..< 20)
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
             " ZIP.\n"
@@ -115,7 +115,7 @@ class MinizipContainerTests: XCTestCase {
             let lower = UInt64.random(in: 0 ..< length - 100)
             let upper = UInt64.random(in: lower ..< length)
             let range = lower ..< upper
-            _ = try await entry.read(range: range).get()
+            _ = try await entry.read(range: range)
         }
     }
 
@@ -127,7 +127,7 @@ class MinizipContainerTests: XCTestCase {
             let lower = UInt64.random(in: 0 ..< length - 100)
             let upper = UInt64.random(in: lower ..< length)
             let range = lower ..< upper
-            _ = try await entry.read(range: range).get()
+            _ = try await entry.read(range: range)
         }
     }
 
@@ -140,10 +140,10 @@ class MinizipContainerTests: XCTestCase {
     ) async throws {
         let resource = try XCTUnwrap(container[AnyURL(path: path)!])
 
-        let estimatedLength = try await resource.estimatedLength().get()
+        let estimatedLength = try await resource.estimatedLength()
         XCTAssertEqual(estimatedLength, originalLength)
 
-        let properties = try await resource.properties().get()
+        let properties = try await resource.properties()
         XCTAssertEqual(
             properties.archive,
             ArchiveProperties(

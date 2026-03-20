@@ -13,9 +13,9 @@ class TailCachingResourceTests: XCTestCase {
         XCTAssertEqual(sut(cacheFrom: 0).sourceURL?.fileURL, file)
     }
 
-    func testEstimatedLength() async {
-        let result = await sut(cacheFrom: 0).estimatedLength()
-        XCTAssertEqual(result, .success(161_291))
+    func testEstimatedLength() async throws {
+        let result = try await sut(cacheFrom: 0).estimatedLength()
+        XCTAssertEqual(result, 161_291)
     }
 
     func testReadNothingCached() async throws {
@@ -60,10 +60,9 @@ class TailCachingResourceTests: XCTestCase {
     }
 
     func testRead(_ sut: TailCachingResource, range: Range<UInt64>? = nil, file: StaticString = #file, line: UInt = #line) async throws {
-        let res = await sut.read(range: range)
-        let expected = await resource.read(range: range)
-        XCTAssertEqual(res, expected, file: file, line: line)
-        let readData = try XCTUnwrap(res.getOrNil())
+        let readData = try await sut.read(range: range)
+        let expected = try await resource.read(range: range)
+        XCTAssertEqual(readData, expected, file: file, line: line)
         if var range = range {
             range = range.clamped(to: 0 ..< UInt64(data.count))
             XCTAssertEqual(readData, data[range], file: file, line: line)

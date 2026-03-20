@@ -48,7 +48,6 @@ func openPublication(at url: AbsoluteURL) async throws -> OpenedPublication {
 
     let asset = try await assetRetriever
         .retrieve(url: url)
-        .get()
 
     // MARK: 3. Parse the asset into a Publication model.
 
@@ -58,7 +57,6 @@ func openPublication(at url: AbsoluteURL) async throws -> OpenedPublication {
     // (e.g. LCP) to request credentials to unlock the publication.
     let publication = try await publicationOpener
         .open(asset: asset, allowUserInteraction: true)
-        .get()
 
     return OpenedPublication(
         publication: publication,

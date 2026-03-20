@@ -83,15 +83,14 @@ import Testing
 
     @Test func returnsNilForLinkWithoutSMIL() async throws {
         let service = makeService(readingOrder: [linkWithoutSMIL])
-        let result = await service.guidedNavigationDocument(for: linkWithoutSMIL)
-        #expect(try result.get() == nil)
+        let result = try await service.guidedNavigationDocument(for: linkWithoutSMIL)
+        #expect(result == nil)
     }
 
     @Test func returnsFailureWhenSMILMissingFromContainer() async {
         let service = makeService(readingOrder: [linkWithSMIL], container: EmptyContainer())
-        let result = await service.guidedNavigationDocument(for: linkWithSMIL)
-        #expect {
-            try result.get()
+        await #expect {
+            try await service.guidedNavigationDocument(for: linkWithSMIL)
         } throws: { error in
             guard let readError = error as? ReadError, case .decoding = readError else { return false }
             return true
@@ -100,7 +99,7 @@ import Testing
 
     @Test func returnsDocumentForLinkWithSMIL() async throws {
         let service = makeService(readingOrder: [linkWithSMIL])
-        let doc = try await service.guidedNavigationDocument(for: linkWithSMIL).get()
+        let doc = try await service.guidedNavigationDocument(for: linkWithSMIL)
         #expect(doc != nil)
         #expect(doc?.guided.isEmpty == false)
     }

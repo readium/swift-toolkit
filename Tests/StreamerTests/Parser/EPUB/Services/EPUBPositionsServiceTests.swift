@@ -9,17 +9,17 @@ import ReadiumShared
 import XCTest
 
 class EPUBPositionsServiceTests: XCTestCase {
-    func testFromEmptyReadingOrder() async {
+    func testFromEmptyReadingOrder() async throws {
         let service = makeService(readingOrder: [])
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([]))
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [])
     }
 
-    func testFromReadingOrderWithOneResource() async {
+    func testFromReadingOrderWithOneResource() async throws {
         let service = makeService(readingOrder: [(1, Link(href: "res", mediaType: .xml), nil)])
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([[
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [[
             Locator(
                 href: "res",
                 mediaType: .xml,
@@ -29,18 +29,18 @@ class EPUBPositionsServiceTests: XCTestCase {
                     position: 1
                 )
             ),
-        ]]))
+        ]])
     }
 
-    func testFromReadingOrderWithFewResources() async {
+    func testFromReadingOrderWithFewResources() async throws {
         let service = makeService(readingOrder: [
             (1, Link(href: "res"), nil),
             (2, Link(href: "chap1", mediaType: .xml), nil),
             (2, Link(href: "chap2", mediaType: .html, title: "Chapter 2"), nil),
         ])
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [
             [Locator(
                 href: "res",
                 mediaType: .html,
@@ -69,17 +69,17 @@ class EPUBPositionsServiceTests: XCTestCase {
                     position: 3
                 )
             )],
-        ]))
+        ])
     }
 
-    func testTypeFallsBackOnHTML() async {
+    func testTypeFallsBackOnHTML() async throws {
         let service = makeService(readingOrder: [
             (1, Link(href: "chap1", properties: makeProperties(layout: .reflowable)), nil),
             (1, Link(href: "chap2", properties: makeProperties(layout: .fixed)), nil),
         ])
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [
             [Locator(
                 href: "chap1",
                 mediaType: .html,
@@ -98,10 +98,10 @@ class EPUBPositionsServiceTests: XCTestCase {
                     position: 2
                 )
             )],
-        ]))
+        ])
     }
 
-    func testOnePositionPerFixedLayoutResource() async {
+    func testOnePositionPerFixedLayoutResource() async throws {
         let service = makeService(
             layout: .fixed,
             readingOrder: [
@@ -111,8 +111,8 @@ class EPUBPositionsServiceTests: XCTestCase {
             ]
         )
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [
             [Locator(
                 href: "res",
                 mediaType: .html,
@@ -141,10 +141,10 @@ class EPUBPositionsServiceTests: XCTestCase {
                     position: 3
                 )
             )],
-        ]))
+        ])
     }
 
-    func testSplitReflowableResourcesByProvidedLength() async {
+    func testSplitReflowableResourcesByProvidedLength() async throws {
         let service = makeService(
             layout: .reflowable,
             readingOrder: [
@@ -157,8 +157,8 @@ class EPUBPositionsServiceTests: XCTestCase {
             reflowableStrategy: .archiveEntryLength(pageLength: 50)
         )
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [
             [
                 Locator(
                     href: "chap1",
@@ -242,10 +242,10 @@ class EPUBPositionsServiceTests: XCTestCase {
                     )
                 ),
             ],
-        ]))
+        ])
     }
 
-    func testLayoutFallsBackToReflowable() async {
+    func testLayoutFallsBackToReflowable() async throws {
         // We check this by verifying that the resource will be split every 50 bytes
         let service = makeService(
             layout: nil,
@@ -255,8 +255,8 @@ class EPUBPositionsServiceTests: XCTestCase {
             reflowableStrategy: .archiveEntryLength(pageLength: 50)
         )
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([[
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [[
             Locator(
                 href: "chap1",
                 mediaType: .html,
@@ -275,10 +275,10 @@ class EPUBPositionsServiceTests: XCTestCase {
                     position: 2
                 )
             ),
-        ]]))
+        ]])
     }
 
-    func testArchiveEntryLengthStrategy() async {
+    func testArchiveEntryLengthStrategy() async throws {
         let service = makeService(
             layout: .reflowable,
             readingOrder: [
@@ -288,8 +288,8 @@ class EPUBPositionsServiceTests: XCTestCase {
             reflowableStrategy: .archiveEntryLength(pageLength: 50)
         )
 
-        let result = await service.positionsByReadingOrder()
-        XCTAssertEqual(result, .success([
+        let result = try await service.positionsByReadingOrder()
+        XCTAssertEqual(result, [
             [
                 Locator(
                     href: "chap1",
@@ -321,7 +321,7 @@ class EPUBPositionsServiceTests: XCTestCase {
                     )
                 ),
             ],
-        ]))
+        ])
     }
 }
 
@@ -381,17 +381,16 @@ private class MockContainer: Container {
 
         let sourceURL: (any AbsoluteURL)? = nil
 
-        func estimatedLength() async -> ReadResult<UInt64?> {
-            .success(_length)
+        func estimatedLength() async throws(ReadError) -> UInt64? {
+            _length
         }
 
-        func properties() async -> ReadResult<ResourceProperties> {
-            .success(_properties)
+        func properties() async throws(ReadError) -> ResourceProperties {
+            _properties
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
             consume(Data())
-            return .success(())
         }
     }
 }

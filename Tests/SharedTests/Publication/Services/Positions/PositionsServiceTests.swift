@@ -14,8 +14,8 @@ struct TestPositionsService: PositionsService {
         self.positions = positions
     }
 
-    func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        .success(positions)
+    func positionsByReadingOrder() async throws(ReadError) -> [[Locator]] {
+        positions
     }
 }
 
@@ -78,7 +78,7 @@ class PositionsServiceTests: XCTestCase {
     func testPositions() async throws {
         let service = TestPositionsService(positions)
 
-        let result = try await service.positions().get()
+        let result = try await service.positions()
         XCTAssertEqual(
             result,
             [
@@ -125,7 +125,7 @@ class PositionsServiceTests: XCTestCase {
 
         let resource = try service.get(XCTUnwrap(AnyURL(string: "~readium/positions")))
 
-        let result = try await resource?.read().asString().get()
+        let result = try await resource?.read().asString()
         XCTAssertEqual(
             result,
             """
@@ -146,9 +146,9 @@ class PositionsServiceTests: XCTestCase {
     func testPublicationHelpersUsesPositionsService() async throws {
         let publication = makePublication(positions: { _ in TestPositionsService(self.positions) })
 
-        let resultPositionsByReadingOrder = try await publication.positionsByReadingOrder().get()
+        let resultPositionsByReadingOrder = try await publication.positionsByReadingOrder()
         XCTAssertEqual(resultPositionsByReadingOrder, positions)
-        let resultPositions = try await publication.positions().get()
+        let resultPositions = try await publication.positions()
         XCTAssertEqual(resultPositions, positions.flatMap { $0 })
     }
 
@@ -157,14 +157,14 @@ class PositionsServiceTests: XCTestCase {
     func testPublicationHelpersFallbackOnManifest() async throws {
         let publication = makePublication(positions: nil)
 
-        let resultPositions = try await publication.positions().get()
+        let resultPositions = try await publication.positions()
         XCTAssertEqual(resultPositions, [
             Locator(href: "chap1", mediaType: .html, locations: .init(position: 1)),
             Locator(href: "chap1", mediaType: .html, locations: .init(position: 2)),
             Locator(href: "chap2", mediaType: .html, locations: .init(position: 3)),
         ])
 
-        let resultPositionsByReadingOrder = try await publication.positionsByReadingOrder().get()
+        let resultPositionsByReadingOrder = try await publication.positionsByReadingOrder()
         XCTAssertEqual(resultPositionsByReadingOrder, [
             [
                 Locator(href: "chap1", mediaType: .html, locations: .init(position: 1)),

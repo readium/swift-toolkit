@@ -69,7 +69,7 @@
                 return
             }
 
-            try await license.renewLoan(with: LCPDefaultRenewDelegate(presentingViewController: presentingViewController)).get()
+            try await license.renewLoan(with: LCPDefaultRenewDelegate(presentingViewController: presentingViewController))
         }
 
         var canReturnPublication: Bool {
@@ -77,7 +77,7 @@
         }
 
         func returnPublication() async throws {
-            try await license.returnPublication().get()
+            try await license.returnPublication()
         }
     }
 

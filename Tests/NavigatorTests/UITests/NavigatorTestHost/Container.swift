@@ -36,12 +36,12 @@ import UIKit
     }
 
     func publication(at url: FileURL) async throws -> Publication {
-        let asset = try await assetRetriever.retrieve(url: url).get()
+        let asset = try await assetRetriever.retrieve(url: url)
         let publication = try await publicationOpener.open(
             asset: asset,
             allowUserInteraction: false,
             sender: nil
-        ).get()
+        )
 
         memoryTracker.track(publication)
         return publication

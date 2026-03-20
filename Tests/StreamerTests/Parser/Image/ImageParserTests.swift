@@ -22,12 +22,12 @@ class ImageParserTests: XCTestCase {
         cbzAsset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "futuristic_tales.cbz")),
             format: Format(specifications: .zip, .informalComic, mediaType: .cbz, fileExtension: "cbz")
-        ).get())
+        ))
 
         cbzWithComicInfoAsset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "test-comicinfo.cbz")),
             format: Format(specifications: .zip, .informalComic, mediaType: .cbz, fileExtension: "cbz")
-        ).get())
+        ))
 
         jpgAsset = .resource(ResourceAsset(
             resource: FileResource(file: fixtures.url(for: "futuristic_tales/Cory Doctorow's Futuristic Tales of the Here and Now/a-fc.jpg")),
@@ -39,10 +39,10 @@ class ImageParserTests: XCTestCase {
         let asset: Asset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "audiotest.zab")),
             format: Format(specifications: .zip, .informalAudiobook, mediaType: .zab, fileExtension: "zab")
-        ).get())
+        ))
 
         do {
-            _ = try await parser.parse(asset: asset, warnings: nil).get()
+            _ = try await parser.parse(asset: asset, warnings: nil)
         } catch PublicationParseError.formatNotSupported {
             return
         } catch {}
@@ -51,17 +51,17 @@ class ImageParserTests: XCTestCase {
     }
 
     func testAcceptsCBZ() async throws {
-        let result = try await parser.parse(asset: cbzAsset, warnings: nil).get()
+        let result = try await parser.parse(asset: cbzAsset, warnings: nil)
         XCTAssertNotNil(result)
     }
 
     func testAcceptsJPG() async throws {
-        let result = try await parser.parse(asset: jpgAsset, warnings: nil).get()
+        let result = try await parser.parse(asset: jpgAsset, warnings: nil)
         XCTAssertNotNil(result)
     }
 
     func testConformsToDivina() async throws {
-        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
+        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).build()
 
         XCTAssertEqual(publication.metadata.conformsTo, [.divina])
     }
@@ -69,7 +69,7 @@ class ImageParserTests: XCTestCase {
     /// The reading order is sorted alphabetically, ignores Thumbs.db, hidden files and non-bitmap
     /// files.
     func testReadingOrderIsSortedAlphabetically() async throws {
-        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
+        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).build()
 
         XCTAssertEqual(publication.readingOrder.map(\.href), [
             "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg",
@@ -84,14 +84,14 @@ class ImageParserTests: XCTestCase {
     /// The cover will be determined at runtime with the default
     /// `ResourceCoverService`.
     func testNoCoverRelWhenNoExplicitCover() async throws {
-        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
+        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).build()
         XCTAssertNil(publication.linkWithRel(.cover))
     }
 
     func testPositions() async throws {
-        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
+        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).build()
 
-        let result = try await publication.positions().get()
+        let result = try await publication.positions()
         XCTAssertEqual(result, try [
             Locator(
                 href: XCTUnwrap(AnyURL(string: "Cory%20Doctorow's%20Futuristic%20Tales%20of%20the%20Here%20and%20Now/a-fc.jpg")),
@@ -137,7 +137,7 @@ class ImageParserTests: XCTestCase {
     }
 
     func testParsesMetadataFromComicInfo() async throws {
-        let publication = try await parser.parse(asset: cbzWithComicInfoAsset, warnings: nil).get().build()
+        let publication = try await parser.parse(asset: cbzWithComicInfoAsset, warnings: nil).build()
 
         XCTAssertEqual(publication.metadata.conformsTo, [.divina])
         XCTAssertEqual(publication.metadata.title, "Test Comic Issue")
@@ -162,7 +162,7 @@ class ImageParserTests: XCTestCase {
     }
 
     func testDoublePageSpreadSetsCenterPage() async throws {
-        let publication = try await parser.parse(asset: cbzWithComicInfoAsset, warnings: nil).get().build()
+        let publication = try await parser.parse(asset: cbzWithComicInfoAsset, warnings: nil).build()
 
         XCTAssertNil(publication.readingOrder[0].properties.page)
         XCTAssertNil(publication.readingOrder[1].properties.page)

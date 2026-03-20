@@ -17,36 +17,36 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
     @Suite struct PublicationHelpers {
         @Test func coverDelegatesToCustomService() async throws {
             let pub = makePublication { _ in TestCoverService(cover: cover2) }
-            let image = try await pub.cover().get()
+            let image = try await pub.cover()
             #expect(image?.pngData() == cover2.pngData())
         }
 
         @Test func coverUsesResourceCoverServiceByDefault() async throws {
-            let image = try await makePublication().cover().get()
+            let image = try await makePublication().cover()
             #expect(image?.pngData() == cover.pngData())
         }
 
         @Test func coverReturnsNilWithoutService() async throws {
-            let image = try await makePublicationWithoutCoverService().cover().get()
+            let image = try await makePublicationWithoutCoverService().cover()
             #expect(image == nil)
         }
 
         @Test func coverFittingDelegatesToCustomService() async throws {
             let size = CGSize(width: 100, height: 100)
             let pub = makePublication { _ in TestCoverService(cover: cover2) }
-            let image = try await pub.coverFitting(maxSize: size).get()
+            let image = try await pub.coverFitting(maxSize: size)
             #expect(image?.pngData() == cover2.scaleToFit(maxSize: size).pngData())
         }
 
         @Test func coverFittingUsesResourceCoverServiceByDefault() async throws {
             let size = CGSize(width: 100, height: 100)
-            let image = try await makePublication().coverFitting(maxSize: size).get()
+            let image = try await makePublication().coverFitting(maxSize: size)
             #expect(image?.pngData() == cover.scaleToFit(maxSize: size).pngData())
         }
 
         @Test func coverFittingReturnsNilWithoutService() async throws {
             let image = try await makePublicationWithoutCoverService()
-                .coverFitting(maxSize: CGSize(width: 100, height: 100)).get()
+                .coverFitting(maxSize: CGSize(width: 100, height: 100))
             #expect(image == nil)
         }
     }
@@ -84,7 +84,7 @@ private func makePublicationWithoutCoverService() -> Publication {
 private struct TestCoverService: CoverService {
     let cover: UIImage?
 
-    func cover() async -> ReadResult<UIImage?> {
-        .success(cover)
+    func cover() async throws(ReadError) -> UIImage? {
+        cover
     }
 }

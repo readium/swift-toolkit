@@ -71,7 +71,7 @@ class DirectoryContainerTests: XCTestCase {
     func testReadFullEntry() async throws {
         let container = try await DirectoryContainer(directory: fixtures.url(for: "exploded"))
         let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
-        let data = try await entry.read().get()
+        let data = try await entry.read()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
             "I'm inside\nthe ZIP.\n"
@@ -81,7 +81,7 @@ class DirectoryContainerTests: XCTestCase {
     func testReadRange() async throws {
         let container = try await DirectoryContainer(directory: fixtures.url(for: "exploded"))
         let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
-        let data = try await entry.read(range: 14 ..< 20).get()
+        let data = try await entry.read(range: 14 ..< 20)
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
             " ZIP.\n"
@@ -94,7 +94,7 @@ class DirectoryContainerTests: XCTestCase {
         length: UInt64
     ) async throws {
         let resource = try XCTUnwrap(container[AnyURL(path: path)!])
-        let estimatedLength = try await resource.estimatedLength().get()
+        let estimatedLength = try await resource.estimatedLength()
         XCTAssertEqual(estimatedLength, length)
     }
 }

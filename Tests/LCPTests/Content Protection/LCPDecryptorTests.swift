@@ -38,7 +38,7 @@ class LCPDecryptorTests: XCTestCase {
         retrieveLicense(path: "daisy.lcpdf", passphrase: "test") { license in
             let decryptedResource = LCPDecryptor(license: license).decrypt(resource: self.encryptedResource)
 
-            XCTAssertEqual(try decryptedResource.read().get(), self.clearData)
+            await XCTAssertEqual(try decryptedResource.read(), self.clearData)
         }
     }
 
@@ -60,7 +60,7 @@ class LCPDecryptorTests: XCTestCase {
 
             for range in ranges {
                 let intRange = Int(range.lowerBound) ..< Int(range.upperBound)
-                let decrypted = try decryptedResource.read(range: range).get()
+                let decrypted = try await decryptedResource.read(range: range)
                 let clear = self.clearData[intRange]
                 XCTAssertEqual(decrypted, clear, "Failed to decrypt range \(intRange)")
             }
