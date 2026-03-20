@@ -32,6 +32,9 @@ public extension HTTPClient {
         let response = await stream(
             request: request,
             consume: { chunk, _ in
+                if Task.isCancelled {
+                    return .failure(.cancelled)
+                }
                 data.append(chunk)
                 return .success(())
             }
@@ -116,6 +119,10 @@ public extension HTTPClient {
         let result = await stream(
             request: request,
             consume: { data, progression in
+                if Task.isCancelled {
+                    return .failure(.cancelled)
+                }
+
                 do {
                     try fileHandle.seekToEnd()
                     try fileHandle.write(contentsOf: data)
