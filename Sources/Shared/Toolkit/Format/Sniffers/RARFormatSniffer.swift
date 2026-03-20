@@ -21,23 +21,21 @@ public struct RARFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         guard !format.hasSpecification else {
-            return .success(nil)
+            return nil
         }
 
         // https://en.wikipedia.org/wiki/List_of_file_signatures
-        return await blob.read(range: 0 ..< 8)
-            .map { data in
-                guard
-                    data.count > 8,
-                    data[0 ..< 7] == Data([0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00]) ||
-                    data == Data([0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00])
-                else {
-                    return nil
-                }
-                return rar
-            }
+        let data = try await blob.read(range: 0 ..< 8)
+        guard
+            data.count > 8,
+            data[0 ..< 7] == Data([0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00]) ||
+            data == Data([0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00])
+        else {
+            return nil
+        }
+        return rar
     }
 
     private let rar = Format(

@@ -13,26 +13,26 @@ public protocol HintsFormatSniffer {
 
 public protocol ContentFormatSniffer {
     /// Tries to refine the given `format` by sniffing a `blob`.
-    func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?>
+    func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format?
 
     /// Tries to refine the given `format` by sniffing a `container`.
-    func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?>
+    func sniffContainer<C: Container>(_ container: C, refining format: Format) async throws(ReadError) -> Format?
 }
 
 public extension ContentFormatSniffer {
     /// Tries to sniff the format of `source`.
-    func sniffBlob(_ source: Streamable) async -> ReadResult<Format?> {
-        await sniffBlob(FormatSnifferBlob(source: source))
+    func sniffBlob(_ source: Streamable) async throws(ReadError) -> Format? {
+        try await sniffBlob(FormatSnifferBlob(source: source))
     }
 
     /// Tries to sniff the format of `blob`.
-    func sniffBlob(_ blob: FormatSnifferBlob) async -> ReadResult<Format?> {
-        await sniffBlob(blob, refining: .null)
+    func sniffBlob(_ blob: FormatSnifferBlob) async throws(ReadError) -> Format? {
+        try await sniffBlob(blob, refining: .null)
     }
 
     /// Tries to sniff the format of `container`.
-    func sniffContainer<C: Container>(_ container: C) async -> ReadResult<Format?> {
-        await sniffContainer(container, refining: .null)
+    func sniffContainer<C: Container>(_ container: C) async throws(ReadError) -> Format? {
+        try await sniffContainer(container, refining: .null)
     }
 }
 
@@ -43,12 +43,12 @@ public extension FormatSniffer {
         nil
     }
 
-    func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
-        .success(nil)
+    func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
+        nil
     }
 
-    func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
-        .success(nil)
+    func sniffContainer<C: Container>(_ container: C, refining format: Format) async throws(ReadError) -> Format? {
+        nil
     }
 }
 

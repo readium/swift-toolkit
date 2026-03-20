@@ -70,7 +70,7 @@ public struct ZABFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async throws(ReadError) -> Format? {
         let entries = container.entries
             .filter {
                 $0.lastPathSegment?.hasPrefix(".") == false &&
@@ -82,7 +82,7 @@ public struct ZABFormatSniffer: FormatSniffer, Sendable {
             allowedExtensions.isSuperset(of: containerExtensions),
             containerExtensions.contains(where: { requiredExtensions.contains($0) })
         else {
-            return .success(nil)
+            return nil
         }
 
         var format = format
@@ -93,6 +93,6 @@ public struct ZABFormatSniffer: FormatSniffer, Sendable {
             format.fileExtension = "zab"
         }
 
-        return .success(format)
+        return format
     }
 }

@@ -21,21 +21,18 @@ public struct LCPLicenseFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         guard format.conformsTo(.json) else {
-            return .success(nil)
+            return nil
         }
 
-        return await blob.read().asJSONObjectValue()
-            .map { json in
-                guard
-                    let json = json,
-                    Set(json.keys).isSuperset(of: ["id", "issued", "provider", "encryption"])
-                else {
-                    return nil
-                }
-                return lcpLicense
-            }
+        guard
+            let json = try await blob.readAsJSON()?.object,
+            Set(json.keys).isSuperset(of: ["id", "issued", "provider", "encryption"])
+        else {
+            return nil
+        }
+        return lcpLicense
     }
 
     private let lcpLicense = Format(

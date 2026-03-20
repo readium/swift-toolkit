@@ -31,63 +31,59 @@ public struct EPUBFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async throws(ReadError) -> Format? {
         guard let resource = container[AnyURL(path: "mimetype")!] else {
-            return .success(nil)
+            return nil
         }
 
-        return await resource.read()
-            .asString()
-            .asyncFlatMap { mimetype in
-                if MediaType.epub.matches(MediaType(mimetype.trimmingCharacters(in: .whitespacesAndNewlines))) {
-                    var format = format
-                    format.addSpecifications(.epub)
-                    if format.conformsTo(.zip) {
-                        format.mediaType = .epub
-                        format.fileExtension = "epub"
-                    }
-
-                    return await sniffDRM(in: container, format: format)
-                } else {
-                    return .success(nil)
-                }
+        let mimetype = try await resource.read().asString()
+        if MediaType.epub.matches(MediaType(mimetype.trimmingCharacters(in: .whitespacesAndNewlines))) {
+            var format = format
+            format.addSpecifications(.epub)
+            if format.conformsTo(.zip) {
+                format.mediaType = .epub
+                format.fileExtension = "epub"
             }
+
+            return try await sniffDRM(in: container, format: format)
+        } else {
+            return nil
+        }
     }
 
-    private func sniffDRM(in container: Container, format: Format) async -> ReadResult<Format?> {
+    private func sniffDRM(in container: Container, format: Format) async throws(ReadError) -> Format? {
         var format = format
 
         if container.entries.contains(AnyURL(path: "META-INF/license.lcpl")!) {
             format.addSpecifications(.lcp)
-            return .success(format)
+            return format
         }
 
         guard let resource = container[AnyURL(path: "META-INF/encryption.xml")!] else {
-            return .success(format)
+            return format
         }
 
-        return await resource.read()
-            .asyncMap { try? xmlDocumentFactory.open(data: $0, namespaces: []) }
-            .map { document in
-                guard let document = document else {
-                    return format
-                }
+        let data = try await resource.read()
+        let document = try? xmlDocumentFactory.open(data: data, namespaces: [])
 
-                let namespaces: [XMLNamespace] = [.enc, .sig, .adept]
+        guard let document = document else {
+            return format
+        }
 
-                if
-                    document
-                    .all("enc:EncryptedData/sig:KeyInfo/sig:RetrievalMethod", with: namespaces)
-                    .contains(where: { $0.attribute(named: "URI") == "license.lcpl#/encryption/content_key" })
-                {
-                    format.addSpecifications(.lcp)
-                }
+        let namespaces: [XMLNamespace] = [.enc, .sig, .adept]
 
-                if document.first("enc:EncryptedData/sig:KeyInfo/adept:resource") != nil {
-                    format.addSpecifications(.adept)
-                }
+        if
+            document
+            .all("enc:EncryptedData/sig:KeyInfo/sig:RetrievalMethod", with: namespaces)
+            .contains(where: { $0.attribute(named: "URI") == "license.lcpl#/encryption/content_key" })
+        {
+            format.addSpecifications(.lcp)
+        }
 
-                return format
-            }
+        if document.first("enc:EncryptedData/sig:KeyInfo/adept:resource") != nil {
+            format.addSpecifications(.adept)
+        }
+
+        return format
     }
 }

@@ -27,18 +27,15 @@ public struct JSONFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         guard !format.hasSpecification else {
-            return .success(nil)
+            return nil
         }
 
-        return await blob.readAsJSON()
-            .map { jsonValue in
-                guard jsonValue != nil else {
-                    return nil
-                }
-                return json
-            }
+        guard try await blob.readAsJSON() != nil else {
+            return nil
+        }
+        return json
     }
 
     private let json = Format(

@@ -11,11 +11,11 @@ public actor FormatSnifferBlob {
     private let xmlDocumentFactory: XMLDocumentFactory
 
     // Caches
-    private var length: ReadResult<UInt64?>?
-    private var bytes: ReadResult<Data?>?
-    private var string: ReadResult<String?>?
-    private var json: ReadResult<JSONValue?>?
-    private var xml: ReadResult<XMLDocument?>?
+    private var _length: Result<UInt64?, ReadError>?
+    private var _bytes: Result<Data?, ReadError>?
+    private var _string: Result<String?, ReadError>?
+    private var _json: Result<JSONValue?, ReadError>?
+    private var _xml: Result<XMLDocument?, ReadError>?
 
     public init(source: Streamable) {
         self.source = source
@@ -25,68 +25,96 @@ public actor FormatSnifferBlob {
     /// Reads the bytes at the given range.
     ///
     /// Out-of-range indexes are clamped to the available length automatically.
-    func read(range: Range<UInt64>) async -> ReadResult<Data> {
-        await source.read(range: range)
+    func read(range: Range<UInt64>) async throws(ReadError) -> Data {
+        try await source.read(range: range)
     }
 
     /// Reads the whole bytes.
     ///
     /// If the resource is too large to be read in memory, will return nil.
-    func read() async -> ReadResult<Data?> {
-        if bytes == nil {
-            bytes = await length()
-                .asyncFlatMap { length in
-                    guard let length = length, length < 5 * 1000 * 1000 else {
-                        return .success(nil)
-                    }
-
-                    return await source.read()
-                        .map { $0 as Data? }
+    func read() async throws(ReadError) -> Data? {
+        if _bytes == nil {
+            do {
+                let length = try await length()
+                guard let length = length, length < 5 * 1000 * 1000 else {
+                    _bytes = .success(nil)
+                    return nil
                 }
+                let data = try await source.read()
+                _bytes = .success(data)
+            } catch {
+                _bytes = .failure(error)
+            }
         }
-        return bytes!
+        switch _bytes! {
+        case let .success(data): return data
+        case let .failure(error): throw error
+        }
     }
 
     /// Reads the whole content as a UTF-8 `String`.
-    func readAsString() async -> ReadResult<String?> {
-        if string == nil {
-            string = await read().map {
-                $0.flatMap { String(data: $0, encoding: .utf8) }
+    func readAsString() async throws(ReadError) -> String? {
+        if _string == nil {
+            do {
+                let data = try await read()
+                _string = .success(data.flatMap { String(data: $0, encoding: .utf8) })
+            } catch {
+                _string = .failure(error)
             }
         }
-        return string!
+        switch _string! {
+        case let .success(string): return string
+        case let .failure(error): throw error
+        }
     }
 
     /// Reads the whole content as JSON.
-    func readAsJSON() async -> ReadResult<JSONValue?> {
-        if json == nil {
-            json = await read().map { data in
-                guard let data = data else {
-                    return nil
-                }
-
-                return try? JSONValue(jsonData: data)
+    func readAsJSON() async throws(ReadError) -> JSONValue? {
+        if _json == nil {
+            do {
+                let data = try await read()
+                _json = .success(data.flatMap { try? JSONValue(jsonData: $0) })
+            } catch {
+                _json = .failure(error)
             }
         }
-        return json!
+        switch _json! {
+        case let .success(json): return json
+        case let .failure(error): throw error
+        }
     }
 
     /// Reads the whole content as an XML document.
-    func readAsXML() async -> ReadResult<XMLDocument?> {
-        if xml == nil {
-            xml = await read().asyncMap {
-                await $0.asyncFlatMap {
-                    try? xmlDocumentFactory.open(data: $0, namespaces: [])
-                }
+    func readAsXML() async throws(ReadError) -> XMLDocument? {
+        if _xml == nil {
+            do {
+                let data = try await read()
+                let xml: XMLDocument? = {
+                    guard let data = data else { return nil }
+                    return try? xmlDocumentFactory.open(data: data, namespaces: [])
+                }()
+                _xml = .success(xml)
+            } catch {
+                _xml = .failure(error)
             }
         }
-        return xml!
+        switch _xml! {
+        case let .success(xml): return xml
+        case let .failure(error): throw error
+        }
     }
 
-    private func length() async -> ReadResult<UInt64?> {
-        if length == nil {
-            length = await source.estimatedLength()
+    private func length() async throws(ReadError) -> UInt64? {
+        if _length == nil {
+            do {
+                _length = try await .success(source.estimatedLength())
+            } catch {
+                _length = .failure(error)
+            }
         }
-        return length!
+        switch _length! {
+        case let .success(length): return length
+        case let .failure(error): throw error
+        }
     }
 }

@@ -28,21 +28,19 @@ public struct HTMLFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         guard !format.hasSpecification || format.conformsTo(.xml) else {
-            return .success(nil)
+            return nil
         }
 
-        return await blob.readAsXML()
-            .asyncMap { document in
-                if let format = sniffDocument(document) {
-                    return format
-                } else if let format = await sniffString(blob) {
-                    return format
-                } else {
-                    return nil
-                }
-            }
+        let document = try await blob.readAsXML()
+        if let format = sniffDocument(document) {
+            return format
+        } else if let format = try await sniffString(blob) {
+            return format
+        } else {
+            return nil
+        }
     }
 
     private func sniffDocument(_ document: XMLDocument?) -> Format? {
@@ -60,10 +58,10 @@ public struct HTMLFormatSniffer: FormatSniffer, Sendable {
         }
     }
 
-    private func sniffString(_ blob: FormatSnifferBlob) async -> Format? {
+    private func sniffString(_ blob: FormatSnifferBlob) async throws(ReadError) -> Format? {
         guard
-            let string = await blob.readAsString().getOrNil(),
-            string?.trimmingCharacters(in: .whitespacesAndNewlines).prefix(15).lowercased() == "<!doctype html>"
+            let string = try await blob.readAsString(),
+            string.trimmingCharacters(in: .whitespacesAndNewlines).prefix(15).lowercased() == "<!doctype html>"
         else {
             return nil
         }

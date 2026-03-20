@@ -23,19 +23,17 @@ public struct PDFFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         guard !format.hasSpecification else {
-            return .success(nil)
+            return nil
         }
 
         // https://en.wikipedia.org/wiki/List_of_file_signatures
-        return await blob.read(range: 0 ..< 5)
-            .map { data in
-                guard String(data: data, encoding: .utf8) == "%PDF-" else {
-                    return nil
-                }
-                return pdf
-            }
+        let data = try await blob.read(range: 0 ..< 5)
+        guard String(data: data, encoding: .utf8) == "%PDF-" else {
+            return nil
+        }
+        return pdf
     }
 
     private let pdf = Format(

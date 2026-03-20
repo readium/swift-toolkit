@@ -21,23 +21,21 @@ public struct ZIPFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         guard !format.hasSpecification else {
-            return .success(nil)
+            return nil
         }
 
         // https://en.wikipedia.org/wiki/List_of_file_signatures
-        return await blob.read(range: 0 ..< 4)
-            .map { data in
-                guard
-                    data == Data([0x50, 0x4B, 0x03, 0x04]) ||
-                    data == Data([0x50, 0x4B, 0x05, 0x06]) ||
-                    data == Data([0x50, 0x4B, 0x07, 0x08])
-                else {
-                    return nil
-                }
-                return zip
-            }
+        let data = try await blob.read(range: 0 ..< 4)
+        guard
+            data == Data([0x50, 0x4B, 0x03, 0x04]) ||
+            data == Data([0x50, 0x4B, 0x05, 0x06]) ||
+            data == Data([0x50, 0x4B, 0x07, 0x08])
+        else {
+            return nil
+        }
+        return zip
     }
 
     private let zip = Format(

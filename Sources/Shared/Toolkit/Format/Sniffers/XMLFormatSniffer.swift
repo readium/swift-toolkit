@@ -21,18 +21,15 @@ public struct XMLFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         guard !format.hasSpecification else {
-            return .success(nil)
+            return nil
         }
 
-        return await blob.readAsXML()
-            .map {
-                guard $0 != nil else {
-                    return nil
-                }
-                return xml
-            }
+        guard try await blob.readAsXML() != nil else {
+            return nil
+        }
+        return xml
     }
 
     private let xml = Format(

@@ -31,50 +31,43 @@ public final class OPDSFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         if format.conformsTo(.xml) {
-            return await blob.readAsXML()
-                .map {
-                    guard let document = $0 else {
-                        return nil
-                    }
-                    let namespaces = [XMLNamespace.atom]
-                    if document.first("/atom:feed", with: namespaces) != nil {
-                        return opds1Catalog
-                    } else if document.first("/atom:entry", with: namespaces) != nil {
-                        return opds1Entry
-                    } else {
-                        return nil
-                    }
-                }
+            guard let document = try await blob.readAsXML() else {
+                return nil
+            }
+            let namespaces = [XMLNamespace.atom]
+            if document.first("/atom:feed", with: namespaces) != nil {
+                return opds1Catalog
+            } else if document.first("/atom:entry", with: namespaces) != nil {
+                return opds1Entry
+            } else {
+                return nil
+            }
 
         } else if format.conformsTo(.json) {
-            return await blob.read()
-                .asJSONObjectValue()
-                .map { json in
-                    guard let json = json else {
-                        return nil
-                    }
+            guard let json = try await blob.readAsJSON()?.object else {
+                return nil
+            }
 
-                    if let rwpm = try? Manifest(json: json) {
-                        if rwpm.linkWithRel(.`self`)?.mediaType?.matches(.opds2) == true {
-                            return opds2Catalog
-                        }
-                        if !rwpm.linksMatching({ $0.rels.contains { $0.hasPrefix("http://opds-spec.org/acquisition") } }).isEmpty {
-                            return opds2Publication
-                        }
-                        return nil
-                    }
-
-                    if Set(json.keys).isSuperset(of: ["id", "title", "authentication"]) {
-                        return opdsAuthentication
-                    }
-
-                    return nil
+            if let rwpm = try? Manifest(json: json) {
+                if rwpm.linkWithRel(.`self`)?.mediaType?.matches(.opds2) == true {
+                    return opds2Catalog
                 }
+                if !rwpm.linksMatching({ $0.rels.contains { $0.hasPrefix("http://opds-spec.org/acquisition") } }).isEmpty {
+                    return opds2Publication
+                }
+                return nil
+            }
+
+            if Set(json.keys).isSuperset(of: ["id", "title", "authentication"]) {
+                return opdsAuthentication
+            }
+
+            return nil
 
         } else {
-            return .success(nil)
+            return nil
         }
     }
 

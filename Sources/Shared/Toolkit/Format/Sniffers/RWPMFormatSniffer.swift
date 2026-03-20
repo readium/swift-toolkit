@@ -22,31 +22,27 @@ public struct RWPMFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
         guard format.conformsTo(.json) else {
-            return .success(nil)
+            return nil
         }
 
-        return await blob.read()
-            .asJSONObjectValue()
-            .map { json in
-                guard
-                    let json = json,
-                    let manifest = try? Manifest(json: json)
-                else {
-                    return nil
-                }
+        guard
+            let json = try await blob.readAsJSON(),
+            let manifest = try? Manifest(json: json)
+        else {
+            return nil
+        }
 
-                if manifest.conforms(to: .audiobook) {
-                    return audiobook
-                } else if manifest.conforms(to: .divina) {
-                    return divina
-                } else if manifest.linkWithRel(.`self`)?.mediaType?.matches(.readiumWebPubManifest) == true {
-                    return webpub
-                } else {
-                    return nil
-                }
-            }
+        if manifest.conforms(to: .audiobook) {
+            return audiobook
+        } else if manifest.conforms(to: .divina) {
+            return divina
+        } else if manifest.linkWithRel(.`self`)?.mediaType?.matches(.readiumWebPubManifest) == true {
+            return webpub
+        } else {
+            return nil
+        }
     }
 
     private let webpub = Format(

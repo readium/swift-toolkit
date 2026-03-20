@@ -21,47 +21,40 @@ public class CompositeFormatSniffer: FormatSniffer {
         sniffers.first { $0.sniffHints(hints) }
     }
 
-    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
-        await refine(format: format) { sniffer, format in
-            await sniffer.sniffBlob(blob, refining: format)
+    public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async throws(ReadError) -> Format? {
+        try await refine(format: format) { sniffer, format throws(ReadError) -> Format? in
+            try await sniffer.sniffBlob(blob, refining: format)
         }
     }
 
-    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
-        await refine(format: format) { sniffer, format in
-            await sniffer.sniffContainer(container, refining: format)
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async throws(ReadError) -> Format? {
+        try await refine(format: format) { sniffer, format throws(ReadError) -> Format? in
+            try await sniffer.sniffContainer(container, refining: format)
         }
     }
 
     private func refine(
         format: Format,
-        with sniffing: (FormatSniffer, Format) async -> ReadResult<Format?>
-    ) async -> ReadResult<Format?> {
-        func refine(_ format: Format) async -> ReadResult<Format> {
+        with sniffing: (FormatSniffer, Format) async throws(ReadError) -> Format?
+    ) async throws(ReadError) -> Format? {
+        func refine(_ format: Format) async throws(ReadError) -> Format {
             for sniffer in sniffers {
-                let result = await sniffing(sniffer, format)
-                switch result {
-                case let .success(newFormat):
-                    guard let newFormat = newFormat, newFormat.refines(format) else {
-                        continue
-                    }
-                    return await refine(newFormat)
-
-                case let .failure(error):
-                    return .failure(error)
+                guard let newFormat = try await sniffing(sniffer, format),
+                      newFormat.refines(format)
+                else {
+                    continue
                 }
+                return try await refine(newFormat)
             }
 
-            return .success(format)
+            return format
         }
 
-        return await refine(format)
-            .map { newFormat in
-                if newFormat == format {
-                    return nil
-                } else {
-                    return newFormat
-                }
-            }
+        let newFormat = try await refine(format)
+        if newFormat == format {
+            return nil
+        } else {
+            return newFormat
+        }
     }
 }

@@ -26,32 +26,29 @@ public struct RPFFormatSniffer: FormatSniffer, Sendable {
         return nil
     }
 
-    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async throws(ReadError) -> Format? {
         guard let resource = container[AnyURL(path: "manifest.json")!] else {
-            return .success(nil)
+            return nil
         }
 
-        return await resource.read()
-            .asJSONObjectValue()
-            .map { json in
-                guard let manifest = try? Manifest(json: json) else {
-                    return nil
-                }
+        let json = try await resource.read().asJSONObjectValue()
+        guard let manifest = try? Manifest(json: json) else {
+            return nil
+        }
 
-                let isLCPProtected =
-                    container.entries.contains(AnyURL(path: "license.lcpl")!) ||
-                    manifest.containsLCPScheme
+        let isLCPProtected =
+            container.entries.contains(AnyURL(path: "license.lcpl")!) ||
+            manifest.containsLCPScheme
 
-                if manifest.conforms(to: .audiobook) {
-                    return isLCPProtected ? audiobookLCP : audiobook
-                } else if manifest.conforms(to: .divina) {
-                    return isLCPProtected ? divinaLCP : divina
-                } else if manifest.conforms(to: .pdf) {
-                    return isLCPProtected ? pdfLCP : webpub
-                } else {
-                    return isLCPProtected ? webpubLCP : webpub
-                }
-            }
+        if manifest.conforms(to: .audiobook) {
+            return isLCPProtected ? audiobookLCP : audiobook
+        } else if manifest.conforms(to: .divina) {
+            return isLCPProtected ? divinaLCP : divina
+        } else if manifest.conforms(to: .pdf) {
+            return isLCPProtected ? pdfLCP : webpub
+        } else {
+            return isLCPProtected ? webpubLCP : webpub
+        }
     }
 
     private let webpub = Format(
