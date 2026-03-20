@@ -77,6 +77,69 @@ class CoverServiceTests: XCTestCase {
         AssertImageEqual(result, .success(cover))
     }
 
+    /// `ResourceCoverService` loads an SVG cover when the resource has an explicit `.cover`
+    /// relation and an SVG media type.
+    func testResourceCoverServiceHandlesSVGCoverLink() async {
+        let publication = makePublication(
+            resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
+            containerURL: fixtures.url(for: "cover-svg.svg"),
+            containerHref: "cover-svg.svg"
+        )
+        let result = await publication.cover()
+        switch result {
+        case let .success(image):
+            XCTAssertNotNil(image, "SVG cover should produce a non-nil UIImage")
+        case let .failure(error):
+            XCTFail("Expected success but got \(error)")
+        }
+    }
+
+    /// `ResourceCoverService` uses the first SVG reading order item when no explicit `.cover`
+    /// link is declared.
+    func testResourceCoverServiceUsesFirstSVGReadingOrderItem() async {
+        let publication = makePublication(
+            readingOrder: [
+                Link(href: "cover-svg.svg", mediaType: .svg),
+            ],
+            resources: [],
+            containerURL: fixtures.url(for: "cover-svg.svg"),
+            containerHref: "cover-svg.svg"
+        )
+        let result = await publication.cover()
+        switch result {
+        case let .success(image):
+            XCTAssertNotNil(image, "SVG reading order item should produce a non-nil UIImage")
+        case let .failure(error):
+            XCTFail("Expected success but got \(error)")
+        }
+    }
+
+    /// `ResourceCoverService` uses the first SVG alternate of the first reading order item
+    /// when that item is not an image.
+    func testResourceCoverServiceUsesFirstReadingOrderSVGAlternate() async {
+        let publication = makePublication(
+            readingOrder: [
+                Link(
+                    href: "chapter1.xhtml",
+                    mediaType: .xhtml,
+                    alternates: [
+                        Link(href: "cover-svg.svg", mediaType: .svg),
+                    ]
+                ),
+            ],
+            resources: [],
+            containerURL: fixtures.url(for: "cover-svg.svg"),
+            containerHref: "cover-svg.svg"
+        )
+        let result = await publication.cover()
+        switch result {
+        case let .success(image):
+            XCTAssertNotNil(image, "SVG alternate should produce a non-nil UIImage")
+        case let .failure(error):
+            XCTFail("Expected success but got \(error)")
+        }
+    }
+
     /// `ResourceCoverService` returns nil when no explicit `.cover` link is declared and no bitmap
     /// is available.
     func testResourceCoverServiceReturnsNilWhenNoBitmapAvailable() async {
@@ -118,7 +181,9 @@ class CoverServiceTests: XCTestCase {
     private func makePublication(
         readingOrder: [Link] = [],
         resources: [Link] = [Link(href: "cover.jpg", rels: [.cover])],
-        cover: CoverServiceFactory? = nil
+        cover: CoverServiceFactory? = nil,
+        containerURL: FileURL? = nil,
+        containerHref: String = "cover.jpg"
     ) -> Publication {
         var builder = PublicationServicesBuilder()
         if let cover { builder.setCoverServiceFactory(cover) }
@@ -129,8 +194,8 @@ class CoverServiceTests: XCTestCase {
                 resources: resources
             ),
             container: SingleResourceContainer(
-                resource: FileResource(file: coverURL),
-                at: AnyURL(string: "cover.jpg")!
+                resource: FileResource(file: containerURL ?? coverURL),
+                at: AnyURL(string: containerHref)!
             ),
             servicesBuilder: builder
         )
