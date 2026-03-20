@@ -30,7 +30,7 @@ class ContainerLicenseContainer: LicenseContainer {
                 throw LCPError.licenseContainer(.fileNotFound(licensePath.string))
             }
 
-            return try await resource.read().get()
+            return try await resource.read()
 
         } catch {
             throw LCPError.licenseContainer(.readFailed(path: licensePath.string))

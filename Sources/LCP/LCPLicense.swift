@@ -49,17 +49,17 @@ public protocol LCPLicense: UserRights {
     func renewLoan(
         with delegate: LCPRenewDelegate,
         prefersWebPage: Bool
-    ) async -> Result<Void, LCPError>
+    ) async throws(LCPError)
 
     /// Can the user return the loaned publication?
     var canReturnPublication: Bool { get }
 
     /// Returns the publication to its provider.
-    func returnPublication() async -> Result<Void, LCPError>
+    func returnPublication() async throws(LCPError)
 }
 
 public extension LCPLicense {
-    func renewLoan(with delegate: LCPRenewDelegate) async -> Result<Void, LCPError> {
-        await renewLoan(with: delegate, prefersWebPage: false)
+    func renewLoan(with delegate: LCPRenewDelegate) async throws(LCPError) {
+        try await renewLoan(with: delegate, prefersWebPage: false)
     }
 }

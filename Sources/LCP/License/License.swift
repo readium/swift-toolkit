@@ -172,7 +172,7 @@ extension License: LCPLicense {
         status?.potentialRights?.end
     }
 
-    func renewLoan(with delegate: any LCPRenewDelegate, prefersWebPage: Bool) async -> Result<Void, LCPError> {
+    func renewLoan(with delegate: any LCPRenewDelegate, prefersWebPage: Bool) async throws(LCPError) {
         func renew() async throws -> Data {
             guard let link = findRenewLink() else {
                 throw LCPError.licenseInteractionNotAvailable
@@ -272,9 +272,8 @@ extension License: LCPLicense {
 
         do {
             try await validateStatusDocument(data: renew())
-            return .success(())
         } catch {
-            return .failure(.wrap(error))
+            throw .wrap(error)
         }
     }
 
@@ -282,7 +281,7 @@ extension License: LCPLicense {
         status?.link(for: .return) != nil
     }
 
-    func returnPublication() async -> Result<Void, LCPError> {
+    func returnPublication() async throws(LCPError) {
         guard
             let status = documents.status,
             let url = try? status.url(
@@ -291,7 +290,7 @@ extension License: LCPLicense {
                 parameters: device.asQueryParameters
             )
         else {
-            return .failure(.licenseInteractionNotAvailable)
+            throw .licenseInteractionNotAvailable
         }
 
         do {
@@ -315,10 +314,9 @@ extension License: LCPLicense {
                 .get()
 
             try await validateStatusDocument(data: data)
-            return .success(())
 
         } catch {
-            return .failure(.wrap(error))
+            throw .wrap(error)
         }
     }
 

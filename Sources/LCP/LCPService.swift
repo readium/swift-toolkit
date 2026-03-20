@@ -83,8 +83,8 @@ public final class LCPService: Loggable {
     public func acquirePublication(
         from lcpl: LicenseDocumentSource,
         onProgress: @escaping (LCPProgress) -> Void = { _ in }
-    ) async -> Result<LCPAcquiredPublication, LCPError> {
-        await wrap {
+    ) async throws(LCPError) -> LCPAcquiredPublication {
+        try await wrap {
             try await licenses.acquirePublication(from: lcpl, onProgress: onProgress)
         }
     }
@@ -95,8 +95,8 @@ public final class LCPService: Loggable {
     public func injectLicenseDocument(
         _ license: LicenseDocument,
         in url: FileURL
-    ) async -> Result<Void, LCPError> {
-        await wrap {
+    ) async throws(LCPError) {
+        try await wrap {
             try await licenses.injectLicenseDocument(license, in: url)
         }
     }
@@ -126,8 +126,8 @@ public final class LCPService: Loggable {
         authentication: LCPAuthenticating,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async -> Result<LCPLicense, LCPError> {
-        await wrap {
+    ) async throws(LCPError) -> LCPLicense {
+        try await wrap {
             try await licenses.retrieve(
                 from: asset,
                 authentication: authentication,
@@ -147,11 +147,11 @@ public final class LCPService: Loggable {
         LCPContentProtection(service: self, authentication: authentication, assetRetriever: assetRetriever)
     }
 
-    private func wrap<Success>(_ block: () async throws -> Success) async -> Result<Success, LCPError> {
+    private func wrap<Success>(_ block: () async throws -> Success) async throws(LCPError) -> Success {
         do {
-            return try await .success(block())
+            return try await block()
         } catch {
-            return .failure(.wrap(error))
+            throw .wrap(error)
         }
     }
 }

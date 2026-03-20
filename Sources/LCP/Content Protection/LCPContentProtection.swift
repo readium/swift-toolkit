@@ -23,10 +23,10 @@ final class LCPContentProtection: ContentProtection, Loggable {
         credentials: String?,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
+    ) async throws(ContentProtectionOpenError) -> ContentProtectionAsset {
         switch asset {
         case let .resource(resource):
-            return await openLicense(
+            return try await openLicense(
                 using: resource,
                 credentials: credentials,
                 allowUserInteraction: allowUserInteraction,
@@ -34,7 +34,7 @@ final class LCPContentProtection: ContentProtection, Loggable {
             )
 
         case let .container(container):
-            return await openPublication(
+            return try await openPublication(
                 in: container,
                 credentials: credentials,
                 allowUserInteraction: allowUserInteraction,
@@ -48,36 +48,42 @@ final class LCPContentProtection: ContentProtection, Loggable {
         credentials: String?,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
+    ) async throws(ContentProtectionOpenError) -> ContentProtectionAsset {
         guard asset.format.conformsTo(.lcpLicense) else {
-            return .failure(.assetNotSupported(DebugError("The asset does not appear to be an LCP License")))
+            throw .assetNotSupported(DebugError("The asset does not appear to be an LCP License"))
         }
 
-        return await asset.resource.read()
-            .asLCPL()
-            .mapError { .reading($0) }
-            .asyncFlatMap { licenseDocument in
-                await assetRetriever.retrieve(link: licenseDocument.publicationLink)
-                    .flatMap { publicationAsset in
-                        switch publicationAsset {
-                        case .resource:
-                            return .failure(.assetNotSupported(DebugError("Cannot open the LCP-protected publication as a Container")))
-                        case let .container(container):
-                            return .success(container)
-                        }
-                    }
-                    .asyncFlatMap {
-                        await makeLCPAsset(
-                            from: $0,
-                            license: retrieveLicense(
-                                in: .resource(asset),
-                                credentials: credentials,
-                                allowUserInteraction: allowUserInteraction,
-                                sender: sender
-                            )
-                        )
-                    }
-            }
+        let licenseDocument: LicenseDocument
+        do {
+            licenseDocument = try await asset.resource.read().asLCPL()
+        } catch {
+            throw .reading(error)
+        }
+
+        let publicationAsset: Asset
+        do {
+            publicationAsset = try await assetRetriever.retrieve(link: licenseDocument.publicationLink)
+        } catch {
+            throw error
+        }
+
+        let containerAsset: ContainerAsset
+        switch publicationAsset {
+        case .resource:
+            throw .assetNotSupported(DebugError("Cannot open the LCP-protected publication as a Container"))
+        case let .container(container):
+            containerAsset = container
+        }
+
+        return try await makeLCPAsset(
+            from: containerAsset,
+            license: retrieveLicense(
+                in: .resource(asset),
+                credentials: credentials,
+                allowUserInteraction: allowUserInteraction,
+                sender: sender
+            )
+        )
     }
 
     func openPublication(
@@ -85,17 +91,17 @@ final class LCPContentProtection: ContentProtection, Loggable {
         credentials: String?,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
+    ) async throws(ContentProtectionOpenError) -> ContentProtectionAsset {
         guard asset.format.conformsTo(.lcp) else {
-            return .failure(.assetNotSupported(DebugError("The asset does not appear to be protected with LCP")))
+            throw .assetNotSupported(DebugError("The asset does not appear to be protected with LCP"))
         }
 
         // FIXME: Alternative to storing the license in the file?
 //        guard asset.container.sourceURL?.scheme == .file else {
-//            return .failure(.assetNotSupported(DebugError("Only container asset of local files are currently supported with LCP")))
+//            throw .assetNotSupported(DebugError("Only container asset of local files are currently supported with LCP"))
 //        }
 
-        return await makeLCPAsset(
+        return try await makeLCPAsset(
             from: asset,
             license: retrieveLicense(
                 in: .container(asset),
@@ -115,38 +121,44 @@ final class LCPContentProtection: ContentProtection, Loggable {
         let authentication = credentials.map { LCPPassphraseAuthentication($0, fallback: self.authentication) }
             ?? self.authentication
 
-        return await service.retrieveLicense(
-            from: asset,
-            authentication: authentication,
-            allowUserInteraction: allowUserInteraction,
-            sender: sender
-        )
+        do {
+            let license = try await service.retrieveLicense(
+                from: asset,
+                authentication: authentication,
+                allowUserInteraction: allowUserInteraction,
+                sender: sender
+            )
+            return .success(license)
+        } catch {
+            return .failure(error)
+        }
     }
 
     func makeLCPAsset(
         from asset: ContainerAsset,
         license: Result<LCPLicense, LCPError>
-    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
-        await parseEncryptionData(in: asset)
-            .mapError { ContentProtectionOpenError.reading(.decoding($0)) }
-            .asyncFlatMap { encryptionData in
-                var asset = asset
+    ) async throws(ContentProtectionOpenError) -> ContentProtectionAsset {
+        let encryptionData: [AnyURL: ReadiumShared.Encryption]
+        do {
+            encryptionData = try await parseEncryptionData(in: asset)
+        } catch {
+            throw ContentProtectionOpenError.reading(error)
+        }
 
-                let decryptor = LCPDecryptor(license: license.getOrNil(), encryptionData: encryptionData)
-                asset.container = asset.container
-                    .map(transform: decryptor.decrypt(at:resource:))
+        var asset = asset
 
-                let cpAsset = ContentProtectionAsset(
-                    asset: .container(asset),
-                    onCreatePublication: { _, _, services in
-                        services.setContentProtectionServiceFactory { _ in
-                            LCPContentProtectionService(result: license)
-                        }
-                    }
-                )
+        let decryptor = LCPDecryptor(license: license.getOrNil(), encryptionData: encryptionData)
+        asset.container = asset.container
+            .map(transform: decryptor.decrypt(at:resource:))
 
-                return .success(cpAsset)
+        return ContentProtectionAsset(
+            asset: .container(asset),
+            onCreatePublication: { _, _, services in
+                services.setContentProtectionServiceFactory { _ in
+                    LCPContentProtectionService(result: license)
+                }
             }
+        )
     }
 }
 
@@ -199,30 +211,31 @@ public extension Publication {
 }
 
 private extension AssetRetriever {
-    func retrieve(link: Link) async -> Result<Asset, ContentProtectionOpenError> {
+    func retrieve(link: Link) async throws(ContentProtectionOpenError) -> Asset {
         guard let url = link.url() else {
-            return .failure(.reading(.decoding("The LCP License Document does not contain a valid HTTP URL to the protected publication")))
+            throw .reading(.decoding("The LCP License Document does not contain a valid HTTP URL to the protected publication"))
         }
 
-        return await retrieve(
-            url: url,
-            mediaType: link.mediaType
-        )
-        .mapError { error in
+        do {
+            return try await retrieve(
+                url: url,
+                mediaType: link.mediaType
+            )
+        } catch {
             switch error {
             case .formatNotSupported, .schemeNotSupported:
-                return .assetNotSupported(error)
+                throw .assetNotSupported(error)
             case let .reading(error):
-                return .reading(error)
+                throw .reading(error)
             }
         }
     }
 
-    func retrieve(url: HTTPURL, mediaType: MediaType?) async -> Result<Asset, AssetRetrieveURLError> {
+    func retrieve(url: HTTPURL, mediaType: MediaType?) async throws(AssetRetrieveURLError) -> Asset {
         if let format = mediaType?.lcpFormat {
-            return await retrieve(url: url, format: format)
+            return try await retrieve(url: url, format: format)
         } else {
-            return await retrieve(url: url, hints: FormatHints(mediaType: mediaType))
+            return try await retrieve(url: url, hints: FormatHints(mediaType: mediaType))
         }
     }
 }

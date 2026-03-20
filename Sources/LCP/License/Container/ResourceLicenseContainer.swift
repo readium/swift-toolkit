@@ -22,7 +22,7 @@ final class ResourceLicenseContainer: LicenseContainer {
 
     func read() async throws -> Data {
         do {
-            return try await asset.resource.read().get()
+            return try await asset.resource.read()
         } catch {
             throw LCPError.licenseContainer(.readFailed(path: "."))
         }

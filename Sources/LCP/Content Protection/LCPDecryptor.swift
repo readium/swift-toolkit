@@ -72,12 +72,12 @@ final class LCPDecryptor {
             super.init(resource)
         }
 
-        override func transform(data: ReadResult<Data>) async -> ReadResult<Data> {
-            await license.decryptFully(data: data, isDeflated: encryption.isDeflated)
+        override func transform(data: Data) async throws(ReadError) -> Data {
+            try license.decryptFully(data: data, isDeflated: encryption.isDeflated)
         }
 
-        override func estimatedLength() async -> ReadResult<UInt64?> {
-            .success(encryption.originalLength.map { UInt64($0) })
+        override func estimatedLength() async throws(ReadError) -> UInt64? {
+            encryption.originalLength.map { UInt64($0) }
         }
     }
 
@@ -99,139 +99,144 @@ final class LCPDecryptor {
 
         let sourceURL: AbsoluteURL? = nil
 
-        func properties() async -> ReadResult<ResourceProperties> {
-            .success(ResourceProperties())
+        func properties() async throws(ReadError) -> ResourceProperties {
+            ResourceProperties()
         }
 
-        func estimatedLength() async -> ReadResult<UInt64?> {
-            await plainTextSize
+        func estimatedLength() async throws(ReadError) -> UInt64? {
+            try await plainTextSize
         }
 
-        private var plainTextSize: ReadResult<UInt64?> {
-            get async { await plainTextSizeTask.value }
-        }
-
-        private lazy var plainTextSizeTask = Task<ReadResult<UInt64?>, Never> {
-            await resource.estimatedLength().asyncFlatMap { length in
-                guard let length = length else {
-                    return failure(.requiredEstimatedLength)
+        private var plainTextSize: UInt64? {
+            get async throws(ReadError) {
+                do {
+                    return try await plainTextSizeTask.value
+                } catch let error as ReadError {
+                    throw error
+                } catch {
+                    throw .decoding(error)
                 }
-                guard length.isValidAESChunk else {
-                    return failure(.invalidCBCData)
-                }
-
-                let readPosition = length - 2 * AESBlockSize
-                return await resource.read(range: readPosition ..< length)
-                    .flatMap { encryptedData in
-                        do {
-                            guard let data = try license.decipher(encryptedData) else {
-                                return failure(.emptyDecryptedData)
-                            }
-
-                            let paddingSize = UInt64(data.last ?? 0)
-
-                            let result = length
-                                - AESBlockSize // Minus IV or previous block
-                                - paddingSize // Minus padding part
-                            return .success(result)
-                        } catch {
-                            return .failure(.decoding(error))
-                        }
-                    }
             }
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        private lazy var plainTextSizeTask = Task {
+            let length = try await resource.estimatedLength()
+            guard let length = length else {
+                throw failure(.requiredEstimatedLength)
+            }
+            guard length.isValidAESChunk else {
+                throw failure(.invalidCBCData)
+            }
+
+            let readPosition = length - 2 * AESBlockSize
+            let encryptedData = try await resource.read(range: readPosition ..< length)
+
+            do {
+                guard let data = try license.decipher(encryptedData) else {
+                    throw failure(.emptyDecryptedData)
+                }
+
+                let paddingSize = UInt64(data.last ?? 0)
+
+                return length
+                    - AESBlockSize // Minus IV or previous block
+                    - paddingSize // Minus padding part
+            } catch let error as ReadError {
+                throw error
+            } catch {
+                throw ReadError.decoding(error)
+            }
+        }
+
+        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
             guard let range = range else {
-                return await license.decryptFully(data: resource.read(), isDeflated: encryption.isDeflated)
-                    .map {
-                        consume($0)
-                        return ()
-                    }
+                let data = try await resource.read()
+                let decrypted = try license.decryptFully(data: data, isDeflated: encryption.isDeflated)
+                consume(decrypted)
+                return
             }
 
-            return await resource.estimatedLength().asyncFlatMap { encryptedLength in
-                guard let encryptedLength = encryptedLength else {
-                    return failure(.requiredEstimatedLength)
+            let encryptedLength = try await resource.estimatedLength()
+            guard let encryptedLength = encryptedLength else {
+                throw failure(.requiredEstimatedLength)
+            }
+            guard let rangeFirst = range.first, let rangeLast = range.last else {
+                throw failure(.invalidRange(range))
+            }
+
+            // Encrypted data is shifted by AESBlockSize, because of IV and because the
+            // previous block must be provided to perform XOR on intermediate blocks.
+            let encryptedStart = rangeFirst.floorMultiple(of: AESBlockSize)
+            let encryptedEndExclusive = (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize
+
+            let encryptedData = try await resource.read(range: encryptedStart ..< encryptedEndExclusive)
+            let plainTextSize = try await plainTextSize
+
+            do {
+                guard let plainTextSize = plainTextSize else {
+                    throw failure(.noPlainTextSize)
                 }
-                guard let rangeFirst = range.first, let rangeLast = range.last else {
-                    return failure(.invalidRange(range))
+                guard let bytes = try license.decipher(encryptedData) else {
+                    throw failure(.emptyDecryptedData)
                 }
 
-                // Encrypted data is shifted by AESBlockSize, because of IV and because the
-                // previous block must be provided to perform XOR on intermediate blocks.
-                let encryptedStart = rangeFirst.floorMultiple(of: AESBlockSize)
-                let encryptedEndExclusive = (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize
+                // Exclude the bytes added to match a multiple of AESBlockSize.
+                let sliceStart = (rangeFirst - encryptedStart)
 
-                return await resource.read(range: encryptedStart ..< encryptedEndExclusive)
-                    .combine(plainTextSize)
-                    .flatMap { encryptedData, plainTextSize in
-                        do {
-                            guard let plainTextSize = plainTextSize else {
-                                return failure(.noPlainTextSize)
-                            }
-                            guard let bytes = try license.decipher(encryptedData) else {
-                                return failure(.emptyDecryptedData)
-                            }
+                let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
+                let rangeLength = isLastBlockRead
+                    // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
+                    ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
+                    // The last block won't be read, so there's no need to compute the length
+                    : rangeLast - rangeFirst + 1
 
-                            // Exclude the bytes added to match a multiple of AESBlockSize.
-                            let sliceStart = (rangeFirst - encryptedStart)
+                // Keep only enough bytes to fit the length-corrected request in order to never
+                // include padding.
+                let sliceEnd = sliceStart + rangeLength
 
-                            let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
-                            let rangeLength = isLastBlockRead
-                                // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
-                                ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
-                                // The last block won't be read, so there's no need to compute the length
-                                : rangeLast - rangeFirst + 1
-
-                            // Keep only enough bytes to fit the length-corrected request in order to never
-                            // include padding.
-                            let sliceEnd = sliceStart + rangeLength
-
-                            consume(bytes[sliceStart ..< sliceEnd])
-                            return .success(())
-                        } catch {
-                            return .failure(.decoding(error))
-                        }
-                    }
+                consume(bytes[sliceStart ..< sliceEnd])
+            } catch let error as ReadError {
+                throw error
+            } catch {
+                throw ReadError.decoding(error)
             }
         }
 
-        private func failure<T>(_ error: LCPDecryptor.Error) -> ReadResult<T> {
-            .failure(.decoding(error))
+        private func failure(_ error: LCPDecryptor.Error) -> ReadError {
+            .decoding(error)
         }
     }
 }
 
 private extension LCPLicense {
-    func decryptFully(data: ReadResult<Data>, isDeflated: Bool) async -> ReadResult<Data> {
-        data.flatMap {
-            guard UInt64($0.count).isValidAESChunk else {
-                return .failure(.decoding(LCPDecryptor.Error.invalidCBCData))
+    func decryptFully(data: Data, isDeflated: Bool) throws(ReadError) -> Data {
+        guard UInt64(data.count).isValidAESChunk else {
+            throw .decoding(LCPDecryptor.Error.invalidCBCData)
+        }
+
+        do {
+            // Decrypts the resource.
+            guard var data = try decipher(data) else {
+                throw ReadError.decoding(LCPDecryptor.Error.emptyDecryptedData)
             }
 
-            do {
-                // Decrypts the resource.
-                guard var data = try self.decipher($0) else {
-                    return .failure(.decoding(LCPDecryptor.Error.emptyDecryptedData))
+            // Removes the padding.
+            let padding = Int(data[data.count - 1])
+            data = data[0 ..< (data.count - padding)]
+
+            // If the ressource was compressed using deflate, inflate it.
+            if isDeflated {
+                guard let inflatedData = data.inflate() else {
+                    throw ReadError.decoding(LCPDecryptor.Error.inflateFailed)
                 }
-
-                // Removes the padding.
-                let padding = Int(data[data.count - 1])
-                data = data[0 ..< (data.count - padding)]
-
-                // If the ressource was compressed using deflate, inflate it.
-                if isDeflated {
-                    guard let inflatedData = data.inflate() else {
-                        return .failure(.decoding(LCPDecryptor.Error.inflateFailed))
-                    }
-                    data = inflatedData
-                }
-
-                return .success(data)
-            } catch {
-                return .failure(.decoding(error))
+                data = inflatedData
             }
+
+            return data
+        } catch let error as ReadError {
+            throw error
+        } catch {
+            throw .decoding(error)
         }
     }
 }

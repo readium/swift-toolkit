@@ -154,9 +154,12 @@ final class LicensesService: Loggable {
             formatHints.mediaTypes.append(type)
         }
 
-        let asset = try await assetRetriever.retrieve(url: url, hints: formatHints)
-            .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
-            .get()
+        let asset: Asset
+        do {
+            asset = try await assetRetriever.retrieve(url: url, hints: formatHints)
+        } catch {
+            throw LCPError.licenseContainer(ContainerError.openFailed(error))
+        }
 
         try await injectLicense(license, in: asset)
 
@@ -168,9 +171,12 @@ final class LicensesService: Loggable {
         case let .data(data):
             return try LicenseDocument(data: data)
         case let .file(file):
-            let asset = try await assetRetriever.retrieve(url: file)
-                .mapError { LCPError.licenseContainer(ContainerError.openFailed($0)) }
-                .get()
+            let asset: Asset
+            do {
+                asset = try await assetRetriever.retrieve(url: file)
+            } catch {
+                throw LCPError.licenseContainer(ContainerError.openFailed(error))
+            }
             let container = try makeLicenseContainer(for: asset)
             guard try await container.containsLicense() else {
                 return nil
