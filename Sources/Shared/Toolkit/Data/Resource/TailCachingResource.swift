@@ -25,65 +25,68 @@ actor TailCachingResource: Resource, Loggable {
         resource.sourceURL
     }
 
-    func properties() async -> ReadResult<ResourceProperties> {
-        await resource.properties()
+    func properties() async throws(ReadError) -> ResourceProperties {
+        try await resource.properties()
     }
 
-    func estimatedLength() async -> ReadResult<UInt64?> {
-        await resource.estimatedLength()
+    func estimatedLength() async throws(ReadError) -> UInt64? {
+        try await resource.estimatedLength()
     }
 
     func stream(
         range: Range<UInt64>?,
         consume: @escaping (Data) -> Void
-    ) async -> ReadResult<Void> {
+    ) async throws(ReadError) {
         guard cacheFromOffset <= range?.lowerBound ?? 0 else {
-            return await resource.stream(range: range, consume: consume)
+            try await resource.stream(range: range, consume: consume)
+            return
         }
 
-        return await cachedTail()
-            .asyncFlatMap { data in
-                guard let data = data else {
-                    return await resource.stream(range: range, consume: consume)
-                }
+        let data = try await cachedTail()
+        guard let data = data else {
+            try await resource.stream(range: range, consume: consume)
+            return
+        }
 
-                if let range = range {
-                    let range = range.clampedToInt()
-                    let lower = Int(range.lowerBound) - Int(cacheFromOffset)
-                    let upper = min(lower + range.count, data.count)
-                    guard lower >= 0 else {
-                        return .failure(.decoding("Cannot satisty requested range from the cached tail"))
-                    }
-                    consume(data[lower ..< upper])
-                } else {
-                    consume(data)
-                }
-
-                return .success(())
+        if let range = range {
+            let range = range.clampedToInt()
+            let lower = Int(range.lowerBound) - Int(cacheFromOffset)
+            let upper = min(lower + range.count, data.count)
+            guard lower >= 0 else {
+                throw .decoding("Cannot satisty requested range from the cached tail")
             }
+            consume(data[lower ..< upper])
+        } else {
+            consume(data)
+        }
     }
 
-    private var cache: ReadResult<Data?>?
+    private var cache: Result<Data?, ReadError>?
 
-    private func cachedTail() async -> ReadResult<Data?> {
+    private func cachedTail() async throws(ReadError) -> Data? {
         if let cache = cache {
-            return cache
+            switch cache {
+            case let .success(data): return data
+            case let .failure(error): throw error
+            }
         }
 
-        return await estimatedLength()
-            .asyncFlatMap { length in
-                let length = length ?? .max
-                guard cacheFromOffset < length else {
-                    cache = .success(nil)
-                    return cache!
-                }
+        let length = try await estimatedLength() ?? .max
+        guard cacheFromOffset < length else {
+            cache = .success(nil)
+            return nil
+        }
 
-                var data = Data()
-                cache = await resource.stream(range: cacheFromOffset ..< length) { chunk in
-                    data.append(chunk)
-                }.map { data }
-
-                return cache!
+        var data = Data()
+        do {
+            try await resource.stream(range: cacheFromOffset ..< length) { chunk in
+                data.append(chunk)
             }
+            cache = .success(data)
+            return data
+        } catch {
+            cache = .failure(error)
+            throw error
+        }
     }
 }

@@ -13,7 +13,7 @@ import SwiftSoup
 /// notice. Use with caution.
 public protocol _ResourceContentExtractor {
     /// Extracts the text content of the given `resource`.
-    func extractText(of resource: Resource) async -> ReadResult<String>
+    func extractText(of resource: Resource) async throws(ReadError) -> String
 }
 
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
@@ -45,25 +45,23 @@ public final class _DefaultResourceContentExtractorFactory: _ResourceContentExtr
 class _HTMLResourceContentExtractor: _ResourceContentExtractor {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
-    func extractText(of resource: Resource) async -> ReadResult<String> {
-        await resource.read()
-            .asString()
-            .asyncFlatMap { content in
-                do {
-                    // First try to parse a valid XML document, then fallback on SwiftSoup, which is slower.
-                    var text = parse(xml: content)
-                        ?? parse(html: content)
-                        ?? ""
+    func extractText(of resource: Resource) async throws(ReadError) -> String {
+        let content = try await resource.read().asString()
+        do {
+            // First try to parse a valid XML document, then fallback on SwiftSoup, which is slower.
+            var text = parse(xml: content)
+                ?? parse(html: content)
+                ?? ""
 
-                    // Transform HTML entities into their actual characters.
-                    text = try Entities.unescape(text)
+            // Transform HTML entities into their actual characters.
+            text = try Entities.unescape(text)
 
-                    return .success(text)
-
-                } catch {
-                    return .failure(.decoding(error))
-                }
-            }
+            return text
+        } catch let error as ReadError {
+            throw error
+        } catch {
+            throw .decoding(error)
+        }
     }
 
     /// Parse the HTML resource as a strict XML document.

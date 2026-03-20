@@ -21,49 +21,50 @@ public actor HTTPResource: Resource {
         url
     }
 
-    public func properties() async -> ReadResult<ResourceProperties> {
-        await headResponse()
-            .map { response in
-                ResourceProperties {
-                    if let response = response {
-                        $0.filename = response.filename ?? url.lastPathSegment
-                        $0.mediaType = response.mediaType
-                    }
-                }
-            }
-    }
-
-    public func estimatedLength() async -> ReadResult<UInt64?> {
-        await headResponse().flatMap {
-            if let length = $0?.contentLength {
-                return .success(UInt64(length))
-            } else {
-                return .success(nil)
+    public func properties() async throws(ReadError) -> ResourceProperties {
+        let response = try await headResponse()
+        return ResourceProperties {
+            if let response = response {
+                $0.filename = response.filename ?? url.lastPathSegment
+                $0.mediaType = response.mediaType
             }
         }
     }
 
-    private var _headResponse: ReadResult<HTTPResponse?>?
+    public func estimatedLength() async throws(ReadError) -> UInt64? {
+        let response = try await headResponse()
+        if let length = response?.contentLength {
+            return UInt64(length)
+        } else {
+            return nil
+        }
+    }
+
+    private var _headResponse: Result<HTTPResponse?, ReadError>?
 
     /// Cached HEAD response to get the expected content length and other
     /// metadata.
-    private func headResponse() async -> ReadResult<HTTPResponse?> {
+    private func headResponse() async throws(ReadError) -> HTTPResponse? {
         if _headResponse == nil {
-            _headResponse = await client.fetch(HTTPRequest(url: url, method: .head))
-                .map { $0 as HTTPResponse? }
-                .flatMapError { error in
-                    switch error {
-                    case let .errorResponse(response) where response.status == .methodNotAllowed:
-                        return .success(nil)
-                    default:
-                        return .failure(.access(.http(error)))
-                    }
+            switch await client.fetch(HTTPRequest(url: url, method: .head)) {
+            case let .success(response):
+                _headResponse = .success(response)
+            case let .failure(error):
+                switch error {
+                case let .errorResponse(response) where response.status == .methodNotAllowed:
+                    _headResponse = .success(nil)
+                default:
+                    _headResponse = .failure(.access(.http(error)))
                 }
+            }
         }
-        return _headResponse!
+        switch _headResponse! {
+        case let .success(response): return response
+        case let .failure(error): throw error
+        }
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
         let request = {
             var request = HTTPRequest(url: url)
             if let range = range {
@@ -72,14 +73,19 @@ public actor HTTPResource: Resource {
             return request
         }()
 
-        return await client.stream(
+        let result = await client.stream(
             request: request,
             consume: { data, _ in
                 consume(data)
                 return .success(())
             }
         )
-        .map { _ in () }
-        .mapError { .access(.http($0)) }
+
+        switch result {
+        case .success:
+            break
+        case let .failure(error):
+            throw ReadError.access(.http(error))
+        }
     }
 }

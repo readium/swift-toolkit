@@ -60,81 +60,82 @@ public final class AssetRetriever {
     }
 
     /// Sniffs the format of the content available at `url`.
-    public func sniffFormat(of url: AbsoluteURL, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveURLError> {
-        await retrieve(url: url, hints: hints)
-            .map(\.format)
+    public func sniffFormat(of url: AbsoluteURL, hints: FormatHints = FormatHints()) async throws(AssetRetrieveURLError) -> Format {
+        try await retrieve(url: url, hints: hints).format
     }
 
     /// Sniffs the format of a `Resource`.
-    public func sniffFormat(of resource: Resource, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveError> {
-        await retrieve(resource: resource, hints: hints)
-            .map(\.format)
+    public func sniffFormat(of resource: Resource, hints: FormatHints = FormatHints()) async throws(AssetRetrieveError) -> Format {
+        try await retrieve(resource: resource, hints: hints).format
     }
 
     /// Sniffs the format of a `Container`.
-    public func sniffFormat(of container: Container, hints: FormatHints = FormatHints()) async -> Result<Format, AssetRetrieveError> {
-        await retrieve(container: container, hints: hints)
-            .map(\.format)
+    public func sniffFormat(of container: Container, hints: FormatHints = FormatHints()) async throws(AssetRetrieveError) -> Format {
+        try await retrieve(container: container, hints: hints).format
     }
 
     /// Retrieves an asset from a URL and a known format.
-    public func retrieve(url: AbsoluteURL, format: Format) async -> Result<Asset, AssetRetrieveURLError> {
-        await openResource(at: url)
-            .asyncFlatMap { resource in
-                await tryOpenArchive(with: resource, format: format)
-                    .mapError { .reading($0) }
-                    .map { container in
-                        if let container = container {
-                            return .container(container)
-                        } else {
-                            return .resource(ResourceAsset(resource: resource, format: format))
-                        }
-                    }
-            }
+    public func retrieve(url: AbsoluteURL, format: Format) async throws(AssetRetrieveURLError) -> Asset {
+        let resource = try await openResource(at: url)
+        let container: ContainerAsset?
+        do {
+            container = try await tryOpenArchive(with: resource, format: format)
+        } catch {
+            throw .reading(error)
+        }
+        if let container = container {
+            return .container(container)
+        } else {
+            return .resource(ResourceAsset(resource: resource, format: format))
+        }
     }
 
     /// Retrieves an asset from a URL and a known media type.
-    public func retrieve(url: AbsoluteURL, mediaType: MediaType) async -> Result<Asset, AssetRetrieveURLError> {
-        await retrieve(url: url, hints: FormatHints(mediaType: mediaType))
+    public func retrieve(url: AbsoluteURL, mediaType: MediaType) async throws(AssetRetrieveURLError) -> Asset {
+        try await retrieve(url: url, hints: FormatHints(mediaType: mediaType))
     }
 
     /// Retrieves an asset from a URL of unknown format.
-    public func retrieve(url: AbsoluteURL, hints: FormatHints = FormatHints()) async -> Result<Asset, AssetRetrieveURLError> {
-        await openResource(at: url)
-            .asyncFlatMap { resource in
-                await retrieve(resource: resource, hints: hints)
-                    .mapError { AssetRetrieveURLError($0) }
-            }
+    public func retrieve(url: AbsoluteURL, hints: FormatHints = FormatHints()) async throws(AssetRetrieveURLError) -> Asset {
+        let resource = try await openResource(at: url)
+        do {
+            return try await retrieve(resource: resource, hints: hints)
+        } catch {
+            throw AssetRetrieveURLError(error)
+        }
     }
 
     /// Retrieves an asset from an already opened resource.
-    public func retrieve(resource: Resource, hints: FormatHints = FormatHints()) async -> Result<Asset, AssetRetrieveError> {
-        await resource.fill(hints: hints)
-            .mapError { .reading($0) }
-            .asyncFlatMap { hints in
-                await refine(
-                    format: formatSniffer.sniffHints(hints) ?? .null,
-                    of: .resource(ResourceAsset(resource: resource, format: .null))
-                )
-            }
+    public func retrieve(resource: Resource, hints: FormatHints = FormatHints()) async throws(AssetRetrieveError) -> Asset {
+        let filledHints: FormatHints
+        do {
+            filledHints = try await resource.fill(hints: hints)
+        } catch {
+            throw .reading(error)
+        }
+        return try await refine(
+            format: formatSniffer.sniffHints(filledHints) ?? .null,
+            of: .resource(ResourceAsset(resource: resource, format: .null))
+        )
     }
 
     /// Retrieves an asset from an already opened container.
-    public func retrieve(container: Container, hints: FormatHints = FormatHints()) async -> Result<Asset, AssetRetrieveError> {
-        await refine(
+    public func retrieve(container: Container, hints: FormatHints = FormatHints()) async throws(AssetRetrieveError) -> Asset {
+        try await refine(
             format: formatSniffer.sniffHints(hints) ?? .null,
             of: .container(ContainerAsset(container: container, format: .null))
         )
     }
 
-    private func openResource(at url: AbsoluteURL) async -> Result<Resource, AssetRetrieveURLError> {
-        await resourceFactory.make(url: url)
-            .mapError { error in
-                switch error {
-                case let .schemeNotSupported(scheme):
-                    return .schemeNotSupported(scheme)
-                }
+    private func openResource(at url: AbsoluteURL) async throws(AssetRetrieveURLError) -> Resource {
+        do {
+            return try await resourceFactory.make(url: url)
+        } catch {
+            switch error {
+            case let .schemeNotSupported(scheme):
+                throw .schemeNotSupported(scheme)
             }
+        }
     }
 
     /// Will sniff `asset` to refine the given `format`.
@@ -143,46 +144,47 @@ public final class AssetRetriever {
     private func refine(
         format: Format,
         of asset: Asset
-    ) async -> Result<Asset, AssetRetrieveError> {
-        switch await formatSniffer.sniffAsset(asset: asset, refining: format) {
-        case let .success(refinedFormat):
-            if let refinedFormat = refinedFormat, refinedFormat.refines(format) {
-                return await refine(format: refinedFormat, of: asset)
-            }
-        case let .failure(error):
-            return .failure(.reading(error))
+    ) async throws(AssetRetrieveError) -> Asset {
+        let refinedFormat: Format?
+        do {
+            refinedFormat = try await formatSniffer.sniffAsset(asset: asset, refining: format)
+        } catch {
+            throw .reading(error)
+        }
+        if let refinedFormat = refinedFormat, refinedFormat.refines(format) {
+            return try await refine(format: refinedFormat, of: asset)
         }
 
         if case let .resource(asset) = asset {
-            switch await tryOpenArchive(with: asset.resource, format: format) {
-            case let .success(containerAsset):
-                if let containerAsset = containerAsset {
-                    return await refine(format: format, of: .container(containerAsset))
-                }
-            case let .failure(error):
-                return .failure(.reading(error))
+            let containerAsset: ContainerAsset?
+            do {
+                containerAsset = try await tryOpenArchive(with: asset.resource, format: format)
+            } catch {
+                throw .reading(error)
+            }
+            if let containerAsset = containerAsset {
+                return try await refine(format: format, of: .container(containerAsset))
             }
         }
 
         guard format.hasSpecification else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
         var asset = asset
         asset.format = format
-        return .success(asset)
+        return asset
     }
 
-    private func tryOpenArchive(with resource: Resource, format: Format) async -> ReadResult<ContainerAsset?> {
-        switch await archiveOpener.open(resource: resource, format: format) {
-        case let .success(asset):
-            return .success(asset)
-        case let .failure(error):
+    private func tryOpenArchive(with resource: Resource, format: Format) async throws(ReadError) -> ContainerAsset? {
+        do {
+            return try await archiveOpener.open(resource: resource, format: format)
+        } catch {
             switch error {
             case .formatNotSupported:
-                return .success(nil)
+                return nil
             case let .reading(error):
-                return .failure(error)
+                throw error
             }
         }
     }
@@ -202,35 +204,33 @@ private extension AssetRetrieveURLError {
 private extension Resource {
     /// Fills in the given `hints` with additional metadata extracted from the
     /// resource properties.
-    func fill(hints: FormatHints) async -> ReadResult<FormatHints> {
-        await properties()
-            .map { properties in
-                var hints = hints
+    func fill(hints: FormatHints) async throws(ReadError) -> FormatHints {
+        let properties = try await properties()
+        var hints = hints
 
-                if let mediaType = properties.mediaType {
-                    hints.mediaTypes.append(mediaType)
-                }
+        if let mediaType = properties.mediaType {
+            hints.mediaTypes.append(mediaType)
+        }
 
-                if let fileExtension = properties.filename
-                    .map({ URL(fileURLWithPath: $0).pathExtension })
-                    .takeIf({ !$0.isEmpty })
-                    .map({ FileExtension(rawValue: $0) })
-                {
-                    hints.fileExtensions.append(fileExtension)
-                }
+        if let fileExtension = properties.filename
+            .map({ URL(fileURLWithPath: $0).pathExtension })
+            .takeIf({ !$0.isEmpty })
+            .map({ FileExtension(rawValue: $0) })
+        {
+            hints.fileExtensions.append(fileExtension)
+        }
 
-                return hints
-            }
+        return hints
     }
 }
 
 private extension FormatSniffer {
-    func sniffAsset(asset: Asset, refining format: Format) async -> ReadResult<Format?> {
+    func sniffAsset(asset: Asset, refining format: Format) async throws(ReadError) -> Format? {
         switch asset {
         case let .resource(asset):
-            return await sniffBlob(FormatSnifferBlob(source: asset.resource), refining: format)
+            return try await sniffBlob(FormatSnifferBlob(source: asset.resource), refining: format)
         case let .container(asset):
-            return await sniffContainer(asset.container, refining: format)
+            return try await sniffContainer(asset.container, refining: format)
         }
     }
 }

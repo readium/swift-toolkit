@@ -10,7 +10,7 @@ import Foundation
 public actor DataResource: Resource {
     public let sourceURL: AbsoluteURL?
 
-    private let makeData: () async -> ReadResult<Data>
+    private let makeData: () async throws(ReadError) -> Data
 
     /// Creates a `Resource` serving an array of bytes.
     public init(
@@ -18,7 +18,7 @@ public actor DataResource: Resource {
         sourceURL: AbsoluteURL? = nil
     ) {
         self.init(sourceURL: sourceURL) {
-            .success(data())
+            data()
         }
     }
 
@@ -27,49 +27,53 @@ public actor DataResource: Resource {
         self.init(sourceURL: sourceURL) {
             // It's safe to force-unwrap when using a unicode encoding.
             // https://www.objc.io/blog/2018/02/13/string-to-data-and-back/
-            .success(string.data(using: .utf8)!)
+            string.data(using: .utf8)!
         }
     }
 
     /// Creates a `Resource` serving an array of bytes.
     public init(
         sourceURL: AbsoluteURL? = nil,
-        makeData: @escaping () async -> ReadResult<Data>
+        makeData: @escaping () async throws(ReadError) -> Data
     ) {
         self.makeData = makeData
         self.sourceURL = sourceURL
     }
 
-    public func estimatedLength() async -> ReadResult<UInt64?> {
-        .success(nil)
+    public func estimatedLength() async throws(ReadError) -> UInt64? {
+        nil
     }
 
-    public func properties() async -> ReadResult<ResourceProperties> {
-        .success(ResourceProperties())
+    public func properties() async throws(ReadError) -> ResourceProperties {
+        ResourceProperties()
     }
 
-    private var _data: ReadResult<Data>?
+    private var _data: Result<Data, ReadError>?
 
-    private func data() async -> ReadResult<Data> {
+    private func data() async throws(ReadError) -> Data {
         if _data == nil {
-            _data = await makeData()
+            do {
+                _data = try await .success(makeData())
+            } catch {
+                _data = .failure(error)
+            }
         }
-        return _data!
+        switch _data! {
+        case let .success(data): return data
+        case let .failure(error): throw error
+        }
     }
 
     public func stream(
         range: Range<UInt64>?,
         consume: @escaping (Data) -> Void
-    ) async -> ReadResult<Void> {
-        await data().map { data in
-            let length = UInt64(data.count)
-            if let range = range?.clamped(to: 0 ..< length) {
-                consume(data[range])
-            } else {
-                consume(data)
-            }
-
-            return ()
+    ) async throws(ReadError) {
+        let data = try await data()
+        let length = UInt64(data.count)
+        if let range = range?.clamped(to: 0 ..< length) {
+            consume(data[range])
+        } else {
+            consume(data)
         }
     }
 }

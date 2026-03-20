@@ -26,5 +26,5 @@ public protocol Resource: Streamable {
     /// Properties associated to the resource.
     ///
     /// This is opened for extensions.
-    func properties() async -> ReadResult<ResourceProperties>
+    func properties() async throws(ReadError) -> ResourceProperties
 }

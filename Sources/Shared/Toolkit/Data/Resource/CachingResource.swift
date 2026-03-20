@@ -19,39 +19,44 @@ public actor CachingResource: Resource {
         self.resource = resource
     }
 
-    private var data: ReadResult<Data>?
+    private var _data: Result<Data, ReadError>?
 
-    private func data() async -> ReadResult<Data> {
-        if data == nil {
-            data = await resource.read()
+    private func data() async throws(ReadError) -> Data {
+        if _data == nil {
+            do {
+                _data = try await .success(resource.read())
+            } catch {
+                _data = .failure(error)
+            }
         }
-        return data!
+        switch _data! {
+        case let .success(data): return data
+        case let .failure(error): throw error
+        }
     }
 
     public nonisolated var sourceURL: AbsoluteURL? {
         resource.sourceURL
     }
 
-    public func properties() async -> ReadResult<ResourceProperties> {
-        await resource.properties()
+    public func properties() async throws(ReadError) -> ResourceProperties {
+        try await resource.properties()
     }
 
-    public func estimatedLength() async -> ReadResult<UInt64?> {
-        await resource.estimatedLength()
+    public func estimatedLength() async throws(ReadError) -> UInt64? {
+        try await resource.estimatedLength()
     }
 
     public func stream(
         range: Range<UInt64>?,
         consume: @escaping (Data) -> Void
-    ) async -> ReadResult<Void> {
-        await data().map { data in
-            let length = UInt64(data.count)
-            if let range = range?.clamped(to: 0 ..< length) {
-                consume(data[range])
-            } else {
-                consume(data)
-            }
-            return ()
+    ) async throws(ReadError) {
+        let data = try await data()
+        let length = UInt64(data.count)
+        if let range = range?.clamped(to: 0 ..< length) {
+            consume(data[range])
+        } else {
+            consume(data)
         }
     }
 }

@@ -15,10 +15,10 @@ public final class HTTPResourceFactory: ResourceFactory {
         self.client = client
     }
 
-    public func make(url: any AbsoluteURL) async -> Result<any Resource, ResourceMakeError> {
+    public func make(url: any AbsoluteURL) async throws(ResourceMakeError) -> any Resource {
         guard let url = url.httpURL else {
-            return .failure(.schemeNotSupported(url.scheme))
+            throw .schemeNotSupported(url.scheme)
         }
-        return .success(HTTPResource(url: url, client: client))
+        return HTTPResource(url: url, client: client)
     }
 }

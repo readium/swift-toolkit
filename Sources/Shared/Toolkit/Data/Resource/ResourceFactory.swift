@@ -9,7 +9,7 @@ import Foundation
 /// A factory to create ``Resource`` instances from absolute URLs.
 public protocol ResourceFactory {
     /// Creates a ``Resource`` to access the content at `url`.
-    func make(url: AbsoluteURL) async -> Result<Resource, ResourceMakeError>
+    func make(url: AbsoluteURL) async throws(ResourceMakeError) -> Resource
 }
 
 public enum ResourceMakeError: Error, Sendable {
@@ -44,18 +44,17 @@ public class CompositeResourceFactory: ResourceFactory {
         self.factories = factories
     }
 
-    public func make(url: any AbsoluteURL) async -> Result<any Resource, ResourceMakeError> {
+    public func make(url: any AbsoluteURL) async throws(ResourceMakeError) -> any Resource {
         for factory in factories {
-            switch await factory.make(url: url) {
-            case let .success(resource):
-                return .success(resource)
-            case let .failure(error):
+            do {
+                return try await factory.make(url: url)
+            } catch {
                 switch error {
                 case .schemeNotSupported:
                     continue
                 }
             }
         }
-        return .failure(.schemeNotSupported(url.scheme))
+        throw .schemeNotSupported(url.scheme)
     }
 }

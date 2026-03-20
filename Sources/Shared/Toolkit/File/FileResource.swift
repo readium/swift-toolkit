@@ -18,9 +18,9 @@ public actor FileResource: Resource, Loggable {
         fileURL
     }
 
-    private var _length: ReadResult<UInt64?>?
+    private var _length: Result<UInt64?, ReadError>?
 
-    public func estimatedLength() async -> ReadResult<UInt64?> {
+    public func estimatedLength() async throws(ReadError) -> UInt64? {
         if _length == nil {
             do {
                 let values = try fileURL.url.resourceValues(forKeys: [.fileSizeKey])
@@ -33,41 +33,41 @@ public actor FileResource: Resource, Loggable {
                 _length = .failure(.access(.fileSystem(.wrap(error) ?? .io(error))))
             }
         }
-        return _length!
-    }
-
-    public func properties() async -> ReadResult<ResourceProperties> {
-        .success(ResourceProperties {
-            $0.filename = fileURL.lastPathSegment
-        })
-    }
-
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        await handle().flatMap { handle in
-            do {
-                if var range = range {
-                    range = range.clampedToInt()
-                    try handle.seek(toOffset: UInt64(max(0, range.lowerBound)))
-                    if let data = try handle.read(upToCount: Int(range.upperBound - range.lowerBound)) {
-                        consume(data)
-                    }
-                } else {
-                    try handle.seek(toOffset: 0)
-                    if let data = try handle.readToEnd() {
-                        consume(data)
-                    }
-                }
-            } catch {
-                return .failure(.access(.fileSystem(.io(error))))
-            }
-
-            return .success(())
+        switch _length! {
+        case let .success(length): return length
+        case let .failure(error): throw error
         }
     }
 
-    private var _handle: ReadResult<FileHandle>?
+    public func properties() async throws(ReadError) -> ResourceProperties {
+        ResourceProperties {
+            $0.filename = fileURL.lastPathSegment
+        }
+    }
 
-    private func handle() async -> ReadResult<FileHandle> {
+    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
+        let handle = try await handle()
+        do {
+            if var range = range {
+                range = range.clampedToInt()
+                try handle.seek(toOffset: UInt64(max(0, range.lowerBound)))
+                if let data = try handle.read(upToCount: Int(range.upperBound - range.lowerBound)) {
+                    consume(data)
+                }
+            } else {
+                try handle.seek(toOffset: 0)
+                if let data = try handle.readToEnd() {
+                    consume(data)
+                }
+            }
+        } catch {
+            throw ReadError.access(.fileSystem(.io(error)))
+        }
+    }
+
+    private var _handle: Result<FileHandle, ReadError>?
+
+    private func handle() async throws(ReadError) -> FileHandle {
         if _handle == nil {
             do {
                 let values = try fileURL.url.resourceValues(forKeys: [.isReadableKey, .isDirectoryKey])
@@ -80,6 +80,9 @@ public actor FileResource: Resource, Loggable {
                 _handle = .failure(.access(.fileSystem(.io(error))))
             }
         }
-        return _handle!
+        switch _handle! {
+        case let .success(handle): return handle
+        case let .failure(error): throw error
+        }
     }
 }

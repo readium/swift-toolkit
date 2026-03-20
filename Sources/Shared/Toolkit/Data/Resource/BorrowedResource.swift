@@ -29,15 +29,15 @@ private class BorrowedResource: Resource {
         resource.sourceURL
     }
 
-    func estimatedLength() async -> ReadResult<UInt64?> {
-        await resource.estimatedLength()
+    func estimatedLength() async throws(ReadError) -> UInt64? {
+        try await resource.estimatedLength()
     }
 
-    func properties() async -> ReadResult<ResourceProperties> {
-        await resource.properties()
+    func properties() async throws(ReadError) -> ResourceProperties {
+        try await resource.properties()
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        await resource.stream(range: range, consume: consume)
+    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
+        try await resource.stream(range: range, consume: consume)
     }
 }

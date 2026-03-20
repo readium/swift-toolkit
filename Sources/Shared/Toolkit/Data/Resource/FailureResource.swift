@@ -17,16 +17,16 @@ public final class FailureResource: Resource, Sendable {
         self.sourceURL = sourceURL
     }
 
-    public func estimatedLength() async -> ReadResult<UInt64?> {
-        .failure(error)
+    public func estimatedLength() async throws(ReadError) -> UInt64? {
+        throw error
     }
 
-    public func properties() async -> ReadResult<ResourceProperties> {
-        .failure(error)
+    public func properties() async throws(ReadError) -> ResourceProperties {
+        throw error
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        .failure(error)
+    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async throws(ReadError) {
+        throw error
     }
 }
 

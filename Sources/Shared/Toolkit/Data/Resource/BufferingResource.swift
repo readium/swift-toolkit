@@ -44,36 +44,42 @@ public actor BufferingResource: Resource, Loggable {
         resource.sourceURL
     }
 
-    public func properties() async -> ReadResult<ResourceProperties> {
-        await resource.properties()
+    public func properties() async throws(ReadError) -> ResourceProperties {
+        try await resource.properties()
     }
 
-    private var cachedLength: ReadResult<UInt64?>?
+    private var cachedLength: Result<UInt64?, ReadError>?
 
-    public func estimatedLength() async -> ReadResult<UInt64?> {
+    public func estimatedLength() async throws(ReadError) -> UInt64? {
         if let cachedLength {
-            return cachedLength
+            switch cachedLength {
+            case let .success(length): return length
+            case let .failure(error): throw error
+            }
         }
-        let result = await resource.estimatedLength()
-        if case .success = result {
-            cachedLength = result
+        do {
+            let length = try await resource.estimatedLength()
+            cachedLength = .success(length)
+            return length
+        } catch {
+            throw error
         }
-        return result
     }
 
     public func stream(
         range: Range<UInt64>?,
         consume: @escaping (Data) -> Void
-    ) async -> ReadResult<Void> {
+    ) async throws(ReadError) {
         // Reading the whole resource bypasses buffering to keep things simple.
         guard let requestedRange = range, !requestedRange.isEmpty else {
-            return await resource.stream(range: range, consume: consume)
+            try await resource.stream(range: range, consume: consume)
+            return
         }
 
         // Serve from the buffer if the request is fully covered.
         if let data = buffer.get(range: requestedRange) {
             consume(data)
-            return .success(())
+            return
         }
 
         // Read ahead from the request start to fill the buffer.
@@ -100,12 +106,8 @@ public actor BufferingResource: Resource, Loggable {
         // Read from the original resource using stream to avoid materializing
         // more than needed.
         var data = prefixData
-        let result = await resource.stream(range: fetchRange) { chunk in
+        try await resource.stream(range: fetchRange) { chunk in
             data.append(chunk)
-        }
-
-        guard case .success = result else {
-            return result
         }
 
         buffer.set(data, at: readRange.lowerBound)
@@ -114,7 +116,6 @@ public actor BufferingResource: Resource, Loggable {
         if end > 0 {
             consume(data[0 ..< end])
         }
-        return .success(())
     }
 
     private struct Buffer {
