@@ -31,8 +31,8 @@ final class PDFPositionsService: PositionsService {
 
     private let _positionsByReadingOrder: [[Locator]]
 
-    func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        .success(_positionsByReadingOrder)
+    func positionsByReadingOrder() async throws(ReadError) -> [[Locator]] {
+        _positionsByReadingOrder
     }
 
     static func makeFactory() -> (PublicationServiceContext) -> PDFPositionsService? {

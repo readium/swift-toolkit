@@ -44,10 +44,10 @@ public actor EPUBPositionsService: PositionsService {
         func positionCount(for link: Link, resource: Resource) async -> Int {
             switch self {
             case let .archiveEntryLength(pageLength):
-                let length = await {
-                    if let l = try? await resource.properties().map({ $0.archive?.entryLength }).get() {
+                let length: UInt64 = await {
+                    if let l = try? await resource.properties().archive?.entryLength {
                         return l
-                    } else if let l = try? await resource.estimatedLength().get() {
+                    } else if let l = try? await resource.estimatedLength() {
                         return l
                     } else {
                         return 0
@@ -75,11 +75,11 @@ public actor EPUBPositionsService: PositionsService {
         self.reflowableStrategy = reflowableStrategy
     }
 
-    private var _positionsByReadingOrder: ReadResult<[[Locator]]>?
+    private var _positionsByReadingOrder: [[Locator]]?
 
-    public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
+    public func positionsByReadingOrder() async throws(ReadError) -> [[Locator]] {
         if _positionsByReadingOrder == nil {
-            _positionsByReadingOrder = await .success(computePositionsByReadingOrder())
+            _positionsByReadingOrder = await computePositionsByReadingOrder()
         }
         return _positionsByReadingOrder!
     }

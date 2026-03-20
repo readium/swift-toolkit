@@ -38,12 +38,12 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
     public func parse(
         asset: Asset,
         warnings: (any WarningLogger)?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         switch asset {
         case let .resource(asset):
-            return await parse(resource: asset.resource, format: asset.format.specifications, warnings: warnings)
+            return try await parse(resource: asset.resource, format: asset.format.specifications, warnings: warnings)
         case let .container(asset):
-            return await parse(container: asset.container, format: asset.format.specifications, warnings: warnings)
+            return try await parse(container: asset.container, format: asset.format.specifications, warnings: warnings)
         }
     }
 
@@ -51,137 +51,139 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
         resource: Resource,
         format: FormatSpecifications,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard format.conformsTo(.rwpm) else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
-        return await resource.read()
-            .asRWPM(warnings: warnings)
-            .flatMap { manifest in
-                let baseURL = manifest.baseURL
-                if baseURL == nil {
-                    warnings?.log(RWPMWarning(message: "No valid self link found in the manifest", severity: .moderate))
-                }
+        let container: Container
+        do {
+            let manifest = try await resource.read()
+                .asRWPM(warnings: warnings)
 
-                return .success(CompositeContainer(
-                    SingleResourceContainer(
-                        resource: resource,
-                        at: AnyURL(string: "manifest.json")!
-                    ),
-                    HTTPContainer(
-                        client: httpClient,
-                        baseURL: baseURL,
-                        entries: Set(
-                            (manifest.readingOrder + manifest.resources)
-                                .map { $0.url() }
-                        )
+            let baseURL = manifest.baseURL
+            if baseURL == nil {
+                warnings?.log(RWPMWarning(message: "No valid self link found in the manifest", severity: .moderate))
+            }
+
+            container = CompositeContainer(
+                SingleResourceContainer(
+                    resource: resource,
+                    at: AnyURL(string: "manifest.json")!
+                ),
+                HTTPContainer(
+                    client: httpClient,
+                    baseURL: baseURL,
+                    entries: Set(
+                        (manifest.readingOrder + manifest.resources)
+                            .map { $0.url() }
                     )
-                ))
-            }
-            .mapError { .reading($0) }
-            .asyncFlatMap { container in
-                await parse(
-                    container: container,
-                    format: FormatSpecifications(.rpf),
-                    warnings: warnings
                 )
-            }
+            )
+        } catch {
+            throw .reading(error)
+        }
+
+        return try await parse(
+            container: container,
+            format: FormatSpecifications(.rpf),
+            warnings: warnings
+        )
     }
 
     private func parse(
         container: Container,
         format: FormatSpecifications,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard format.conformsTo(.rpf) else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
         guard let manifestResource = container[RelativeURL(path: "manifest.json")!] else {
-            return .failure(.reading(.decoding("Cannot find a manifest.json file in the RPF package.")))
+            throw .reading(.decoding("Cannot find a manifest.json file in the RPF package."))
         }
 
-        return await manifestResource.read()
-            .asRWPM(warnings: warnings)
-            .flatMap(checkProfileRequirements(of:))
-            .map { manifest in
-                var manifest = manifest
+        do {
+            var manifest = try await manifestResource.read()
+                .asRWPM(warnings: warnings)
+            manifest = try checkProfileRequirements(of: manifest)
 
-                // Remove any self link as it is a packaged publication. It
-                // might be packaged from a streamed manifest which would cause
-                // issues when serving the relative reading order resources.
-                manifest.links = manifest.links.filter { !$0.rels.contains(.self) }
+            // Remove any self link as it is a packaged publication. It
+            // might be packaged from a streamed manifest which would cause
+            // issues when serving the relative reading order resources.
+            manifest.links = manifest.links.filter { !$0.rels.contains(.self) }
 
-                return Publication.Builder(
-                    manifest: manifest,
-                    container: container,
-                    servicesBuilder: PublicationServicesBuilder(setup: {
-                        if manifest.conforms(to: .epub) {
-                            $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
+            return Publication.Builder(
+                manifest: manifest,
+                container: container,
+                servicesBuilder: PublicationServicesBuilder(setup: {
+                    if manifest.conforms(to: .epub) {
+                        $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
 
-                        } else if manifest.conforms(to: .divina) {
-                            $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
+                    } else if manifest.conforms(to: .divina) {
+                        $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
 
-                        } else if manifest.conforms(to: .audiobook) {
-                            $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
+                    } else if manifest.conforms(to: .audiobook) {
+                        $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
 
-                        } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory = pdfFactory {
-                            $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory(pdfFactory: pdfFactory))
-                            $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
-                        }
+                    } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory = pdfFactory {
+                        $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory(pdfFactory: pdfFactory))
+                        $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
+                    }
 
-                        // FIXME: WebPositionsService from Kotlin?
+                    // FIXME: WebPositionsService from Kotlin?
 
-                        if manifest.readingOrder.allAreHTML {
-                            $0.setSearchServiceFactory(StringSearchService.makeFactory())
-                            $0.setContentServiceFactory(DefaultContentService.makeFactory(
-                                resourceContentIteratorFactories: [
-                                    HTMLResourceContentIterator.Factory(),
-                                ]
-                            ))
-                        }
+                    if manifest.readingOrder.allAreHTML {
+                        $0.setSearchServiceFactory(StringSearchService.makeFactory())
+                        $0.setContentServiceFactory(DefaultContentService.makeFactory(
+                            resourceContentIteratorFactories: [
+                                HTMLResourceContentIterator.Factory(),
+                            ]
+                        ))
+                    }
 
-                        $0.setGuidedNavigationServiceFactory(ReadiumGuidedNavigationService.makeFactory())
-                    })
-                )
-            }
-            .mapError { .reading($0) }
+                    $0.setGuidedNavigationServiceFactory(ReadiumGuidedNavigationService.makeFactory())
+                })
+            )
+        } catch {
+            throw .reading(error)
+        }
     }
 
-    private func checkProfileRequirements(of manifest: Manifest) -> Result<Manifest, ReadError> {
+    private func checkProfileRequirements(of manifest: Manifest) throws(ReadError) -> Manifest {
         guard !manifest.readingOrder.isEmpty else {
-            return .failure(.decoding("The manifest reading order is empty"))
+            throw .decoding("The manifest reading order is empty")
         }
 
         if manifest.conforms(to: .pdf) {
             guard manifest.readingOrder.allMatchingMediaType(.pdf) else {
-                return .failure(.decoding("The publication does not conform to the PDF profile specification"))
+                throw .decoding("The publication does not conform to the PDF profile specification")
             }
         } else if manifest.conforms(to: .audiobook) {
             guard manifest.readingOrder.allAreAudio else {
-                return .failure(.decoding("The publication does not conform to the Audiobook profile specification"))
+                throw .decoding("The publication does not conform to the Audiobook profile specification")
             }
         }
 
-        return .success(manifest)
+        return manifest
     }
 }
 
-private extension ReadResult<Data> {
+private extension Data {
     /// Decodes the data as a Readium Web Pub Manifest.
-    func asRWPM(warnings: WarningLogger?) -> ReadResult<Manifest> {
-        asJSONObjectValue()
-            .flatMap { data in
-                do {
-                    guard let manifest = try Manifest(json: data, warnings: warnings) else {
-                        return .failure(.decoding("Failed to decode Manifest from JSON."))
-                    }
-                    return .success(manifest)
-                } catch {
-                    return .failure(.decoding(error))
-                }
+    func asRWPM(warnings: WarningLogger?) throws(ReadError) -> Manifest {
+        let json = try asJSONObjectValue()
+        do {
+            guard let manifest = try Manifest(json: json, warnings: warnings) else {
+                throw ReadError.decoding("Failed to decode Manifest from JSON.")
             }
+            return manifest
+        } catch let error as ReadError {
+            throw error
+        } catch {
+            throw .decoding(error)
+        }
     }
 }
 

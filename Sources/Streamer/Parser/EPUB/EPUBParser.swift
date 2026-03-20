@@ -39,12 +39,12 @@ public final class EPUBParser: PublicationParser, Sendable {
     public func parse(
         asset: Asset,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard
             asset.format.conformsTo(.epub),
             case let .container(asset) = asset
         else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
         do {
@@ -60,7 +60,7 @@ public final class EPUBParser: PublicationParser, Sendable {
 
             let deobfuscator = EPUBDeobfuscator(publicationId: manifest.metadata.identifier ?? "", encryptions: encryptions)
 
-            return .success(Publication.Builder(
+            return Publication.Builder(
                 manifest: manifest,
                 container: container.map { url, resource in
                     deobfuscator.deobfuscate(resource: resource, at: url)
@@ -75,9 +75,9 @@ public final class EPUBParser: PublicationParser, Sendable {
                     positions: EPUBPositionsService.makeFactory(reflowableStrategy: reflowablePositionsStrategy),
                     search: StringSearchService.makeFactory()
                 )
-            ))
+            )
         } catch {
-            return .failure(.reading(.wrap(error) ?? .decoding(error)))
+            throw .reading(.wrap(error) ?? .decoding(error))
         }
     }
 }

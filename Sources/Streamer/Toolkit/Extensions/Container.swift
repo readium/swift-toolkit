@@ -28,7 +28,7 @@ extension Container {
         guard let resource = self[href] else {
             return nil
         }
-        return try await resource.read().get()
+        return try await resource.read()
     }
 
     func sniffFormats(
@@ -42,10 +42,10 @@ extension Container {
                 continue
             }
 
-            switch await assetRetriever.sniffFormat(of: resource) {
-            case let .success(format):
+            do {
+                let format = try await assetRetriever.sniffFormat(of: resource)
                 entries[url] = format
-            case let .failure(error):
+            } catch {
                 switch error {
                 case .formatNotSupported:
                     break

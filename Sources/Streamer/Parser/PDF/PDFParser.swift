@@ -34,12 +34,12 @@ public final class PDFParser: PublicationParser, Loggable {
     public func parse(
         asset: Asset,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard
             asset.format.conformsTo(.pdf),
             case let .resource(asset) = asset
         else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
         do {
@@ -48,7 +48,7 @@ public final class PDFParser: PublicationParser, Loggable {
             let document = try await pdfFactory.open(resource: resource, at: container.entry, password: nil)
             let authors = try await Array(ofNotNil: document.author().map { Contributor(name: $0) })
 
-            return try await .success(Publication.Builder(
+            return try await Publication.Builder(
                 manifest: Manifest(
                     metadata: Metadata(
                         identifier: document.identifier(),
@@ -71,9 +71,9 @@ public final class PDFParser: PublicationParser, Loggable {
                     cover: document.cover().map(GeneratedCoverService.makeFactory(cover:)),
                     positions: PDFPositionsService.makeFactory()
                 )
-            ))
+            )
         } catch {
-            return .failure(.reading(.wrap(error) ?? .decoding(error)))
+            throw .reading(.wrap(error) ?? .decoding(error))
         }
     }
 }

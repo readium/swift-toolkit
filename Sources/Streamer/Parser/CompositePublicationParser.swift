@@ -20,15 +20,20 @@ public class CompositePublicationParser: PublicationParser {
         self.init(parsers)
     }
 
-    public func parse(asset: Asset, warnings: WarningLogger?) async -> Result<Publication.Builder, PublicationParseError> {
+    public func parse(asset: Asset, warnings: WarningLogger?) async throws(PublicationParseError) -> Publication.Builder {
         for parser in parsers {
-            let result = await parser.parse(asset: asset, warnings: warnings)
-            if case let .failure(error) = result, case .formatNotSupported = error {
-                continue
+            do {
+                return try await parser.parse(asset: asset, warnings: warnings)
+            } catch {
+                switch error {
+                case .formatNotSupported:
+                    continue
+                case .reading:
+                    throw error
+                }
             }
-            return result
         }
 
-        return .failure(.formatNotSupported)
+        throw .formatNotSupported
     }
 }

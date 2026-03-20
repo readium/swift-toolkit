@@ -61,7 +61,7 @@ public final class PublicationOpener {
         onCreatePublication: @escaping Publication.Builder.Transform = { _, _, _ in },
         warnings: WarningLogger? = nil,
         sender: Any? = nil
-    ) async -> Result<Publication, PublicationOpenError> {
+    ) async throws(PublicationOpenError) -> Publication {
         var asset = asset
         var builderTransforms: [Publication.Builder.Transform] = [
             self.onCreatePublication,
@@ -69,42 +69,43 @@ public final class PublicationOpener {
         ]
 
         for protection in contentProtections {
-            switch await protection.open(
-                asset: asset,
-                credentials: credentials,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
-            ) {
-            case let .success(contentProtectionAsset):
+            do {
+                let contentProtectionAsset = try await protection.open(
+                    asset: asset,
+                    credentials: credentials,
+                    allowUserInteraction: allowUserInteraction,
+                    sender: sender
+                )
                 asset = contentProtectionAsset.asset
                 if let transform = contentProtectionAsset.onCreatePublication {
                     builderTransforms.insert(transform, at: 0)
                 }
-            case let .failure(error):
+            } catch {
                 switch error {
                 case .assetNotSupported:
                     break
                 case let .reading(error):
-                    return .failure(.reading(error))
+                    throw .reading(error)
                 }
             }
         }
 
-        switch await parser.parse(asset: asset, warnings: warnings) {
-        case var .success(builder):
-            for transform in builderTransforms {
-                await builder.apply(transform)
-            }
-            return .success(builder.build())
-
-        case let .failure(error):
+        var builder: Publication.Builder
+        do {
+            builder = try await parser.parse(asset: asset, warnings: warnings)
+        } catch {
             switch error {
             case .formatNotSupported:
-                return .failure(.formatNotSupported)
+                throw .formatNotSupported
             case let .reading(error):
-                return .failure(.reading(error))
+                throw .reading(error)
             }
         }
+
+        for transform in builderTransforms {
+            await builder.apply(transform)
+        }
+        return builder.build()
     }
 }
 

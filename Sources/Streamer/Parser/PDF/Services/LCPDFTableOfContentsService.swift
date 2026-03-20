@@ -26,26 +26,28 @@ final class LCPDFTableOfContentsService: TableOfContentsService, PDFPublicationS
         self.pdfFactory = pdfFactory
     }
 
-    func tableOfContents() async -> ReadResult<[Link]> {
-        await tableOfContentsTask.value
+    func tableOfContents() async throws(ReadError) -> [Link] {
+        do {
+            return try await tableOfContentsTask.value
+        } catch let error as ReadError {
+            throw error
+        } catch {
+            throw .decoding(error)
+        }
     }
 
-    private lazy var tableOfContentsTask: Task<ReadResult<[Link]>, Never> = Task {
+    private lazy var tableOfContentsTask: Task<[Link], any Error> = Task {
         guard
             manifest.tableOfContents.isEmpty,
             manifest.readingOrder.count == 1,
             let url = manifest.readingOrder.first?.url(),
             let resource = container[url]
         else {
-            return .success(manifest.tableOfContents)
+            return manifest.tableOfContents
         }
 
-        do {
-            let toc = try await pdfFactory.open(resource: resource, at: url, password: nil).tableOfContents()
-            return .success(toc.linksWithDocumentHREF(url))
-        } catch {
-            return .failure(.wrap(error) ?? .decoding(error))
-        }
+        let toc = try await pdfFactory.open(resource: resource, at: url, password: nil).tableOfContents()
+        return toc.linksWithDocumentHREF(url)
     }
 
     static func makeFactory(pdfFactory: PDFDocumentFactory) -> (PublicationServiceContext) -> LCPDFTableOfContentsService? {

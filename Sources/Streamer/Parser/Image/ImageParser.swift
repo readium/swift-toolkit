@@ -34,25 +34,25 @@ public final class ImageParser: PublicationParser {
     public func parse(
         asset: Asset,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         switch asset {
         case let .resource(asset):
-            return await parse(resource: asset, warnings: warnings)
+            return try await parse(resource: asset, warnings: warnings)
         case let .container(asset):
-            return await parse(container: asset, warnings: warnings)
+            return try await parse(container: asset, warnings: warnings)
         }
     }
 
     private func parse(
         resource asset: ResourceAsset,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard asset.format.conformsToAny(bitmapSpecifications) else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
         let container = SingleResourceContainer(publication: asset)
-        return makeBuilder(
+        return try makeBuilder(
             container: container,
             readingOrder: [(container.entry, asset.format)]
         )
@@ -61,22 +61,20 @@ public final class ImageParser: PublicationParser {
     private func parse(
         container asset: ContainerAsset,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard asset.format.conformsTo(.informalComic) else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
         // Parse ComicInfo.xml metadata if present
         let comicInfo = await parseComicInfo(from: asset.container, warnings: warnings)
 
-        return await makeReadingOrder(for: asset.container)
-            .flatMap { readingOrder in
-                makeBuilder(
-                    container: asset.container,
-                    readingOrder: readingOrder,
-                    comicInfo: comicInfo
-                )
-            }
+        let readingOrder = try await makeReadingOrder(for: asset.container)
+        return try makeBuilder(
+            container: asset.container,
+            readingOrder: readingOrder,
+            comicInfo: comicInfo
+        )
     }
 
     /// Finds and parses the ComicInfo.xml file from the container.
@@ -92,26 +90,30 @@ public final class ImageParser: PublicationParser {
         return ComicInfoParser.parse(data: data, warnings: warnings)
     }
 
-    private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
-        await container
-            .sniffFormats(
-                using: assetRetriever,
-                ignoring: ignores
-            )
-            .map { formats in
-                container.entries
-                    .compactMap { url -> (AnyURL, Format)? in
-                        guard
-                            let format = formats[url],
-                            format.conformsToAny(bitmapSpecifications)
-                        else {
-                            return nil
-                        }
-                        return (url, format)
-                    }
-                    .sorted { $0.0.string.localizedStandardCompare($1.0.string) == .orderedAscending }
+    private func makeReadingOrder(for container: Container) async throws(PublicationParseError) -> [(AnyURL, Format)] {
+        let formats: [AnyURL: Format]
+        do {
+            formats = try await container
+                .sniffFormats(
+                    using: assetRetriever,
+                    ignoring: ignores
+                )
+                .get()
+        } catch {
+            throw .reading(error)
+        }
+
+        return container.entries
+            .compactMap { url -> (AnyURL, Format)? in
+                guard
+                    let format = formats[url],
+                    format.conformsToAny(bitmapSpecifications)
+                else {
+                    return nil
+                }
+                return (url, format)
             }
-            .mapError { .reading($0) }
+            .sorted { $0.0.string.localizedStandardCompare($1.0.string) == .orderedAscending }
     }
 
     private func ignores(_ url: AnyURL) -> Bool {
@@ -130,9 +132,9 @@ public final class ImageParser: PublicationParser {
         container: Container,
         readingOrder: [(AnyURL, Format)],
         comicInfo: ComicInfo? = nil
-    ) -> Result<Publication.Builder, PublicationParseError> {
+    ) throws(PublicationParseError) -> Publication.Builder {
         guard !readingOrder.isEmpty else {
-            return .failure(.reading(.decoding("No bitmap resources found in the publication")))
+            throw .reading(.decoding("No bitmap resources found in the publication"))
         }
 
         var readingOrder = readingOrder.map { url, format in
@@ -178,7 +180,7 @@ public final class ImageParser: PublicationParser {
             }
         }
 
-        return .success(Publication.Builder(
+        return Publication.Builder(
             manifest: Manifest(
                 metadata: metadata,
                 readingOrder: readingOrder
@@ -187,6 +189,6 @@ public final class ImageParser: PublicationParser {
             servicesBuilder: .init(
                 positions: PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!)
             )
-        ))
+        )
     }
 }

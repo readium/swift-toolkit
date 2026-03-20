@@ -38,25 +38,25 @@ public final class AudioParser: PublicationParser {
     public func parse(
         asset: Asset,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         switch asset {
         case let .resource(asset):
-            return await parse(resource: asset, warnings: warnings)
+            return try await parse(resource: asset, warnings: warnings)
         case let .container(asset):
-            return await parse(container: asset, warnings: warnings)
+            return try await parse(container: asset, warnings: warnings)
         }
     }
 
     private func parse(
         resource asset: ResourceAsset,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard asset.format.conformsToAny(audioSpecifications) else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
         let container = SingleResourceContainer(publication: asset)
-        return await makeBuilder(
+        return try await makeBuilder(
             container: container,
             readingOrder: [(container.entry, asset.format)],
             title: nil
@@ -66,41 +66,43 @@ public final class AudioParser: PublicationParser {
     private func parse(
         container asset: ContainerAsset,
         warnings: WarningLogger?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard asset.format.conformsTo(.informalAudiobook) else {
-            return .failure(.formatNotSupported)
+            throw .formatNotSupported
         }
 
-        return await makeReadingOrder(for: asset.container)
-            .asyncFlatMap { readingOrder in
-                await makeBuilder(
-                    container: asset.container,
-                    readingOrder: readingOrder,
-                    title: nil
-                )
-            }
+        let readingOrder = try await makeReadingOrder(for: asset.container)
+        return try await makeBuilder(
+            container: asset.container,
+            readingOrder: readingOrder,
+            title: nil
+        )
     }
 
-    private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
-        await container
-            .sniffFormats(
-                using: assetRetriever,
-                ignoring: ignores
-            )
-            .map { formats in
-                container.entries
-                    .compactMap { url -> (AnyURL, Format)? in
-                        guard
-                            let format = formats[url],
-                            format.conformsToAny(audioSpecifications)
-                        else {
-                            return nil
-                        }
-                        return (url, format)
-                    }
-                    .sorted { $0.0.string.localizedStandardCompare($1.0.string) == .orderedAscending }
+    private func makeReadingOrder(for container: Container) async throws(PublicationParseError) -> [(AnyURL, Format)] {
+        let formats: [AnyURL: Format]
+        do {
+            formats = try await container
+                .sniffFormats(
+                    using: assetRetriever,
+                    ignoring: ignores
+                )
+                .get()
+        } catch {
+            throw .reading(error)
+        }
+
+        return container.entries
+            .compactMap { url -> (AnyURL, Format)? in
+                guard
+                    let format = formats[url],
+                    format.conformsToAny(audioSpecifications)
+                else {
+                    return nil
+                }
+                return (url, format)
             }
-            .mapError { .reading($0) }
+            .sorted { $0.0.string.localizedStandardCompare($1.0.string) == .orderedAscending }
     }
 
     private func ignores(_ url: AnyURL) -> Bool {
@@ -132,9 +134,9 @@ public final class AudioParser: PublicationParser {
         container: Container,
         readingOrder: [(AnyURL, Format)],
         title: String?
-    ) async -> Result<Publication.Builder, PublicationParseError> {
+    ) async throws(PublicationParseError) -> Publication.Builder {
         guard !readingOrder.isEmpty else {
-            return .failure(.reading(.decoding("No audio resources found in the publication")))
+            throw .reading(.decoding("No audio resources found in the publication"))
         }
 
         let manifest = Manifest(
@@ -152,13 +154,13 @@ public final class AudioParser: PublicationParser {
 
         let augmented = await manifestAugmentor.augment(manifest, using: container)
 
-        return .success(Publication.Builder(
+        return Publication.Builder(
             manifest: augmented.manifest,
             container: container,
             servicesBuilder: .init(
                 cover: augmented.cover.map(GeneratedCoverService.makeFactory(cover:)),
                 locator: AudioLocatorService.makeFactory()
             )
-        ))
+        )
     }
 }

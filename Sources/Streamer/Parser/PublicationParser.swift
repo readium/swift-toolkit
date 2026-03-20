@@ -17,7 +17,7 @@ public protocol PublicationParser {
     ///   - warnings: Used to report non-fatal parsing warnings, such as
     ///   publication authoring mistakes. This is useful to warn users of
     ///   potential rendering issues or help authors debug their publications.
-    func parse(asset: Asset, warnings: WarningLogger?) async -> Result<Publication.Builder, PublicationParseError>
+    func parse(asset: Asset, warnings: WarningLogger?) async throws(PublicationParseError) -> Publication.Builder
 }
 
 public enum PublicationParseError: Error, Sendable {
