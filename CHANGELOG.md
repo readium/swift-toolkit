@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * [#737](https://github.com/readium/swift-toolkit/issues/737) Fixed screen flashes when turning pages without animation in the EPUB navigator.
+* The EPUB navigator now reports a continuous `locator.locations.totalProgression` value, interpolated from the actual scroll position within the resource's global progression range. Previously, the value was quantized to the nearest position in the position list.
 
 #### Streamer
 

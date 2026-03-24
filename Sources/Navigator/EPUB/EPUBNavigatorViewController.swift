@@ -727,16 +727,30 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             !positionsOfFirstResource.isEmpty,
             !positionsOfLastResource.isEmpty
         {
-            // Gets the current locator from the positions, and fill its missing
-            // data.
+            // Map the continuous resource progression (0-1) to the index of the
+            // nearest position within that resource.
             let firstPositionIndex = Int(ceil(firstProgressionInFirstResource * Double(positionsOfFirstResource.count - 1)))
             let lastPositionIndex = (lastProgressionInLastResource == 1.0)
                 ? positionsOfLastResource.count - 1
                 : max(firstPositionIndex, Int(ceil(lastProgressionInLastResource * Double(positionsOfLastResource.count - 1))) - 1)
 
+            // Compute a continuous totalProgression by linearly interpolating
+            // the resource-level progression within the resource's global
+            // range. The resource's range spans from the totalProgression of
+            // its first position to the totalProgression of the next resource's
+            // first position (or 1.0 for the last resource).
+            let resourceTotalProgressionStart = positionsOfFirstResource.first?.locations.totalProgression ?? 0.0
+            let resourceTotalProgressionEnd = positionsByReadingOrder.getOrNil(firstIndex + 1)?.first?.locations.totalProgression ?? 1.0
+            let continuousTotalProgression = resourceTotalProgressionStart + firstProgressionInFirstResource * (resourceTotalProgressionEnd - resourceTotalProgressionStart)
+
+            // Build the locator from the nearest position, then override
+            // progression fields with the actual continuous scroll values.
             location = await positionsOfFirstResource[firstPositionIndex].copy(
                 title: tableOfContentsTitleByHref[link.url()],
-                locations: { $0.progression = firstProgressionInFirstResource }
+                locations: {
+                    $0.progression = firstProgressionInFirstResource
+                    $0.totalProgression = continuousTotalProgression
+                }
             )
 
             if
