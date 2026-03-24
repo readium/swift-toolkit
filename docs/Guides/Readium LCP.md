@@ -173,6 +173,19 @@ A file required by the LCP library needs to be downloaded from an insecure HTTP 
 </dict>
 ```
 
+### Device name for LCP registration
+
+When registering a license with an LSD server, Readium LCP identifies the device by name using `UIDevice.current.name`. Since iOS 16, this returns a generic string such as "iPhone" instead of the user-assigned device name.
+
+To obtain the actual device name, add the [`com.apple.developer.device-information.user-assigned-device-name`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name) entitlement to your app's `.entitlements` file. This entitlement requires approval from Apple.
+
+```xml
+<key>com.apple.developer.device-information.user-assigned-device-name</key>
+<true/>
+```
+
+Alternatively, you can supply your own device name when initializing `LCPService` via the `deviceName` parameter.
+
 ## Initializing the `LCPService`
 
 `ReadiumLCP` offers an `LCPService` object that exposes its API. Since the `ReadiumLCP` package is not linked with `R2LCPClient`, you need to create your own adapter when setting up the `LCPService`.
