@@ -295,6 +295,7 @@
 		B49522888052E9F41D0DD013 /* ZIPFormatSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8AA8BD22E2F5495286C0A1C /* ZIPFormatSniffer.swift */; };
 		B4D55F234AD2CB5728184346 /* Bundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F669F31B0B6EC690C48916EC /* Bundle.swift */; };
 		B57EC602072D4276D502B80D /* AudiobookFormatSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1674CCC0BA8B1F4E2D2B3A4C /* AudiobookFormatSniffer.swift */; };
+		B5D6D29E36F6B8946A26D088 /* EPUBViewportAndLocationCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2751AB538A1BFBE02F2AF00B /* EPUBViewportAndLocationCalculator.swift */; };
 		B676871C6BC2D08EC8279B8D /* ReadingProgression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74F646B746EB27124F9456F8 /* ReadingProgression.swift */; };
 		B7B0C7AD992344EA09937D6D /* ReadiumShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97BC822B36D72EF548162129 /* ReadiumShared.framework */; };
 		B912ABB7DE8FC1A7A8EC1D84 /* EPUBNavigatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5ED9E15482AED288A6634F /* EPUBNavigatorViewController.swift */; };
@@ -564,6 +565,7 @@
 		251275D0DF87F85158A5FEA9 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Assets; path = ../../Sources/Navigator/EPUB/Assets; sourceTree = SOURCE_ROOT; };
 		258351CE21165EDED7F87878 /* URLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLProtocol.swift; sourceTree = "<group>"; };
 		2732AFC91AB15FA09C60207A /* Locator+Audio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+Audio.swift"; sourceTree = "<group>"; };
+		2751AB538A1BFBE02F2AF00B /* EPUBViewportAndLocationCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBViewportAndLocationCalculator.swift; sourceTree = "<group>"; };
 		281F650E9B9CEE601D8125EE /* Metadata+EPUB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Metadata+EPUB.swift"; sourceTree = "<group>"; };
 		2828D89EBB52CCA782ED1146 /* ReadiumFuzi.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ReadiumFuzi.xcframework; path = ../../Carthage/Build/ReadiumFuzi.xcframework; sourceTree = "<group>"; };
 		28792F801221D49F61B92CF8 /* TDM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDM.swift; sourceTree = "<group>"; };
@@ -1109,6 +1111,7 @@
 				0C45688D0A9C1F81F463FF92 /* EPUBReflowableSpreadView.swift */,
 				98D8CC7BC117BBFB206D01CC /* EPUBSpread.swift */,
 				E233289C75C9F73E6E28DDB4 /* EPUBSpreadView.swift */,
+				2751AB538A1BFBE02F2AF00B /* EPUBViewportAndLocationCalculator.swift */,
 				8AB3B86AB42261727B2811CF /* HTMLDecorationTemplate.swift */,
 				B673858EDF2BBCB316C28CBE /* WebViewServer.swift */,
 				01819314A9C8B44F7EF6EC7D /* CSS */,
@@ -2489,6 +2492,7 @@
 				1CB986C7E440F94F264A3567 /* EPUBSettings.swift in Sources */,
 				DFA6D21F48B69ED6839BC9AC /* EPUBSpread.swift in Sources */,
 				60AFAA2C97E8597D7A9792C2 /* EPUBSpreadView.swift in Sources */,
+				B5D6D29E36F6B8946A26D088 /* EPUBViewportAndLocationCalculator.swift in Sources */,
 				A116A1DB98A28C79CFD93EDE /* EditingAction.swift in Sources */,
 				5DE20E8A77050BF50B659452 /* HTMLDecorationTemplate.swift in Sources */,
 				E16AA8A927AAE141702F2D3B /* HTMLFontFamilyDeclaration.swift in Sources */,
