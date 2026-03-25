@@ -364,3 +364,113 @@ public extension [String: JSONValue] {
         removeValue(forKey: key)
     }
 }
+
+// MARK: - Parsing Extensions
+
+public extension JSONValue {
+    /// Parses a raw representable value.
+    func parseRaw<T: RawRepresentable>() -> T? {
+        let rawValue: T.RawValue?
+        if let string = string as? T.RawValue {
+            rawValue = string
+        } else if let int = integer as? T.RawValue {
+            rawValue = int
+        } else if let double = double as? T.RawValue {
+            rawValue = double
+        } else {
+            rawValue = any as? T.RawValue
+        }
+
+        guard let raw = rawValue else {
+            return nil
+        }
+        return T(rawValue: raw)
+    }
+
+    /// Parses an array of values.
+    ///
+    /// - Parameter allowingSingle: If true, then allows the parsing of both a single value and an array.
+    func parseArray<T>(allowingSingle: Bool = false) -> [T] {
+        switch self {
+        case let .array(arr):
+            if T.self == JSONValue.self {
+                return arr as! [T]
+            }
+
+            // Optimize for common types
+            if T.self == String.self {
+                return arr.compactMap(\.string) as! [T]
+            } else if T.self == Int.self {
+                return arr.compactMap(\.integer) as! [T]
+            } else if T.self == Double.self {
+                return arr.compactMap(\.double) as! [T]
+            }
+
+            return arr.compactMap { $0.any as? T }
+
+        default:
+            if allowingSingle {
+                if T.self == JSONValue.self {
+                    return [self] as! [T]
+                }
+
+                // Optimize for common types
+                if T.self == String.self, let val = string {
+                    return [val] as! [T]
+                } else if T.self == Int.self, let val = integer {
+                    return [val] as! [T]
+                } else if T.self == Double.self, let val = double {
+                    return [val] as! [T]
+                }
+
+                if let val = any as? T {
+                    return [val]
+                }
+            }
+            return []
+        }
+    }
+
+    /// Casting to Double loses precision and fails with integers.
+    func parseDouble() -> Double? {
+        double
+    }
+
+    /// Parses a numeric value, but returns nil if it is not a positive number.
+    func parsePositive<T: Comparable & Numeric>() -> T? {
+        var number: T?
+        if let int = integer as? T {
+            number = int
+        } else if let double = double as? T {
+            number = double
+        } else {
+            number = any as? T
+        }
+
+        guard let num = number, num >= 0 else {
+            return nil
+        }
+        return num
+    }
+
+    /// Parses a Double, returning nil if it is not positive.
+    func parsePositiveDouble() -> Double? {
+        guard let double = double, double >= 0 else {
+            return nil
+        }
+        return double
+    }
+
+    /// Parses a Date string from ISO8601.
+    func parseDate() -> Date? {
+        string?.dateFromISO8601
+    }
+
+    internal func rawValue<T: RawRepresentable>() -> T? {
+        guard let rawValue = any as? T.RawValue else {
+            return nil
+        }
+
+        return T(rawValue: rawValue)
+    }
+}
