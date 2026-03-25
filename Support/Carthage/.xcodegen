@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.45.2
+2.45.3
 
 # SPEC
 {
@@ -468,6 +468,7 @@
 ../../Sources/Navigator/EPUB/EPUBReflowableSpreadView.swift
 ../../Sources/Navigator/EPUB/EPUBSpread.swift
 ../../Sources/Navigator/EPUB/EPUBSpreadView.swift
+../../Sources/Navigator/EPUB/EPUBViewportAndLocationCalculator.swift
 ../../Sources/Navigator/EPUB/HTMLDecorationTemplate.swift
 ../../Sources/Navigator/EPUB/Preferences
 ../../Sources/Navigator/EPUB/Preferences/EPUBPreferences.swift

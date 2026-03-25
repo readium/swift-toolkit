@@ -28,7 +28,10 @@ public final class LCPService: Loggable {
     ///   - assetRetriever: The retriever used to fetch protected assets.
     ///   - httpClient: The HTTP client used for network requests to LSD/LCP servers.
     ///   - deviceName: Device name used when registering a license to an LSD server.
-    ///     If not provided, the device name will be the default `UIDevice.current.name`.
+    ///     If not provided, the device name will be `UIDevice.current.name`. Since iOS 16,
+    ///     this returns a generic name (e.g. "iPhone") unless the
+    ///     `com.apple.developer.device-information.user-assigned-device-name` entitlement
+    ///     is added to your app.
     ///   - deviceId: Device ID used when registering a license to an LSD server.
     ///     You must ensure the identifier is unique and stable for the device (persist and
     ///     reuse across app launches). If not provided, the device ID will be generated as

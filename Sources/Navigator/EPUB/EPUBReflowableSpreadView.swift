@@ -41,6 +41,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             continuation.resume()
         }
         goToContinuations.removeAll()
+
+        scrollDidEnd()
     }
 
     override func setupWebView() {
@@ -178,21 +180,39 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }()
 
         let offsetX = scrollView.bounds.width * factor
-        var newOffset = scrollView.contentOffset
-        newOffset.x += offsetX
-        let rounded = round(newOffset.x / offsetX) * offsetX
-        newOffset.x = rounded
-        guard 0 ..< scrollView.contentSize.width ~= newOffset.x else {
+        let targetX = round((scrollView.contentOffset.x + offsetX) / offsetX) * offsetX
+        guard 0 ..< scrollView.contentSize.width ~= targetX else {
             return false
         }
 
-        scrollView.setContentOffset(newOffset, animated: options.animated)
+        // We use JavaScript instead of `UIScrollView.setContentOffset()` to
+        // prevent glitches when turning pages without animation.
+        // See https://github.com/readium/swift-toolkit/issues/737#issuecomment-4090386881
+        //
+        // `scrollBy` is used instead of `scrollTo` because RTL content uses
+        // negative `window.scrollX` values in WKWebView, whereas UIKit's
+        // `contentOffset.x` is always non-negative. A relative displacement
+        // (`offsetX`) is coordinate-system agnostic and works for both LTR and
+        // RTL.
+        let behavior = options.animated ? "smooth" : "instant"
+        await evaluateScript("window.scrollBy({ left: \(offsetX), behavior: '\(behavior)' });")
 
-        // This delay is only used when turning pages in a single resource if
-        // the page turn is animated. The delay is roughly the length of the
-        // animation.
-        // TODO: completion should be implemented using scroll view delegates
-        try? await Task.sleep(seconds: 0.3)
+        if options.animated {
+            // Waits for the scroll animation to finish.
+            await withCheckedContinuation { continuation in
+                let request = ScrollAnimationRequest(continuation)
+                pendingScrollAnimation?.resume()
+                pendingScrollAnimation = request
+
+                // Safety net in case `scrollDidEnd` never fires. The identity
+                // check on `request` ensures a stale timeout from a previous
+                // request does not resume a newer one.
+                Task { @MainActor in
+                    try? await Task.sleep(seconds: 0.8)
+                    scrollDidEnd(for: request)
+                }
+            }
+        }
 
         return true
     }
@@ -235,6 +255,33 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     private var goToContinuations: [CheckedContinuation<Void, Never>] = []
+
+    private var pendingScrollAnimation: ScrollAnimationRequest?
+
+    /// Represents an in-flight animated page turn, waiting for the scroll
+    /// animation to settle before completing.
+    private class ScrollAnimationRequest {
+        private var continuation: CheckedContinuation<Void, Never>?
+
+        init(_ continuation: CheckedContinuation<Void, Never>) {
+            self.continuation = continuation
+        }
+
+        /// Resumes the continuation. Safe to call multiple times; only the
+        /// first call has any effect.
+        func resume() {
+            continuation?.resume()
+            continuation = nil
+        }
+    }
+
+    private func scrollDidEnd(for request: ScrollAnimationRequest? = nil) {
+        guard request == nil || pendingScrollAnimation === request else {
+            return
+        }
+        pendingScrollAnimation?.resume()
+        pendingScrollAnimation = nil
+    }
 
     @discardableResult
     private func go(to locator: Locator) async -> Bool {
@@ -352,6 +399,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
         previousProgression = nil
+
+        scrollDidEnd()
         delegate?.spreadViewPagesDidChange(self)
     }
 

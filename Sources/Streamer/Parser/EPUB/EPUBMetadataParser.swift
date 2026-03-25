@@ -415,25 +415,26 @@ final class EPUBMetadataParser: Loggable {
             .map { id in metas["role", refining: id].map(\.content) }?.first
             ?? element.attr("role") // falls back to EPUB 2 role attribute
 
-        let roles = role.map { role in knownRoles.contains(role) ? [] : [role] } ?? []
+        let isKnownRole = role.map { knownRoles.contains($0) } ?? false
 
         let contributor = Contributor(
             name: name,
             sortAs: element.attr("file-as"),
-            roles: roles
+            role: isKnownRole ? nil : role
         )
 
-        let type: String? = if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
-            "aut"
-        } else if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
-            "pbl"
-        } else if element.tag == "narrator" {
-            "nrt"
-        } else if role == nil {
-            nil
-        } else {
-            knownRoles.contains(role!) ? role : nil
-        }
+        let type: String? =
+            if element.tag == "publisher" || element.attr("property") == "dcterms:publisher" {
+                "pbl"
+            } else if element.attr("property") == "media:narrator" {
+                "nrt"
+            } else if let role, isKnownRole {
+                role
+            } else if element.tag == "creator" || element.attr("property") == "dcterms:creator" {
+                "aut"
+            } else {
+                nil
+            }
 
         return (role: type, contributor: contributor)
     }

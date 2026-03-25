@@ -695,64 +695,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return (nil, nil)
         }
 
-        let visibleReadingOrder: [(index: Int, href: AnyURL)] = spreadView.spread.readingOrderIndices
-            .map { ($0, readingOrder[$0].url()) }
-
-        var viewport = Viewport(
-            readingOrder: visibleReadingOrder.map(\.href),
-            progressions: visibleReadingOrder.reduce([:]) { progressions, i in
-                var progressions = progressions
-                progressions[i.href] = spreadView.progression(in: i.index)
-                return progressions
-            },
-            positions: nil
+        let (locator, viewport) = await EPUBViewportAndLocationCalculator.compute(
+            readingOrderIndices: spreadView.spread.readingOrderIndices,
+            progression: { spreadView.progression(in: $0) },
+            readingOrder: readingOrder,
+            positionsByReadingOrder: positionsByReadingOrder,
+            tableOfContentsTitleByHref: tableOfContentsTitleByHref,
+            fallbackLocator: { [publication] in await publication.locate($0) }
         )
-
-        let firstIndex = spreadView.spread.readingOrderIndices.lowerBound
-        let lastIndex = spreadView.spread.readingOrderIndices.upperBound
-        let progressionOfFirstResource = spreadView.progression(in: firstIndex)
-        let progressionOfLastResource = spreadView.progression(in: lastIndex)
-        let firstProgressionInFirstResource = min(max(progressionOfFirstResource.lowerBound, 0.0), 1.0)
-        let lastProgressionInLastResource = min(max(progressionOfLastResource.upperBound, 0.0), 1.0)
-
-        let link = readingOrder[firstIndex]
-        let location: Locator?
-
-        if
-            // The positions are not always available, for example a Readium
-            // WebPub doesn't have any unless a Publication Positions Web
-            // Service is provided
-            let positionsOfFirstResource = positionsByReadingOrder.getOrNil(firstIndex),
-            let positionsOfLastResource = positionsByReadingOrder.getOrNil(lastIndex),
-            !positionsOfFirstResource.isEmpty,
-            !positionsOfLastResource.isEmpty
-        {
-            // Gets the current locator from the positions, and fill its missing
-            // data.
-            let firstPositionIndex = Int(ceil(firstProgressionInFirstResource * Double(positionsOfFirstResource.count - 1)))
-            let lastPositionIndex = (lastProgressionInLastResource == 1.0)
-                ? positionsOfLastResource.count - 1
-                : max(firstPositionIndex, Int(ceil(lastProgressionInLastResource * Double(positionsOfLastResource.count - 1))) - 1)
-
-            location = await positionsOfFirstResource[firstPositionIndex].copy(
-                title: tableOfContentsTitleByHref[link.url()],
-                locations: { $0.progression = firstProgressionInFirstResource }
-            )
-
-            if
-                let firstPosition = location?.locations.position,
-                let lastPosition = positionsOfLastResource[lastPositionIndex].locations.position
-            {
-                viewport.positions = firstPosition ... lastPosition
-            }
-
-        } else {
-            location = await publication.locate(link)?.copy(
-                locations: { $0.progression = firstProgressionInFirstResource }
-            )
-        }
-
-        return (location, viewport)
+        return (locator, viewport)
     }
 
     public func firstVisibleElementLocator() async -> Locator? {

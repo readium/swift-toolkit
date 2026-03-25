@@ -2,7 +2,36 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Playground
+
+* New `Playground` iOS app – a minimal SwiftUI sample demonstrating how to use the Readium Swift Toolkit and to test its API.
+    * `Recipes/` contains self-contained and explained code you can reuse in your own application.
+    * `App/` folder contains the scaffolding (file management, navigation, error handling) needed to run the Playground.
+
+### Fixed
+
+#### Shared
+
+* Fixed parsing of URI templates.
+    * Fixed `URITemplate` not recognizing `{&...}` (form-style query continuation) expressions.
+    * Fixed `URITemplate` expanding a form-style expression (`{?...}` or `{&...}`) to a bare `?` or `&` when none of the listed variables are provided. It now correctly expands to an empty string.
+
+#### Navigator
+
+* [#737](https://github.com/readium/swift-toolkit/issues/737) Fixed screen flashes when turning pages without animation in the EPUB navigator.
+* The EPUB navigator now reports a continuous `locator.locations.totalProgression` value, interpolated from the actual scroll position within the resource's global progression range. Previously, the value was quantized to the nearest position in the position list.
+
+#### Streamer
+
+* Fixed parsing of EPUB contributors.
+    * Fixed `media:narrator` contributors not being recognized as narrators.
+    * Fixed `dc:creator` elements with a known MARC relator role (e.g. `opf:role="trl"`) being incorrectly routed to the `author` collection instead of the role's collection.
+    * A known role on a contributor no longer leaks into the `roles` field of the `Contributor` object when it is already expressed by the contributor's collection (e.g. `authors`, `publishers`).
+
 
 ## [3.8.0]
 
