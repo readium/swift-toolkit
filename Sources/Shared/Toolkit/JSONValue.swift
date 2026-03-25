@@ -7,6 +7,8 @@
 import CoreFoundation
 import Foundation
 
+// MARK: - Core JSONValue
+
 /// A type-safe JSON value.
 ///
 /// This enum is used to represent JSON values in a type-safe way, avoiding the
@@ -20,79 +22,6 @@ public enum JSONValue: Sendable, Hashable, Loggable {
     case double(Double)
     case array([JSONValue])
     case object([String: JSONValue])
-
-    /// Initializes a `JSONValue` from an `Any` value.
-    ///
-    /// This initializer attempts to convert the given value to a `JSONValue`.
-    /// It handles nested arrays and dictionaries recursively.
-    public init?(_ value: Any?) {
-        guard let value = value else {
-            return nil
-        }
-
-        if let value = value as? JSONValue {
-            self = value
-            return
-        }
-
-        // Fast path for typed collections
-        if let object = value as? [String: JSONValue] {
-            self = .object(object)
-            return
-        }
-        if let array = value as? [JSONValue] {
-            self = .array(array)
-            return
-        }
-
-        // Check for specific types
-        if let string = value as? String {
-            self = .string(string)
-            return
-        }
-
-        // On platforms with CoreFoundation (Apple), NSNumber bridges from Bool, Int, Double.
-        if let number = value as? NSNumber {
-            if CFGetTypeID(number) == CFBooleanGetTypeID() {
-                self = .bool(number.boolValue)
-                return
-            }
-            if CFNumberIsFloatType(number) {
-                self = .double(number.doubleValue)
-                return
-            }
-            if number.compare(0) == .orderedAscending {
-                self = .integer(Int(clamping: number.int64Value))
-            } else {
-                self = .integer(Int(clamping: number.uint64Value))
-            }
-            return
-        }
-
-        if let array = value as? [Any] {
-            self = .array(array.compactMap {
-                let element = JSONValue($0)
-                if element == nil {
-                    Self.log(.warning, "JSONValue: unsupported element type \(type(of: $0))")
-                }
-                return element
-            })
-        } else if let dict = value as? [String: Any] {
-            var object: [String: JSONValue] = [:]
-            for (key, val) in dict {
-                guard let jsonVal = JSONValue(val) else {
-                    Self.log(.warning, "JSONValue: unsupported element type \(type(of: val))")
-                    continue
-                }
-                object[key] = jsonVal
-            }
-            self = .object(object)
-        } else if value is NSNull {
-            self = .null
-        } else {
-            return nil
-        }
-    }
 
     /// Returns the raw value as `Any`.
     ///
@@ -146,6 +75,164 @@ public enum JSONValue: Sendable, Hashable, Loggable {
     public var object: [String: JSONValue]? {
         if case let .object(v) = self { return v }
         return nil
+    }
+}
+
+// MARK: - Decoding Protocols
+
+public protocol JSONValueDecodable {
+    init?(json: JSONValue?, warnings: WarningLogger?) throws
+}
+
+public extension JSONValueDecodable {
+    init?(json: JSONValue?) throws {
+        try self.init(json: json, warnings: nil)
+    }
+}
+
+public extension RawRepresentable where Self: JSONValueDecodable {
+    init?(json: JSONValue?, warnings: WarningLogger?) throws {
+        guard let json else {
+            return nil
+        }
+
+        guard let value: Self = json.rawValue() else {
+            warnings?.log("Not a valid raw value for \(Self.self)", model: Self.self, source: json)
+            return nil
+        }
+
+        self = value
+    }
+}
+
+public extension JSONValue {
+    func arrayOf<T: JSONValueDecodable>(warnings: WarningLogger? = nil) -> [T] {
+        array?.compactMap { try? T(json: $0, warnings: warnings) } ?? []
+    }
+}
+
+// MARK: - Encoding Protocols
+
+public protocol JSONValueEncodable {
+    var jsonValue: JSONValue { get }
+}
+
+public protocol JSONObjectEncodable: JSONValueEncodable {
+    var jsonObject: [String: JSONValue] { get }
+}
+
+public extension JSONObjectEncodable {
+    var jsonValue: JSONValue {
+        .object(jsonObject)
+    }
+
+    var orNullIfEmpty: JSONValue {
+        let object = jsonObject
+        return object.isEmpty ? .null : .object(object)
+    }
+}
+
+// MARK: - Standard Type Encodable Conformance
+
+extension JSONValue: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        self
+    }
+
+    public init?(_ value: JSONValueEncodable?) {
+        guard let value else {
+            return nil
+        }
+        self = value.jsonValue
+    }
+}
+
+extension String: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        .string(self)
+    }
+}
+
+extension Int: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        .integer(self)
+    }
+}
+
+extension Double: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        .double(self)
+    }
+}
+
+extension NSNumber: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        if CFGetTypeID(self) == CFBooleanGetTypeID() {
+            return .bool(boolValue)
+        }
+        if CFNumberIsFloatType(self) {
+            return .double(doubleValue)
+        }
+        if compare(0) == .orderedAscending {
+            return .integer(Int(clamping: int64Value))
+        } else {
+            return .integer(Int(clamping: uint64Value))
+        }
+    }
+}
+
+extension Optional: JSONValueEncodable where Wrapped: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        switch self {
+        case .none: return .null
+        case let .some(wrapped): return wrapped.jsonValue
+        }
+    }
+}
+
+extension Array: JSONValueEncodable where Element: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        .array(compactMap(\.jsonValue))
+    }
+}
+
+public extension [JSONValue] {
+    init(_ array: [JSONValueEncodable]) {
+        self = array.compactMap(\.jsonValue)
+    }
+}
+
+public extension [String: JSONValue] {
+    init(
+        _ dict: [String: JSONValueEncodable],
+        filteringNull: Bool = true,
+        additional: [String: JSONValueEncodable] = [:]
+    ) {
+        var dict = dict
+            .compactMapValues(\.jsonValue)
+            .merging(
+                additional.mapValues(\.jsonValue),
+                uniquingKeysWith: { current, _ in current }
+            )
+
+        if filteringNull {
+            dict = dict.filter { _, value in
+                if case .null = value { return false }
+                return true
+            }
+        }
+
+        self = dict
+    }
+
+    var jsonValue: JSONValue {
+        .object(mapValues(\.jsonValue))
+    }
+}
+
+extension NSNull: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        .null
     }
 }
 
@@ -267,5 +354,13 @@ extension JSONValue: Codable {
         case let .object(value):
             try container.encode(value)
         }
+    }
+}
+
+// MARK: - Dictionary Helpers
+
+public extension [String: JSONValue] {
+    mutating func pop(_ key: Key) -> Value? {
+        removeValue(forKey: key)
     }
 }
