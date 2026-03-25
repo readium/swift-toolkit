@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// EPUB Media Overlay metadata.
 /// https://readium.org/webpub-manifest/profiles/epub#5-metadata
-public struct EPUBMediaOverlay: Equatable, Sendable {
+public struct EPUBMediaOverlay: Equatable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// Author-defined CSS class name to apply to the currently-playing EPUB
     /// Content Document element.
     public var activeClass: String?
@@ -23,22 +23,23 @@ public struct EPUBMediaOverlay: Equatable, Sendable {
         self.playbackActiveClass = playbackActiveClass
     }
 
-    public init?(json: JSONValue?) {
-        guard let jsonDict = JSONDictionary(json) else { return nil }
-        let json = jsonDict.json
-        activeClass = json["activeClass"]?.string
-        playbackActiveClass = json["playbackActiveClass"]?.string
-        guard activeClass != nil || playbackActiveClass != nil else { return nil }
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let jsonObject = json?.object else { return nil }
+        
+        self.activeClass = jsonObject["activeClass"]?.string
+        self.playbackActiveClass = jsonObject["playbackActiveClass"]?.string
+        
+        guard self.activeClass != nil || self.playbackActiveClass != nil else { return nil }
     }
 
     public init?(json: Any?) {
-        self.init(json: JSONValue(json))
+        try? self.init(json: JSONValue(json), warnings: nil)
     }
 
-    public var json: [String: JSONValue] {
-        makeJSON([
-            "activeClass": encodeIfNotNil(activeClass),
-            "playbackActiveClass": encodeIfNotNil(playbackActiveClass),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "activeClass": activeClass,
+            "playbackActiveClass": playbackActiveClass
         ])
     }
 }

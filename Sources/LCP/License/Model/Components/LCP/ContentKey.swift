@@ -9,25 +9,21 @@ import ReadiumShared
 
 /// Used to encrypt the Publication Resources.
 /// This is encrypted using the User Key.
-public struct ContentKey {
+public struct ContentKey: JSONValueDecodable {
     /// Algorithm used to encrypt the Content Key, identified using the URIs defined in [XML-ENC]. This MUST match the Content Key encryption algorithm named in the Encryption Profile identified in `encryption/profile`.
     public let algorithm: String
     /// Encrypted Content Key.
     public let encryptedValue: String
 
-    init(json: JSONValue?) throws {
-        guard var json = JSONDictionary(json),
-              let algorithm = json.pop("algorithm")?.string,
-              let encryptedValue = json.pop("encrypted_value")?.string
+    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json?.object,
+              let algorithm = json["algorithm"]?.string,
+              let encryptedValue = json["encrypted_value"]?.string
         else {
             throw ParsingError.encryption
         }
 
         self.encryptedValue = encryptedValue
         self.algorithm = algorithm
-    }
-
-    init(json: [String: Any]) throws {
-        try self.init(json: JSONValue(json))
     }
 }

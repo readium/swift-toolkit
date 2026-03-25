@@ -7,16 +7,12 @@
 import Foundation
 import ReadiumShared
 
-public struct PotentialRights {
+public struct PotentialRights: JSONValueDecodable {
     /// Time and Date when the license ends.
     public let end: Date?
 
-    init(json: JSONValue?) throws {
-        let json = JSONDictionary(json)
-        end = parseDate(json?["end"])
-    }
-
-    init(json: [String: Any]) throws {
-        try self.init(json: JSONValue(json))
+    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        let json = json?.object
+        end = json?["end"]?.parseDate()
     }
 }

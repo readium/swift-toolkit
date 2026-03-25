@@ -7,15 +7,11 @@
 import Foundation
 import ReadiumShared
 
-public struct Links {
+public struct Links: JSONValueDecodable {
     private let links: [Link]
 
-    init(json: JSONValue?) throws {
-        links = try parseArray(json).map { try ReadiumLCP.Link(json: $0 as JSONValue) }
-    }
-
-    init(json: [[String: Any]]) throws {
-        try self.init(json: JSONValue(json))
+    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        links = try json?.array?.map(Link.init) ?? []
     }
 
     /// Returns all the links with the given `rel`.

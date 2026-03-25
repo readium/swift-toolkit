@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public struct User {
+public struct User: JSONValueDecodable {
     public typealias ID = String
 
     /// Unique identifier for the User at a specific Provider.
@@ -21,16 +21,17 @@ public struct User {
     /// A list of which user object values are encrypted in this License Document.
     public let encrypted: [String]
 
-    init(json: JSONValue?) throws {
-        var json = JSONDictionary(json) ?? JSONDictionary()
-        id = json.pop("id")?.string
-        email = json.pop("email")?.string
-        name = json.pop("name")?.string
-        encrypted = parseArray(json.pop("encrypted"))
-        extensions = json.json
-    }
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
+            return nil
+        }
 
-    init(json: [String: Any]?) throws {
-        try self.init(json: JSONValue(json))
+        var dict = json.object ?? [:]
+
+        self.id = dict.pop("id")?.string
+        self.email = dict.pop("email")?.string
+        self.name = dict.pop("name")?.string
+        self.encrypted = dict.pop("encrypted")?.parseArray() ?? []
+        self.extensions = dict
     }
 }

@@ -10,7 +10,7 @@ import ReadiumShared
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
 public struct StatusDocument {
-    public enum Status: String {
+    public enum Status: String, JSONValueDecodable {
         /// The License Document is available, but the user hasn't accessed the License and/or Status Document yet.
         case ready
         /// The license is active, and a device has been successfully registered for this license. This is the default value if the License Document does not contain a registration link, or a registration mechanism through the license itself.
@@ -25,7 +25,7 @@ public struct StatusDocument {
         case expired
     }
 
-    public enum Rel: String {
+    public enum Rel: String, JSONValueDecodable {
         case register
         case license
         case `return`
@@ -47,21 +47,19 @@ public struct StatusDocument {
     public let events: [Event]
 
     init(data: Data) throws {
-        guard let deserializedJSON = try? JSONSerialization.jsonObject(with: data) else {
-            throw ParsingError.malformedJSON
-        }
+        guard let jsonValue = try? JSONDecoder().decode(JSONValue.self, from: data) else {
+                    throw ParsingError.malformedJSON
+                }
 
-        guard let jsonValue = JSONValue(deserializedJSON),
-              var json = JSONDictionary(jsonValue),
-              let id = json.pop("id")?.string,
-              let statusRaw = json.pop("status")?.string,
+        guard let json = jsonValue.object,
+              let id = json["id"]?.string,
+              let statusRaw = json["status"]?.string,
               let status = Status(rawValue: statusRaw),
-              let message = json.pop("message")?.string,
-              let updatedObject = json.pop("updated"),
-              let updated = JSONDictionary(updatedObject),
-              let licenseUpdated = parseDate(updated["license"]),
-              let statusUpdated = parseDate(updated["status"]),
-              let linksValue = json.pop("links"), linksValue.array != nil
+              let message = json["message"]?.string,
+              let updated = json["updated"]?.object,
+              let licenseUpdated = updated["license"]?.parseDate(),
+              let statusUpdated = updated["status"]?.parseDate(),
+              let linksValue = json["links"], linksValue.array != nil
         else {
             throw ParsingError.statusDocument
         }
@@ -73,8 +71,8 @@ public struct StatusDocument {
         self.updated = statusUpdated
         links = try Links(json: linksValue)
 
-        potentialRights = try? PotentialRights(json: json.pop("potential_rights"))
-        events = parseArray(json.pop("events")).compactMap { ReadiumLCP.Event(json: $0 as JSONValue) }
+        events = json["events"]?.arrayOf() ?? []
+        potentialRights = try? PotentialRights(json: json["potential_rights"])
     }
 
     /// Returns the first link containing the given rel.

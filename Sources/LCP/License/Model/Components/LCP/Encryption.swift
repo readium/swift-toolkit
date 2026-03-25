@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public struct Encryption {
+public struct Encryption: JSONValueDecodable {
     /// Identifies the Encryption Profile used by this LCP-protected Publication.
     public let profile: String
     /// Used to encrypt the Publication Resources.
@@ -15,11 +15,11 @@ public struct Encryption {
     /// Used to encrypt the Content Key.
     public let userKey: UserKey
 
-    init(json: JSONValue?) throws {
-        guard var json = JSONDictionary(json),
-              let profile = json.pop("profile")?.string,
-              let contentKeyJSON = json.pop("content_key"),
-              let userKeyJSON = json.pop("user_key")
+    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json?.object,
+              let profile = json["profile"]?.string,
+              let contentKeyJSON = json["content_key"],
+              let userKeyJSON = json["user_key"]
         else {
             throw ParsingError.encryption
         }
@@ -28,9 +28,5 @@ public struct Encryption {
 
         contentKey = try ContentKey(json: contentKeyJSON)
         userKey = try UserKey(json: userKeyJSON)
-    }
-
-    init(json: [String: Any]) throws {
-        try self.init(json: JSONValue(json))
     }
 }

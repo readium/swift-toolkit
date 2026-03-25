@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// The price of a publication in an OPDS link.
 /// https://drafts.opds.io/schema/properties.schema.json
-public struct OPDSPrice: Equatable {
+public struct OPDSPrice: Equatable, JSONValueDecodable, JSONObjectEncodable {
     public var currency: String // eg. EUR
 
     /// Should only be used for display purposes, because of precision issues inherent with Double and the JSON parsing.
@@ -20,13 +20,14 @@ public struct OPDSPrice: Equatable {
         self.value = value
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        if json == nil {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
             return nil
         }
-        guard let jsonDict = JSONDictionary(json),
-              let currency = jsonDict.json["currency"]?.string,
-              let value = parsePositiveDouble(jsonDict.json["value"])
+        
+        guard let jsonObject = json.object,
+              let currency = jsonObject["currency"]?.string,
+              let value = jsonObject["value"]?.parsePositiveDouble()
         else {
             warnings?.log("`currency` and `value` are required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
@@ -36,10 +37,10 @@ public struct OPDSPrice: Equatable {
         self.value = value
     }
 
-    public var json: [String: JSONValue] {
-        [
-            "currency": .string(currency),
-            "value": .double(value),
-        ]
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "currency": currency,
+            "value": value
+        ])
     }
 }

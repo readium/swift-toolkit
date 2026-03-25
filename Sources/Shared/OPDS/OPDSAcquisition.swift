@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// OPDS Acquisition Object
 /// https://drafts.opds.io/schema/acquisition-object.schema.json
-public struct OPDSAcquisition: Equatable {
+public struct OPDSAcquisition: Equatable, JSONObjectEncodable, JSONValueDecodable {
     public var type: String
     public var children: [OPDSAcquisition] = []
 
@@ -22,22 +22,22 @@ public struct OPDSAcquisition: Equatable {
         self.children = children
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard let jsonDict = JSONDictionary(json),
-              let type = jsonDict.json["type"]?.string
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let jsonObject = json?.object,
+              let type = jsonObject["type"]?.string
         else {
             warnings?.log("`type` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
         self.type = type
-        children = [OPDSAcquisition](json: jsonDict.json["child"], warnings: warnings)
+        self.children = jsonObject["child"]?.arrayOf(warnings: warnings) ?? []
     }
 
-    public var json: [String: JSONValue] {
-        makeJSON([
-            "type": .string(type),
-            "child": encodeIfNotEmpty(children.json),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "type": type,
+            "child": children.isEmpty ? JSONValue.null : children
         ])
     }
 }
@@ -45,22 +45,11 @@ public struct OPDSAcquisition: Equatable {
 public extension Array where Element == OPDSAcquisition {
     /// Parses multiple JSON acquisitions into an array of OPDSAcquisitions.
     /// eg. let acquisitions = [OPDSAcquisition](json: [...])
-    init(json: Any?, warnings: WarningLogger? = nil) {
-        self.init()
-        guard let json = json else {
-            return
-        }
-
-        let jsonValue = (json as? JSONValue) ?? JSONValue(json)
-        guard let array = jsonValue?.array else {
-            return
-        }
-
-        let acquisitions = array.compactMap { try? OPDSAcquisition(json: $0, warnings: warnings) }
-        append(contentsOf: acquisitions)
+    init(json: JSONValue?, warnings: WarningLogger? = nil) {
+        self = json?.arrayOf(warnings: warnings) ?? []
     }
 
     var json: [[String: JSONValue]] {
-        map(\.json)
+        map(\.jsonObject)
     }
 }
