@@ -21,6 +21,20 @@ public struct User: JSONValueDecodable {
     /// A list of which user object values are encrypted in this License Document.
     public let encrypted: [String]
 
+    public init(
+        id: ID? = nil,
+        email: String? = nil,
+        name: String? = nil,
+        extensions: [String: JSONValue] = [:],
+        encrypted: [String] = []
+    ) {
+        self.id = id
+        self.email = email
+        self.name = name
+        self.extensions = extensions
+        self.encrypted = encrypted
+    }
+
     public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
         guard let json = json?.jsonValue else {
             return nil
@@ -28,10 +42,12 @@ public struct User: JSONValueDecodable {
 
         var dict = json.object ?? [:]
 
-        id = dict.pop("id")?.string
-        email = dict.pop("email")?.string
-        name = dict.pop("name")?.string
-        encrypted = dict.pop("encrypted")?.arrayOf() ?? []
-        extensions = dict
+        self.init(
+            id: dict.pop("id")?.string,
+            email: dict.pop("email")?.string,
+            name: dict.pop("name")?.string,
+            extensions: dict,
+            encrypted: dict.pop("encrypted")?.arrayOf() ?? []
+        )
     }
 }

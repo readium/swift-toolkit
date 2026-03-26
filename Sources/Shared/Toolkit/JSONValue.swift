@@ -34,6 +34,27 @@ public enum JSONValue: Sendable, Hashable, Loggable {
     /// A JSON object.
     case object([String: JSONValue])
 
+    /// Converts a `Any` – for example returned by `JSONSerialization` – into a
+    /// type-safe `JSONValue`.
+    public init?(_ any: Any?) {
+        guard let any = any else { return nil }
+
+        switch any {
+        case is NSNull:
+            self = .null
+        case let number as NSNumber:
+            self = number.jsonValue
+        case let string as String:
+            self = .string(string)
+        case let array as [Any]:
+            self = .array(array.compactMap { JSONValue($0) })
+        case let dict as [String: Any]:
+            self = .object(dict.compactMapValues { JSONValue($0) })
+        default:
+            return nil
+        }
+    }
+
     /// Returns the value as a standard Swift / Foundation type.
     ///
     /// This is useful for interoperability with APIs that expect untyped values
@@ -311,7 +332,7 @@ public extension JSONValueDecodable {
         } catch {
             throw JSONError.parsing(Self.self, cause: error)
         }
-        guard let jsonValue = JSONValue(serialized: any) else {
+        guard let jsonValue = JSONValue(any) else {
             throw JSONError.parsing(Self.self)
         }
         guard let decoded = try Self(json: jsonValue, warnings: warnings) else {
@@ -518,22 +539,6 @@ extension JSONValue: ExpressibleByArrayLiteral {
 extension JSONValue: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, JSONValue)...) {
         self = .object(Dictionary(uniqueKeysWithValues: elements))
-    }
-}
-
-// MARK: - JSON Codec
-
-private extension JSONValue {
-    /// Converts a value returned by `JSONSerialization` into a `JSONValue`.
-    init?(serialized any: Any) {
-        switch any {
-        case let v as NSNull: self = v.jsonValue
-        case let v as NSNumber: self = v.jsonValue
-        case let v as String: self = .string(v)
-        case let v as [Any]: self = .array(v.compactMap { JSONValue(serialized: $0) })
-        case let v as [String: Any]: self = .object(v.compactMapValues { JSONValue(serialized: $0) })
-        default: return nil
-        }
     }
 }
 

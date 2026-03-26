@@ -82,10 +82,7 @@ public struct LicenseDocument {
         updated = json["updated"]?.date ?? issued
         self.encryption = encryption
         self.links = links
-        guard let parsedUser = try User(json: json["user"]) else {
-            throw ParsingError.licenseDocument
-        }
-        user = parsedUser
+        user = try User(json: json["user"]) ?? User()
         self.rights = rights
         self.signature = signature
         jsonData = data

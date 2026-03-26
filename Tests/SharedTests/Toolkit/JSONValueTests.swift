@@ -158,6 +158,93 @@ import Testing
         }
     }
 
+    @Suite struct FromAny {
+        /// nil input → failable init returns nil (not .null)
+        @Test func nilReturnsNil() {
+            #expect(JSONValue(nil) == nil)
+        }
+
+        /// NSNull → .null
+        @Test func nsNull() {
+            #expect(JSONValue(NSNull()) == .null)
+        }
+
+        /// NSNumber booleans (from JSONSerialization) → .bool
+        @Test func nsNumberBool() {
+            #expect(JSONValue(NSNumber(value: true)) == .bool(true))
+            #expect(JSONValue(NSNumber(value: false)) == .bool(false))
+        }
+
+        /// NSNumber integers → .integer (with clamping for out-of-range values)
+        @Test func nsNumberInt() {
+            #expect(JSONValue(NSNumber(value: 42)) == .integer(42))
+            #expect(JSONValue(NSNumber(value: -1)) == .integer(-1))
+            #expect(JSONValue(NSNumber(value: UInt64.max)) == .integer(Int.max))
+            #expect(JSONValue(NSNumber(value: Int64.min)) == .integer(Int.min))
+        }
+
+        /// NSNumber floats → .double
+        @Test func nsNumberDouble() {
+            #expect(JSONValue(NSNumber(value: 3.14)) == .double(3.14))
+        }
+
+        /// Native Swift types (bridge through NSNumber)
+        @Test func swiftBool() {
+            let t = true
+            #expect(JSONValue(t as Any) == .bool(true))
+            #expect(JSONValue(false as Any) == .bool(false))
+        }
+
+        @Test func swiftInt() {
+            #expect(JSONValue(42 as Int as Any) == .integer(42))
+            #expect(JSONValue(-7 as Int as Any) == .integer(-7))
+        }
+
+        @Test func swiftDouble() {
+            #expect(JSONValue(2.5 as Double as Any) == .double(2.5))
+        }
+
+        /// String
+        @Test func string() {
+            #expect(JSONValue("hello" as Any) == .string("hello"))
+        }
+
+        /// Arrays — valid and mixed-validity elements
+        @Test func array() {
+            let raw: [Any] = [NSNumber(value: 1), "two", NSNumber(value: true)]
+            #expect(JSONValue(raw as Any) == .array([.integer(1), .string("two"), .bool(true)]))
+        }
+
+        @Test func arrayFiltersUnknownElements() throws {
+            // Elements that can't be converted (e.g., a raw struct) are dropped via compactMap
+            let raw: [Any] = try ["keep", #require(URL(string: "https://example.com")) as Any, NSNumber(value: 99)]
+            #expect(JSONValue(raw as Any) == .array([.string("keep"), .integer(99)]))
+        }
+
+        /// Objects
+        @Test func object() {
+            let raw: [String: Any] = ["a": NSNumber(value: 1), "b": "hello"]
+            #expect(JSONValue(raw as Any) == .object(["a": .integer(1), "b": .string("hello")]))
+        }
+
+        @Test func objectFiltersUnknownValues() throws {
+            let raw: [String: Any] = try ["keep": "yes", "drop": #require(URL(string: "https://example.com")) as Any]
+            #expect(JSONValue(raw as Any) == .object(["keep": .string("yes")]))
+        }
+
+        /// Nested structures
+        @Test func nested() {
+            let raw: [String: Any] = ["nums": [NSNumber(value: 1), NSNumber(value: 2)]]
+            #expect(JSONValue(raw as Any) == .object(["nums": .array([.integer(1), .integer(2)])]))
+        }
+
+        /// Unknown type → nil
+        @Test func unknownTypeReturnsNil() {
+            struct Opaque {}
+            #expect(JSONValue(Opaque() as Any) == nil)
+        }
+    }
+
     @Suite struct AnyConversion {
         @Test func primitives() {
             #expect(JSONValue.null.any is NSNull)
