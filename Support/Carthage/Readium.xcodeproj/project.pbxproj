@@ -104,7 +104,6 @@
 		3886B24981CA3B3CD0E6DEC6 /* InputObservable.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20ED98539825B35F64D8262 /* InputObservable.swift */; };
 		38E81FCDABFBB514685402B8 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 342D5C0FEE79A2ABEE24A43E /* CoreServices.framework */; };
 		39326587EF76BFD5AD68AED2 /* ReadiumShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97BC822B36D72EF548162129 /* ReadiumShared.framework */; };
-		39B1DDE3571AB3F3CC6824F4 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA827FC94F5CB3F9032028F /* JSON.swift */; };
 		3AA66AB994F11FC9470C7EDB /* EPUBMediaOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AD220F39BD9BBC714F837C4 /* EPUBMediaOverlay.swift */; };
 		3AD9E86BB1621CF836919E33 /* ReadiumLocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38984FD65CFF1D54FF7F794F /* ReadiumLocalizedString.swift */; };
 		3AF8DBD6431F7F5A156FFBCF /* EPUBManifestParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C73E1510486CBF553651D60 /* EPUBManifestParser.swift */; };
@@ -874,7 +873,6 @@
 		EC96A56AB406203898059B6C /* UserKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserKey.swift; sourceTree = "<group>"; };
 		EC9ACC1EB3903149EBF21BC0 /* EPUBNavigatorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBNavigatorViewModel.swift; sourceTree = "<group>"; };
 		ECF32CF55DD942ACB06389C5 /* Preference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preference.swift; sourceTree = "<group>"; };
-		EDA827FC94F5CB3F9032028F /* JSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
 		EE3E6442F0C7FE2098D71F27 /* Link.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Link.swift; sourceTree = "<group>"; };
 		EE7B762C97CFC214997EC677 /* Weak.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Weak.swift; sourceTree = "<group>"; };
 		EED4C26FFA10656866E167F4 /* ProgressionStrategy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionStrategy.swift; sourceTree = "<group>"; };
@@ -1909,7 +1907,6 @@
 				8A00FF0C84822A134A353BD4 /* DocumentTypes.swift */,
 				10FB29EDCCE5910C869295F1 /* Either.swift */,
 				D555435E2BADB2B877FD50C7 /* FileExtension.swift */,
-				EDA827FC94F5CB3F9032028F /* JSON.swift */,
 				AC3487F36FB4BD0BDA0F12E1 /* JSONValue.swift */,
 				68FF131876FA3A63025F2662 /* Language.swift */,
 				5BC6AE42A31D77B548CB0BB4 /* Observable.swift */,
@@ -2767,7 +2764,6 @@
 				03B5862162A21448DC7813C6 /* HTTPServer.swift in Sources */,
 				71AC16AB1FE4CD6C63C8A103 /* HTTPURL.swift in Sources */,
 				5E7924342D113D94AE3A098C /* InMemoryPositionsService.swift in Sources */,
-				39B1DDE3571AB3F3CC6824F4 /* JSON.swift in Sources */,
 				D84BF71D6840FE62D7701073 /* JSONFormatSniffer.swift in Sources */,
 				4F5523AB7E92BAA3AD01A88D /* JSONValue.swift in Sources */,
 				4D4915BB3847EF285362CF50 /* LCPLicenseFormatSniffer.swift in Sources */,
