@@ -581,7 +581,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
             certificationDict = .init([
                 "certifiedBy": cert.certifiedBy,
                 "credential": cert.credential,
-                "report": cert.report
+                "report": cert.report,
             ])
         }
 

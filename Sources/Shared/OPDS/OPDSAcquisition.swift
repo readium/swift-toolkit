@@ -31,13 +31,13 @@ public struct OPDSAcquisition: Equatable, JSONObjectEncodable, JSONValueDecodabl
         }
 
         self.type = type
-        self.children = jsonObject["child"]?.arrayOf(warnings: warnings) ?? []
+        children = jsonObject["child"]?.arrayOf(warnings: warnings) ?? []
     }
 
     public var jsonObject: [String: JSONValue] {
         .init([
             "type": type,
-            "child": children.isEmpty ? JSONValue.null : children
+            "child": children.isEmpty ? JSONValue.null : children,
         ])
     }
 }

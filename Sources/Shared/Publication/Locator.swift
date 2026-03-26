@@ -86,12 +86,12 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
             throw JSONError.parsing(Self.self)
         }
 
-        self.init(
+        try self.init(
             href: href,
             mediaType: type,
             title: jsonObject["title"]?.string,
-            locations: try Locations(json: jsonObject["locations"], warnings: warnings) ?? Locations(),
-            text: try Text(json: jsonObject["text"], warnings: warnings) ?? Text()
+            locations: Locations(json: jsonObject["locations"], warnings: warnings) ?? Locations(),
+            text: Text(json: jsonObject["text"], warnings: warnings) ?? Text()
         )
     }
 
@@ -361,8 +361,8 @@ public struct LocatorCollection: Hashable, JSONValueDecodable, JSONObjectEncodab
             warnings?.log("Not a JSON object", model: Self.self, source: json.any)
             return nil
         }
-        self.init(
-            metadata: try Metadata(json: jsonObject["metadata"], warnings: warnings) ?? Metadata(),
+        try self.init(
+            metadata: Metadata(json: jsonObject["metadata"], warnings: warnings) ?? Metadata(),
             links: jsonObject["links"]?.arrayOf(warnings: warnings) ?? [],
             locators: jsonObject["locators"]?.arrayOf(warnings: warnings) ?? []
         )
@@ -394,7 +394,7 @@ public struct LocatorCollection: Hashable, JSONValueDecodable, JSONObjectEncodab
             numberOfItems: Int? = nil,
             otherMetadata: [String: JSONValue] = [:]
         ) {
-            self.localizedTitle = title?.localizedString
+            localizedTitle = title?.localizedString
             self.numberOfItems = numberOfItems
             self.otherMetadata = otherMetadata
         }

@@ -25,7 +25,7 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable, JSONValue
             warnings?.log("Invalid Properties object", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
-        self.otherProperties = jsonObject
+        otherProperties = jsonObject
     }
 
     public var jsonObject: [String: JSONValue] {

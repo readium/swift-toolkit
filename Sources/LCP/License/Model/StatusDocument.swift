@@ -48,8 +48,8 @@ public struct StatusDocument {
 
     init(data: Data) throws {
         guard let jsonValue = try? JSONDecoder().decode(JSONValue.self, from: data) else {
-                    throw ParsingError.malformedJSON
-                }
+            throw ParsingError.malformedJSON
+        }
 
         guard let json = jsonValue.object,
               let id = json["id"]?.string,

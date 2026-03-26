@@ -154,7 +154,9 @@ extension String: JSONValueEncodable {
 }
 
 extension Bool: JSONValueEncodable {
-    public var jsonValue: JSONValue { .bool(self) }
+    public var jsonValue: JSONValue {
+        .bool(self)
+    }
 }
 
 extension Int: JSONValueEncodable {

@@ -784,7 +784,6 @@
 ../../Sources/Shared/Toolkit/HTTP/HTTPResourceFactory.swift
 ../../Sources/Shared/Toolkit/HTTP/HTTPServer.swift
 ../../Sources/Shared/Toolkit/JSON.swift
-../../Sources/Shared/Toolkit/JSONDictionary.swift
 ../../Sources/Shared/Toolkit/JSONValue.swift
 ../../Sources/Shared/Toolkit/Language.swift
 ../../Sources/Shared/Toolkit/Logging

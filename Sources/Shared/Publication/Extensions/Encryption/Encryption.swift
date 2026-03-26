@@ -63,7 +63,7 @@ public struct Encryption: Equatable, JSONValueDecodable, JSONObjectEncodable {
             "compression": compression,
             "originalLength": originalLength,
             "profile": profile,
-            "scheme": scheme
+            "scheme": scheme,
         ])
     }
 }

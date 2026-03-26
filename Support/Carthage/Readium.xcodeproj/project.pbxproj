@@ -249,7 +249,6 @@
 		977C8677BEB5B235E8F82A4C /* Resource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B53B841C2F5A59BA3B161258 /* Resource.swift */; };
 		97FB26E379FB3DFB5AAA7BA1 /* ContentProtectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8240F845F35439807CE8AF65 /* ContentProtectionService.swift */; };
 		98702AFB56F9C50F7246CDDA /* LCPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A115134AA0B8F5254C8139 /* LCPError.swift */; };
-		9925DAB6586160243A3D2F84 /* JSONDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 461BF6222557CF32222B0EE6 /* JSONDictionary.swift */; };
 		999EF656A5CDAF3BA30C26EF /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD03AFC9C69E785886FB9620 /* Logger.swift */; };
 		9A1877FBEAA0BFC4C74AD3BB /* Encryption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87727AC33D368A88A60A12B9 /* Encryption.swift */; };
 		9A463F872E1B05B64E026EBB /* LCPLicenseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3230FB63D7ADDD514D74F7E6 /* LCPLicenseRepository.swift */; };
@@ -619,7 +618,6 @@
 		456192DBCB3A29ADA9C3CCB9 /* Contributor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contributor.swift; sourceTree = "<group>"; };
 		4567A7ABB678715C37661DE3 /* SelectableNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectableNavigator.swift; sourceTree = "<group>"; };
 		4598F4671CE7BAE9299BF84B /* UIImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
-		461BF6222557CF32222B0EE6 /* JSONDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONDictionary.swift; sourceTree = "<group>"; };
 		466FBCC987DE0DE8923187C7 /* URLQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLQuery.swift; sourceTree = "<group>"; };
 		4741AE26D76A8C2508437C2D /* EPUBSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPUBSettings.swift; sourceTree = "<group>"; };
 		47B9196192A22B8AB80E6B2F /* LCPDFPositionsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCPDFPositionsService.swift; sourceTree = "<group>"; };
@@ -1912,7 +1910,6 @@
 				10FB29EDCCE5910C869295F1 /* Either.swift */,
 				D555435E2BADB2B877FD50C7 /* FileExtension.swift */,
 				EDA827FC94F5CB3F9032028F /* JSON.swift */,
-				461BF6222557CF32222B0EE6 /* JSONDictionary.swift */,
 				AC3487F36FB4BD0BDA0F12E1 /* JSONValue.swift */,
 				68FF131876FA3A63025F2662 /* Language.swift */,
 				5BC6AE42A31D77B548CB0BB4 /* Observable.swift */,
@@ -2771,7 +2768,6 @@
 				71AC16AB1FE4CD6C63C8A103 /* HTTPURL.swift in Sources */,
 				5E7924342D113D94AE3A098C /* InMemoryPositionsService.swift in Sources */,
 				39B1DDE3571AB3F3CC6824F4 /* JSON.swift in Sources */,
-				9925DAB6586160243A3D2F84 /* JSONDictionary.swift in Sources */,
 				D84BF71D6840FE62D7701073 /* JSONFormatSniffer.swift in Sources */,
 				4F5523AB7E92BAA3AD01A88D /* JSONValue.swift in Sources */,
 				4D4915BB3847EF285362CF50 /* LCPLicenseFormatSniffer.swift in Sources */,

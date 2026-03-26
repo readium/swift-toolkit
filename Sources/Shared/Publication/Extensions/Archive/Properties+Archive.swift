@@ -42,7 +42,7 @@ public extension Properties {
         public var jsonObject: [String: JSONValue] {
             .init([
                 "entryLength": Double(entryLength),
-                "isEntryCompressed": isEntryCompressed
+                "isEntryCompressed": isEntryCompressed,
             ])
         }
     }

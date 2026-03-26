@@ -28,10 +28,10 @@ public struct User: JSONValueDecodable {
 
         var dict = json.object ?? [:]
 
-        self.id = dict.pop("id")?.string
-        self.email = dict.pop("email")?.string
-        self.name = dict.pop("name")?.string
-        self.encrypted = dict.pop("encrypted")?.parseArray() ?? []
-        self.extensions = dict
+        id = dict.pop("id")?.string
+        email = dict.pop("email")?.string
+        name = dict.pop("name")?.string
+        encrypted = dict.pop("encrypted")?.parseArray() ?? []
+        extensions = dict
     }
 }

@@ -24,7 +24,7 @@ public struct OPDSPrice: Equatable, JSONValueDecodable, JSONObjectEncodable {
         guard let json = json else {
             return nil
         }
-        
+
         guard let jsonObject = json.object,
               let currency = jsonObject["currency"]?.string,
               let value = jsonObject["value"]?.parsePositiveDouble()
@@ -40,7 +40,7 @@ public struct OPDSPrice: Equatable, JSONValueDecodable, JSONObjectEncodable {
     public var jsonObject: [String: JSONValue] {
         .init([
             "currency": currency,
-            "value": value
+            "value": value,
         ])
     }
 }

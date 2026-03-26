@@ -60,7 +60,7 @@ public struct TDM: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public var jsonObject: [String: JSONValue] {
         .init([
             "reservation": reservation.rawValue,
-            "policy": policy?.string
+            "policy": policy?.string,
         ])
     }
 }

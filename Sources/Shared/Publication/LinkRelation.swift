@@ -150,11 +150,7 @@ extension LinkRelation: ExpressibleByStringLiteral {
     }
 }
 
-extension LinkRelation: Equatable {
-    public static func == (lhs: LinkRelation, rhs: LinkRelation) -> Bool {
-        lhs.string == rhs.string
-    }
-}
+extension LinkRelation: Equatable {}
 
 extension LinkRelation: JSONValueDecodable {
     public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
@@ -169,8 +165,8 @@ public extension Array where Element == LinkRelation {
     /// Parses multiple JSON relations into an array of `LinkRelation`.
     init(json: JSONValue?) {
         self = json?.parseArray(allowingSingle: true).compactMap {
-                    try? LinkRelation(json: $0)
-                } ?? []
+            try? LinkRelation(json: $0)
+        } ?? []
     }
 
     var json: [String] {
