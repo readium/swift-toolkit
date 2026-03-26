@@ -31,12 +31,12 @@ public struct PublicationCollection: Hashable, Sendable, JSONValueDecodable, JSO
 
         if let array = json.array {
             // Parses a list of links.
-            self.init(links: array.arrayOf(warnings: warnings))
+            self.init(links: array.decode(warnings: warnings))
         } else if var jsonObject = json.object {
             // Parses a Collection object.
             self.init(
                 metadata: jsonObject.pop("metadata")?.object ?? [:],
-                links: jsonObject.pop("links")?.arrayOf(warnings: warnings) ?? [],
+                links: jsonObject.pop("links")?.decode(warnings: warnings) ?? [],
                 subcollections: Self.makeCollections(json: .object(jsonObject), warnings: warnings)
             )
         } else {
@@ -51,8 +51,8 @@ public struct PublicationCollection: Hashable, Sendable, JSONValueDecodable, JSO
 
     public var jsonObject: [String: JSONValue] {
         .init([
-            "metadata": metadata.isEmpty ? JSONValue.null : .object(metadata),
-            "links": links.isEmpty ? JSONValue.null : .array(links.map { .object($0.jsonObject) }),
+            "metadata": metadata.orNullIfEmpty,
+            "links": links.orNullIfEmpty,
         ], adding: Self.serializeCollections(subcollections))
     }
 
@@ -63,13 +63,11 @@ public struct PublicationCollection: Hashable, Sendable, JSONValueDecodable, JSO
 
         return jsonObject.compactMapValues { json in
             // Parses list of links or a single collection object.
-            if let collection = try? PublicationCollection(json: json, warnings: warnings) {
+            if let collection: PublicationCollection = try? json.decode(warnings: warnings) {
                 return [collection]
             } else if let collectionsArray = json.array {
                 // Parses list of collection objects.
-                let collections = collectionsArray.compactMap {
-                    try? PublicationCollection(json: $0, warnings: warnings)
-                }
+                let collections: [PublicationCollection] = collectionsArray.decode(warnings: warnings)
                 return collections.isEmpty ? nil : collections
             } else {
                 return nil
@@ -82,9 +80,9 @@ public struct PublicationCollection: Hashable, Sendable, JSONValueDecodable, JSO
             if collections.isEmpty {
                 return nil
             } else if collections.count == 1 {
-                return .object(collections[0].jsonObject)
+                return collections[0].jsonValue
             } else {
-                return .array(collections.map { .object($0.jsonObject) })
+                return collections.jsonValue
             }
         }
     }

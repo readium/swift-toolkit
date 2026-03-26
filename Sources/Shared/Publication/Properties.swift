@@ -55,7 +55,7 @@ public extension Properties {
     /// Indicates how the linked resource should be displayed in a reading
     /// environment that displays synthetic spreads.
     var page: Page? {
-        get { otherProperties[Self.pageKey]?.rawValue() }
+        get { otherProperties[Self.pageKey]?.decode() }
         set {
             if let newValue = newValue {
                 otherProperties[Self.pageKey] = .string(newValue.rawValue)

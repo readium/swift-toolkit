@@ -163,7 +163,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
                 warnings?.log("Invalid Locations object", model: Self.self, source: json)
                 throw JSONError.parsing(Self.self)
             }
-            var fragments: [String] = jsonObject.pop("fragments")?.arrayOf() ?? []
+            var fragments: [String] = jsonObject.pop("fragments")?.decode() ?? []
             if let fragment = jsonObject.pop("fragment")?.string {
                 fragments.append(fragment)
             }
@@ -296,8 +296,8 @@ public struct LocatorCollection: Sendable, Hashable, JSONValueDecodable, JSONObj
         }
         try self.init(
             metadata: Metadata(json: jsonObject["metadata"], warnings: warnings) ?? Metadata(),
-            links: jsonObject["links"]?.arrayOf(warnings: warnings) ?? [],
-            locators: jsonObject["locators"]?.arrayOf(warnings: warnings) ?? []
+            links: jsonObject["links"]?.decode(warnings: warnings) ?? [],
+            locators: jsonObject["locators"]?.decode(warnings: warnings) ?? []
         )
     }
 

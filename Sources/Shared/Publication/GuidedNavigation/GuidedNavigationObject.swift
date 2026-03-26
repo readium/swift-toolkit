@@ -66,7 +66,7 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
 
         let refs = try Refs(json: json, warnings: warnings)
         let text = try Text(json: jsonObject["text"], warnings: warnings)
-        let children: [GuidedNavigationObject] = jsonObject["children"]?.arrayOf(warnings: warnings) ?? []
+        let children: [GuidedNavigationObject] = jsonObject["children"]?.decode(warnings: warnings) ?? []
 
         guard refs != nil || text != nil || !children.isEmpty else {
             warnings?.log("Guided Navigation Object requires at least one of audioref, imgref, textref, videoref, text, or children", model: Self.self, source: json, severity: .moderate)
@@ -79,7 +79,7 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
             id: jsonObject["id"]?.string,
             refs: refs,
             text: text,
-            roles: jsonObject["role"]?.arrayOf(warnings: warnings) ?? [],
+            roles: jsonObject["role"]?.decode(warnings: warnings) ?? [],
             description: description,
             children: children
         )
@@ -555,6 +555,6 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
 
 public extension Array where Element == GuidedNavigationObject {
     init(json: JSONValue?, warnings: WarningLogger? = nil) {
-        self = json?.arrayOf(warnings: warnings) ?? []
+        self = json?.decode(warnings: warnings) ?? []
     }
 }

@@ -20,7 +20,7 @@ public struct ResourceProperties: Hashable {
     }
 
     public subscript<T: JSONValueEncodable & JSONValueDecodable>(_ key: String) -> T? {
-        get { try? T(json: properties[key]) }
+        get { try? properties[key]?.decode() }
         set {
             if let newValue = newValue {
                 properties[key] = newValue.jsonValue

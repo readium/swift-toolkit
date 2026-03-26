@@ -53,7 +53,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
     public var exemptions: [Exemption]
 
     /// Accessibility profile.
-    public struct Profile: Hashable, Sendable {
+    public struct Profile: Hashable, RawRepresentable, Sendable {
         public let uri: String
 
         public init(_ uri: String) {
@@ -108,6 +108,16 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
                 || self == Self.epubA11y11WCAG21AAA
                 || self == Self.epubA11y11WCAG22AAA
         }
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            uri
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     public struct Certification: Hashable, Sendable {
@@ -135,7 +145,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         }
     }
 
-    public struct AccessMode: Hashable, Sendable {
+    public struct AccessMode: RawRepresentable, Hashable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -178,6 +188,16 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
 
         /// Indicates that the resource contains information encoded in visual form.
         public static let visual = AccessMode("visual")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            id
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     public enum PrimaryAccessMode: String, Hashable, Sendable {
@@ -197,7 +217,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         case visual
     }
 
-    public struct Feature: Hashable, Sendable {
+    public struct Feature: Hashable, RawRepresentable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -431,9 +451,19 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         /// Indicates that the content can be rendered without additional word
         /// segmentation.
         public static let withoutAdditionalWordSegmentation = Feature("withoutAdditionalWordSegmentation")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            id
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
-    public struct Hazard: Hashable, Sendable {
+    public struct Hazard: Hashable, RawRepresentable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -482,6 +512,16 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
 
         /// Indicates that the resource does not contain any hazards.
         public static let none = Hazard("none")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            id
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     /// ``Exemption`` allows content creators to identify publications that do
@@ -491,7 +531,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
     /// While this list is currently limited to exemptions covered by the
     /// European Accessibility Act, it will be extended to cover additional
     /// exemptions in the future.
-    public struct Exemption: Hashable, Sendable {
+    public struct Exemption: Hashable, RawRepresentable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -525,6 +565,16 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         /// requirements.
         /// https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32019L0882#d1e1798-70-1
         public static let eaaMicroenterprise = Exemption("eaa-microenterprise")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            id
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     public init(
@@ -557,8 +607,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         }
 
         self.init(
-            conformsTo: (jsonObject["conformsTo"]?.arrayOf(allowingSingle: true) as [String]? ?? [])
-                .map(Profile.init),
+            conformsTo: jsonObject["conformsTo"]?.decode(allowingSingle: true) ?? [],
             certification: jsonObject["certification"]?.object
                 .map { dict in
                     Certification(
@@ -569,13 +618,13 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
                 }
                 .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
             summary: jsonObject["summary"]?.string,
-            accessModes: (jsonObject["accessMode"]?.arrayOf() as [String]? ?? []).map(AccessMode.init),
+            accessModes: jsonObject["accessMode"]?.decode() ?? [],
             accessModesSufficient: (jsonObject["accessModeSufficient"]?.array ?? [])
-                .map { ($0.arrayOf(allowingSingle: true) as [String]).compactMap(PrimaryAccessMode.init(rawValue:)) }
+                .map { $0.decode(allowingSingle: true) }
                 .filter { !$0.isEmpty },
-            features: (jsonObject["feature"]?.arrayOf() as [String]? ?? []).map(Feature.init),
-            hazards: (jsonObject["hazard"]?.arrayOf() as [String]? ?? []).map(Hazard.init),
-            exemptions: (jsonObject["exemption"]?.arrayOf() as [String]? ?? []).map(Exemption.init)
+            features: jsonObject["feature"]?.decode() ?? [],
+            hazards: jsonObject["hazard"]?.decode() ?? [],
+            exemptions: jsonObject["exemption"]?.decode() ?? []
         )
     }
 

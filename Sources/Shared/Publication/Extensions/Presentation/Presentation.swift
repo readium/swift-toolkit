@@ -66,11 +66,11 @@ public struct Presentation: Equatable, JSONValueDecodable, JSONObjectEncodable {
         self.init(
             clipped: jsonObject["clipped"]?.bool,
             continuous: jsonObject["continuous"]?.bool,
-            fit: jsonObject["fit"]?.rawValue(),
-            orientation: jsonObject["orientation"]?.rawValue(),
-            overflow: jsonObject["overflow"]?.rawValue(),
-            spread: jsonObject["spread"]?.rawValue(),
-            layout: jsonObject["layout"]?.rawValue()
+            fit: jsonObject["fit"]?.decode(),
+            orientation: jsonObject["orientation"]?.decode(),
+            overflow: jsonObject["overflow"]?.decode(),
+            spread: jsonObject["spread"]?.decode(),
+            layout: jsonObject["layout"]?.decode()
         )
     }
 

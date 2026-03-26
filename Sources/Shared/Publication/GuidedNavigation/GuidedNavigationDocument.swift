@@ -29,7 +29,7 @@ public struct GuidedNavigationDocument: Hashable, Sendable, JSONValueDecodable {
             throw JSONError.parsing(Self.self)
         }
 
-        let guided: [GuidedNavigationObject] = jsonObject["guided"]?.arrayOf(warnings: warnings) ?? []
+        let guided: [GuidedNavigationObject] = jsonObject["guided"]?.decode(warnings: warnings) ?? []
         guard !guided.isEmpty else {
             warnings?.log("Guided Navigation Document requires a non-empty guided array", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)

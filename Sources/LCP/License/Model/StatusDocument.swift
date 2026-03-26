@@ -71,8 +71,8 @@ public struct StatusDocument {
         self.updated = statusUpdated
         self.links = links
 
-        events = json["events"]?.arrayOf() ?? []
-        potentialRights = try? PotentialRights(json: json["potential_rights"])
+        events = json["events"]?.decode() ?? []
+        potentialRights = try? json["potential_rights"]?.decode()
     }
 
     /// Returns the first link containing the given rel.

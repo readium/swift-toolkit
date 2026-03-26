@@ -19,26 +19,26 @@ public extension Properties {
     /// Suggested method for constraining a resource inside the viewport.
     @available(*, unavailable, message: "This was removed from RWPM.")
     var fit: Presentation.Fit? {
-        otherProperties["fit"]?.rawValue()
+        otherProperties["fit"]?.decode()
     }
 
     /// Suggested orientation for the device when displaying the linked resource.
     @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original value.")
     var orientation: Presentation.Orientation? {
-        otherProperties["orientation"]?.rawValue()
+        otherProperties["orientation"]?.decode()
     }
 
     /// Indicates if the overflow of linked resources from the `readingOrder` or `resources` should
     /// be handled using dynamic pagination or scrolling.
     @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original value.")
     var overflow: Presentation.Overflow? {
-        otherProperties["overflow"]?.rawValue()
+        otherProperties["overflow"]?.decode()
     }
 
     /// Indicates the condition to be met for the linked resource to be rendered within a synthetic
     ///  spread.
     @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original value.")
     var spread: Presentation.Spread? {
-        otherProperties["spread"]?.rawValue()
+        otherProperties["spread"]?.decode()
     }
 }

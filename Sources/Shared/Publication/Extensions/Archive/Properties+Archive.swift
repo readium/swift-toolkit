@@ -49,6 +49,6 @@ public extension Properties {
 
     /// Provides information about how the resource is stored in the publication archive.
     var archive: Archive? {
-        try? Archive(json: otherProperties["https://readium.org/webpub-manifest/properties#archive"], warnings: self)
+        try? otherProperties["https://readium.org/webpub-manifest/properties#archive"]?.decode(warnings: self)
     }
 }

@@ -30,7 +30,15 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
     /// Used to retrieve similar publications for the given contributor.
     public var links: [Link]
 
-    public init(name: LocalizedStringConvertible, identifier: String? = nil, sortAs: String? = nil, roles: [String] = [], role: String? = nil, position: Double? = nil, links: [Link] = []) {
+    public init(
+        name: LocalizedStringConvertible,
+        identifier: String? = nil,
+        sortAs: String? = nil,
+        roles: [String] = [],
+        role: String? = nil,
+        position: Double? = nil,
+        links: [Link] = []
+    ) {
         // convenience to set a single role during construction
         var roles = roles
         if let role = role {
@@ -53,7 +61,7 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
         if let name = json.string {
             self.init(name: name)
         } else if let dict = json.object {
-            guard let name = try? LocalizedString(json: dict["name"], warnings: warnings) else {
+            guard let name: LocalizedString = try? dict["name"]?.decode(warnings: warnings) else {
                 warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
@@ -61,9 +69,9 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
                 name: name,
                 identifier: dict["identifier"]?.string,
                 sortAs: dict["sortAs"]?.string,
-                roles: dict["role"]?.arrayOf(allowingSingle: true) ?? [],
+                roles: dict["role"]?.decode(allowingSingle: true) ?? [],
                 position: dict["position"]?.double,
-                links: dict["links"]?.arrayOf(warnings: warnings) ?? []
+                links: dict["links"]?.decode(warnings: warnings) ?? []
             )
         } else {
             warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)

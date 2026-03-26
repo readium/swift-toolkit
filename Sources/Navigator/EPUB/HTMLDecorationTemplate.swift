@@ -10,7 +10,7 @@ import SwiftSoup
 import UIKit
 
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
-public struct HTMLDecorationTemplate {
+public struct HTMLDecorationTemplate: JSONObjectEncodable {
     /// Determines the number of created HTML elements and their position relative to the matching DOM range.
     public enum Layout: String {
         /// A single HTML element covering the smallest region containing all CSS border boxes.

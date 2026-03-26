@@ -40,14 +40,14 @@ public struct DOMRange: JSONValueDecodable, JSONObjectEncodable {
             return nil
         }
         guard let jsonObject = json.object,
-              let start = try? Point(json: jsonObject["start"], warnings: warnings)
+              let start: Point = try? jsonObject["start"]?.decode(warnings: warnings)
         else {
             warnings?.log("`start` is required", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
         self.init(
             start: start,
-            end: try? Point(json: jsonObject["end"], warnings: warnings)
+            end: try? jsonObject["end"]?.decode(warnings: warnings)
         )
     }
 

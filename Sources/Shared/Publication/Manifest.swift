@@ -73,15 +73,15 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
             throw JSONError.parsing(Publication.self)
         }
 
-        context = json.pop("@context")?.arrayOf(allowingSingle: true) ?? []
+        context = json.pop("@context")?.decode(allowingSingle: true) ?? []
         metadata = try Metadata(json: json.pop("metadata"), warnings: warnings) ?? Metadata()
 
-        links = json.pop("links")?.arrayOf(warnings: warnings) ?? []
+        links = json.pop("links")?.decode(warnings: warnings) ?? []
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        readingOrder = ((json.pop("readingOrder") ?? json.pop("spine"))?.arrayOf(warnings: warnings) ?? [])
+        readingOrder = ((json.pop("readingOrder") ?? json.pop("spine"))?.decode(warnings: warnings) ?? [])
             .filter { $0.mediaType != nil }
-        resources = (json.pop("resources")?.arrayOf(warnings: warnings) ?? [])
+        resources = (json.pop("resources")?.decode(warnings: warnings) ?? [])
             .filter { $0.mediaType != nil }
 
         // Parses sub-collections from remaining JSON properties.
@@ -100,12 +100,12 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
 
     public var jsonObject: [String: JSONValue] {
         .init([
-            "@context": context.isEmpty ? JSONValue.null : context,
+            "@context": context.orNullIfEmpty,
             "metadata": metadata,
-            "links": links.isEmpty ? JSONValue.null : links,
-            "readingOrder": readingOrder.isEmpty ? JSONValue.null : readingOrder,
-            "resources": resources.isEmpty ? JSONValue.null : resources,
-            "toc": tableOfContents.isEmpty ? JSONValue.null : tableOfContents,
+            "links": links.orNullIfEmpty,
+            "readingOrder": readingOrder.orNullIfEmpty,
+            "resources": resources.orNullIfEmpty,
+            "toc": tableOfContents.orNullIfEmpty,
         ], adding: PublicationCollection.serializeCollections(subcollections))
     }
 

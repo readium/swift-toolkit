@@ -9,7 +9,7 @@ import Foundation
 import Testing
 
 @Suite struct JSONValueTests {
-    /// Shared helper used by ArrayOf and ArrayOfJSONValues suites.
+    /// Shared helper used by Decode suites.
     private struct StringItem: JSONValueDecodable, Equatable {
         let value: String
 
@@ -307,59 +307,91 @@ import Testing
         }
     }
 
-    @Suite struct ArrayOf {
+    @Suite struct DecodeSingle {
+        @Test func decodesValidValue() throws {
+            let result: StringItem? = try JSONValue.string("hello").decode()
+            #expect(result == StringItem(value: "hello"))
+        }
+
+        @Test func returnsNilForWrongType() throws {
+            let result: StringItem? = try JSONValue.integer(42).decode()
+            #expect(result == nil)
+        }
+
+        @Test func returnsNilForNull() throws {
+            let result: StringItem? = try JSONValue.null.decode()
+            #expect(result == nil)
+        }
+
+        @Test func forwardsWarnings() throws {
+            struct Warned: JSONValueDecodable {
+                init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+                    guard json?.jsonValue.string != nil else {
+                        warnings?.log("Not a string", model: Warned.self)
+                        return nil
+                    }
+                }
+            }
+            let logger = ListWarningLogger()
+            let result: Warned? = try JSONValue.integer(1).decode(warnings: logger)
+            #expect(result == nil)
+            #expect(logger.warnings.count == 1)
+        }
+    }
+
+    @Suite struct DecodeArray {
         @Test func decodesArray() {
             let json = JSONValue.array([.string("a"), .string("b"), .string("c")])
-            let result: [StringItem] = json.arrayOf()
+            let result: [StringItem] = json.decode()
             #expect(result == [StringItem(value: "a"), StringItem(value: "b"), StringItem(value: "c")])
         }
 
         @Test func skipsInvalidValues() {
             let json = JSONValue.array([.string("a"), .integer(42), .string("b")])
-            let result: [StringItem] = json.arrayOf()
+            let result: [StringItem] = json.decode()
             #expect(result == [StringItem(value: "a"), StringItem(value: "b")])
         }
 
         @Test func emptyArrayReturnsEmpty() {
-            let result: [StringItem] = JSONValue.array([]).arrayOf()
+            let result: [StringItem] = JSONValue.array([]).decode()
             #expect(result.isEmpty)
         }
 
         @Test func nullReturnsEmpty() {
-            let result: [StringItem] = JSONValue.null.arrayOf()
+            let result: [StringItem] = JSONValue.null.decode()
             #expect(result.isEmpty)
         }
 
         @Test func allowingSingleOnNonArray() {
             #expect(
-                (JSONValue.string("a").arrayOf(allowingSingle: true) as [StringItem])
+                (JSONValue.string("a").decode(allowingSingle: true) as [StringItem])
                     == [StringItem(value: "a")]
             )
             #expect(
-                (JSONValue.string("a").arrayOf(allowingSingle: false) as [StringItem]).isEmpty
+                (JSONValue.string("a").decode(allowingSingle: false) as [StringItem]).isEmpty
             )
             #expect(
-                (JSONValue.integer(42).arrayOf(allowingSingle: true) as [StringItem]).isEmpty
+                (JSONValue.integer(42).decode(allowingSingle: true) as [StringItem]).isEmpty
             )
         }
     }
 
-    @Suite struct ArrayOfJSONValues {
+    @Suite struct Decode {
         @Test func decodesValidElements() {
             let array: [JSONValue] = [.string("a"), .string("b"), .string("c")]
-            let result: [StringItem] = array.arrayOf()
+            let result: [StringItem] = array.decode()
             #expect(result == [StringItem(value: "a"), StringItem(value: "b"), StringItem(value: "c")])
         }
 
         @Test func skipsInvalidElements() {
             let array: [JSONValue] = [.string("a"), .integer(42), .string("b")]
-            let result: [StringItem] = array.arrayOf()
+            let result: [StringItem] = array.decode()
             #expect(result == [StringItem(value: "a"), StringItem(value: "b")])
         }
 
         @Test func emptyOrAllInvalidReturnsEmpty() {
-            #expect(([JSONValue]().arrayOf() as [StringItem]).isEmpty)
-            #expect(([JSONValue.integer(1), .integer(2)].arrayOf() as [StringItem]).isEmpty)
+            #expect(([JSONValue]().decode() as [StringItem]).isEmpty)
+            #expect(([JSONValue.integer(1), .integer(2)].decode() as [StringItem]).isEmpty)
         }
     }
 
@@ -447,17 +479,17 @@ import Testing
             #expect(try Color(json: JSONValue.integer(0)) == nil) // wrong type
         }
 
-        @Test func arrayOf() {
+        @Test func decode() {
             let json = JSONValue.array([.string("red"), .string("purple"), .string("blue")])
-            #expect((json.arrayOf() as [Color]) == [.red, .blue]) // "purple" filtered
+            #expect((json.decode() as [Color]) == [.red, .blue]) // "purple" filtered
         }
 
-        @Test func arrayOfAllowingSingle() {
+        @Test func decodeAllowingSingle() {
             #expect(
-                (JSONValue.string("green").arrayOf(allowingSingle: true) as [Color]) == [.green]
+                (JSONValue.string("green").decode(allowingSingle: true) as [Color]) == [.green]
             )
             #expect(
-                (JSONValue.string("red").arrayOf(allowingSingle: false) as [Color]).isEmpty
+                (JSONValue.string("red").decode(allowingSingle: false) as [Color]).isEmpty
             )
         }
     }

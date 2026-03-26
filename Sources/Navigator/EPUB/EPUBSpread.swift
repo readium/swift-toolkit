@@ -210,7 +210,7 @@ struct EPUBSpreadResource {
     func json(forBaseURL baseURL: AbsoluteURL, page: Properties.Page) -> [String: JSONValue] {
         .init([
             "index": index,
-            "link": link.jsonValue,
+            "link": link,
             "url": link.url(relativeTo: baseURL).string,
             "page": page.rawValue,
         ])

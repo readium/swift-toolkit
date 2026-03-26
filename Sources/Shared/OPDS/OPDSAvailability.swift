@@ -29,7 +29,7 @@ public struct OPDSAvailability: Equatable, JSONValueDecodable, JSONObjectEncodab
             return nil
         }
         guard let jsonObject = json.object,
-              let state: State = jsonObject["state"]?.rawValue()
+              let state: State = jsonObject["state"]?.decode()
         else {
             warnings?.log("`state` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)

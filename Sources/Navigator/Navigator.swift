@@ -49,14 +49,14 @@ public protocol Navigator: AnyObject {
     func goBackward(options: NavigatorGoOptions) async -> Bool
 }
 
-public struct NavigatorGoOptions: Equatable {
+public struct NavigatorGoOptions: Hashable {
     /// Indicates whether the move should be animated when possible.
     public var animated: Bool = false
 
     /// Extension point for navigator implementations.
     public var otherOptions: [String: JSONValue]
 
-    public init(animated: Bool = false, otherOptions: [String: JSONValueEncodable] = [:]) {
+    public init(animated: Bool = false, otherOptions: [String: JSONValue] = [:]) {
         self.animated = animated
         self.otherOptions = .init(otherOptions)
     }

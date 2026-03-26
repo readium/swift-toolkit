@@ -116,18 +116,18 @@ public struct Link: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable 
 
         self.init(
             href: href,
-            mediaType: jsonObject["type"]?.string.flatMap { MediaType($0) },
+            mediaType: jsonObject["type"]?.decode(),
             templated: templated,
             title: jsonObject["title"]?.string,
-            rels: jsonObject["rel"]?.arrayOf(allowingSingle: true) ?? [],
-            properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
+            rels: jsonObject["rel"]?.decode(allowingSingle: true) ?? [],
+            properties: (try? jsonObject["properties"]?.decode(warnings: warnings)) ?? Properties(),
             height: jsonObject["height"]?.nonNegative(),
             width: jsonObject["width"]?.nonNegative(),
             bitrate: jsonObject["bitrate"]?.nonNegative(),
             duration: jsonObject["duration"]?.nonNegative(),
-            languages: jsonObject["language"]?.arrayOf(allowingSingle: true) ?? [],
-            alternates: jsonObject["alternate"]?.arrayOf(warnings: warnings) ?? [],
-            children: jsonObject["children"]?.arrayOf(warnings: warnings) ?? []
+            languages: jsonObject["language"]?.decode(allowingSingle: true) ?? [],
+            alternates: jsonObject["alternate"]?.decode(warnings: warnings) ?? [],
+            children: jsonObject["children"]?.decode(warnings: warnings) ?? []
         )
     }
 
@@ -137,15 +137,15 @@ public struct Link: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable 
             "type": mediaType?.string,
             "templated": templated,
             "title": title,
-            "rel": rels.isEmpty ? JSONValue.null : rels,
-            "properties": properties.jsonObject.isEmpty ? JSONValue.null : properties,
+            "rel": rels.orNullIfEmpty,
+            "properties": properties.orNullIfEmpty,
             "height": height,
             "width": width,
             "bitrate": bitrate,
             "duration": duration,
-            "language": languages.isEmpty ? JSONValue.null : languages,
-            "alternate": alternates.isEmpty ? JSONValue.null : alternates,
-            "children": children.isEmpty ? JSONValue.null : children,
+            "language": languages.orNullIfEmpty,
+            "alternate": alternates.orNullIfEmpty,
+            "children": children.orNullIfEmpty,
         ])
     }
 

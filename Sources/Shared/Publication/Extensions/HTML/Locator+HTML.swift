@@ -25,6 +25,6 @@ public extension Locator.Locations {
 
     /// An HTML DOM range.
     var domRange: DOMRange? {
-        try? DOMRange(json: otherLocations["domRange"], warnings: self)
+        try? otherLocations["domRange"]?.decode(warnings: self)
     }
 }

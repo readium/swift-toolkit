@@ -107,7 +107,7 @@ public extension Publication {
             .flatMap { get($0) }?
             .read()
             .asJSONObjectValue()
-            .map { json -> [Locator] in json["positions"]?.arrayOf() ?? [] }
+            .map { json -> [Locator] in json["positions"]?.decode() ?? [] }
             ?? .success([])
     }
 }

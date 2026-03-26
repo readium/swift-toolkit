@@ -36,7 +36,7 @@ public struct Subject: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodab
         if let name = json.string {
             self.init(name: name)
         } else if let dict = json.object {
-            guard let name = try? LocalizedString(json: dict["name"], warnings: warnings) else {
+            guard let name: LocalizedString = try? dict["name"]?.decode(warnings: warnings) else {
                 warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)
                 throw JSONError.parsing(Self.self)
             }
@@ -45,7 +45,7 @@ public struct Subject: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodab
                 sortAs: dict["sortAs"]?.string,
                 scheme: dict["scheme"]?.string,
                 code: dict["code"]?.string,
-                links: dict["links"]?.arrayOf(warnings: warnings) ?? []
+                links: dict["links"]?.decode(warnings: warnings) ?? []
             )
         } else {
             warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)

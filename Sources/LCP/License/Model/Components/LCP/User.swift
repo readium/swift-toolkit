@@ -47,7 +47,7 @@ public struct User: JSONValueDecodable {
             email: dict.pop("email")?.string,
             name: dict.pop("name")?.string,
             extensions: dict,
-            encrypted: dict.pop("encrypted")?.arrayOf() ?? []
+            encrypted: dict.pop("encrypted")?.decode() ?? []
         )
     }
 }

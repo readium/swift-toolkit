@@ -153,46 +153,46 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable, JSONValueDe
 
     public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
         guard var jsonObject = json?.jsonValue.object,
-              let title = try? LocalizedString(json: jsonObject.pop("title"), warnings: warnings)
+              let title: LocalizedString = try? jsonObject.pop("title")?.decode(warnings: warnings)
         else {
             throw JSONError.parsing(Metadata.self)
         }
 
         identifier = jsonObject.pop("identifier")?.string
         type = jsonObject.pop("@type")?.string ?? jsonObject.pop("type")?.string
-        conformsTo = (jsonObject.pop("conformsTo")?.arrayOf(allowingSingle: true) as [String]? ?? [])
+        conformsTo = (jsonObject.pop("conformsTo")?.decode(allowingSingle: true) as [String]? ?? [])
             .map { Publication.Profile($0) }
         localizedTitle = title
-        localizedSubtitle = try? LocalizedString(json: jsonObject.pop("subtitle"), warnings: warnings)
-        accessibility = try? Accessibility(json: jsonObject.pop("accessibility"), warnings: warnings)
+        localizedSubtitle = try? jsonObject.pop("subtitle")?.decode(warnings: warnings)
+        accessibility = try? jsonObject.pop("accessibility")?.decode(warnings: warnings)
         modified = jsonObject.pop("modified")?.date
         published = jsonObject.pop("published")?.date
-        languages = jsonObject.pop("language")?.arrayOf(allowingSingle: true) ?? []
+        languages = jsonObject.pop("language")?.decode(allowingSingle: true) ?? []
         language = languages.first.map { Language(code: .bcp47($0)) }
         sortAs = jsonObject.pop("sortAs")?.string
-        subjects = jsonObject.pop("subject")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        authors = jsonObject.pop("author")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        translators = jsonObject.pop("translator")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        editors = jsonObject.pop("editor")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        artists = jsonObject.pop("artist")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        illustrators = jsonObject.pop("illustrator")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        letterers = jsonObject.pop("letterer")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        pencilers = jsonObject.pop("penciler")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        colorists = jsonObject.pop("colorist")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        inkers = jsonObject.pop("inker")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        narrators = jsonObject.pop("narrator")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        contributors = jsonObject.pop("contributor")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        publishers = jsonObject.pop("publisher")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        imprints = jsonObject.pop("imprint")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
-        layout = jsonObject.pop("layout")?.rawValue()
-        readingProgression = jsonObject.pop("readingProgression")?.rawValue() ?? .auto
+        subjects = jsonObject.pop("subject")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        authors = jsonObject.pop("author")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        translators = jsonObject.pop("translator")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        editors = jsonObject.pop("editor")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        artists = jsonObject.pop("artist")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        illustrators = jsonObject.pop("illustrator")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        letterers = jsonObject.pop("letterer")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        pencilers = jsonObject.pop("penciler")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        colorists = jsonObject.pop("colorist")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        inkers = jsonObject.pop("inker")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        narrators = jsonObject.pop("narrator")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        contributors = jsonObject.pop("contributor")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        publishers = jsonObject.pop("publisher")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        imprints = jsonObject.pop("imprint")?.decode(allowingSingle: true, warnings: warnings) ?? []
+        layout = jsonObject.pop("layout")?.decode()
+        readingProgression = jsonObject.pop("readingProgression")?.decode() ?? .auto
         description = jsonObject.pop("description")?.string
         duration = jsonObject.pop("duration")?.nonNegative()
         numberOfPages = jsonObject.pop("numberOfPages")?.nonNegative()
         belongsTo = jsonObject.pop("belongsTo")?.object?
-            .compactMapValues { $0.arrayOf(allowingSingle: true, warnings: warnings) }
+            .compactMapValues { $0.decode(allowingSingle: true, warnings: warnings) }
             ?? [:]
-        tdm = try? TDM(json: jsonObject.pop("tdm"), warnings: warnings)
+        tdm = try? jsonObject.pop("tdm")?.decode(warnings: warnings)
         otherMetadata = jsonObject
     }
 

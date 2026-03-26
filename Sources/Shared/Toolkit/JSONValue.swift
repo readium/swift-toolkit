@@ -165,13 +165,13 @@ public extension JSONValueDecodable {
 /// enum Layout: String { case reflowable, fixed }
 /// let layout = try Layout(json: jsonObject["layout"], warnings: warnings)
 /// ```
-public extension RawRepresentable where Self: JSONValueDecodable {
+public extension RawRepresentable where RawValue: JSONValueDecodable {
     init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
         guard let json = json?.jsonValue else {
             return nil
         }
 
-        guard let value: Self = json.rawValue() else {
+        guard let value: Self = json.decode() else {
             warnings?.log("Not a valid raw value for \(Self.self)", model: Self.self, source: json)
             return nil
         }
@@ -181,6 +181,27 @@ public extension RawRepresentable where Self: JSONValueDecodable {
 }
 
 public extension JSONValue {
+    /// Decodes a `RawRepresentable` value from this value.
+    ///
+    /// Invalid raw values are silently skipped.
+    func decode<T: RawRepresentable>() -> T? {
+        guard let rawValue = any as? T.RawValue else {
+            return nil
+        }
+
+        return T(rawValue: rawValue)
+    }
+
+    /// Decodes a `JSONValueDecodable` value from this value.
+    ///
+    /// Returns `nil` if the value cannot be decoded as `T`.
+    /// Throws only for structural errors that indicate malformed data.
+    func decode<T: JSONValueDecodable>(
+        warnings: WarningLogger? = nil
+    ) throws -> T? {
+        try T(json: self, warnings: warnings)
+    }
+
     /// Decodes an array of `T` from this value.
     ///
     /// - If this value is `.array`, each element is decoded as `T`; invalid
@@ -189,13 +210,13 @@ public extension JSONValue {
     ///   treated as a single-element array and decoded as `T`.
     /// - Returns an empty array for `.null` or any non-array value when
     ///   `allowingSingle` is `false`.
-    func arrayOf<T: JSONValueDecodable>(
+    func decode<T: JSONValueDecodable>(
         allowingSingle: Bool = false,
         warnings: WarningLogger? = nil
     ) -> [T] {
         switch self {
         case let .array(array):
-            return array.arrayOf(warnings: warnings)
+            return array.decode(warnings: warnings)
         default:
             if allowingSingle {
                 return Array(ofNotNil: try? T(json: self, warnings: warnings))
@@ -206,24 +227,20 @@ public extension JSONValue {
 
     /// Decodes an array of `RawRepresentable` values from this value.
     ///
-    /// Works like the `JSONValueDecodable` overload but uses the raw-value
-    /// bridge directly, without requiring `T` to conform to
-    /// `JSONValueDecodable`.
-    ///
     /// Invalid raw values are silently skipped.
-    func arrayOf<T: RawRepresentable>(allowingSingle: Bool = false) -> [T] {
-        if allowingSingle, let value: T = rawValue() {
+    func decode<T: RawRepresentable>(allowingSingle: Bool = false) -> [T] {
+        if allowingSingle, let value: T = decode() {
             return [value]
         }
 
-        return array?.compactMap { $0.rawValue() } ?? []
+        return array?.compactMap { $0.decode() } ?? []
     }
 }
 
 public extension [JSONValue] {
     /// Decodes each element as `T`, silently skipping elements that fail to
     /// decode.
-    func arrayOf<T: JSONValueDecodable>(warnings: WarningLogger? = nil) -> [T] {
+    func decode<T: JSONValueDecodable>(warnings: WarningLogger? = nil) -> [T] {
         compactMap { try? T(json: $0, warnings: warnings) }
     }
 }
@@ -563,16 +580,6 @@ package extension [String: JSONValue] {
 // MARK: - Parsing Extensions
 
 public extension JSONValue {
-    /// Attempts to construct a `RawRepresentable` value whose `RawValue`
-    /// matches the underlying primitive of this `JSONValue`.
-    func rawValue<T: RawRepresentable>() -> T? {
-        guard let rawValue = any as? T.RawValue else {
-            return nil
-        }
-
-        return T(rawValue: rawValue)
-    }
-
     /// Parses an ISO 8601 date from a `.string` value.
     ///
     /// Returns `nil` if this value is not a `.string` or if the string is not
