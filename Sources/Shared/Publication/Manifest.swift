@@ -70,7 +70,7 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
             return nil
         }
         guard var json = json.object else {
-            throw JSONError.parsing(Publication.self)
+            throw JSONError.parsing(Manifest.self)
         }
 
         context = json.pop("@context")?.decode(allowingSingle: true) ?? []

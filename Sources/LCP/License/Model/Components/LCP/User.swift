@@ -42,12 +42,10 @@ public struct User: JSONValueDecodable {
 
         var dict = json.object ?? [:]
 
-        self.init(
-            id: dict.pop("id")?.string,
-            email: dict.pop("email")?.string,
-            name: dict.pop("name")?.string,
-            extensions: dict,
-            encrypted: dict.pop("encrypted")?.decode() ?? []
-        )
+        id = dict.pop("id")?.string
+        email = dict.pop("email")?.string
+        name = dict.pop("name")?.string
+        encrypted = dict.pop("encrypted")?.decode() ?? []
+        extensions = dict
     }
 }
