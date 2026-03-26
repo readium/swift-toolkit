@@ -367,8 +367,8 @@ public class OPDS1Parser: Loggable {
             }
 
             var properties: [String: JSONValue] = [:]
-            if let price = parsePrice(link: linkElement)?.json, !price.isEmpty {
-                properties["price"] = .object(price)
+            if let price = parsePrice(link: linkElement) {
+                properties["price"] = .object(price.jsonObject)
             }
             let indirectAcquisition = parseIndirectAcquisition(children: linkElement.children(tag: "indirectAcquisition")).json
             if !indirectAcquisition.isEmpty {

@@ -207,13 +207,13 @@ struct EPUBSpreadResource {
     let link: Link
 
     /// Returns a JSON representation of the resource for the spread scripts.
-    func json(forBaseURL baseURL: AbsoluteURL, page: Properties.Page) -> [String: Any] {
-        [
+    func json(forBaseURL baseURL: AbsoluteURL, page: Properties.Page) -> [String: JSONValue] {
+        .init([
             "index": index,
-            "link": link.json,
+            "link": link.jsonValue,
             "url": link.url(relativeTo: baseURL).string,
             "page": page.rawValue,
-        ]
+        ])
     }
 }
 

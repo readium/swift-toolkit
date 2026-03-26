@@ -14,7 +14,7 @@ public enum LinkError: Error, Equatable {
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
-public struct Link: JSONEquatable, Hashable, Sendable {
+public struct Link: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
     public var href: String // URI
@@ -91,25 +91,24 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         self.children = children
     }
 
-    public init(
-        json: JSONValue,
+    public init?(
+        json: JSONValue?,
         warnings: WarningLogger? = nil
     ) throws {
-        guard let jsonDict = JSONDictionary(json),
-              var href = jsonDict.json["href"]?.string
+        guard let jsonObject = json?.object,
+              var href = jsonObject["href"]?.string
         else {
-            warnings?.log("`href` is required", model: Self.self, source: json)
+            warnings?.log("`href` is required", model: Self.self, source: json?.any)
             throw JSONError.parsing(Self.self)
         }
 
-        let jsonObject = jsonDict.json
         let templated = jsonObject["templated"]?.bool ?? false
 
         // We support existing publications with incorrect HREFs (not valid percent-encoded
         // URIs). We try to parse them first as valid, but fall back on a percent-decoded
         // path if it fails.
         if !templated, AnyURL(string: href) == nil {
-            warnings?.log("`href` is not a valid percent-encoded URL", model: Self.self, source: json)
+            warnings?.log("`href` is not a valid percent-encoded URL", model: Self.self, source: json?.any)
             guard let url = RelativeURL(path: href) else {
                 throw JSONError.parsing(Self.self)
             }
@@ -121,43 +120,33 @@ public struct Link: JSONEquatable, Hashable, Sendable {
             mediaType: jsonObject["type"]?.string.flatMap { MediaType($0) },
             templated: templated,
             title: jsonObject["title"]?.string,
-            rels: .init(json: jsonObject["rel"]),
+            rels: jsonObject["rel"]?.arrayOf(warnings: warnings) ?? [],
             properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
-            height: parsePositive(jsonObject["height"]),
-            width: parsePositive(jsonObject["width"]),
-            bitrate: parsePositiveDouble(jsonObject["bitrate"]),
-            duration: parsePositiveDouble(jsonObject["duration"]),
-            languages: parseArray(jsonObject["language"], allowingSingle: true),
-            alternates: .init(json: jsonObject["alternate"], warnings: warnings),
-            children: .init(json: jsonObject["children"], warnings: warnings)
+            height: jsonObject["height"]?.parsePositive(),
+            width: jsonObject["width"]?.parsePositive(),
+            bitrate: jsonObject["bitrate"]?.parsePositiveDouble(),
+            duration: jsonObject["duration"]?.parsePositiveDouble(),
+            languages: jsonObject["language"]?.parseArray(allowingSingle: true) ?? [],
+            alternates: jsonObject["alternate"]?.arrayOf(warnings: warnings) ?? [],
+            children: jsonObject["children"]?.arrayOf(warnings: warnings) ?? []
         )
     }
 
-    public init(
-        json: Any,
-        warnings: WarningLogger? = nil
-    ) throws {
-        guard let json = JSONValue(json) else {
-            throw JSONError.parsing(Self.self)
-        }
-        try self.init(json: json, warnings: warnings)
-    }
-
-    public var json: JSONDictionary.Wrapped {
-        makeJSON([
-            "href": .string(href), // Explicit .string to avoid ambiguity or helper need
-            "type": encodeIfNotNil(mediaType?.string),
-            "templated": .bool(templated),
-            "title": encodeIfNotNil(title),
-            "rel": encodeIfNotEmpty(rels.json),
-            "properties": encodeIfNotEmpty(properties.json),
-            "height": encodeIfNotNil(height),
-            "width": encodeIfNotNil(width),
-            "bitrate": encodeIfNotNil(bitrate),
-            "duration": encodeIfNotNil(duration),
-            "language": encodeIfNotEmpty(languages),
-            "alternate": encodeIfNotEmpty(alternates.json),
-            "children": encodeIfNotEmpty(children.json),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "href": href,
+            "type": mediaType?.string,
+            "templated": templated,
+            "title": title,
+            "rel": rels.isEmpty ? JSONValue.null : rels,
+            "properties": properties.jsonObject.isEmpty ? JSONValue.null : properties,
+            "height": height,
+            "width": width,
+            "bitrate": bitrate,
+            "duration": duration,
+            "language": languages.isEmpty ? JSONValue.null : languages,
+            "alternate": alternates.isEmpty ? JSONValue.null : alternates,
+            "children": children.isEmpty ? JSONValue.null : children,
         ])
     }
 
@@ -213,7 +202,7 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     }
 
     ///  Merges in the given additional other `properties`.
-    public mutating func addProperties(_ properties: JSONDictionary.Wrapped) {
+    public mutating func addProperties(_ properties: [String: JSONValue]) {
         self.properties.add(properties)
     }
 }
@@ -231,29 +220,11 @@ public extension Array where Element == Link {
         json: JSONValue?,
         warnings: WarningLogger? = nil
     ) {
-        self.init()
-        guard let json = json else {
-            return
-        }
-
-        switch json {
-        case let .array(array):
-            let links = array.compactMap { try? Link(json: $0, warnings: warnings) }
-            append(contentsOf: links)
-        default:
-            break
-        }
+        self = json?.arrayOf(warnings: warnings) ?? []
     }
 
-    init(
-        json: Any?,
-        warnings: WarningLogger? = nil
-    ) {
-        self.init(json: JSONValue(json), warnings: warnings)
-    }
-
-    var json: [JSONDictionary.Wrapped] {
-        map(\.json)
+    var json: [[String: JSONValue]] {
+        map(\.jsonObject)
     }
 
     /// Finds the first link with the given relation.

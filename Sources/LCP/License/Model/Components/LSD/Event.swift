@@ -32,7 +32,7 @@ public struct Event: JSONValueDecodable {
     /// Time and date when the event occurred.
     public let date: Date // Named timestamp in spec.
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) {
         guard let json = json?.object,
               let type = json["type"]?.string,
               let name = json["name"]?.string,

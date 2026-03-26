@@ -59,19 +59,17 @@ public actor FormatSnifferBlob {
 
     /// Reads the whole content as JSON.
     func readAsJSON() async -> ReadResult<JSONValue?> {
-        if json == nil {
-            json = await read().map { data in
-                guard let data = data,
-                      let jsonObject = try? JSONSerialization.jsonObject(with: data),
-                      let value = JSONValue(jsonObject)
-                else {
-                    return nil
+            if json == nil {
+                json = await read().map { data in
+                    guard let data = data else {
+                        return nil
+                    }
+
+                    return try? JSONDecoder().decode(JSONValue.self, from: data)
                 }
-                return value
             }
+            return json!
         }
-        return json!
-    }
 
     /// Reads the whole content as an XML document.
     func readAsXML() async -> ReadResult<XMLDocument?> {

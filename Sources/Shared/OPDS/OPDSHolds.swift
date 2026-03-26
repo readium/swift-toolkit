@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// Library-specific features when a specific book is unavailable but provides a hold list.
 /// https://drafts.opds.io/schema/properties.schema.json
-public struct OPDSHolds: Equatable {
+public struct OPDSHolds: Equatable, JSONValueDecodable, JSONObjectEncodable {
     public let total: Int?
     public let position: Int?
 
@@ -18,25 +18,25 @@ public struct OPDSHolds: Equatable {
         self.position = position
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        if json == nil {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
             return nil
         }
-        guard let jsonObject = JSONDictionary(json)?.json else {
-            warnings?.log("Invalid Holds object", model: Self.self, source: json)
+        guard let jsonObject = json.object else {
+            warnings?.log("Invalid Holds object", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
-            total: parsePositive(jsonObject["total"]),
-            position: parsePositive(jsonObject["position"])
+            total: jsonObject["total"]?.parsePositive(),
+            position: jsonObject["position"]?.parsePositive()
         )
     }
 
-    public var json: [String: Any] {
-        makeJSON([
-            "total": encodeIfNotNil(total),
-            "position": encodeIfNotNil(position),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "total": total,
+            "position": position,
         ])
     }
 }

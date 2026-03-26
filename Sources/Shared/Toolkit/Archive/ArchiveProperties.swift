@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Holds information about how the resource is stored in the archive.
-public struct ArchiveProperties: Equatable {
+public struct ArchiveProperties: Equatable, JSONValueDecodable, JSONObjectEncodable {
     /// The length of the entry stored in the archive. It might be a compressed
     /// length if the entry is deflated.
     public let entryLength: UInt64
@@ -21,12 +22,12 @@ public struct ArchiveProperties: Equatable {
         self.isEntryCompressed = isEntryCompressed
     }
 
-    init?(json: Any?) throws {
-        if json == nil {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
             return nil
         }
         guard
-            let jsonObject = JSONDictionary(json)?.json,
+            let jsonObject = json.object,
             let length = jsonObject["entryLength"]?.double.flatMap({ UInt64($0) }),
             let isEntryCompressed = jsonObject["isEntryCompressed"]?.bool
         else {
@@ -39,11 +40,11 @@ public struct ArchiveProperties: Equatable {
         )
     }
 
-    var json: [String: JSONValue] {
-        [
-            "entryLength": .double(Double(entryLength)),
-            "isEntryCompressed": .bool(isEntryCompressed),
-        ]
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "entryLength": Double(entryLength),
+            "isEntryCompressed": isEntryCompressed,
+        ])
     }
 }
 
@@ -57,7 +58,7 @@ public extension ResourceProperties {
         }
         set {
             if let archive = newValue {
-                properties[archiveKey] = archive.json
+                properties[archiveKey] = .object(archive.jsonObject)
             } else {
                 properties.removeValue(forKey: archiveKey)
             }

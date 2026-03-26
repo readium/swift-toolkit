@@ -146,7 +146,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func spreadDidLoad() async {
         let link = spread.first.link
-        if let linkJSON = serializeJSONString(link.json) {
+        if let linkJSON = serializeJSONString(link.jsonValue) {
             await evaluateScript("readium.link = \(linkJSON);")
         }
 

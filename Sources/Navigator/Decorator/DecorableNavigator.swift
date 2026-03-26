@@ -54,7 +54,7 @@ public struct OnDecorationActivatedEvent {
 /// a discrete `locator` in the publication.
 ///
 /// For example, decorations can be used to draw highlights, images or buttons.
-public struct Decoration: Hashable {
+public struct Decoration: Hashable, JSONObjectEncodable {
     /// An identifier for this decoration. It must be unique in the group the decoration is applied to.
     public var id: Id
 
@@ -83,7 +83,7 @@ public struct Decoration: Hashable {
     /// instructions which makes sense for the resource type.
     public struct Style: Hashable {
         /// Unique ID for a style.
-        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable {
+        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable, JSONValueEncodable {
             public let rawValue: String
             public init(rawValue: String) {
                 self.rawValue = rawValue
@@ -91,6 +91,10 @@ public struct Decoration: Hashable {
 
             public init(stringLiteral value: StringLiteralType) {
                 self.init(rawValue: value)
+            }
+
+            public var jsonValue: JSONValue {
+                .string(rawValue)
             }
 
             // Default Readium style IDs.
@@ -125,11 +129,11 @@ public struct Decoration: Hashable {
         }
     }
 
-    public var json: [String: Any] {
-        [
+    public var jsonObject: [String: JSONValue] {
+        .init([
             "id": id,
-            "locator": locator.json,
-            "style": style.id.rawValue,
-        ]
+            "locator": locator,
+            "style": style.id,
+        ])
     }
 }

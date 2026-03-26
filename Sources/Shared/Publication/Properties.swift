@@ -9,37 +9,27 @@ import ReadiumInternal
 
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
-public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
+public struct Properties: Hashable, Loggable, WarningLogger, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// Additional properties for extensions.
-    public var otherProperties: JSONDictionary.Wrapped {
-        get { otherPropertiesJSON.json }
-        set { otherPropertiesJSON = JSONDictionary(newValue) ?? JSONDictionary() }
-    }
+    public var otherProperties: [String: JSONValue]
 
-    /// Trick to keep the struct equatable despite JSONDictionary.Wrapped
-    private var otherPropertiesJSON: JSONDictionary
-
-    public init(_ otherProperties: JSONDictionary.Wrapped = [:]) {
-        otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
+    public init(_ otherProperties: [String: JSONValue] = [:]) {
+        self.otherProperties = otherProperties
     }
 
     public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        if json == nil {
+        guard let json = json else {
             return nil
         }
-        guard let jsonDictionary = JSONDictionary(json) else {
+        guard let jsonObject = json.object else {
             warnings?.log("Invalid Properties object", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
-        otherPropertiesJSON = jsonDictionary
+        self.otherProperties = jsonObject
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        try self.init(json: JSONValue(json), warnings: warnings)
-    }
-
-    public var json: JSONDictionary.Wrapped {
-        makeJSON(otherProperties as [String: JSONValue])
+    public var jsonObject: [String: JSONValue] {
+        otherProperties
     }
 
     /// Syntactic sugar to access the `otherProperties` values by subscripting `Properties` directly.
@@ -49,8 +39,8 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
     }
 
     /// Merges in the given additional other `properties`.
-    public mutating func add(_ properties: JSONDictionary.Wrapped) {
-        otherPropertiesJSON.json.merge(properties, uniquingKeysWith: { _, second in second })
+    public mutating func add(_ properties: [String: JSONValue]) {
+        otherProperties.merge(properties, uniquingKeysWith: { _, second in second })
     }
 }
 
@@ -65,7 +55,7 @@ public extension Properties {
     /// Indicates how the linked resource should be displayed in a reading
     /// environment that displays synthetic spreads.
     var page: Page? {
-        get { parseRaw(otherProperties[Self.pageKey]) }
+        get { otherProperties[Self.pageKey]?.parseRaw() }
         set {
             if let newValue = newValue {
                 otherProperties[Self.pageKey] = .string(newValue.rawValue)
@@ -77,7 +67,7 @@ public extension Properties {
 
     /// Indicates how the linked resource should be displayed in a reading
     /// environment that displays synthetic spreads.
-    enum Page: String {
+    enum Page: String, JSONValueDecodable {
         case left, right, center
     }
 }

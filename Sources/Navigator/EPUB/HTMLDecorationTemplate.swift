@@ -47,12 +47,12 @@ public struct HTMLDecorationTemplate {
         self.init(layout: layout, width: width, element: { _ in element }, stylesheet: stylesheet)
     }
 
-    public var json: [String: JSONValue] {
-        [
-            "layout": .string(layout.rawValue),
-            "width": .string(width.rawValue),
-            "stylesheet": encodeIfNotNil(stylesheet),
-        ]
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "layout": layout.rawValue,
+            "width": width.rawValue,
+            "stylesheet": stylesheet,
+        ])
     }
 
     /// Creates the default list of decoration styles with associated HTML templates.

@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// Indicated the availability of a given resource.
 /// https://drafts.opds.io/schema/properties.schema.json
-public struct OPDSAvailability: Equatable {
+public struct OPDSAvailability: Equatable, JSONValueDecodable, JSONObjectEncodable {
     public let state: State
 
     /// Timestamp for the previous state change.
@@ -24,29 +24,29 @@ public struct OPDSAvailability: Equatable {
         self.until = until
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        if json == nil {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
             return nil
         }
-        guard let jsonObject = JSONDictionary(json)?.json,
-              let state: State = parseRaw(jsonObject["state"])
+        guard let jsonObject = json.object,
+              let state: State = jsonObject["state"]?.parseRaw()
         else {
-            warnings?.log("`state` is required", model: Self.self, source: json)
+            warnings?.log("`state` is required", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
             state: state,
-            since: parseDate(jsonObject["since"]),
-            until: parseDate(jsonObject["until"])
+            since: jsonObject["since"]?.parseDate(),
+            until: jsonObject["until"]?.parseDate()
         )
     }
 
-    public var json: [String: Any] {
-        makeJSON([
-            "state": encodeRawIfNotNil(state),
-            "since": encodeIfNotNil(since?.iso8601),
-            "until": encodeIfNotNil(until?.iso8601),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "state": state.rawValue,
+            "since": since?.iso8601,
+            "until": until?.iso8601,
         ])
     }
 

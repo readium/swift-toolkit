@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// https://readium.org/webpub-manifest/schema/contributor.schema.json
-public struct Contributor: Hashable, Sendable {
+public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// The name of the contributor.
     public var localizedName: LocalizedString
     public var name: String {
@@ -50,41 +50,36 @@ public struct Contributor: Hashable, Sendable {
             return nil
         }
 
-        switch json {
-        case let .string(name):
+        if let name = json.string {
             self.init(name: name)
-        case let .object(dict):
+        } else if let dict = json.object {
             guard let name = try? LocalizedString(json: dict["name"], warnings: warnings) else {
-                warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)
+                warnings?.log("Invalid Contributor object", model: Self.self, source: json.any, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
             self.init(
                 name: name,
                 identifier: dict["identifier"]?.string,
                 sortAs: dict["sortAs"]?.string,
-                roles: parseArray(dict["role"], allowingSingle: true),
+                roles: dict["role"]?.parseArray(allowingSingle: true) ?? [],
                 position: dict["position"]?.double,
                 links: .init(json: dict["links"], warnings: warnings)
             )
-        default:
-            warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)
+        } else {
+            warnings?.log("Invalid Contributor object", model: Self.self, source: json.any, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
     }
 
-    public init?(json: Any, warnings: WarningLogger? = nil) throws {
-        try self.init(json: JSONValue(json), warnings: warnings)
-    }
-
-    public var json: [String: JSONValue] {
-        makeJSON([
-            "name": localizedName.json,
-            "identifier": encodeIfNotNil(identifier),
-            "sortAs": encodeIfNotNil(sortAs),
-            "role": encodeIfNotEmpty(roles),
-            "position": encodeIfNotNil(position),
-            "links": encodeIfNotEmpty(links.json),
-        ] as [String: JSONValue])
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "name": localizedName,
+            "identifier": identifier,
+            "sortAs": sortAs,
+            "role": roles.isEmpty ? JSONValue.null : roles,
+            "position": position,
+            "links": links.isEmpty ? JSONValue.null : links,
+        ])
     }
 }
 
@@ -92,27 +87,10 @@ public extension Array where Element == Contributor {
     /// Parses multiple JSON contributors into an array of Contributors.
     /// eg. let authors = [Contributor](json: ["Apple", "Pear"])
     init(json: JSONValue?, warnings: WarningLogger? = nil) {
-        self.init()
-        guard let json = json else {
-            return
-        }
-
-        switch json {
-        case let .array(array):
-            let contributors = array.compactMap { try? Contributor(json: $0, warnings: warnings) }
-            append(contentsOf: contributors)
-        default:
-            if let contributor = try? Contributor(json: json, warnings: warnings) {
-                append(contributor)
-            }
-        }
-    }
-
-    init(json: Any?, warnings: WarningLogger? = nil) {
-        self.init(json: JSONValue(json), warnings: warnings)
+        self = json?.arrayOf(warnings: warnings) ?? []
     }
 
     var json: [[String: JSONValue]] {
-        map(\.json)
+        map(\.jsonObject)
     }
 }

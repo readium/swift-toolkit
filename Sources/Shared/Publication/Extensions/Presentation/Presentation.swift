@@ -17,7 +17,7 @@ import ReadiumInternal
 /// given `Publication`. If a navigator needs a default value when not specified,
 /// `Presentation.defaultX` and `Presentation.X.default` can be used.
 @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original values.")
-public struct Presentation: Equatable {
+public struct Presentation: Equatable, JSONValueDecodable, JSONObjectEncodable {
     /// Specifies whether or not the parts of a linked resource that flow out of the viewport are
     /// clipped.
     public let clipped: Bool?
@@ -53,46 +53,41 @@ public struct Presentation: Equatable {
         self.layout = layout
     }
 
-    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
         guard let json = json else {
             self.init()
             return
         }
-        guard let jsonDict = JSONDictionary(json) else {
+        guard let jsonObject = json.object else {
             warnings?.log("Invalid JSON object", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
-        let jsonObject = jsonDict.json
 
         self.init(
             clipped: jsonObject["clipped"]?.bool,
             continuous: jsonObject["continuous"]?.bool,
-            fit: parseRaw(jsonObject["fit"]),
-            orientation: parseRaw(jsonObject["orientation"]),
-            overflow: parseRaw(jsonObject["overflow"]),
-            spread: parseRaw(jsonObject["spread"]),
-            layout: parseRaw(jsonObject["layout"])
+            fit: jsonObject["fit"]?.parseRaw(),
+            orientation: jsonObject["orientation"]?.parseRaw(),
+            overflow: jsonObject["overflow"]?.parseRaw(),
+            spread: jsonObject["spread"]?.parseRaw(),
+            layout: jsonObject["layout"]?.parseRaw()
         )
     }
 
-    public init(json: Any?, warnings: WarningLogger? = nil) throws {
-        try self.init(json: JSONValue(json), warnings: warnings)
-    }
-
-    public var json: [String: JSONValue] {
-        makeJSON([
-            "clipped": encodeIfNotNil(clipped),
-            "continuous": encodeIfNotNil(continuous),
-            "fit": encodeRawIfNotNil(fit),
-            "orientation": encodeRawIfNotNil(orientation),
-            "overflow": encodeRawIfNotNil(overflow),
-            "spread": encodeRawIfNotNil(spread),
-            "layout": encodeRawIfNotNil(layout),
-        ] as [String: JSONValue])
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "clipped": clipped,
+            "continuous": continuous,
+            "fit": fit?.rawValue,
+            "orientation": orientation?.rawValue,
+            "overflow": overflow?.rawValue,
+            "spread": spread?.rawValue,
+            "layout": layout?.rawValue,
+        ])
     }
 
     /// Suggested method for constraining a resource inside the viewport.
-    public enum Fit: String {
+    public enum Fit: String, JSONValueDecodable {
         /// The content is centered and scaled to fit both dimensions into the viewport.
         case contain
         /// The content is centered and scaled to fill the viewport.
@@ -104,13 +99,13 @@ public struct Presentation: Equatable {
     }
 
     /// Suggested orientation for the device when displaying the linked resource.
-    public enum Orientation: String {
+    public enum Orientation: String, JSONValueDecodable {
         case landscape, portrait, auto
     }
 
     /// Indicates if the overflow of linked resources from the `readingOrder` or `resources` should
     /// be handled using dynamic pagination or scrolling.
-    public enum Overflow: String {
+    public enum Overflow: String, JSONValueDecodable {
         /// Content overflow should be handled using dynamic pagination.
         case paginated
         /// Content overflow should be handled using scrolling.
@@ -121,13 +116,13 @@ public struct Presentation: Equatable {
 
     /// Indicates how the linked resource should be displayed in a reading environment that
     /// displays synthetic spreads.
-    public enum Page: String {
+    public enum Page: String, JSONValueDecodable {
         case left, right, center
     }
 
     /// Indicates the condition to be met for the linked resource to be rendered within a synthetic
     /// spread.
-    public enum Spread: String {
+    public enum Spread: String, JSONValueDecodable {
         /// The resource should be displayed in a spread only if the device is in landscape mode.
         case landscape
         /// The resource should be displayed in a spread whatever the device orientation is.

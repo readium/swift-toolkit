@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// Indicates that a resource is encrypted/obfuscated and provides relevant information for
 /// decryption.
-public struct Encryption: Equatable {
+public struct Encryption: Equatable, JSONValueDecodable, JSONObjectEncodable {
     /// Identifies the algorithm used to encrypt the resource.
     public let algorithm: String // URI
 
@@ -38,13 +38,12 @@ public struct Encryption: Equatable {
         guard let json = json else {
             return nil
         }
-        guard let jsonDict = JSONDictionary(json),
-              let algorithm = jsonDict.json["algorithm"]?.string
+        guard let jsonObject = json.object,
+              let algorithm = jsonObject["algorithm"]?.string
         else {
-            warnings?.log("`algorithm` is required", model: Self.self, source: json.any)
+            warnings?.log("`algorithm` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
-        let jsonObject = jsonDict.json
 
         self.init(
             algorithm: algorithm,
@@ -58,17 +57,13 @@ public struct Encryption: Equatable {
         )
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        try self.init(json: JSONValue(json), warnings: warnings)
-    }
-
-    public var json: [String: JSONValue] {
-        makeJSON([
-            "algorithm": .string(algorithm),
-            "compression": encodeIfNotNil(compression),
-            "originalLength": encodeIfNotNil(originalLength),
-            "profile": encodeIfNotNil(profile),
-            "scheme": encodeIfNotNil(scheme),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "algorithm": algorithm,
+            "compression": compression,
+            "originalLength": originalLength,
+            "profile": profile,
+            "scheme": scheme
         ])
     }
 }

@@ -19,12 +19,12 @@ public extension Properties {
     /// Identifies content contained in the linked resource, that cannot be strictly identified
     /// using a media type.
     var contains: [String] {
-        parseArray(otherProperties["contains"])
+        otherProperties[containsKey]?.parseArray() ?? []
     }
 
     /// Hint about the nature of the layout for the linked resources.
     @available(*, unavailable, message: "This was removed from RWPM. You can still use the EPUB extensibility to access the original value.")
     var layout: EPUBLayout? {
-        parseRaw(otherProperties["layout"])
+        otherProperties[layoutKey]?.parseRaw()
     }
 }

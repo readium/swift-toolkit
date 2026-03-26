@@ -61,13 +61,13 @@ public struct LicenseDocument {
             throw ParsingError.malformedJSON
         }
 
-        guard var json = JSONDictionary(jsonValue),
-              let provider = json.pop("provider")?.string,
-              let id = json.pop("id")?.string,
-              let issued = parseDate(json.pop("issued")),
-              let encryptionValue = json.pop("encryption"),
-              let linksValue = json.pop("links"),
-              let signatureValue = json.pop("signature")
+        guard let json = jsonValue.object,
+              let provider = json["provider"]?.string,
+              let id = json["id"]?.string,
+              let issued = parseDate(json["issued"]),
+              let encryptionValue = json["encryption"],
+              let linksValue = json["links"],
+              let signatureValue = json["signature"]
         else {
             throw ParsingError.licenseDocument
         }
@@ -75,11 +75,11 @@ public struct LicenseDocument {
         self.provider = provider
         self.id = id
         self.issued = issued
-        updated = parseDate(json.pop("updated")) ?? issued
+        updated = parseDate(json["updated"]) ?? issued
         encryption = try Encryption(json: encryptionValue)
         links = try Links(json: linksValue)
-        user = try User(json: json.pop("user"))
-        rights = try Rights(json: json.pop("rights"))
+        user = try User(json: json["user"])
+        rights = try Rights(json: json["rights"])
         signature = try Signature(json: signatureValue)
         jsonData = data
         self.jsonString = jsonString

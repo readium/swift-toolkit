@@ -67,19 +67,15 @@ public class Publication: Closeable, Loggable {
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     public convenience init(json: JSONValue, warnings: WarningLogger? = nil) throws {
-        try self.init(manifest: Manifest(json: json, warnings: warnings))
-    }
-
-    public convenience init(json: Any, warnings: WarningLogger? = nil) throws {
-        guard let jsonValue = JSONValue(json) else {
-            throw JSONError.parsing(Publication.self)
+        guard let manifest = try Manifest(json: json, warnings: warnings) else {
+            throw JSONError.parsing(Self.self)
         }
-        try self.init(json: jsonValue, warnings: warnings)
+        self.init(manifest: manifest)
     }
 
     /// Returns the Readium Web Publication Manifest as JSON.
     public var jsonManifest: String? {
-        serializeJSONString(manifest.json)
+        serializeJSONString(manifest.jsonValue)
     }
 
     /// Returns whether this publication conforms to the given Readium Web Publication Profile.

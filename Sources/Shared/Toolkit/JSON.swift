@@ -13,24 +13,26 @@ public enum JSONError: Error {
 
 // MARK: - JSON Serialization
 
-public func serializeJSONString(_ object: Any) -> String? {
-    let unwrappedObject = JSONValue(object)?.any ?? object
+public func serializeJSONString(_ object: JSONValueEncodable) -> String? {
+    let json = object.jsonValue
 
-    guard
-        JSONSerialization.isValidJSONObject(unwrappedObject),
-        let data = try? JSONSerialization.data(withJSONObject: unwrappedObject, options: .sortedKeys),
-        let string = String(data: data, encoding: .utf8)
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+
+    guard let data = try? encoder.encode(json),
+          let string = String(data: data, encoding: .utf8)
     else {
         return nil
     }
 
-    // Unescapes slashes
-    return string.replacingOccurrences(of: "\\/", with: "/")
+    return string
 }
 
-public func serializeJSONData(_ object: Any) -> Data? {
-    guard let string = serializeJSONString(object) else {
-        return nil
-    }
-    return string.data(using: .utf8)
+public func serializeJSONData(_ object: JSONValueEncodable) -> Data? {
+    let json = object.jsonValue
+
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+
+    return try? encoder.encode(json)
 }

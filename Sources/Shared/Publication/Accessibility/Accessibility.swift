@@ -575,10 +575,6 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         )
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        try self.init(json: JSONValue(json), warnings: warnings)
-    }
-
     public var jsonObject: [String: JSONValue] {
         var certificationDict: [String: JSONValue] = [:]
         if let cert = certification {

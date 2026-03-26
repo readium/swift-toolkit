@@ -1037,11 +1037,11 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     }
 
     func spreadViewDidLoad(_ spreadView: EPUBSpreadView) async {
-        let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
-            styles[item.key.rawValue] = item.value.json
+        let templates = config.decorationTemplates.reduce(into: [String: JSONValue]()) { styles, item in
+            styles[item.key.rawValue] = .object(item.value.jsonObject)
         }
 
-        guard let stylesJSON = serializeJSONString(templates) else {
+        guard let stylesJSON = serializeJSONString(templates.jsonValue) else {
             log(.error, "Can't serialize decoration styles to JSON")
             return
         }

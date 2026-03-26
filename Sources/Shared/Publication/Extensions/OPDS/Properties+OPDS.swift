@@ -12,7 +12,7 @@ import ReadiumInternal
 public extension Properties {
     /// Provides a hint about the expected number of items returned.
     var numberOfItems: Int? {
-        parsePositive(otherProperties["numberOfItems"])
+        otherProperties["numberOfItems"]?.parsePositive()
     }
 
     /// The price of a publication is tied to its acquisition link.
@@ -23,7 +23,7 @@ public extension Properties {
     /// Indirect acquisition provides a hint for the expected media type that will be acquired after
     /// additional steps.
     var indirectAcquisitions: [OPDSAcquisition] {
-        [OPDSAcquisition](json: otherProperties["indirectAcquisition"], warnings: self)
+        otherProperties["indirectAcquisition"]?.arrayOf(warnings: self) ?? []
     }
 
     /// Library-specific features when a specific book is unavailable but provides a hold list.
@@ -45,6 +45,6 @@ public extension Properties {
     /// Indicates that the linked resource supports authentication with the associated Authentication Document.
     /// See https://drafts.opds.io/authentication-for-opds-1.0.html
     var authenticate: Link? {
-        otherProperties["authenticate"].flatMap { try? Link(json: $0) }
+        try? Link(json: otherProperties["authenticate"], warnings: self)
     }
 }

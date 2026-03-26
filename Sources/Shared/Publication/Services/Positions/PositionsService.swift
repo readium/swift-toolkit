@@ -67,7 +67,7 @@ private class PositionsResource: Resource {
                 "positions": .array(positions.json.map { .object($0) }),
             ]
 
-            guard let jsonResponse = serializeJSONData(response) else {
+            guard let jsonResponse = serializeJSONData(response.jsonValue) else {
                 return .failure(.decoding(JSONError.serializing(PositionsService.self)))
             }
 

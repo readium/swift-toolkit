@@ -9,7 +9,7 @@ import Foundation
 /// Archive Link Properties Extension
 public extension Properties {
     /// Holds information about how the resource is stored in the publication archive.
-    struct Archive: Equatable {
+    struct Archive: Equatable, JSONValueDecodable, JSONObjectEncodable {
         /// The length of the entry stored in the archive. It might be a compressed length if the entry is deflated.
         public let entryLength: UInt64
         /// Indicates whether the entry was compressed before being stored in the archive.
@@ -25,7 +25,7 @@ public extension Properties {
                 return nil
             }
             guard
-                let jsonObject = JSONDictionary(json)?.json,
+                let jsonObject = json.object,
                 let length = jsonObject["entryLength"]?.double.flatMap({ UInt64($0) }),
                 let isCompressed = jsonObject["isEntryCompressed"]?.bool
             else {
@@ -39,15 +39,11 @@ public extension Properties {
             )
         }
 
-        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-            try self.init(json: JSONValue(json), warnings: warnings)
-        }
-
-        public var json: [String: JSONValue] {
-            [
-                "entryLength": .double(Double(entryLength)),
-                "isEntryCompressed": .bool(isEntryCompressed),
-            ]
+        public var jsonObject: [String: JSONValue] {
+            .init([
+                "entryLength": Double(entryLength),
+                "isEntryCompressed": isEntryCompressed
+            ])
         }
     }
 

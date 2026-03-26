@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Link relations as defined in https://readium.org/webpub-manifest/relationships.html
-public struct LinkRelation: Sendable {
+public struct LinkRelation: Sendable, Hashable, JSONValueEncodable {
     /// The string representation of this link relation.
     public let string: String
 
@@ -33,6 +34,10 @@ public struct LinkRelation: Sendable {
 
     public var isOPDSAcquisition: Bool {
         hasPrefix("http://opds-spec.org/acquisition")
+    }
+
+    public var jsonValue: JSONValue {
+        .string(string)
     }
 
     // MARK: - Known Link Relations
@@ -145,38 +150,27 @@ extension LinkRelation: ExpressibleByStringLiteral {
     }
 }
 
-extension LinkRelation: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(string)
+extension LinkRelation: Equatable {
+    public static func == (lhs: LinkRelation, rhs: LinkRelation) -> Bool {
+        lhs.string == rhs.string
     }
+}
 
-    public var hashValue: Int {
-        string.hashValue
+extension LinkRelation: JSONValueDecodable {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let string = json?.string else {
+            return nil
+        }
+        self.init(string)
     }
 }
 
 public extension Array where Element == LinkRelation {
     /// Parses multiple JSON relations into an array of `LinkRelation`.
     init(json: JSONValue?) {
-        self.init()
-        guard let json = json else { return }
-
-        switch json {
-        case let .string(s):
-            append(LinkRelation(s))
-        case let .array(arr):
-            let rels = arr.compactMap { (val: JSONValue) -> LinkRelation? in
-                guard let s = val.string else { return nil }
-                return LinkRelation(s)
-            }
-            append(contentsOf: rels)
-        default:
-            break
-        }
-    }
-
-    init(json: Any?) {
-        self.init(json: JSONValue(json))
+        self = json?.parseArray(allowingSingle: true).compactMap {
+                    try? LinkRelation(json: $0)
+                } ?? []
     }
 
     var json: [String] {

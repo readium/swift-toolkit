@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// Library-specific feature that contains information about the copies that a library has acquired.
 /// https://drafts.opds.io/schema/properties.schema.json
-public struct OPDSCopies: Equatable {
+public struct OPDSCopies: Equatable, JSONValueDecodable, JSONObjectEncodable {
     public let total: Int?
     public let available: Int?
 
@@ -18,25 +18,25 @@ public struct OPDSCopies: Equatable {
         self.available = available
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        if json == nil {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        guard let json = json else {
             return nil
         }
-        guard let jsonObject = JSONDictionary(json)?.json else {
-            warnings?.log("Invalid Copies object", model: Self.self, source: json)
+        guard let jsonObject = json.object else {
+            warnings?.log("Invalid Copies object", model: Self.self, source: json.any)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
-            total: parsePositive(jsonObject["total"]),
-            available: parsePositive(jsonObject["available"])
+            total: jsonObject["total"]?.parsePositive(),
+            available: jsonObject["available"]?.parsePositive()
         )
     }
 
-    public var json: [String: Any] {
-        makeJSON([
-            "total": encodeIfNotNil(total),
-            "available": encodeIfNotNil(available),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "total": total,
+            "available": available,
         ])
     }
 }
