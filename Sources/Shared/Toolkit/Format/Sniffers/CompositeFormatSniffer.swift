@@ -6,7 +6,7 @@
 
 import Foundation
 
-public class CompositeFormatSniffer: FormatSniffer {
+public class CompositeFormatSniffer: FormatSniffer, @unchecked Sendable {
     private let sniffers: [FormatSniffer]
 
     public init(_ sniffers: [FormatSniffer]) {

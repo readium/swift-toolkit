@@ -5,7 +5,7 @@
 //
 
 /// Enables faceted navigation in OPDS.
-public class Facet {
+public class Facet: @unchecked Sendable {
     public var metadata: OpdsMetadata
     public var links = [Link]()
 

@@ -11,7 +11,7 @@ public typealias LCPPassphraseHash = String
 
 /// The passphrase repository stores passphrase hashes associated to a license
 /// document, user ID and provider.
-public protocol LCPPassphraseRepository {
+public protocol LCPPassphraseRepository: Sendable {
     /// Returns the passphrase hash associated with the given `licenseID`.
     func passphrase(for licenseID: LicenseDocument.ID) async throws -> LCPPassphraseHash?
 

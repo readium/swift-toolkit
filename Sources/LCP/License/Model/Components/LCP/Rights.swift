@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public struct Rights: JSONValueDecodable {
+public struct Rights: JSONValueDecodable, Sendable {
     /// Maximum number of pages that can be printed over the lifetime of the license.
     public let print: Int?
     /// Maximum number of characters that can be copied to the clipboard over the lifetime of the license.

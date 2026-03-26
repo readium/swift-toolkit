@@ -9,7 +9,7 @@ import ReadiumInternal
 import ReadiumShared
 import SwiftSoup
 
-struct ReadiumCSS {
+struct ReadiumCSS: Sendable {
     var layout: CSSLayout = .init()
     var rsProperties: CSSRSProperties = .init()
     var userProperties: CSSUserProperties = .init()

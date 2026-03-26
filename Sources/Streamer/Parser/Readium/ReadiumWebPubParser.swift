@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@preconcurrency import ReadiumShared
 
 public enum ReadiumWebPubParserError: Error {
     case parseFailure(url: URL, Error?)

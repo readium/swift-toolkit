@@ -7,7 +7,7 @@
 import Foundation
 
 /// A default implementation of the `LocatorService` using the `PositionsService` to locate its inputs.
-open class DefaultLocatorService: LocatorService, Loggable {
+open class DefaultLocatorService: LocatorService, Loggable, @unchecked Sendable {
     public let publication: Weak<Publication>
 
     public init(publication: Weak<Publication>) {

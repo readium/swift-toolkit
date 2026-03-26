@@ -10,7 +10,7 @@ import ReadiumShared
 /// Readium CSS layout variant to use.
 ///
 /// See https://github.com/readium/readium-css/tree/master/css/dist
-struct CSSLayout: Hashable {
+struct CSSLayout: Hashable, Sendable {
     let language: Language?
     let stylesheets: Stylesheets
     let readingProgression: ReadingProgression

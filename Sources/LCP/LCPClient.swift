@@ -29,7 +29,7 @@ import Foundation
 ///          }
 ///
 ///      }
-public protocol LCPClient {
+public protocol LCPClient: Sendable {
     /// Create a context for a given license/passphrase tuple.
     func createContext(jsonLicense: String, hashedPassphrase: LCPPassphraseHash, pemCrl: String) throws -> LCPClientContext
 

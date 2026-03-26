@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Event related to the change in status of a License Document.
-public struct Event: JSONValueDecodable {
+public struct Event: JSONValueDecodable, Sendable {
     public enum EventType: String {
         /// Signals a successful registration event by a device.
         case register

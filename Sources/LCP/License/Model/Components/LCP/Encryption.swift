@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public struct Encryption: JSONValueDecodable {
+public struct Encryption: JSONValueDecodable, Sendable {
     /// Identifies the Encryption Profile used by this LCP-protected Publication.
     public let profile: String
     /// Used to encrypt the Publication Resources.

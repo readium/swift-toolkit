@@ -10,7 +10,7 @@ import ReadiumShared
 import SQLite
 
 @available(*, deprecated, message: "Use LCPKeychainLicenseRepository from ReadiumLCP instead")
-public class LCPSQLiteLicenseRepository: LCPLicenseRepository, Loggable {
+public class LCPSQLiteLicenseRepository: LCPLicenseRepository, Loggable, @unchecked Sendable {
     let licenses = Table("Licenses")
     let id = SQLite.Expression<String>("id")
     let printsLeft = SQLite.Expression<Int?>("printsLeft")

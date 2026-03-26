@@ -7,7 +7,7 @@
 import Foundation
 
 /// OPDS metadata properties.
-public class OpdsMetadata {
+public class OpdsMetadata: @unchecked Sendable {
     public var title: String
     public var identifier: String?
     public var numberOfItem: Int?

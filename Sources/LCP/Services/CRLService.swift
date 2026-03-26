@@ -5,10 +5,10 @@
 //
 
 import Foundation
-import ReadiumShared
+@preconcurrency import ReadiumShared
 
 /// Certificate Revocation List
-final class CRLService {
+final class CRLService: Sendable {
     /// Number of days before the CRL cache expires.
     private static let expiration = 7
 

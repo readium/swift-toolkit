@@ -7,7 +7,7 @@
 import Foundation
 
 /// A factory to create ``Resource`` instances from absolute URLs.
-public protocol ResourceFactory {
+public protocol ResourceFactory: Sendable {
     /// Creates a ``Resource`` to access the content at `url`.
     func make(url: AbsoluteURL) async -> Result<Resource, ResourceMakeError>
 }
@@ -19,7 +19,7 @@ public enum ResourceMakeError: Error {
 
 /// Default implementation of ``ResourceFactory`` supporting file and http
 /// schemes.
-public final class DefaultResourceFactory: CompositeResourceFactory {
+public final class DefaultResourceFactory: CompositeResourceFactory, @unchecked Sendable {
     /// - Parameters:
     ///   - httpClient: HTTP client used to support HTTP schemes.
     ///   - additionalFactories: Additional ``ResourceFactory`` to support more
@@ -37,7 +37,7 @@ public final class DefaultResourceFactory: CompositeResourceFactory {
 
 /// A composite ``ResourceFactory`` which tries several factories until it
 /// finds one which supports the URL scheme.
-public class CompositeResourceFactory: ResourceFactory {
+public class CompositeResourceFactory: ResourceFactory, @unchecked Sendable {
     private let factories: [ResourceFactory]
 
     public init(_ factories: [ResourceFactory]) {

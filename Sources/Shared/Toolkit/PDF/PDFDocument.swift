@@ -17,7 +17,7 @@ public enum PDFDocumentError: Error {
 /// Represents a PDF document.
 ///
 /// This is not used to render a PDF document, only to access its metadata.
-public protocol PDFDocument {
+public protocol PDFDocument: Sendable {
     /// Permanent identifier based on the contents of the file at the time it was originally
     /// created.
     func identifier() async throws -> String?
@@ -49,7 +49,7 @@ public protocol PDFDocument {
     func tableOfContents() async throws -> [PDFOutlineNode]
 }
 
-public protocol PDFDocumentFactory {
+public protocol PDFDocumentFactory: Sendable {
     /// Opens a PDF from a local file path.
     func open(file: FileURL, password: String?) async throws -> PDFDocument
 
@@ -57,7 +57,7 @@ public protocol PDFDocumentFactory {
     func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument
 }
 
-public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
+public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable, @unchecked Sendable {
     /// The default PDF document factory uses Core Graphics.
     private let factory = CGPDFDocumentFactory()
 
@@ -73,7 +73,7 @@ public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
 }
 
 /// A PDF document factory which will iterate over a list of factories until one works.
-public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
+public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable, @unchecked Sendable {
     private let factories: [PDFDocumentFactory]
 
     public init(factories: [PDFDocumentFactory]) {
