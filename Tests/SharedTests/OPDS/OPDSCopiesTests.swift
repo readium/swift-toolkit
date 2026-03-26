@@ -10,7 +10,7 @@ import XCTest
 class OPDSCopiesTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? OPDSCopies(json: [:] as [String: Any]),
+            try? OPDSCopies(json: [:] as JSONValue),
             OPDSCopies(total: nil, available: nil)
         )
     }
@@ -50,15 +50,15 @@ class OPDSCopiesTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            OPDSCopies(total: nil, available: nil).json,
-            [:] as [String: Any]
+        XCTAssertEqual(
+            OPDSCopies(total: nil, available: nil).jsonObject,
+            [:] as [String: JSONValue]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
-            OPDSCopies(total: 5, available: 6).json,
+        XCTAssertEqual(
+            OPDSCopies(total: 5, available: 6).jsonObject,
             [
                 "total": 5,
                 "available": 6,

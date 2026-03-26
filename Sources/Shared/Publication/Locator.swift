@@ -353,7 +353,7 @@ public struct LocatorCollection: Hashable, JSONValueDecodable, JSONObjectEncodab
         self.locators = locators
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+    public init?(json: JSONValue?, warnings: WarningLogger? = nil) {
         guard let json = json else {
             return nil
         }
@@ -361,7 +361,7 @@ public struct LocatorCollection: Hashable, JSONValueDecodable, JSONObjectEncodab
             warnings?.log("Not a JSON object", model: Self.self, source: json.any)
             return nil
         }
-        try self.init(
+        self.init(
             metadata: Metadata(json: jsonObject["metadata"], warnings: warnings) ?? Metadata(),
             links: jsonObject["links"]?.arrayOf(warnings: warnings) ?? [],
             locators: jsonObject["locators"]?.arrayOf(warnings: warnings) ?? []
@@ -399,7 +399,7 @@ public struct LocatorCollection: Hashable, JSONValueDecodable, JSONObjectEncodab
             self.otherMetadata = otherMetadata
         }
 
-        public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        public init?(json: JSONValue?, warnings: WarningLogger? = nil) {
             guard let json = json else {
                 return nil
             }

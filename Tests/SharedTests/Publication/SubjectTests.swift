@@ -33,7 +33,7 @@ class SubjectTests: XCTestCase {
                     ["href": "subject1"],
                     ["href": "subject2"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Subject(
                 name: "Science Fiction",
                 sortAs: "science-fiction",
@@ -61,7 +61,7 @@ class SubjectTests: XCTestCase {
                     "name": "Science Fiction",
                     "scheme": "http://scheme",
                 ],
-            ] as [Any]),
+            ] as JSONValue),
             [
                 Subject(name: "Fantasy"),
                 Subject(
@@ -86,7 +86,7 @@ class SubjectTests: XCTestCase {
                 [
                     "code": "CODE",
                 ],
-            ] as [Any]),
+            ] as JSONValue),
             [
                 Subject(name: "Fantasy"),
             ]
@@ -116,14 +116,14 @@ class SubjectTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            Subject(name: "Fantasy").json,
+        XCTAssertEqual(
+            Subject(name: "Fantasy").jsonObject,
             ["name": "Fantasy"]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Subject(
                 name: "Science Fiction",
                 sortAs: "science-fiction",
@@ -133,22 +133,22 @@ class SubjectTests: XCTestCase {
                     Link(href: "subject1"),
                     Link(href: "subject2"),
                 ]
-            ).json,
+            ).jsonObject,
             [
                 "name": "Science Fiction",
                 "sortAs": "science-fiction",
                 "scheme": "http://scheme",
                 "code": "CODE",
                 "links": [
-                    ["href": "subject1", "templated": false] as [String: Any],
+                    ["href": "subject1", "templated": false] as JSONValue,
                     ["href": "subject2", "templated": false],
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 
     func testGetJSONArray() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             [
                 Subject(name: "Fantasy"),
                 Subject(

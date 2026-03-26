@@ -34,7 +34,7 @@ class ContributorTests: XCTestCase {
                     ["href": "http://link1"],
                     ["href": "http://link2"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Contributor(
                 name: "Colin Greenwood",
                 identifier: "colin",
@@ -54,7 +54,7 @@ class ContributorTests: XCTestCase {
             try? Contributor(json: [
                 "name": "Thom Yorke",
                 "role": ["singer", "guitarist"],
-            ] as [String: Any]),
+            ] as JSONValue),
             Contributor(
                 name: "Thom Yorke",
                 roles: ["singer", "guitarist"]
@@ -75,8 +75,8 @@ class ContributorTests: XCTestCase {
                 [
                     "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                     "role": "guitarist",
-                ] as [String: Any],
-            ] as [Any]),
+                ] as JSONValue,
+            ] as JSONValue),
             [
                 Contributor(name: "Thom Yorke"),
                 Contributor(
@@ -101,7 +101,7 @@ class ContributorTests: XCTestCase {
                 [
                     "role": "guitarist",
                 ],
-            ] as [Any]),
+            ] as JSONValue),
             [
                 Contributor(name: "Thom Yorke"),
             ]
@@ -120,7 +120,7 @@ class ContributorTests: XCTestCase {
             [Contributor](json: [
                 "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 "role": "guitarist",
-            ] as [String: Any]),
+            ] as JSONValue),
             [
                 Contributor(
                     name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
@@ -131,14 +131,14 @@ class ContributorTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            Contributor(name: "Thom Yorke").json,
+        XCTAssertEqual(
+            Contributor(name: "Thom Yorke").jsonObject,
             ["name": "Thom Yorke"]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Contributor(
                 name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 identifier: "jonny",
@@ -149,7 +149,7 @@ class ContributorTests: XCTestCase {
                     Link(href: "http://link1"),
                     Link(href: "http://link2"),
                 ]
-            ).json,
+            ).jsonObject,
             [
                 "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 "identifier": "jonny",
@@ -157,15 +157,15 @@ class ContributorTests: XCTestCase {
                 "role": ["guitarist", "pianist"],
                 "position": 2.5,
                 "links": [
-                    ["href": "http://link1", "templated": false] as [String: Any],
+                    ["href": "http://link1", "templated": false] as JSONValue,
                     ["href": "http://link2", "templated": false],
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 
     func testGetJSONArray() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             [
                 Contributor(name: "Thom Yorke"),
                 Contributor(
@@ -176,7 +176,7 @@ class ContributorTests: XCTestCase {
             [
                 [
                     "name": "Thom Yorke",
-                ] as [String: Any],
+                ] as [String: JSONValue],
                 [
                     "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                     "role": ["guitarist"],

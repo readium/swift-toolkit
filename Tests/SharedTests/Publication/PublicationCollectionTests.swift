@@ -49,7 +49,7 @@ class PublicationCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             PublicationCollection(
                 metadata: [
                     "metadata1": "value",
@@ -96,7 +96,7 @@ class PublicationCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             [
                 "sub1": [PublicationCollection(links: [Link(href: "/sublink")])],
                 "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
@@ -109,18 +109,18 @@ class PublicationCollectionTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            PublicationCollection(links: [Link(href: "/link")]).json,
+        XCTAssertEqual(
+            PublicationCollection(links: [Link(href: "/link")]).jsonObject,
             [
                 "links": [
-                    ["href": "/link", "templated": false] as [String: Any],
+                    ["href": "/link", "templated": false] as JSONValue,
                 ],
             ]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             PublicationCollection(
                 metadata: [
                     "metadata1": "value",
@@ -134,29 +134,29 @@ class PublicationCollectionTests: XCTestCase {
                         PublicationCollection(links: [Link(href: "/sublink4")]),
                     ],
                 ]
-            ).json,
+            ).jsonObject,
             [
                 "metadata": [
                     "metadata1": "value",
                 ],
                 "links": [
-                    ["href": "/link", "templated": false] as [String: Any],
+                    ["href": "/link", "templated": false] as JSONValue,
                 ],
                 "sub1": [
                     "links": [
-                        ["href": "/sublink", "templated": false] as [String: Any],
+                        ["href": "/sublink", "templated": false] as JSONValue,
                     ],
                 ],
                 "sub2": [
                     "links": [
-                        ["href": "/sublink1", "templated": false] as [String: Any],
+                        ["href": "/sublink1", "templated": false] as JSONValue,
                         ["href": "/sublink2", "templated": false],
                     ],
                 ],
                 "sub3": [
                     [
                         "links": [
-                            ["href": "/sublink3", "templated": false] as [String: Any],
+                            ["href": "/sublink3", "templated": false] as JSONValue,
                         ],
                     ],
                     [
@@ -165,12 +165,12 @@ class PublicationCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 
     func testGetJSONArray() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             PublicationCollection.serializeCollections([
                 "sub1": [PublicationCollection(links: [Link(href: "/sublink")])],
                 "sub2": [PublicationCollection(links: [Link(href: "/sublink1"), Link(href: "/sublink2")])],
@@ -182,19 +182,19 @@ class PublicationCollectionTests: XCTestCase {
             [
                 "sub1": [
                     "links": [
-                        ["href": "/sublink", "templated": false] as [String: Any],
+                        ["href": "/sublink", "templated": false] as JSONValue,
                     ],
                 ],
                 "sub2": [
                     "links": [
-                        ["href": "/sublink1", "templated": false] as [String: Any],
+                        ["href": "/sublink1", "templated": false] as JSONValue,
                         ["href": "/sublink2", "templated": false],
                     ],
                 ],
                 "sub3": [
                     [
                         "links": [
-                            ["href": "/sublink3", "templated": false] as [String: Any],
+                            ["href": "/sublink3", "templated": false] as JSONValue,
                         ],
                     ],
                     [
@@ -203,7 +203,7 @@ class PublicationCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }

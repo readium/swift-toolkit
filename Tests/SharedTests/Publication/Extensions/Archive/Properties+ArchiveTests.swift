@@ -42,12 +42,12 @@ class PropertiesArchiveTests: XCTestCase {
     }
 
     func testGetJSON() {
-        AssertJSONEqual(
-            Properties.Archive(entryLength: 8273, isEntryCompressed: true).json,
+        XCTAssertEqual(
+            Properties.Archive(entryLength: 8273, isEntryCompressed: true).jsonObject,
             [
                 "entryLength": 8273,
                 "isEntryCompressed": true,
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }

@@ -113,3 +113,6 @@ public struct DOMRange: JSONValueDecodable, JSONObjectEncodable {
         }
     }
 }
+
+extension DOMRange: Equatable {}
+extension DOMRange.Point: Equatable {}

@@ -11,7 +11,7 @@ import Testing
 @Suite struct JSONValueTests {
     @Suite struct Initialization {
         @Test func fromNil() {
-            #expect(JSONValue(nil as Any?) == nil)
+            #expect(JSONValue.wrap(nil) == nil)
         }
 
         @Test func fromBool() {
@@ -29,8 +29,8 @@ import Testing
         }
 
         @Test func fromUInt64() {
-            #expect(JSONValue(UInt64(42)) == .integer(42))
-            #expect(JSONValue(UInt64.max) == .integer(Int.max))
+            #expect(JSONValue(NSNumber(value: UInt64(42))) == .integer(42))
+            #expect(JSONValue(NSNumber(value: UInt64.max)) == .integer(Int.max))
         }
 
         @Test func fromDouble() {
@@ -55,12 +55,12 @@ import Testing
 
         @Test func fromArray() {
             let array: [Any] = ["hello", 42, true]
-            #expect(JSONValue(array) == .array([.string("hello"), .integer(42), .bool(true)]))
+            #expect(JSONValue.wrap(array) == .array([.string("hello"), .integer(42), .bool(true)]))
         }
 
         @Test func fromObject() {
             let dict: [String: Any] = ["key": "value", "count": 1]
-            #expect(JSONValue(dict) == .object(["key": .string("value"), "count": .integer(1)]))
+            #expect(JSONValue.wrap(dict) == .object(["key": .string("value"), "count": .integer(1)]))
         }
 
         @Test func fromNestedCollections() {
@@ -69,7 +69,7 @@ import Testing
                     "array": [1, 2, 3] as [Any],
                 ] as [String: Any],
             ]
-            #expect(JSONValue(dict) == .object([
+            #expect(JSONValue.wrap(dict) == .object([
                 "nested": .object([
                     "array": .array([.integer(1), .integer(2), .integer(3)]),
                 ]),
@@ -81,10 +81,10 @@ import Testing
             #expect(JSONValue(original) == original)
 
             let object: [String: JSONValue] = ["k": .integer(1)]
-            #expect(JSONValue(object) == .object(object))
+            #expect(object.jsonValue == .object(object))
 
             let array: [JSONValue] = [.bool(true)]
-            #expect(JSONValue(array) == .array(array))
+            #expect(array.jsonValue == .array(array))
         }
     }
 

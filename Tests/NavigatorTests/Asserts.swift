@@ -6,7 +6,7 @@
 
 import XCTest
 
-func AssertJSONEqual(_ json1: Any, _ json2: Any, file: StaticString = #file, line: UInt = #line) {
+func XCTAssertEqual(_ json1: Any, _ json2: Any, file: StaticString = #file, line: UInt = #line) {
     do {
         // Wrap the objects in an array to allow JSON fragments comparisons
         let d1 = try String(data: JSONSerialization.data(withJSONObject: [json1], options: .sortedKeys), encoding: .utf8)

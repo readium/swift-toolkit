@@ -59,13 +59,13 @@ import Testing
                     playbackActiveClass: "-epub-media-overlay-playing"
                 )
 
-                #expect(EPUBMediaOverlay(json: original.json) == original)
+                #expect(EPUBMediaOverlay(json: original.jsonValue) == original)
             }
 
             @Test("nil values are omitted from JSON")
             func omitsNilValues() {
                 let sut = EPUBMediaOverlay(activeClass: "-epub-media-overlay-active")
-                #expect(sut.json["playbackActiveClass"] == nil)
+                #expect(sut.jsonObject["playbackActiveClass"] == nil)
             }
         }
     }
