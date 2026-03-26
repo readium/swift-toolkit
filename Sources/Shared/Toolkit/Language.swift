@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct Language: Hashable, Sendable {
+public struct Language: Hashable, Sendable, JSONValueDecodable, JSONValueEncodable {
     public static var current: Language {
         Language(locale: Locale.current)
     }
@@ -78,8 +78,19 @@ public struct Language: Hashable, Sendable {
         self.init(code: .bcp47(locale.identifier))
     }
 
+    public init?<T: JSONValueEncodable>(json: T?, warnings: (any WarningLogger)?) throws {
+        guard let code = json?.jsonValue.string else {
+            return nil
+        }
+        self.init(code: .bcp47(code))
+    }
+
     public func removingRegion() -> Language {
         Language(code: code.removingRegion())
+    }
+
+    public var jsonValue: JSONValue {
+        .string(code.bcp47)
     }
 }
 

@@ -161,7 +161,7 @@ public class Publication: Closeable, Loggable {
     ///
     /// For a list of supported profiles, see the registry:
     /// https://readium.org/webpub-manifest/profiles/
-    public struct Profile: Hashable, Sendable {
+    public struct Profile: Hashable, RawRepresentable, Sendable {
         public let uri: String
 
         public init(_ uri: String) {
@@ -176,6 +176,16 @@ public class Publication: Closeable, Loggable {
         public static let divina = Profile("https://readium.org/webpub-manifest/profiles/divina")
         /// Profile for PDF documents.
         public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            uri
+        }
+
+        public init(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     /// Holds the components of a `Publication` to build it.

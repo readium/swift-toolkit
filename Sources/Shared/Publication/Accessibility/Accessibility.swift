@@ -120,7 +120,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         }
     }
 
-    public struct Certification: Hashable, Sendable {
+    public struct Certification: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
         /// Identifies a party responsible for the testing and certification of the accessibility of a Publication.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifiedBy
@@ -142,6 +142,26 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
             self.certifiedBy = certifiedBy
             self.credential = credential
             self.report = report
+        }
+
+        public init?<T: JSONValueEncodable>(json: T?, warnings: (any WarningLogger)?) throws {
+            guard let json = json?.jsonValue.object else {
+                return nil
+            }
+
+            self.init(
+                certifiedBy: json["certifiedBy"]?.string,
+                credential: json["credential"]?.string,
+                report: json["report"]?.string
+            )
+        }
+
+        public var jsonObject: [String: JSONValue] {
+            .init([
+                "certifiedBy": certifiedBy,
+                "credential": credential,
+                "report": report,
+            ])
         }
     }
 
@@ -606,16 +626,9 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
             throw JSONError.parsing(Self.self)
         }
 
-        self.init(
+        try self.init(
             conformsTo: jsonObject["conformsTo"]?.decode(allowingSingle: true) ?? [],
-            certification: jsonObject["certification"]?.object
-                .map { dict in
-                    Certification(
-                        certifiedBy: dict["certifiedBy"]?.string,
-                        credential: dict["credential"]?.string,
-                        report: dict["report"]?.string
-                    )
-                }
+            certification: jsonObject["certification"]?.decode()
                 .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
             summary: jsonObject["summary"]?.string,
             accessModes: jsonObject["accessMode"]?.decode() ?? [],
@@ -629,49 +642,15 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
     }
 
     public var jsonObject: [String: JSONValue] {
-        var dict: [String: JSONValue] = [:]
-
-        if let cert = certification {
-            var certDict: [String: JSONValue] = [:]
-            if let by = cert.certifiedBy { certDict["certifiedBy"] = .string(by) }
-            if let cred = cert.credential { certDict["credential"] = .string(cred) }
-            if let report = cert.report { certDict["report"] = .string(report) }
-
-            if !certDict.isEmpty {
-                dict["certification"] = .object(certDict)
-            }
-        }
-
-        if !conformsTo.isEmpty {
-            dict["conformsTo"] = .array(conformsTo.map { .string($0.uri) })
-        }
-
-        if let summary = summary {
-            dict["summary"] = .string(summary)
-        }
-
-        if !accessModes.isEmpty {
-            dict["accessMode"] = .array(accessModes.map { .string($0.id) })
-        }
-
-        if !accessModesSufficient.isEmpty {
-            dict["accessModeSufficient"] = .array(accessModesSufficient.map { modeArray in
-                .array(modeArray.map { .string($0.rawValue) })
-            })
-        }
-
-        if !features.isEmpty {
-            dict["feature"] = .array(features.map { .string($0.id) })
-        }
-
-        if !hazards.isEmpty {
-            dict["hazard"] = .array(hazards.map { .string($0.id) })
-        }
-
-        if !exemptions.isEmpty {
-            dict["exemption"] = .array(exemptions.map { .string($0.id) })
-        }
-
-        return dict
+        .init([
+            "conformsTo": conformsTo.map(\.uri).orNullIfEmpty,
+            "certification": certification,
+            "summary": summary,
+            "accessMode": accessModes.map(\.id).orNullIfEmpty,
+            "accessModeSufficient": accessModesSufficient.map { $0.map(\.rawValue) }.orNullIfEmpty,
+            "feature": features.map(\.id).orNullIfEmpty,
+            "hazard": hazards.map(\.id).orNullIfEmpty,
+            "exemption": exemptions.map(\.id).orNullIfEmpty,
+        ])
     }
 }

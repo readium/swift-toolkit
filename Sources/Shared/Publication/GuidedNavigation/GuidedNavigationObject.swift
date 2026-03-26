@@ -550,11 +550,3 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
         public static let sound = Role("sound")
     }
 }
-
-// MARK: - Array Extension
-
-public extension Array where Element == GuidedNavigationObject {
-    init(json: JSONValue?, warnings: WarningLogger? = nil) {
-        self = json?.decode(warnings: warnings) ?? []
-    }
-}

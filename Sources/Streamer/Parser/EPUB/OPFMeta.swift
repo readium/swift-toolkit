@@ -280,9 +280,11 @@ struct OPFMetaList {
             if jsonValues.isEmpty {
                 return nil
             }
+
             if jsonValues.count == 1 {
                 return jsonValues[0]
             }
+
             return .array(jsonValues)
         }
     }

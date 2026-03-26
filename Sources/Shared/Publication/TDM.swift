@@ -41,13 +41,14 @@ public struct TDM: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     }
 
     public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
-        let json = json?.jsonValue
-        guard let jsonObject = json?.object else {
-            warnings?.log("Invalid TDM object", model: Self.self, source: json, severity: .minor)
-            throw JSONError.parsing(Self.self)
+        guard let json = json?.jsonValue else {
+            return nil
         }
 
-        guard let reservation = jsonObject["reservation"]?.string.flatMap(Reservation.init(rawValue:)) else {
+        guard
+            let jsonObject = json.object,
+            let reservation: Reservation = jsonObject["reservation"]?.decode()
+        else {
             warnings?.log("Invalid TDM object", model: Self.self, source: json, severity: .minor)
             throw JSONError.parsing(Self.self)
         }

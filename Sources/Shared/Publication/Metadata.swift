@@ -160,8 +160,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable, JSONValueDe
 
         identifier = jsonObject.pop("identifier")?.string
         type = jsonObject.pop("@type")?.string ?? jsonObject.pop("type")?.string
-        conformsTo = (jsonObject.pop("conformsTo")?.decode(allowingSingle: true) as [String]? ?? [])
-            .map { Publication.Profile($0) }
+        conformsTo = jsonObject.pop("conformsTo")?.decode(allowingSingle: true) ?? []
         localizedTitle = title
         localizedSubtitle = try? jsonObject.pop("subtitle")?.decode(warnings: warnings)
         accessibility = try? jsonObject.pop("accessibility")?.decode(warnings: warnings)
