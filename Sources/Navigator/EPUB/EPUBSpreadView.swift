@@ -351,8 +351,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             let selection = body as? [String: Any],
             let hrefString = selection["href"] as? String,
             let href = AnyURL(string: hrefString),
-            let text = try? Locator.Text(json: selection["text"]),
-            var frame = CGRect(json: selection["rect"])
+            let text = try? Locator.Text(json: JSONValue(from: selection["text"])),
+            var frame = CGRect(json: JSONValue(from: selection["rect"]))
         else {
             focusedResource = nil
             delegate?.spreadView(self, selectionDidChange: nil, frame: .zero)
@@ -404,7 +404,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         let result = await evaluateScript("readium.findFirstVisibleLocator()")
         do {
             let link = spread.first.link
-            return try Locator(json: result.get())?
+            return try Locator(json: JSONValue(from: result.get()))?
                 .copy(href: link.url(), mediaType: link.mediaType ?? .xhtml)
         } catch {
             log(.error, error)
@@ -827,6 +827,30 @@ private extension KeyEvent.Phase {
         case "up": self = .up
         case "down": self = .down
         default: return nil
+        }
+    }
+}
+
+extension JSONValue {
+    /// Converts a standard `Any` (like those from WKWebView) into a type-safe `JSONValue`
+    init?(from any: Any?) {
+        guard let any = any else { return nil }
+
+        switch any {
+        case let bool as Bool:
+            self = .bool(bool)
+        case let int as Int:
+            self = .integer(int)
+        case let double as Double:
+            self = .double(double)
+        case let string as String:
+            self = .string(string)
+        case let array as [Any]:
+            self = .array(array.compactMap { JSONValue(from: $0) })
+        case let dict as [String: Any]:
+            self = .object(dict.compactMapValues { JSONValue(from: $0) })
+        default:
+            return nil
         }
     }
 }

@@ -54,14 +54,42 @@ public extension ResourceProperties {
     /// Provides information about how the resource is stored in the publication archive.
     var archive: ArchiveProperties? {
         get {
-            try? ArchiveProperties(json: properties[archiveKey])
+            try? ArchiveProperties(json: JSONValue.wrap(properties[archiveKey]))
         }
         set {
             if let archive = newValue {
-                properties[archiveKey] = .object(archive.jsonObject)
+                properties[archiveKey] = archive.jsonObject
             } else {
                 properties.removeValue(forKey: archiveKey)
             }
+        }
+    }
+}
+
+public extension JSONValue {
+    /// Safely wraps a standard `Any` (like those from JSONSerialization or older dictionaries) into a type-safe `JSONValue`
+    static func wrap(_ any: Any?) -> JSONValue? {
+        guard let any = any else { return nil }
+
+        if any is NSNull {
+            return .null
+        }
+
+        switch any {
+        case let bool as Bool:
+            return .bool(bool)
+        case let int as Int:
+            return .integer(int)
+        case let double as Double:
+            return .double(double)
+        case let string as String:
+            return .string(string)
+        case let array as [Any]:
+            return .array(array.compactMap { JSONValue.wrap($0) })
+        case let dict as [String: Any]:
+            return .object(dict.compactMapValues { JSONValue.wrap($0) })
+        default:
+            return nil
         }
     }
 }

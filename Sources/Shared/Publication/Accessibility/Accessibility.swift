@@ -576,24 +576,49 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
     }
 
     public var jsonObject: [String: JSONValue] {
-        var certificationDict: [String: JSONValue] = [:]
+        var dict: [String: JSONValue] = [:]
+
         if let cert = certification {
-            certificationDict = .init([
-                "certifiedBy": cert.certifiedBy,
-                "credential": cert.credential,
-                "report": cert.report,
-            ])
+            var certDict: [String: JSONValue] = [:]
+            if let by = cert.certifiedBy { certDict["certifiedBy"] = .string(by) }
+            if let cred = cert.credential { certDict["credential"] = .string(cred) }
+            if let report = cert.report { certDict["report"] = .string(report) }
+
+            if !certDict.isEmpty {
+                dict["certification"] = .object(certDict)
+            }
         }
 
-        return .init([
-            "conformsTo": conformsTo.map(\.uri).isEmpty ? JSONValue.null : .array(conformsTo.map(\.uri).map(JSONValue.string)),
-            "certification": certificationDict.isEmpty ? JSONValue.null : .object(certificationDict),
-            "summary": summary,
-            "accessMode": accessModes.map(\.id).isEmpty ? JSONValue.null : .array(accessModes.map(\.id).map(JSONValue.string)),
-            "accessModeSufficient": accessModesSufficient.map { $0.map(\.rawValue) }.isEmpty ? JSONValue.null : .array(accessModesSufficient.map { arr in .array(arr.map(JSONValue.string)) }),
-            "feature": features.map(\.id).isEmpty ? JSONValue.null : .array(features.map(\.id).map(JSONValue.string)),
-            "hazard": hazards.map(\.id).isEmpty ? JSONValue.null : .array(hazards.map(\.id).map(JSONValue.string)),
-            "exemption": exemptions.map(\.id).isEmpty ? JSONValue.null : .array(exemptions.map(\.id).map(JSONValue.string)),
-        ])
+        if !conformsTo.isEmpty {
+            dict["conformsTo"] = .array(conformsTo.map { .string($0.uri) })
+        }
+
+        if let summary = summary {
+            dict["summary"] = .string(summary)
+        }
+
+        if !accessModes.isEmpty {
+            dict["accessMode"] = .array(accessModes.map { .string($0.id) })
+        }
+
+        if !accessModesSufficient.isEmpty {
+            dict["accessModeSufficient"] = .array(accessModesSufficient.map { modeArray in
+                .array(modeArray.map { .string($0.rawValue) })
+            })
+        }
+
+        if !features.isEmpty {
+            dict["feature"] = .array(features.map { .string($0.id) })
+        }
+
+        if !hazards.isEmpty {
+            dict["hazard"] = .array(hazards.map { .string($0.id) })
+        }
+
+        if !exemptions.isEmpty {
+            dict["exemption"] = .array(exemptions.map { .string($0.id) })
+        }
+
+        return dict
     }
 }
