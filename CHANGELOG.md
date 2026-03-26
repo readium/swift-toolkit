@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file. Take a look
     * `Recipes/` contains self-contained and explained code you can reuse in your own application.
     * `App/` folder contains the scaffolding (file management, navigation, error handling) needed to run the Playground.
 
+### Changed
+
+#### Shared
+
+* All public types that parsed or serialized JSON now use the new type-safe `JSONValue` enum instead of `Any` / `[String: Any]`. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
+
 ### Fixed
 
 #### Shared
