@@ -25,7 +25,10 @@ private func parseRPFEncryptionData(in container: Container) async -> ReadResult
         .asJSONObjectValue()
         .flatMap { json in
             do {
-                return try .success(Manifest(json: .object(json)))
+                guard let parsedManifest = try Manifest(json: .object(json)) else {
+                    return .failure(.decoding("Manifest JSON is invalid or could not be parsed"))
+                }
+                return .success(parsedManifest)
             } catch {
                 return .failure(.decoding(error))
             }

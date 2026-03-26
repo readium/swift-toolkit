@@ -33,7 +33,7 @@ public struct Link: JSONValueDecodable {
             throw ParsingError.link
         }
 
-        let rel: [String] = json["rel"]?.parseArray(allowingSingle: true)
+        let rel: [String] = json["rel"]?.parseArray(allowingSingle: true) ?? []
         guard !rel.isEmpty else {
             throw ParsingError.link
         }

@@ -53,18 +53,21 @@ public struct LicenseDocument {
     public let jsonString: String
 
     public init(data: Data) throws {
-        guard
-            let jsonString = String(data: data, encoding: .utf8),
-            let deserializedJSON = try? JSONSerialization.jsonObject(with: data),
-            let jsonValue = JSONValue(deserializedJSON)
-        else {
+        guard let jsonString = String(data: data, encoding: .utf8) else {
+            throw ParsingError.malformedJSON
+        }
+
+        let jsonValue: JSONValue
+        do {
+            jsonValue = try JSONDecoder().decode(JSONValue.self, from: data)
+        } catch {
             throw ParsingError.malformedJSON
         }
 
         guard let json = jsonValue.object,
               let provider = json["provider"]?.string,
               let id = json["id"]?.string,
-              let issued = parseDate(json["issued"]),
+              let issued = json["issued"]?.parseDate(),
               let encryptionValue = json["encryption"],
               let linksValue = json["links"],
               let signatureValue = json["signature"]
@@ -75,10 +78,13 @@ public struct LicenseDocument {
         self.provider = provider
         self.id = id
         self.issued = issued
-        updated = parseDate(json["updated"]) ?? issued
+        updated = json["updated"]?.parseDate() ?? issued
         encryption = try Encryption(json: encryptionValue)
         links = try Links(json: linksValue)
-        user = try User(json: json["user"])
+        guard let parsedUser = try User(json: json["user"]) else {
+            throw ParsingError.licenseDocument
+        }
+        user = parsedUser
         rights = try Rights(json: json["rights"])
         signature = try Signature(json: signatureValue)
         jsonData = data

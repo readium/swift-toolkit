@@ -11,7 +11,7 @@ public struct Links: JSONValueDecodable {
     private let links: [Link]
 
     public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        links = try json?.array?.map(Link.init) ?? []
+        links = json?.arrayOf(warnings: warnings) ?? []
     }
 
     /// Returns all the links with the given `rel`.
