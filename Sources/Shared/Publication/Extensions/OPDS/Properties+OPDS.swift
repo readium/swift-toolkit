@@ -12,7 +12,7 @@ import ReadiumInternal
 public extension Properties {
     /// Provides a hint about the expected number of items returned.
     var numberOfItems: Int? {
-        otherProperties["numberOfItems"]?.positiveNumber()
+        otherProperties["numberOfItems"]?.nonNegative()
     }
 
     /// The price of a publication is tied to its acquisition link.

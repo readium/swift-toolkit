@@ -67,10 +67,11 @@ public struct LicenseDocument {
         guard let json = jsonValue.object,
               let provider = json["provider"]?.string,
               let id = json["id"]?.string,
-              let issued = json["issued"]?.parseDate(),
-              let encryptionValue = json["encryption"],
-              let linksValue = json["links"],
-              let signatureValue = json["signature"]
+              let issued = json["issued"]?.date,
+              let encryption = try Encryption(json: json["encryption"]),
+              let links = try Links(json: json["links"]),
+              let rights = try Rights(json: json["rights"]),
+              let signature = try Signature(json: json["signature"])
         else {
             throw ParsingError.licenseDocument
         }
@@ -78,15 +79,15 @@ public struct LicenseDocument {
         self.provider = provider
         self.id = id
         self.issued = issued
-        updated = json["updated"]?.parseDate() ?? issued
-        encryption = try Encryption(json: encryptionValue)
-        links = try Links(json: linksValue)
+        updated = json["updated"]?.date ?? issued
+        self.encryption = encryption
+        self.links = links
         guard let parsedUser = try User(json: json["user"]) else {
             throw ParsingError.licenseDocument
         }
         user = parsedUser
-        rights = try Rights(json: json["rights"])
-        signature = try Signature(json: signatureValue)
+        self.rights = rights
+        self.signature = signature
         jsonData = data
         self.jsonString = jsonString
 

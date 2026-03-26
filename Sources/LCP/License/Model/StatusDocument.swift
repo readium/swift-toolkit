@@ -10,7 +10,7 @@ import ReadiumShared
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
 public struct StatusDocument {
-    public enum Status: String, JSONValueDecodable {
+    public enum Status: String {
         /// The License Document is available, but the user hasn't accessed the License and/or Status Document yet.
         case ready
         /// The license is active, and a device has been successfully registered for this license. This is the default value if the License Document does not contain a registration link, or a registration mechanism through the license itself.
@@ -25,7 +25,7 @@ public struct StatusDocument {
         case expired
     }
 
-    public enum Rel: String, JSONValueDecodable {
+    public enum Rel: String {
         case register
         case license
         case `return`
@@ -57,9 +57,9 @@ public struct StatusDocument {
               let status = Status(rawValue: statusRaw),
               let message = json["message"]?.string,
               let updated = json["updated"]?.object,
-              let licenseUpdated = updated["license"]?.parseDate(),
-              let statusUpdated = updated["status"]?.parseDate(),
-              let linksValue = json["links"], linksValue.array != nil
+              let licenseUpdated = updated["license"]?.date,
+              let statusUpdated = updated["status"]?.date,
+              let links = try Links(json: json["links"])
         else {
             throw ParsingError.statusDocument
         }
@@ -69,7 +69,7 @@ public struct StatusDocument {
         self.message = message
         self.licenseUpdated = licenseUpdated
         self.updated = statusUpdated
-        links = try Links(json: linksValue)
+        self.links = links
 
         events = json["events"]?.arrayOf() ?? []
         potentialRights = try? PotentialRights(json: json["potential_rights"])

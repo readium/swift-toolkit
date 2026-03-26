@@ -193,7 +193,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
                 fragments: fragments,
                 progression: jsonObject.pop("progression")?.double,
                 totalProgression: jsonObject.pop("totalProgression")?.double,
-                position: jsonObject.pop("position")?.positiveNumber(),
+                position: jsonObject.pop("position")?.nonNegative(),
                 otherLocations: jsonObject
             )
         }
@@ -221,7 +221,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
                 "progression": progression,
                 "totalProgression": totalProgression,
                 "position": position,
-            ], additional: otherLocations)
+            ], adding: otherLocations)
         }
 
         public var jsonString: String? {
@@ -398,7 +398,7 @@ public struct LocatorCollection: Sendable, Hashable, JSONValueDecodable, JSONObj
             }
             self.init(
                 title: try? LocalizedString(json: jsonObject.pop("title"), warnings: warnings),
-                numberOfItems: jsonObject.pop("numberOfItems")?.positiveNumber(),
+                numberOfItems: jsonObject.pop("numberOfItems")?.nonNegative(),
                 otherMetadata: jsonObject
             )
         }
@@ -407,7 +407,7 @@ public struct LocatorCollection: Sendable, Hashable, JSONValueDecodable, JSONObj
             .init([
                 "title": localizedTitle,
                 "numberOfItems": numberOfItems,
-            ], additional: otherMetadata)
+            ], adding: otherMetadata)
         }
     }
 }

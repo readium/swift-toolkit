@@ -314,7 +314,7 @@ final class OPFParser: Loggable {
         if !contains.isEmpty {
             otherProperties["contains"] = .array(contains.map { .string($0) })
         }
-        if let jsonPage = JSONValue(page?.rawValue) {
+        if let jsonPage = page?.jsonValue {
             otherProperties["page"] = jsonPage
         }
 

@@ -187,8 +187,8 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable, JSONValueDe
         layout = jsonObject.pop("layout")?.rawValue()
         readingProgression = jsonObject.pop("readingProgression")?.rawValue() ?? .auto
         description = jsonObject.pop("description")?.string
-        duration = jsonObject.pop("duration")?.positiveNumber()
-        numberOfPages = jsonObject.pop("numberOfPages")?.positiveNumber()
+        duration = jsonObject.pop("duration")?.nonNegative()
+        numberOfPages = jsonObject.pop("numberOfPages")?.nonNegative()
         belongsTo = jsonObject.pop("belongsTo")?.object?
             .compactMapValues { $0.arrayOf(allowingSingle: true, warnings: warnings) }
             ?? [:]
@@ -229,7 +229,7 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable, JSONValueDe
             "numberOfPages": numberOfPages,
             "belongsTo": belongsTo.mapValues(\.jsonValue).orNullIfEmpty,
             "tdm": tdm,
-        ], additional: otherMetadata)
+        ], adding: otherMetadata)
     }
 
     public var belongsToCollections: [Collection] {

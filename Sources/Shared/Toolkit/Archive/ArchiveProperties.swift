@@ -28,7 +28,7 @@ public struct ArchiveProperties: Equatable, JSONValueDecodable, JSONObjectEncoda
         }
         guard
             let jsonObject = json.object,
-            let length: UInt64 = jsonObject["entryLength"]?.positiveNumber(),
+            let length: UInt64 = jsonObject["entryLength"]?.nonNegative(),
             let isEntryCompressed = jsonObject["isEntryCompressed"]?.bool
         else {
             throw JSONError.parsing(Self.self)

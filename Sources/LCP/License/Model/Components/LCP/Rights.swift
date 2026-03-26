@@ -19,12 +19,12 @@ public struct Rights: JSONValueDecodable {
     /// Implementor-specific rights extensions. Each extension is identified by an URI.
     public let extensions: [String: JSONValue]
 
-    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        var json = json?.object ?? [:]
-        self.print = json.pop("print")?.positiveNumber()
-        copy = json.pop("copy")?.positiveNumber()
-        start = json.pop("start")?.parseDate()
-        end = json.pop("end")?.parseDate()
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        var json = json?.jsonValue.object ?? [:]
+        self.print = json.pop("print")?.nonNegative()
+        copy = json.pop("copy")?.nonNegative()
+        start = json.pop("start")?.date
+        end = json.pop("end")?.date
         extensions = json
     }
 }

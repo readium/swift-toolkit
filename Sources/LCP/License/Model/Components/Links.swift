@@ -10,8 +10,8 @@ import ReadiumShared
 public struct Links: JSONValueDecodable {
     private let links: [Link]
 
-    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        links = json?.arrayOf(warnings: warnings) ?? []
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        links = json?.jsonValue.arrayOf(warnings: warnings) ?? []
     }
 
     /// Returns all the links with the given `rel`.

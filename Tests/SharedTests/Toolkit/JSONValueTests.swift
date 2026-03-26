@@ -68,6 +68,11 @@ import Testing
             let value: JSONValue = .string("test")
             #expect(value.jsonValue == value)
         }
+
+        @Test func dictionaryJsonObject() {
+            let dict: [String: JSONValue] = ["a": .integer(1), "b": .bool(false)]
+            #expect(dict.jsonObject == dict)
+        }
     }
 
     @Suite struct JSONValueDecodableConformances {
@@ -111,6 +116,33 @@ import Testing
             let val: JSONValue = .string("test")
             #expect(val.string == "test")
             #expect(val.integer == nil)
+        }
+
+        @Test func boolAccessor() {
+            #expect(JSONValue.bool(true).bool == true)
+            #expect(JSONValue.bool(false).bool == false)
+            #expect(JSONValue.string("true").bool == nil)
+            #expect(JSONValue.integer(1).bool == nil)
+        }
+
+        @Test func doubleAccessorNonNumericReturnsNil() {
+            #expect(JSONValue.string("3.14").double == nil)
+            #expect(JSONValue.bool(true).double == nil)
+            #expect(JSONValue.null.double == nil)
+            #expect(JSONValue.array([]).double == nil)
+            #expect(JSONValue.object([:]).double == nil)
+        }
+
+        @Test func arrayAccessor() {
+            #expect(JSONValue.array([.integer(1), .string("a")]).array == [.integer(1), .string("a")])
+            #expect(JSONValue.string("x").array == nil)
+            #expect(JSONValue.null.array == nil)
+        }
+
+        @Test func objectAccessor() {
+            #expect(JSONValue.object(["k": .bool(true)]).object == ["k": .bool(true)])
+            #expect(JSONValue.integer(1).object == nil)
+            #expect(JSONValue.null.object == nil)
         }
     }
 
@@ -207,77 +239,77 @@ import Testing
         }
     }
 
-    @Suite struct PositiveNumber {
+    @Suite struct NonNegative {
         // MARK: From .integer
 
         @Test func integerToInt() {
-            #expect(JSONValue.integer(42).positiveNumber() == Int(42))
+            #expect(JSONValue.integer(42).nonNegative() == Int(42))
         }
 
         @Test func integerToUInt64() {
-            #expect(JSONValue.integer(42).positiveNumber() == UInt64(42))
+            #expect(JSONValue.integer(42).nonNegative() == UInt64(42))
         }
 
         @Test func integerToDouble() {
-            #expect(JSONValue.integer(42).positiveNumber() == Double(42))
+            #expect(JSONValue.integer(42).nonNegative() == Double(42))
         }
 
         @Test func integerNegativeReturnsNil() {
-            #expect(JSONValue.integer(-1).positiveNumber() as Int? == nil)
+            #expect(JSONValue.integer(-1).nonNegative() as Int? == nil)
         }
 
         @Test func integerZeroIsPositive() {
-            #expect(JSONValue.integer(0).positiveNumber() == Int(0))
+            #expect(JSONValue.integer(0).nonNegative() == Int(0))
         }
 
         // MARK: From .double
 
         @Test func doubleToDouble() {
-            #expect(JSONValue.double(3.14).positiveNumber() == Double(3.14))
+            #expect(JSONValue.double(3.14).nonNegative() == Double(3.14))
         }
 
         @Test func doubleToFloat() {
-            #expect(JSONValue.double(3.14).positiveNumber() == Float(3.14))
+            #expect(JSONValue.double(3.14).nonNegative() == Float(3.14))
         }
 
         @Test func doubleExactToInt() {
-            #expect(JSONValue.double(3.0).positiveNumber() == Int(3))
+            #expect(JSONValue.double(3.0).nonNegative() == Int(3))
         }
 
         @Test func doubleExactToUInt64() {
-            #expect(JSONValue.double(3.0).positiveNumber() == UInt64(3))
+            #expect(JSONValue.double(3.0).nonNegative() == UInt64(3))
         }
 
         @Test func doubleNonExactToIntReturnsNil() {
-            #expect(JSONValue.double(3.5).positiveNumber() as Int? == nil)
+            #expect(JSONValue.double(3.5).nonNegative() as Int? == nil)
         }
 
         @Test func doubleNegativeReturnsNil() {
-            #expect(JSONValue.double(-1.5).positiveNumber() as Double? == nil)
+            #expect(JSONValue.double(-1.5).nonNegative() as Double? == nil)
         }
 
         @Test func doubleZeroIsPositive() {
-            #expect(JSONValue.double(0.0).positiveNumber() == Double(0))
+            #expect(JSONValue.double(0.0).nonNegative() == Double(0))
         }
 
         @Test func doubleAboveInt64MaxToUInt64() {
             // Values > Int64.max (~9.2e18) must not return nil for UInt64
             let value = Double(sign: .plus, exponent: 63, significand: 1) // 2^63, > Int64.max
-            #expect(JSONValue.double(value).positiveNumber() == UInt64(value))
+            #expect(JSONValue.double(value).nonNegative() == UInt64(value))
         }
 
         // MARK: Non-numeric cases
 
         @Test func stringReturnsNil() {
-            #expect(JSONValue.string("42").positiveNumber() as Int? == nil)
+            #expect(JSONValue.string("42").nonNegative() as Int? == nil)
         }
 
         @Test func boolReturnsNil() {
-            #expect(JSONValue.bool(true).positiveNumber() as Int? == nil)
+            #expect(JSONValue.bool(true).nonNegative() as Int? == nil)
         }
 
         @Test func nullReturnsNil() {
-            #expect(JSONValue.null.positiveNumber() as Int? == nil)
+            #expect(JSONValue.null.nonNegative() as Int? == nil)
         }
     }
 
@@ -393,6 +425,131 @@ import Testing
             let array: [JSONValue] = [.integer(1), .integer(2)]
             let result: [StringItem] = array.arrayOf()
             #expect(result.isEmpty)
+        }
+    }
+
+    @Suite struct DictionaryInit {
+        @Test func filteringNullByDefaultRemovesNullValues() {
+            let result = [String: JSONValue](["a": "hello", "b": String?.none])
+            #expect(result == ["a": .string("hello")])
+        }
+
+        @Test func filteringNullFalseKeepsNullValues() {
+            let result = [String: JSONValue](["a": "hello", "b": String?.none], filteringNull: false)
+            #expect(result == ["a": .string("hello"), "b": .null])
+        }
+
+        @Test func addingMergesExtraKeys() {
+            let result = [String: JSONValue](["a": "x"], adding: ["b": "y"])
+            #expect(result == ["a": .string("x"), "b": .string("y")])
+        }
+
+        @Test func dictWinsOverAddingOnCollision() {
+            let result = [String: JSONValue](["a": "dict"], adding: ["a": "additional"])
+            #expect(result["a"] == .string("dict"))
+        }
+
+        @Test func emptyDictWithAdding() {
+            let result = [String: JSONValue]([:], adding: ["b": 42])
+            #expect(result == ["b": .integer(42)])
+        }
+    }
+
+    @Suite struct Pop {
+        @Test func presentKeyReturnsValueAndRemovesIt() {
+            var dict: [String: JSONValue] = ["a": .integer(1), "b": .string("x")]
+            let value = dict.pop("a")
+            #expect(value == .integer(1))
+            #expect(dict == ["b": .string("x")])
+        }
+
+        @Test func absentKeyReturnsNilAndLeavesDict() {
+            var dict: [String: JSONValue] = ["a": .integer(1)]
+            let value = dict.pop("z")
+            #expect(value == nil)
+            #expect(dict == ["a": .integer(1)])
+        }
+    }
+
+    @Suite struct OrNullIfEmpty {
+        @Test func emptyArrayReturnsNull() {
+            #expect(([] as [String]).orNullIfEmpty == .null)
+        }
+
+        @Test func nonEmptyArrayReturnsArray() {
+            #expect(["a", "b"].orNullIfEmpty == .array([.string("a"), .string("b")]))
+        }
+
+        @Test func emptyDictReturnsNull() {
+            #expect([String: JSONValue]().orNullIfEmpty == .null)
+        }
+
+        @Test func nonEmptyDictReturnsObject() {
+            let dict: [String: JSONValue] = ["x": .integer(7)]
+            #expect(dict.orNullIfEmpty == .object(["x": .integer(7)]))
+        }
+    }
+
+    @Suite struct RawRepresentableConformances {
+        private enum Color: String, JSONValueEncodable, JSONValueDecodable {
+            case red, green, blue
+        }
+
+        @Test func encodingUsesRawValue() {
+            #expect(Color.red.jsonValue == .string("red"))
+            #expect(Color.blue.jsonValue == .string("blue"))
+        }
+
+        @Test func decodingValidRawValue() throws {
+            #expect(try Color(json: JSONValue.string("red")) == .red)
+            #expect(try Color(json: JSONValue.string("green")) == .green)
+        }
+
+        @Test func decodingInvalidRawValueReturnsNil() throws {
+            #expect(try Color(json: JSONValue.string("purple")) == nil)
+        }
+
+        @Test func decodingNilReturnsNil() throws {
+            #expect(try Color(json: nil as JSONValue?) == nil)
+        }
+
+        @Test func decodingNonStringReturnsNil() throws {
+            #expect(try Color(json: JSONValue.integer(0)) == nil)
+        }
+
+        @Test func arrayOfOnArrayFiltersInvalid() {
+            let json = JSONValue.array([.string("red"), .string("purple"), .string("blue")])
+            let result: [Color] = json.arrayOf()
+            #expect(result == [.red, .blue])
+        }
+
+        @Test func arrayOfAllowingSingleOnSingleString() {
+            let result: [Color] = JSONValue.string("green").arrayOf(allowingSingle: true)
+            #expect(result == [.green])
+        }
+
+        @Test func arrayOfAllowingSingleFalseOnSingleStringReturnsEmpty() {
+            let result: [Color] = JSONValue.string("red").arrayOf(allowingSingle: false)
+            #expect(result.isEmpty)
+        }
+    }
+
+    @Suite struct DateParsing {
+        @Test func validISO8601StringReturnsDate() {
+            let date = JSONValue.string("2019-03-12T07:58:31Z").date
+            #expect(date != nil)
+            #expect(date?.timeIntervalSince1970 == 1_552_377_511)
+        }
+
+        @Test func invalidStringReturnsNil() {
+            #expect(JSONValue.string("not-a-date").date == nil)
+            #expect(JSONValue.string("").date == nil)
+        }
+
+        @Test func nonStringReturnsNil() {
+            #expect(JSONValue.integer(42).date == nil)
+            #expect(JSONValue.bool(true).date == nil)
+            #expect(JSONValue.null.date == nil)
         }
     }
 

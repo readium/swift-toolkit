@@ -67,7 +67,7 @@ public extension Properties {
 
     /// Indicates how the linked resource should be displayed in a reading
     /// environment that displays synthetic spreads.
-    enum Page: String, JSONValueDecodable {
+    enum Page: String {
         case left, right, center
     }
 }

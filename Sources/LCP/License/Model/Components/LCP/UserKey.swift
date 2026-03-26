@@ -16,8 +16,8 @@ public struct UserKey: JSONValueDecodable {
     /// The value of the License Document’s `id` field, encrypted using the User Key and the same algorithm identified for Content Key encryption in `encryption/content_key/algorithm`. This is used to verify that the Reading System has the correct User Key.
     public let keyCheck: String
 
-    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json?.object,
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue.object,
               let textHint = json["text_hint"]?.string,
               let algorithm = json["algorithm"]?.string,
               let keyCheck = json["key_check"]?.string

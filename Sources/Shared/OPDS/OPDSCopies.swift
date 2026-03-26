@@ -28,8 +28,8 @@ public struct OPDSCopies: Equatable, JSONValueDecodable, JSONObjectEncodable {
         }
 
         self.init(
-            total: jsonObject["total"]?.positiveNumber(),
-            available: jsonObject["available"]?.positiveNumber()
+            total: jsonObject["total"]?.nonNegative(),
+            available: jsonObject["available"]?.nonNegative()
         )
     }
 

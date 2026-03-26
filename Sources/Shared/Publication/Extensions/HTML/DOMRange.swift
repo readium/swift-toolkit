@@ -89,7 +89,7 @@ public struct DOMRange: JSONValueDecodable, JSONObjectEncodable {
             }
             guard let jsonObject = json.object,
                   let cssSelector = jsonObject["cssSelector"]?.string,
-                  let textNodeIndex: Int = jsonObject["textNodeIndex"]?.positiveNumber()
+                  let textNodeIndex: Int = jsonObject["textNodeIndex"]?.nonNegative()
             else {
                 warnings?.log("`cssSelector` and `textNodeIndex` are required", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
@@ -97,10 +97,10 @@ public struct DOMRange: JSONValueDecodable, JSONObjectEncodable {
             self.init(
                 cssSelector: cssSelector,
                 textNodeIndex: textNodeIndex,
-                charOffset: jsonObject["charOffset"]?.positiveNumber()
+                charOffset: jsonObject["charOffset"]?.nonNegative()
                     // The model was using `offset` before, so we still parse it to ensure backward-compatibility for
                     // reading apps having persisted legacy Locator models.
-                    ?? jsonObject["offset"]?.positiveNumber()
+                    ?? jsonObject["offset"]?.nonNegative()
             )
         }
 

@@ -11,8 +11,8 @@ public struct PotentialRights: JSONValueDecodable {
     /// Time and Date when the license ends.
     public let end: Date?
 
-    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        let json = json?.object
-        end = json?["end"]?.parseDate()
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        let json = json?.jsonValue.object
+        end = json?["end"]?.date
     }
 }

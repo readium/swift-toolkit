@@ -106,7 +106,7 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
             "readingOrder": readingOrder.isEmpty ? JSONValue.null : readingOrder,
             "resources": resources.isEmpty ? JSONValue.null : resources,
             "toc": tableOfContents.isEmpty ? JSONValue.null : tableOfContents,
-        ], additional: PublicationCollection.serializeCollections(subcollections))
+        ], adding: PublicationCollection.serializeCollections(subcollections))
     }
 
     /// Returns whether this manifest conforms to the given Readium Web Publication Profile.

@@ -7,26 +7,39 @@
 import CoreFoundation
 import Foundation
 
-// MARK: - Core JSONValue
-
-/// A type-safe JSON value.
+/// A type-safe representation of a JSON value.
 ///
-/// This enum is used to represent JSON values in a type-safe way, avoiding the
-/// use of `any Sendable` or `Any`. It guarantees that the value is Sendable and
-/// Hashable.
+/// Use the typed accessors (`bool`, `string`, `integer`, `double`, `array`,
+/// `object`) to extract the underlying value.
+///
+/// `JSONValue` conforms to all `ExpressibleByLiteral` protocols, so you can
+/// write JSON structures directly in Swift:
+///
+/// ```swift
+/// let value: JSONValue = ["title": "Moby Dick", "year": 1851]
+/// ```
 public enum JSONValue: Sendable, Hashable, Loggable {
+    /// A JSON `null`.
     case null
+    /// A JSON boolean.
     case bool(Bool)
+    /// A JSON string.
     case string(String)
+    /// A JSON integer number.
     case integer(Int)
+    /// A JSON floating-point number.
     case double(Double)
+    /// A JSON array.
     case array([JSONValue])
+    /// A JSON object.
     case object([String: JSONValue])
 
-    /// Returns the raw value as `Any`.
+    /// Returns the value as a standard Swift / Foundation type.
     ///
-    /// This property is useful for interoperability with APIs that expect
-    /// standard Swift types (e.g., `JSONSerialization`).
+    /// This is useful for interoperability with APIs that expect untyped values
+    /// such as `JSONSerialization`.
+    ///
+    /// `null` becomes `NSNull`.
     public var any: Any {
         switch self {
         case .null:
@@ -46,32 +59,44 @@ public enum JSONValue: Sendable, Hashable, Loggable {
         }
     }
 
+    /// Returns the associated `Bool` if this value is `.bool`, otherwise `nil`.
     public var bool: Bool? {
         if case let .bool(v) = self { return v }
         return nil
     }
 
+    /// Returns the associated `String` if this value is `.string`, otherwise
+    /// `nil`.
     public var string: String? {
         if case let .string(v) = self { return v }
         return nil
     }
 
+    /// Returns the associated `Int` if this value is `.integer`, otherwise
+    /// `nil`.
     public var integer: Int? {
         if case let .integer(v) = self { return v }
         return nil
     }
 
+    /// Returns the numeric value as a `Double`.
+    ///
+    /// Returns the associated value for `.double`, or the integer value
+    /// promoted to `Double` for `.integer`. Returns `nil` for all other cases.
     public var double: Double? {
         if case let .double(v) = self { return v }
         if case let .integer(v) = self { return Double(v) }
         return nil
     }
 
+    /// Returns the associated array if this value is `.array`, otherwise `nil`.
     public var array: [JSONValue]? {
         if case let .array(v) = self { return v }
         return nil
     }
 
+    /// Returns the associated dictionary if this value is `.object`, otherwise
+    /// `nil`.
     public var object: [String: JSONValue]? {
         if case let .object(v) = self { return v }
         return nil
@@ -80,16 +105,35 @@ public enum JSONValue: Sendable, Hashable, Loggable {
 
 // MARK: - Decoding Protocols
 
+/// A type that can be decoded from a `JSONValue`.
+///
+/// Conform to this protocol to enable decoding your type from a JSON value.
+///
+/// Return `nil` (not throw) when the value is absent or of the wrong type.
+/// Throw only for structural errors that indicate malformed data.
+///
+/// Use `warnings` to report non-fatal issues while parsing the JSON.
 public protocol JSONValueDecodable {
     init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws
 }
 
 public extension JSONValueDecodable {
+    /// Convenience initializer that discards warnings.
     init?<T: JSONValueEncodable>(json: T?) throws {
         try self.init(json: json, warnings: nil)
     }
 }
 
+/// Provides a default `JSONValueDecodable` implementation for
+/// `RawRepresentable` types whose `RawValue` is itself decodable from a
+/// `JSONValue`.
+///
+/// Enums with a `String` or `Int` raw value get JSON decoding for free:
+///
+/// ```swift
+/// enum Layout: String { case reflowable, fixed }
+/// let layout = try Layout(json: jsonObject["layout"], warnings: warnings)
+/// ```
 public extension RawRepresentable where Self: JSONValueDecodable {
     init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
         guard let json = json?.jsonValue else {
@@ -106,6 +150,14 @@ public extension RawRepresentable where Self: JSONValueDecodable {
 }
 
 public extension JSONValue {
+    /// Decodes an array of `T` from this value.
+    ///
+    /// - If this value is `.array`, each element is decoded as `T`; invalid
+    ///   elements are silently skipped.
+    /// - If `allowingSingle` is `true` and this value is not an array, it is
+    ///   treated as a single-element array and decoded as `T`.
+    /// - Returns an empty array for `.null` or any non-array value when
+    ///   `allowingSingle` is `false`.
     func arrayOf<T: JSONValueDecodable>(
         allowingSingle: Bool = false,
         warnings: WarningLogger? = nil
@@ -121,6 +173,13 @@ public extension JSONValue {
         }
     }
 
+    /// Decodes an array of `RawRepresentable` values from this value.
+    ///
+    /// Works like the `JSONValueDecodable` overload but uses the raw-value
+    /// bridge directly, without requiring `T` to conform to
+    /// `JSONValueDecodable`.
+    ///
+    /// Invalid raw values are silently skipped.
     func arrayOf<T: RawRepresentable>(allowingSingle: Bool = false) -> [T] {
         if allowingSingle, let value: T = rawValue() {
             return [value]
@@ -131,6 +190,8 @@ public extension JSONValue {
 }
 
 public extension [JSONValue] {
+    /// Decodes each element as `T`, silently skipping elements that fail to
+    /// decode.
     func arrayOf<T: JSONValueDecodable>(warnings: WarningLogger? = nil) -> [T] {
         compactMap { try? T(json: $0, warnings: warnings) }
     }
@@ -138,24 +199,50 @@ public extension [JSONValue] {
 
 // MARK: - Encoding Protocols
 
+/// A type that can be encoded to a `JSONValue`.
 public protocol JSONValueEncodable {
+    /// The `JSONValue` representation of this value.
     var jsonValue: JSONValue { get }
 }
 
+extension JSONValue: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        self
+    }
+}
+
+/// A type that encodes to a JSON object (`[String: JSONValue]`).
 public protocol JSONObjectEncodable: JSONValueEncodable {
+    /// The JSON object representation of this value.
     var jsonObject: [String: JSONValue] { get }
 }
 
 public extension JSONObjectEncodable {
+    /// Returns `.object(jsonObject)`.
     var jsonValue: JSONValue {
         .object(jsonObject)
     }
 
+    /// Returns `.object(jsonObject)` if non-empty, or `.null` if empty.
+    ///
+    /// Useful when serializing optional nested objects: the result can be
+    /// inserted into a parent dictionary and will be filtered out automatically
+    /// when `filteringNull: true` (the default).
     var orNullIfEmpty: JSONValue {
         let object = jsonObject
         return object.isEmpty ? .null : .object(object)
     }
 }
+
+// Provides a `jsonValue` for any `RawRepresentable` whose `RawValue` conforms
+// to `JSONValueEncodable`.
+//
+// Enums with a `String` or `Int` raw value get JSON encoding for free:
+//
+// ```swift
+// enum Layout: String { case reflowable, fixed }
+// let value = Layout.reflowable.jsonValue  // .string("reflowable")
+// ```
 
 public extension RawRepresentable where RawValue: JSONValueEncodable {
     var jsonValue: JSONValue {
@@ -163,20 +250,7 @@ public extension RawRepresentable where RawValue: JSONValueEncodable {
     }
 }
 
-// MARK: - Standard Type Encodable Conformance
-
-extension JSONValue: JSONValueEncodable {
-    public var jsonValue: JSONValue {
-        self
-    }
-
-    public init?(_ value: JSONValueEncodable?) {
-        guard let value else {
-            return nil
-        }
-        self = value.jsonValue
-    }
-}
+// MARK: - Standard Type Conformances
 
 extension String: JSONValueEncodable, JSONValueDecodable {
     public var jsonValue: JSONValue {
@@ -212,6 +286,7 @@ extension Int: JSONValueEncodable, JSONValueDecodable {
 }
 
 extension UInt64: JSONValueEncodable {
+    /// Encodes as `.integer`, clamping to `Int.max` if the value exceeds it.
     public var jsonValue: JSONValue {
         .integer(Int(clamping: self))
     }
@@ -228,23 +303,8 @@ extension Double: JSONValueEncodable, JSONValueDecodable {
     }
 }
 
-extension NSNumber: JSONValueEncodable {
-    public var jsonValue: JSONValue {
-        if CFGetTypeID(self) == CFBooleanGetTypeID() {
-            return .bool(boolValue)
-        }
-        if CFNumberIsFloatType(self) {
-            return .double(doubleValue)
-        }
-        if compare(0) == .orderedAscending {
-            return .integer(Int(clamping: int64Value))
-        } else {
-            return .integer(Int(clamping: uint64Value))
-        }
-    }
-}
-
 extension Optional: JSONValueEncodable where Wrapped: JSONValueEncodable {
+    /// Encodes `.none` as `.null` and `.some(wrapped)` as `wrapped.jsonValue`.
     public var jsonValue: JSONValue {
         switch self {
         case .none: return .null
@@ -258,27 +318,33 @@ extension Array: JSONValueEncodable where Element: JSONValueEncodable {
         .array(map(\.jsonValue))
     }
 
+    /// Returns `.array(...)` if non-empty, or `.null` if empty.
+    ///
+    /// Useful when serializing optional arrays into a parent JSON object with
+    /// `filteringNull: true` (the default).
     public var orNullIfEmpty: JSONValue {
         isEmpty ? .null : .array(map(\.jsonValue))
     }
 }
 
-public extension [JSONValue] {
-    init(_ array: [JSONValueEncodable]) {
-        self = array.map(\.jsonValue)
-    }
-}
-
 extension [String: JSONValue]: JSONObjectEncodable, JSONValueEncodable {
+    /// Creates a `[String: JSONValue]` from a dictionary of encodable values.
+    ///
+    /// - Parameters:
+    ///   - dict: The primary key-value pairs to include.
+    ///   - filteringNull: When `true` (the default), entries whose value
+    ///     encodes to `.null` are removed from the result.
+    ///   - adding: Extra key-value pairs merged into the result. Keys
+    ///     already present in `dict` are not overwritten.
     public init(
         _ dict: [String: JSONValueEncodable],
         filteringNull: Bool = true,
-        additional: [String: JSONValueEncodable] = [:]
+        adding: [String: JSONValueEncodable] = [:]
     ) {
         var dict = dict
             .mapValues(\.jsonValue)
             .merging(
-                additional.mapValues(\.jsonValue),
+                adding.mapValues(\.jsonValue),
                 uniquingKeysWith: { current, _ in current }
             )
 
@@ -294,6 +360,32 @@ extension [String: JSONValue]: JSONObjectEncodable, JSONValueEncodable {
 
     public var jsonObject: [String: JSONValue] {
         mapValues(\.jsonValue)
+    }
+}
+
+// MARK: - Objective-C Type Conformances
+
+extension NSNumber: JSONValueEncodable {
+    /// Encodes the number with type fidelity.
+    ///
+    /// Uses Core Foundation introspection to preserve the original numeric
+    /// kind:
+    /// - `CFBoolean` → `.bool`
+    /// - Float types → `.double`
+    /// - Negative integers → `.integer` (clamped via `Int64`)
+    /// - Non-negative integers → `.integer` (clamped via `UInt64`)
+    public var jsonValue: JSONValue {
+        if CFGetTypeID(self) == CFBooleanGetTypeID() {
+            return .bool(boolValue)
+        }
+        if CFNumberIsFloatType(self) {
+            return .double(doubleValue)
+        }
+        if compare(0) == .orderedAscending {
+            return .integer(Int(clamping: int64Value))
+        } else {
+            return .integer(Int(clamping: uint64Value))
+        }
     }
 }
 
@@ -350,6 +442,7 @@ extension JSONValue: ExpressibleByDictionaryLiteral {
 // MARK: - Codable Conformance
 
 extension JSONValue: Codable {
+    /// Decodes a `JSONValue` from any JSON input.
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
 
@@ -426,7 +519,17 @@ extension JSONValue: Codable {
 
 // MARK: - Dictionary Helpers
 
-public extension [String: JSONValue] {
+package extension [String: JSONValue] {
+    /// Removes the value for `key` and returns it, or returns `nil` if absent.
+    ///
+    /// Useful when consuming known keys from a JSON object while collecting
+    /// the remainder into an `otherMetadata`-style catch-all:
+    ///
+    /// ```swift
+    /// var json = jsonObject
+    /// let title = json.pop("title")?.string
+    /// let otherMetadata = json   // everything that wasn't explicitly consumed
+    /// ```
     mutating func pop(_ key: Key) -> Value? {
         removeValue(forKey: key)
     }
@@ -435,13 +538,32 @@ public extension [String: JSONValue] {
 // MARK: - Parsing Extensions
 
 public extension JSONValue {
-    /// Parses a Date string from ISO8601.
+    /// Attempts to construct a `RawRepresentable` value whose `RawValue`
+    /// matches the underlying primitive of this `JSONValue`.
+    func rawValue<T: RawRepresentable>() -> T? {
+        guard let rawValue = any as? T.RawValue else {
+            return nil
+        }
+
+        return T(rawValue: rawValue)
+    }
+
+    /// Parses an ISO 8601 date from a `.string` value.
+    ///
+    /// Returns `nil` if this value is not a `.string` or if the string is not
+    /// a valid ISO 8601 date.
     var date: Date? {
         string?.dateFromISO8601
     }
 
-    /// Parses a numeric value, but returns nil if it is not a positive number.
-    func positiveNumber<T: Comparable & Numeric>() -> T? {
+    /// Extracts a non-negative number of type `T`.
+    ///
+    /// Returns `nil` if:
+    /// - The value is not `.integer` or `.double`.
+    /// - The number is negative.
+    /// - The number cannot be represented exactly as `T` (e.g., a fractional
+    ///   double when `T` is `Int`).
+    func nonNegative<T: Comparable & Numeric>() -> T? {
         switch self {
         case let .integer(value):
             guard value >= 0 else { return nil }
@@ -455,13 +577,5 @@ public extension JSONValue {
         default:
             return nil
         }
-    }
-
-    internal func rawValue<T: RawRepresentable>() -> T? {
-        guard let rawValue = any as? T.RawValue else {
-            return nil
-        }
-
-        return T(rawValue: rawValue)
     }
 }

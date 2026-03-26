@@ -87,7 +87,7 @@ public struct Presentation: Equatable, JSONValueDecodable, JSONObjectEncodable {
     }
 
     /// Suggested method for constraining a resource inside the viewport.
-    public enum Fit: String, JSONValueDecodable {
+    public enum Fit: String {
         /// The content is centered and scaled to fit both dimensions into the viewport.
         case contain
         /// The content is centered and scaled to fill the viewport.
@@ -99,13 +99,13 @@ public struct Presentation: Equatable, JSONValueDecodable, JSONObjectEncodable {
     }
 
     /// Suggested orientation for the device when displaying the linked resource.
-    public enum Orientation: String, JSONValueDecodable {
+    public enum Orientation: String {
         case landscape, portrait, auto
     }
 
     /// Indicates if the overflow of linked resources from the `readingOrder` or `resources` should
     /// be handled using dynamic pagination or scrolling.
-    public enum Overflow: String, JSONValueDecodable {
+    public enum Overflow: String {
         /// Content overflow should be handled using dynamic pagination.
         case paginated
         /// Content overflow should be handled using scrolling.
@@ -116,13 +116,13 @@ public struct Presentation: Equatable, JSONValueDecodable, JSONObjectEncodable {
 
     /// Indicates how the linked resource should be displayed in a reading environment that
     /// displays synthetic spreads.
-    public enum Page: String, JSONValueDecodable {
+    public enum Page: String {
         case left, right, center
     }
 
     /// Indicates the condition to be met for the linked resource to be rendered within a synthetic
     /// spread.
-    public enum Spread: String, JSONValueDecodable {
+    public enum Spread: String {
         /// The resource should be displayed in a spread only if the device is in landscape mode.
         case landscape
         /// The resource should be displayed in a spread whatever the device orientation is.

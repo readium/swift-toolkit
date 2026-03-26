@@ -15,18 +15,17 @@ public struct Encryption: JSONValueDecodable {
     /// Used to encrypt the Content Key.
     public let userKey: UserKey
 
-    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json?.object,
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue.object,
               let profile = json["profile"]?.string,
-              let contentKeyJSON = json["content_key"],
-              let userKeyJSON = json["user_key"]
+              let contentKey = try ContentKey(json: json["content_key"], warnings: warnings),
+              let userKey = try UserKey(json: json["user_key"], warnings: warnings)
         else {
             throw ParsingError.encryption
         }
 
         self.profile = profile
-
-        contentKey = try ContentKey(json: contentKeyJSON)
-        userKey = try UserKey(json: userKeyJSON)
+        self.contentKey = contentKey
+        self.userKey = userKey
     }
 }

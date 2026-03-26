@@ -180,7 +180,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         public static let visual = AccessMode("visual")
     }
 
-    public enum PrimaryAccessMode: String, Hashable, Sendable, JSONValueDecodable {
+    public enum PrimaryAccessMode: String, Hashable, Sendable {
         /// Indicates that auditory perception is necessary to consume the information.
         case auditory
 

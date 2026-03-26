@@ -26,7 +26,7 @@ public extension Properties {
             }
             guard
                 let jsonObject = json.object,
-                let length: UInt64 = jsonObject["entryLength"]?.positiveNumber(),
+                let length: UInt64 = jsonObject["entryLength"]?.nonNegative(),
                 let isCompressed = jsonObject["isEntryCompressed"]?.bool
             else {
                 warnings?.log("`entryLength` and `isEntryCompressed` are required", model: Self.self, source: json)

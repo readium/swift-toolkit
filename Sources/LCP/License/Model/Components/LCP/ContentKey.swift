@@ -15,8 +15,8 @@ public struct ContentKey: JSONValueDecodable {
     /// Encrypted Content Key.
     public let encryptedValue: String
 
-    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json?.object,
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue.object,
               let algorithm = json["algorithm"]?.string,
               let encryptedValue = json["encrypted_value"]?.string
         else {

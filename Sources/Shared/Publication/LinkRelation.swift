@@ -158,17 +158,6 @@ extension LinkRelation: ExpressibleByStringLiteral {
     }
 }
 
-extension LinkRelation: Equatable {}
-
-extension LinkRelation: JSONValueDecodable {
-    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
-        guard let string = json?.jsonValue.string else {
-            return nil
-        }
-        self.init(string)
-    }
-}
-
 public extension [LinkRelation] {
     func contains(_ other: String) -> Bool {
         contains(LinkRelation(other))

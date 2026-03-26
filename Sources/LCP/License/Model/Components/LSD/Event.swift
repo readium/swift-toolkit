@@ -37,7 +37,7 @@ public struct Event: JSONValueDecodable {
               let type = json["type"]?.string,
               let name = json["name"]?.string,
               let id = json["id"]?.string,
-              let date = json["timestamp"]?.parseDate()
+              let date = json["timestamp"]?.date
         else {
             return nil
         }

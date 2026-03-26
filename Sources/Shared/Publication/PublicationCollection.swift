@@ -53,7 +53,7 @@ public struct PublicationCollection: Hashable, Sendable, JSONValueDecodable, JSO
         .init([
             "metadata": metadata.isEmpty ? JSONValue.null : .object(metadata),
             "links": links.isEmpty ? JSONValue.null : .array(links.map { .object($0.jsonObject) }),
-        ], additional: Self.serializeCollections(subcollections))
+        ], adding: Self.serializeCollections(subcollections))
     }
 
     static func makeCollections(json: JSONValue?, warnings: WarningLogger? = nil) -> [String: [PublicationCollection]] {

@@ -27,7 +27,7 @@ public struct OPDSPrice: Equatable, JSONValueDecodable, JSONObjectEncodable {
 
         guard let jsonObject = json.object,
               let currency = jsonObject["currency"]?.string,
-              let value: Double = jsonObject["value"]?.positiveNumber()
+              let value: Double = jsonObject["value"]?.nonNegative()
         else {
             warnings?.log("`currency` and `value` are required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
