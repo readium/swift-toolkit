@@ -33,7 +33,7 @@ class PropertiesTests: XCTestCase {
     }
 
     func testParseJSONAllowsNil() {
-        XCTAssertNil(try Properties(json: nil))
+        XCTAssertNil(try Properties(json: nil as JSONValue?))
     }
 
     func testGetMinimalJSON() {

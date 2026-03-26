@@ -55,12 +55,12 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
         self.children = children
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
         guard let jsonObject = json.object else {
-            warnings?.log("Invalid Guided Navigation Object", model: Self.self, source: json.any, severity: .moderate)
+            warnings?.log("Invalid Guided Navigation Object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
@@ -69,7 +69,7 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
         let children: [GuidedNavigationObject] = jsonObject["children"]?.arrayOf(warnings: warnings) ?? []
 
         guard refs != nil || text != nil || !children.isEmpty else {
-            warnings?.log("Guided Navigation Object requires at least one of audioref, imgref, textref, videoref, text, or children", model: Self.self, source: json.any, severity: .moderate)
+            warnings?.log("Guided Navigation Object requires at least one of audioref, imgref, textref, videoref, text, or children", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
@@ -116,12 +116,12 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
             self.video = video
         }
 
-        public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-            guard let json = json else {
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let json = json?.jsonValue else {
                 return nil
             }
             guard let jsonObject = json.object else {
-                warnings?.log("Invalid Guided Navigation Refs", model: Self.self, source: json.any, severity: .moderate)
+                warnings?.log("Invalid Guided Navigation Refs", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
             let text = jsonObject["textref"]?.string.flatMap(AnyURL.init(string:))
@@ -155,8 +155,8 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
             self.language = language
         }
 
-        public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-            guard let json = json else {
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let json = json?.jsonValue else {
                 return nil
             }
             if let string = json.string {
@@ -165,7 +165,7 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
                 let plain = obj["plain"]?.string
                 let ssml = obj["ssml"]?.string
                 guard plain?.isEmpty == false || ssml?.isEmpty == false else {
-                    warnings?.log("Guided Navigation String requires at least one of plain, or ssml", model: Self.self, source: json.any, severity: .moderate)
+                    warnings?.log("Guided Navigation String requires at least one of plain, or ssml", model: Self.self, source: json, severity: .moderate)
                     return nil
                 }
 
@@ -175,7 +175,7 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
                     language: obj["language"]?.string.map { Language(code: .bcp47($0)) }
                 )
             } else {
-                warnings?.log("Invalid Guided Navigation Text", model: Self.self, source: json.any, severity: .moderate)
+                warnings?.log("Invalid Guided Navigation Text", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
         }
@@ -201,12 +201,12 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
             self.text = text
         }
 
-        public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-            guard let json = json else {
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let json = json?.jsonValue else {
                 return nil
             }
             guard let jsonObject = json.object else {
-                warnings?.log("Invalid Guided Navigation Description", model: Self.self, source: json.any, severity: .moderate)
+                warnings?.log("Invalid Guided Navigation Description", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
 
@@ -214,7 +214,7 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
             let text = try Text(json: jsonObject["text"], warnings: warnings)
 
             guard refs != nil || text != nil else {
-                warnings?.log("Guided Navigation Description requires at least one of audioref, imgref, textref, videoref, or text", model: Self.self, source: json.any, severity: .moderate)
+                warnings?.log("Guided Navigation Description requires at least one of audioref, imgref, textref, videoref, or text", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
 
@@ -232,8 +232,8 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
             self.id = id
         }
 
-        public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-            guard let id = json?.string else { return nil }
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let id = json?.jsonValue.string else { return nil }
             self.init(id)
         }
 

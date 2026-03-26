@@ -45,28 +45,11 @@ class LocatorTests: XCTestCase {
     }
 
     func testParseNilJSON() {
-        XCTAssertNil(try Locator(json: nil))
+        XCTAssertNil(try Locator(json: nil as JSONValue?))
     }
 
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try Locator(json: ""))
-    }
-
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [Locator](json: [
-                ["href": "loc1", "type": "text/html"],
-                ["href": "loc2", "type": "text/html"],
-            ]),
-            [
-                Locator(href: "loc1", mediaType: .html),
-                Locator(href: "loc2", mediaType: .html),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual([Locator](json: nil), [])
     }
 
     func testGetMinimalJSON() {
@@ -102,19 +85,6 @@ class LocatorTests: XCTestCase {
                     "highlight": "Excerpt",
                 ],
             ] as [String: JSONValue]
-        )
-    }
-
-    func testGetJSONArray() {
-        XCTAssertEqual(
-            [
-                Locator(href: "loc1", mediaType: .html),
-                Locator(href: "loc2", mediaType: .html),
-            ].json,
-            [
-                ["href": "loc1", "type": "text/html"],
-                ["href": "loc2", "type": "text/html"],
-            ]
         )
     }
 
@@ -452,14 +422,14 @@ class LocatorTextTests: XCTestCase {
 class LocatorCollectionTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            LocatorCollection(json: [:] as JSONValue),
+            try LocatorCollection(json: [:] as JSONValue),
             LocatorCollection()
         )
     }
 
     func testParseFullJSON() throws {
         XCTAssertEqual(
-            LocatorCollection(json: [
+            try LocatorCollection(json: [
                 "metadata": [
                     "title": [
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
@@ -554,17 +524,17 @@ class LocatorCollectionTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            LocatorCollection(json: [:] as JSONValue),
+            try LocatorCollection(json: [:] as JSONValue),
             LocatorCollection()
         )
     }
 
     func testParseNilJSON() {
-        XCTAssertNil(LocatorCollection(json: nil))
+        XCTAssertNil(try LocatorCollection(json: nil as JSONValue?))
     }
 
     func testParseInvalidJSON() {
-        XCTAssertNil(LocatorCollection(json: [] as JSONValue))
+        XCTAssertNil(try LocatorCollection(json: [] as JSONValue?))
     }
 
     func testGetMinimalJSON() {

@@ -91,14 +91,13 @@ public struct Link: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable 
         self.children = children
     }
 
-    public init?(
-        json: JSONValue?,
-        warnings: WarningLogger? = nil
-    ) throws {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        let json = json?.jsonValue
+
         guard let jsonObject = json?.object,
               var href = jsonObject["href"]?.string
         else {
-            warnings?.log("`href` is required", model: Self.self, source: json?.any)
+            warnings?.log("`href` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
@@ -108,7 +107,7 @@ public struct Link: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable 
         // URIs). We try to parse them first as valid, but fall back on a percent-decoded
         // path if it fails.
         if !templated, AnyURL(string: href) == nil {
-            warnings?.log("`href` is not a valid percent-encoded URL", model: Self.self, source: json?.any)
+            warnings?.log("`href` is not a valid percent-encoded URL", model: Self.self, source: json)
             guard let url = RelativeURL(path: href) else {
                 throw JSONError.parsing(Self.self)
             }
@@ -120,13 +119,13 @@ public struct Link: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable 
             mediaType: jsonObject["type"]?.string.flatMap { MediaType($0) },
             templated: templated,
             title: jsonObject["title"]?.string,
-            rels: jsonObject["rel"]?.arrayOf(warnings: warnings) ?? [],
+            rels: jsonObject["rel"]?.arrayOf(allowingSingle: true) ?? [],
             properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
-            height: jsonObject["height"]?.parsePositive(),
-            width: jsonObject["width"]?.parsePositive(),
-            bitrate: jsonObject["bitrate"]?.parsePositiveDouble(),
-            duration: jsonObject["duration"]?.parsePositiveDouble(),
-            languages: jsonObject["language"]?.parseArray(allowingSingle: true) ?? [],
+            height: jsonObject["height"]?.positiveNumber(),
+            width: jsonObject["width"]?.positiveNumber(),
+            bitrate: jsonObject["bitrate"]?.positiveNumber(),
+            duration: jsonObject["duration"]?.positiveNumber(),
+            languages: jsonObject["language"]?.arrayOf(allowingSingle: true) ?? [],
             alternates: jsonObject["alternate"]?.arrayOf(warnings: warnings) ?? [],
             children: jsonObject["children"]?.arrayOf(warnings: warnings) ?? []
         )
@@ -213,20 +212,7 @@ extension Link: URLConvertible {
     }
 }
 
-public extension Array where Element == Link {
-    /// Parses multiple JSON links into an array of Link.
-    /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
-    init(
-        json: JSONValue?,
-        warnings: WarningLogger? = nil
-    ) {
-        self = json?.arrayOf(warnings: warnings) ?? []
-    }
-
-    var json: [[String: JSONValue]] {
-        map(\.jsonObject)
-    }
-
+public extension [Link] {
     /// Finds the first link with the given relation.
     func firstWithRel(_ rel: LinkRelation) -> Link? {
         first { $0.rels.contains(rel) }

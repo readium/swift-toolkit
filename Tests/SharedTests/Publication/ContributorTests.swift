@@ -68,68 +68,6 @@ class ContributorTests: XCTestCase {
         ]))
     }
 
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [Contributor](json: [
-                "Thom Yorke",
-                [
-                    "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    "role": "guitarist",
-                ] as JSONValue,
-            ] as JSONValue),
-            [
-                Contributor(name: "Thom Yorke"),
-                Contributor(
-                    name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    roles: ["guitarist"]
-                ),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual(
-            [Contributor](json: nil),
-            []
-        )
-    }
-
-    func testParseJSONArrayIgnoresInvalidContributors() {
-        XCTAssertEqual(
-            [Contributor](json: [
-                "Thom Yorke",
-                [
-                    "role": "guitarist",
-                ],
-            ] as JSONValue),
-            [
-                Contributor(name: "Thom Yorke"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenString() {
-        XCTAssertEqual(
-            [Contributor](json: "Thom Yorke"),
-            [Contributor(name: "Thom Yorke")]
-        )
-    }
-
-    func testParseJSONArrayWhenSingleObject() {
-        XCTAssertEqual(
-            [Contributor](json: [
-                "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                "role": "guitarist",
-            ] as JSONValue),
-            [
-                Contributor(
-                    name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    roles: ["guitarist"]
-                ),
-            ]
-        )
-    }
-
     func testGetMinimalJSON() {
         XCTAssertEqual(
             Contributor(name: "Thom Yorke").jsonObject,
@@ -161,27 +99,6 @@ class ContributorTests: XCTestCase {
                     ["href": "http://link2", "templated": false],
                 ],
             ] as [String: JSONValue]
-        )
-    }
-
-    func testGetJSONArray() {
-        XCTAssertEqual(
-            [
-                Contributor(name: "Thom Yorke"),
-                Contributor(
-                    name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    roles: ["guitarist"]
-                ),
-            ].json,
-            [
-                [
-                    "name": "Thom Yorke",
-                ] as [String: JSONValue],
-                [
-                    "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    "role": ["guitarist"],
-                ],
-            ]
         )
     }
 }

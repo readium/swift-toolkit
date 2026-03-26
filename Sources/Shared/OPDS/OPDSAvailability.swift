@@ -24,21 +24,21 @@ public struct OPDSAvailability: Equatable, JSONValueDecodable, JSONObjectEncodab
         self.until = until
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
         guard let jsonObject = json.object,
-              let state: State = jsonObject["state"]?.parseRaw()
+              let state: State = jsonObject["state"]?.rawValue()
         else {
-            warnings?.log("`state` is required", model: Self.self, source: json.any)
+            warnings?.log("`state` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
             state: state,
-            since: jsonObject["since"]?.parseDate(),
-            until: jsonObject["until"]?.parseDate()
+            since: jsonObject["since"]?.date,
+            until: jsonObject["until"]?.date
         )
     }
 

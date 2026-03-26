@@ -81,18 +81,18 @@ public enum JSONValue: Sendable, Hashable, Loggable {
 // MARK: - Decoding Protocols
 
 public protocol JSONValueDecodable {
-    init?(json: JSONValue?, warnings: WarningLogger?) throws
+    init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws
 }
 
 public extension JSONValueDecodable {
-    init?(json: JSONValue?) throws {
+    init?<T: JSONValueEncodable>(json: T?) throws {
         try self.init(json: json, warnings: nil)
     }
 }
 
 public extension RawRepresentable where Self: JSONValueDecodable {
-    init?(json: JSONValue?, warnings: WarningLogger?) throws {
-        guard let json else {
+    init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
 
@@ -106,8 +106,33 @@ public extension RawRepresentable where Self: JSONValueDecodable {
 }
 
 public extension JSONValue {
+    func arrayOf<T: JSONValueDecodable>(
+        allowingSingle: Bool = false,
+        warnings: WarningLogger? = nil
+    ) -> [T] {
+        switch self {
+        case let .array(array):
+            return array.arrayOf(warnings: warnings)
+        default:
+            if allowingSingle {
+                return Array(ofNotNil: try? T(json: self, warnings: warnings))
+            }
+            return []
+        }
+    }
+
+    func arrayOf<T: RawRepresentable>(allowingSingle: Bool = false) -> [T] {
+        if allowingSingle, let value: T = rawValue() {
+            return [value]
+        }
+
+        return array?.compactMap { $0.rawValue() } ?? []
+    }
+}
+
+public extension [JSONValue] {
     func arrayOf<T: JSONValueDecodable>(warnings: WarningLogger? = nil) -> [T] {
-        array?.compactMap { try? T(json: $0, warnings: warnings) } ?? []
+        compactMap { try? T(json: $0, warnings: warnings) }
     }
 }
 
@@ -132,6 +157,12 @@ public extension JSONObjectEncodable {
     }
 }
 
+public extension RawRepresentable where RawValue: JSONValueEncodable {
+    var jsonValue: JSONValue {
+        rawValue.jsonValue
+    }
+}
+
 // MARK: - Standard Type Encodable Conformance
 
 extension JSONValue: JSONValueEncodable {
@@ -147,27 +178,53 @@ extension JSONValue: JSONValueEncodable {
     }
 }
 
-extension String: JSONValueEncodable {
+extension String: JSONValueEncodable, JSONValueDecodable {
     public var jsonValue: JSONValue {
         .string(self)
     }
+
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let string = json?.jsonValue.string else { return nil }
+        self = string
+    }
 }
 
-extension Bool: JSONValueEncodable {
+extension Bool: JSONValueEncodable, JSONValueDecodable {
     public var jsonValue: JSONValue {
         .bool(self)
     }
-}
 
-extension Int: JSONValueEncodable {
-    public var jsonValue: JSONValue {
-        .integer(self)
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let bool = json?.jsonValue.bool else { return nil }
+        self = bool
     }
 }
 
-extension Double: JSONValueEncodable {
+extension Int: JSONValueEncodable, JSONValueDecodable {
+    public var jsonValue: JSONValue {
+        .integer(self)
+    }
+
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let integer = json?.jsonValue.integer else { return nil }
+        self = integer
+    }
+}
+
+extension UInt64: JSONValueEncodable {
+    public var jsonValue: JSONValue {
+        .integer(Int(clamping: self))
+    }
+}
+
+extension Double: JSONValueEncodable, JSONValueDecodable {
     public var jsonValue: JSONValue {
         .double(self)
+    }
+
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let double = json?.jsonValue.double else { return nil }
+        self = double
     }
 }
 
@@ -198,24 +255,28 @@ extension Optional: JSONValueEncodable where Wrapped: JSONValueEncodable {
 
 extension Array: JSONValueEncodable where Element: JSONValueEncodable {
     public var jsonValue: JSONValue {
-        .array(compactMap(\.jsonValue))
+        .array(map(\.jsonValue))
+    }
+
+    public var orNullIfEmpty: JSONValue {
+        isEmpty ? .null : .array(map(\.jsonValue))
     }
 }
 
 public extension [JSONValue] {
     init(_ array: [JSONValueEncodable]) {
-        self = array.compactMap(\.jsonValue)
+        self = array.map(\.jsonValue)
     }
 }
 
-public extension [String: JSONValue] {
-    init(
+extension [String: JSONValue]: JSONObjectEncodable, JSONValueEncodable {
+    public init(
         _ dict: [String: JSONValueEncodable],
         filteringNull: Bool = true,
         additional: [String: JSONValueEncodable] = [:]
     ) {
         var dict = dict
-            .compactMapValues(\.jsonValue)
+            .mapValues(\.jsonValue)
             .merging(
                 additional.mapValues(\.jsonValue),
                 uniquingKeysWith: { current, _ in current }
@@ -231,8 +292,8 @@ public extension [String: JSONValue] {
         self = dict
     }
 
-    var jsonValue: JSONValue {
-        .object(mapValues(\.jsonValue))
+    public var jsonObject: [String: JSONValue] {
+        mapValues(\.jsonValue)
     }
 }
 
@@ -374,102 +435,26 @@ public extension [String: JSONValue] {
 // MARK: - Parsing Extensions
 
 public extension JSONValue {
-    /// Parses a raw representable value.
-    func parseRaw<T: RawRepresentable>() -> T? {
-        let rawValue: T.RawValue?
-        if let string = string as? T.RawValue {
-            rawValue = string
-        } else if let int = integer as? T.RawValue {
-            rawValue = int
-        } else if let double = double as? T.RawValue {
-            rawValue = double
-        } else {
-            rawValue = any as? T.RawValue
-        }
-
-        guard let raw = rawValue else {
-            return nil
-        }
-        return T(rawValue: raw)
-    }
-
-    /// Parses an array of values.
-    ///
-    /// - Parameter allowingSingle: If true, then allows the parsing of both a single value and an array.
-    func parseArray<T>(allowingSingle: Bool = false) -> [T] {
-        switch self {
-        case let .array(arr):
-            if T.self == JSONValue.self {
-                return arr as! [T]
-            }
-
-            // Optimize for common types
-            if T.self == String.self {
-                return arr.compactMap(\.string) as! [T]
-            } else if T.self == Int.self {
-                return arr.compactMap(\.integer) as! [T]
-            } else if T.self == Double.self {
-                return arr.compactMap(\.double) as! [T]
-            }
-
-            return arr.compactMap { $0.any as? T }
-
-        default:
-            if allowingSingle {
-                if T.self == JSONValue.self {
-                    return [self] as! [T]
-                }
-
-                // Optimize for common types
-                if T.self == String.self, let val = string {
-                    return [val] as! [T]
-                } else if T.self == Int.self, let val = integer {
-                    return [val] as! [T]
-                } else if T.self == Double.self, let val = double {
-                    return [val] as! [T]
-                }
-
-                if let val = any as? T {
-                    return [val]
-                }
-            }
-            return []
-        }
-    }
-
-    /// Casting to Double loses precision and fails with integers.
-    func parseDouble() -> Double? {
-        double
+    /// Parses a Date string from ISO8601.
+    var date: Date? {
+        string?.dateFromISO8601
     }
 
     /// Parses a numeric value, but returns nil if it is not a positive number.
-    func parsePositive<T: Comparable & Numeric>() -> T? {
-        var number: T?
-        if let int = integer as? T {
-            number = int
-        } else if let double = double as? T {
-            number = double
-        } else {
-            number = any as? T
-        }
-
-        guard let num = number, num >= 0 else {
+    func positiveNumber<T: Comparable & Numeric>() -> T? {
+        switch self {
+        case let .integer(value):
+            guard value >= 0 else { return nil }
+            return T(exactly: value)
+        case let .double(value):
+            guard value >= 0 else { return nil }
+            if let t = value as? T { return t }
+            if let t = Float(value) as? T { return t }
+            if let t = UInt64(exactly: value) as? T { return t }
+            return Int64(exactly: value).flatMap { T(exactly: $0) }
+        default:
             return nil
         }
-        return num
-    }
-
-    /// Parses a Double, returning nil if it is not positive.
-    func parsePositiveDouble() -> Double? {
-        guard let double = double, double >= 0 else {
-            return nil
-        }
-        return double
-    }
-
-    /// Parses a Date string from ISO8601.
-    func parseDate() -> Date? {
-        string?.dateFromISO8601
     }
 
     internal func rawValue<T: RawRepresentable>() -> T? {

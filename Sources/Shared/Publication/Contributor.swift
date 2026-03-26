@@ -45,8 +45,8 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
         self.links = links
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
 
@@ -54,19 +54,19 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
             self.init(name: name)
         } else if let dict = json.object {
             guard let name = try? LocalizedString(json: dict["name"], warnings: warnings) else {
-                warnings?.log("Invalid Contributor object", model: Self.self, source: json.any, severity: .moderate)
+                warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
             self.init(
                 name: name,
                 identifier: dict["identifier"]?.string,
                 sortAs: dict["sortAs"]?.string,
-                roles: dict["role"]?.parseArray(allowingSingle: true) ?? [],
+                roles: dict["role"]?.arrayOf(allowingSingle: true) ?? [],
                 position: dict["position"]?.double,
-                links: .init(json: dict["links"], warnings: warnings)
+                links: dict["links"]?.arrayOf(warnings: warnings) ?? []
             )
         } else {
-            warnings?.log("Invalid Contributor object", model: Self.self, source: json.any, severity: .moderate)
+            warnings?.log("Invalid Contributor object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
     }
@@ -76,21 +76,9 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
             "name": localizedName,
             "identifier": identifier,
             "sortAs": sortAs,
-            "role": roles.isEmpty ? JSONValue.null : roles,
+            "role": roles.orNullIfEmpty,
             "position": position,
-            "links": links.isEmpty ? JSONValue.null : links,
+            "links": links.orNullIfEmpty,
         ])
-    }
-}
-
-public extension Array where Element == Contributor {
-    /// Parses multiple JSON contributors into an array of Contributors.
-    /// eg. let authors = [Contributor](json: ["Apple", "Pear"])
-    init(json: JSONValue?, warnings: WarningLogger? = nil) {
-        self = json?.arrayOf(warnings: warnings) ?? []
-    }
-
-    var json: [[String: JSONValue]] {
-        map(\.jsonObject)
     }
 }

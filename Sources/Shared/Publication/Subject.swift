@@ -28,8 +28,8 @@ public struct Subject: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodab
         self.links = links
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
 
@@ -37,7 +37,7 @@ public struct Subject: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodab
             self.init(name: name)
         } else if let dict = json.object {
             guard let name = try? LocalizedString(json: dict["name"], warnings: warnings) else {
-                warnings?.log("Invalid Subject object", model: Self.self, source: json.any, severity: .minor)
+                warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)
                 throw JSONError.parsing(Self.self)
             }
             self.init(
@@ -45,10 +45,10 @@ public struct Subject: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodab
                 sortAs: dict["sortAs"]?.string,
                 scheme: dict["scheme"]?.string,
                 code: dict["code"]?.string,
-                links: .init(json: dict["links"], warnings: warnings)
+                links: dict["links"]?.arrayOf(warnings: warnings) ?? []
             )
         } else {
-            warnings?.log("Invalid Subject object", model: Self.self, source: json.any, severity: .minor)
+            warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)
             throw JSONError.parsing(Self.self)
         }
     }
@@ -59,19 +59,7 @@ public struct Subject: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodab
             "sortAs": sortAs,
             "scheme": scheme,
             "code": code,
-            "links": links.isEmpty ? JSONValue.null : links,
+            "links": links.orNullIfEmpty,
         ])
-    }
-}
-
-public extension Array where Element == Subject {
-    /// Parses multiple JSON subjects into an array of Subjects.
-    /// eg. let subjects = [Subject](json: ["Apple", "Pear"])
-    init(json: JSONValue?, warnings: WarningLogger? = nil) {
-        self = json?.arrayOf(warnings: warnings) ?? []
-    }
-
-    var json: [[String: JSONValue]] {
-        map(\.jsonObject)
     }
 }

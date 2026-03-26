@@ -8,16 +8,24 @@ import Foundation
 import ReadiumInternal
 
 /// Link relations as defined in https://readium.org/webpub-manifest/relationships.html
-public struct LinkRelation: Sendable, Hashable, JSONValueEncodable {
-    /// The string representation of this link relation.
-    public let string: String
+public struct LinkRelation: Sendable, Hashable, RawRepresentable, JSONValueEncodable {
+    public var rawValue: String
 
-    public init(_ string: String) {
+    /// The string representation of this link relation.
+    public var string: String {
+        rawValue
+    }
+
+    public init?(rawValue: String) {
         // > Registered relation type names MUST conform to the reg-rel-type rule
         // > (see Section 3.3) and MUST be compared character by character in a
         // > case-insensitive fashion.
         // https://tools.ietf.org/html/rfc8288#section-2.1.1
-        self.string = string.lowercased()
+        self.rawValue = rawValue.lowercased()
+    }
+
+    public init(_ string: String) {
+        self.init(rawValue: string)!
     }
 
     public func hasPrefix(_ prefix: String) -> Bool {
@@ -153,26 +161,15 @@ extension LinkRelation: ExpressibleByStringLiteral {
 extension LinkRelation: Equatable {}
 
 extension LinkRelation: JSONValueDecodable {
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let string = json?.string else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let string = json?.jsonValue.string else {
             return nil
         }
         self.init(string)
     }
 }
 
-public extension Array where Element == LinkRelation {
-    /// Parses multiple JSON relations into an array of `LinkRelation`.
-    init(json: JSONValue?) {
-        self = json?.parseArray(allowingSingle: true).compactMap {
-            try? LinkRelation(json: $0)
-        } ?? []
-    }
-
-    var json: [String] {
-        map(\.string)
-    }
-
+public extension [LinkRelation] {
     func contains(_ other: String) -> Bool {
         contains(LinkRelation(other))
     }

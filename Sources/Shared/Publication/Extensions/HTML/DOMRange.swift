@@ -34,15 +34,15 @@ public struct DOMRange: JSONValueDecodable, JSONObjectEncodable {
         self.end = end
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
         // Convenience when parsing parent structures.
-        guard let json = json else {
+        guard let json = json?.jsonValue else {
             return nil
         }
         guard let jsonObject = json.object,
               let start = try? Point(json: jsonObject["start"], warnings: warnings)
         else {
-            warnings?.log("`start` is required", model: Self.self, source: json.any, severity: .moderate)
+            warnings?.log("`start` is required", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
         self.init(
@@ -53,8 +53,8 @@ public struct DOMRange: JSONValueDecodable, JSONObjectEncodable {
 
     public var jsonObject: [String: JSONValue] {
         .init([
-            "start": start.jsonObject.isEmpty ? JSONValue.null : start,
-            "end": end?.jsonObject.isEmpty ?? true ? JSONValue.null : end,
+            "start": start.orNullIfEmpty,
+            "end": end?.orNullIfEmpty,
         ])
     }
 
@@ -82,25 +82,25 @@ public struct DOMRange: JSONValueDecodable, JSONObjectEncodable {
             self.charOffset = charOffset
         }
 
-        public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
             // Convenience when parsing parent structures.
-            guard let json = json else {
+            guard let json = json?.jsonValue else {
                 return nil
             }
             guard let jsonObject = json.object,
                   let cssSelector = jsonObject["cssSelector"]?.string,
-                  let textNodeIndex: Int = jsonObject["textNodeIndex"]?.parsePositive()
+                  let textNodeIndex: Int = jsonObject["textNodeIndex"]?.positiveNumber()
             else {
-                warnings?.log("`cssSelector` and `textNodeIndex` are required", model: Self.self, source: json.any, severity: .moderate)
+                warnings?.log("`cssSelector` and `textNodeIndex` are required", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
             self.init(
                 cssSelector: cssSelector,
                 textNodeIndex: textNodeIndex,
-                charOffset: jsonObject["charOffset"]?.parsePositive()
+                charOffset: jsonObject["charOffset"]?.positiveNumber()
                     // The model was using `offset` before, so we still parse it to ensure backward-compatibility for
                     // reading apps having persisted legacy Locator models.
-                    ?? jsonObject["offset"]?.parsePositive()
+                    ?? jsonObject["offset"]?.positiveNumber()
             )
         }
 

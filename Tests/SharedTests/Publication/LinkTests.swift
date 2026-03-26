@@ -138,38 +138,6 @@ class LinkTests: XCTestCase {
         )
     }
 
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [Link](json: [
-                ["href": "http://child1"],
-                ["href": "http://child2"],
-            ]),
-            [
-                Link(href: "http://child1"),
-                Link(href: "http://child2"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual(
-            [Link](json: nil),
-            []
-        )
-    }
-
-    func testParseJSONArrayIgnoresInvalidLinks() {
-        XCTAssertEqual(
-            [Link](json: [
-                ["title": "Title"],
-                ["href": "http://child2"],
-            ]),
-            [
-                Link(href: "http://child2"),
-            ]
-        )
-    }
-
     func testGetMinimalJSON() {
         XCTAssertEqual(
             Link(href: "http://href").jsonObject,
@@ -206,19 +174,6 @@ class LinkTests: XCTestCase {
                     ["href": "http://child2", "templated": false],
                 ],
             ] as [String: JSONValue]
-        )
-    }
-
-    func testGetJSONArray() {
-        XCTAssertEqual(
-            [
-                Link(href: "http://child1"),
-                Link(href: "http://child2"),
-            ].json,
-            [
-                ["href": "http://child1", "templated": false] as [String: JSONValue],
-                ["href": "http://child2", "templated": false],
-            ]
         )
     }
 

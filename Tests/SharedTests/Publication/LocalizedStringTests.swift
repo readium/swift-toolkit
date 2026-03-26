@@ -27,7 +27,7 @@ class LocalizedStringTests: XCTestCase {
     }
 
     func testParseAllowsNil() {
-        XCTAssertNil(try LocalizedString(json: nil))
+        XCTAssertNil(try LocalizedString(json: nil as JSONValue?))
     }
 
     func testGetJSON() {

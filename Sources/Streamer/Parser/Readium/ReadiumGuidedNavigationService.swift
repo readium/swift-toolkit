@@ -77,7 +77,7 @@ actor ReadiumGuidedNavigationService: GuidedNavigationService {
             .asJSONObjectValue()
             .flatMap { json in
                 do {
-                    return try .success(GuidedNavigationDocument(json: .object(json)))
+                    return try .success(GuidedNavigationDocument(json: json))
                 } catch {
                     return .failure(.decoding(error))
                 }

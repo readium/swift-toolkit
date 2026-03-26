@@ -9,82 +9,93 @@ import Foundation
 import Testing
 
 @Suite struct JSONValueTests {
-    @Suite struct Initialization {
-        @Test func fromNil() {
-            #expect(JSONValue.wrap(nil) == nil)
+    @Suite struct JSONValueEncodableConformances {
+        @Test func string() {
+            #expect("hello".jsonValue == .string("hello"))
         }
 
-        @Test func fromBool() {
-            #expect(JSONValue(true) == .bool(true))
-            #expect(JSONValue(false) == .bool(false))
+        @Test func bool() {
+            #expect(true.jsonValue == .bool(true))
+            #expect(false.jsonValue == .bool(false))
         }
 
-        @Test func fromString() {
-            #expect(JSONValue("hello") == .string("hello"))
+        @Test func int() {
+            #expect(42.jsonValue == .integer(42))
+            #expect((-42).jsonValue == .integer(-42))
         }
 
-        @Test func fromInt() {
-            #expect(JSONValue(42) == .integer(42))
-            #expect(JSONValue(-42) == .integer(-42))
+        @Test func double() {
+            #expect(3.14.jsonValue == .double(3.14))
         }
 
-        @Test func fromUInt64() {
-            #expect(JSONValue(NSNumber(value: UInt64(42))) == .integer(42))
-            #expect(JSONValue(NSNumber(value: UInt64.max)) == .integer(Int.max))
+        @Test func uint64Clamping() {
+            #expect(UInt64(42).jsonValue == .integer(42))
+            #expect(UInt64.max.jsonValue == .integer(Int.max))
         }
 
-        @Test func fromDouble() {
-            #expect(JSONValue(3.14) == .double(3.14))
+        @Test func nsNull() {
+            #expect(NSNull().jsonValue == .null)
         }
 
-        @Test func fromNSNull() {
-            #expect(JSONValue(NSNull()) == .null)
+        @Test func nsNumber() {
+            #expect(NSNumber(value: true).jsonValue == .bool(true))
+            #expect(NSNumber(value: 42).jsonValue == .integer(42))
+            #expect(NSNumber(value: -42).jsonValue == .integer(-42))
+            #expect(NSNumber(value: 3.14).jsonValue == .double(3.14))
         }
 
-        @Test func fromNSNumber() {
-            #expect(JSONValue(NSNumber(value: true)) == .bool(true))
-            #expect(JSONValue(NSNumber(value: 42)) == .integer(42))
-            #expect(JSONValue(NSNumber(value: -42)) == .integer(-42))
-            #expect(JSONValue(NSNumber(value: 3.14)) == .double(3.14))
+        @Test func nsNumberClamping() {
+            #expect(NSNumber(value: UInt64.max).jsonValue == .integer(Int.max))
+            #expect(NSNumber(value: Int64.min).jsonValue == .integer(Int.min))
         }
 
-        @Test func fromNSNumberClamping() {
-            #expect(JSONValue(NSNumber(value: UInt64.max)) == .integer(Int.max))
-            #expect(JSONValue(NSNumber(value: Int64.min)) == .integer(Int.min))
+        @Test func optional() {
+            #expect(String?.none.jsonValue == .null)
+            #expect(String?.some("hello").jsonValue == .string("hello"))
         }
 
-        @Test func fromArray() {
-            let array: [Any] = ["hello", 42, true]
-            #expect(JSONValue.wrap(array) == .array([.string("hello"), .integer(42), .bool(true)]))
+        @Test func array() {
+            let array: [JSONValue] = ["hello", 42, true]
+            #expect(array.jsonValue == .array([.string("hello"), .integer(42), .bool(true)]))
         }
 
-        @Test func fromObject() {
-            let dict: [String: Any] = ["key": "value", "count": 1]
-            #expect(JSONValue.wrap(dict) == .object(["key": .string("value"), "count": .integer(1)]))
+        @Test func object() {
+            let dict: [String: JSONValue] = ["key": .string("value"), "count": .integer(1)]
+            #expect(dict.jsonValue == .object(["key": .string("value"), "count": .integer(1)]))
         }
 
-        @Test func fromNestedCollections() {
-            let dict: [String: Any] = [
-                "nested": [
-                    "array": [1, 2, 3] as [Any],
-                ] as [String: Any],
-            ]
-            #expect(JSONValue.wrap(dict) == .object([
-                "nested": .object([
-                    "array": .array([.integer(1), .integer(2), .integer(3)]),
-                ]),
-            ]))
+        @Test func jsonValueIsIdentity() {
+            let value: JSONValue = .string("test")
+            #expect(value.jsonValue == value)
+        }
+    }
+
+    @Suite struct JSONValueDecodableConformances {
+        @Test func string() throws {
+            #expect(try String(json: JSONValue.string("hello")) == "hello")
+            #expect(try String(json: JSONValue.integer(42)) == nil)
         }
 
-        @Test func fastPath() {
-            let original: JSONValue = .string("test")
-            #expect(JSONValue(original) == original)
+        @Test func bool() throws {
+            #expect(try Bool(json: JSONValue.bool(true)) == true)
+            #expect(try Bool(json: JSONValue.bool(false)) == false)
+            #expect(try Bool(json: JSONValue.string("true")) == nil)
+        }
 
-            let object: [String: JSONValue] = ["k": .integer(1)]
-            #expect(object.jsonValue == .object(object))
+        @Test func int() throws {
+            #expect(try Int(json: JSONValue.integer(42)) == 42)
+            #expect(try Int(json: JSONValue.double(3.14)) == nil)
+        }
 
-            let array: [JSONValue] = [.bool(true)]
-            #expect(array.jsonValue == .array(array))
+        @Test func double() throws {
+            #expect(try Double(json: JSONValue.double(3.14)) == 3.14)
+            #expect(try Double(json: JSONValue.integer(42)) == 42.0)
+            #expect(try Double(json: JSONValue.string("3.14")) == nil)
+        }
+
+        @Test func nilJson() throws {
+            #expect(try String(json: nil as JSONValue?) == nil)
+            #expect(try Int(json: nil as JSONValue?) == nil)
         }
     }
 
@@ -193,6 +204,195 @@ import Testing
                 "one": .integer(1),
                 "two": .integer(2),
             ]))
+        }
+    }
+
+    @Suite struct PositiveNumber {
+        // MARK: From .integer
+
+        @Test func integerToInt() {
+            #expect(JSONValue.integer(42).positiveNumber() == Int(42))
+        }
+
+        @Test func integerToUInt64() {
+            #expect(JSONValue.integer(42).positiveNumber() == UInt64(42))
+        }
+
+        @Test func integerToDouble() {
+            #expect(JSONValue.integer(42).positiveNumber() == Double(42))
+        }
+
+        @Test func integerNegativeReturnsNil() {
+            #expect(JSONValue.integer(-1).positiveNumber() as Int? == nil)
+        }
+
+        @Test func integerZeroIsPositive() {
+            #expect(JSONValue.integer(0).positiveNumber() == Int(0))
+        }
+
+        // MARK: From .double
+
+        @Test func doubleToDouble() {
+            #expect(JSONValue.double(3.14).positiveNumber() == Double(3.14))
+        }
+
+        @Test func doubleToFloat() {
+            #expect(JSONValue.double(3.14).positiveNumber() == Float(3.14))
+        }
+
+        @Test func doubleExactToInt() {
+            #expect(JSONValue.double(3.0).positiveNumber() == Int(3))
+        }
+
+        @Test func doubleExactToUInt64() {
+            #expect(JSONValue.double(3.0).positiveNumber() == UInt64(3))
+        }
+
+        @Test func doubleNonExactToIntReturnsNil() {
+            #expect(JSONValue.double(3.5).positiveNumber() as Int? == nil)
+        }
+
+        @Test func doubleNegativeReturnsNil() {
+            #expect(JSONValue.double(-1.5).positiveNumber() as Double? == nil)
+        }
+
+        @Test func doubleZeroIsPositive() {
+            #expect(JSONValue.double(0.0).positiveNumber() == Double(0))
+        }
+
+        @Test func doubleAboveInt64MaxToUInt64() {
+            // Values > Int64.max (~9.2e18) must not return nil for UInt64
+            let value = Double(sign: .plus, exponent: 63, significand: 1) // 2^63, > Int64.max
+            #expect(JSONValue.double(value).positiveNumber() == UInt64(value))
+        }
+
+        // MARK: Non-numeric cases
+
+        @Test func stringReturnsNil() {
+            #expect(JSONValue.string("42").positiveNumber() as Int? == nil)
+        }
+
+        @Test func boolReturnsNil() {
+            #expect(JSONValue.bool(true).positiveNumber() as Int? == nil)
+        }
+
+        @Test func nullReturnsNil() {
+            #expect(JSONValue.null.positiveNumber() as Int? == nil)
+        }
+    }
+
+    @Suite struct ArrayOf {
+        /// A simple JSONValueDecodable that decodes a string value.
+        private struct StringItem: JSONValueDecodable, Equatable {
+            let value: String
+
+            init(value: String) {
+                self.value = value
+            }
+
+            init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+                guard let string = json?.jsonValue.string else { return nil }
+                value = string
+            }
+        }
+
+        /// A simple JSONValueDecodable that decodes an object with a "name" key.
+        private struct ObjectItem: JSONValueDecodable, Equatable {
+            let name: String
+
+            init(name: String) {
+                self.name = name
+            }
+
+            init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+                guard let name = json?.jsonValue.object?["name"]?.string else { return nil }
+                self.name = name
+            }
+        }
+
+        @Test func arrayOfDecodableValues() {
+            let json = JSONValue.array([.string("a"), .string("b"), .string("c")])
+            let result: [StringItem] = json.arrayOf()
+            #expect(result == [StringItem(value: "a"), StringItem(value: "b"), StringItem(value: "c")])
+        }
+
+        @Test func skipsInvalidValues() {
+            let json = JSONValue.array([.string("a"), .integer(42), .string("b")])
+            let result: [StringItem] = json.arrayOf()
+            #expect(result == [StringItem(value: "a"), StringItem(value: "b")])
+        }
+
+        @Test func emptyArrayReturnsEmpty() {
+            let json = JSONValue.array([])
+            let result: [StringItem] = json.arrayOf()
+            #expect(result.isEmpty)
+        }
+
+        @Test func nonArrayWithoutAllowingSingleReturnsEmpty() {
+            let json = JSONValue.string("a")
+            let result: [StringItem] = json.arrayOf(allowingSingle: false)
+            #expect(result.isEmpty)
+        }
+
+        @Test func nonArrayWithAllowingSingleReturnsSingleElement() {
+            let json = JSONValue.string("a")
+            let result: [StringItem] = json.arrayOf(allowingSingle: true)
+            #expect(result == [StringItem(value: "a")])
+        }
+
+        @Test func nonArrayInvalidWithAllowingSingleReturnsEmpty() {
+            let json = JSONValue.integer(42)
+            let result: [StringItem] = json.arrayOf(allowingSingle: true)
+            #expect(result.isEmpty)
+        }
+
+        @Test func objectWithAllowingSingleReturnsSingleElement() {
+            let json = JSONValue.object(["name": .string("test")])
+            let result: [ObjectItem] = json.arrayOf(allowingSingle: true)
+            #expect(result == [ObjectItem(name: "test")])
+        }
+
+        @Test func nullReturnsEmpty() {
+            let result: [StringItem] = JSONValue.null.arrayOf()
+            #expect(result.isEmpty)
+        }
+    }
+
+    @Suite struct ArrayOfJSONValues {
+        private struct StringItem: JSONValueDecodable, Equatable {
+            let value: String
+
+            init(value: String) {
+                self.value = value
+            }
+
+            init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+                guard let string = json?.jsonValue.string else { return nil }
+                value = string
+            }
+        }
+
+        @Test func decodesAllValidElements() {
+            let array: [JSONValue] = [.string("a"), .string("b"), .string("c")]
+            let result: [StringItem] = array.arrayOf()
+            #expect(result == [StringItem(value: "a"), StringItem(value: "b"), StringItem(value: "c")])
+        }
+
+        @Test func skipsInvalidElements() {
+            let array: [JSONValue] = [.string("a"), .integer(42), .string("b")]
+            let result: [StringItem] = array.arrayOf()
+            #expect(result == [StringItem(value: "a"), StringItem(value: "b")])
+        }
+
+        @Test func emptyArrayReturnsEmpty() {
+            let result: [StringItem] = [JSONValue]().arrayOf()
+            #expect(result.isEmpty)
+        }
+
+        @Test func allInvalidReturnsEmpty() {
+            let array: [JSONValue] = [.integer(1), .integer(2)]
+            let result: [StringItem] = array.arrayOf()
+            #expect(result.isEmpty)
         }
     }
 

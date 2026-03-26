@@ -11,8 +11,8 @@ import Testing
     @Suite("EPUBMediaOverlay") enum EPUBMediaOverlayTests {
         @Suite("JSON parsing") struct JSONParsing {
             @Test("full content")
-            func fullContent() {
-                let sut = EPUBMediaOverlay(json: [
+            func fullContent() throws {
+                let sut = try EPUBMediaOverlay(json: [
                     "activeClass": "-epub-media-overlay-active",
                     "playbackActiveClass": "-epub-media-overlay-playing",
                 ])
@@ -22,44 +22,44 @@ import Testing
             }
 
             @Test("only activeClass returns non-nil")
-            func onlyActiveClassReturnsNonNil() {
-                let sut = EPUBMediaOverlay(json: ["activeClass": "-epub-media-overlay-active"])
+            func onlyActiveClassReturnsNonNil() throws {
+                let sut = try EPUBMediaOverlay(json: ["activeClass": "-epub-media-overlay-active"])
                 #expect(sut?.activeClass == "-epub-media-overlay-active")
                 #expect(sut?.playbackActiveClass == nil)
             }
 
             @Test("only playbackActiveClass returns non-nil")
-            func onlyPlaybackActiveClassReturnsNonNil() {
-                let sut = EPUBMediaOverlay(json: ["playbackActiveClass": "-epub-media-overlay-playing"])
+            func onlyPlaybackActiveClassReturnsNonNil() throws {
+                let sut = try EPUBMediaOverlay(json: ["playbackActiveClass": "-epub-media-overlay-playing"])
                 #expect(sut?.playbackActiveClass == "-epub-media-overlay-playing")
                 #expect(sut?.activeClass == nil)
             }
 
             @Test("empty dictionary returns nil")
-            func emptyDictionaryReturnsNil() {
-                #expect(EPUBMediaOverlay(json: [:]) == nil)
+            func emptyDictionaryReturnsNil() throws {
+                #expect(try EPUBMediaOverlay(json: [:]) == nil)
             }
 
             @Test("nil returns nil")
-            func nilReturnsNil() {
-                #expect(EPUBMediaOverlay(json: nil) == nil)
+            func nilReturnsNil() throws {
+                #expect(try EPUBMediaOverlay(json: nil as JSONValue?) == nil)
             }
 
             @Test("non-dictionary returns nil")
-            func nonDictionaryReturnsNil() {
-                #expect(EPUBMediaOverlay(json: "not-a-dict") == nil)
+            func nonDictionaryReturnsNil() throws {
+                #expect(try EPUBMediaOverlay(json: "not-a-dict") == nil)
             }
         }
 
         @Suite("JSON encoding") struct JSONEncoding {
             @Test("round-trip preserves all values")
-            func roundTrip() {
+            func roundTrip() throws {
                 let original = EPUBMediaOverlay(
                     activeClass: "-epub-media-overlay-active",
                     playbackActiveClass: "-epub-media-overlay-playing"
                 )
 
-                #expect(EPUBMediaOverlay(json: original.jsonValue) == original)
+                #expect(try EPUBMediaOverlay(json: original.jsonValue) == original)
             }
 
             @Test("nil values are omitted from JSON")

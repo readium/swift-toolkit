@@ -65,24 +65,27 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     ///
     /// If a non-fatal parsing error occurs, it will be logged through `warnings`.
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard var jsonObject = json?.object else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
+        guard var json = json.object else {
+            throw JSONError.parsing(Publication.self)
+        }
 
-        context = jsonObject.pop("@context")?.parseArray(allowingSingle: true) ?? []
-        metadata = try Metadata(json: jsonObject.pop("metadata"), warnings: warnings) ?? Metadata()
+        context = json.pop("@context")?.arrayOf(allowingSingle: true) ?? []
+        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings) ?? Metadata()
 
-        links = .init(json: jsonObject.pop("links"), warnings: warnings)
+        links = json.pop("links")?.arrayOf(warnings: warnings) ?? []
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        readingOrder = .init(json: jsonObject.pop("readingOrder") ?? jsonObject.pop("spine"), warnings: warnings)
+        readingOrder = ((json.pop("readingOrder") ?? json.pop("spine"))?.arrayOf(warnings: warnings) ?? [])
             .filter { $0.mediaType != nil }
-        resources = .init(json: jsonObject.pop("resources"), warnings: warnings)
+        resources = (json.pop("resources")?.arrayOf(warnings: warnings) ?? [])
             .filter { $0.mediaType != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        subcollections = PublicationCollection.makeCollections(json: jsonObject.jsonValue, warnings: warnings)
+        subcollections = PublicationCollection.makeCollections(json: json.jsonValue, warnings: warnings)
     }
 
     /// The URL where this publication is served, computed from the `Link` with

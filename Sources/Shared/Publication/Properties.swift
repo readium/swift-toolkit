@@ -17,8 +17,8 @@ public struct Properties: Hashable, Loggable, WarningLogger, Sendable, JSONValue
         self.otherProperties = otherProperties
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
         guard let jsonObject = json.object else {
@@ -55,7 +55,7 @@ public extension Properties {
     /// Indicates how the linked resource should be displayed in a reading
     /// environment that displays synthetic spreads.
     var page: Page? {
-        get { otherProperties[Self.pageKey]?.parseRaw() }
+        get { otherProperties[Self.pageKey]?.rawValue() }
         set {
             if let newValue = newValue {
                 otherProperties[Self.pageKey] = .string(newValue.rawValue)

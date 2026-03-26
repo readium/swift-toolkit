@@ -39,7 +39,7 @@ class DOMRangeTests: XCTestCase {
     }
 
     func testParseDOMRangeAllowsNil() {
-        XCTAssertNil(try DOMRange(json: nil))
+        XCTAssertNil(try DOMRange(json: nil as JSONValue?))
     }
 
     func testGetMinimalDOMRangeJSON() {
@@ -165,7 +165,7 @@ class DOMRangeTests: XCTestCase {
     }
 
     func testParsePointAllowsNil() {
-        XCTAssertNil(try DOMRange.Point(json: nil))
+        XCTAssertNil(try DOMRange.Point(json: nil as JSONValue?))
     }
 
     func testGetMinimalPointJSON() {

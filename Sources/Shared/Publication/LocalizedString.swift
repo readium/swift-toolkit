@@ -16,8 +16,8 @@ public enum LocalizedString: Hashable, Sendable, JSONValueDecodable, JSONValueEn
     case localized([String: String])
 
     /// Parses the given JSON representation of the localized string.
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
 
@@ -30,7 +30,7 @@ public enum LocalizedString: Hashable, Sendable, JSONValueDecodable, JSONValueEn
                 if let string = value.string {
                     strings[key] = string
                 } else {
-                    warnings?.log("Invalid value for LocalizedString in dictionary", model: Self.self, source: json.any, severity: .moderate)
+                    warnings?.log("Invalid value for LocalizedString in dictionary", model: Self.self, source: json, severity: .moderate)
                 }
             }
             if strings.isEmpty, !dict.isEmpty {
@@ -38,7 +38,7 @@ public enum LocalizedString: Hashable, Sendable, JSONValueDecodable, JSONValueEn
             }
             self = .localized(strings)
         default:
-            warnings?.log("Invalid LocalizedString object", model: Self.self, source: json.any, severity: .moderate)
+            warnings?.log("Invalid LocalizedString object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
     }

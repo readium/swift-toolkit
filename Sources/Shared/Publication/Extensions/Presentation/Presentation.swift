@@ -53,24 +53,24 @@ public struct Presentation: Equatable, JSONValueDecodable, JSONObjectEncodable {
         self.layout = layout
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             self.init()
             return
         }
         guard let jsonObject = json.object else {
-            warnings?.log("Invalid JSON object", model: Self.self, source: json.any)
+            warnings?.log("Invalid JSON object", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
             clipped: jsonObject["clipped"]?.bool,
             continuous: jsonObject["continuous"]?.bool,
-            fit: jsonObject["fit"]?.parseRaw(),
-            orientation: jsonObject["orientation"]?.parseRaw(),
-            overflow: jsonObject["overflow"]?.parseRaw(),
-            spread: jsonObject["spread"]?.parseRaw(),
-            layout: jsonObject["layout"]?.parseRaw()
+            fit: jsonObject["fit"]?.rawValue(),
+            orientation: jsonObject["orientation"]?.rawValue(),
+            overflow: jsonObject["overflow"]?.rawValue(),
+            spread: jsonObject["spread"]?.rawValue(),
+            layout: jsonObject["layout"]?.rawValue()
         )
     }
 

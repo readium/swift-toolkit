@@ -14,13 +14,9 @@ public enum JSONError: Error {
 // MARK: - JSON Serialization
 
 public func serializeJSONString(_ object: JSONValueEncodable) -> String? {
-    let json = object.jsonValue
-
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-
-    guard let data = try? encoder.encode(json),
-          let string = String(data: data, encoding: .utf8)
+    guard
+        let data = serializeJSONData(object),
+        let string = String(data: data, encoding: .utf8)
     else {
         return nil
     }

@@ -23,7 +23,7 @@ class OPDSPriceTests: XCTestCase {
     }
 
     func testParseJSONNil() {
-        XCTAssertNil(try OPDSPrice(json: nil))
+        XCTAssertNil(try OPDSPrice(json: nil as JSONValue?))
     }
 
     func testParseJSONRequiresCurrency() {

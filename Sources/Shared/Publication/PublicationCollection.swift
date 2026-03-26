@@ -24,22 +24,19 @@ public struct PublicationCollection: Hashable, Sendable, JSONValueDecodable, JSO
         self.subcollections = subcollections
     }
 
-    public init?(
-        json: JSONValue?,
-        warnings: WarningLogger? = nil
-    ) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
 
         if let array = json.array {
             // Parses a list of links.
-            self.init(links: .init(json: .array(array), warnings: warnings))
+            self.init(links: array.arrayOf(warnings: warnings))
         } else if var jsonObject = json.object {
             // Parses a Collection object.
             self.init(
                 metadata: jsonObject.pop("metadata")?.object ?? [:],
-                links: .init(json: jsonObject.pop("links"), warnings: warnings),
+                links: jsonObject.pop("links")?.arrayOf(warnings: warnings) ?? [],
                 subcollections: Self.makeCollections(json: .object(jsonObject), warnings: warnings)
             )
         } else {
@@ -47,7 +44,7 @@ public struct PublicationCollection: Hashable, Sendable, JSONValueDecodable, JSO
         }
 
         guard !links.isEmpty else {
-            warnings?.log("`links` should not be empty", model: Self.self, source: json.any, severity: .moderate)
+            warnings?.log("`links` should not be empty", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
     }

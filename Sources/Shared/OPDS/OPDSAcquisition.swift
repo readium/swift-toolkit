@@ -22,9 +22,12 @@ public struct OPDSAcquisition: Equatable, JSONObjectEncodable, JSONValueDecodabl
         self.children = children
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let jsonObject = json?.object,
-              let type = jsonObject["type"]?.string
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        let json = json?.jsonValue
+
+        guard
+            let jsonObject = json?.object,
+            let type = jsonObject["type"]?.string
         else {
             warnings?.log("`type` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
@@ -37,19 +40,7 @@ public struct OPDSAcquisition: Equatable, JSONObjectEncodable, JSONValueDecodabl
     public var jsonObject: [String: JSONValue] {
         .init([
             "type": type,
-            "child": children.isEmpty ? JSONValue.null : children,
+            "child": children.orNullIfEmpty,
         ])
-    }
-}
-
-public extension Array where Element == OPDSAcquisition {
-    /// Parses multiple JSON acquisitions into an array of OPDSAcquisitions.
-    /// eg. let acquisitions = [OPDSAcquisition](json: [...])
-    init(json: JSONValue?, warnings: WarningLogger? = nil) {
-        self = json?.arrayOf(warnings: warnings) ?? []
-    }
-
-    var json: [[String: JSONValue]] {
-        map(\.jsonObject)
     }
 }

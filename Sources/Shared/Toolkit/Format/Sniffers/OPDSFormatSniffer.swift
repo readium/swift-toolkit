@@ -56,7 +56,7 @@ public class OPDSFormatSniffer: FormatSniffer {
                         return nil
                     }
 
-                    if let rwpm = try? Manifest(json: .object(json)) {
+                    if let rwpm = try? Manifest(json: json) {
                         if rwpm.linkWithRel(.`self`)?.mediaType?.matches(.opds2) == true {
                             return opds2Catalog
                         }

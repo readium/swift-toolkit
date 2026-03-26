@@ -26,14 +26,14 @@ public struct Link: JSONValueDecodable {
     /// SHA-256 hash of the resource.
     public let hash: String?
 
-    public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json?.object,
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue.object,
               let href = json["href"]?.string
         else {
             throw ParsingError.link
         }
 
-        let rel: [String] = json["rel"]?.parseArray(allowingSingle: true) ?? []
+        let rel: [String] = json["rel"]?.arrayOf(allowingSingle: true) ?? []
         guard !rel.isEmpty else {
             throw ParsingError.link
         }

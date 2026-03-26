@@ -21,8 +21,8 @@ public struct Rights: JSONValueDecodable {
 
     public init(json: JSONValue?, warnings: WarningLogger? = nil) throws {
         var json = json?.object ?? [:]
-        self.print = json.pop("print")?.parsePositive()
-        copy = json.pop("copy")?.parsePositive()
+        self.print = json.pop("print")?.positiveNumber()
+        copy = json.pop("copy")?.positiveNumber()
         start = json.pop("start")?.parseDate()
         end = json.pop("end")?.parseDate()
         extensions = json

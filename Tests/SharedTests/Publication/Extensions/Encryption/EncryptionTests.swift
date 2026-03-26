@@ -45,7 +45,7 @@ class EncryptionTests: XCTestCase {
     }
 
     func testParseAllowsNil() {
-        XCTAssertNil(try Encryption(json: nil))
+        XCTAssertNil(try Encryption(json: nil as JSONValue?))
     }
 
     /// `original-length` used to be the key for `originalLength`, so we parse it for backward

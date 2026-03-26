@@ -62,12 +62,12 @@ private class PositionsResource: Resource {
 
     func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         await positions().flatMap { positions in
-            let response: [String: JSONValue] = [
-                "total": .integer(positions.count),
-                "positions": .array(positions.json.map { .object($0) }),
-            ]
+            let response: [String: JSONValue] = .init([
+                "total": positions.count,
+                "positions": positions,
+            ])
 
-            guard let jsonResponse = serializeJSONData(response.jsonValue) else {
+            guard let jsonResponse = serializeJSONData(response) else {
                 return .failure(.decoding(JSONError.serializing(PositionsService.self)))
             }
 
@@ -107,9 +107,7 @@ public extension Publication {
             .flatMap { get($0) }?
             .read()
             .asJSONObjectValue()
-            .map { json in
-                [Locator](json: json["positions"])
-            }
+            .map { json -> [Locator] in json["positions"]?.arrayOf() ?? [] }
             ?? .success([])
     }
 }

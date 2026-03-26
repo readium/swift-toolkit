@@ -32,7 +32,7 @@ public struct RWPMFormatSniffer: FormatSniffer {
             .map { json in
                 guard
                     let json = json,
-                    let manifest = try? Manifest(json: .object(json))
+                    let manifest = try? Manifest(json: json)
                 else {
                     return nil
                 }

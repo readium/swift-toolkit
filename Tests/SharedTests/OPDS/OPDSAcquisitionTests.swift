@@ -48,38 +48,6 @@ class OPDSAcquisitionTests: XCTestCase {
         XCTAssertThrowsError(try OPDSAcquisition(json: ["child": [] as JSONValue]))
     }
 
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [OPDSAcquisition](json: [
-                ["type": "acq1"],
-                ["type": "acq2"],
-            ]),
-            [
-                OPDSAcquisition(type: "acq1"),
-                OPDSAcquisition(type: "acq2"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayIgnoresInvalidAcquisitions() {
-        XCTAssertEqual(
-            [OPDSAcquisition](json: [
-                ["type": "acq1"],
-                ["invalid": "acq2"],
-            ]),
-            [
-                OPDSAcquisition(type: "acq1"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual(
-            [OPDSAcquisition](json: nil),
-            []
-        )
-    }
-
     func testGetMinimalJSON() {
         XCTAssertEqual(
             OPDSAcquisition(type: "acquisition-type").jsonObject,
@@ -109,19 +77,6 @@ class OPDSAcquisitionTests: XCTestCase {
                     ],
                 ],
             ] as [String: JSONValue]
-        )
-    }
-
-    func testGetJSONArray() {
-        XCTAssertEqual(
-            [
-                OPDSAcquisition(type: "acq1"),
-                OPDSAcquisition(type: "acq2"),
-            ].json,
-            [
-                ["type": "acq1"],
-                ["type": "acq2"],
-            ]
         )
     }
 }

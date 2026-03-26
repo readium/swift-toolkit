@@ -151,11 +151,8 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable, JSONValueDe
         self.otherMetadata = otherMetadata
     }
 
-    public init?(
-        json: JSONValue?,
-        warnings: WarningLogger? = nil
-    ) throws {
-        guard var jsonObject = json?.object,
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard var jsonObject = json?.jsonValue.object,
               let title = try? LocalizedString(json: jsonObject.pop("title"), warnings: warnings)
         else {
             throw JSONError.parsing(Metadata.self)
@@ -163,37 +160,37 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable, JSONValueDe
 
         identifier = jsonObject.pop("identifier")?.string
         type = jsonObject.pop("@type")?.string ?? jsonObject.pop("type")?.string
-        conformsTo = (jsonObject.pop("conformsTo")?.parseArray(allowingSingle: true) as [String]? ?? [])
+        conformsTo = (jsonObject.pop("conformsTo")?.arrayOf(allowingSingle: true) as [String]? ?? [])
             .map { Publication.Profile($0) }
         localizedTitle = title
         localizedSubtitle = try? LocalizedString(json: jsonObject.pop("subtitle"), warnings: warnings)
         accessibility = try? Accessibility(json: jsonObject.pop("accessibility"), warnings: warnings)
-        modified = jsonObject.pop("modified")?.parseDate()
-        published = jsonObject.pop("published")?.parseDate()
-        languages = jsonObject.pop("language")?.parseArray(allowingSingle: true) ?? []
+        modified = jsonObject.pop("modified")?.date
+        published = jsonObject.pop("published")?.date
+        languages = jsonObject.pop("language")?.arrayOf(allowingSingle: true) ?? []
         language = languages.first.map { Language(code: .bcp47($0)) }
         sortAs = jsonObject.pop("sortAs")?.string
-        subjects = jsonObject.pop("subject")?.arrayOf(warnings: warnings) ?? []
-        authors = jsonObject.pop("author")?.arrayOf(warnings: warnings) ?? []
-        translators = jsonObject.pop("translator")?.arrayOf(warnings: warnings) ?? []
-        editors = jsonObject.pop("editor")?.arrayOf(warnings: warnings) ?? []
-        artists = jsonObject.pop("artist")?.arrayOf(warnings: warnings) ?? []
-        illustrators = jsonObject.pop("illustrator")?.arrayOf(warnings: warnings) ?? []
-        letterers = jsonObject.pop("letterer")?.arrayOf(warnings: warnings) ?? []
-        pencilers = jsonObject.pop("penciler")?.arrayOf(warnings: warnings) ?? []
-        colorists = jsonObject.pop("colorist")?.arrayOf(warnings: warnings) ?? []
-        inkers = jsonObject.pop("inker")?.arrayOf(warnings: warnings) ?? []
-        narrators = jsonObject.pop("narrator")?.arrayOf(warnings: warnings) ?? []
-        contributors = jsonObject.pop("contributor")?.arrayOf(warnings: warnings) ?? []
-        publishers = jsonObject.pop("publisher")?.arrayOf(warnings: warnings) ?? []
-        imprints = jsonObject.pop("imprint")?.arrayOf(warnings: warnings) ?? []
-        layout = jsonObject.pop("layout")?.parseRaw()
-        readingProgression = jsonObject.pop("readingProgression")?.parseRaw() ?? .auto
+        subjects = jsonObject.pop("subject")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        authors = jsonObject.pop("author")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        translators = jsonObject.pop("translator")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        editors = jsonObject.pop("editor")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        artists = jsonObject.pop("artist")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        illustrators = jsonObject.pop("illustrator")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        letterers = jsonObject.pop("letterer")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        pencilers = jsonObject.pop("penciler")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        colorists = jsonObject.pop("colorist")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        inkers = jsonObject.pop("inker")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        narrators = jsonObject.pop("narrator")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        contributors = jsonObject.pop("contributor")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        publishers = jsonObject.pop("publisher")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        imprints = jsonObject.pop("imprint")?.arrayOf(allowingSingle: true, warnings: warnings) ?? []
+        layout = jsonObject.pop("layout")?.rawValue()
+        readingProgression = jsonObject.pop("readingProgression")?.rawValue() ?? .auto
         description = jsonObject.pop("description")?.string
-        duration = jsonObject.pop("duration")?.parsePositiveDouble()
-        numberOfPages = jsonObject.pop("numberOfPages")?.parsePositive()
+        duration = jsonObject.pop("duration")?.positiveNumber()
+        numberOfPages = jsonObject.pop("numberOfPages")?.positiveNumber()
         belongsTo = jsonObject.pop("belongsTo")?.object?
-            .compactMapValues { item in .init(json: item, warnings: warnings) }
+            .compactMapValues { $0.arrayOf(allowingSingle: true, warnings: warnings) }
             ?? [:]
         tdm = try? TDM(json: jsonObject.pop("tdm"), warnings: warnings)
         otherMetadata = jsonObject
@@ -203,34 +200,34 @@ public struct Metadata: Hashable, Loggable, WarningLogger, Sendable, JSONValueDe
         .init([
             "identifier": identifier,
             "@type": type,
-            "conformsTo": conformsTo.isEmpty ? JSONValue.null : conformsTo.map(\.uri),
+            "conformsTo": conformsTo.map(\.uri).orNullIfEmpty,
             "title": localizedTitle,
             "subtitle": localizedSubtitle,
             "accessibility": accessibility,
             "modified": modified?.iso8601,
             "published": published?.iso8601,
-            "language": languages.isEmpty ? JSONValue.null : languages,
+            "language": languages.orNullIfEmpty,
             "sortAs": sortAs,
-            "subject": subjects.isEmpty ? JSONValue.null : subjects,
-            "author": authors.isEmpty ? JSONValue.null : authors,
-            "translator": translators.isEmpty ? JSONValue.null : translators,
-            "editor": editors.isEmpty ? JSONValue.null : editors,
-            "artist": artists.isEmpty ? JSONValue.null : artists,
-            "illustrator": illustrators.isEmpty ? JSONValue.null : illustrators,
-            "letterer": letterers.isEmpty ? JSONValue.null : letterers,
-            "penciler": pencilers.isEmpty ? JSONValue.null : pencilers,
-            "colorist": colorists.isEmpty ? JSONValue.null : colorists,
-            "inker": inkers.isEmpty ? JSONValue.null : inkers,
-            "narrator": narrators.isEmpty ? JSONValue.null : narrators,
-            "contributor": contributors.isEmpty ? JSONValue.null : contributors,
-            "publisher": publishers.isEmpty ? JSONValue.null : publishers,
-            "imprint": imprints.isEmpty ? JSONValue.null : imprints,
+            "subject": subjects.orNullIfEmpty,
+            "author": authors.orNullIfEmpty,
+            "translator": translators.orNullIfEmpty,
+            "editor": editors.orNullIfEmpty,
+            "artist": artists.orNullIfEmpty,
+            "illustrator": illustrators.orNullIfEmpty,
+            "letterer": letterers.orNullIfEmpty,
+            "penciler": pencilers.orNullIfEmpty,
+            "colorist": colorists.orNullIfEmpty,
+            "inker": inkers.orNullIfEmpty,
+            "narrator": narrators.orNullIfEmpty,
+            "contributor": contributors.orNullIfEmpty,
+            "publisher": publishers.orNullIfEmpty,
+            "imprint": imprints.orNullIfEmpty,
             "layout": layout?.rawValue,
             "readingProgression": readingProgression.rawValue,
             "description": description,
             "duration": duration,
             "numberOfPages": numberOfPages,
-            "belongsTo": belongsTo.isEmpty ? JSONValue.null : .object(belongsTo.mapValues { .array($0.map { .object($0.jsonObject) }) }),
+            "belongsTo": belongsTo.mapValues(\.jsonValue).orNullIfEmpty,
             "tdm": tdm,
         ], additional: otherMetadata)
     }

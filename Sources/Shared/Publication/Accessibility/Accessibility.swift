@@ -547,13 +547,17 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         self.exemptions = exemptions
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let jsonObject = json?.object else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
+        }
+        guard let jsonObject = json.object else {
+            warnings?.log("Invalid Accessibility object", model: Self.self, source: json, severity: .moderate)
+            throw JSONError.parsing(Self.self)
         }
 
         self.init(
-            conformsTo: (jsonObject["conformsTo"]?.parseArray(allowingSingle: true) as [String]? ?? [])
+            conformsTo: (jsonObject["conformsTo"]?.arrayOf(allowingSingle: true) as [String]? ?? [])
                 .map(Profile.init),
             certification: jsonObject["certification"]?.object
                 .map { dict in
@@ -565,13 +569,13 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
                 }
                 .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
             summary: jsonObject["summary"]?.string,
-            accessModes: (jsonObject["accessMode"]?.parseArray() as [String]? ?? []).map(AccessMode.init),
+            accessModes: (jsonObject["accessMode"]?.arrayOf() as [String]? ?? []).map(AccessMode.init),
             accessModesSufficient: (jsonObject["accessModeSufficient"]?.array ?? [])
-                .map { ($0.parseArray(allowingSingle: true) as [String]).compactMap(PrimaryAccessMode.init(rawValue:)) }
+                .map { ($0.arrayOf(allowingSingle: true) as [String]).compactMap(PrimaryAccessMode.init(rawValue:)) }
                 .filter { !$0.isEmpty },
-            features: (jsonObject["feature"]?.parseArray() as [String]? ?? []).map(Feature.init),
-            hazards: (jsonObject["hazard"]?.parseArray() as [String]? ?? []).map(Hazard.init),
-            exemptions: (jsonObject["exemption"]?.parseArray() as [String]? ?? []).map(Exemption.init)
+            features: (jsonObject["feature"]?.arrayOf() as [String]? ?? []).map(Feature.init),
+            hazards: (jsonObject["hazard"]?.arrayOf() as [String]? ?? []).map(Hazard.init),
+            exemptions: (jsonObject["exemption"]?.arrayOf() as [String]? ?? []).map(Exemption.init)
         )
     }
 

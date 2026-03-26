@@ -40,14 +40,15 @@ public struct TDM: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
         self.policy = policy
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        let json = json?.jsonValue
         guard let jsonObject = json?.object else {
-            warnings?.log("Invalid TDM object", model: Self.self, source: json?.any, severity: .minor)
+            warnings?.log("Invalid TDM object", model: Self.self, source: json, severity: .minor)
             throw JSONError.parsing(Self.self)
         }
 
         guard let reservation = jsonObject["reservation"]?.string.flatMap(Reservation.init(rawValue:)) else {
-            warnings?.log("Invalid TDM object", model: Self.self, source: json?.any, severity: .minor)
+            warnings?.log("Invalid TDM object", model: Self.self, source: json, severity: .minor)
             throw JSONError.parsing(Self.self)
         }
 

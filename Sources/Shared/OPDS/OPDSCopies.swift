@@ -18,18 +18,18 @@ public struct OPDSCopies: Equatable, JSONValueDecodable, JSONObjectEncodable {
         self.available = available
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
         guard let jsonObject = json.object else {
-            warnings?.log("Invalid Copies object", model: Self.self, source: json.any)
+            warnings?.log("Invalid Copies object", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
-            total: jsonObject["total"]?.parsePositive(),
-            available: jsonObject["available"]?.parsePositive()
+            total: jsonObject["total"]?.positiveNumber(),
+            available: jsonObject["available"]?.positiveNumber()
         )
     }
 

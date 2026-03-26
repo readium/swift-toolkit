@@ -18,18 +18,18 @@ public struct OPDSHolds: Equatable, JSONValueDecodable, JSONObjectEncodable {
         self.position = position
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
         guard let jsonObject = json.object else {
-            warnings?.log("Invalid Holds object", model: Self.self, source: json.any)
+            warnings?.log("Invalid Holds object", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
         self.init(
-            total: jsonObject["total"]?.parsePositive(),
-            position: jsonObject["position"]?.parsePositive()
+            total: jsonObject["total"]?.positiveNumber(),
+            position: jsonObject["position"]?.positiveNumber()
         )
     }
 

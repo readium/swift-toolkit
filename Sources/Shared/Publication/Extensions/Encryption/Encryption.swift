@@ -33,9 +33,9 @@ public struct Encryption: Equatable, JSONValueDecodable, JSONObjectEncodable {
         self.scheme = scheme
     }
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
         // Convenience when parsing parent structures.
-        guard let json = json else {
+        guard let json = json?.jsonValue else {
             return nil
         }
         guard let jsonObject = json.object,

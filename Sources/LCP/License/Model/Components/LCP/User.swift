@@ -21,8 +21,8 @@ public struct User: JSONValueDecodable {
     /// A list of which user object values are encrypted in this License Document.
     public let encrypted: [String]
 
-    public init?(json: JSONValue?, warnings: WarningLogger? = nil) throws {
-        guard let json = json else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
 
@@ -31,7 +31,7 @@ public struct User: JSONValueDecodable {
         id = dict.pop("id")?.string
         email = dict.pop("email")?.string
         name = dict.pop("name")?.string
-        encrypted = dict.pop("encrypted")?.parseArray() ?? []
+        encrypted = dict.pop("encrypted")?.arrayOf() ?? []
         extensions = dict
     }
 }

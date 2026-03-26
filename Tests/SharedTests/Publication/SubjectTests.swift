@@ -53,68 +53,6 @@ class SubjectTests: XCTestCase {
         ]))
     }
 
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [Subject](json: [
-                "Fantasy",
-                [
-                    "name": "Science Fiction",
-                    "scheme": "http://scheme",
-                ],
-            ] as JSONValue),
-            [
-                Subject(name: "Fantasy"),
-                Subject(
-                    name: "Science Fiction",
-                    scheme: "http://scheme"
-                ),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual(
-            [Subject](json: nil),
-            []
-        )
-    }
-
-    func testParseJSONArrayIgnoresInvalidSubjects() {
-        XCTAssertEqual(
-            [Subject](json: [
-                "Fantasy",
-                [
-                    "code": "CODE",
-                ],
-            ] as JSONValue),
-            [
-                Subject(name: "Fantasy"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenString() {
-        XCTAssertEqual(
-            [Subject](json: "Fantasy"),
-            [Subject(name: "Fantasy")]
-        )
-    }
-
-    func testParseJSONArrayWhenSingleObject() {
-        XCTAssertEqual(
-            [Subject](json: [
-                "name": "Fantasy",
-                "code": "CODE",
-            ]),
-            [
-                Subject(
-                    name: "Fantasy",
-                    code: "CODE"
-                ),
-            ]
-        )
-    }
-
     func testGetMinimalJSON() {
         XCTAssertEqual(
             Subject(name: "Fantasy").jsonObject,
@@ -144,27 +82,6 @@ class SubjectTests: XCTestCase {
                     ["href": "subject2", "templated": false],
                 ],
             ] as [String: JSONValue]
-        )
-    }
-
-    func testGetJSONArray() {
-        XCTAssertEqual(
-            [
-                Subject(name: "Fantasy"),
-                Subject(
-                    name: "Science Fiction",
-                    scheme: "http://scheme"
-                ),
-            ].json,
-            [
-                [
-                    "name": "Fantasy",
-                ],
-                [
-                    "name": "Science Fiction",
-                    "scheme": "http://scheme",
-                ],
-            ]
         )
     }
 }

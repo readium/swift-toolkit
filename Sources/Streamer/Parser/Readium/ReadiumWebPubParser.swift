@@ -174,7 +174,7 @@ private extension ReadResult<Data> {
         asJSONObjectValue()
             .flatMap { data in
                 do {
-                    guard let manifest = try Manifest(json: .object(data), warnings: warnings) else {
+                    guard let manifest = try Manifest(json: data, warnings: warnings) else {
                         return .failure(.decoding("Failed to decode Manifest from JSON."))
                     }
                     return .success(manifest)
