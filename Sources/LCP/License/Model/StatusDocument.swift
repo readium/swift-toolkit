@@ -47,7 +47,7 @@ public struct StatusDocument {
     public let events: [Event]
 
     init(data: Data) throws {
-        guard let jsonValue = try? JSONDecoder().decode(JSONValue.self, from: data) else {
+        guard let jsonValue = try? JSONValue(jsonData: data) else {
             throw ParsingError.malformedJSON
         }
 

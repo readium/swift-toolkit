@@ -103,6 +103,16 @@ public enum JSONValue: Sendable, Hashable, Loggable {
     }
 }
 
+// MARK: - Errors
+
+/// Errors thrown during JSON parsing and serialization.
+public enum JSONError: Error {
+    /// The JSON data could not be parsed into the expected type.
+    case parsing(Any.Type, cause: Error? = nil)
+    /// The value could not be serialized to JSON.
+    case serializing(Any.Type, cause: Error? = nil)
+}
+
 // MARK: - Decoding Protocols
 
 /// A type that can be decoded from a `JSONValue`.
@@ -211,6 +221,13 @@ extension JSONValue: JSONValueEncodable {
     }
 }
 
+extension JSONValue: JSONValueDecodable {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let value = json?.jsonValue else { return nil }
+        self = value
+    }
+}
+
 /// A type that encodes to a JSON object (`[String: JSONValue]`).
 public protocol JSONObjectEncodable: JSONValueEncodable {
     /// The JSON object representation of this value.
@@ -234,19 +251,84 @@ public extension JSONObjectEncodable {
     }
 }
 
-// Provides a `jsonValue` for any `RawRepresentable` whose `RawValue` conforms
-// to `JSONValueEncodable`.
-//
-// Enums with a `String` or `Int` raw value get JSON encoding for free:
-//
-// ```swift
-// enum Layout: String { case reflowable, fixed }
-// let value = Layout.reflowable.jsonValue  // .string("reflowable")
-// ```
-
+/// Provides a `jsonValue` for any `RawRepresentable` whose `RawValue` conforms
+/// to `JSONValueEncodable`.
+///
+/// Enums with a `String` or `Int` raw value get JSON encoding for free:
+///
+/// ```swift
+/// enum Layout: String { case reflowable, fixed }
+/// let value = Layout.reflowable.jsonValue  // .string("reflowable")
+/// ```
 public extension RawRepresentable where RawValue: JSONValueEncodable {
     var jsonValue: JSONValue {
         rawValue.jsonValue
+    }
+}
+
+// MARK: - Serialization
+
+public extension JSONValueEncodable {
+    /// Serializes this value to a JSON string.
+    ///
+    /// Keys are sorted and slashes are not escaped, producing deterministic
+    /// output suitable for comparison and storage.
+    func jsonString() throws -> String {
+        let data = try jsonData()
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw JSONError.serializing(Self.self, cause: nil)
+        }
+        return string
+    }
+
+    /// Serializes this value to JSON data.
+    ///
+    /// Keys are sorted and slashes are not escaped, producing deterministic
+    /// output suitable for comparison and storage.
+    func jsonData() throws -> Data {
+        do {
+            return try JSONSerialization.data(
+                withJSONObject: jsonValue.any,
+                options: [.sortedKeys, .withoutEscapingSlashes, .fragmentsAllowed]
+            )
+        } catch {
+            throw JSONError.serializing(Self.self, cause: error)
+        }
+    }
+}
+
+// MARK: - Deserialization
+
+public extension JSONValueDecodable {
+    /// Parses a value of this type from JSON-encoded data.
+    ///
+    /// Throws `JSONError.parsing` if the data is not valid JSON or cannot be
+    /// decoded as `Self`.
+    init(jsonData: Data, warnings: WarningLogger? = nil) throws {
+        let any: Any
+        do {
+            any = try JSONSerialization.jsonObject(with: jsonData, options: .fragmentsAllowed)
+        } catch {
+            throw JSONError.parsing(Self.self, cause: error)
+        }
+        guard let jsonValue = JSONValue(serialized: any) else {
+            throw JSONError.parsing(Self.self)
+        }
+        guard let decoded = try Self(json: jsonValue, warnings: warnings) else {
+            throw JSONError.parsing(Self.self)
+        }
+        self = decoded
+    }
+
+    /// Parses a value of this type from a JSON string.
+    ///
+    /// Throws `JSONError.parsing` if the string is not valid JSON, cannot be
+    /// encoded as UTF-8, or cannot be decoded as `Self`.
+    init(jsonString: String, warnings: WarningLogger? = nil) throws {
+        guard let data = jsonString.data(using: .utf8) else {
+            throw JSONError.parsing(Self.self)
+        }
+        try self.init(jsonData: data, warnings: warnings)
     }
 }
 
@@ -439,80 +521,18 @@ extension JSONValue: ExpressibleByDictionaryLiteral {
     }
 }
 
-// MARK: - Codable Conformance
+// MARK: - JSON Codec
 
-extension JSONValue: Codable {
-    /// Decodes a `JSONValue` from any JSON input.
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-
-        // Always try to decode Nil first
-        if container.decodeNil() {
-            self = .null
-            return
-        }
-
-        // Attempt to decode boolean
-        if let boolValue = try? container.decode(Bool.self) {
-            self = .bool(boolValue)
-            return
-        }
-
-        // Attempt to decode Int
-        if let intValue = try? container.decode(Int.self) {
-            self = .integer(intValue)
-            return
-        }
-
-        // Attempt to decode floating point numbers
-        if let doubleValue = try? container.decode(Double.self) {
-            self = .double(doubleValue)
-            return
-        }
-
-        // Attempt to decode string
-        if let stringValue = try? container.decode(String.self) {
-            self = .string(stringValue)
-            return
-        }
-
-        // Attempt to decode array
-        if let arrayValue = try? container.decode([JSONValue].self) {
-            self = .array(arrayValue)
-            return
-        }
-
-        // Attempt to decode object
-        if let objectValue = try? container.decode([String: JSONValue].self) {
-            self = .object(objectValue)
-            return
-        }
-
-        // If all attempts fail, throw an error
-        throw DecodingError.dataCorruptedError(
-            in: container,
-            debugDescription: "Data cannot be decoded as a valid JSONValue."
-        )
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-
-        switch self {
-        case .null:
-            try container.encodeNil()
-        case let .bool(value):
-            try container.encode(value)
-        case let .string(value):
-            try container.encode(value)
-        case let .integer(value):
-            try container.encode(value)
-        case let .double(value):
-            try container.encode(value)
-        case let .array(value):
-            try container.encode(value)
-        case let .object(value):
-            try container.encode(value)
+private extension JSONValue {
+    /// Converts a value returned by `JSONSerialization` into a `JSONValue`.
+    init?(serialized any: Any) {
+        switch any {
+        case let v as NSNull: self = v.jsonValue
+        case let v as NSNumber: self = v.jsonValue
+        case let v as String: self = .string(v)
+        case let v as [Any]: self = .array(v.compactMap { JSONValue(serialized: $0) })
+        case let v as [String: Any]: self = .object(v.compactMapValues { JSONValue(serialized: $0) })
+        default: return nil
         }
     }
 }

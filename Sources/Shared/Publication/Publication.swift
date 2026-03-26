@@ -75,7 +75,7 @@ public class Publication: Closeable, Loggable {
 
     /// Returns the Readium Web Publication Manifest as JSON.
     public var jsonManifest: String? {
-        serializeJSONString(manifest.jsonValue)
+        try? manifest.jsonValue.jsonString()
     }
 
     /// Returns whether this publication conforms to the given Readium Web Publication Profile.

@@ -65,7 +65,7 @@ public actor FormatSnifferBlob {
                     return nil
                 }
 
-                return try? JSONDecoder().decode(JSONValue.self, from: data)
+                return try? JSONValue(jsonData: data)
             }
         }
         return json!

@@ -59,7 +59,7 @@ public struct LicenseDocument {
 
         let jsonValue: JSONValue
         do {
-            jsonValue = try JSONDecoder().decode(JSONValue.self, from: data)
+            jsonValue = try JSONValue(jsonData: data)
         } catch {
             throw ParsingError.malformedJSON
         }

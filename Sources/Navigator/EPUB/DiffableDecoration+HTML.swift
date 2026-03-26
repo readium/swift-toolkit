@@ -36,7 +36,7 @@ extension DecorationChange {
             }
             var json = decoration.jsonObject
             json["element"] = .string(style.element(decoration))
-            guard let jsonString = serializeJSONString(json.jsonValue) else {
+            guard let jsonString = try? json.jsonString() else {
                 EPUBNavigatorViewController.log(.error, "Can't serialize decoration to JSON: \(json)")
                 return nil
             }

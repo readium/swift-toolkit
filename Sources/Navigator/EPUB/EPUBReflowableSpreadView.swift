@@ -146,7 +146,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func spreadDidLoad() async {
         let link = spread.first.link
-        if let linkJSON = serializeJSONString(link.jsonValue) {
+        if let linkJSON = try? link.jsonString() {
             await evaluateScript("readium.link = \(linkJSON);")
         }
 
@@ -345,7 +345,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     /// Scrolls at the snippet matching the given text context.
     @discardableResult
     private func scroll(toLocator locator: Locator) async -> Bool {
-        guard let json = locator.jsonString else {
+        guard let json = try? locator.jsonString() else {
             return false
         }
         let result = await evaluateScript("readium.scrollToLocator(\(json));")

@@ -36,32 +36,14 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
         try self.init(json: json, warnings: warnings, legacyHREF: false)
     }
 
-    public init?(jsonString: String, warnings: WarningLogger? = nil) throws {
-        try self.init(jsonString: jsonString, warnings: warnings, legacyHREF: false)
-    }
-
     /// Creates a ``Locator`` from its legacy JSON representation.
     ///
     /// Only use this API when you are upgrading to Readium 3.x and migrating
     /// the ``Locator`` objects stored in your database. See the migration guide
     /// for more information.
     public init?(legacyJSONString: String, warnings: WarningLogger? = nil) throws {
-        try self.init(jsonString: legacyJSONString, warnings: warnings, legacyHREF: true)
-    }
-
-    private init?(jsonString: String, warnings: WarningLogger?, legacyHREF: Bool) throws {
-        let json: JSONValue
-        do {
-            guard let data = jsonString.data(using: .utf8) else {
-                throw JSONError.parsing(Self.self)
-            }
-            json = try JSONDecoder().decode(JSONValue.self, from: data)
-        } catch {
-            warnings?.log("Invalid Locator object: \(error)", model: Self.self)
-            throw JSONError.parsing(Self.self)
-        }
-
-        try self.init(json: json, warnings: warnings, legacyHREF: legacyHREF)
+        let json = try JSONValue(jsonString: legacyJSONString, warnings: warnings)
+        try self.init(json: json, warnings: warnings, legacyHREF: true)
     }
 
     private init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?, legacyHREF: Bool) throws {
@@ -105,12 +87,8 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
         ])
     }
 
-    public var jsonString: String? {
-        serializeJSONString(jsonObject.jsonValue)
-    }
-
     public var description: String {
-        jsonString ?? "{}"
+        (try? jsonString()) ?? "{}"
     }
 
     /// Makes a copy of the `Locator`, after modifying some of its components.
@@ -198,19 +176,6 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
             )
         }
 
-        public init(jsonString: String, warnings: WarningLogger? = nil) {
-            do {
-                guard let data = jsonString.data(using: .utf8) else {
-                    throw JSONError.parsing(Self.self)
-                }
-                let json = try JSONDecoder().decode(JSONValue.self, from: data)
-                try self.init(json: json, warnings: warnings)!
-            } catch {
-                warnings?.log("Invalid Locations object: \(error)", model: Self.self)
-                self.init()
-            }
-        }
-
         public var isEmpty: Bool {
             jsonObject.isEmpty
         }
@@ -222,10 +187,6 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
                 "totalProgression": totalProgression,
                 "position": position,
             ], adding: otherLocations)
-        }
-
-        public var jsonString: String? {
-            serializeJSONString(jsonObject.jsonValue)
         }
 
         /// Syntactic sugar to access the `otherLocations` values by subscripting `Locations` directly.
@@ -261,29 +222,12 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
             )
         }
 
-        public init(jsonString: String, warnings: WarningLogger? = nil) {
-            do {
-                guard let data = jsonString.data(using: .utf8) else {
-                    throw JSONError.parsing(Self.self)
-                }
-                let json = try JSONDecoder().decode(JSONValue.self, from: data)
-                try self.init(json: json, warnings: warnings)!
-            } catch {
-                warnings?.log("Invalid Text object: \(error)", model: Self.self)
-                self.init()
-            }
-        }
-
         public var jsonObject: [String: JSONValue] {
             .init([
                 "after": after,
                 "before": before,
                 "highlight": highlight,
             ])
-        }
-
-        public var jsonString: String? {
-            serializeJSONString(jsonObject.jsonValue)
         }
 
         /// Returns a copy of this text after sanitizing its content for user display.

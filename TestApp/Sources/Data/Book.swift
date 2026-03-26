@@ -129,7 +129,7 @@ final class BookRepository {
     }
 
     func saveProgress(for id: Book.Id, locator: Locator) async throws {
-        guard let json = locator.jsonString else {
+        guard let json = try? locator.jsonString() else {
             return
         }
 

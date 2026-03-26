@@ -188,32 +188,6 @@ import Testing
         }
     }
 
-    @Suite struct Codable {
-        @Test func roundTrip() throws {
-            let original: JSONValue = [
-                "string": "value",
-                "int": 42,
-                "bool": true,
-                "null": nil,
-                "array": [1, 2, 3],
-                "object": ["k": "v"],
-            ]
-            let data = try JSONEncoder().encode(original)
-            let decoded = try JSONDecoder().decode(JSONValue.self, from: data)
-            #expect(original == decoded)
-        }
-
-        @Test func decodesIntegerNotBool() throws {
-            let data = #"{"zero": 0, "one": 1, "two": 2}"#.data(using: .utf8)!
-            let decoded = try JSONDecoder().decode(JSONValue.self, from: data)
-            #expect(decoded == .object([
-                "zero": .integer(0),
-                "one": .integer(1),
-                "two": .integer(2),
-            ]))
-        }
-    }
-
     @Suite struct NonNegative {
         @Test func fromInteger() {
             #expect(JSONValue.integer(42).nonNegative() == Int(42))
@@ -417,6 +391,165 @@ import Testing
             #expect(JSONValue.integer(42).date == nil)
             #expect(JSONValue.bool(true).date == nil)
             #expect(JSONValue.null.date == nil)
+        }
+    }
+
+    @Suite struct Serialization {
+        private let value: JSONValue = [
+            "string": "hello",
+            "int": 42,
+            "bool": true,
+            "null": nil,
+            "array": [1, 2],
+            "nested": ["k": "v"],
+        ]
+
+        @Test func jsonDataRoundTrips() throws {
+            let data = try value.jsonData()
+            #expect(try JSONValue(jsonData: data) == value)
+        }
+
+        @Test func jsonStringRoundTrips() throws {
+            let string = try value.jsonString()
+            #expect(try JSONValue(jsonString: string) == value)
+        }
+
+        @Test func jsonStringAndDataAreConsistent() throws {
+            let string = try value.jsonString()
+            let data = try value.jsonData()
+            #expect(string == String(data: data, encoding: .utf8))
+        }
+
+        @Test func serializingViaJSONValueEncodable() throws {
+            let string = try "hello".jsonString()
+            #expect(try JSONValue(jsonString: string) == .string("hello"))
+        }
+
+        @Test func scalarRootsSerialize() throws {
+            #expect(try JSONValue.string("hi").jsonString() == #""hi""#)
+            #expect(try JSONValue.integer(42).jsonString() == "42")
+            #expect(try JSONValue.double(3.5).jsonString() == "3.5")
+            #expect(try JSONValue.bool(true).jsonString() == "true")
+            #expect(try JSONValue.null.jsonString() == "null")
+        }
+
+        @Test func keysAreSorted() throws {
+            let json: JSONValue = ["z": 1, "a": 2, "m": 3]
+            #expect(try json.jsonString() == #"{"a":2,"m":3,"z":1}"#)
+        }
+
+        @Test func slashesAreNotEscaped() throws {
+            #expect(try JSONValue.string("http://example.com/path").jsonString() == #""http://example.com/path""#)
+        }
+    }
+
+    @Suite struct Deserialization {
+        @Test func initFromValidJSONData() throws {
+            let data = #"{"key": "value", "count": 3}"#.data(using: .utf8)!
+            let value = try JSONValue(jsonData: data)
+            #expect(value == .object(["key": .string("value"), "count": .integer(3)]))
+        }
+
+        @Test func initFromValidJSONString() throws {
+            let value = try JSONValue(jsonString: #"{"key": "value", "count": 3}"#)
+            #expect(value == .object(["key": .string("value"), "count": .integer(3)]))
+        }
+
+        @Test func initFromJSONArray() throws {
+            let value = try JSONValue(jsonString: "[1, true, \"x\"]")
+            #expect(value == .array([.integer(1), .bool(true), .string("x")]))
+        }
+
+        @Test func initFromJSONNull() throws {
+            #expect(try JSONValue(jsonString: "null") == .null)
+        }
+
+        @Test func initFromJSONDataThrowsOnInvalidData() {
+            let invalid = "not json".data(using: .utf8)!
+            #expect(throws: JSONError.self) {
+                try JSONValue(jsonData: invalid)
+            }
+        }
+
+        @Test func initFromJSONStringThrowsOnInvalidString() {
+            #expect(throws: JSONError.self) {
+                try JSONValue(jsonString: "not json")
+            }
+        }
+
+        @Test func scalarRootsDeserialize() throws {
+            #expect(try JSONValue(jsonString: #""hello""#) == .string("hello"))
+            #expect(try JSONValue(jsonString: "42") == .integer(42))
+            #expect(try JSONValue(jsonString: "3.14") == .double(3.14))
+            #expect(try JSONValue(jsonString: "true") == .bool(true))
+        }
+
+        @Test func integerNotDecodedAsBool() throws {
+            // Regression: 0/1 must decode as .integer, not .bool
+            let value = try JSONValue(jsonString: #"{"zero": 0, "one": 1}"#)
+            #expect(value == .object(["zero": .integer(0), "one": .integer(1)]))
+        }
+
+        @Test func boolNotDecodedAsInteger() throws {
+            // Complement: true/false must decode as .bool, not .integer
+            let value = try JSONValue(jsonString: #"{"t": true, "f": false}"#)
+            #expect(value == .object(["t": .bool(true), "f": .bool(false)]))
+        }
+
+        @Test func doublePreserved() throws {
+            let value = try JSONValue(jsonString: #"{"pi": 3.14, "half": 2.5}"#)
+            #expect(value == .object(["pi": .double(3.14), "half": .double(2.5)]))
+        }
+
+        @Test func roundTripsWithSerialization() throws {
+            let original: JSONValue = ["title": "Moby Dick", "year": 1851, "inPrint": true]
+            #expect(try JSONValue(jsonString: original.jsonString()) == original)
+        }
+
+        @Test func warningsAreForwardedFromJSONData() throws {
+            struct Tag: JSONObjectEncodable, JSONValueDecodable, Equatable {
+                let name: String
+                init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+                    guard let name = json?.jsonValue.object?["name"]?.string else {
+                        warnings?.log("Missing 'name'", model: Tag.self)
+                        return nil
+                    }
+                    self.name = name
+                }
+
+                var jsonObject: [String: JSONValue] {
+                    ["name": .string(name)]
+                }
+            }
+
+            let logger = ListWarningLogger()
+            #expect(throws: JSONError.self) {
+                try Tag(jsonData: #require(#"{"other": "field"}"#.data(using: .utf8)), warnings: logger)
+            }
+            #expect(logger.warnings.count == 1)
+        }
+
+        @Test func warningsAreForwardedFromJSONString() throws {
+            struct Tag: JSONObjectEncodable, JSONValueDecodable, Equatable {
+                let name: String
+                init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+                    guard let name = json?.jsonValue.object?["name"]?.string else {
+                        warnings?.log("Missing 'name'", model: Tag.self)
+                        return nil
+                    }
+                    self.name = name
+                }
+
+                var jsonObject: [String: JSONValue] {
+                    ["name": .string(name)]
+                }
+            }
+
+            let logger = ListWarningLogger()
+            #expect(throws: JSONError.self) {
+                try Tag(jsonString: #"{"other": "field"}"#, warnings: logger)
+            }
+            #expect(logger.warnings.count == 1)
         }
     }
 

@@ -131,11 +131,7 @@ private extension Data {
 
     /// Decodes the data as a `JSONValue`.
     func asJSONValue(options: JSONSerialization.ReadingOptions = []) throws -> JSONValue {
-        do {
-            return try JSONDecoder().decode(JSONValue.self, from: self)
-        } catch {
-            throw JSONError.parsing(JSONValue.self)
-        }
+        try JSONValue(jsonData: self)
     }
 
     /// Decodes the data as a JSON object.

@@ -17,7 +17,7 @@ class PublicationTests: XCTestCase {
                     readingOrder: [Link(href: "chap1.html", mediaType: .html)]
                 )
             ).jsonManifest,
-            serializeJSONString([String: JSONValue]([
+            try? [String: JSONValue]([
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
                     ["href": "manifest.json", "rel": ["self"], "templated": false],
@@ -25,7 +25,7 @@ class PublicationTests: XCTestCase {
                 "readingOrder": [
                     ["href": "chap1.html", "type": "text/html", "templated": false],
                 ],
-            ]))
+            ]).jsonString()
         )
     }
 

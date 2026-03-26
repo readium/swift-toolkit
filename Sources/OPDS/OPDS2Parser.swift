@@ -50,7 +50,7 @@ public class OPDS2Parser: Loggable {
     public static func parse(jsonData: Data, url: URL, response: URLResponse) throws -> ParseData {
         var parseData = ParseData(url: url, response: response, version: .OPDS2)
 
-        guard let jsonRoot = try? JSONDecoder().decode(JSONValue.self, from: jsonData),
+        guard let jsonRoot = try? JSONValue(jsonData: jsonData),
               let topLevelDict = jsonRoot.object
         else {
             throw OPDS2ParserError.invalidJSON

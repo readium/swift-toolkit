@@ -1041,7 +1041,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             styles[item.key.rawValue] = .object(item.value.jsonObject)
         }
 
-        guard let stylesJSON = serializeJSONString(templates.jsonValue) else {
+        guard let stylesJSON = try? templates.jsonString() else {
             log(.error, "Can't serialize decoration styles to JSON")
             return
         }

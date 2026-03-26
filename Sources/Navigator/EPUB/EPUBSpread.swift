@@ -76,7 +76,7 @@ enum EPUBSpread: EPUBSpreadProtocol {
     }
 
     func jsonString(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> String {
-        serializeJSONString(json(forBaseURL: baseURL, readingProgression: readingProgression)) ?? "[]"
+        (try? json(forBaseURL: baseURL, readingProgression: readingProgression).jsonString()) ?? "[]"
     }
 
     /// Builds a list of spreads for the given Publication.
