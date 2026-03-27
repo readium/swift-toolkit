@@ -18,6 +18,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * All public types that parsed or serialized JSON now use the new type-safe `JSONValue` enum instead of `Any` / `[String: Any]`. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
 
+#### Navigator
+
+* The `DirectionalNavigationAdapter`'s policies and animated transitions are now mutable, allowing you to update the adapter's behavior after creation.
+
 ### Fixed
 
 #### Shared
