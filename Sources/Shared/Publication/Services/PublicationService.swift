@@ -7,7 +7,7 @@
 import Foundation
 
 /// Base interface to be implemented by all publication services.
-public protocol PublicationService: Closeable {
+public protocol PublicationService: Closeable, Sendable {
     /// Links which will be added to `Publication.links`.
     /// It can be used to expose a web API for the service, through `Publication.get()`.
     ///

@@ -7,7 +7,7 @@
 import Foundation
 
 /// Properties associated to a resource.
-public struct ResourceProperties: Hashable, @unchecked Sendable {
+public struct ResourceProperties: Hashable, Sendable {
     public var properties: [String: JSONValue]
 
     public init(_ properties: [String: JSONValue] = [:]) {

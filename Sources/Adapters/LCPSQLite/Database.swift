@@ -5,9 +5,9 @@
 //
 
 import Foundation
-@preconcurrency import SQLite
+import SQLite
 
-final class Database: Sendable {
+final actor Database {
     /// Shared instance.
     static let shared: Swift.Result<Database, Error> = {
         do {

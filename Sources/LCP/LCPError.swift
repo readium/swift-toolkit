@@ -51,7 +51,7 @@ public enum LCPError: Error, Sendable {
     case runtime(String)
 
     /// An unknown low-level error was reported.
-    case unknown(Error?)
+    case unknown((any Error & Sendable)?)
 }
 
 /// Errors while checking the status of the License, using the Status Document.
@@ -120,7 +120,7 @@ public enum ParsingError: Error, Sendable {
 /// Errors while reading or writing a LCP container (LCPL, EPUB, LCPDF, etc.)
 public enum ContainerError: Error, Sendable {
     /// Can't access the container, it's format is wrong.
-    case openFailed(Error?)
+    case openFailed((any Error & Sendable)?)
     /// The file at given relative path is not found in the Container.
     case fileNotFound(String)
     /// Can't read the file at given relative path in the Container.
