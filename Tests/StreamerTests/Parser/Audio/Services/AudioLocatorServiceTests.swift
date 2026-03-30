@@ -10,6 +10,8 @@ import ReadiumShared
 import XCTest
 
 class AudioLocatorServiceTests: XCTestCase {
+    private var publication: Publication!
+
     func testLocateLocatorMatchingReadingOrderHREF() async {
         let service = makeService(readingOrder: [
             Link(href: "l1"),
@@ -178,10 +180,9 @@ class AudioLocatorServiceTests: XCTestCase {
     }
 
     private func makeService(readingOrder: [Link]) -> AudioLocatorService {
-        AudioLocatorService(
-            publication: _Strong(Publication(
-                manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
-            ))
+        publication = Publication(
+            manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
         )
+        return AudioLocatorService(publication: Weak(publication))
     }
 }

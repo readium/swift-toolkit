@@ -8,6 +8,8 @@
 import XCTest
 
 class DefaultLocatorServiceTests: XCTestCase {
+    private var publication: Publication!
+
     /// locate(Locator) checks that the href exists.
     func testFromLocator() async {
         let service = makeService(readingOrder: [
@@ -203,7 +205,7 @@ class DefaultLocatorServiceTests: XCTestCase {
         resources: [Link] = [],
         positions: [[Locator]] = []
     ) -> DefaultLocatorService {
-        DefaultLocatorService(publication: _Strong(Publication(
+        publication = Publication(
             manifest: Manifest(
                 metadata: Metadata(title: ""),
                 links: links,
@@ -213,7 +215,8 @@ class DefaultLocatorServiceTests: XCTestCase {
             servicesBuilder: PublicationServicesBuilder(
                 positions: InMemoryPositionsService.makeFactory(positionsByReadingOrder: positions)
             )
-        )))
+        )
+        return DefaultLocatorService(publication: Weak(publication))
     }
 }
 
