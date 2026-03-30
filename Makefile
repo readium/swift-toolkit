@@ -3,7 +3,6 @@ SCRIPTS_PATH := Sources/Navigator/EPUB/Scripts
 help:
 	@echo "Usage: make <target>\n\n\
 	  playground\t\tGenerate the Playground project\n\
-	  carthage-project\tGenerate the Carthage Xcode project\n\
 	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
 	  test\t\t\tRun unit tests\n\
@@ -26,12 +25,6 @@ playground:
 .PHONY: podspecs
 podspecs:
 	swift run --package-path BuildTools GeneratePodspecs
-
-.PHONY: carthage-project
-carthage-project:
-	rm -rf **/.DS_Store
-	rm -rf $(SCRIPTS_PATH)/node_modules/
-	xcodegen -s Support/Carthage/project.yml --use-cache --cache-path Support/Carthage/.xcodegen
 
 .PHONY: navigator-ui-tests-project
 navigator-ui-tests-project:

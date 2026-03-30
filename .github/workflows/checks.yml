@@ -28,11 +28,6 @@ jobs:
           brew install xcodegen
           # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
           xcrun simctl list
-      - name: Check Carthage project
-        run: |
-          # Check that the Carthage project is up to date.
-          make carthage-project
-          git diff --exit-code Support/Carthage/Readium.xcodeproj
       - name: Check CocoaPods podspecs
         run: |
           # Check that the podspecs are up to date.
@@ -158,33 +153,4 @@ jobs:
           set -eo pipefail
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
-  int-carthage:
-    name: Integration (Carthage)
-    runs-on: macos-15
-    if: ${{ !github.event.pull_request.draft && github.ref == 'refs/heads/main' }}
-    defaults:
-      run:
-        working-directory: TestApp
-    environment: LCP
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      # We can't use the current github.sha with pull_request event, because they will
-      # reference the merge commit which cannot be fetched with Carthage.
-      - name: Set commit SHA
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
-      - name: Install dependencies
-        run: |
-          brew update
-          brew install xcodegen
-          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
-          xcrun simctl list
-      - name: Generate project
-        run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
-      - name: Build
-        run: |
-          set -eo pipefail
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 

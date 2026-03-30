@@ -6,10 +6,6 @@
 .swiftpm/
 Package.resolved
 
-# Carthage
-./Carthage/
-Cartfile.resolved
-
 # Xcode
 
 ## User settings

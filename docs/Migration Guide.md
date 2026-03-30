@@ -586,7 +586,7 @@ Just replace the former Readium `Cartfile` statements with the new one:
 -github "readium/r2-lcp-swift" ~> 2.2.0
 ```
 
-Then, rebuild the libraries using `carthage update --platform ios --use-xcframeworks --cache-builds`. Carthage will build all the Readium libraries and their dependencies, but you are free to add only the ones you are using as before. Take a look at the [README](../README.md#carthage) for more information.
+Then, rebuild the libraries using `carthage update --platform ios --use-xcframeworks --cache-builds`. Carthage will build all the Readium libraries and their dependencies, but you are free to add only the ones you are using as before.
 
 ### Using CocoaPods
 
