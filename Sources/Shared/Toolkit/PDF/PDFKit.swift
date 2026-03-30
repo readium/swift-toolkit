@@ -52,7 +52,7 @@ extension PDFKit.PDFDocument: PDFDocument {
 }
 
 /// Creates a `PDFDocument` using PDFKit.
-public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
+public final class PDFKitPDFDocumentFactory: PDFDocumentFactory, Sendable {
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
         guard let document = PDFKit.PDFDocument(url: file.url) else {
             throw PDFDocumentError.openFailed
