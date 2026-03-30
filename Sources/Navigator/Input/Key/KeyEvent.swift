@@ -29,7 +29,7 @@ public struct KeyEvent: Equatable, CustomStringConvertible {
     }
 
     /// Phase of a key event, e.g. pressed or released.
-    public enum Phase: Equatable, CustomStringConvertible {
+    public enum Phase: Equatable, CustomStringConvertible, Sendable {
         case down
         case change
         case up

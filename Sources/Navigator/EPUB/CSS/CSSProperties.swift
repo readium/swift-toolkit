@@ -530,7 +530,7 @@ public struct CSSRSProperties: CSSProperties {
     }
 }
 
-public enum CSSView: String, CSSConvertible {
+public enum CSSView: String, CSSConvertible, Sendable {
     case paged = "readium-paged-on"
     case scroll = "readium-scroll-on"
 
@@ -539,7 +539,7 @@ public enum CSSView: String, CSSConvertible {
     }
 }
 
-public enum CSSColCount: String, CSSConvertible {
+public enum CSSColCount: String, CSSConvertible, Sendable {
     case auto
     case one = "1"
     case two = "2"
@@ -549,7 +549,7 @@ public enum CSSColCount: String, CSSConvertible {
     }
 }
 
-public enum CSSAppearance: String, CSSConvertible {
+public enum CSSAppearance: String, CSSConvertible, Sendable {
     case night = "readium-night-on"
     case sepia = "readium-sepia-on"
 
@@ -791,7 +791,7 @@ public struct CSSPercentLength: CSSRelativeLength {
     }
 }
 
-public enum CSSTextAlign: String, CSSConvertible {
+public enum CSSTextAlign: String, CSSConvertible, Sendable {
     case start
     case left
     case right
@@ -803,7 +803,7 @@ public enum CSSTextAlign: String, CSSConvertible {
 }
 
 /// Line height supports unitless numbers.
-public enum CSSLineHeight: CSSConvertible {
+public enum CSSLineHeight: CSSConvertible, Sendable {
     case length(CSSLength)
     case unitless(Double)
 
@@ -817,7 +817,7 @@ public enum CSSLineHeight: CSSConvertible {
     }
 }
 
-public enum CSSHyphens: String, CSSConvertible {
+public enum CSSHyphens: String, CSSConvertible, Sendable {
     case none
     case auto
 
@@ -826,7 +826,7 @@ public enum CSSHyphens: String, CSSConvertible {
     }
 }
 
-public enum CSSLigatures: String, CSSConvertible {
+public enum CSSLigatures: String, CSSConvertible, Sendable {
     case none
     case common = "common-ligatures"
 
@@ -835,7 +835,7 @@ public enum CSSLigatures: String, CSSConvertible {
     }
 }
 
-public enum CSSBoxSizing: String, CSSConvertible {
+public enum CSSBoxSizing: String, CSSConvertible, Sendable {
     case contentBox = "content-box"
     case borderBox = "border-box"
 

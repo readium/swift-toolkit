@@ -33,7 +33,7 @@ public extension TTSEngine {
     }
 }
 
-public enum TTSError: Error {
+public enum TTSError: Error, Sendable {
     /// Tried to synthesize an utterance with an unsupported language.
     case languageNotSupported(language: Language, cause: Error?)
 

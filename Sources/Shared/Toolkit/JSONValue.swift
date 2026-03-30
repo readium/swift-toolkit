@@ -127,7 +127,7 @@ public enum JSONValue: Sendable, Hashable, Loggable {
 // MARK: - Errors
 
 /// Errors thrown during JSON parsing and serialization.
-public enum JSONError: Error {
+public enum JSONError: Error, Sendable {
     /// The JSON data could not be parsed into the expected type.
     case parsing(Any.Type, cause: Error? = nil)
     /// The value could not be serialized to JSON.

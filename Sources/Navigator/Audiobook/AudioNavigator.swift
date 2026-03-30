@@ -9,7 +9,7 @@ import Foundation
 import ReadiumShared
 
 /// Status of a played media resource.
-public enum MediaPlaybackState {
+public enum MediaPlaybackState: Sendable {
     case paused
     case loading
     case playing

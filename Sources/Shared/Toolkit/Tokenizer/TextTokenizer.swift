@@ -11,11 +11,11 @@ import NaturalLanguage
 public typealias TextTokenizer = Tokenizer<String, Range<String.Index>>
 
 /// A text token unit which can be used with a `TextTokenizer`.
-public enum TextUnit {
+public enum TextUnit: Sendable {
     case word, sentence, paragraph
 }
 
-public enum TextTokenizerError: Error {
+public enum TextTokenizerError: Error, Sendable {
     case rangeConversionFailed(range: NSRange, string: String)
 }
 

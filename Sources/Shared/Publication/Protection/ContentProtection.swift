@@ -25,7 +25,7 @@ public protocol ContentProtection {
     ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError>
 }
 
-public enum ContentProtectionOpenError: Error {
+public enum ContentProtectionOpenError: Error, Sendable {
     /// The asset is not supported by this ``ContentProtection``
     case assetNotSupported(Error?)
 

@@ -161,13 +161,13 @@ public struct CSSFontFace {
 }
 
 /// Styles that a font can be styled with.
-public enum CSSFontStyle: String, Codable {
+public enum CSSFontStyle: String, Codable, Sendable {
     case normal
     case italic
 }
 
 /// Weight (or boldness) of a font.
-public enum CSSFontWeight: Codable {
+public enum CSSFontWeight: Codable, Sendable {
     case standard(CSSStandardFontWeight)
     case variable(ClosedRange<Int>)
 }
@@ -175,7 +175,7 @@ public enum CSSFontWeight: Codable {
 /// Standard weights (or boldness) of a font.
 ///
 /// See https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#common_weight_name_mapping
-public enum CSSStandardFontWeight: Int, Codable {
+public enum CSSStandardFontWeight: Int, Codable, Sendable {
     case thin = 100
     case extraLight = 200
     case light = 300

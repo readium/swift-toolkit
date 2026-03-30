@@ -7,7 +7,7 @@
 import Foundation
 
 /// Errors occurring while reading a resource.
-public enum ReadError: Error {
+public enum ReadError: Error, Sendable {
     /// An error occurred while trying to access the content.
     ///
     /// At the moment, `AccessError`s constructed by the toolkit can be either
@@ -44,7 +44,7 @@ public enum ReadError: Error {
     }
 }
 
-public enum AccessError: Error {
+public enum AccessError: Error, Sendable {
     /// An error occurred while accessing content over HTTP.
     case http(HTTPError)
 

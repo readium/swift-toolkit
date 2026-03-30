@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public enum LCPError: Error {
+public enum LCPError: Error, Sendable {
     /// The license could not be retrieved because the passphrase is unknown.
     case missingPassphrase
 
@@ -67,7 +67,7 @@ public enum LCPError: Error {
 /// from the number of "register" events in the status document. If no event is
 /// logged in the status document, no such message should appear (certainly not
 /// "The license was registered by 0 devices").
-public enum StatusError: Error {
+public enum StatusError: Error, Sendable {
     /// This license was cancelled on the given date.
     case cancelled(Date)
     /// This license has been returned on the given date.
@@ -80,7 +80,7 @@ public enum StatusError: Error {
 }
 
 /// Errors while renewing a loan.
-public enum RenewError: Error {
+public enum RenewError: Error, Sendable {
     /// Your publication could not be renewed properly.
     case renewFailed
     /// Incorrect renewal period, your publication could not be renewed.
@@ -90,7 +90,7 @@ public enum RenewError: Error {
 }
 
 /// Errors while returning a loan.
-public enum ReturnError: Error {
+public enum ReturnError: Error, Sendable {
     /// Your publication could not be returned properly.
     case returnFailed
     /// Your publication has already been returned before or is expired.
@@ -100,7 +100,7 @@ public enum ReturnError: Error {
 }
 
 /// Errors while parsing the License or Status JSON Documents.
-public enum ParsingError: Error {
+public enum ParsingError: Error, Sendable {
     /// The JSON is malformed and can't be parsed.
     case malformedJSON
     /// The JSON is not representing a valid License Document.
@@ -118,7 +118,7 @@ public enum ParsingError: Error {
 }
 
 /// Errors while reading or writing a LCP container (LCPL, EPUB, LCPDF, etc.)
-public enum ContainerError: Error {
+public enum ContainerError: Error, Sendable {
     /// Can't access the container, it's format is wrong.
     case openFailed(Error?)
     /// The file at given relative path is not found in the Container.

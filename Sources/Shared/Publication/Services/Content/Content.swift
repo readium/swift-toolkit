@@ -170,7 +170,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     }
 
     /// Represents a purpose of an element in the broader context of the document.
-    public enum Role: Hashable {
+    public enum Role: Hashable, Sendable {
         /// Title of a section with its level (1 being the highest).
         case heading(level: Int)
 

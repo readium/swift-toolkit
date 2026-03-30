@@ -21,7 +21,7 @@ public struct PointerEvent: Equatable {
     public var modifiers: KeyModifiers
 
     /// Phase of a pointer event.
-    public enum Phase: Equatable, CustomStringConvertible {
+    public enum Phase: Equatable, CustomStringConvertible, Sendable {
         /// Fired when a pointer becomes active.
         case down
 
@@ -79,7 +79,7 @@ public enum Pointer: Equatable, CustomStringConvertible {
 }
 
 /// Type of a pointer.
-public enum PointerType: Equatable, CaseIterable {
+public enum PointerType: Equatable, CaseIterable, Sendable {
     case touch
     case mouse
 }

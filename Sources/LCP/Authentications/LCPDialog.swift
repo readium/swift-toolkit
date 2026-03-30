@@ -47,7 +47,7 @@ import SwiftUI
 /// }
 /// ```
 public struct LCPDialog: View {
-    public enum ErrorMessage {
+    public enum ErrorMessage: Sendable {
         case incorrectPassphrase
 
         var string: String {

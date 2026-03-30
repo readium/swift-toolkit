@@ -31,7 +31,7 @@ public protocol LCPAuthenticating {
     ) async -> String?
 }
 
-public enum LCPAuthenticationReason {
+public enum LCPAuthenticationReason: Sendable {
     /// No matching passphrase was found.
     case passphraseNotFound
     /// The provided passphrase was invalid.

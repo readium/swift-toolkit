@@ -110,7 +110,7 @@ public struct SearchOptions: Hashable {
 public typealias SearchResult<Success> = Result<Success, SearchError>
 
 /// Represents an error which might occur during a search activity.
-public enum SearchError: Error {
+public enum SearchError: Error, Sendable {
     /// The publication is not searchable.
     case publicationNotSearchable
 

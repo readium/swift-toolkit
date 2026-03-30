@@ -14,7 +14,7 @@ public struct LicenseDocument {
     public typealias Provider = String
 
     /// The possible rel of Links.
-    public enum Rel: String {
+    public enum Rel: String, Sendable {
         /// Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
         case hint
         /// Location where the Publication associated with the License Document can be downloaded

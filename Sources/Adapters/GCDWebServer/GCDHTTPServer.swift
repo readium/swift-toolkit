@@ -10,7 +10,7 @@ import ReadiumInternal
 import ReadiumShared
 import UIKit
 
-public enum GCDHTTPServerError: Error {
+public enum GCDHTTPServerError: Error, Sendable {
     case failedToStartServer(cause: Error)
     case serverNotStarted
     case invalidEndpoint(HTTPServerEndpoint)

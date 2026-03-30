@@ -29,7 +29,7 @@ public class PublicationSpeechSynthesizer: Loggable {
         publication.content() != nil
     }
 
-    public enum Error: Swift.Error {
+    public enum Error: Swift.Error, Sendable {
         /// Underlying `TTSEngine` error.
         case engine(TTSError)
     }
@@ -63,7 +63,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// Represents a state of the `PublicationSpeechSynthesizer`.
-    public enum State: Equatable {
+    public enum State: Equatable, Sendable {
         /// The synthesizer is completely stopped and must be (re)started from a given locator.
         case stopped
 

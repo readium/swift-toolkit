@@ -7,12 +7,12 @@
 import Foundation
 import ReadiumShared
 
-public enum OPDSParserError: Error {
+public enum OPDSParserError: Error, Sendable {
     case documentNotFound
     case documentNotValid
 }
 
-public enum OPDSParser {
+public enum OPDSParser: Sendable {
     static var feedURL: URL?
 
     /// Parse an OPDS feed or publication.

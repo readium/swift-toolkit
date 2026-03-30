@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public enum ReadiumWebPubParserError: Error {
+public enum ReadiumWebPubParserError: Error, Sendable {
     case parseFailure(url: URL, Error?)
     case missingFile(path: String)
 }

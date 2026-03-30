@@ -10,7 +10,7 @@ import ReadiumShared
 
 /// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
 /// the six basic values of the "title-type" property specified by EPUB 3:
-public enum EPUBTitleType: String {
+public enum EPUBTitleType: String, Sendable {
     case main
     case subtitle
     case short

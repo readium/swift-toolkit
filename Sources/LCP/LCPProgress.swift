@@ -7,7 +7,7 @@
 import Foundation
 
 /// Percent-based progress of the acquisition.
-public enum LCPProgress {
+public enum LCPProgress: Sendable {
     /// Undetermined progress, a spinner should be shown to the user.
     case indefinite
     /// A finite progress from 0.0 to 1.0, a progress bar should be shown to the user.

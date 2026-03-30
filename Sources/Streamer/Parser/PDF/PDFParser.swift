@@ -9,7 +9,7 @@ import Foundation
 import ReadiumShared
 
 /// Errors thrown during the parsing of the PDF.
-public enum PDFParserError: Error {
+public enum PDFParserError: Error, Sendable {
     /// The file at 'path' is missing from the container.
     case missingFile(path: String)
     /// Failed to open the PDF

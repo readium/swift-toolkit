@@ -30,7 +30,7 @@ public protocol Warning {
 }
 
 /// Indicates how the user experience might be affected by a warning.
-public enum WarningSeverityLevel {
+public enum WarningSeverityLevel: Sendable {
     /// The user probably won't notice the issue.
     case minor
     /// The user experience might be affected, but it shouldn't prevent the user from enjoying the

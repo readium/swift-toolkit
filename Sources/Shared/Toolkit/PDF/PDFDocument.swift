@@ -7,7 +7,7 @@
 import Foundation
 import UIKit
 
-public enum PDFDocumentError: Error {
+public enum PDFDocumentError: Error, Sendable {
     /// The provided password was incorrect.
     case invalidPassword
     /// Impossible to open the given PDF.

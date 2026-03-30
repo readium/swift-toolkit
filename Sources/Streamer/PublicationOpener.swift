@@ -108,7 +108,7 @@ public class PublicationOpener {
     }
 }
 
-public enum PublicationOpenError: Error {
+public enum PublicationOpenError: Error, Sendable {
     /// The asset is not supported by the publication parser.
     case formatNotSupported
 

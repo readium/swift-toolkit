@@ -50,7 +50,7 @@ public struct OPDSAvailability: Equatable, JSONValueDecodable, JSONObjectEncodab
         ])
     }
 
-    public enum State: String {
+    public enum State: String, Sendable {
         case available, unavailable, reserved, ready
     }
 }
