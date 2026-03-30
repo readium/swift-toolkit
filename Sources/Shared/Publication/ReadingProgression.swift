@@ -16,15 +16,4 @@ public enum ReadingProgression: String, Sendable {
     /// Bottom to top
     case btt
     case auto
-
-    /// Returns the leading Page for the reading progression.
-    @available(*, unavailable)
-    public var leadingPage: Presentation.Page {
-        switch self {
-        case .ltr, .ttb, .auto:
-            return .left
-        case .rtl, .btt:
-            return .right
-        }
-    }
 }

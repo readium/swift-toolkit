@@ -56,12 +56,6 @@ open class PDFNavigatorViewController:
         case openPDFFailed
     }
 
-    /// Whether the pages is always scaled to fit the screen, unless the user zoomed in.
-    @available(*, unavailable, message: "This API is deprecated")
-    public var scalesDocumentToFit: Bool {
-        true
-    }
-
     public weak var delegate: PDFNavigatorDelegate?
     public private(set) var pdfView: PDFDocumentView?
     private var pdfViewDefaultBackgroundColor: UIColor!
