@@ -35,7 +35,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// User configuration for the text-to-speech engine.
-    public struct Configuration: Equatable {
+    public struct Configuration: Equatable, Sendable {
         /// Language overriding the publication one.
         public var defaultLanguage: Language?
 
@@ -53,7 +53,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// An utterance is an arbitrary text (e.g. sentence) extracted from the publication, that can be synthesized by
     /// the TTS engine.
-    public struct Utterance: Equatable {
+    public struct Utterance: Equatable, Sendable {
         /// Text to be spoken.
         public let text: String
         /// Locator to the utterance in the publication.

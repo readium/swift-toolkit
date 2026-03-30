@@ -41,7 +41,7 @@ public enum WarningSeverityLevel: Sendable {
 }
 
 /// Warning raised when parsing a model object from its JSON representation fails.
-public struct JSONWarning: Warning {
+public struct JSONWarning: Warning, Sendable {
     /// Type of the model object to be parsed.
     public let modelType: Any.Type
     /// Details about the failure.

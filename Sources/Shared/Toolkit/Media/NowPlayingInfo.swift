@@ -15,7 +15,7 @@ import UIKit
 public final class NowPlayingInfo {
     public static let shared = NowPlayingInfo()
 
-    public struct Media: Equatable {
+    public struct Media: Equatable, Sendable {
         /// The title (or name) of the media item.
         public var title: String
         /// The performing artist(s) for a media item.
@@ -36,7 +36,7 @@ public final class NowPlayingInfo {
         }
     }
 
-    public struct Playback: Equatable {
+    public struct Playback: Equatable, Sendable {
         /// The playback duration of the media item, in seconds.
         public var duration: Double?
         /// The elapsed time of the now playing item, in seconds.

@@ -38,7 +38,7 @@ public enum LCPAuthenticationReason: Sendable {
     case invalidPassphrase
 }
 
-public struct LCPAuthenticatedLicense {
+public struct LCPAuthenticatedLicense: Sendable {
     /// A hint to be displayed to the User to help them remember the User Passphrase.
     public var hint: String {
         document.encryption.userKey.textHint

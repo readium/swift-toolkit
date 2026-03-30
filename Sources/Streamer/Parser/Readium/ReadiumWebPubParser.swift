@@ -186,7 +186,7 @@ private extension ReadResult<Data> {
 }
 
 /// Warning raised when parsing a RWPM.
-public struct RWPMWarning: Warning {
+public struct RWPMWarning: Warning, Sendable {
     public let message: String
     public let severity: WarningSeverityLevel
 

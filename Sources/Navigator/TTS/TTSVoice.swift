@@ -9,7 +9,7 @@ import Foundation
 import ReadiumShared
 
 /// Represents a voice provided by the TTS engine which can speak an utterance.
-public struct TTSVoice: Hashable {
+public struct TTSVoice: Hashable, Sendable {
     public enum Gender: Hashable, Sendable {
         case female, male, unspecified
     }

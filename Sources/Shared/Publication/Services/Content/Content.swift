@@ -205,7 +205,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
 /// An attribute key identifies uniquely a type of attribute.
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
-public struct ContentAttributeKey<V>: Hashable {
+public struct ContentAttributeKey<V>: Hashable, Sendable {
     public static var accessibilityLabel: ContentAttributeKey<String> {
         .init("accessibilityLabel")
     }

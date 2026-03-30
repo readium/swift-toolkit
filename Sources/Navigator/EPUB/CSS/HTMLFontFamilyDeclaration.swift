@@ -57,7 +57,7 @@ public extension HTMLFontFamilyDeclaration {
 }
 
 /// A font family declaration.
-public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration {
+public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
     public let fontFamily: FontFamily
     public let alternates: [FontFamily]
 
@@ -89,7 +89,7 @@ public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration {
 }
 
 /// Represents a single `@font-face` CSS rule.
-public struct CSSFontFace {
+public struct CSSFontFace: Sendable {
     /// Represents an individual font file.
     ///
     /// `preload` indicates whether this source will be declared for preloading

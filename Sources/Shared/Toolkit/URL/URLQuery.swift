@@ -7,9 +7,9 @@
 import Foundation
 
 /// Represents a list of query parameters in a URL.
-public struct URLQuery: Hashable {
+public struct URLQuery: Hashable, Sendable {
     /// Represents a single query parameter and its value in a URL.
-    public struct Parameter: Hashable {
+    public struct Parameter: Hashable, Sendable {
         public let name: String
         public let value: String?
     }

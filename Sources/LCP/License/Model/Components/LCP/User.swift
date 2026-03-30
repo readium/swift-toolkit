@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public struct User: JSONValueDecodable {
+public struct User: JSONValueDecodable, Sendable {
     public typealias ID = String
 
     /// Unique identifier for the User at a specific Provider.

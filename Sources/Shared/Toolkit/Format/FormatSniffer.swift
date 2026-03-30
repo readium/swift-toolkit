@@ -53,7 +53,7 @@ public extension FormatSniffer {
 }
 
 /// Bundle of media type and file extension hints for the `FormatHintsSniffer`.
-public struct FormatHints {
+public struct FormatHints: Sendable {
     public var mediaTypes: [MediaType]
     public var fileExtensions: [FileExtension]
 

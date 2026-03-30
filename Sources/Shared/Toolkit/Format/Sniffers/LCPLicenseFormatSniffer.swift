@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs an LCP License Document.
-public struct LCPLicenseFormatSniffer: FormatSniffer {
+public struct LCPLicenseFormatSniffer: FormatSniffer, Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

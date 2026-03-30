@@ -49,7 +49,7 @@ public protocol Navigator: AnyObject {
     func goBackward(options: NavigatorGoOptions) async -> Bool
 }
 
-public struct NavigatorGoOptions: Hashable {
+public struct NavigatorGoOptions: Hashable, Sendable {
     /// Indicates whether the move should be animated when possible.
     public var animated: Bool = false
 

@@ -151,7 +151,7 @@ public extension HTTPClient {
 }
 
 /// Status code of an HTTP response.
-public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiteral {
+public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiteral, Sendable {
     public let rawValue: Int
 
     public init(rawValue: RawValue) {
@@ -284,7 +284,7 @@ public struct HTTPResponse: Equatable {
 }
 
 /// Holds the information about a successful download.
-public struct HTTPDownload {
+public struct HTTPDownload: Sendable {
     /// The location of a temporary file where the server's response is stored.
     /// You are responsible for moving or deleting the downloaded file..
     public let location: FileURL

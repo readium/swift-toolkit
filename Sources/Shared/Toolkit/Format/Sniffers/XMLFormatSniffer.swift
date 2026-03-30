@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs an XML document.
-public struct XMLFormatSniffer: FormatSniffer {
+public struct XMLFormatSniffer: FormatSniffer, Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

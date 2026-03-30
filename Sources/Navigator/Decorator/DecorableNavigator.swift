@@ -83,7 +83,7 @@ public struct Decoration: Hashable, JSONObjectEncodable {
     /// instructions which makes sense for the resource type.
     public struct Style: Hashable {
         /// Unique ID for a style.
-        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable, JSONValueEncodable {
+        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable, JSONValueEncodable, Sendable {
             public let rawValue: String
             public init(rawValue: String) {
                 self.rawValue = rawValue
@@ -111,7 +111,7 @@ public struct Decoration: Hashable, JSONObjectEncodable {
             .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive))
         }
 
-        public struct HighlightConfig: Hashable {
+        public struct HighlightConfig: Hashable, Sendable {
             public var tint: UIColor?
             public var isActive: Bool
             public init(tint: UIColor? = nil, isActive: Bool = false) {

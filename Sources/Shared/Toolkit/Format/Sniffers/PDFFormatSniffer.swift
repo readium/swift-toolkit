@@ -9,7 +9,7 @@ import Foundation
 /// Sniffs a PDF document.
 ///
 /// Reference: https://www.loc.gov/preservation/digital/formats/fdd/fdd000123.shtml
-public struct PDFFormatSniffer: FormatSniffer {
+public struct PDFFormatSniffer: FormatSniffer, Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

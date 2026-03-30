@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct XMLNamespace {
+public struct XMLNamespace: Sendable {
     public let prefix: String
     public let uri: String
 

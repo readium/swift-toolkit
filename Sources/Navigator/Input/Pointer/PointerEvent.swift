@@ -111,7 +111,7 @@ public struct MousePointer: Identifiable, Equatable {
 /// Represents a set of mouse buttons.
 ///
 /// The values are derived from https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons#value
-public struct MouseButtons: OptionSet, Equatable, CustomStringConvertible {
+public struct MouseButtons: OptionSet, Equatable, CustomStringConvertible, Sendable {
     /// Main button, usually the left button.
     public static let main = MouseButtons(rawValue: 1 << 0)
 

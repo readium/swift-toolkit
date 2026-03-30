@@ -7,7 +7,7 @@
 import Foundation
 
 /// Represents a relative URL.
-public struct RelativeURL: URLProtocol, Hashable {
+public struct RelativeURL: URLProtocol, Hashable, Sendable {
     public let url: URL
 
     /// Creates a ``RelativeURL`` from a standard Swift `URL`.

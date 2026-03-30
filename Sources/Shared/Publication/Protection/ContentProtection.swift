@@ -49,7 +49,7 @@ public struct ContentProtectionScheme: RawRepresentable, Equatable, Sendable {
     public static let adept = ContentProtectionScheme(rawValue: HTTPURL(string: "http://ns.adobe.com/adept")!)
 }
 
-public struct ContentProtectionSchemeNotSupportedError: Error {
+public struct ContentProtectionSchemeNotSupportedError: Error, Sendable {
     public let scheme: ContentProtectionScheme
 
     public init(scheme: ContentProtectionScheme) {

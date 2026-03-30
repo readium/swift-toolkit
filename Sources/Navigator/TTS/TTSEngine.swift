@@ -42,7 +42,7 @@ public enum TTSError: Error, Sendable {
 }
 
 /// An utterance is an arbitrary text (e.g. sentence) that can be synthesized by the TTS engine.
-public struct TTSUtterance {
+public struct TTSUtterance: Sendable {
     /// Text to be spoken.
     public let text: String
 

@@ -123,7 +123,7 @@ public enum TextAlignment: String, Codable, Hashable, Sendable {
 }
 
 /// Represents a color stored as a packed int.
-public struct Color: RawRepresentable, Codable, Hashable {
+public struct Color: RawRepresentable, Codable, Hashable, Sendable {
     /// Packed int representation.
     public var rawValue: Int
 
@@ -190,7 +190,7 @@ public struct Color: RawRepresentable, Codable, Hashable {
 ///
 /// For a list of vetted font families, see
 /// https://readium.org/readium-css/docs/CSS10-libre_fonts.
-public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable, Hashable {
+public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable, Hashable, Sendable {
     // Generic font families
     // See https://www.w3.org/TR/css-fonts-4/#generic-font-families
 

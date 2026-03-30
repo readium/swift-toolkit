@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs a Readium Web Publication Manifest.
-public struct RWPMFormatSniffer: FormatSniffer {
+public struct RWPMFormatSniffer: FormatSniffer, Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

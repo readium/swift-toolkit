@@ -28,7 +28,7 @@ public protocol Container: Closeable {
 }
 
 /// A `Container` providing no entries at all.
-public struct EmptyContainer: Container {
+public struct EmptyContainer: Container, Sendable {
     public init() {}
 
     public let sourceURL: AbsoluteURL? = nil

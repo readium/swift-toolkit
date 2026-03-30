@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Used to encrypt the Publication Resources.
 /// This is encrypted using the User Key.
-public struct ContentKey: JSONValueDecodable {
+public struct ContentKey: JSONValueDecodable, Sendable {
     /// Algorithm used to encrypt the Content Key, identified using the URIs defined in [XML-ENC]. This MUST match the Content Key encryption algorithm named in the Encryption Profile identified in `encryption/profile`.
     public let algorithm: String
     /// Encrypted Content Key.

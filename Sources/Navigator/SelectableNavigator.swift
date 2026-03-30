@@ -20,7 +20,7 @@ public protocol SelectableNavigator: Navigator {
 /// Represents a user content selection in a navigator.
 ///
 /// In the case of a text selection, you can get its content using `locator.text.highlight`.
-public struct Selection {
+public struct Selection: Sendable {
     /// Location of the user selection in the `Publication`.
     public let locator: Locator
 

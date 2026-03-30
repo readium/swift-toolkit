@@ -58,7 +58,7 @@ public extension SearchIterator {
 }
 
 /// Holds the available search options and their current values.
-public struct SearchOptions: Hashable {
+public struct SearchOptions: Hashable, Sendable {
     /// Whether the search will differentiate between capital and lower-case letters.
     public var caseSensitive: Bool?
 

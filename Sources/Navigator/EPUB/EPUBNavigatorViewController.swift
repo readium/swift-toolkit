@@ -148,7 +148,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     /// Information about the visible portion of the publication.
-    public struct Viewport: Equatable {
+    public struct Viewport: Equatable, Sendable {
         /// Visible reading order resources.
         public var readingOrder: [AnyURL]
 

@@ -88,7 +88,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// access.
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#ways-of-reading
-    public struct WaysOfReading: AccessibilityDisplayField {
+    public struct WaysOfReading: AccessibilityDisplayField, Sendable {
         /// Indicates if users can modify the appearance of the text and the
         /// page layout according to the possibilities offered by the reading
         /// system.
@@ -266,7 +266,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// Identifies the navigation features included in the publication.
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#navigation
-    public struct Navigation: AccessibilityDisplayField {
+    public struct Navigation: AccessibilityDisplayField, Sendable {
         /// Indicates whether no information about navigation features is
         /// available.
         public var noMetadata: Bool {
@@ -348,7 +348,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// for prerecorded audio are available.
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#rich-content
-    public struct RichContent: AccessibilityDisplayField {
+    public struct RichContent: AccessibilityDisplayField, Sendable {
         /// Indicates whether no information about rich content is available.
         public var noMetadata: Bool {
             !extendedAltTextDescriptions && !mathFormula && !mathFormulaAsMathML &&
@@ -469,7 +469,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// better understand the accessibility characteristics of digital
     /// publications. These are for metadata that do not fit into the other
     /// categories or are rarely used in trade publishing.
-    public struct AdditionalInformation: AccessibilityDisplayField {
+    public struct AdditionalInformation: AccessibilityDisplayField, Sendable {
         /// No information is available.
         public var noMetadata: Bool {
             !pageBreakMarkers && !aria && !audioDescriptions && !braille &&
@@ -629,7 +629,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// when content is potentially dangerous to them.
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#hazards
-    public struct Hazards: AccessibilityDisplayField {
+    public struct Hazards: AccessibilityDisplayField, Sendable {
         public enum Hazard: Sendable {
             case yes
             case no
@@ -780,7 +780,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// internationally recognized conformance standards for accessibility.
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#conformance-group
-    public struct Conformance: AccessibilityDisplayField {
+    public struct Conformance: AccessibilityDisplayField, Sendable {
         /// Accessibility conformance profiles.
         public var profiles: [Accessibility.Profile]
 
@@ -838,7 +838,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// by legal counsel for each jurisdiction.
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#legal-considerations
-    public struct Legal: AccessibilityDisplayField {
+    public struct Legal: AccessibilityDisplayField, Sendable {
         /// No information is available.
         public var noMetadata: Bool {
             !exemption
@@ -888,7 +888,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
     /// duplicate, the other discoverability metadata.
     ///
     /// https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/guidelines/#accessibility-summary
-    public struct AccessibilitySummary: AccessibilityDisplayField {
+    public struct AccessibilitySummary: AccessibilityDisplayField, Sendable {
         public var summary: String?
 
         public let id: AccessibilityDisplayString = .accessibilitySummaryTitle
