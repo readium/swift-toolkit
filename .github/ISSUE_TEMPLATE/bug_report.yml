@@ -66,13 +66,11 @@ body:
         ```shell
         echo "macOS: `sw_vers -productVersion`"
         echo "platform: `uname -m`"
-        echo "carthage: `carthage version`"
         xcodebuild -version
         ```
       placeholder: |
         macOS: 14.1.2
         platform: arm64
-        carthage: 0.39.1
         Xcode 15.1
         Build version 15C65
       render: bash

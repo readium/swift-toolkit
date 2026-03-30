@@ -9,7 +9,6 @@ Choose one of the following targets to generate:\n\
 \n\
   from the \033[1;33mmain\033[0m branch only:\n\
     \033[1mspm\033[0m\t\t\t(recommended) Integration with Swift Package Manager\n\
-    \033[1mcarthage\033[0m\tIntegration with Carthage\n\
     \033[1mcocoapods\033[0m\tIntegration with CocoaPods\n\
 \n\
   from the \033[1;33mmain\033[0m or \033[1;33mdevelop\033[0m branches:\n\
@@ -21,8 +20,6 @@ To enable Readium LCP, provide the liblcp URL EDRLab gave you, e.g.\n\
 clean:
 	@rm -f project.yml
 	@rm -f Podfile*
-	@rm -f Cartfile*
-	@rm -rf Carthage
 	@rm -rf Pods
 	@rm -rf TestApp.xcodeproj
 	@rm -rf TestApp.xcworkspace
@@ -41,23 +38,6 @@ ifdef commit
 else
 	@sed -i '' -e "s>VERSION>from: $(version)>g" project.yml
 endif
-	xcodegen generate
-	@echo "\nopen TestApp.xcodeproj"
-
-carthage: clean
-ifdef commit
-	@echo "github \"readium/swift-toolkit\" \"$(commit)\"" > Cartfile
-else
-	@echo "github \"readium/swift-toolkit\" ~> $(version)" > Cartfile
-endif
-
-ifdef lcp
-	@cp Integrations/Carthage/project+lcp.yml project.yml
-	@echo "binary \"$(lcp)\"" >> Cartfile
-else
-	@cp Integrations/Carthage/project.yml .
-endif
-	carthage update --verbose --platform ios --use-xcframeworks --cache-builds --no-use-binaries
 	xcodegen generate
 	@echo "\nopen TestApp.xcodeproj"
 

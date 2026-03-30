@@ -112,7 +112,7 @@ Guides are available to help you make the most of the toolkit.
 
 ### Dependencies
 
-The toolkit's libraries are distributed with [Swift Package Manager](#swift-package-manager) (recommended), [Carthage](#carthage) and [CocoaPods](#cocoapods). It's also possible to clone the repository (or a fork) and [depend on the libraries locally](#local-git-clone).
+The toolkit's libraries are distributed with [Swift Package Manager](#swift-package-manager) (recommended) and [CocoaPods](#cocoapods). It's also possible to clone the repository (or a fork) and [depend on the libraries locally](#local-git-clone).
 
 The [Test App](TestApp) contains examples on how to use all these dependency managers.
 
@@ -123,33 +123,6 @@ From Xcode, open **File** > **Add Packages** and use Readium's GitHub repository
 You are then free to add one or more Readium libraries to your application. They are designed to work independently.
 
 If you're stuck, find more information at [developer.apple.com](https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app).
-
-#### Carthage
-
-Add the following to your `Cartfile`:
-
-```
-github "readium/swift-toolkit" ~> 3.8.0
-```
-
-Then, [follow the usual Carthage steps](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application) to add the Readium libraries to your project.
-
-Note that Carthage will build all Readium modules and their dependencies, but you are free to add only the ones you are actually using. The Readium libraries are designed to work independently.
-
-Refer to the following table to know which dependencies are required for each Readium library.
-
-|                        |   `ReadiumShared`  |  `ReadiumStreamer` | `ReadiumNavigator` |    `ReadiumOPDS`   |    `ReadiumLCP`    | `ReadiumAdapterGCDWebServer` | `ReadiumAdapterLCPSQLite` |
-|------------------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|------------------------------|---------------------------|
-| **`ReadiumShared`**    |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:           | :heavy_check_mark:        |
-| **`ReadiumInternal`**  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
-| `CryptoSwift`          |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |                              |                           |
-| `DifferenceKit`        |                    |                    | :heavy_check_mark: |                    |                    |                              |                           |
-| `ReadiumFuzi`          | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
-| `ReadiumGCDWebServer`  |                    |                    |                    |                    |                    | :heavy_check_mark:           |                           |
-| `ReadiumZIPFoundation` | :heavy_check_mark: |                    |                    |                    | :heavy_check_mark: |                              |                           |
-| `Minizip`              | :heavy_check_mark: |                    |                    |                    |                    |                              |                           |
-| `SQLite.swift`         |                    |                    |                    |                    |                    |                              | :heavy_check_mark:        |
-| `SwiftSoup`            | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
 
 #### CocoaPods
 

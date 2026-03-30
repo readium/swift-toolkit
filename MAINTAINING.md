@@ -6,7 +6,6 @@ To bump the minimum required iOS version, update these files:
 
 - `README.md`, section "Minimum Requirements"
 - `Package.swift`
-- `Support/Carthage/project.yml`
 - `Support/CocoaPods/*.podspec` — edit `iosTarget` in `Support/CocoaPods/Specs.swift`, then run `make podspecs` and commit the generated files
 
 ## Creating a New Package
@@ -37,35 +36,6 @@ Add a new product and its source/test targets:
 ### 2. `Support/CocoaPods/Readium<ModuleName>.podspec`
 
 Add an entry to `Support/CocoaPods/Specs.swift` and run `make podspecs` to generate the podspec file.
-
-### 3. `Support/Carthage/project.yml`
-
-Add a new target and scheme:
-
-```yaml
-targets:
-  Readium<ModuleName>:
-    type: framework
-    platform: iOS
-    deploymentTarget: "15.0"
-    sources:
-      - path: ../../Sources/<ModuleName>
-    dependencies:
-      - target: ReadiumShared
-      - target: ReadiumNavigator
-    settings:
-      PRODUCT_BUNDLE_IDENTIFIER: org.readium.swift-toolkit.audio-navigator
-      INFOPLIST_FILE: Info.plist
-
-schemes:
-  Readium<ModuleName>:
-    build:
-      targets:
-        Readium<ModuleName>: all
-```
-
-> [!WARNING]
-> The module name must follow the `Readium<ModuleName>` convention, and the iOS deployment target / Swift version must match the values in all other packages.
 
 ## Releasing a New Version
 
@@ -116,7 +86,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
         git tag -a 3.0.1 -m 3.0.1
         git push --tags
         ```
-7. Verify you can fetch the new version from the latest Test App with `make spm|carthage|cocoapods version=3.0.1`
+7. Verify you can fetch the new version from the latest Test App with `make spm|cocoapods version=3.0.1`
 8. Announce the release.
     1. Create a new release on GitHub.
     2. Write a high-level summary of the changelog for the blog.
