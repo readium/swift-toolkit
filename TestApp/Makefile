@@ -81,8 +81,6 @@ ifdef lcp
 else
 	@cp Integrations/Local/project.yml .
 endif
-	@cp -r Integrations/Local/TestApp.xcworkspace .
 	@cp -r Integrations/Local/TestApp.xctestplan .
 	xcodegen generate
-	@echo "\nopen TestApp.xcworkspace"
 
