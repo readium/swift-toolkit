@@ -12,12 +12,12 @@ import SwiftUI
 /// Pair an ``LCPObservableAuthentication``  with an ``LCPDialog`` to implement
 /// the LCP authentication in SwiftUI.
 @MainActor
-public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObject {
+public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObject, Sendable {
     /// Represents an on-going LCP authentication request.
     ///
     /// You must call the `submit()` or `cancel()` API to conclude the request.
     @MainActor
-    public final class Request: Identifiable {
+    public final class Request: Identifiable, Sendable {
         /// LCP License requested to be unlocked.
         public let license: LCPAuthenticatedLicense
 

@@ -57,7 +57,7 @@ public protocol PDFDocumentFactory {
     func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument
 }
 
-public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
+public final class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable {
     /// The default PDF document factory uses Core Graphics.
     private let factory = CGPDFDocumentFactory()
 
@@ -73,7 +73,7 @@ public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
 }
 
 /// A PDF document factory which will iterate over a list of factories until one works.
-public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
+public final class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
     private let factories: [PDFDocumentFactory]
 
     public init(factories: [PDFDocumentFactory]) {

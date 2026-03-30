@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs OPDS documents.
-public class OPDSFormatSniffer: FormatSniffer {
+public final class OPDSFormatSniffer: FormatSniffer, Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

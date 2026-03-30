@@ -26,7 +26,7 @@ public protocol _ResourceContentExtractorFactory {
 
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
-public class _DefaultResourceContentExtractorFactory: _ResourceContentExtractorFactory {
+public final class _DefaultResourceContentExtractorFactory: _ResourceContentExtractorFactory, Sendable {
     public init() {}
 
     public func makeExtractor(for resource: Resource, mediaType: MediaType) -> _ResourceContentExtractor? {

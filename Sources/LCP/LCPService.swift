@@ -17,7 +17,7 @@ import UIKit
 /// You can freely use the `sender` parameter to give some UI context which will be forwarded to
 /// your instance of `LCPAuthenticating`. This can be useful to provide the host `UIViewController`
 /// when presenting a dialog, for example.
-public final class LCPService: Loggable {
+public final class LCPService: Loggable, Sendable {
     private let licenses: LicensesService
     private let assetRetriever: AssetRetriever
 

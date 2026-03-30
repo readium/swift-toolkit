@@ -11,7 +11,7 @@ protocol PDFDocumentViewDelegate: AnyObject {
     func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets?
 }
 
-public final class PDFDocumentView: PDFView {
+public final class PDFDocumentView: PDFView, Sendable {
     var editingActions: EditingActionsController
     private weak var documentViewDelegate: PDFDocumentViewDelegate?
 

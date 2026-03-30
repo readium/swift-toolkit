@@ -166,7 +166,7 @@ public class MappedPreference<OldValue, NewValue>: Preference {
     }
 }
 
-public class PreferenceWithSupportedValues<Value: Hashable>: MappedPreference<Value, Value>, EnumPreference {
+public final class PreferenceWithSupportedValues<Value: Hashable>: MappedPreference<Value, Value>, EnumPreference {
     public let supportedValues: [Value]
 
     init(original: AnyPreference<Value>, supportedValues: [Value]) {
@@ -175,7 +175,7 @@ public class PreferenceWithSupportedValues<Value: Hashable>: MappedPreference<Va
     }
 }
 
-public class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>:
+public final class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>:
     MappedPreference<OldValue, NewValue>, EnumPreference
 {
     let originalEnum: AnyEnumPreference<OldValue>
@@ -203,7 +203,7 @@ public class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>:
     }
 }
 
-public class MappedRangePreference<OldValue: Comparable, NewValue: Comparable>:
+public final class MappedRangePreference<OldValue: Comparable, NewValue: Comparable>:
     MappedPreference<OldValue, NewValue>, RangePreference
 {
     let originalRange: AnyRangePreference<OldValue>

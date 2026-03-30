@@ -96,7 +96,7 @@ public protocol XMLDocumentFactory {
     func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument
 }
 
-public class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
+public final class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable, Sendable {
     public init() {}
 
     public func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument {

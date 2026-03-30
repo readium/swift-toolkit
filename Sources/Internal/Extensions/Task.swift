@@ -7,7 +7,7 @@
 import Foundation
 
 @MainActor
-public final class CancellableTasks {
+public final class CancellableTasks: Sendable {
     private var tasks: Set<Task<Void, Never>> = []
 
     public nonisolated init() {}

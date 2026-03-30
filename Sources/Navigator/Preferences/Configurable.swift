@@ -50,7 +50,7 @@ public extension Configurable {
 }
 
 /// A type-erasing `Configurable` object.
-public class AnyConfigurable<
+public final class AnyConfigurable<
     Settings: ConfigurableSettings,
     Preferences: ConfigurablePreferences,
     Editor: PreferencesEditor

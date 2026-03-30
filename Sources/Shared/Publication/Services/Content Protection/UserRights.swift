@@ -35,7 +35,7 @@ public protocol UserRights {
 }
 
 /// A `UserRights` without any restriction.
-public class UnrestrictedUserRights: UserRights {
+public final class UnrestrictedUserRights: UserRights, Sendable {
     public init() {}
 
     public func canCopy(text: String) async -> Bool {
@@ -56,7 +56,7 @@ public class UnrestrictedUserRights: UserRights {
 }
 
 /// A `UserRights` which forbids all rights.
-public class AllRestrictedUserRights: UserRights {
+public final class AllRestrictedUserRights: UserRights, Sendable {
     public init() {}
 
     public func canCopy(text: String) async -> Bool {

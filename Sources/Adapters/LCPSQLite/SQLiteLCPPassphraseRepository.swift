@@ -7,10 +7,10 @@
 import Foundation
 import ReadiumLCP
 import ReadiumShared
-import SQLite
+@preconcurrency import SQLite
 
 @available(*, deprecated, message: "Use LCPKeychainPassphraseRepository from ReadiumLCP instead")
-public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
+public final class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable, Sendable {
     let transactions = Table("Transactions")
     let licenseId = SQLite.Expression<String>("licenseId")
     let provider = SQLite.Expression<String>("origin")

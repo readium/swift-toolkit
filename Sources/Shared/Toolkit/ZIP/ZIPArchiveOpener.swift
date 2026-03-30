@@ -7,7 +7,7 @@
 import Foundation
 
 /// An ``ArchiveOpener`` for ZIP resources.
-public class ZIPArchiveOpener: CompositeArchiveOpener {
+public final class ZIPArchiveOpener: CompositeArchiveOpener {
     public init() {
         super.init([
             MinizipArchiveOpener(),

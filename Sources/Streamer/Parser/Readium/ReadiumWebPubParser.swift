@@ -13,8 +13,8 @@ public enum ReadiumWebPubParserError: Error, Sendable {
 }
 
 /// Parser for a Readium Web Publication (packaged, or as a manifest).
-public class ReadiumWebPubParser: PublicationParser, Loggable {
-    public enum Error: Swift.Error {
+public final class ReadiumWebPubParser: PublicationParser, Loggable {
+    public enum Error: Swift.Error, Sendable {
         case manifestNotFound
         case invalidManifest
     }
