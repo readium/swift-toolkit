@@ -5,7 +5,7 @@
 //
 
 /// Main structure of an OPDS catalog.
-public class Feed {
+public struct Feed {
     public var metadata: OpdsMetadata
     public var links = [Link]()
     public var facets = [Facet]()
