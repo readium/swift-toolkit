@@ -18,7 +18,7 @@ public protocol _ResourceContentExtractor {
 
 /// **WARNING:** This API is experimental and may change or be removed in a future release without
 /// notice. Use with caution.
-public protocol _ResourceContentExtractorFactory {
+public protocol _ResourceContentExtractorFactory: Sendable {
     /// Creates a `ResourceContentExtractor` instance for the given `resource`.
     /// Returns null if the resource format is not supported.
     func makeExtractor(for resource: Resource, mediaType: MediaType) -> _ResourceContentExtractor?

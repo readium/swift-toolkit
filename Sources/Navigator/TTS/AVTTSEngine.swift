@@ -8,7 +8,7 @@ import AVFoundation
 import Foundation
 import ReadiumShared
 
-public protocol AVTTSEngineDelegate: AnyObject {
+public protocol AVTTSEngineDelegate: AnyObject, Sendable {
     /// Called when the engine created a new utterance to be played.
     /// You can customize additional properties of the utterance.
     func avTTSEngine(_ engine: AVTTSEngine, didCreateUtterance utterance: AVSpeechUtterance)

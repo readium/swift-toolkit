@@ -215,7 +215,7 @@ public final class StringSearchService: SearchService, Sendable {
 }
 
 /// Implements the actual search algorithm in sanitized text content.
-public protocol StringSearchAlgorithm {
+public protocol StringSearchAlgorithm: Sendable {
     /// Default value for the search options available with this algorithm.
     ///
     /// If an option does not have a value, it is not supported by the algorithm.

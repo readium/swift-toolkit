@@ -70,7 +70,7 @@ public protocol XMLElement: XMLNode {
     func attribute(named localName: String, namespace: String?) -> String?
 }
 
-public protocol XMLDocumentFactory {
+public protocol XMLDocumentFactory: Sendable {
     /// Opens an XML document from a local file path.
     ///
     /// - Parameters:

@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol ResourceContentIteratorFactory {
+public protocol ResourceContentIteratorFactory: Sendable {
     /// Creates a `ContentIterator` instance for the `resource`, starting from
     /// the given `locator`.
     ///
