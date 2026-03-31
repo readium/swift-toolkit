@@ -50,7 +50,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             await updatePageListDecorations()
         }
     }
-    
+
     /// You need to keep a strong reference to the adapter, otherwise the
     /// navigator binding will be released.
     private var directionalNavigationAdapter: DirectionalNavigationAdapter?

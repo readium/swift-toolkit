@@ -93,9 +93,10 @@ final class PaginationView: UIView, Loggable {
 
     private let scrollView = UIScrollView()
 
-    /// Set while a slide transition animation is in progress to prevent `layoutSubviews`
-    /// from resetting `contentOffset` and interrupting the animation.
-    private var isAnimatingSlide = false
+    /// Set while a transition animation is in progress to prevent
+    /// `layoutSubviews` from resetting `contentOffset` and interrupting the
+    /// animation.
+    private var isAnimatingContentOffset = false
 
     /// Allows the scroll view to scroll.
     var isScrollEnabled: Bool {
@@ -151,7 +152,7 @@ final class PaginationView: UIView, Loggable {
             view.frame = CGRect(origin: CGPoint(x: xOffsetForIndex(index), y: 0), size: size)
         }
 
-        if !isAnimatingSlide {
+        if !isAnimatingContentOffset {
             scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
         }
     }
@@ -330,51 +331,49 @@ final class PaginationView: UIView, Loggable {
 
         if currentIndex == index {
             await scrollToView(at: index, location: location)
-        } else if options.animated, abs(currentIndex - index) == 1 {
-            await slideToView(at: index, location: location)
+        } else if abs(currentIndex - index) == 1 {
+            await slideToView(at: index, location: location, animated: options.animated)
         } else {
             await fadeToView(at: index, location: location, animated: options.animated)
         }
         return true
     }
 
-    private func slideToView(at index: Int, location: PageLocation) async {
+    private func slideToView(at index: Int, location: PageLocation, animated: Bool) async {
         let fromOffset = scrollView.contentOffset
+        let targetOffset = CGPoint(x: xOffsetForIndex(index), y: fromOffset.y)
+        let translationX = fromOffset.x - targetOffset.x
+
+        let snapshot = snapshotView(afterScreenUpdates: false)
+        if let snapshot {
+            snapshot.frame = bounds
+            addSubview(snapshot)
+        }
+
+        isAnimatingContentOffset = true
         scrollView.isScrollEnabled = false
         setCurrentIndex(index, location: location)
 
-        let targetOffset = CGPoint(x: xOffsetForIndex(index), y: fromOffset.y)
-
-        isAnimatingSlide = true
-        // Restore starting offset in case setCurrentIndex triggered any layout changes.
         scrollView.contentOffset = fromOffset
 
-        await withCheckedContinuation { continuation in
-            UIView.animate(
-                withDuration: 0.3,
-                delay: 0,
-                options: .curveEaseInOut,
-                animations: { self.scrollView.contentOffset = targetOffset },
-                completion: { _ in continuation.resume() }
-            )
+        if animated {
+            await animate(duration: 0.3) {
+                snapshot?.transform = CGAffineTransform(translationX: translationX, y: 0)
+                self.scrollView.contentOffset = targetOffset
+            }
+        } else {
+            scrollView.contentOffset = targetOffset
         }
 
-        isAnimatingSlide = false
-        scrollView.contentOffset = targetOffset
+        isAnimatingContentOffset = false
         scrollView.isScrollEnabled = isScrollEnabled
+        try? await Task.sleep(seconds: 0.1)
+        snapshot?.removeFromSuperview()
     }
 
     private func fadeToView(at index: Int, location: PageLocation, animated: Bool) async {
         func fade(to alpha: CGFloat) async {
-            if animated {
-                await withCheckedContinuation { continuation in
-                    UIView.animate(withDuration: 0.15, animations: {
-                        self.alpha = alpha
-                    }) { _ in
-                        continuation.resume()
-                    }
-                }
-            } else {
+            await animate(duration: animated ? 0.15 : 0) {
                 self.alpha = alpha
             }
         }
@@ -402,6 +401,22 @@ final class PaginationView: UIView, Loggable {
             ),
             size: scrollView.frame.size
         ), animated: false)
+    }
+
+    private func animate(duration: TimeInterval, animations: @escaping () -> Void) async {
+        if duration > 0 {
+            await withCheckedContinuation { continuation in
+                UIView.animate(
+                    withDuration: duration,
+                    animations: animations,
+                    completion: { _ in
+                        continuation.resume()
+                    }
+                )
+            }
+        } else {
+            animations()
+        }
     }
 }
 
