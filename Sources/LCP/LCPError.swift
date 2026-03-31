@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public enum LCPError: Error, Sendable {
+public enum LCPError: Error {
     /// The license could not be retrieved because the passphrase is unknown.
     case missingPassphrase
 
