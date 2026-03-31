@@ -93,6 +93,10 @@ final class PaginationView: UIView, Loggable {
 
     private let scrollView = UIScrollView()
 
+    /// Set while a slide transition animation is in progress to prevent `layoutSubviews`
+    /// from resetting `contentOffset` and interrupting the animation.
+    private var isAnimatingSlide = false
+
     /// Allows the scroll view to scroll.
     var isScrollEnabled: Bool {
         didSet { scrollView.isScrollEnabled = isScrollEnabled }
@@ -147,7 +151,9 @@ final class PaginationView: UIView, Loggable {
             view.frame = CGRect(origin: CGPoint(x: xOffsetForIndex(index), y: 0), size: size)
         }
 
-        scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
+        if !isAnimatingSlide {
+            scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
+        }
     }
 
     override func willMove(toSuperview newSuperview: UIView?) {
@@ -324,10 +330,38 @@ final class PaginationView: UIView, Loggable {
 
         if currentIndex == index {
             await scrollToView(at: index, location: location)
+        } else if options.animated, abs(currentIndex - index) == 1 {
+            await slideToView(at: index, location: location)
         } else {
             await fadeToView(at: index, location: location, animated: options.animated)
         }
         return true
+    }
+
+    private func slideToView(at index: Int, location: PageLocation) async {
+        let fromOffset = scrollView.contentOffset
+        scrollView.isScrollEnabled = false
+        setCurrentIndex(index, location: location)
+
+        let targetOffset = CGPoint(x: xOffsetForIndex(index), y: fromOffset.y)
+
+        isAnimatingSlide = true
+        // Restore starting offset in case setCurrentIndex triggered any layout changes.
+        scrollView.contentOffset = fromOffset
+
+        await withCheckedContinuation { continuation in
+            UIView.animate(
+                withDuration: 0.3,
+                delay: 0,
+                options: .curveEaseInOut,
+                animations: { self.scrollView.contentOffset = targetOffset },
+                completion: { _ in continuation.resume() }
+            )
+        }
+
+        isAnimatingSlide = false
+        scrollView.contentOffset = targetOffset
+        scrollView.isScrollEnabled = isScrollEnabled
     }
 
     private func fadeToView(at index: Int, location: PageLocation, animated: Bool) async {
