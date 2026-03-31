@@ -12,7 +12,7 @@ import Foundation
 /// Conveniently, the reference can be reset by setting the `ref` property.
 @dynamicCallable
 public class Weak<T: AnyObject>: @unchecked Sendable {
-    public nonisolated(unsafe) weak var ref: T?
+    public weak package(set) var ref: T?
 
     public init(_ ref: T? = nil) {
         self.ref = ref
