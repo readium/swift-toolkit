@@ -8,11 +8,10 @@
 import XCTest
 
 class DefaultLocatorServiceTests: XCTestCase {
-    private var publication: Publication!
 
     /// locate(Locator) checks that the href exists.
     func testFromLocator() async {
-        let service = makeService(readingOrder: [
+        let (_, service) = makeService(readingOrder: [
             Link(href: "chap1", mediaType: .xml),
             Link(href: "chap2", mediaType: .xml),
             Link(href: "chap3", mediaType: .xml),
@@ -23,13 +22,13 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromLocatorEmptyReadingOrder() async {
-        let service = makeService(readingOrder: [])
+        let (_, service) = makeService(readingOrder: [])
         let result = await service.locate(Locator(href: "href", mediaType: .html))
         XCTAssertNil(result)
     }
 
     func testFromLocatorNotFound() async {
-        let service = makeService(readingOrder: [
+        let (_, service) = makeService(readingOrder: [
             Link(href: "chap1", mediaType: .xml),
             Link(href: "chap3", mediaType: .xml),
         ])
@@ -39,7 +38,7 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromProgression() async {
-        let service = makeService(positions: positionsFixture)
+        let (_, service) = makeService(positions: positionsFixture)
 
         var result = await service.locate(progression: 0.0)
         XCTAssertEqual(result, Locator(
@@ -113,7 +112,7 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromIncorrectProgression() async {
-        let service = makeService(positions: positionsFixture)
+        let (_, service) = makeService(positions: positionsFixture)
 
         var result = await service.locate(progression: -0.2)
         XCTAssertNil(result)
@@ -123,13 +122,13 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromProgressionEmptyPositions() async {
-        let service = makeService(positions: [])
+        let (_, service) = makeService(positions: [])
         let result = await service.locate(progression: 0.5)
         XCTAssertNil(result)
     }
 
     func testFromMinimalLink() async {
-        let service = makeService(readingOrder: [
+        let (_, service) = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
 
@@ -141,7 +140,7 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromLinkInReadingOrderResourcesOrLinks() async {
-        let service = makeService(
+        let (_, service) = makeService(
             links: [Link(href: "/href3", mediaType: .html)],
             readingOrder: [Link(href: "/href1", mediaType: .html)],
             resources: [Link(href: "/href2", mediaType: .html)]
@@ -167,7 +166,7 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromLinkWithFragment() async throws {
-        let service = makeService(readingOrder: [
+        let (_, service) = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
 
@@ -179,7 +178,7 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testTitleFallbackFromLink() async {
-        let service = makeService(readingOrder: [
+        let (_, service) = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html),
         ])
 
@@ -191,7 +190,7 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromLinkNotFound() async {
-        let service = makeService(readingOrder: [
+        let (_, service) = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html),
         ])
 
@@ -204,8 +203,8 @@ class DefaultLocatorServiceTests: XCTestCase {
         readingOrder: [Link] = [],
         resources: [Link] = [],
         positions: [[Locator]] = []
-    ) -> DefaultLocatorService {
-        publication = Publication(
+    ) -> (Publication, DefaultLocatorService) {
+        let publication = Publication(
             manifest: Manifest(
                 metadata: Metadata(title: ""),
                 links: links,
@@ -216,7 +215,7 @@ class DefaultLocatorServiceTests: XCTestCase {
                 positions: InMemoryPositionsService.makeFactory(positionsByReadingOrder: positions)
             )
         )
-        return DefaultLocatorService(publication: Weak(publication))
+        return (publication, DefaultLocatorService(publication: Weak(publication)))
     }
 }
 

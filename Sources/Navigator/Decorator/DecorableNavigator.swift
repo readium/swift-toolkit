@@ -111,7 +111,7 @@ public struct Decoration: Hashable, JSONObjectEncodable {
             .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive))
         }
 
-        public struct HighlightConfig: Hashable, Sendable {
+        public struct HighlightConfig: Hashable {
             public var tint: UIColor?
             public var isActive: Bool
             public init(tint: UIColor? = nil, isActive: Bool = false) {

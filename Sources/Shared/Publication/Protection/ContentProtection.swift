@@ -27,7 +27,7 @@ public protocol ContentProtection {
 
 public enum ContentProtectionOpenError: Error, Sendable {
     /// The asset is not supported by this ``ContentProtection``
-    case assetNotSupported(Error?)
+    case assetNotSupported((any Error)?)
 
     /// An error occurred while reading the asset.
     case reading(ReadError)
