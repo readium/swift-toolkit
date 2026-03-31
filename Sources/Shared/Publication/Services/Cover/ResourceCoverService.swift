@@ -30,13 +30,13 @@ public final class ResourceCoverService: CoverService {
 
         // Fallback: first reading order bitmap/SVG or alternate
         if let firstLink = context.manifest.readingOrder.first {
-            if firstLink.mediaType?.isImage == true {
+            if firstLink.mediaType?.isBitmap == true || firstLink.mediaType?.matches(.svg) == true {
                 if let image = await loadImage(from: firstLink) {
                     return .success(image)
                 }
             }
             for alternate in firstLink.alternates {
-                if alternate.mediaType?.isImage == true {
+                if alternate.mediaType?.isBitmap == true || alternate.mediaType?.matches(.svg) == true {
                     if let image = await loadImage(from: alternate) {
                         return .success(image)
                     }
@@ -54,7 +54,7 @@ public final class ResourceCoverService: CoverService {
         else {
             return nil
         }
-        if link.mediaType?.isSVG == true {
+        if link.mediaType?.matches(.svg) == true {
             return UIImage.fromSVG(data)
         }
         return UIImage(data: data)

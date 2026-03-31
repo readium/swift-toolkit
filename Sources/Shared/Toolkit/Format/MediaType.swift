@@ -191,16 +191,6 @@ public struct MediaType: Sendable, Hashable, RawRepresentable, JSONValueEncodabl
         matchesAny(.avif, .bmp, .gif, .jpeg, .jxl, .png, .tiff, .webp)
     }
 
-    /// Returns whether this media type is of an SVG image.
-    public var isSVG: Bool {
-        matches(.svg)
-    }
-
-    /// Returns whether this media type is of an image, including both bitmap and vectorial formats.
-    public var isImage: Bool {
-        isBitmap || isSVG
-    }
-
     /// Returns whether this media type is of an audio clip.
     public var isAudio: Bool {
         type == "audio"
