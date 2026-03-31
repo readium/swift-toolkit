@@ -38,7 +38,7 @@ public enum TTSError: Error, Sendable {
     case languageNotSupported(language: Language, cause: (any Error & Sendable)?)
 
     /// Other engine-specific errors.
-    case other(Error)
+    case other(any Error & Sendable)
 }
 
 /// An utterance is an arbitrary text (e.g. sentence) that can be synthesized by the TTS engine.
