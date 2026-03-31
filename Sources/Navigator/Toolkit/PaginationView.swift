@@ -31,7 +31,7 @@ enum PageLocation: Equatable {
 
 protocol PageView {
     /// Moves the page to the given internal location.
-    func go(to location: PageLocation) async
+    func go(to location: PageLocation, animated: Bool) async
 }
 
 protocol PaginationViewDelegate: AnyObject {
@@ -93,6 +93,11 @@ final class PaginationView: UIView, Loggable {
 
     private let scrollView = UIScrollView()
 
+    /// Set while a transition animation is in progress to prevent
+    /// `layoutSubviews` from resetting `contentOffset` and interrupting the
+    /// animation.
+    private var isAnimatingContentOffset = false
+
     /// Allows the scroll view to scroll.
     var isScrollEnabled: Bool {
         didSet { scrollView.isScrollEnabled = isScrollEnabled }
@@ -147,7 +152,9 @@ final class PaginationView: UIView, Loggable {
             view.frame = CGRect(origin: CGPoint(x: xOffsetForIndex(index), y: 0), size: size)
         }
 
-        scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
+        if !isAnimatingContentOffset {
+            scrollView.contentOffset.x = xOffsetForIndex(currentIndex)
+        }
     }
 
     override func willMove(toSuperview newSuperview: UIView?) {
@@ -261,7 +268,7 @@ final class PaginationView: UIView, Loggable {
             return
         }
 
-        await view.go(to: location)
+        await view.go(to: location, animated: false)
         await loadNextPage()
     }
 
@@ -322,38 +329,83 @@ final class PaginationView: UIView, Loggable {
             return false
         }
 
+        let shouldAnimate = options.animated && !UIAccessibility.isReduceMotionEnabled
+
         if currentIndex == index {
-            await scrollToView(at: index, location: location)
+            await scrollToView(at: index, location: location, animated: shouldAnimate)
+        } else if abs(currentIndex - index) == 1 {
+            await slideToView(at: index, location: location, animated: shouldAnimate)
         } else {
-            await fadeToView(at: index, location: location, animated: options.animated)
+            await fadeToView(at: index, location: location, animated: shouldAnimate)
         }
         return true
     }
 
+    private func slideToView(at index: Int, location: PageLocation, animated: Bool) async {
+        let fromOffset = scrollView.contentOffset
+        let targetOffset = CGPoint(x: xOffsetForIndex(index), y: fromOffset.y)
+        let translationX = fromOffset.x - targetOffset.x
+
+        // We use a snapshot of the current view for two reasons:
+        //
+        // 1. The current view might get flushed when calling
+        //    `setCurrentIndex()`, but we want to keep it on the screen during
+        //    the animation.
+        // 2. A workaround for visual glitches, see https://github.com/readium/swift-toolkit/issues/737#issuecomment-4090386881
+        let snapshot = snapshotView(afterScreenUpdates: false)
+        if let snapshot {
+            snapshot.frame = bounds
+            addSubview(snapshot)
+        } else {
+            log(.warning, "Could not take a snapshot before sliding to view at index \(index); page transition may flash")
+        }
+
+        isAnimatingContentOffset = true
+        scrollView.isScrollEnabled = false
+
+        defer {
+            snapshot?.removeFromSuperview()
+            isAnimatingContentOffset = false
+            scrollView.isScrollEnabled = isScrollEnabled
+        }
+
+        setCurrentIndex(index, location: location)
+
+        scrollView.contentOffset = fromOffset
+
+        if animated {
+            await animate(duration: 0.3) {
+                snapshot?.transform = CGAffineTransform(translationX: translationX, y: 0)
+                self.scrollView.contentOffset = targetOffset
+            }
+        } else {
+            scrollView.contentOffset = targetOffset
+        }
+
+        // There are visual glitches when scrolling web views into view.
+        // To prevent these, we wait a few ms before removing the snapshot.
+        // See https://github.com/readium/swift-toolkit/issues/737#issuecomment-4090386881
+        if !animated {
+            try? await Task.sleep(seconds: 0.1)
+        }
+    }
+
     private func fadeToView(at index: Int, location: PageLocation, animated: Bool) async {
         func fade(to alpha: CGFloat) async {
-            if animated {
-                await withCheckedContinuation { continuation in
-                    UIView.animate(withDuration: 0.15, animations: {
-                        self.alpha = alpha
-                    }) { _ in
-                        continuation.resume()
-                    }
-                }
-            } else {
+            await animate(duration: animated ? 0.15 : 0) {
                 self.alpha = alpha
             }
         }
 
         await fade(to: 0)
-        await scrollToView(at: index, location: location)
+        await scrollToView(at: index, location: location, animated: false)
         await fade(to: 1)
     }
 
-    private func scrollToView(at index: Int, location: PageLocation) async {
+    private func scrollToView(at index: Int, location: PageLocation, animated: Bool) async {
         guard currentIndex != index else {
             if let view = currentView {
-                await view.go(to: location)
+                await view.go(to: location, animated: animated)
             }
             return
         }
@@ -367,7 +419,23 @@ final class PaginationView: UIView, Loggable {
                 y: scrollView.contentOffset.y
             ),
             size: scrollView.frame.size
-        ), animated: false)
+        ), animated: animated)
+    }
+
+    private func animate(duration: TimeInterval, animations: @escaping () -> Void) async {
+        if duration > 0 {
+            await withCheckedContinuation { continuation in
+                UIView.animate(
+                    withDuration: duration,
+                    animations: animations,
+                    completion: { _ in
+                        continuation.resume()
+                    }
+                )
+            }
+        } else {
+            animations()
+        }
     }
 }
 
@@ -393,6 +461,11 @@ extension PaginationView: UIScrollViewDelegate {
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        // A programmatic slide animation sets isScrollEnabled = false and drives the
+        // content offset directly. If a delegate callback fires during or just after
+        // that window it could call setCurrentIndex with a stale offset, so we bail out.
+        guard !isAnimatingContentOffset else { return }
+
         scrollView.isScrollEnabled = isScrollEnabled
 
         let currentOffset = (readingProgression == .rtl)

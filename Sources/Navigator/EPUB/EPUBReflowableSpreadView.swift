@@ -157,11 +157,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         try? await Task.sleep(seconds: 0.2)
 
         let location = pendingLocation
-        await go(to: pendingLocation)
+        await go(to: location.location, animated: location.animated)
 
         // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
         // a generous delay before showing the spread again.
-        let delayed = !location.isStart
+        let delayed = !location.location.isStart
         try? await Task.sleep(seconds: delayed ? 0.3 : 0)
     }
 
@@ -179,6 +179,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             }
         }()
 
+        guard scrollView.bounds.width > 0 else { return false }
         let offsetX = scrollView.bounds.width * factor
         let targetX = round((scrollView.contentOffset.x + offsetX) / offsetX) * offsetX
         guard 0 ..< scrollView.contentSize.width ~= targetX else {
@@ -217,13 +218,18 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return true
     }
 
-    /// Location to scroll to in the resource once the page is loaded.
-    private var pendingLocation: PageLocation = .start
+    private struct PendingLocation {
+        var location: PageLocation
+        var animated: Bool
+    }
 
-    override func go(to location: PageLocation) async {
+    /// Location to scroll to in the resource once the page is loaded.
+    private var pendingLocation: PendingLocation = .init(location: .start, animated: false)
+
+    override func go(to location: PageLocation, animated: Bool) async {
         guard isSpreadLoaded else {
             // Delays moving to the location until the document is loaded.
-            pendingLocation = location
+            pendingLocation = PendingLocation(location: location, animated: animated)
 
             await waitGoToCompletion()
             return
@@ -231,11 +237,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         switch location {
         case let .locator(locator):
-            await go(to: locator)
+            await go(to: locator, animated: animated)
         case .start:
-            await scroll(toProgression: 0)
+            await scroll(toProgression: 0, animated: animated)
         case .end:
-            await scroll(toProgression: 1)
+            await scroll(toProgression: 1, animated: animated)
         }
 
         didCompleteGoTo()
@@ -284,7 +290,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     @discardableResult
-    private func go(to locator: Locator) async -> Bool {
+    private func go(to locator: Locator, animated: Bool) async -> Bool {
         if !["", "#"].contains(locator.href.string) {
             guard
                 let index = viewModel.readingOrder.firstIndexWithHREF(locator.href),
@@ -296,19 +302,19 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
 
         if locator.text.highlight != nil {
-            return await scroll(toLocator: locator)
+            return await scroll(toLocator: locator, animated: animated)
             // TODO: find the first fragment matching a tag ID (need a regex)
         } else if let id = locator.locations.fragments.first, !id.isEmpty {
-            return await scroll(toTagID: id)
+            return await scroll(toTagID: id, animated: animated)
         } else {
             let progression = locator.locations.progression ?? 0
-            return await scroll(toProgression: progression)
+            return await scroll(toProgression: progression, animated: animated)
         }
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
     @discardableResult
-    private func scroll(toProgression progression: Double) async -> Bool {
+    private func scroll(toProgression progression: Double, animated: Bool) async -> Bool {
         guard progression >= 0, progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
             return false
@@ -324,15 +330,15 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return true
         } else {
             let dir = viewModel.readingProgression.rawValue
-            await evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')")
+            await evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\', \(animated))")
             return true
         }
     }
 
     /// Scrolls at the tag with ID `tagID`.
     @discardableResult
-    private func scroll(toTagID tagID: String) async -> Bool {
-        let result = await evaluateScript("readium.scrollToId(\'\(tagID)\');")
+    private func scroll(toTagID tagID: String, animated: Bool) async -> Bool {
+        let result = await evaluateScript("readium.scrollToId(\'\(tagID)\', \(animated));")
         switch result {
         case let .success(value):
             return (value as? Bool) ?? false
@@ -344,11 +350,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     /// Scrolls at the snippet matching the given text context.
     @discardableResult
-    private func scroll(toLocator locator: Locator) async -> Bool {
+    private func scroll(toLocator locator: Locator, animated: Bool) async -> Bool {
         guard let json = try? locator.jsonString() else {
             return false
         }
-        let result = await evaluateScript("readium.scrollToLocator(\(json));")
+        let result = await evaluateScript("readium.scrollToLocator(\(json), \(animated));")
         switch result {
         case let .success(value):
             return (value as? Bool) ?? false

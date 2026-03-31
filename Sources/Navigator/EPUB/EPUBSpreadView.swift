@@ -379,7 +379,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         0 ... 1
     }
 
-    func go(to location: PageLocation) async {
+    func go(to location: PageLocation, animated: Bool) async {
         fatalError("go(to:) must be implemented in subclasses")
     }
 
