@@ -347,7 +347,7 @@ final class PaginationView: UIView, Loggable {
         let translationX = fromOffset.x - targetOffset.x
 
         // We use a snapshot of the current view for two reasons:
-        // 
+        //
         // 1. The current view might get flushed when calling
         //    `setCurrentIndex()`, but we want to keep it on the screen during
         //    the animation.
@@ -359,10 +359,10 @@ final class PaginationView: UIView, Loggable {
         } else {
             log(.warning, "Could not take a snapshot before sliding to view at index \(index); page transition may flash")
         }
-        
+
         isAnimatingContentOffset = true
         scrollView.isScrollEnabled = false
-        
+
         defer {
             snapshot?.removeFromSuperview()
             isAnimatingContentOffset = false
