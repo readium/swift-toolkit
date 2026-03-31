@@ -387,7 +387,7 @@ public class OPDS1Parser: Loggable {
 
             if rels.contains("collection") || rels.contains("http://opds-spec.org/group") {
                 // no-op
-            } else if rels.contains("http://readium.org/rel/image") || rels.contains("http://opds-spec.org/image") || rels.contains("http://opds-spec.org/image-thumbnail") {
+            } else if rels.contains("http://opds-spec.org/image") || rels.contains("http://opds-spec.org/image-thumbnail") {
                 images.append(link)
             } else {
                 links.append(link)
