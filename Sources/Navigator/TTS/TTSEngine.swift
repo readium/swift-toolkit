@@ -35,10 +35,10 @@ public extension TTSEngine {
 
 public enum TTSError: Error, Sendable {
     /// Tried to synthesize an utterance with an unsupported language.
-    case languageNotSupported(language: Language, cause: (any Error & Sendable)?)
+    case languageNotSupported(language: Language, cause: (any Error)?)
 
     /// Other engine-specific errors.
-    case other(any Error & Sendable)
+    case other(any Error)
 }
 
 /// An utterance is an arbitrary text (e.g. sentence) that can be synthesized by the TTS engine.
