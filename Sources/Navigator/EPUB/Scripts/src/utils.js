@@ -238,7 +238,8 @@ export function scrollLeft(dir, animated) {
   return scrollToOffset(Math.max(offset, minOffset), animated);
 }
 
-// Returns false if the page is alreadyscrollToId at the right-most scroll offset.
+// Returns false if the page is already scrolled at the right-most scroll
+// offset.
 export function scrollRight(dir, animated) {
   var isRTL = dir == "rtl";
   var documentWidth = document.scrollingElement.scrollWidth;
