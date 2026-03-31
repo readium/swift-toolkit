@@ -31,7 +31,7 @@ enum PageLocation: Equatable {
 
 protocol PageView {
     /// Moves the page to the given internal location.
-    func go(to location: PageLocation) async
+    func go(to location: PageLocation, animated: Bool) async
 }
 
 protocol PaginationViewDelegate: AnyObject {
@@ -268,7 +268,7 @@ final class PaginationView: UIView, Loggable {
             return
         }
 
-        await view.go(to: location)
+        await view.go(to: location, animated: false)
         await loadNextPage()
     }
 
@@ -346,6 +346,12 @@ final class PaginationView: UIView, Loggable {
         let targetOffset = CGPoint(x: xOffsetForIndex(index), y: fromOffset.y)
         let translationX = fromOffset.x - targetOffset.x
 
+        // We use a snapshot of the current view for two reasons:
+        // 
+        // 1. The current view might get flushed when calling
+        //    `setCurrentIndex()`, but we want to keep it on the screen during
+        //    the animation.
+        // 2. A workaround for visual glitches, see https://github.com/readium/swift-toolkit/issues/737#issuecomment-4090386881
         let snapshot = snapshotView(afterScreenUpdates: false)
         if let snapshot {
             snapshot.frame = bounds
@@ -353,15 +359,16 @@ final class PaginationView: UIView, Loggable {
         } else {
             log(.warning, "Could not take a snapshot before sliding to view at index \(index); page transition may flash")
         }
-
-        // Use defer so the snapshot is always removed, even if this task is
-        // cancelled mid-flight.
-        defer {
-            snapshot?.removeFromSuperview()
-        }
-
+        
         isAnimatingContentOffset = true
         scrollView.isScrollEnabled = false
+        
+        defer {
+            snapshot?.removeFromSuperview()
+            isAnimatingContentOffset = false
+            scrollView.isScrollEnabled = isScrollEnabled
+        }
+
         setCurrentIndex(index, location: location)
 
         scrollView.contentOffset = fromOffset
@@ -374,9 +381,6 @@ final class PaginationView: UIView, Loggable {
         } else {
             scrollView.contentOffset = targetOffset
         }
-
-        isAnimatingContentOffset = false
-        scrollView.isScrollEnabled = isScrollEnabled
 
         // There are visual glitches when scrolling web views into view.
         // To prevent these, we wait a few ms before removing the snapshot.
@@ -401,7 +405,7 @@ final class PaginationView: UIView, Loggable {
     private func scrollToView(at index: Int, location: PageLocation, animated: Bool) async {
         guard currentIndex != index else {
             if let view = currentView {
-                await view.go(to: location)
+                await view.go(to: location, animated: animated)
             }
             return
         }
