@@ -13,10 +13,12 @@ private enum CoreSVG {
     typealias CreateFromData = @convention(c) (CFData, CFDictionary?) -> Unmanaged<CFTypeRef>?
     typealias GetCanvasSize = @convention(c) (CFTypeRef) -> CGSize
     typealias DrawInContext = @convention(c) (CGContext, CFTypeRef) -> Void
+    typealias ReleaseDocument = @convention(c) (CFTypeRef) -> Void
 
     static let createFromData: CreateFromData? = load("CGSVGDocumentCreateFromData")
     static let getCanvasSize: GetCanvasSize? = load("CGSVGDocumentGetCanvasSize")
     static let drawInContext: DrawInContext? = load("CGContextDrawSVGDocument")
+    static let releaseDocument: ReleaseDocument? = load("CGSVGDocumentRelease")
 
     private static func load<T>(_ name: String) -> T? {
         guard let sym = dlsym(dlopen(nil, RTLD_LAZY), name) else { return nil }
@@ -38,7 +40,8 @@ extension UIImage {
         else {
             return nil
         }
-        let svgDocument = document.takeRetainedValue()
+        let svgDocument = document.takeUnretainedValue()
+        defer { CoreSVG.releaseDocument?(svgDocument) }
         let size = getCanvasSize(svgDocument)
         guard size.width > 0, size.height > 0 else {
             return nil
