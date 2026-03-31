@@ -10,7 +10,6 @@ import ReadiumShared
 import XCTest
 
 class AudioLocatorServiceTests: XCTestCase {
-
     func testLocateLocatorMatchingReadingOrderHREF() async {
         let (_, service) = makeService(readingOrder: [
             Link(href: "l1"),

@@ -8,7 +8,6 @@
 import XCTest
 
 class DefaultLocatorServiceTests: XCTestCase {
-
     /// locate(Locator) checks that the href exists.
     func testFromLocator() async {
         let (_, service) = makeService(readingOrder: [
