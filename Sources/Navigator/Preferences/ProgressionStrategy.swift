@@ -7,7 +7,7 @@
 import Foundation
 
 /// A strategy to increment or decrement a setting.
-public protocol ProgressionStrategy {
+public protocol ProgressionStrategy: Sendable {
     associatedtype Value
 
     func increment(_ value: Value) -> Value
