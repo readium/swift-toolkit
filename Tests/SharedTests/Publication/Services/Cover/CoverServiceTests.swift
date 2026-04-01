@@ -140,6 +140,38 @@ class CoverServiceTests: XCTestCase {
         }
     }
 
+    /// `coverFitting` scales an SVG cover down to the requested max size.
+    func testCoverFittingSVGScalesDown() async {
+        let size = CGSize(width: 50, height: 75)
+        let publication = makePublication(
+            resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
+            containerURL: fixtures.url(for: "cover-svg.svg"),
+            containerHref: "cover-svg.svg"
+        )
+        let result = await publication.coverFitting(maxSize: size)
+        switch result {
+        case let .success(image):
+            XCTAssertNotNil(image, "SVG coverFitting should produce a non-nil UIImage")
+            if let image {
+                XCTAssertLessThanOrEqual(image.size.width, size.width)
+                XCTAssertLessThanOrEqual(image.size.height, size.height)
+            }
+        case let .failure(error):
+            XCTFail("Expected success but got \(error)")
+        }
+    }
+
+    /// `UIImage.fromSVG` returns nil for empty data.
+    func testFromSVGReturnsNilForEmptyData() {
+        XCTAssertNil(UIImage.fromSVG(Data(), maxSize: CGSize(width: 400, height: 600)))
+    }
+
+    /// `UIImage.fromSVG` returns nil for non-SVG data.
+    func testFromSVGReturnsNilForNonSVGData() {
+        let jpegData = fixtures.data(at: "cover.jpg")
+        XCTAssertNil(UIImage.fromSVG(jpegData, maxSize: CGSize(width: 400, height: 600)))
+    }
+
     /// `ResourceCoverService` returns nil when no explicit `.cover` link is declared and no bitmap
     /// is available.
     func testResourceCoverServiceReturnsNilWhenNoBitmapAvailable() async {

@@ -27,11 +27,15 @@ private enum CoreSVG {
 }
 
 extension UIImage {
-    /// Creates a `UIImage` by rendering an SVG document from the given data.
+    /// Creates a `UIImage` by rendering an SVG document from the given data,
+    /// scaled down to fit `maxSize` while preserving the aspect ratio.
+    ///
+    /// If the SVG canvas is smaller than `maxSize`, it is rendered at its
+    /// native size to avoid upscaling embedded bitmaps.
     ///
     /// Returns `nil` if the data is not a valid SVG or if SVG rendering is
     /// unavailable on the current platform.
-    static func fromSVG(_ data: Data) -> UIImage? {
+    static func fromSVG(_ data: Data, maxSize: CGSize) -> UIImage? {
         guard
             let createFromData = CoreSVG.createFromData,
             let getCanvasSize = CoreSVG.getCanvasSize,
@@ -42,15 +46,32 @@ extension UIImage {
         }
         let svgDocument = document.takeUnretainedValue()
         defer { CoreSVG.releaseDocument?(svgDocument) }
-        let size = getCanvasSize(svgDocument)
-        guard size.width > 0, size.height > 0 else {
+
+        let canvasSize = getCanvasSize(svgDocument)
+        guard canvasSize.width > 0, canvasSize.height > 0 else {
             return nil
         }
-        let renderer = UIGraphicsImageRenderer(size: size)
+
+        // Render at the smaller of the canvas size and the requested max
+        // size, preserving the SVG aspect ratio.
+        let renderSize: CGSize
+        if canvasSize.width <= maxSize.width, canvasSize.height <= maxSize.height {
+            renderSize = canvasSize
+        } else {
+            let targetRect = AVMakeRect(
+                aspectRatio: canvasSize,
+                insideRect: CGRect(origin: .zero, size: maxSize)
+            )
+            renderSize = targetRect.size
+        }
+
+        let renderer = UIGraphicsImageRenderer(size: renderSize)
         return renderer.image { ctx in
             let cgContext = ctx.cgContext
-            cgContext.translateBy(x: 0, y: size.height)
-            cgContext.scaleBy(x: 1, y: -1)
+            let scaleX = renderSize.width / canvasSize.width
+            let scaleY = renderSize.height / canvasSize.height
+            cgContext.translateBy(x: 0, y: renderSize.height)
+            cgContext.scaleBy(x: scaleX, y: -scaleY)
             drawInContext(cgContext, svgDocument)
         }
     }

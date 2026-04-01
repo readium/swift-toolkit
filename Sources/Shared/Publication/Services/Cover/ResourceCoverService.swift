@@ -11,19 +11,37 @@ import UIKit
 ///
 /// It will look for:
 /// 1. Links with explicit `cover` relation in the resources.
-/// 2. First `readingOrder` resource if it's a bitmap, or if it has a bitmap
-///    `alternates`.
+/// 2. First `readingOrder` resource if it's a bitmap or SVG, or if it has a
+///    bitmap/SVG `alternates`.
 public final class ResourceCoverService: CoverService {
     private let context: PublicationServiceContext
+    private let coverMaxSize: CGSize
 
     public init(context: PublicationServiceContext) {
         self.context = context
+        let scale: CGFloat = if #available(iOS 16.0, *) {
+            UITraitCollection.current.displayScale
+        } else {
+            UIScreen.main.scale
+        }
+        self.coverMaxSize = CGSize(
+            width: 400 * scale,
+            height: 600 * scale
+        )
     }
 
     public func cover() async -> ReadResult<UIImage?> {
+        await loadCover(maxSize: nil)
+    }
+
+    public func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?> {
+        await loadCover(maxSize: maxSize).map { $0?.scaleToFit(maxSize: maxSize) }
+    }
+
+    private func loadCover(maxSize: CGSize?) async -> ReadResult<UIImage?> {
         // Try resources with explicit `cover` relation
         for link in context.manifest.linksWithRel(.cover) {
-            if let image = await loadImage(from: link) {
+            if let image = await loadImage(from: link, maxSize: maxSize) {
                 return .success(image)
             }
         }
@@ -31,13 +49,13 @@ public final class ResourceCoverService: CoverService {
         // Fallback: first reading order bitmap/SVG or alternate
         if let firstLink = context.manifest.readingOrder.first {
             if firstLink.mediaType?.isBitmap == true || firstLink.mediaType?.matches(.svg) == true {
-                if let image = await loadImage(from: firstLink) {
+                if let image = await loadImage(from: firstLink, maxSize: maxSize) {
                     return .success(image)
                 }
             }
             for alternate in firstLink.alternates {
                 if alternate.mediaType?.isBitmap == true || alternate.mediaType?.matches(.svg) == true {
-                    if let image = await loadImage(from: alternate) {
+                    if let image = await loadImage(from: alternate, maxSize: maxSize) {
                         return .success(image)
                     }
                 }
@@ -47,7 +65,7 @@ public final class ResourceCoverService: CoverService {
         return .success(nil)
     }
 
-    private func loadImage(from link: Link) async -> UIImage? {
+    private func loadImage(from link: Link, maxSize: CGSize?) async -> UIImage? {
         guard
             let resource = context.container[link.url()],
             let data = try? await resource.read().get()
@@ -55,7 +73,7 @@ public final class ResourceCoverService: CoverService {
             return nil
         }
         if link.mediaType?.matches(.svg) == true {
-            return UIImage.fromSVG(data)
+            return UIImage.fromSVG(data, maxSize: maxSize ?? coverMaxSize)
         }
         return UIImage(data: data)
     }
