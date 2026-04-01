@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * All public types that parsed or serialized JSON now use the new type-safe `JSONValue` enum instead of `Any` / `[String: Any]`. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
+* OPDS models (`Feed`, `Group`, `Facet`, `OpdsMetadata`) are now structs with value semantics.
 
 #### Navigator
 
