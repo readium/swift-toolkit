@@ -24,7 +24,7 @@ public final class ResourceCoverService: CoverService {
         } else {
             UIScreen.main.scale
         }
-        self.coverMaxSize = CGSize(
+        coverMaxSize = CGSize(
             width: 400 * scale,
             height: 600 * scale
         )
