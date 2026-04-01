@@ -11,7 +11,7 @@ import XCTest
 
 class AudioLocatorServiceTests: XCTestCase {
     func testLocateLocatorMatchingReadingOrderHREF() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1"),
             Link(href: "l2"),
         ])
@@ -22,7 +22,7 @@ class AudioLocatorServiceTests: XCTestCase {
     }
 
     func testLocateLocatorReturnsNilIfNoMatch() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1"),
             Link(href: "l2"),
         ])
@@ -33,7 +33,7 @@ class AudioLocatorServiceTests: XCTestCase {
     }
 
     func testLocateLocatorUsesTotalProgression() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
@@ -70,7 +70,7 @@ class AudioLocatorServiceTests: XCTestCase {
     }
 
     func testLocateLocatorUsingTotalProgressionKeepsTitleAndText() async throws {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
@@ -108,7 +108,7 @@ class AudioLocatorServiceTests: XCTestCase {
     }
 
     func testLocateProgression() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
@@ -165,7 +165,7 @@ class AudioLocatorServiceTests: XCTestCase {
     }
 
     func testLocateInvalidProgression() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
@@ -177,11 +177,11 @@ class AudioLocatorServiceTests: XCTestCase {
         XCTAssertNil(result)
     }
 
-    private func makeService(readingOrder: [Link]) -> AudioLocatorService {
-        AudioLocatorService(
-            publication: _Strong(Publication(
-                manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
-            ))
+    private func makeService(readingOrder: [Link]) -> (Publication, AudioLocatorService) {
+        let publication = Publication(
+            manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
         )
+        let service = AudioLocatorService(publication: Weak(publication))
+        return (publication, service)
     }
 }

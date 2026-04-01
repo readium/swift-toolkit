@@ -30,7 +30,7 @@ public actor EPUBPositionsService: PositionsService {
     /// Strategy used to calculate the number of positions in a reflowable resource.
     ///
     /// Note that a fixed-layout resource always has a single position.
-    public enum ReflowableStrategy {
+    public enum ReflowableStrategy: Sendable {
         /// Use the archive entry length (whether it is compressed or stored) and split it by the given `pageLength`.
         case archiveEntryLength(pageLength: Int)
 

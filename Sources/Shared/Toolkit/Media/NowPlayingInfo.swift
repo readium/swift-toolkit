@@ -36,7 +36,7 @@ public final class NowPlayingInfo {
         }
     }
 
-    public struct Playback: Equatable {
+    public struct Playback: Equatable, Sendable {
         /// The playback duration of the media item, in seconds.
         public var duration: Double?
         /// The elapsed time of the now playing item, in seconds.

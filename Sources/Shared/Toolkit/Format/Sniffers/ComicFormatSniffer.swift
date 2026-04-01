@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs a ComicBook Archive.
-public struct ComicFormatSniffer: FormatSniffer {
+public struct ComicFormatSniffer: FormatSniffer, Sendable {
     /// Required extensions for an archive to be considered a ComicBook Archive.
     /// Reference: https://wiki.mobileread.com/wiki/CBR_and_CBZ
     public static let defaultRequiredExtensions: Set<FileExtension> = bitmapExtensions

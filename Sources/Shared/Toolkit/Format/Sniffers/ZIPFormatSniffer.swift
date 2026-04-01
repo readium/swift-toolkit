@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs a ZIP file.
-public struct ZIPFormatSniffer: FormatSniffer {
+public struct ZIPFormatSniffer: FormatSniffer, Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

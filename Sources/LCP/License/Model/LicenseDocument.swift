@@ -9,12 +9,12 @@ import ReadiumShared
 
 /// Document that contains references to the various keys, links to related external resources, rights and restrictions that are applied to the Protected Publication, and user information.
 /// https://github.com/readium/lcp-specs/blob/master/schema/license.schema.json
-public struct LicenseDocument {
+public struct LicenseDocument: Sendable {
     public typealias ID = String
     public typealias Provider = String
 
     /// The possible rel of Links.
-    public enum Rel: String {
+    public enum Rel: String, Sendable {
         /// Location where a Reading System can redirect a User looking for additional information about the User Passphrase.
         case hint
         /// Location where the Publication associated with the License Document can be downloaded

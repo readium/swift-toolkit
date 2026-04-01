@@ -49,7 +49,7 @@ public protocol Navigator: AnyObject {
     func goBackward(options: NavigatorGoOptions) async -> Bool
 }
 
-public struct NavigatorGoOptions: Hashable {
+public struct NavigatorGoOptions: Hashable, Sendable {
     /// Indicates whether the move should be animated when possible.
     public var animated: Bool = false
 
@@ -142,7 +142,7 @@ public extension NavigatorDelegate {
     func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {}
 }
 
-public enum NavigatorError: Error {
+public enum NavigatorError: Error, Sendable {
     /// The user tried to copy the text selection but the DRM License doesn't allow it.
     case copyForbidden
 }

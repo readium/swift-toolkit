@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol LCPAuthenticating {
+public protocol LCPAuthenticating: Sendable {
     /// Retrieves the passphrase to decrypt the given license.
     ///
     /// If `allowUserInteraction` is true, the reading app can prompt the user to enter the
@@ -31,14 +31,14 @@ public protocol LCPAuthenticating {
     ) async -> String?
 }
 
-public enum LCPAuthenticationReason {
+public enum LCPAuthenticationReason: Sendable {
     /// No matching passphrase was found.
     case passphraseNotFound
     /// The provided passphrase was invalid.
     case invalidPassphrase
 }
 
-public struct LCPAuthenticatedLicense {
+public struct LCPAuthenticatedLicense: Sendable {
     /// A hint to be displayed to the User to help them remember the User Passphrase.
     public var hint: String {
         document.encryption.userKey.textHint

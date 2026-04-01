@@ -8,7 +8,7 @@ import Foundation
 import Security
 
 /// Errors occurring in ``Keychain``.
-public enum KeychainError: Error {
+public enum KeychainError: Error, Sendable {
     /// The item was not found in the Keychain.
     case itemNotFound
 

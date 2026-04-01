@@ -17,7 +17,7 @@ import Foundation
     public typealias TapEdges = Edges
 
     /// Indicates which viewport edges trigger page turns on pointer activation.
-    public struct Edges: OptionSet {
+    public struct Edges: OptionSet, Sendable {
         /// The user can turn pages when tapping on the edges of both the
         /// horizontal and vertical axes.
         public static let all: Edges = [.horizontal, .vertical]
@@ -35,7 +35,7 @@ import Foundation
 
     /// Policy controlling how pointer events (touches, mouse clicks) trigger
     /// page turns.
-    public struct PointerPolicy {
+    public struct PointerPolicy: Sendable {
         /// The types of pointer that will trigger page turns.
         public var types: [PointerType]
 
@@ -84,7 +84,7 @@ import Foundation
     }
 
     /// Policy controlling how keyboard events trigger page turns.
-    public struct KeyboardPolicy {
+    public struct KeyboardPolicy: Sendable {
         /// Indicates whether arrow keys should turn pages.
         public var handleArrowKeys: Bool
 

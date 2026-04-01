@@ -30,7 +30,7 @@ public protocol Warning {
 }
 
 /// Indicates how the user experience might be affected by a warning.
-public enum WarningSeverityLevel {
+public enum WarningSeverityLevel: Sendable {
     /// The user probably won't notice the issue.
     case minor
     /// The user experience might be affected, but it shouldn't prevent the user from enjoying the
@@ -41,7 +41,7 @@ public enum WarningSeverityLevel {
 }
 
 /// Warning raised when parsing a model object from its JSON representation fails.
-public struct JSONWarning: Warning {
+public struct JSONWarning: Warning, Sendable {
     /// Type of the model object to be parsed.
     public let modelType: Any.Type
     /// Details about the failure.

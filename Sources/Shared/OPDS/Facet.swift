@@ -5,7 +5,7 @@
 //
 
 /// Enables faceted navigation in OPDS.
-public class Facet {
+public struct Facet: Sendable {
     public var metadata: OpdsMetadata
     public var links = [Link]()
 

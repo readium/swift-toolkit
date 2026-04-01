@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Signature allowing to certify the License Document integrity.
-public struct Signature: JSONValueDecodable {
+public struct Signature: JSONValueDecodable, Sendable {
     /// Algorithm used to calculate the signature, identified using the URIs given in [XML-SIG]. This MUST match the signature algorithm named in the Encryption Profile identified in `encryption/profile`.
     public let algorithm: String
     /// The Provider Certificate: an X509 certificate used by the Content Provider.

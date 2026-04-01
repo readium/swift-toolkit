@@ -12,7 +12,7 @@ import Foundation
 /// - Does not support HTTP streaming of ZIP archives.
 /// - Has better performance when reading an LCP-protected package containing
 ///   large deflated ZIP entries (instead of stored).
-public final class MinizipArchiveOpener: ArchiveOpener {
+public final class MinizipArchiveOpener: ArchiveOpener, Sendable {
     public init() {}
 
     public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {

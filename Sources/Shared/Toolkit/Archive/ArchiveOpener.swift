@@ -17,7 +17,7 @@ public protocol ArchiveOpener {
     func sniffOpen(resource: Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError>
 }
 
-public enum ArchiveOpenError: Error {
+public enum ArchiveOpenError: Error, Sendable {
     /// Archive format not supported.
     case formatNotSupported(Format)
 
@@ -25,7 +25,7 @@ public enum ArchiveOpenError: Error {
     case reading(ReadError)
 }
 
-public enum ArchiveSniffOpenError: Error {
+public enum ArchiveSniffOpenError: Error, Sendable {
     /// The format of the resource could not be inferred.
     case formatNotRecognized
 

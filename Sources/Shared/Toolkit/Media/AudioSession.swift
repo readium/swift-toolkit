@@ -26,8 +26,8 @@ public extension AudioSessionUser {
 
 /// Manages an activated `AVAudioSession`.
 @MainActor
-public final class AudioSession: Loggable {
-    public struct Configuration: Equatable {
+public final class AudioSession: Loggable, Sendable {
+    public struct Configuration: Equatable, Sendable {
         let category: AVAudioSession.Category
         let mode: AVAudioSession.Mode
         let routeSharingPolicy: AVAudioSession.RouteSharingPolicy

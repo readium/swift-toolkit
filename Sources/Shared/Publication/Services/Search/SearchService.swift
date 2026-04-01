@@ -58,7 +58,7 @@ public extension SearchIterator {
 }
 
 /// Holds the available search options and their current values.
-public struct SearchOptions: Hashable {
+public struct SearchOptions: Hashable, Sendable {
     /// Whether the search will differentiate between capital and lower-case letters.
     public var caseSensitive: Bool?
 
@@ -110,7 +110,7 @@ public struct SearchOptions: Hashable {
 public typealias SearchResult<Success> = Result<Success, SearchError>
 
 /// Represents an error which might occur during a search activity.
-public enum SearchError: Error {
+public enum SearchError: Error, Sendable {
     /// The publication is not searchable.
     case publicationNotSearchable
 

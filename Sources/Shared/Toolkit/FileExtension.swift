@@ -7,7 +7,7 @@
 import Foundation
 
 /// Represents a file extension.
-public struct FileExtension: Hashable, RawRepresentable, ExpressibleByStringLiteral {
+public struct FileExtension: Hashable, RawRepresentable, ExpressibleByStringLiteral, Sendable {
     public let rawValue: String
 
     public init(rawValue: String) {

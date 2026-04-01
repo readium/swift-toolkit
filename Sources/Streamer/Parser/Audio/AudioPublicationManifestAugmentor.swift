@@ -28,7 +28,7 @@ public struct AudioPublicationAugmentedManifest {
 /// An `AudioPublicationManifestAugmentor` using AVFoundation to retrieve the audio metadata.
 ///
 /// It will only work for local publications (file://).
-public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifestAugmentor {
+public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifestAugmentor, Sendable {
     public init() {}
 
     public func augment(_ manifest: Manifest, using container: Container) async -> AudioPublicationAugmentedManifest {

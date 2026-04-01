@@ -25,7 +25,7 @@ open class PDFNavigatorViewController:
     InputObservableViewController,
     VisualNavigator, SelectableNavigator, Configurable, Loggable
 {
-    public struct Configuration {
+    public struct Configuration: Sendable {
         /// Initial set of setting preferences.
         public var preferences: PDFPreferences
 

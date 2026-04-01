@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol ResourceContentIteratorFactory {
+public protocol ResourceContentIteratorFactory: Sendable {
     /// Creates a `ContentIterator` instance for the `resource`, starting from
     /// the given `locator`.
     ///
@@ -21,7 +21,7 @@ public protocol ResourceContentIteratorFactory {
 
 /// A composite [Content.Iterator] which iterates through a whole [publication] and delegates the
 /// iteration inside a given resource to media type-specific iterators.
-public class PublicationContentIterator: ContentIterator, Loggable {
+public final class PublicationContentIterator: ContentIterator, Loggable {
     /// `ContentIterator` for a resource, associated with its index in the reading order.
     private typealias IndexedIterator = (index: Int, iterator: ContentIterator)
 

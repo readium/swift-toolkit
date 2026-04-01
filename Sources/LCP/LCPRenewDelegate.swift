@@ -28,7 +28,7 @@ public protocol LCPRenewDelegate {
 ///
 /// No date picker is presented for selecting a preferred end date. If you want to support one, you can subclass or
 /// decorate `LCPRenewDelegate`.
-public class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
+public final class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
     private let presentingViewController: UIViewController
     private let modalPresentationStyle: UIModalPresentationStyle
 

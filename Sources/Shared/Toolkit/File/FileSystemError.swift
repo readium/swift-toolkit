@@ -7,7 +7,7 @@
 import Foundation
 
 /// Error occurring on the file system.
-public enum FileSystemError: Error {
+public enum FileSystemError: Error, Sendable {
     /// File was not found.
     case fileNotFound(Error?)
 

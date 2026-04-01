@@ -45,7 +45,7 @@ public typealias LCPClientContext = Any
 /// Copy of the R2LCPClient.LCPClientError enum.
 ///
 /// Order is important, because it is used to match the original enum cases.
-public enum LCPClientError: Int, Error {
+public enum LCPClientError: Int, Error, Sendable {
     case licenseOutOfDate = 0
     case certificateRevoked
     case certificateSignatureInvalid

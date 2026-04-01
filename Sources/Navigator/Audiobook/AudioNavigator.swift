@@ -9,14 +9,14 @@ import Foundation
 import ReadiumShared
 
 /// Status of a played media resource.
-public enum MediaPlaybackState {
+public enum MediaPlaybackState: Sendable {
     case paused
     case loading
     case playing
 }
 
 /// Holds metadata about a played media resource.
-public struct MediaPlaybackInfo {
+public struct MediaPlaybackInfo: Sendable {
     /// Index of the current resource in the `readingOrder`.
     public let resourceIndex: Int
 
@@ -80,7 +80,7 @@ public extension AudioNavigatorDelegate {
 public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     public weak var delegate: AudioNavigatorDelegate?
 
-    public struct Configuration {
+    public struct Configuration: Sendable {
         /// Initial set of setting preferences.
         public var preferences: AudioPreferences
 

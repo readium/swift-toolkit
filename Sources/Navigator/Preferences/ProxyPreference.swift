@@ -41,7 +41,7 @@ public class ProxyPreference<Value>: Preference {
     }
 }
 
-public class ProxyEnumPreference<Value: Hashable>: ProxyPreference<Value>, EnumPreference {
+public final class ProxyEnumPreference<Value: Hashable>: ProxyPreference<Value>, EnumPreference {
     public let supportedValues: [Value]
 
     init(
@@ -61,7 +61,7 @@ public class ProxyEnumPreference<Value: Hashable>: ProxyPreference<Value>, EnumP
     }
 }
 
-public class ProxyRangePreference<Value: Comparable>: ProxyPreference<Value>, RangePreference {
+public final class ProxyRangePreference<Value: Comparable>: ProxyPreference<Value>, RangePreference {
     public var supportedRange: ClosedRange<Value>
     private let progressionStrategy: AnyProgressionStrategy<Value>
     private let valueFormatter: (Value) -> String

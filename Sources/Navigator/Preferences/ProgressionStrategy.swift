@@ -7,7 +7,7 @@
 import Foundation
 
 /// A strategy to increment or decrement a setting.
-public protocol ProgressionStrategy {
+public protocol ProgressionStrategy: Sendable {
     associatedtype Value
 
     func increment(_ value: Value) -> Value
@@ -16,7 +16,7 @@ public protocol ProgressionStrategy {
 
 /// Progression strategy based on a list of preferred values for the setting.
 /// Steps MUST be sorted in increasing order.
-public class StepsProgressionStrategy<Value: Comparable>: ProgressionStrategy {
+public final class StepsProgressionStrategy<Value: Comparable & Sendable>: ProgressionStrategy, Sendable {
     private let steps: [Value]
 
     public init(steps: [Value]) {
@@ -37,7 +37,7 @@ public class StepsProgressionStrategy<Value: Comparable>: ProgressionStrategy {
 }
 
 /// Simple progression strategy which increments or decrements the setting by a fixed number.
-public class IncrementProgressionStrategy<Value: Numeric>: ProgressionStrategy {
+public final class IncrementProgressionStrategy<Value: Numeric & Sendable>: ProgressionStrategy, Sendable {
     private let increment: Value
 
     public init(increment: Value) {
@@ -53,13 +53,13 @@ public class IncrementProgressionStrategy<Value: Numeric>: ProgressionStrategy {
     }
 }
 
-public class AnyProgressionStrategy<Value>: ProgressionStrategy {
-    private let _increment: (Value) -> Value
-    private let _decrement: (Value) -> Value
+public final class AnyProgressionStrategy<Value: Sendable>: ProgressionStrategy, Sendable {
+    private let _increment: @Sendable (Value) -> Value
+    private let _decrement: @Sendable (Value) -> Value
 
     public init<S: ProgressionStrategy>(_ strategy: S) where S.Value == Value {
-        _increment = strategy.increment
-        _decrement = strategy.decrement
+        _increment = { strategy.increment($0) }
+        _decrement = { strategy.decrement($0) }
     }
 
     public func increment(_ value: Value) -> Value {
@@ -71,19 +71,19 @@ public class AnyProgressionStrategy<Value>: ProgressionStrategy {
     }
 }
 
-public extension ProgressionStrategy {
+public extension ProgressionStrategy where Value: Sendable {
     func eraseToAnyProgressionStrategy() -> AnyProgressionStrategy<Value> {
         AnyProgressionStrategy(self)
     }
 }
 
-public extension AnyProgressionStrategy where Value: Numeric {
+public extension AnyProgressionStrategy where Value: Numeric & Sendable {
     static func increment(_ increment: Value) -> AnyProgressionStrategy<Value> {
         IncrementProgressionStrategy(increment: increment).eraseToAnyProgressionStrategy()
     }
 }
 
-public extension AnyProgressionStrategy where Value: Comparable {
+public extension AnyProgressionStrategy where Value: Comparable & Sendable {
     static func steps(_ steps: Value...) -> AnyProgressionStrategy<Value> {
         StepsProgressionStrategy(steps: steps).eraseToAnyProgressionStrategy()
     }

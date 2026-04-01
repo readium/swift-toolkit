@@ -32,7 +32,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     VisualNavigator, SelectableNavigator, DecorableNavigator,
     Configurable, Loggable
 {
-    public enum EPUBError: Error {
+    public enum EPUBError: Error, Sendable {
         /// The provided publication is restricted. Check that any DRM was
         /// properly unlocked using a Content Protection.
         case publicationRestricted
@@ -148,7 +148,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     /// Information about the visible portion of the publication.
-    public struct Viewport: Equatable {
+    public struct Viewport: Equatable, Sendable {
         /// Visible reading order resources.
         public var readingOrder: [AnyURL]
 

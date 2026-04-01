@@ -8,14 +8,14 @@ import AVFoundation
 import Foundation
 import ReadiumShared
 
-public protocol AVTTSEngineDelegate: AnyObject {
+public protocol AVTTSEngineDelegate: AnyObject, Sendable {
     /// Called when the engine created a new utterance to be played.
     /// You can customize additional properties of the utterance.
     func avTTSEngine(_ engine: AVTTSEngine, didCreateUtterance utterance: AVSpeechUtterance)
 }
 
 /// Implementation of a `TTSEngine` using Apple AVFoundation's `AVSpeechSynthesizer`.
-public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Loggable {
+public final class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Loggable {
     /// Range of valid values for an AVUtterance rate.
     ///
     /// > The speech rate is a decimal representation within the range of `AVSpeechUtteranceMinimumSpeechRate` and

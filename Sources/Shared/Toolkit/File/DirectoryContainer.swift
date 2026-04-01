@@ -7,8 +7,8 @@
 import Foundation
 
 /// A file system directory as a ``Container``.
-public struct DirectoryContainer: Container, Loggable {
-    public struct NotADirectoryError: Error {}
+public struct DirectoryContainer: Container, Loggable, Sendable {
+    public struct NotADirectoryError: Error, Sendable {}
 
     private let directoryURL: FileURL
     public var sourceURL: AbsoluteURL? {

@@ -25,9 +25,9 @@ public protocol ContentProtection {
     ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError>
 }
 
-public enum ContentProtectionOpenError: Error {
+public enum ContentProtectionOpenError: Error, Sendable {
     /// The asset is not supported by this ``ContentProtection``
-    case assetNotSupported(Error?)
+    case assetNotSupported((any Error)?)
 
     /// An error occurred while reading the asset.
     case reading(ReadError)
@@ -49,7 +49,7 @@ public struct ContentProtectionScheme: RawRepresentable, Equatable, Sendable {
     public static let adept = ContentProtectionScheme(rawValue: HTTPURL(string: "http://ns.adobe.com/adept")!)
 }
 
-public struct ContentProtectionSchemeNotSupportedError: Error {
+public struct ContentProtectionSchemeNotSupportedError: Error, Sendable {
     public let scheme: ContentProtectionScheme
 
     public init(scheme: ContentProtectionScheme) {

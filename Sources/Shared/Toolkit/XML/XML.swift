@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct XMLNamespace {
+public struct XMLNamespace: Sendable {
     public let prefix: String
     public let uri: String
 
@@ -70,7 +70,7 @@ public protocol XMLElement: XMLNode {
     func attribute(named localName: String, namespace: String?) -> String?
 }
 
-public protocol XMLDocumentFactory {
+public protocol XMLDocumentFactory: Sendable {
     /// Opens an XML document from a local file path.
     ///
     /// - Parameters:
@@ -96,7 +96,7 @@ public protocol XMLDocumentFactory {
     func open(string: String, namespaces: [XMLNamespace]) throws -> XMLDocument
 }
 
-public class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable {
+public final class DefaultXMLDocumentFactory: XMLDocumentFactory, Loggable, Sendable {
     public init() {}
 
     public func open(file: FileURL, namespaces: [XMLNamespace]) async throws -> XMLDocument {

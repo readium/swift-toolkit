@@ -65,7 +65,7 @@ public extension VisualNavigator {
     }
 }
 
-public struct VisualNavigatorPresentation {
+public struct VisualNavigatorPresentation: Sendable {
     /// Horizontal direction of progression across resources.
     public let readingProgression: ReadingProgression
 

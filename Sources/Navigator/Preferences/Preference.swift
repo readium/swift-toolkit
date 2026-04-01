@@ -119,7 +119,7 @@ public extension EnumPreference {
 }
 
 /// A type-erasing `EnumPreference` object.
-public class AnyEnumPreference<Value: Hashable>: AnyPreference<Value>, EnumPreference {
+public final class AnyEnumPreference<Value: Hashable>: AnyPreference<Value>, EnumPreference {
     public var supportedValues: [Value] {
         _supportedValues()
     }
@@ -140,7 +140,7 @@ public extension RangePreference {
 }
 
 /// A type-erasing `Preference` object.
-public class AnyRangePreference<Value: Comparable>: AnyPreference<Value>, RangePreference {
+public final class AnyRangePreference<Value: Comparable>: AnyPreference<Value>, RangePreference {
     public var supportedRange: ClosedRange<Value> {
         _supportedRange()
     }

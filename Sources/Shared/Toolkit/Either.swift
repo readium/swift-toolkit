@@ -6,7 +6,7 @@
 
 import Foundation
 
-public enum Either<L, R> {
+public enum Either<L: Sendable, R: Sendable>: Sendable {
     case left(L)
     case right(R)
 }

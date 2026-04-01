@@ -12,7 +12,7 @@ public protocol ResourceFactory {
     func make(url: AbsoluteURL) async -> Result<Resource, ResourceMakeError>
 }
 
-public enum ResourceMakeError: Error {
+public enum ResourceMakeError: Error, Sendable {
     /// URL scheme not supported by the ``ResourceFactory``.
     case schemeNotSupported(URLScheme)
 }

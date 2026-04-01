@@ -89,7 +89,7 @@ public struct Decoration: Hashable, JSONObjectEncodable {
     /// instructions which makes sense for the resource type.
     public struct Style: Hashable {
         /// Unique ID for a style.
-        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable, JSONValueEncodable {
+        public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable, JSONValueEncodable, Sendable {
             public let rawValue: String
             public init(rawValue: String) {
                 self.rawValue = rawValue

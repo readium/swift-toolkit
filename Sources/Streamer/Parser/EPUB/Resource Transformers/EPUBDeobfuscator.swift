@@ -94,7 +94,7 @@ final class EPUBDeobfuscator {
     }
 }
 
-private protocol ObfuscationAlgorithm {
+private protocol ObfuscationAlgorithm: Sendable {
     /// URI identifier for this algorithm.
     var identifier: String { get }
 

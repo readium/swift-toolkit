@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs audio formats.
-public class AudioFormatSniffer: FormatSniffer {
+public final class AudioFormatSniffer: FormatSniffer, Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

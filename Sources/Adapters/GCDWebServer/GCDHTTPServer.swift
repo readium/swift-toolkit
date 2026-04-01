@@ -5,20 +5,20 @@
 //
 
 import Foundation
-import ReadiumGCDWebServer
+@preconcurrency import ReadiumGCDWebServer
 import ReadiumInternal
 import ReadiumShared
 import UIKit
 
-public enum GCDHTTPServerError: Error {
-    case failedToStartServer(cause: Error)
+public enum GCDHTTPServerError: Error, Sendable {
+    case failedToStartServer(cause: any Error)
     case serverNotStarted
     case invalidEndpoint(HTTPServerEndpoint)
     case nullServerURL
 }
 
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
-public class GCDHTTPServer: HTTPServer, Loggable {
+public final class GCDHTTPServer: HTTPServer, Loggable {
     /// The actual underlying HTTP server instance.
     private let server = ReadiumGCDWebServer()
 

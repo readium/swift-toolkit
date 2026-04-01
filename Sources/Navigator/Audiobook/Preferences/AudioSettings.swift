@@ -10,7 +10,7 @@ import ReadiumShared
 /// Setting values of the `AudioNavigator`.
 ///
 /// See `AudioPreferences`
-public struct AudioSettings: ConfigurableSettings {
+public struct AudioSettings: ConfigurableSettings, Sendable {
     public let volume: Double
     public let speed: Double
 
@@ -30,7 +30,7 @@ public struct AudioSettings: ConfigurableSettings {
 /// These values will be used when no publication metadata or user preference takes precedence.
 ///
 /// See `AudioPreferences`.
-public struct AudioDefaults {
+public struct AudioDefaults: Sendable {
     public var volume: Double?
     public var speed: Double?
 

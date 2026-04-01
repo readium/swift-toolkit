@@ -8,7 +8,7 @@ import Foundation
 
 /// Creates ``HTTPResource`` instances granting access to `http(s)://` URLs
 /// using an ``HTTPClient``.
-public class HTTPResourceFactory: ResourceFactory {
+public final class HTTPResourceFactory: ResourceFactory {
     private let client: HTTPClient
 
     public init(client: HTTPClient) {

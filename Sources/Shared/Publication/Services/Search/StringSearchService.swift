@@ -14,7 +14,7 @@ import Foundation
 /// content from markups (e.g. HTML) or binary (e.g. PDF) resources.
 ///
 /// The actual search is implemented by the provided `searchAlgorithm`.
-public class StringSearchService: SearchService {
+public final class StringSearchService: SearchService, Sendable {
     public static func makeFactory(
         snippetLength: Int = 200,
         searchAlgorithm: StringSearchAlgorithm = BasicStringSearchAlgorithm(),
@@ -215,7 +215,7 @@ public class StringSearchService: SearchService {
 }
 
 /// Implements the actual search algorithm in sanitized text content.
-public protocol StringSearchAlgorithm {
+public protocol StringSearchAlgorithm: Sendable {
     /// Default value for the search options available with this algorithm.
     ///
     /// If an option does not have a value, it is not supported by the algorithm.
@@ -231,7 +231,7 @@ public protocol StringSearchAlgorithm {
 }
 
 /// A basic `StringSearchAlgorithm` using the native `String.range(of:)` APIs.
-public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
+public final class BasicStringSearchAlgorithm: StringSearchAlgorithm, Sendable {
     public let options: SearchOptions = .init(
         caseSensitive: false,
         diacriticSensitive: false,

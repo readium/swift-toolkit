@@ -142,7 +142,7 @@ class OPDSFeedViewModel: ObservableObject {
         }
 
         // Create the group and assign publications
-        let pubGroup = ReadiumShared.Group(title: title)
+        var pubGroup = ReadiumShared.Group(title: title)
         pubGroup.publications = feed.publications
         return pubGroup
     }

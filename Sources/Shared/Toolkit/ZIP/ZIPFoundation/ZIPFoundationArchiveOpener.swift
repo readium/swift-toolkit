@@ -7,7 +7,7 @@
 import Foundation
 
 /// An ``ArchiveOpener`` able to open ZIP archives using ZIPFoundation.
-public final class ZIPFoundationArchiveOpener: ArchiveOpener {
+public final class ZIPFoundationArchiveOpener: ArchiveOpener, Sendable {
     public init() {}
 
     public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {

@@ -15,7 +15,7 @@ public struct HTTPRequest: Equatable {
     public var method: Method
 
     /// Supported HTTP methods.
-    public enum Method: String, Equatable {
+    public enum Method: String, Equatable, Sendable {
         case delete = "DELETE"
         case get = "GET"
         case head = "HEAD"
@@ -32,7 +32,7 @@ public struct HTTPRequest: Equatable {
     public var body: Body?
 
     /// Supported body values.
-    public enum Body: Equatable {
+    public enum Body: Equatable, Sendable {
         case data(Data)
         case file(URL)
     }
@@ -130,7 +130,7 @@ public protocol HTTPRequestConvertible {
     func httpRequest() -> HTTPResult<HTTPRequest>
 }
 
-public enum HTTPRequestError: Error {
+public enum HTTPRequestError: Error, Sendable {
     case invalidURL(CustomStringConvertible & Sendable)
 }
 

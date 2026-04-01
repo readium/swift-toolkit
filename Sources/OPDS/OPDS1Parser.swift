@@ -94,7 +94,7 @@ public class OPDS1Parser: Loggable {
         guard let title = root.firstChild(tag: "title")?.stringValue else {
             throw OPDS1ParserError.missingTitle
         }
-        let feed = Feed(title: title)
+        var feed = Feed(title: title)
 
         feed.metadata.identifier = root.firstChild(tag: "id")?.stringValue
 
@@ -145,7 +145,7 @@ public class OPDS1Parser: Loggable {
                 if let publication = parseEntry(entry: entry, feedURL: feedURL) {
                     // Checking if this publication need to go into a group or in publications.
                     if let collectionLink = collectionLink {
-                        addPublicationInGroup(feed, publication, collectionLink)
+                        addPublicationInGroup(&feed, publication, collectionLink)
                     } else {
                         feed.publications.append(publication)
                     }
@@ -170,7 +170,7 @@ public class OPDS1Parser: Loggable {
 
                 // Check collection link
                 if let collectionLink = collectionLink {
-                    addNavigationInGroup(feed, newLink, collectionLink)
+                    addNavigationInGroup(&feed, newLink, collectionLink)
                 } else {
                     feed.navigation.append(newLink)
                 }
@@ -210,7 +210,7 @@ public class OPDS1Parser: Loggable {
 
             if isFacet {
                 if let facetGroupName = link.attributes["facetGroup"] {
-                    addFacet(feed: feed, to: newLink, named: facetGroupName)
+                    addFacet(feed: &feed, to: newLink, named: facetGroupName)
                 }
             } else {
                 feed.links.append(newLink)
@@ -405,33 +405,31 @@ public class OPDS1Parser: Loggable {
         )
     }
 
-    static func addFacet(feed: Feed, to link: Link, named title: String) {
-        for facet in feed.facets {
-            if facet.metadata.title == title {
-                facet.links.append(link)
-                return
-            }
+    static func addFacet(feed: inout Feed, to link: Link, named title: String) {
+        if let index = feed.facets.firstIndex(where: { $0.metadata.title == title }) {
+            feed.facets[index].links.append(link)
+            return
         }
-        let newFacet = Facet(title: title)
 
+        var newFacet = Facet(title: title)
         newFacet.links.append(link)
         feed.facets.append(newFacet)
     }
 
-    static func addPublicationInGroup(_ feed: Feed,
+    static func addPublicationInGroup(_ feed: inout Feed,
                                       _ publication: Publication,
                                       _ collectionLink: Link)
     {
-        for group in feed.groups {
+        for (i, group) in feed.groups.enumerated() {
             for l in group.links {
                 if l.href == collectionLink.href {
-                    group.publications.append(publication)
+                    feed.groups[i].publications.append(publication)
                     return
                 }
             }
         }
         if let title = collectionLink.title {
-            let newGroup = Group(title: title)
+            var newGroup = Group(title: title)
             let selfLink = Link(
                 href: collectionLink.href,
                 title: collectionLink.title,
@@ -443,20 +441,20 @@ public class OPDS1Parser: Loggable {
         }
     }
 
-    static func addNavigationInGroup(_ feed: Feed,
+    static func addNavigationInGroup(_ feed: inout Feed,
                                      _ link: Link,
                                      _ collectionLink: Link)
     {
-        for group in feed.groups {
+        for (i, group) in feed.groups.enumerated() {
             for l in group.links {
                 if l.href == collectionLink.href {
-                    group.navigation.append(link)
+                    feed.groups[i].navigation.append(link)
                     return
                 }
             }
         }
         if let title = collectionLink.title {
-            let newGroup = Group(title: title)
+            var newGroup = Group(title: title)
             let selfLink = Link(
                 href: collectionLink.href,
                 title: collectionLink.title,

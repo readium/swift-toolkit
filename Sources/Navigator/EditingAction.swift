@@ -16,7 +16,7 @@ import UIKit
 /// Then, implement the selector in one of your classes in the responder chain.
 /// Typically, in the `UIViewController` wrapping the navigator view
 /// controller.
-public struct EditingAction: Hashable {
+public struct EditingAction: Hashable, Sendable {
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
         [copy, share, lookup, translate]

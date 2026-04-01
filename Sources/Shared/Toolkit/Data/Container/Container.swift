@@ -28,7 +28,7 @@ public protocol Container: Closeable {
 }
 
 /// A `Container` providing no entries at all.
-public struct EmptyContainer: Container {
+public struct EmptyContainer: Container, Sendable {
     public init() {}
 
     public let sourceURL: AbsoluteURL? = nil
@@ -46,7 +46,7 @@ public struct EmptyContainer: Container {
 /// sources.
 ///
 /// The `containers` will be tested in the given order.
-public class CompositeContainer: Container {
+public final class CompositeContainer: Container {
     private let containers: [Container]
 
     public convenience init(_ containers: Container...) {

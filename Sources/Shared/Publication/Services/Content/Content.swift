@@ -170,7 +170,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     }
 
     /// Represents a purpose of an element in the broader context of the document.
-    public enum Role: Hashable {
+    public enum Role: Hashable, Sendable {
         /// Title of a section with its level (1 being the highest).
         case heading(level: Int)
 
@@ -205,7 +205,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
 /// An attribute key identifies uniquely a type of attribute.
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
-public struct ContentAttributeKey<V>: Hashable {
+public struct ContentAttributeKey<V>: Hashable, Sendable {
     public static var accessibilityLabel: ContentAttributeKey<String> {
         .init("accessibilityLabel")
     }
@@ -288,7 +288,7 @@ public protocol ContentIterator: AnyObject {
 }
 
 /// Helper class to treat a `Content` as a `Sequence`.
-public class ContentSequence: AsyncSequence {
+public final class ContentSequence: AsyncSequence {
     public typealias Element = ContentElement
 
     private let content: Content
@@ -301,7 +301,7 @@ public class ContentSequence: AsyncSequence {
         Iterator(iterator: content.iterator())
     }
 
-    public class Iterator: AsyncIteratorProtocol, Loggable {
+    public final class Iterator: AsyncIteratorProtocol, Loggable {
         private let iterator: ContentIterator
 
         public init(iterator: ContentIterator) {

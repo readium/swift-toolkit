@@ -33,16 +33,16 @@ public extension TTSEngine {
     }
 }
 
-public enum TTSError: Error {
+public enum TTSError: Error, Sendable {
     /// Tried to synthesize an utterance with an unsupported language.
-    case languageNotSupported(language: Language, cause: Error?)
+    case languageNotSupported(language: Language, cause: (any Error)?)
 
     /// Other engine-specific errors.
-    case other(Error)
+    case other(any Error)
 }
 
 /// An utterance is an arbitrary text (e.g. sentence) that can be synthesized by the TTS engine.
-public struct TTSUtterance {
+public struct TTSUtterance: Sendable {
     /// Text to be spoken.
     public let text: String
 

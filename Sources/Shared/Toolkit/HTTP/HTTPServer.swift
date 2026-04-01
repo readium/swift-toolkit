@@ -118,7 +118,7 @@ public extension HTTPServer {
 public typealias HTTPServerEndpoint = String
 
 /// Request made to an `HTTPServer`.
-public struct HTTPServerRequest {
+public struct HTTPServerRequest: Sendable {
     /// Absolute URL on the server.
     public let url: HTTPURL
 

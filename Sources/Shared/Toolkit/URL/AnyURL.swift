@@ -10,7 +10,7 @@ import ReadiumInternal
 /// Represents either an absolute or relative URL.
 ///
 /// See https://url.spec.whatwg.org
-public enum AnyURL: URLProtocol {
+public enum AnyURL: URLProtocol, Sendable {
     /// An absolute URL.
     case absolute(AbsoluteURL)
 

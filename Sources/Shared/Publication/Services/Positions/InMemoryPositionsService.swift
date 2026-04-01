@@ -7,7 +7,7 @@
 import Foundation
 
 /// A ``PositionsService`` holding the pre-computed position locators in memory.
-public class InMemoryPositionsService: PositionsService {
+public final class InMemoryPositionsService: PositionsService, Sendable {
     private let _positions: [[Locator]]
 
     public init(positionsByReadingOrder: [[Locator]]) {

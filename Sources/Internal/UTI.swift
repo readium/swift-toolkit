@@ -8,9 +8,9 @@ import Foundation
 import UniformTypeIdentifiers
 
 /// Uniform Type Identifier.
-public struct UTI {
+public struct UTI: Sendable {
     /// Type tag class, eg. UTTagClass.mimeType.
-    public enum TagClass {
+    public enum TagClass: Sendable {
         case mediaType, fileExtension
     }
 
