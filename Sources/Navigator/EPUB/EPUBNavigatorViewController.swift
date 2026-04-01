@@ -825,12 +825,19 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     public func apply(decorations: [Decoration], in group: DecorationGroup) {
         decorationTasks[group]?.cancel()
-        decorationTasks[group] = Task {
-            await initialized()
+        var task: Task<Void, Never>?
+        task = Task { [weak self] in
+            defer {
+                if let self, self.decorationTasks[group] == task {
+                    self.decorationTasks[group] = nil
+                }
+            }
+            guard let self else { return }
+            await self.initialized()
 
             guard
                 !Task.isCancelled,
-                let paginationView = paginationView
+                let paginationView = self.paginationView
             else {
                 return
             }
@@ -841,7 +848,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 let source = self.decorations[group] ?? []
                 let target = decorations.map {
                     var d = $0
-                    d.locator = publication.normalizeLocator(d.locator)
+                    d.locator = self.publication.normalizeLocator(d.locator)
                     return DiffableDecoration(decoration: d)
                 }
                 self.decorations[group] = target
@@ -860,7 +867,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                     }
                 } else {
                     for (href, changes) in target.changesByHREF(from: source) {
-                        guard let script = changes.javascript(forGroup: group, styles: config.decorationTemplates) else {
+                        guard let script = changes.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
                             continue
                         }
                         tasks.addTask { @MainActor [weak self] in
@@ -877,6 +884,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 }
             }
         }
+        decorationTasks[group] = task
     }
 
     public func observeDecorationInteractions(inGroup group: DecorationGroup, onActivated: @escaping OnActivatedCallback) {
