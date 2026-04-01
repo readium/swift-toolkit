@@ -14,20 +14,13 @@ import UIKit
 /// 2. First `readingOrder` resource if it's a bitmap or SVG, or if it has a
 ///    bitmap/SVG `alternates`.
 public final class ResourceCoverService: CoverService {
+    /// Default maximum size in points for SVG cover rendering.
+    private static let defaultCoverMaxSize = CGSize(width: 400, height: 600)
+
     private let context: PublicationServiceContext
-    private let coverMaxSize: CGSize
 
     public init(context: PublicationServiceContext) {
         self.context = context
-        let scale: CGFloat = if #available(iOS 16.0, *) {
-            UITraitCollection.current.displayScale
-        } else {
-            UIScreen.main.scale
-        }
-        coverMaxSize = CGSize(
-            width: 400 * scale,
-            height: 600 * scale
-        )
     }
 
     public func cover() async -> ReadResult<UIImage?> {
@@ -73,7 +66,7 @@ public final class ResourceCoverService: CoverService {
             return nil
         }
         if link.mediaType?.matches(.svg) == true {
-            return UIImage.fromSVG(data, maxSize: maxSize ?? coverMaxSize)
+            return UIImage.fromSVG(data, maxSize: maxSize ?? Self.defaultCoverMaxSize)
         }
         return UIImage(data: data)
     }
