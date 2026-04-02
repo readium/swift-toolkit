@@ -42,10 +42,17 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     func spreadViewDidTerminate()
 }
 
-class EPUBSpreadView: UIView, Loggable, PageView {
+class EPUBSpreadView: UIView, Loggable, ContinuousPageView {
+    enum ScrollMode {
+        case paginated
+        case perSpread
+        case continuous
+    }
+
     weak var delegate: EPUBSpreadViewDelegate?
     let viewModel: EPUBNavigatorViewModel
     let spread: EPUBSpread
+    let scrollMode: ScrollMode
     private(set) var focusedResource: ReadingOrder.Index?
 
     let webView: WebView
@@ -54,6 +61,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
+
+    var onPreferredHeightChange: (() -> Void)?
 
     weak var activityIndicatorView: UIActivityIndicatorView?
     private var activityIndicatorStopWorkItem: DispatchWorkItem?
@@ -64,11 +73,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     required init(
         viewModel: EPUBNavigatorViewModel,
         spread: EPUBSpread,
+        scrollMode: ScrollMode,
         scripts: [WKUserScript],
         animatedLoad: Bool
     ) {
         self.viewModel = viewModel
         self.spread = spread
+        self.scrollMode = scrollMode
         self.animatedLoad = animatedLoad
 
         let config = WKWebViewConfiguration()
@@ -378,8 +389,20 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         0 ... 1
     }
 
+    func progression(in index: ReadingOrder.Index, visibleRect: CGRect) -> ClosedRange<Double> {
+        progression(in: index)
+    }
+
     func go(to location: PageLocation, animated: Bool) async {
         fatalError("go(to:) must be implemented in subclasses")
+    }
+
+    func preferredHeight(for width: CGFloat) -> CGFloat {
+        max(bounds.height, 1)
+    }
+
+    func targetYOffset(for location: PageLocation, viewportHeight: CGFloat) async -> CGFloat? {
+        nil
     }
 
     enum Direction: CustomStringConvertible {
@@ -416,6 +439,10 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             log(.error, error)
             return nil
         }
+    }
+
+    func firstVisibleElementLocator(in visibleRect: CGRect) async -> Locator? {
+        await findFirstVisibleElementLocator()
     }
 
     // MARK: - JS Messages

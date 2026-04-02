@@ -21,13 +21,14 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     required init(
         viewModel: EPUBNavigatorViewModel,
         spread: EPUBSpread,
+        scrollMode: ScrollMode,
         scripts: [WKUserScript],
         animatedLoad: Bool
     ) {
         var scripts = scripts
         scripts.append(WKUserScript(source: Self.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
 
-        super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)
+        super.init(viewModel: viewModel, spread: spread, scrollMode: scrollMode, scripts: scripts, animatedLoad: animatedLoad)
     }
 
     override func setupWebView() {

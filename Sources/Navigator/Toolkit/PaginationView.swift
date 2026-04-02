@@ -29,23 +29,80 @@ enum PageLocation: Equatable {
     }
 }
 
-protocol PageView {
+protocol PageView: AnyObject {
     /// Moves the page to the given internal location.
     func go(to location: PageLocation, animated: Bool) async
 }
 
-protocol PaginationViewDelegate: AnyObject {
-    /// Creates the page view for the page at given index.
-    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)?
+protocol ContinuousPageView: PageView {
+    var onPreferredHeightChange: (() -> Void)? { get set }
 
-    /// Called when the page views were updated.
-    func paginationViewDidUpdateViews(_ paginationView: PaginationView)
+    /// Returns the height the page needs to render all of its content for the
+    /// given width.
+    func preferredHeight(for width: CGFloat) -> CGFloat
 
-    /// Returns the number of positions (as in `Publication.positionList`) in the page view at given index.
-    func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int
+    /// Returns the vertical offset to the given internal location when the
+    /// page is embedded in a continuous vertical scroll container.
+    func targetYOffset(for location: PageLocation, viewportHeight: CGFloat) async -> CGFloat?
 }
 
-final class PaginationView: UIView, Loggable {
+extension ContinuousPageView {
+    func targetYOffset(for location: PageLocation, viewportHeight: CGFloat) async -> CGFloat? {
+        nil
+    }
+}
+
+protocol PaginationViewDelegate: AnyObject {
+    /// Creates the page view for the page at given index.
+    func paginationView(_ paginationView: any PaginationContainerView, pageViewAtIndex index: Int) -> (UIView & PageView)?
+
+    /// Called when the page views were updated.
+    func paginationViewDidUpdateViews(_ paginationView: any PaginationContainerView)
+
+    /// Returns the number of positions (as in `Publication.positionList`) in the page view at given index.
+    func paginationView(_ paginationView: any PaginationContainerView, positionCountAtIndex index: Int) -> Int
+}
+
+protocol PaginationContainerView: AnyObject {
+    var delegate: PaginationViewDelegate? { get set }
+    var pageCount: Int { get }
+    var currentIndex: Int { get }
+    var loadedViews: [Int: UIView & PageView] { get }
+    var isScrollEnabled: Bool { get set }
+
+    /// Visible content rect expressed in the container's coordinate space.
+    var viewportRect: CGRect { get }
+
+    var currentView: (UIView & PageView)? { get }
+
+    func reloadAtIndex(
+        _ index: Int,
+        location: PageLocation,
+        pageCount: Int,
+        readingProgression: ReadingProgression,
+        navigateToLocationAfterReload: Bool
+    )
+    func goToIndex(_ index: Int, location: PageLocation, options: NavigatorGoOptions) async -> Bool
+    func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions, readingProgression: ReadingProgression) async -> Bool
+}
+
+extension PaginationContainerView {
+    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression) {
+        reloadAtIndex(
+            index,
+            location: location,
+            pageCount: pageCount,
+            readingProgression: readingProgression,
+            navigateToLocationAfterReload: true
+        )
+    }
+
+    func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions, readingProgression: ReadingProgression) async -> Bool {
+        false
+    }
+}
+
+final class PaginationView: UIView, Loggable, PaginationContainerView {
     weak var delegate: PaginationViewDelegate?
 
     /// Total number of page views to be paginated.
@@ -76,6 +133,10 @@ final class PaginationView: UIView, Loggable {
     /// Return the currently presented page view from the Views array.
     var currentView: (UIView & PageView)? {
         loadedViews[currentIndex]
+    }
+
+    var viewportRect: CGRect {
+        CGRect(origin: scrollView.contentOffset, size: scrollView.bounds.size)
     }
 
     /// Loaded page views in reading order.
@@ -193,7 +254,13 @@ final class PaginationView: UIView, Loggable {
     ///   - location: Location to be displayed in the page.
     ///   - pageCount: Total number of pages in the pagination view.
     ///   - readingProgression: Direction of reading progression.
-    func reloadAtIndex(_ index: Int, location: PageLocation, pageCount: Int, readingProgression: ReadingProgression) {
+    func reloadAtIndex(
+        _ index: Int,
+        location: PageLocation,
+        pageCount: Int,
+        readingProgression: ReadingProgression,
+        navigateToLocationAfterReload _: Bool
+    ) {
         precondition(pageCount >= 1)
         precondition(0 ..< pageCount ~= index)
 

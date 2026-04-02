@@ -151,6 +151,32 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         let match = noterefTitleRegex.firstMatch(in: title, range: range)
         return match != nil
     }
+
+    override func locatorForProgressPersistence() async -> Locator? {
+        let currentLocator = navigator.currentLocation
+
+        guard let visibleLocator = await navigator.firstVisibleElementLocator() else {
+            return currentLocator
+        }
+
+        guard let currentLocator else {
+            return visibleLocator
+        }
+
+        return currentLocator.copy(
+            href: visibleLocator.href,
+            mediaType: visibleLocator.mediaType,
+            locations: { locations in
+                locations.fragments = visibleLocator.locations.fragments
+                for (key, value) in visibleLocator.locations.otherLocations {
+                    locations.otherLocations[key] = value
+                }
+            },
+            text: { text in
+                text = visibleLocator.text
+            }
+        )
+    }
 }
 
 extension EPUBViewController: EPUBNavigatorDelegate {

@@ -14,20 +14,414 @@ import WebKit
 final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
+    private var webViewHeightConstraint: NSLayoutConstraint!
+    private var contentInsets: UIEdgeInsets = .zero
+    private var measuredDocumentHeight: CGFloat?
+    private var documentHeightTask: Task<Void, Never>?
 
     private static let reflowableScript = loadScript(named: "readium-reflowable")
+    private static let continuousScript = """
+        (function () {
+          if (window.readiumContinuous) {
+            return;
+          }
+
+          function escapeCssIdentifier(value) {
+            if (window.CSS && typeof window.CSS.escape === "function") {
+              return window.CSS.escape(value);
+            }
+            return String(value).replace(/([^a-zA-Z0-9_-])/g, "\\\\$1");
+          }
+
+          function cssSelectorForElement(element) {
+            if (!element || element.nodeType !== Node.ELEMENT_NODE) {
+              return "body";
+            }
+
+            if (element.id) {
+              return "#" + escapeCssIdentifier(element.id);
+            }
+
+            var segments = [];
+            var current = element;
+            while (current && current.nodeType === Node.ELEMENT_NODE && current !== document.documentElement) {
+              var selector = current.nodeName.toLowerCase();
+              if (current.id) {
+                selector += "#" + escapeCssIdentifier(current.id);
+                segments.unshift(selector);
+                break;
+              }
+
+              var position = 1;
+              var sibling = current.previousElementSibling;
+              while (sibling) {
+                if (sibling.nodeName === current.nodeName) {
+                  position += 1;
+                }
+                sibling = sibling.previousElementSibling;
+              }
+
+              selector += ":nth-of-type(" + position + ")";
+              segments.unshift(selector);
+              current = current.parentElement;
+            }
+
+            if (segments.length === 0) {
+              return "body";
+            }
+            return segments.join(" > ");
+          }
+
+          function makeRectJSON(rect) {
+            return {
+              x: rect.x,
+              y: rect.y,
+              width: rect.width,
+              height: rect.height,
+              top: rect.top,
+              right: rect.right,
+              bottom: rect.bottom,
+              left: rect.left,
+            };
+          }
+
+          function rangeForText(root, highlight, before, after) {
+            var target = String(highlight || "").trim();
+            if (!target) {
+              return null;
+            }
+
+            var searchRoot = root || document.body;
+            var walker = document.createTreeWalker(searchRoot, NodeFilter.SHOW_TEXT, {
+              acceptNode: function (node) {
+                return node.textContent && node.textContent.trim()
+                  ? NodeFilter.FILTER_ACCEPT
+                  : NodeFilter.FILTER_REJECT;
+              },
+            });
+
+            var matches = [];
+            var node;
+            while ((node = walker.nextNode())) {
+              var text = node.textContent || "";
+              var index = text.indexOf(target);
+              while (index >= 0) {
+                matches.push({ node: node, index: index, text: text });
+                index = text.indexOf(target, index + 1);
+              }
+            }
+
+            if (matches.length === 0) {
+              return null;
+            }
+
+            function score(match) {
+              var points = 0;
+              if (before && match.text.slice(Math.max(0, match.index - before.length), match.index).indexOf(before) >= 0) {
+                points += 1;
+              }
+              if (after && match.text.slice(match.index + target.length, match.index + target.length + after.length).indexOf(after) >= 0) {
+                points += 1;
+              }
+              return points;
+            }
+
+            var best = matches[0];
+            var bestScore = score(best);
+            for (var i = 1; i < matches.length; i += 1) {
+              var candidateScore = score(matches[i]);
+              if (candidateScore > bestScore) {
+                best = matches[i];
+                bestScore = candidateScore;
+              }
+            }
+
+            var range = document.createRange();
+            range.setStart(best.node, best.index);
+            range.setEnd(best.node, best.index + target.length);
+            return range;
+          }
+
+          function rectFromRange(range) {
+            if (!range) {
+              return null;
+            }
+
+            var rects = range.getClientRects();
+            if (rects && rects.length > 0) {
+              return rects[0];
+            }
+
+            return range.getBoundingClientRect();
+          }
+
+          function rectFromNode(node) {
+            if (!node) {
+              return null;
+            }
+
+            if (node.nodeType === Node.TEXT_NODE) {
+              var textRange = document.createRange();
+              textRange.selectNodeContents(node);
+              return rectFromRange(textRange);
+            }
+
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+              return null;
+            }
+
+            var rects = node.getClientRects();
+            if (rects && rects.length > 0) {
+              return rects[0];
+            }
+
+            for (var i = 0; i < node.childNodes.length; i += 1) {
+              var childRect = rectFromNode(node.childNodes[i]);
+              if (childRect) {
+                return childRect;
+              }
+            }
+
+            return node.getBoundingClientRect();
+          }
+
+          function fragmentCandidates(fragment) {
+            var value = String(fragment || "").trim();
+            if (!value) {
+              return [];
+            }
+
+            if (value.charAt(0) === "#") {
+              value = value.slice(1);
+            }
+
+            var candidates = [value];
+            try {
+              var decoded = decodeURIComponent(value);
+              if (decoded && candidates.indexOf(decoded) < 0) {
+                candidates.push(decoded);
+              }
+            } catch (_) {}
+
+            return candidates;
+          }
+
+          function elementFromFragment(fragment) {
+            var candidates = fragmentCandidates(fragment);
+
+            for (var i = 0; i < candidates.length; i += 1) {
+              var element = document.getElementById(candidates[i]);
+              if (element) {
+                return element;
+              }
+            }
+
+            for (var j = 0; j < candidates.length; j += 1) {
+              var namedElements = document.getElementsByName(candidates[j]);
+              for (var k = 0; k < namedElements.length; k += 1) {
+                return namedElements[k];
+              }
+            }
+
+            return null;
+          }
+
+          function findHeadingByTitle(title) {
+            var target = String(title || "").trim();
+            if (!target) {
+              return null;
+            }
+
+            var headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
+            for (var i = 0; i < headings.length; i += 1) {
+              var text = String(headings[i].textContent || "").trim();
+              if (text === target) {
+                return headings[i];
+              }
+            }
+
+            for (var j = 0; j < headings.length; j += 1) {
+              var partial = String(headings[j].textContent || "").trim();
+              if (partial && partial.indexOf(target) >= 0) {
+                return headings[j];
+              }
+            }
+
+            return null;
+          }
+
+          function rectFromLocator(locator) {
+            try {
+              var locations = locator && locator.locations ? locator.locations : {};
+              var text = locator && locator.text ? locator.text : {};
+              var root = document.body;
+              var element = null;
+
+              if (locations.cssSelector) {
+                element = document.querySelector(locations.cssSelector);
+                if (element) {
+                  root = element;
+                }
+              }
+
+              if (!element && Array.isArray(locations.fragments)) {
+                for (var i = 0; i < locations.fragments.length; i += 1) {
+                  element = elementFromFragment(locations.fragments[i]);
+                  if (element) {
+                    break;
+                  }
+                }
+              }
+
+              if (element) {
+                return rectFromNode(element);
+              }
+
+              if (locator && locator.title) {
+                element = findHeadingByTitle(locator.title);
+                if (element) {
+                  return rectFromNode(element);
+                }
+              }
+
+              if (text && text.highlight) {
+                return rectFromRange(rangeForText(root, text.highlight, text.before, text.after));
+              }
+            } catch (_) {}
+
+            return null;
+          }
+
+          function documentTopOffset() {
+            var root = document.body || document.documentElement;
+            if (!root) {
+              return 0;
+            }
+            return root.getBoundingClientRect().top;
+          }
+
+          function shouldIgnoreElement(element) {
+            var style = getComputedStyle(element);
+            if (!style) {
+              return false;
+            }
+
+            if (style.getPropertyValue("display") !== "block") {
+              return true;
+            }
+            return style.getPropertyValue("opacity") === "0";
+          }
+
+          function isElementVisibleInRect(element, rect) {
+            if (element === document.body || element === document.documentElement) {
+              return true;
+            }
+
+            var elementRect = element.getBoundingClientRect();
+            return (
+              elementRect.bottom > rect.top &&
+              elementRect.top < rect.bottom &&
+              elementRect.right > rect.left &&
+              elementRect.left < rect.right
+            );
+          }
+
+          function findElementInRect(rootElement, rect) {
+            for (var i = 0; i < rootElement.children.length; i += 1) {
+              var child = rootElement.children[i];
+              if (!shouldIgnoreElement(child) && isElementVisibleInRect(child, rect)) {
+                return findElementInRect(child, rect);
+              }
+            }
+            return rootElement;
+          }
+
+          function contentHeight() {
+            var root = document.scrollingElement || document.documentElement || document.body;
+            return Math.max(
+              root ? root.scrollHeight : 0,
+              root ? root.offsetHeight : 0,
+              document.documentElement ? document.documentElement.scrollHeight : 0,
+              document.documentElement ? document.documentElement.offsetHeight : 0,
+              document.body ? document.body.scrollHeight : 0,
+              document.body ? document.body.offsetHeight : 0
+            );
+          }
+
+          window.readiumContinuous = {
+            contentHeight: contentHeight,
+            locatorRect: function (locator) {
+              var rect = rectFromLocator(locator);
+              return rect ? makeRectJSON(rect) : null;
+            },
+            locatorYOffset: function (locator) {
+              var rect = rectFromLocator(locator);
+              if (!rect) {
+                return null;
+              }
+              return rect.top - documentTopOffset();
+            },
+            findFirstVisibleLocatorInRect: function (rect) {
+              var visibleRect = rect || {
+                top: 0,
+                left: 0,
+                right: window.innerWidth,
+                bottom: window.innerHeight,
+              };
+              var element = findElementInRect(document.body, visibleRect);
+              return {
+                href: "#",
+                type: "application/xhtml+xml",
+                locations: {
+                  cssSelector: cssSelectorForElement(element),
+                },
+                text: {
+                  highlight: (element.textContent || "").trim(),
+                },
+              };
+            },
+            notifyLayoutChange: function () {
+              webkit.messageHandlers.continuousContentLayoutChanged.postMessage({});
+            },
+          };
+
+          window.addEventListener("load", function () {
+            var pendingNotification;
+            function notify() {
+              if (pendingNotification) {
+                cancelAnimationFrame(pendingNotification);
+              }
+              pendingNotification = requestAnimationFrame(function () {
+                window.readiumContinuous.notifyLayoutChange();
+              });
+            }
+
+            notify();
+            var observer = new ResizeObserver(notify);
+            observer.observe(document.documentElement);
+            observer.observe(document.body);
+          });
+        })();
+        """
+
+    private var isContinuousScrolling: Bool {
+        scrollMode == .continuous
+    }
 
     required init(
         viewModel: EPUBNavigatorViewModel,
         spread: EPUBSpread,
+        scrollMode: ScrollMode,
         scripts: [WKUserScript],
         animatedLoad: Bool
     ) {
         super.init(
             viewModel: viewModel,
             spread: spread,
+            scrollMode: scrollMode,
             scripts: [
                 WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
+                WKUserScript(source: Self.continuousScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
             ],
             animatedLoad: animatedLoad
         )
@@ -35,6 +429,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func clear() {
         super.clear()
+
+        documentHeightTask?.cancel()
+        documentHeightTask = nil
 
         // Clean up go to continuations.
         for continuation in goToContinuations {
@@ -54,13 +451,16 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         scrollView.alwaysBounceVertical = false
         scrollView.alwaysBounceHorizontal = false
 
-        scrollView.isPagingEnabled = !viewModel.scroll
+        scrollView.isPagingEnabled = (scrollMode == .paginated)
+        scrollView.isScrollEnabled = !isContinuousScrolling
 
         webView.translatesAutoresizingMaskIntoConstraints = false
         topConstraint = webView.topAnchor.constraint(equalTo: topAnchor)
         topConstraint.priority = .defaultHigh
         bottomConstraint = webView.bottomAnchor.constraint(equalTo: bottomAnchor)
         bottomConstraint.priority = .defaultHigh
+        webViewHeightConstraint = webView.heightAnchor.constraint(equalToConstant: 1)
+        webViewHeightConstraint.priority = .required
         NSLayoutConstraint.activate([
             topConstraint, bottomConstraint,
             webView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -90,24 +490,41 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     override func applySettings() {
         super.applySettings()
 
-        // Disables paginated mode if scroll is on.
-        scrollView.isPagingEnabled = !viewModel.scroll
+        scrollView.isPagingEnabled = (scrollMode == .paginated)
+        scrollView.isScrollEnabled = !isContinuousScrolling
 
         updateContentInset()
+        if isContinuousScrolling {
+            scheduleDocumentHeightUpdate()
+        }
     }
 
     private func updateContentInset() {
-        let contentInset = delegate?.spreadViewContentInset(self) ?? .zero
+        contentInsets = delegate?.spreadViewContentInset(self) ?? .zero
 
-        if viewModel.scroll {
+        if isContinuousScrolling {
+            topConstraint.constant = contentInsets.top
+            bottomConstraint.isActive = false
+            webViewHeightConstraint.isActive = true
+            webViewHeightConstraint.constant = measuredDocumentHeight ?? estimatedDocumentHeight
+            scrollView.contentInset = .zero
+        } else if viewModel.scroll {
             topConstraint.constant = 0
+            bottomConstraint.isActive = true
+            webViewHeightConstraint.isActive = false
             bottomConstraint.constant = 0
-            scrollView.contentInset = contentInset
+            scrollView.contentInset = contentInsets
 
         } else {
-            topConstraint.constant = contentInset.top
-            bottomConstraint.constant = -contentInset.bottom
+            topConstraint.constant = contentInsets.top
+            bottomConstraint.isActive = true
+            webViewHeightConstraint.isActive = false
+            bottomConstraint.constant = -contentInsets.bottom
             scrollView.contentInset = .zero
+        }
+
+        if isContinuousScrolling {
+            onPreferredHeightChange?()
         }
     }
 
@@ -144,17 +561,48 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         return progression
     }
 
+    override func progression(in index: ReadingOrder.Index, visibleRect: CGRect) -> ClosedRange<Double> {
+        guard
+            isContinuousScrolling,
+            spread.first.index == index
+        else {
+            return progression(in: index)
+        }
+
+        let documentHeight = measuredDocumentHeight ?? 0
+        guard documentHeight > 0 else {
+            return 0 ... 0
+        }
+
+        let contentRect = CGRect(
+            x: webView.frame.minX,
+            y: webView.frame.minY,
+            width: webView.frame.width,
+            height: documentHeight
+        )
+        let intersection = visibleRect.intersection(contentRect)
+        guard !intersection.isNull, !intersection.isEmpty else {
+            return 0 ... 0
+        }
+
+        let first = min(max((intersection.minY - contentRect.minY) / documentHeight, 0), 1)
+        let last = min(max((intersection.maxY - contentRect.minY) / documentHeight, first), 1)
+        return first ... last
+    }
+
     override func spreadDidLoad() async {
         let link = spread.first.link
         if let linkJSON = try? link.jsonString() {
             await evaluateScript("readium.link = \(linkJSON);")
         }
 
-        // TODO: Better solution for delaying scrolling to pending location
-        // This delay is used to wait for the web view pagination to settle and give the CSS and webview time to layout
-        // correctly before attempting to scroll to the target progression, otherwise we might end up at the wrong spot.
-        // 0.2 seconds seems like a good value for it to work on an iPhone 5s.
         try? await Task.sleep(seconds: 0.2)
+
+        if isContinuousScrolling {
+            await updateDocumentHeight()
+            didCompleteGoTo()
+            return
+        }
 
         let location = pendingLocation
         await go(to: location.location, animated: location.animated)
@@ -166,7 +614,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     }
 
     override func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions) async -> Bool {
-        guard !viewModel.scroll else {
+        guard !viewModel.scroll, !isContinuousScrolling else {
             return await super.go(to: direction, options: options)
         }
 
@@ -235,6 +683,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
 
+        if isContinuousScrolling {
+            didCompleteGoTo()
+            return
+        }
+
         switch location {
         case let .locator(locator):
             await go(to: locator, animated: animated)
@@ -258,6 +711,173 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             cont.resume()
         }
         goToContinuations.removeAll()
+    }
+
+    private var estimatedDocumentHeight: CGFloat {
+        max(bounds.height - contentInsets.top - contentInsets.bottom, 1)
+    }
+
+    override func preferredHeight(for width: CGFloat) -> CGFloat {
+        guard isContinuousScrolling else {
+            return super.preferredHeight(for: width)
+        }
+        let documentHeight = measuredDocumentHeight ?? estimatedDocumentHeight
+        return max(contentInsets.top + documentHeight + contentInsets.bottom, 1)
+    }
+
+    override func targetYOffset(for location: PageLocation, viewportHeight: CGFloat) async -> CGFloat? {
+        guard isContinuousScrolling else {
+            return await super.targetYOffset(for: location, viewportHeight: viewportHeight)
+        }
+
+        let pageHeight = preferredHeight(for: bounds.width)
+        let maxOffset = max(pageHeight - viewportHeight, 0)
+
+        switch location {
+        case .start:
+            return 0
+        case .end:
+            return maxOffset
+        case let .locator(locator):
+            for attempt in 0 ..< 6 {
+                if let offset = await locatorYOffset(for: locator) {
+                    return min(max(contentInsets.top + offset, 0), maxOffset)
+                }
+
+                guard attempt < 5 else {
+                    break
+                }
+
+                await updateDocumentHeight()
+                try? await Task.sleep(seconds: 0.05)
+            }
+
+            if let progression = locator.locations.progression {
+                let documentHeight = measuredDocumentHeight ?? estimatedDocumentHeight
+                return min(max(contentInsets.top + documentHeight * progression, 0), maxOffset)
+            }
+
+            return 0
+        }
+    }
+
+    override func firstVisibleElementLocator(in visibleRect: CGRect) async -> Locator? {
+        guard isContinuousScrolling else {
+            return await super.firstVisibleElementLocator(in: visibleRect)
+        }
+
+        let webViewVisibleRect = convert(visibleRect, to: webView)
+        guard let rectJSON = jsonString(for: webViewVisibleRect) else {
+            return nil
+        }
+
+        let result = await evaluateScript("readiumContinuous.findFirstVisibleLocatorInRect(\(rectJSON));")
+        do {
+            let link = spread.first.link
+            guard
+                let json = try JSONValue(result.get()),
+                let locator = try Locator(json: json)
+            else {
+                return nil
+            }
+            return locator.copy(href: link.url(), mediaType: link.mediaType ?? .xhtml)
+
+        } catch {
+            log(.error, error)
+            return nil
+        }
+    }
+
+    private func scheduleDocumentHeightUpdate(delay: TimeInterval = 0.05) {
+        guard isContinuousScrolling else {
+            return
+        }
+
+        documentHeightTask?.cancel()
+        documentHeightTask = Task { @MainActor [weak self] in
+            guard let self else {
+                return
+            }
+            if delay > 0 {
+                try? await Task.sleep(seconds: delay)
+            }
+            await self.updateDocumentHeight()
+        }
+    }
+
+    private func updateDocumentHeight() async {
+        guard isContinuousScrolling else {
+            return
+        }
+
+        let result = await evaluateScript("readiumContinuous.contentHeight();")
+        guard
+            case let .success(value) = result,
+            let number = value as? NSNumber
+        else {
+            return
+        }
+
+        let height = max(CGFloat(truncating: number), 1)
+        guard abs((measuredDocumentHeight ?? 0) - height) > 0.5 else {
+            return
+        }
+
+        measuredDocumentHeight = height
+        webViewHeightConstraint.constant = height
+        setNeedsLayout()
+        onPreferredHeightChange?()
+    }
+
+    private func locatorYOffset(for locator: Locator) async -> CGFloat? {
+        guard let locatorJSON = try? locator.jsonString() else {
+            return nil
+        }
+
+        let result = await evaluateScript("readiumContinuous.locatorYOffset(\(locatorJSON));")
+        guard
+            case let .success(value) = result,
+            let number = value as? NSNumber
+        else {
+            return nil
+        }
+
+        let offset = CGFloat(truncating: number)
+        return offset.isFinite ? offset : nil
+    }
+
+    private func locatorRect(for locator: Locator) async -> CGRect? {
+        guard let locatorJSON = try? locator.jsonString() else {
+            return nil
+        }
+
+        let result = await evaluateScript("readiumContinuous.locatorRect(\(locatorJSON));")
+        guard case let .success(value) = result else {
+            return nil
+        }
+
+        return CGRect(json: value)
+    }
+
+    private func jsonString(for rect: CGRect) -> String? {
+        let json: [String: CGFloat] = [
+            "top": rect.minY,
+            "left": rect.minX,
+            "bottom": rect.maxY,
+            "right": rect.maxX,
+            "width": rect.width,
+            "height": rect.height,
+            "x": rect.minX,
+            "y": rect.minY,
+        ]
+
+        guard
+            let data = try? JSONSerialization.data(withJSONObject: json),
+            let string = String(data: data, encoding: .utf8)
+        else {
+            return nil
+        }
+        return string
     }
 
     private var goToContinuations: [CheckedContinuation<Void, Never>] = []
@@ -415,6 +1035,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     override func registerJSMessages() {
         super.registerJSMessages()
         registerJSMessage(named: "progressionChanged") { [weak self] in self?.progressionDidChange($0) }
+        registerJSMessage(named: "continuousContentLayoutChanged") { [weak self] _ in
+            self?.scheduleDocumentHeightUpdate(delay: 0)
+        }
     }
 
     // MARK: - WKNavigationDelegate

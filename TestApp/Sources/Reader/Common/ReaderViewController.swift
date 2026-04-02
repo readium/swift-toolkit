@@ -24,6 +24,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
     private let bookmarks: BookmarkRepository
 
     var subscriptions = Set<AnyCancellable>()
+    private var outlineSubscription: AnyCancellable?
 
     private(set) var searchViewModel: SearchViewModel?
     private var searchViewController: UIHostingController<SearchView>?
@@ -73,6 +74,13 @@ class ReaderViewController<N: Navigator>: UIViewController,
         if #available(iOS 18.0, *) {
             tabBarController?.isTabBarHidden = false
         }
+
+        Task { [weak self] in
+            guard let self else {
+                return
+            }
+            await self.persistProgress(using: await self.locatorForProgressPersistence())
+        }
     }
 
     // MARK: - Navigation bar
@@ -102,12 +110,8 @@ class ReaderViewController<N: Navigator>: UIViewController,
     // MARK: - NavigatorDelegate
 
     func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-        Task {
-            do {
-                try await books.saveProgress(for: bookId, locator: locator)
-            } catch {
-                moduleDelegate?.presentError(UserError(error), from: self)
-            }
+        Task { [weak self] in
+            await self?.persistProgress(using: locator)
         }
     }
 
@@ -127,6 +131,42 @@ class ReaderViewController<N: Navigator>: UIViewController,
         log(.error, "Failed to load resource at \(href): \(error)")
     }
 
+    func locatorForProgressPersistence() async -> Locator? {
+        let coarseLocator = navigator.currentLocation
+
+        guard var locator = await (navigator as? VisualNavigator)?.firstVisibleElementLocator() ?? coarseLocator else {
+            return nil
+        }
+
+        if
+            let coarseLocator,
+            coarseLocator.href.isEquivalentTo(locator.href)
+        {
+            locator = locator.copy(
+                title: locator.title ?? coarseLocator.title,
+                locations: { locations in
+                    locations.progression = locations.progression ?? coarseLocator.locations.progression
+                    locations.totalProgression = locations.totalProgression ?? coarseLocator.locations.totalProgression
+                    locations.position = locations.position ?? coarseLocator.locations.position
+                }
+            )
+        }
+
+        return locator
+    }
+
+    func persistProgress(using locator: Locator?) async {
+        guard let locator else {
+            return
+        }
+
+        do {
+            try await books.saveProgress(for: bookId, locator: locator)
+        } catch {
+            moduleDelegate?.presentError(UserError(error), from: self)
+        }
+    }
+
     // MARK: - Locations
 
     var currentBookmark: Bookmark? {
@@ -144,14 +184,21 @@ class ReaderViewController<N: Navigator>: UIViewController,
             return
         }
 
-        locatorPublisher
+        outlineSubscription = locatorPublisher
             .sink(receiveValue: { [weak self] locator in
                 Task {
-                    await self?.navigator.go(to: locator, options: NavigatorGoOptions(animated: false))
-                    self?.dismiss(animated: true)
+                    guard let self else {
+                        return
+                    }
+
+                    let didNavigate = await self.navigator.go(to: locator, options: NavigatorGoOptions(animated: false))
+                    if didNavigate {
+                        self.dismiss(animated: true)
+                    } else {
+                        self.log(.error, "Failed to navigate to outline locator \(locator)")
+                    }
                 }
             })
-            .store(in: &subscriptions)
     }
 
     // MARK: - User Preferences
