@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file. Take a look
     * `Recipes/` contains self-contained and explained code you can reuse in your own application.
     * `App/` folder contains the scaffolding (file management, navigation, error handling) needed to run the Playground.
 
+#### Shared
+
+* Added support for SVG covers in `ResourceCoverService`. SVG images can now be used as publication covers and are rendered to bitmaps (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/751)).
+
 ### Removed
 
 * Carthage is no longer a supported distribution method. Please migrate to Swift Package Manager or CocoaPods.

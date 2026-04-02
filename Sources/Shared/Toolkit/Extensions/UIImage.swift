@@ -40,12 +40,13 @@ extension UIImage {
             let createFromData = CoreSVG.createFromData,
             let getCanvasSize = CoreSVG.getCanvasSize,
             let drawInContext = CoreSVG.drawInContext,
+            let releaseDocument = CoreSVG.releaseDocument,
             let document = createFromData(data as CFData, nil)
         else {
             return nil
         }
         let svgDocument = document.takeUnretainedValue()
-        defer { CoreSVG.releaseDocument?(svgDocument) }
+        defer { releaseDocument(svgDocument) }
 
         let canvasSize = getCanvasSize(svgDocument)
         guard canvasSize.width > 0, canvasSize.height > 0 else {

@@ -28,7 +28,7 @@ public final class ResourceCoverService: CoverService {
     }
 
     public func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?> {
-        await loadCover(maxSize: maxSize).map { $0?.scaleToFit(maxSize: maxSize) }
+        await loadCover(maxSize: maxSize)
     }
 
     private func loadCover(maxSize: CGSize?) async -> ReadResult<UIImage?> {
@@ -41,16 +41,13 @@ public final class ResourceCoverService: CoverService {
 
         // Fallback: first reading order bitmap/SVG or alternate
         if let firstLink = context.manifest.readingOrder.first {
-            if firstLink.mediaType?.isBitmap == true || firstLink.mediaType?.matches(.svg) == true {
-                if let image = await loadImage(from: firstLink, maxSize: maxSize) {
-                    return .success(image)
-                }
+            if let image = await loadImage(from: firstLink, maxSize: maxSize) {
+                return .success(image)
             }
+
             for alternate in firstLink.alternates {
-                if alternate.mediaType?.isBitmap == true || alternate.mediaType?.matches(.svg) == true {
-                    if let image = await loadImage(from: alternate, maxSize: maxSize) {
-                        return .success(image)
-                    }
+                if let image = await loadImage(from: alternate, maxSize: maxSize) {
+                    return .success(image)
                 }
             }
         }
@@ -60,15 +57,23 @@ public final class ResourceCoverService: CoverService {
 
     private func loadImage(from link: Link, maxSize: CGSize?) async -> UIImage? {
         guard
+            let mediaType = link.mediaType,
+            mediaType.isBitmap || mediaType.matches(.svg),
             let resource = context.container[link.url()],
             let data = try? await resource.read().get()
         else {
             return nil
         }
+
         if link.mediaType?.matches(.svg) == true {
             return UIImage.fromSVG(data, maxSize: maxSize ?? Self.defaultCoverMaxSize)
         }
-        return UIImage(data: data)
+
+        let image = UIImage(data: data)
+        if let maxSize = maxSize {
+            return image?.scaleToFit(maxSize: maxSize)
+        }
+        return image
     }
 
     public static func makeFactory() -> (PublicationServiceContext) -> ResourceCoverService {
