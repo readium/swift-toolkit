@@ -177,11 +177,12 @@ extension ReadiumCSS: HTMLInjectable {
             return []
         }
 
-        if HTMLElement.body.hasAttribute(anyOf: langAttrs, in: html) {
-            let bodyLang = HTMLElement.body.attribute(firstOf: langAttrs, in: html) ?? ""
-            let bodyLanguage = bodyLang.isEmpty ? nil : Language(code: .bcp47(bodyLang))
+        if
+            let bodyLang = HTMLElement.body.attribute(firstOf: langAttrs, in: html),
+            !bodyLang.isEmpty
+        {
             return [
-                .langAttribute(on: .html, language: bodyLanguage ?? language),
+                .langAttribute(on: .html, language: Language(code: .bcp47(bodyLang))),
             ]
         } else {
             return [

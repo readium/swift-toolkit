@@ -353,6 +353,7 @@ class ReadiumCSSTests: XCTestCase {
                 .dirAttribute(on: .html, rtl: false),
                 .dirAttribute(on: .body, rtl: false),
                 .langAttribute(on: .html, language: language),
+                .langAttribute(on: .body, language: language),
             ]
         )
     }
