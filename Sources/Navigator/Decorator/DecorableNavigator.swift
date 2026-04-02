@@ -16,7 +16,7 @@ public protocol DecorableNavigator {
     /// submit the updated list of decorations when there are changes.
     /// Name each decoration group as you see fit. A good practice is to use the name of the feature requiring
     /// decorations, e.g. `annotation`, `search`, `tts`, etc.
-    func apply(decorations: [Decoration], in group: String)
+    func apply(decorations: [Decoration], in group: DecorationGroup)
 
     /// Indicates whether the Navigator supports the given decoration `style`.
     ///
@@ -30,18 +30,24 @@ public protocol DecorableNavigator {
     /// - Parameters:
     ///   - group: The name of the decoration group to observe.
     ///   - onActivated: Called when the user activates the decoration, e.g. with a click or tap.
-    func observeDecorationInteractions(inGroup group: String, onActivated: @escaping OnActivatedCallback)
+    func observeDecorationInteractions(inGroup group: DecorationGroup, onActivated: @escaping OnActivatedCallback)
 
     /// Called when the user activates a decoration, e.g. with a click or tap.
     typealias OnActivatedCallback = (_ event: OnDecorationActivatedEvent) -> Void
 }
+
+/// Identifies a decoration group.
+///
+/// Use a descriptive name for each group, typically matching the feature that
+/// owns the decorations, e.g. `search`, `annotation`, `tts`.
+public typealias DecorationGroup = String
 
 /// Holds the metadata about a decoration activation interaction.
 public struct OnDecorationActivatedEvent {
     /// Activated decoration.
     public let decoration: Decoration
     /// Name of the group the decoration belongs to.
-    public let group: String
+    public let group: DecorationGroup
     /// Frame of the bounding rect for the decoration, in the coordinate of the navigator view. This is only useful in
     /// the context of a VisualNavigator.
     public let rect: CGRect?

@@ -809,28 +809,46 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     // MARK: - DecorableNavigator
 
-    private var decorations: [String: [DiffableDecoration]] = [:]
+    private var decorations: [DecorationGroup: [DiffableDecoration]] = [:]
 
     /// Decoration group callbacks, indexed by the group name.
-    private var decorationCallbacks: [String: [DecorableNavigator.OnActivatedCallback]] = [:]
+    private var decorationCallbacks: [DecorationGroup: [DecorableNavigator.OnActivatedCallback]] = [:]
+
+    /// Pending decoration tasks, indexed by group name. Stored to allow
+    /// cancellation when a new `apply(decorations:in:)` call supersedes a
+    /// previous one.
+    private var decorationTasks: [DecorationGroup: Task<Void, Never>] = [:]
 
     public func supports(decorationStyle style: Decoration.Style.Id) -> Bool {
         config.decorationTemplates.keys.contains(style)
     }
 
-    public func apply(decorations: [Decoration], in group: String) {
-        Task {
-            await initialized()
+    public func apply(decorations: [Decoration], in group: DecorationGroup) {
+        decorationTasks[group]?.cancel()
+        var task: Task<Void, Never>?
+        task = Task { [weak self] in
+            defer {
+                if let self, self.decorationTasks[group] == task {
+                    self.decorationTasks[group] = nil
+                }
+            }
+            guard let self else { return }
+            await self.initialized()
 
-            guard let paginationView = paginationView else {
+            guard
+                !Task.isCancelled,
+                let paginationView = self.paginationView
+            else {
                 return
             }
 
             await withTaskGroup(of: Void.self) { tasks in
+                guard !Task.isCancelled else { return }
+
                 let source = self.decorations[group] ?? []
                 let target = decorations.map {
                     var d = $0
-                    d.locator = publication.normalizeLocator(d.locator)
+                    d.locator = self.publication.normalizeLocator(d.locator)
                     return DiffableDecoration(decoration: d)
                 }
                 self.decorations[group] = target
@@ -838,6 +856,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 if decorations.isEmpty {
                     for (_, pageView) in paginationView.loadedViews {
                         tasks.addTask {
+                            guard !Task.isCancelled else { return }
                             await (pageView as? EPUBSpreadView)?.evaluateScript(
                                 // The updates command are using `requestAnimationFrame()`, so we need it for
                                 // `clear()` as well otherwise we might recreate a highlight after it has been
@@ -848,11 +867,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                     }
                 } else {
                     for (href, changes) in target.changesByHREF(from: source) {
-                        guard let script = changes.javascript(forGroup: group, styles: config.decorationTemplates) else {
+                        guard let script = changes.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
                             continue
                         }
                         tasks.addTask { @MainActor [weak self] in
                             guard
+                                !Task.isCancelled,
                                 let spreadView = self?.loadedSpreadViewForHREF(href),
                                 spreadView.isSpreadLoaded
                             else {
@@ -864,9 +884,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 }
             }
         }
+        decorationTasks[group] = task
     }
 
-    public func observeDecorationInteractions(inGroup group: String, onActivated: @escaping OnActivatedCallback) {
+    public func observeDecorationInteractions(inGroup group: DecorationGroup, onActivated: @escaping OnActivatedCallback) {
         var callbacks = decorationCallbacks[group] ?? []
         callbacks.append(onActivated)
         decorationCallbacks[group] = callbacks
@@ -1186,7 +1207,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?, point: CGPoint?) {
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: DecorationGroup, frame: CGRect?, point: CGPoint?) {
         guard
             let callbacks = decorationCallbacks[group].takeIf({ !$0.isEmpty }),
             let decoration: Decoration = decorations[group]?
