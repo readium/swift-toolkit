@@ -59,7 +59,6 @@ private let image = UIImage(contentsOfFile: fixtures.url(for: "image.jpg").path)
             // SVG canvas is 100×150; at maxSize 75×75 the aspect ratio matches exactly.
             let maxSize = CGSize(width: 75, height: 75)
             let image = try #require(UIImage.fromSVG(fixtures.data(at: "cover-svg.svg"), maxSize: maxSize))
-            print(image.size)
             #expect(image.size.width == 50)
             #expect(image.size.height == 75)
         }

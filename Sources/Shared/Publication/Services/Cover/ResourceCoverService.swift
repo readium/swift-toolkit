@@ -65,7 +65,7 @@ public final class ResourceCoverService: CoverService {
             return nil
         }
 
-        if link.mediaType?.matches(.svg) == true {
+        if mediaType.matches(.svg) {
             return UIImage.fromSVG(data, maxSize: maxSize ?? Self.defaultCoverMaxSize)
         }
 
