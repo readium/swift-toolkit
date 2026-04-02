@@ -5,12 +5,14 @@
 //
 
 import Foundation
+import ReadiumShared
 
-public struct PotentialRights {
+public struct PotentialRights: JSONValueDecodable {
     /// Time and Date when the license ends.
     public let end: Date?
 
-    init(json: [String: Any]) throws {
-        end = (json["end"] as? String)?.dateFromISO8601
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        let json = json?.jsonValue.object
+        end = json?["end"]?.date
     }
 }

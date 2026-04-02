@@ -46,7 +46,7 @@ class OPDSAvailabilityTests: XCTestCase {
     }
 
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try OPDSAvailability(json: [:] as [String: Any]))
+        XCTAssertThrowsError(try OPDSAvailability(json: [:] as JSONValue))
     }
 
     func testParseRequiresState() {
@@ -54,19 +54,19 @@ class OPDSAvailabilityTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            OPDSAvailability(state: .available).json,
+        XCTAssertEqual(
+            OPDSAvailability(state: .available).jsonObject,
             ["state": "available"]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             OPDSAvailability(
                 state: .available,
                 since: "2001-01-01T12:36:27+0000".dateFromISO8601,
                 until: "2001-02-01T12:36:27+0000".dateFromISO8601
-            ).json,
+            ).jsonObject,
             [
                 "state": "available",
                 "since": "2001-01-01T12:36:27+0000",

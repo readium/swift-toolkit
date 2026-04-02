@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import ReadiumShared
 
 /// Event related to the change in status of a License Document.
-public struct Event {
+public struct Event: JSONValueDecodable {
     public enum EventType: String {
         /// Signals a successful registration event by a device.
         case register
@@ -31,11 +32,12 @@ public struct Event {
     /// Time and date when the event occurred.
     public let date: Date // Named timestamp in spec.
 
-    init?(json: [String: Any]) {
-        guard let type = json["type"] as? String,
-              let name = json["name"] as? String,
-              let id = json["id"] as? String,
-              let date = (json["timestamp"] as? String)?.dateFromISO8601
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue.object,
+              let type = json["type"]?.string,
+              let name = json["name"]?.string,
+              let id = json["id"]?.string,
+              let date = json["timestamp"]?.date
         else {
             return nil
         }

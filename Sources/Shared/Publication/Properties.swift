@@ -9,44 +9,38 @@ import ReadiumInternal
 
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
-public struct Properties: Hashable, Loggable, WarningLogger, Sendable {
+public struct Properties: Hashable, Loggable, WarningLogger, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// Additional properties for extensions.
-    public var otherProperties: JSONDictionary.Wrapped {
-        get { otherPropertiesJSON.json }
-        set { otherPropertiesJSON = JSONDictionary(newValue) ?? JSONDictionary() }
+    public var otherProperties: [String: JSONValue]
+
+    public init(_ otherProperties: [String: JSONValue] = [:]) {
+        self.otherProperties = otherProperties
     }
 
-    /// Trick to keep the struct equatable despite JSONDictionary.Wrapped
-    private var otherPropertiesJSON: JSONDictionary
-
-    public init(_ otherProperties: JSONDictionary.Wrapped = [:]) {
-        otherPropertiesJSON = JSONDictionary(otherProperties) ?? JSONDictionary()
-    }
-
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        if json == nil {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
-        guard let jsonDictionary = JSONDictionary(json) else {
+        guard let jsonObject = json.object else {
             warnings?.log("Invalid Properties object", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
-        otherPropertiesJSON = jsonDictionary
+        otherProperties = jsonObject
     }
 
-    public var json: JSONDictionary.Wrapped {
-        makeJSON(otherProperties as [String: Any])
+    public var jsonObject: [String: JSONValue] {
+        otherProperties
     }
 
     /// Syntactic sugar to access the `otherProperties` values by subscripting `Properties` directly.
     /// properties["price"] == properties.otherProperties["price"]
-    public subscript(key: String) -> Any? {
+    public subscript(key: String) -> JSONValue? {
         otherProperties[key]
     }
 
     /// Merges in the given additional other `properties`.
-    public mutating func add(_ properties: JSONDictionary.Wrapped) {
-        otherPropertiesJSON.json.merge(properties, uniquingKeysWith: { _, second in second })
+    public mutating func add(_ properties: [String: JSONValue]) {
+        otherProperties.merge(properties, uniquingKeysWith: { _, second in second })
     }
 }
 
@@ -61,10 +55,10 @@ public extension Properties {
     /// Indicates how the linked resource should be displayed in a reading
     /// environment that displays synthetic spreads.
     var page: Page? {
-        get { parseRaw(otherProperties[Self.pageKey]) }
+        get { otherProperties[Self.pageKey]?.decode() }
         set {
             if let newValue = newValue {
-                otherProperties[Self.pageKey] = newValue.rawValue
+                otherProperties[Self.pageKey] = .string(newValue.rawValue)
             } else {
                 otherProperties.removeValue(forKey: Self.pageKey)
             }

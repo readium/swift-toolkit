@@ -10,7 +10,7 @@ import XCTest
 class AccessibilityTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? Accessibility(json: [:] as [String: Any]),
+            try? Accessibility(json: [:] as JSONValue),
             Accessibility()
         )
     }
@@ -34,7 +34,7 @@ class AccessibilityTests: XCTestCase {
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"],
                 "exemption": ["eaa-fundamental-alteration", "eaa-microenterprise"],
-            ] as [String: Any]),
+            ] as JSONValue),
             Accessibility(
                 conformsTo: [
                     Accessibility.Profile("https://profile1"),
@@ -112,7 +112,7 @@ class AccessibilityTests: XCTestCase {
         )
         XCTAssertEqual(
             try? Accessibility(json: [
-                "accessModeSufficient": ["auditory", ["visual"]] as [Any],
+                "accessModeSufficient": ["auditory", ["visual"]] as JSONValue,
             ]),
             Accessibility(
                 accessModesSufficient: [[.auditory], [.visual]]
@@ -120,7 +120,7 @@ class AccessibilityTests: XCTestCase {
         )
         XCTAssertEqual(
             try? Accessibility(json: [
-                "accessModeSufficient": ["auditory", ["visual", "tactile"], [] as [String], "visual"] as [Any],
+                "accessModeSufficient": ["auditory", ["visual", "tactile"], [] as JSONValue, "visual"] as JSONValue,
             ]),
             Accessibility(
                 accessModesSufficient: [[.auditory], [.visual, .tactile], [.visual]]
@@ -186,9 +186,9 @@ class AccessibilityTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            Accessibility().json,
-            [:] as [String: Any]
+        XCTAssertEqual(
+            Accessibility().jsonObject,
+            [:] as [String: JSONValue]
         )
     }
 
@@ -209,8 +209,8 @@ class AccessibilityTests: XCTestCase {
             features: [.readingOrder, .alternativeText],
             hazards: [.flashing, .motionSimulation],
             exemptions: [.eaaDisproportionateBurden, .eaaMicroenterprise]
-        ).json
-        AssertJSONEqual(
+        ).jsonObject
+        XCTAssertEqual(
             expected,
             [
                 "conformsTo": ["http://www.idpf.org/epub/a11y/accessibility-20170105.html#wcag-a", "https://profile2"],
@@ -225,7 +225,7 @@ class AccessibilityTests: XCTestCase {
                 "feature": ["readingOrder", "alternativeText"],
                 "hazard": ["flashing", "motionSimulation"],
                 "exemption": ["eaa-disproportionate-burden", "eaa-microenterprise"],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }

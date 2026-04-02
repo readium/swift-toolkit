@@ -61,7 +61,7 @@ class LinkTests: XCTestCase {
                     ["href": "http://child1"],
                     ["href": "http://child2"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             fullLink
         )
     }
@@ -71,7 +71,7 @@ class LinkTests: XCTestCase {
     }
 
     func testParseInvalidHREFWithDecodedPathInJSON() throws {
-        let link = try Link(json: ["href": "01_Note de l editeur audio.mp3"])
+        let link = try XCTUnwrap(Link(json: ["href": "01_Note de l editeur audio.mp3"]))
         XCTAssertEqual(link, Link(href: "01_Note%20de%20l%20editeur%20audio.mp3"))
         XCTAssertEqual(link.url(), AnyURL(string: "01_Note%20de%20l%20editeur%20audio.mp3"))
     }
@@ -91,17 +91,17 @@ class LinkTests: XCTestCase {
     }
 
     func testParseJSONTemplatedDefaultsToFalse() {
-        XCTAssertFalse(try Link(json: ["href": "a"]).templated)
+        XCTAssertFalse(try XCTUnwrap(Link(json: ["href": "a"])).templated)
     }
 
     func testParseJSONTemplatedAsNull() {
-        XCTAssertFalse(try Link(json: ["href": "a", "templated": NSNull()] as [String: Any]).templated)
-        XCTAssertFalse(try Link(json: ["href": "a", "templated": nil]).templated)
+        XCTAssertFalse(try XCTUnwrap(Link(json: ["href": "a", "templated": .null] as JSONValue)).templated)
+        XCTAssertFalse(try XCTUnwrap(Link(json: ["href": "a", "templated": .null])).templated)
     }
 
     func testParseJSONMultipleLanguages() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "language": ["fr", "en"]] as [String: Any]),
+            try? Link(json: ["href": "a", "language": ["fr", "en"]] as JSONValue),
             Link(href: "a", languages: ["fr", "en"])
         )
     }
@@ -112,77 +112,45 @@ class LinkTests: XCTestCase {
 
     func testParseJSONRequiresPositiveWidth() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "width": -20] as [String: Any]),
+            try? Link(json: ["href": "a", "width": -20] as JSONValue),
             Link(href: "a")
         )
     }
 
     func testParseJSONRequiresPositiveHeight() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "height": -20] as [String: Any]),
+            try? Link(json: ["href": "a", "height": -20] as JSONValue),
             Link(href: "a")
         )
     }
 
     func testParseJSONRequiresPositiveBitrate() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "bitrate": -20] as [String: Any]),
+            try? Link(json: ["href": "a", "bitrate": -20] as JSONValue),
             Link(href: "a")
         )
     }
 
     func testParseJSONRequiresPositiveDuration() {
         XCTAssertEqual(
-            try? Link(json: ["href": "a", "duration": -20] as [String: Any]),
+            try? Link(json: ["href": "a", "duration": -20] as JSONValue),
             Link(href: "a")
         )
     }
 
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [Link](json: [
-                ["href": "http://child1"],
-                ["href": "http://child2"],
-            ]),
-            [
-                Link(href: "http://child1"),
-                Link(href: "http://child2"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual(
-            [Link](json: nil),
-            []
-        )
-    }
-
-    func testParseJSONArrayIgnoresInvalidLinks() {
-        XCTAssertEqual(
-            [Link](json: [
-                ["title": "Title"],
-                ["href": "http://child2"],
-            ]),
-            [
-                Link(href: "http://child2"),
-            ]
-        )
-    }
-
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            Link(href: "http://href").json,
+        XCTAssertEqual(
+            Link(href: "http://href").jsonObject,
             [
                 "href": "http://href",
                 "templated": false,
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
-            fullLink.json,
+        XCTAssertEqual(
+            fullLink.jsonObject,
             [
                 "href": "http://href",
                 "type": "application/pdf",
@@ -198,27 +166,14 @@ class LinkTests: XCTestCase {
                 "duration": 45.6,
                 "language": ["fr"],
                 "alternate": [
-                    ["href": "/alternate1", "templated": false] as [String: Any],
+                    ["href": "/alternate1", "templated": false] as JSONValue,
                     ["href": "/alternate2", "templated": false],
                 ],
                 "children": [
-                    ["href": "http://child1", "templated": false] as [String: Any],
+                    ["href": "http://child1", "templated": false] as JSONValue,
                     ["href": "http://child2", "templated": false],
                 ],
-            ] as [String: Any]
-        )
-    }
-
-    func testGetJSONArray() {
-        AssertJSONEqual(
-            [
-                Link(href: "http://child1"),
-                Link(href: "http://child2"),
-            ].json,
-            [
-                ["href": "http://child1", "templated": false] as [String: Any],
-                ["href": "http://child2", "templated": false],
-            ]
+            ] as [String: JSONValue]
         )
     }
 
@@ -345,8 +300,8 @@ class LinkTests: XCTestCase {
             "orientation": "override",
         ])
 
-        AssertJSONEqual(
-            link.json,
+        XCTAssertEqual(
+            link.jsonObject,
             [
                 "href": "http://href",
                 "type": "application/pdf",
@@ -363,14 +318,14 @@ class LinkTests: XCTestCase {
                 "duration": 45.6,
                 "language": ["fr"],
                 "alternate": [
-                    ["href": "/alternate1", "templated": false] as [String: Any],
+                    ["href": "/alternate1", "templated": false] as JSONValue,
                     ["href": "/alternate2", "templated": false],
                 ],
                 "children": [
-                    ["href": "http://child1", "templated": false] as [String: Any],
+                    ["href": "http://child1", "templated": false] as JSONValue,
                     ["href": "http://child2", "templated": false],
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }

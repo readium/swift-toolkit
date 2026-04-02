@@ -5,10 +5,6 @@ project.yml
 # IntelliJ AppCode
 .idea
 
-Carthage/
-Cartfile
-Cartfile.resolved
-
 Pods/
 Podfile
 Podfile.lock

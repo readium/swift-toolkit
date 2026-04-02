@@ -12,39 +12,39 @@ import ReadiumInternal
 public extension Properties {
     /// Provides a hint about the expected number of items returned.
     var numberOfItems: Int? {
-        parsePositive(otherProperties["numberOfItems"])
+        otherProperties["numberOfItems"]?.nonNegative()
     }
 
     /// The price of a publication is tied to its acquisition link.
     var price: OPDSPrice? {
-        try? OPDSPrice(json: otherProperties["price"], warnings: self)
+        try? otherProperties["price"]?.decode(warnings: self)
     }
 
     /// Indirect acquisition provides a hint for the expected media type that will be acquired after
     /// additional steps.
     var indirectAcquisitions: [OPDSAcquisition] {
-        [OPDSAcquisition](json: otherProperties["indirectAcquisition"], warnings: self)
+        otherProperties["indirectAcquisition"]?.decode(warnings: self) ?? []
     }
 
     /// Library-specific features when a specific book is unavailable but provides a hold list.
     var holds: OPDSHolds? {
-        try? OPDSHolds(json: otherProperties["holds"], warnings: self)
+        try? otherProperties["holds"]?.decode(warnings: self)
     }
 
     /// Library-specific feature that contains information about the copies that a library has
     /// acquired.
     var copies: OPDSCopies? {
-        try? OPDSCopies(json: otherProperties["copies"], warnings: self)
+        try? otherProperties["copies"]?.decode(warnings: self)
     }
 
     /// Indicated the availability of a given resource.
     var availability: OPDSAvailability? {
-        try? OPDSAvailability(json: otherProperties["availability"], warnings: self)
+        try? otherProperties["availability"]?.decode(warnings: self)
     }
 
     /// Indicates that the linked resource supports authentication with the associated Authentication Document.
     /// See https://drafts.opds.io/authentication-for-opds-1.0.html
     var authenticate: Link? {
-        otherProperties["authenticate"].flatMap { try? Link(json: $0) }
+        try? otherProperties["authenticate"]?.decode(warnings: self)
     }
 }

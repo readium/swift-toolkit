@@ -32,9 +32,9 @@ public struct RPFFormatSniffer: FormatSniffer {
         }
 
         return await resource.read()
-            .asJSONObject()
-            .map {
-                guard let manifest = try? Manifest(json: $0) else {
+            .asJSONObjectValue()
+            .map { json in
+                guard let manifest = try? Manifest(json: json) else {
                     return nil
                 }
 

@@ -27,14 +27,12 @@ public typealias CoverServiceFactory = (PublicationServiceContext) -> CoverServi
 public protocol CoverService: PublicationService {
     /// Returns the publication cover as a bitmap at its maximum size.
     ///
-    /// If the cover is not a bitmap format (e.g. SVG), it will be scaled down to fit the screen
-    /// using `UIScreen.main.bounds.size`.
+    /// If the cover is not a bitmap format (e.g. SVG), it will be rendered at its intrinsic size,
+    /// or scaled down to a reasonable maximum to avoid excessive memory usage.
     func cover() async -> ReadResult<UIImage?>
 
-    /// Returns the publication cover as a bitmap, scaled down to fit the given `maxSize`.
-    ///
-    /// If the cover is not in a bitmap format (e.g. SVG), it is exported as a bitmap filling
-    /// `maxSize`. The cover might be cached in memory for next calls.
+    /// Returns the publication cover as a bitmap, scaled down to fit within `maxSize` while
+    /// preserving the aspect ratio. The cover might be cached in memory for next calls.
     func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?>
 }
 

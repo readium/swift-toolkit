@@ -51,6 +51,10 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         }
     }
 
+    /// You need to keep a strong reference to the adapter, otherwise the
+    /// navigator binding will be released.
+    private var directionalNavigationAdapter: DirectionalNavigationAdapter?
+
     /// Setups the user interaction (e.g. taps) with the navigator.
     private func setupUserInteraction() {
         guard let navigator = navigator as? VisualNavigator else {
@@ -81,9 +85,11 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         //
         // Bind it to the navigator before adding your own observers to prevent
         // triggering your actions when turning pages.
-        DirectionalNavigationAdapter(
-            pointerPolicy: .init(types: [.mouse, .touch])
-        ).bind(to: navigator)
+        directionalNavigationAdapter = DirectionalNavigationAdapter(
+            pointerPolicy: .init(types: [.mouse, .touch]),
+            animatedTransition: true
+        )
+        directionalNavigationAdapter?.bind(to: navigator)
 
         // Clear the current search highlight on tap.
         navigator.addObserver(.activate { [weak self] _ in

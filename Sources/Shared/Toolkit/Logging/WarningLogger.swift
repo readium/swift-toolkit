@@ -47,7 +47,7 @@ public struct JSONWarning: Warning {
     /// Details about the failure.
     public let reason: String
     /// Source JSON object.
-    public let source: Any?
+    public let source: JSONValue?
     public let severity: WarningSeverityLevel
     public var tag: String {
         "json"
@@ -59,7 +59,7 @@ public struct JSONWarning: Warning {
 }
 
 extension WarningLogger {
-    func log(_ reason: String, model: Any.Type, source: Any? = nil, severity: WarningSeverityLevel = .major) {
+    func log(_ reason: String, model: Any.Type, source: JSONValue? = nil, severity: WarningSeverityLevel = .major) {
         log(JSONWarning(modelType: model, reason: reason, source: source, severity: severity))
     }
 }

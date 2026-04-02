@@ -86,8 +86,9 @@ Guides are available to help you make the most of the toolkit.
 
 * [Navigator](docs/Guides/Navigator/Navigator.md) - an overview of the Navigator to render a `Publication`'s content to the user
 * [Configuring the Navigator](docs/Guides/Navigator/Preferences.md) – setup and render Navigator user preferences (font size, colors, etc.)
-* [Font families in the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md) – support custom font families with reflowable EPUB publications
 * [Integrating the Navigator with SwiftUI](docs/Guides/Navigator/SwiftUI.md) – glue to setup the Navigator in a SwiftUI application
+* [Implementing Highlights](docs/Guides/Navigator/Highlights.md) – add and manage highlights in a publication
+* [Font families in the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md) – support custom font families with reflowable EPUB publications
 
 ### DRM
 
@@ -102,7 +103,7 @@ Guides are available to help you make the most of the toolkit.
 | Readium   | iOS  | Swift compiler | Xcode |
 |-----------|------|----------------|-------|
 | `develop` | 15.0 | 6.0            | 16.4  |
-| 3.7.0     | 15.0 | 6.0            | 16.4  |
+| 3.8.0     | 15.0 | 6.0            | 16.4  |
 | 3.0.0     | 13.4 | 5.10           | 15.4  |
 | 2.5.1     | 11.0 | 5.6.1          | 13.4  |
 | 2.5.0     | 10.0 | 5.6.1          | 13.4  |
@@ -111,7 +112,7 @@ Guides are available to help you make the most of the toolkit.
 
 ### Dependencies
 
-The toolkit's libraries are distributed with [Swift Package Manager](#swift-package-manager) (recommended), [Carthage](#carthage) and [CocoaPods](#cocoapods). It's also possible to clone the repository (or a fork) and [depend on the libraries locally](#local-git-clone).
+The toolkit's libraries are distributed with [Swift Package Manager](#swift-package-manager) (recommended) and [CocoaPods](#cocoapods). It's also possible to clone the repository (or a fork) and [depend on the libraries locally](#local-git-clone).
 
 The [Test App](TestApp) contains examples on how to use all these dependency managers.
 
@@ -123,33 +124,6 @@ You are then free to add one or more Readium libraries to your application. They
 
 If you're stuck, find more information at [developer.apple.com](https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app).
 
-#### Carthage
-
-Add the following to your `Cartfile`:
-
-```
-github "readium/swift-toolkit" ~> 3.7.0
-```
-
-Then, [follow the usual Carthage steps](https://github.com/Carthage/Carthage#adding-frameworks-to-an-application) to add the Readium libraries to your project.
-
-Note that Carthage will build all Readium modules and their dependencies, but you are free to add only the ones you are actually using. The Readium libraries are designed to work independently.
-
-Refer to the following table to know which dependencies are required for each Readium library.
-
-|                        |   `ReadiumShared`  |  `ReadiumStreamer` | `ReadiumNavigator` |    `ReadiumOPDS`   |    `ReadiumLCP`    | `ReadiumAdapterGCDWebServer` | `ReadiumAdapterLCPSQLite` |
-|------------------------|:------------------:|:------------------:|:------------------:|:------------------:|:------------------:|------------------------------|---------------------------|
-| **`ReadiumShared`**    |                    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:           | :heavy_check_mark:        |
-| **`ReadiumInternal`**  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
-| `CryptoSwift`          |                    | :heavy_check_mark: |                    |                    | :heavy_check_mark: |                              |                           |
-| `DifferenceKit`        |                    |                    | :heavy_check_mark: |                    |                    |                              |                           |
-| `ReadiumFuzi`          | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
-| `ReadiumGCDWebServer`  |                    |                    |                    |                    |                    | :heavy_check_mark:           |                           |
-| `ReadiumZIPFoundation` | :heavy_check_mark: |                    |                    |                    | :heavy_check_mark: |                              |                           |
-| `Minizip`              | :heavy_check_mark: |                    |                    |                    |                    |                              |                           |
-| `SQLite.swift`         |                    |                    |                    |                    |                    |                              | :heavy_check_mark:        |
-| `SwiftSoup`            | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                              |                           |
-
 #### CocoaPods
 
 Add the following `pod` statements to your `Podfile` for the Readium libraries you want to use:
@@ -158,11 +132,11 @@ Add the following `pod` statements to your `Podfile` for the Readium libraries y
 source 'https://github.com/readium/podspecs'
 source 'https://cdn.cocoapods.org/'
 
-pod 'ReadiumShared', '~> 3.7.0'
-pod 'ReadiumStreamer', '~> 3.7.0'
-pod 'ReadiumNavigator', '~> 3.7.0'
-pod 'ReadiumOPDS', '~> 3.7.0'
-pod 'ReadiumLCP', '~> 3.7.0'
+pod 'ReadiumShared', '~> 3.8.0'
+pod 'ReadiumStreamer', '~> 3.8.0'
+pod 'ReadiumNavigator', '~> 3.8.0'
+pod 'ReadiumOPDS', '~> 3.8.0'
+pod 'ReadiumLCP', '~> 3.8.0'
 ```
 
 Take a look at [CocoaPods's documentation](https://guides.cocoapods.org/using/using-cocoapods.html) for more information.

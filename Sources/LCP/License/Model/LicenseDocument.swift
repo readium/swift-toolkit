@@ -53,20 +53,25 @@ public struct LicenseDocument {
     public let jsonString: String
 
     public init(data: Data) throws {
-        guard
-            let jsonString = String(data: data, encoding: .utf8),
-            let deserializedJSON = try? JSONSerialization.jsonObject(with: data)
-        else {
+        guard let jsonString = String(data: data, encoding: .utf8) else {
             throw ParsingError.malformedJSON
         }
 
-        guard let json = deserializedJSON as? [String: Any],
-              let provider = json["provider"] as? String,
-              let id = json["id"] as? String,
-              let issued = (json["issued"] as? String)?.dateFromISO8601,
-              let encryption = json["encryption"] as? [String: Any],
-              let links = json["links"] as? [[String: Any]],
-              let signature = json["signature"] as? [String: Any]
+        let jsonValue: JSONValue
+        do {
+            jsonValue = try JSONValue(jsonData: data)
+        } catch {
+            throw ParsingError.malformedJSON
+        }
+
+        guard let json = jsonValue.object,
+              let provider = json["provider"]?.string,
+              let id = json["id"]?.string,
+              let issued = json["issued"]?.date,
+              let encryption = try Encryption(json: json["encryption"]),
+              let links = try Links(json: json["links"]),
+              let rights = try Rights(json: json["rights"]),
+              let signature = try Signature(json: json["signature"])
         else {
             throw ParsingError.licenseDocument
         }
@@ -74,12 +79,12 @@ public struct LicenseDocument {
         self.provider = provider
         self.id = id
         self.issued = issued
-        updated = (json["updated"] as? String)?.dateFromISO8601 ?? issued
-        self.encryption = try Encryption(json: encryption)
-        self.links = try Links(json: links)
-        user = try User(json: json["user"] as? [String: Any])
-        rights = try Rights(json: json["rights"] as? [String: Any])
-        self.signature = try Signature(json: signature)
+        updated = json["updated"]?.date ?? issued
+        self.encryption = encryption
+        self.links = links
+        user = try User(json: json["user"]) ?? User()
+        self.rights = rights
+        self.signature = signature
         jsonData = data
         self.jsonString = jsonString
 

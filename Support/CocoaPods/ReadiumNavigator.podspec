@@ -4,7 +4,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumNavigator"
-  s.version       = "3.7.0"
+  s.version       = "3.8.0"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium Navigator"
   s.homepage      = "http://readium.github.io"
@@ -21,10 +21,11 @@ Pod::Spec.new do |s|
   s.swift_version = '5.10'
   s.platform      = :ios
   s.ios.deployment_target = "15.0"
+  s.pod_target_xcconfig = { 'OTHER_SWIFT_FLAGS' => '-package-name Readium' }
 
-  s.dependency 'ReadiumInternal', '~> 3.7.0'
-  s.dependency 'ReadiumShared', '~> 3.7.0'
+  s.dependency 'ReadiumInternal', '~> 3.8.0'
+  s.dependency 'ReadiumShared', '~> 3.8.0'
   s.dependency 'DifferenceKit', '~> 1.0'
-  s.dependency 'SwiftSoup', '~> 2.7.0'
+  s.dependency 'SwiftSoup', '~> 2.11.0'
 
 end

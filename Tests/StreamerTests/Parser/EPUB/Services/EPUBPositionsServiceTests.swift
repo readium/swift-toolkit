@@ -335,15 +335,15 @@ func makeService(layout: Layout? = nil, readingOrder: [(UInt64, Link, ArchivePro
 }
 
 private func makeProperties(layout: EPUBLayout? = nil, originalLength: Int? = nil) -> Properties {
-    var props: [String: Any] = [:]
+    var props: [String: JSONValue] = [:]
     if let layout = layout {
-        props["layout"] = layout.rawValue
+        props["layout"] = .string(layout.rawValue)
     }
     if let originalLength = originalLength {
-        props["encrypted"] = [
-            "algorithm": "algo",
-            "originalLength": originalLength,
-        ] as [String: Any]
+        props["encrypted"] = .object([
+            "algorithm": .string("algo"),
+            "originalLength": .integer(originalLength),
+        ])
     }
     return Properties(props)
 }

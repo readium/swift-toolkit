@@ -11,7 +11,7 @@ import ReadiumInternal
 /// Readium Guided Navigation specification.
 ///
 /// https://readium.org/guided-navigation/
-public struct GuidedNavigationDocument: Hashable, Sendable {
+public struct GuidedNavigationDocument: Hashable, Sendable, JSONValueDecodable {
     /// A sequence of resources and/or media fragments into these resources,
     /// meant to be presented sequentially to the user.
     public var guided: [GuidedNavigationObject]
@@ -20,16 +20,16 @@ public struct GuidedNavigationDocument: Hashable, Sendable {
         self.guided = guided
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard let json = json as? [String: Any] else {
-            if json == nil {
-                return nil
-            }
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
+            return nil
+        }
+        guard let jsonObject = json.object else {
             warnings?.log("Invalid Guided Navigation Document", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
-        let guided = [GuidedNavigationObject](json: json["guided"], warnings: warnings)
+        let guided: [GuidedNavigationObject] = jsonObject["guided"]?.decode(warnings: warnings) ?? []
         guard !guided.isEmpty else {
             warnings?.log("Guided Navigation Document requires a non-empty guided array", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)

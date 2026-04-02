@@ -10,7 +10,7 @@ import XCTest
 class DOMRangeTests: XCTestCase {
     func testParseMinimalDOMRangeJSON() {
         XCTAssertEqual(
-            try? DOMRange(json: ["start": ["cssSelector": "p", "textNodeIndex": 4] as [String: Any]]),
+            try? DOMRange(json: ["start": ["cssSelector": "p", "textNodeIndex": 4] as JSONValue]),
             DOMRange(start: .init(cssSelector: "p", textNodeIndex: 4))
         )
     }
@@ -21,7 +21,7 @@ class DOMRangeTests: XCTestCase {
                 "start": [
                     "cssSelector": "p",
                     "textNodeIndex": 4,
-                ] as [String: Any],
+                ] as JSONValue,
                 "end": [
                     "cssSelector": "a",
                     "textNodeIndex": 2,
@@ -35,31 +35,31 @@ class DOMRangeTests: XCTestCase {
     }
 
     func testParseDOMRangeJSONRequiresStart() {
-        XCTAssertThrowsError(try DOMRange(json: ["end": ["cssSelector": "p", "textNodeIndex": 4] as [String: Any]]))
+        XCTAssertThrowsError(try DOMRange(json: ["end": ["cssSelector": "p", "textNodeIndex": 4] as JSONValue]))
     }
 
     func testParseDOMRangeAllowsNil() {
-        XCTAssertNil(try DOMRange(json: nil))
+        XCTAssertNil(try DOMRange(json: nil as JSONValue?))
     }
 
     func testGetMinimalDOMRangeJSON() {
-        AssertJSONEqual(
-            DOMRange(start: .init(cssSelector: "p", textNodeIndex: 4)).json,
-            ["start": ["cssSelector": "p", "textNodeIndex": 4] as [String: Any]]
+        XCTAssertEqual(
+            DOMRange(start: .init(cssSelector: "p", textNodeIndex: 4)).jsonObject,
+            ["start": ["cssSelector": "p", "textNodeIndex": 4] as JSONValue]
         )
     }
 
     func testGetFullDOMRangeJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             DOMRange(
                 start: .init(cssSelector: "p", textNodeIndex: 4),
                 end: .init(cssSelector: "a", textNodeIndex: 2)
-            ).json,
+            ).jsonObject,
             [
                 "start": [
                     "cssSelector": "p",
                     "textNodeIndex": 4,
-                ] as [String: Any],
+                ] as JSONValue,
                 "end": [
                     "cssSelector": "a",
                     "textNodeIndex": 2,
@@ -73,7 +73,7 @@ class DOMRangeTests: XCTestCase {
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
                 "textNodeIndex": 4,
-            ] as [String: Any]),
+            ] as JSONValue),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4)
         )
     }
@@ -84,7 +84,7 @@ class DOMRangeTests: XCTestCase {
                 "cssSelector": "p",
                 "textNodeIndex": 4,
                 "charOffset": 32,
-            ] as [String: Any]),
+            ] as JSONValue),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32)
         )
     }
@@ -95,7 +95,7 @@ class DOMRangeTests: XCTestCase {
                 "cssSelector": "p",
                 "textNodeIndex": 4,
                 "offset": 32,
-            ] as [String: Any]),
+            ] as JSONValue),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32)
         )
     }
@@ -121,20 +121,20 @@ class DOMRangeTests: XCTestCase {
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
                 "textNodeIndex": 1,
-            ] as [String: Any]),
+            ] as JSONValue),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 1)
         )
         XCTAssertEqual(
             try? DOMRange.Point(json: [
                 "cssSelector": "p",
                 "textNodeIndex": 0,
-            ] as [String: Any]),
+            ] as JSONValue),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 0)
         )
         XCTAssertNil(try? DOMRange.Point(json: [
             "cssSelector": "p",
             "textNodeIndex": -1,
-        ] as [String: Any]))
+        ] as JSONValue))
     }
 
     func testParsePointJSONRequiresPositiveCharOffset() {
@@ -143,7 +143,7 @@ class DOMRangeTests: XCTestCase {
                 "cssSelector": "p",
                 "textNodeIndex": 1,
                 "charOffset": 1,
-            ] as [String: Any]),
+            ] as JSONValue),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 1, charOffset: 1)
         )
         XCTAssertEqual(
@@ -151,7 +151,7 @@ class DOMRangeTests: XCTestCase {
                 "cssSelector": "p",
                 "textNodeIndex": 1,
                 "charOffset": 0,
-            ] as [String: Any]),
+            ] as JSONValue),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 1, charOffset: 0)
         )
         XCTAssertEqual(
@@ -159,33 +159,33 @@ class DOMRangeTests: XCTestCase {
                 "cssSelector": "p",
                 "textNodeIndex": 1,
                 "charOffset": -1,
-            ] as [String: Any]),
+            ] as JSONValue),
             DOMRange.Point(cssSelector: "p", textNodeIndex: 1, charOffset: nil)
         )
     }
 
     func testParsePointAllowsNil() {
-        XCTAssertNil(try DOMRange.Point(json: nil))
+        XCTAssertNil(try DOMRange.Point(json: nil as JSONValue?))
     }
 
     func testGetMinimalPointJSON() {
-        AssertJSONEqual(
-            DOMRange.Point(cssSelector: "p", textNodeIndex: 4).json,
+        XCTAssertEqual(
+            DOMRange.Point(cssSelector: "p", textNodeIndex: 4).jsonObject,
             [
                 "cssSelector": "p",
                 "textNodeIndex": 4,
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 
     func testGetFullPointJSON() {
-        AssertJSONEqual(
-            DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32).json,
+        XCTAssertEqual(
+            DOMRange.Point(cssSelector: "p", textNodeIndex: 4, charOffset: 32).jsonObject,
             [
                 "cssSelector": "p",
                 "textNodeIndex": 4,
                 "charOffset": 32,
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }

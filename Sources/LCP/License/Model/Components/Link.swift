@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// A Link to a resource.
-public struct Link {
+public struct Link: JSONValueDecodable {
     /// The link destination.
     public let href: String
     /// Indicates the relationship between the resource and its containing collection.
@@ -26,26 +26,26 @@ public struct Link {
     /// SHA-256 hash of the resource.
     public let hash: String?
 
-    init(json: [String: Any]) throws {
-        guard let href = json["href"] as? String else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue.object,
+              let href = json["href"]?.string
+        else {
             throw ParsingError.link
         }
 
-        if let rel = json["rel"] as? String {
-            self.rel = [rel]
-        } else if let rel = json["rel"] as? [String], !rel.isEmpty {
-            self.rel = rel
-        } else {
+        let rel: [String] = json["rel"]?.decode(allowingSingle: true) ?? []
+        guard !rel.isEmpty else {
             throw ParsingError.link
         }
 
         self.href = href
-        title = json["title"] as? String
-        type = json["type"] as? String
-        templated = (json["templated"] as? Bool) ?? false
-        profile = json["profile"] as? String
-        length = json["length"] as? Int
-        hash = json["hash"] as? String
+        self.rel = rel
+        title = json["title"]?.string
+        type = json["type"]?.string
+        templated = json["templated"]?.bool ?? false
+        profile = json["profile"]?.string
+        length = json["length"]?.integer
+        hash = json["hash"]?.string
     }
 
     /// Gets the valid URL if possible, applying the given template context as query parameters if the link is templated.

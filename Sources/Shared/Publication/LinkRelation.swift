@@ -5,18 +5,27 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Link relations as defined in https://readium.org/webpub-manifest/relationships.html
-public struct LinkRelation: Sendable {
-    /// The string representation of this link relation.
-    public let string: String
+public struct LinkRelation: Sendable, Hashable, RawRepresentable, JSONValueEncodable {
+    public var rawValue: String
 
-    public init(_ string: String) {
+    /// The string representation of this link relation.
+    public var string: String {
+        rawValue
+    }
+
+    public init?(rawValue: String) {
         // > Registered relation type names MUST conform to the reg-rel-type rule
         // > (see Section 3.3) and MUST be compared character by character in a
         // > case-insensitive fashion.
         // https://tools.ietf.org/html/rfc8288#section-2.1.1
-        self.string = string.lowercased()
+        self.rawValue = rawValue.lowercased()
+    }
+
+    public init(_ string: String) {
+        self.init(rawValue: string)!
     }
 
     public func hasPrefix(_ prefix: String) -> Bool {
@@ -33,6 +42,10 @@ public struct LinkRelation: Sendable {
 
     public var isOPDSAcquisition: Bool {
         hasPrefix("http://opds-spec.org/acquisition")
+    }
+
+    public var jsonValue: JSONValue {
+        .string(string)
     }
 
     // MARK: - Known Link Relations
@@ -145,33 +158,7 @@ extension LinkRelation: ExpressibleByStringLiteral {
     }
 }
 
-extension LinkRelation: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(string)
-    }
-
-    public var hashValue: Int {
-        string.hashValue
-    }
-}
-
-public extension Array where Element == LinkRelation {
-    /// Parses multiple JSON relations into an array of `LinkRelation`.
-    init(json: Any?) {
-        self.init()
-
-        if let json = json as? String {
-            append(LinkRelation(json))
-        } else if let json = json as? [String] {
-            let rels = json.compactMap { LinkRelation($0) }
-            append(contentsOf: rels)
-        }
-    }
-
-    var json: [String] {
-        map(\.string)
-    }
-
+public extension [LinkRelation] {
     func contains(_ other: String) -> Bool {
         contains(LinkRelation(other))
     }

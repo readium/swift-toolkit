@@ -240,9 +240,11 @@ public class HTMLResourceContentIterator: ContentIterator {
 
                 lazy var elementLocator: Locator = baseLocator.copy(
                     locations: {
-                        $0.otherLocations = [
-                            "cssSelector": parent.cssSelector as Any,
-                        ]
+                        if let cssSelector = parent.cssSelector {
+                            $0.otherLocations["cssSelector"] = .string(cssSelector)
+                        } else {
+                            $0.otherLocations.removeValue(forKey: "cssSelector")
+                        }
                     }
                 )
 
@@ -369,7 +371,11 @@ public class HTMLResourceContentIterator: ContentIterator {
                 TextContentElement(
                     locator: baseLocator.copy(
                         locations: {
-                            $0.otherLocations["cssSelector"] = parent?.cssSelector as Any
+                            if let cssSelector = parent?.cssSelector {
+                                $0.otherLocations["cssSelector"] = .string(cssSelector)
+                            } else {
+                                $0.otherLocations.removeValue(forKey: "cssSelector")
+                            }
                         },
                         text: {
                             $0 = Locator.Text.trimming(
@@ -412,9 +418,11 @@ public class HTMLResourceContentIterator: ContentIterator {
                 segmentsAcc.append(TextContentElement.Segment(
                     locator: baseLocator.copy(
                         locations: {
-                            $0.otherLocations = [
-                                "cssSelector": parent?.cssSelector as Any,
-                            ]
+                            if let cssSelector = parent?.cssSelector {
+                                $0.otherLocations["cssSelector"] = .string(cssSelector)
+                            } else {
+                                $0.otherLocations.removeValue(forKey: "cssSelector")
+                            }
                         },
                         text: { [self] in
                             $0 = Locator.Text.trimming(

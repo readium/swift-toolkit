@@ -7,10 +7,10 @@
 import Foundation
 
 /// Properties associated to a resource.
-public struct ResourceProperties {
-    public var properties: [String: Any]
+public struct ResourceProperties: Hashable {
+    public var properties: [String: JSONValue]
 
-    public init(_ properties: [String: Any] = [:]) {
+    public init(_ properties: [String: JSONValue] = [:]) {
         self.properties = properties
     }
 
@@ -19,11 +19,11 @@ public struct ResourceProperties {
         builder(&self)
     }
 
-    public subscript<T>(_ key: String) -> T? {
-        get { properties[key] as? T }
+    public subscript<T: JSONValueEncodable & JSONValueDecodable>(_ key: String) -> T? {
+        get { try? properties[key]?.decode() }
         set {
             if let newValue = newValue {
-                properties[key] = newValue
+                properties[key] = newValue.jsonValue
             } else {
                 properties.removeValue(forKey: key)
             }
@@ -37,28 +37,13 @@ private let mediaTypeKey = "https://readium.org/webpub-manifest/properties#media
 public extension ResourceProperties {
     /// Known filename for this resource.
     var filename: String? {
-        get { properties[filenameKey] as? String }
-        set {
-            if let filename = newValue {
-                properties[filenameKey] = filename
-            } else {
-                properties.removeValue(forKey: filenameKey)
-            }
-        }
+        get { self[filenameKey] }
+        set { self[filenameKey] = newValue }
     }
 
     /// Known media type for this resource.
     var mediaType: MediaType? {
-        get {
-            (properties[mediaTypeKey] as? String)
-                .flatMap { MediaType($0) }
-        }
-        set {
-            if let mediaType = newValue {
-                properties[mediaTypeKey] = mediaType.string
-            } else {
-                properties.removeValue(forKey: mediaTypeKey)
-            }
-        }
+        get { self[mediaTypeKey] }
+        set { self[mediaTypeKey] = newValue }
     }
 }

@@ -167,18 +167,18 @@ export function isRTL() {
 }
 
 // Scroll to the given TagId in document and snap.
-export function scrollToId(id) {
+export function scrollToId(id, animated) {
   let element = document.getElementById(id);
   if (!element) {
     return false;
   }
 
-  scrollToRect(element.getBoundingClientRect());
+  scrollToRect(element.getBoundingClientRect(), animated);
   return true;
 }
 
 // Position must be in the range [0 - 1], 0-100%.
-export function scrollToPosition(position, dir) {
+export function scrollToPosition(position, dir, animated) {
   if (position < 0 || position > 1) {
     console.error(
       `Expected a valid progression in scrollToPosition, got ${position}`
@@ -189,16 +189,16 @@ export function scrollToPosition(position, dir) {
   if (isScrollModeEnabled()) {
     if (!isVerticalWritingMode()) {
       let offset = document.scrollingElement.scrollHeight * position;
-      document.scrollingElement.scrollTop = offset;
+      scrollTo({ top: offset, animated });
     } else {
       let offset = document.scrollingElement.scrollWidth * position;
-      document.scrollingElement.scrollLeft = -offset;
+      scrollTo({ left: -offset, animated });
     }
   } else {
     var documentWidth = document.scrollingElement.scrollWidth;
     var factor = dir == "rtl" ? -1 : 1;
     let offset = documentWidth * position * factor;
-    document.scrollingElement.scrollLeft = snapOffset(offset);
+    scrollTo({ left: snapOffset(offset), animated });
   }
 }
 
@@ -206,59 +206,73 @@ export function scrollToPosition(position, dir) {
 //
 // The expected text argument is a Locator object, as defined here:
 // https://readium.org/architecture/models/locators/
-export function scrollToLocator(locator) {
+export function scrollToLocator(locator, animated) {
   let range = rangeFromLocator(locator);
   if (!range) {
     return false;
   }
-  return scrollToRange(range);
+  return scrollToRange(range, animated);
 }
 
-function scrollToRange(range) {
-  return scrollToRect(range.getBoundingClientRect());
+function scrollToRange(range, animated) {
+  return scrollToRect(range.getBoundingClientRect(), animated);
 }
 
-function scrollToRect(rect) {
+function scrollToRect(rect, animated) {
   if (isScrollModeEnabled()) {
-    document.scrollingElement.scrollTop = rect.top + window.scrollY;
+    scrollTo({ top: rect.top + window.scrollY, animated });
   } else {
-    document.scrollingElement.scrollLeft = snapOffset(
-      rect.left + window.scrollX
-    );
+    scrollTo({ left: snapOffset(rect.left + window.scrollX), animated });
   }
 
   return true;
 }
 
 // Returns false if the page is already at the left-most scroll offset.
-export function scrollLeft(dir) {
+export function scrollLeft(dir, animated) {
   var isRTL = dir == "rtl";
   var documentWidth = document.scrollingElement.scrollWidth;
   var pageWidth = window.innerWidth;
   var offset = window.scrollX - pageWidth;
   var minOffset = isRTL ? -(documentWidth - pageWidth) : 0;
-  return scrollToOffset(Math.max(offset, minOffset));
+  return scrollToOffset(Math.max(offset, minOffset), animated);
 }
 
-// Returns false if the page is already at the right-most scroll offset.
-export function scrollRight(dir) {
+// Returns false if the page is already scrolled at the right-most scroll
+// offset.
+export function scrollRight(dir, animated) {
   var isRTL = dir == "rtl";
   var documentWidth = document.scrollingElement.scrollWidth;
   var pageWidth = window.innerWidth;
   var offset = window.scrollX + pageWidth;
   var maxOffset = isRTL ? 0 : documentWidth - pageWidth;
-  return scrollToOffset(Math.min(offset, maxOffset));
+  return scrollToOffset(Math.min(offset, maxOffset), animated);
 }
 
 // Scrolls to the given left offset.
 // Returns false if the page scroll position is already close enough to the given offset.
-function scrollToOffset(offset) {
+function scrollToOffset(offset, animated) {
   var currentOffset = window.scrollX;
   var pageWidth = window.innerWidth;
-  document.scrollingElement.scrollLeft = offset;
+
   // In some case the scrollX cannot reach the position respecting to innerWidth
   var diff = Math.abs(currentOffset - offset) / pageWidth;
-  return diff > 0.01;
+  var moved = diff > 0.01;
+
+  if (moved) {
+    scrollTo({ left: offset, animated });
+  }
+
+  return moved;
+}
+
+// Scrolls to the given position.
+function scrollTo({ left, top, animated } = {}) {
+  document.scrollingElement.scrollTo({
+    left,
+    top,
+    behavior: animated ? "smooth" : "instant",
+  });
 }
 
 // Snap the offset to the screen width (page width).

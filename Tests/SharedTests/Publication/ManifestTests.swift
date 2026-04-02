@@ -20,7 +20,7 @@ class ManifestTests: XCTestCase {
                 "readingOrder": [
                     ["href": "chap1.html", "type": "text/html"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
@@ -52,7 +52,7 @@ class ManifestTests: XCTestCase {
                         ["href": "sublink"],
                     ],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Manifest(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
@@ -76,7 +76,7 @@ class ManifestTests: XCTestCase {
                 "readingOrder": [
                     ["href": "chap1.html", "type": "text/html"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Manifest(
                 context: ["context1", "context2"],
                 metadata: Metadata(title: "Title"),
@@ -112,7 +112,7 @@ class ManifestTests: XCTestCase {
                 "spine": [
                     ["href": "chap1.html", "type": "text/html"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
@@ -132,7 +132,7 @@ class ManifestTests: XCTestCase {
                     ["href": "chap1.html", "type": "text/html"],
                     ["href": "chap2.html"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [
@@ -157,7 +157,7 @@ class ManifestTests: XCTestCase {
                     ["href": "withtype", "type": "text/html"],
                     ["href": "withouttype"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [
@@ -170,26 +170,26 @@ class ManifestTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
                 readingOrder: [Link(href: "chap1.html", mediaType: .html)]
-            ).json,
+            ).jsonObject,
             [
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
-                    ["href": "manifest.json", "rel": ["self"], "templated": false] as [String: Any],
+                    ["href": "manifest.json", "rel": ["self"], "templated": false] as JSONValue,
                 ],
                 "readingOrder": [
-                    ["href": "chap1.html", "type": "text/html", "templated": false] as [String: Any],
+                    ["href": "chap1.html", "type": "text/html", "templated": false] as JSONValue,
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Manifest(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
@@ -198,29 +198,29 @@ class ManifestTests: XCTestCase {
                 resources: [Link(href: "image.png", mediaType: .png)],
                 tableOfContents: [Link(href: "cover.html"), Link(href: "chap1.html")],
                 subcollections: ["sub": [PublicationCollection(links: [Link(href: "sublink")])]]
-            ).json,
+            ).jsonObject,
             [
                 "@context": ["https://readium.org/webpub-manifest/context.jsonld"],
                 "metadata": ["title": "Title", "readingProgression": "auto"],
                 "links": [
-                    ["href": "manifest.json", "rel": ["self"], "templated": false] as [String: Any],
+                    ["href": "manifest.json", "rel": ["self"], "templated": false] as JSONValue,
                 ],
                 "readingOrder": [
-                    ["href": "chap1.html", "type": "text/html", "templated": false] as [String: Any],
+                    ["href": "chap1.html", "type": "text/html", "templated": false] as JSONValue,
                 ],
                 "resources": [
-                    ["href": "image.png", "type": "image/png", "templated": false] as [String: Any],
+                    ["href": "image.png", "type": "image/png", "templated": false] as JSONValue,
                 ],
                 "toc": [
-                    ["href": "cover.html", "templated": false] as [String: Any],
+                    ["href": "cover.html", "templated": false] as JSONValue,
                     ["href": "chap1.html", "templated": false],
                 ],
                 "sub": [
                     "links": [
-                        ["href": "sublink", "templated": false] as [String: Any],
+                        ["href": "sublink", "templated": false] as JSONValue,
                     ],
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 

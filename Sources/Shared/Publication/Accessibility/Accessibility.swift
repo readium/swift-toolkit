@@ -11,7 +11,7 @@ import ReadiumInternal
 ///
 /// https://www.w3.org/2021/a11y-discov-vocab/latest/
 /// https://readium.org/webpub-manifest/schema/a11y.schema.json
-public struct Accessibility: Hashable, Sendable {
+public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// An established standard to which the described resource conforms.
     public var conformsTo: [Profile]
 
@@ -53,7 +53,7 @@ public struct Accessibility: Hashable, Sendable {
     public var exemptions: [Exemption]
 
     /// Accessibility profile.
-    public struct Profile: Hashable, Sendable {
+    public struct Profile: Hashable, RawRepresentable, Sendable {
         public let uri: String
 
         public init(_ uri: String) {
@@ -108,9 +108,19 @@ public struct Accessibility: Hashable, Sendable {
                 || self == Self.epubA11y11WCAG21AAA
                 || self == Self.epubA11y11WCAG22AAA
         }
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            uri
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
-    public struct Certification: Hashable, Sendable {
+    public struct Certification: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
         /// Identifies a party responsible for the testing and certification of the accessibility of a Publication.
         ///
         /// https://www.w3.org/TR/epub-a11y/#certifiedBy
@@ -133,9 +143,29 @@ public struct Accessibility: Hashable, Sendable {
             self.credential = credential
             self.report = report
         }
+
+        public init?<T: JSONValueEncodable>(json: T?, warnings: (any WarningLogger)?) throws {
+            guard let json = json?.jsonValue.object else {
+                return nil
+            }
+
+            self.init(
+                certifiedBy: json["certifiedBy"]?.string,
+                credential: json["credential"]?.string,
+                report: json["report"]?.string
+            )
+        }
+
+        public var jsonObject: [String: JSONValue] {
+            .init([
+                "certifiedBy": certifiedBy,
+                "credential": credential,
+                "report": report,
+            ])
+        }
     }
 
-    public struct AccessMode: Hashable, Sendable {
+    public struct AccessMode: RawRepresentable, Hashable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -178,6 +208,16 @@ public struct Accessibility: Hashable, Sendable {
 
         /// Indicates that the resource contains information encoded in visual form.
         public static let visual = AccessMode("visual")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            id
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     public enum PrimaryAccessMode: String, Hashable, Sendable {
@@ -197,7 +237,7 @@ public struct Accessibility: Hashable, Sendable {
         case visual
     }
 
-    public struct Feature: Hashable, Sendable {
+    public struct Feature: Hashable, RawRepresentable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -431,9 +471,19 @@ public struct Accessibility: Hashable, Sendable {
         /// Indicates that the content can be rendered without additional word
         /// segmentation.
         public static let withoutAdditionalWordSegmentation = Feature("withoutAdditionalWordSegmentation")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            id
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
-    public struct Hazard: Hashable, Sendable {
+    public struct Hazard: Hashable, RawRepresentable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -482,6 +532,16 @@ public struct Accessibility: Hashable, Sendable {
 
         /// Indicates that the resource does not contain any hazards.
         public static let none = Hazard("none")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            id
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     /// ``Exemption`` allows content creators to identify publications that do
@@ -491,7 +551,7 @@ public struct Accessibility: Hashable, Sendable {
     /// While this list is currently limited to exemptions covered by the
     /// European Accessibility Act, it will be extended to cover additional
     /// exemptions in the future.
-    public struct Exemption: Hashable, Sendable {
+    public struct Exemption: Hashable, RawRepresentable, Sendable {
         public let id: String
 
         public init(_ id: String) {
@@ -525,6 +585,16 @@ public struct Accessibility: Hashable, Sendable {
         /// requirements.
         /// https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32019L0882#d1e1798-70-1
         public static let eaaMicroenterprise = Exemption("eaa-microenterprise")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            id
+        }
+
+        public init?(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     public init(
@@ -547,62 +617,40 @@ public struct Accessibility: Hashable, Sendable {
         self.exemptions = exemptions
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard json != nil else {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
-        guard let jsonObject = json as? [String: Any] else {
+        guard let jsonObject = json.object else {
             warnings?.log("Invalid Accessibility object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
-        self.init(
-            conformsTo: (parseArray(jsonObject["conformsTo"], allowingSingle: true) as [String])
-                .map(Profile.init),
-            certification: (jsonObject["certification"] as? [String: Any])
-                .map {
-                    Certification(
-                        certifiedBy: $0["certifiedBy"] as? String,
-                        credential: $0["credential"] as? String,
-                        report: $0["report"] as? String
-                    )
-                }
+        try self.init(
+            conformsTo: jsonObject["conformsTo"]?.decode(allowingSingle: true) ?? [],
+            certification: jsonObject["certification"]?.decode()
                 .takeIf { $0.certifiedBy != nil || $0.credential != nil || $0.report != nil },
-            summary: jsonObject["summary"] as? String,
-            accessModes: parseArray(jsonObject["accessMode"]).map(AccessMode.init),
-            accessModesSufficient: (jsonObject["accessModeSufficient"] as? [Any] ?? [])
-                .map { json -> [Accessibility.PrimaryAccessMode] in
-                    if let str = json as? String, let value = PrimaryAccessMode(rawValue: str) {
-                        return [value]
-                    } else if let strs = json as? [String] {
-                        return strs.compactMap(PrimaryAccessMode.init(rawValue:))
-                    } else {
-                        return []
-                    }
-                }
+            summary: jsonObject["summary"]?.string,
+            accessModes: jsonObject["accessMode"]?.decode() ?? [],
+            accessModesSufficient: (jsonObject["accessModeSufficient"]?.array ?? [])
+                .map { $0.decode(allowingSingle: true) }
                 .filter { !$0.isEmpty },
-            features: parseArray(jsonObject["feature"]).map(Feature.init),
-            hazards: parseArray(jsonObject["hazard"]).map(Hazard.init),
-            exemptions: parseArray(jsonObject["exemption"]).map(Exemption.init)
+            features: jsonObject["feature"]?.decode() ?? [],
+            hazards: jsonObject["hazard"]?.decode() ?? [],
+            exemptions: jsonObject["exemption"]?.decode() ?? []
         )
     }
 
-    public var json: [String: Any] {
-        makeJSON([
-            "conformsTo": encodeIfNotEmpty(conformsTo.map(\.uri)),
-            "certification": encodeIfNotEmpty(certification.map {
-                makeJSON([
-                    "certifiedBy": encodeIfNotNil($0.certifiedBy),
-                    "credential": encodeIfNotNil($0.credential),
-                    "report": encodeIfNotNil($0.report),
-                ])
-            }),
-            "summary": encodeIfNotNil(summary),
-            "accessMode": encodeIfNotEmpty(accessModes.map(\.id)),
-            "accessModeSufficient": encodeIfNotEmpty(accessModesSufficient.map { $0.map(\.rawValue) }),
-            "feature": encodeIfNotEmpty(features.map(\.id)),
-            "hazard": encodeIfNotEmpty(hazards.map(\.id)),
-            "exemption": encodeIfNotEmpty(exemptions.map(\.id)),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "conformsTo": conformsTo.map(\.uri).orNullIfEmpty,
+            "certification": certification,
+            "summary": summary,
+            "accessMode": accessModes.map(\.id).orNullIfEmpty,
+            "accessModeSufficient": accessModesSufficient.map { $0.map(\.rawValue) }.orNullIfEmpty,
+            "feature": features.map(\.id).orNullIfEmpty,
+            "hazard": hazards.map(\.id).orNullIfEmpty,
+            "exemption": exemptions.map(\.id).orNullIfEmpty,
         ])
     }
 }

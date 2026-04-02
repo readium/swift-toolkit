@@ -9,7 +9,7 @@ import Foundation
 /// Archive Link Properties Extension
 public extension Properties {
     /// Holds information about how the resource is stored in the publication archive.
-    struct Archive: Equatable {
+    struct Archive: Equatable, JSONValueDecodable, JSONObjectEncodable {
         /// The length of the entry stored in the archive. It might be a compressed length if the entry is deflated.
         public let entryLength: UInt64
         /// Indicates whether the entry was compressed before being stored in the archive.
@@ -20,15 +20,14 @@ public extension Properties {
             self.isEntryCompressed = isEntryCompressed
         }
 
-        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-            if json == nil {
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let json = json?.jsonValue else {
                 return nil
             }
             guard
-                let jsonObject = json as? [String: Any],
-                let length: UInt64 = (jsonObject["entryLength"] as? NSNumber)?.uint64Value,
-                length >= 0,
-                let isCompressed = jsonObject["isEntryCompressed"] as? Bool
+                let jsonObject = json.object,
+                let length: UInt64 = jsonObject["entryLength"]?.nonNegative(),
+                let isCompressed = jsonObject["isEntryCompressed"]?.bool
             else {
                 warnings?.log("`entryLength` and `isEntryCompressed` are required", model: Self.self, source: json)
                 throw JSONError.parsing(Self.self)
@@ -40,16 +39,16 @@ public extension Properties {
             )
         }
 
-        public var json: [String: Any] {
-            [
-                "entryLength": entryLength as NSNumber,
+        public var jsonObject: [String: JSONValue] {
+            .init([
+                "entryLength": entryLength,
                 "isEntryCompressed": isEntryCompressed,
-            ]
+            ])
         }
     }
 
     /// Provides information about how the resource is stored in the publication archive.
     var archive: Archive? {
-        try? Archive(json: otherProperties["https://readium.org/webpub-manifest/properties#archive"], warnings: self)
+        try? otherProperties["https://readium.org/webpub-manifest/properties#archive"]?.decode(warnings: self)
     }
 }

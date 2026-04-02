@@ -33,7 +33,7 @@ class LocatorTests: XCTestCase {
                 "text": [
                     "highlight": "Excerpt",
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Locator(
                 href: "http://locator",
                 mediaType: .html,
@@ -45,36 +45,19 @@ class LocatorTests: XCTestCase {
     }
 
     func testParseNilJSON() {
-        XCTAssertNil(try Locator(json: nil))
+        XCTAssertNil(try Locator(json: nil as JSONValue?))
     }
 
     func testParseInvalidJSON() {
         XCTAssertThrowsError(try Locator(json: ""))
     }
 
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [Locator](json: [
-                ["href": "loc1", "type": "text/html"],
-                ["href": "loc2", "type": "text/html"],
-            ]),
-            [
-                Locator(href: "loc1", mediaType: .html),
-                Locator(href: "loc2", mediaType: .html),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual([Locator](json: nil), [])
-    }
-
     func testGetMinimalJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Locator(
                 href: "http://locator",
                 mediaType: .html
-            ).json,
+            ).jsonObject,
             [
                 "href": "http://locator",
                 "type": "text/html",
@@ -83,14 +66,14 @@ class LocatorTests: XCTestCase {
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Locator(
                 href: "http://locator",
                 mediaType: .html,
                 title: "My Locator",
                 locations: .init(position: 42),
                 text: .init(highlight: "Excerpt")
-            ).json,
+            ).jsonObject,
             [
                 "href": "http://locator",
                 "type": "text/html",
@@ -101,20 +84,7 @@ class LocatorTests: XCTestCase {
                 "text": [
                     "highlight": "Excerpt",
                 ],
-            ] as [String: Any]
-        )
-    }
-
-    func testGetJSONArray() {
-        AssertJSONEqual(
-            [
-                Locator(href: "loc1", mediaType: .html),
-                Locator(href: "loc2", mediaType: .html),
-            ].json,
-            [
-                ["href": "loc1", "type": "text/html"],
-                ["href": "loc2", "type": "text/html"],
-            ]
+            ] as [String: JSONValue]
         )
     }
 
@@ -126,7 +96,7 @@ class LocatorTests: XCTestCase {
             locations: .init(position: 42),
             text: .init(highlight: "Excerpt")
         )
-        AssertJSONEqual(locator.json, locator.copy().json)
+        XCTAssertEqual(locator.jsonObject, locator.copy().jsonObject)
 
         let copy = locator.copy(
             title: "edited",
@@ -134,8 +104,8 @@ class LocatorTests: XCTestCase {
             text: { $0.before = "before" }
         )
 
-        AssertJSONEqual(
-            copy.json,
+        XCTAssertEqual(
+            copy.jsonObject,
             [
                 "href": "http://locator",
                 "type": "text/html",
@@ -148,7 +118,7 @@ class LocatorTests: XCTestCase {
                     "before": "before",
                     "highlight": "Excerpt",
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }
@@ -173,7 +143,7 @@ class LocatorLocationsTests: XCTestCase {
                 "totalProgression": 25.32,
                 "position": 42,
                 "other": "other-location",
-            ] as [String: Any]),
+            ] as JSONValue),
             Locator.Locations(
                 fragments: ["p=4", "frag34"],
                 progression: 0.74,
@@ -197,7 +167,7 @@ class LocatorLocationsTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            try Locator.Locations(json: [:] as [String: Any]),
+            try Locator.Locations(json: [:] as JSONValue),
             Locator.Locations()
         )
     }
@@ -207,10 +177,10 @@ class LocatorLocationsTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Locator.Locations(
                 position: 42
-            ).json as Any,
+            ).jsonObject as [String: JSONValue],
             [
                 "position": 42,
             ]
@@ -218,21 +188,21 @@ class LocatorLocationsTests: XCTestCase {
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Locator.Locations(
                 fragments: ["p=4", "frag34"],
                 progression: 0.74,
                 totalProgression: 25.32,
                 position: 42,
                 otherLocations: ["other": "other-location"]
-            ).json as Any,
+            ).jsonObject as [String: JSONValue],
             [
                 "fragments": ["p=4", "frag34"],
                 "progression": 0.74,
                 "totalProgression": 25.32,
                 "position": 42,
                 "other": "other-location",
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }
@@ -266,7 +236,7 @@ class LocatorTextTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            try Locator.Text(json: [:] as [String: Any]),
+            try Locator.Text(json: [:] as JSONValue),
             Locator.Text()
         )
     }
@@ -276,10 +246,10 @@ class LocatorTextTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Locator.Text(
                 after: "Text after"
-            ).json as Any,
+            ).jsonObject as [String: JSONValue],
             [
                 "after": "Text after",
             ]
@@ -287,12 +257,12 @@ class LocatorTextTests: XCTestCase {
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Locator.Text(
                 after: "Text after",
                 before: "Text before",
                 highlight: "Highlighted text"
-            ).json as Any,
+            ).jsonObject as [String: JSONValue],
             [
                 "after": "Text after",
                 "before": "Text before",
@@ -452,14 +422,14 @@ class LocatorTextTests: XCTestCase {
 class LocatorCollectionTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            LocatorCollection(json: [:] as [String: Any]),
+            try LocatorCollection(json: [:] as JSONValue),
             LocatorCollection()
         )
     }
 
     func testParseFullJSON() throws {
         XCTAssertEqual(
-            LocatorCollection(json: [
+            try LocatorCollection(json: [
                 "metadata": [
                     "title": [
                         "en": "Searching <riddle> in Alice in Wonderlands - Page 1",
@@ -467,7 +437,7 @@ class LocatorCollectionTests: XCTestCase {
                     ],
                     "numberOfItems": 3,
                     "extraMetadata": "value",
-                ] as [String: Any],
+                ] as JSONValue,
                 "links": [
                     ["rel": "self", "href": "/978-1503222687/search?query=apple", "type": "application/vnd.readium.locators+json"],
                     ["rel": "next", "href": "/978-1503222687/search?query=apple&page=2", "type": "application/vnd.readium.locators+json"],
@@ -481,13 +451,13 @@ class LocatorCollectionTests: XCTestCase {
                                 ":~:text=riddle,-yet%3F'",
                             ],
                             "progression": 0.43,
-                        ] as [String: Any],
+                        ] as JSONValue,
                         "text": [
                             "before": "'Have you guessed the ",
                             "highlight": "riddle",
                             "after": " yet?' the Hatter said, turning to Alice again.",
                         ],
-                    ] as [String: Any],
+                    ] as JSONValue,
                     [
                         "href": "/978-1503222687/chap7.html",
                         "type": "application/xhtml+xml",
@@ -496,7 +466,7 @@ class LocatorCollectionTests: XCTestCase {
                                 ":~:text=in%20asking-,riddles",
                             ],
                             "progression": 0.47,
-                        ] as [String: Any],
+                        ] as JSONValue,
                         "text": [
                             "before": "I'm glad they've begun asking ",
                             "highlight": "riddles",
@@ -504,7 +474,7 @@ class LocatorCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             try LocatorCollection(
                 metadata: LocatorCollection.Metadata(
                     title: LocalizedString.localized([
@@ -554,30 +524,30 @@ class LocatorCollectionTests: XCTestCase {
 
     func testParseEmptyJSON() {
         XCTAssertEqual(
-            LocatorCollection(json: [:] as [String: Any]),
+            try LocatorCollection(json: [:] as JSONValue),
             LocatorCollection()
         )
     }
 
     func testParseNilJSON() {
-        XCTAssertNil(LocatorCollection(json: nil))
+        XCTAssertNil(try LocatorCollection(json: nil as JSONValue?))
     }
 
     func testParseInvalidJSON() {
-        XCTAssertNil(LocatorCollection(json: [] as [Any]))
+        XCTAssertNil(try LocatorCollection(json: [] as JSONValue?))
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            LocatorCollection().json as Any,
+        XCTAssertEqual(
+            LocatorCollection().jsonObject as [String: JSONValue],
             [
-                "locators": [] as [Any],
+                "locators": [] as JSONValue,
             ]
         )
     }
 
     func testGetFullJSON() throws {
-        try AssertJSONEqual(
+        try XCTAssertEqual(
             LocatorCollection(
                 metadata: LocatorCollection.Metadata(
                     title: LocalizedString.localized([
@@ -621,7 +591,7 @@ class LocatorCollectionTests: XCTestCase {
                         )
                     ),
                 ]
-            ).json as Any,
+            ).jsonObject as [String: JSONValue],
             [
                 "metadata": [
                     "title": [
@@ -630,9 +600,9 @@ class LocatorCollectionTests: XCTestCase {
                     ],
                     "numberOfItems": 3,
                     "extraMetadata": "value",
-                ] as [String: Any],
+                ] as JSONValue,
                 "links": [
-                    ["rel": ["self"], "href": "/978-1503222687/search?query=apple", "type": "application/vnd.readium.locators+json", "templated": false] as [String: Any],
+                    ["rel": ["self"], "href": "/978-1503222687/search?query=apple", "type": "application/vnd.readium.locators+json", "templated": false] as JSONValue,
                     ["rel": ["next"], "href": "/978-1503222687/search?query=apple&page=2", "type": "application/vnd.readium.locators+json", "templated": false],
                 ],
                 "locators": [
@@ -644,13 +614,13 @@ class LocatorCollectionTests: XCTestCase {
                                 ":~:text=riddle,-yet%3F'",
                             ],
                             "progression": 0.43,
-                        ] as [String: Any],
+                        ] as JSONValue,
                         "text": [
                             "before": "'Have you guessed the ",
                             "highlight": "riddle",
                             "after": " yet?' the Hatter said, turning to Alice again.",
                         ],
-                    ] as [String: Any],
+                    ] as JSONValue,
                     [
                         "href": "/978-1503222687/chap7.html",
                         "type": "application/xhtml+xml",
@@ -659,7 +629,7 @@ class LocatorCollectionTests: XCTestCase {
                                 ":~:text=in%20asking-,riddles",
                             ],
                             "progression": 0.47,
-                        ] as [String: Any],
+                        ] as JSONValue,
                         "text": [
                             "before": "I'm glad they've begun asking ",
                             "highlight": "riddles",
@@ -667,7 +637,7 @@ class LocatorCollectionTests: XCTestCase {
                         ],
                     ],
                 ],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }

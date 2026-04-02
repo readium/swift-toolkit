@@ -2,7 +2,48 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-## Unreleased
+<!-- ## Unreleased -->
+
+## 3.8.0
+
+### Migrating to `JSONValue` for JSON Parsing
+
+The toolkit now uses a type-safe `JSONValue` enum instead of `Any` (typically `[String: Any]`) for all JSON data.
+
+#### Updating Raw JSON Property Access
+
+Properties that previously returned `[String: Any]` now return `[String: JSONValue]`. Replace `as?` casts with the typed accessors:
+
+```diff
+-let customProperty = metadata.otherMetadata["custom"] as? String
++let customProperty = metadata.otherMetadata["custom"]?.string
+```
+
+#### Renamed `json` Serialization Properties
+
+The `json` property (returning `Any` or `[String: Any]`) has been renamed on all public types:
+
+* Types serializing as a JSON object now expose `var jsonObject: [String: JSONValue]`.
+* Types serializing as an arbitrary JSON value now expose `var jsonValue: JSONValue`.
+
+```diff
+-let dict = locator.json
++let dict = locator.jsonObject
+```
+
+The free functions `serializeJSONString` and `serializeJSONData` have been replaced by methods on any `JSONValueEncodable` value:
+
+```diff
+-let string = locator.jsonString
++let string = locator.jsonString()
+
+-let string = serializeJSONString(locator.json)
++let string = locator.jsonString()
+
+-let data = serializeJSONData(locator.json)
++let data = locator.jsonData()
+```
+
 
 ### Removing the HTTP Server from the EPUB Navigator
 
@@ -545,7 +586,7 @@ Just replace the former Readium `Cartfile` statements with the new one:
 -github "readium/r2-lcp-swift" ~> 2.2.0
 ```
 
-Then, rebuild the libraries using `carthage update --platform ios --use-xcframeworks --cache-builds`. Carthage will build all the Readium libraries and their dependencies, but you are free to add only the ones you are using as before. Take a look at the [README](../README.md#carthage) for more information.
+Then, rebuild the libraries using `carthage update --platform ios --use-xcframeworks --cache-builds`. Carthage will build all the Readium libraries and their dependencies, but you are free to add only the ones you are using as before.
 
 ### Using CocoaPods
 

@@ -39,25 +39,25 @@ class EPUBMetadataParserTests: XCTestCase {
             description: "The book description.",
             numberOfPages: 42,
             otherMetadata: [
-                "http://purl.org/dc/terms/source": [
-                    "Feedbooks",
-                    [
-                        "@value": "Web",
-                        "http://my.url/#scheme": "http",
-                    ],
-                    "Internet",
-                ] as [Any],
-                "http://purl.org/dc/terms/rights": "Public Domain",
-                "http://idpf.org/epub/vocab/package/#type": "article",
-                "http://my.url/#customProperty": [
-                    "@value": "Custom property",
-                    "http://my.url/#refine1": "Refine 1",
-                    "http://my.url/#refine2": "Refine 2",
-                ],
-                "http://purl.org/dc/terms/format": "application/epub+zip",
-                "http://www.idpf.org/vocab/rendition/#flow": "scrolled-doc",
-                "http://www.idpf.org/vocab/rendition/#orientation": "landscape",
-                "http://www.idpf.org/vocab/rendition/#spread": "both",
+                "http://purl.org/dc/terms/source": .array([
+                    .string("Feedbooks"),
+                    .object([
+                        "@value": .string("Web"),
+                        "http://my.url/#scheme": .string("http"),
+                    ]),
+                    .string("Internet"),
+                ]),
+                "http://purl.org/dc/terms/rights": .string("Public Domain"),
+                "http://idpf.org/epub/vocab/package/#type": .string("article"),
+                "http://my.url/#customProperty": .object([
+                    "@value": .string("Custom property"),
+                    "http://my.url/#refine1": .string("Refine 1"),
+                    "http://my.url/#refine2": .string("Refine 2"),
+                ]),
+                "http://purl.org/dc/terms/format": .string("application/epub+zip"),
+                "http://www.idpf.org/vocab/rendition/#flow": .string("scrolled-doc"),
+                "http://www.idpf.org/vocab/rendition/#orientation": .string("landscape"),
+                "http://www.idpf.org/vocab/rendition/#spread": .string("both"),
             ]
         ))
     }
@@ -147,41 +147,66 @@ class EPUBMetadataParserTests: XCTestCase {
 
         XCTAssertEqual(sut, Metadata(
             conformsTo: [.epub],
-            title: "Alice's Adventures in Wonderland",
+            title: "Contributors Test",
             authors: [
+                // EPUB 2.x dc:creator: no role → author default
                 Contributor(name: "Author 1"),
-                Contributor(name: "Author 3"),
-                Contributor(name: "Author 4"),
+                // EPUB 2.x dc:creator: unknown role still falls back to author; role preserved
+                Contributor(name: "Creator Unknown Role", role: "xyz"),
+                // EPUB 3.x dc:creator: no refine → author default
                 Contributor(name: "Author A"),
+                // EPUB 3.x dcterms:creator: no refine → author default
+                Contributor(name: "Author C"),
+                // Namespace variants are recognised as creators
+                Contributor(name: "Author NS-Default"),
+                Contributor(name: "Author NS-Alias"),
+                // EPUB 2.x dc:contributor: opf:role="aut" routes to author
                 Contributor(name: "Author 2"),
-                Contributor(name: "Cameleon 1"),
-                Contributor(name: "Cameleon A"),
+                // EPUB 3.x dc:contributor: role refine "aut" routes to author
+                Contributor(name: "Author B"),
+                // Only the first role refine is used; "aut" wins over "pbl"
+                Contributor(name: "Author Multi-Role"),
             ],
-            translators: [Contributor(name: "Translator")],
-            editors: [Contributor(name: "Editor")],
-            artists: [Contributor(name: "Artist")],
+            translators: [Contributor(name: "Translator 1")],
+            editors: [Contributor(name: "Editor 1")],
+            artists: [Contributor(name: "Artist 1")],
             illustrators: [
-                Contributor(name: "Illustrator 1"),
-                Contributor(name: "Illustrator 2", sortAs: "sorting"),
-                Contributor(name: "Illustrator A", sortAs: "sorting"),
+                // opf:file-as is carried through to sortAs
+                Contributor(name: "Illustrator 1", sortAs: "Illustrator, The First"),
             ],
-            letterers: [],
-            pencilers: [],
-            colorists: [Contributor(name: "Colorist")],
-            inkers: [],
-            narrators: [Contributor(name: "Narrator")],
+            colorists: [Contributor(name: "Colorist 1")],
+            narrators: [
+                // EPUB 2.x dc:contributor: opf:role="nrt"
+                Contributor(name: "Narrator 1"),
+                // EPUB 3.x media:narrator element
+                Contributor(name: "Narrator 2"),
+            ],
             contributors: [
+                // dc:contributor with no role
                 Contributor(name: "Contributor 1"),
-                Contributor(name: "Unknown", roles: ["unknown"]),
+                // dc:contributor with unknown role; role is preserved on the object
+                Contributor(name: "Unknown 1", role: "unknown"),
+                // EPUB 3.x dc:contributor with no refine
                 Contributor(name: "Contributor A"),
+                // EPUB 3.x dc:contributor with unknown role refine; role preserved
+                Contributor(name: "Unknown A", role: "unknown"),
+                // EPUB 3.x dcterms:contributor with no refine
+                Contributor(name: "Contributor B"),
             ],
             publishers: [
+                // EPUB 2.x dc:creator: known role "pbl" overrides author default
+                Contributor(name: "Creator As Publisher"),
+                // EPUB 3.x dc:creator: role refine "pbl" overrides author default
+                Contributor(name: "Creator B As Publisher"),
+                // EPUB 2.x dc:publisher: always publisher
                 Contributor(name: "Publisher 1"),
+                // EPUB 3.x dc:publisher with conflicting role refine is still publisher
                 Contributor(name: "Publisher A"),
+                // EPUB 3.x dcterms:publisher with conflicting role refine is still publisher
                 Contributor(name: "Publisher B"),
+                // EPUB 2.x dc:contributor: opf:role="pbl" routes to publisher
                 Contributor(name: "Publisher 2"),
             ],
-            imprints: [],
             layout: .reflowable
         ))
     }

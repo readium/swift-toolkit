@@ -41,6 +41,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             continuation.resume()
         }
         goToContinuations.removeAll()
+
+        scrollDidEnd()
     }
 
     override func setupWebView() {
@@ -144,7 +146,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     override func spreadDidLoad() async {
         let link = spread.first.link
-        if let linkJSON = serializeJSONString(link.json) {
+        if let linkJSON = try? link.jsonString() {
             await evaluateScript("readium.link = \(linkJSON);")
         }
 
@@ -155,11 +157,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         try? await Task.sleep(seconds: 0.2)
 
         let location = pendingLocation
-        await go(to: pendingLocation)
+        await go(to: location.location, animated: location.animated)
 
         // The rendering is sometimes very slow. So in case we don't show the first page of the resource, we add
         // a generous delay before showing the spread again.
-        let delayed = !location.isStart
+        let delayed = !location.location.isStart
         try? await Task.sleep(seconds: delayed ? 0.3 : 0)
     }
 
@@ -177,33 +179,57 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             }
         }()
 
+        guard scrollView.bounds.width > 0 else { return false }
         let offsetX = scrollView.bounds.width * factor
-        var newOffset = scrollView.contentOffset
-        newOffset.x += offsetX
-        let rounded = round(newOffset.x / offsetX) * offsetX
-        newOffset.x = rounded
-        guard 0 ..< scrollView.contentSize.width ~= newOffset.x else {
+        let targetX = round((scrollView.contentOffset.x + offsetX) / offsetX) * offsetX
+        guard 0 ..< scrollView.contentSize.width ~= targetX else {
             return false
         }
 
-        scrollView.setContentOffset(newOffset, animated: options.animated)
+        // We use JavaScript instead of `UIScrollView.setContentOffset()` to
+        // prevent glitches when turning pages without animation.
+        // See https://github.com/readium/swift-toolkit/issues/737#issuecomment-4090386881
+        //
+        // `scrollBy` is used instead of `scrollTo` because RTL content uses
+        // negative `window.scrollX` values in WKWebView, whereas UIKit's
+        // `contentOffset.x` is always non-negative. A relative displacement
+        // (`offsetX`) is coordinate-system agnostic and works for both LTR and
+        // RTL.
+        let behavior = options.animated ? "smooth" : "instant"
+        await evaluateScript("window.scrollBy({ left: \(offsetX), behavior: '\(behavior)' });")
 
-        // This delay is only used when turning pages in a single resource if
-        // the page turn is animated. The delay is roughly the length of the
-        // animation.
-        // TODO: completion should be implemented using scroll view delegates
-        try? await Task.sleep(seconds: 0.3)
+        if options.animated {
+            // Waits for the scroll animation to finish.
+            await withCheckedContinuation { continuation in
+                let request = ScrollAnimationRequest(continuation)
+                pendingScrollAnimation?.resume()
+                pendingScrollAnimation = request
+
+                // Safety net in case `scrollDidEnd` never fires. The identity
+                // check on `request` ensures a stale timeout from a previous
+                // request does not resume a newer one.
+                Task { @MainActor in
+                    try? await Task.sleep(seconds: 0.8)
+                    scrollDidEnd(for: request)
+                }
+            }
+        }
 
         return true
     }
 
-    /// Location to scroll to in the resource once the page is loaded.
-    private var pendingLocation: PageLocation = .start
+    private struct PendingLocation {
+        var location: PageLocation
+        var animated: Bool
+    }
 
-    override func go(to location: PageLocation) async {
+    /// Location to scroll to in the resource once the page is loaded.
+    private var pendingLocation: PendingLocation = .init(location: .start, animated: false)
+
+    override func go(to location: PageLocation, animated: Bool) async {
         guard isSpreadLoaded else {
             // Delays moving to the location until the document is loaded.
-            pendingLocation = location
+            pendingLocation = PendingLocation(location: location, animated: animated)
 
             await waitGoToCompletion()
             return
@@ -211,11 +237,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
         switch location {
         case let .locator(locator):
-            await go(to: locator)
+            await go(to: locator, animated: animated)
         case .start:
-            await scroll(toProgression: 0)
+            await scroll(toProgression: 0, animated: animated)
         case .end:
-            await scroll(toProgression: 1)
+            await scroll(toProgression: 1, animated: animated)
         }
 
         didCompleteGoTo()
@@ -236,8 +262,35 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     private var goToContinuations: [CheckedContinuation<Void, Never>] = []
 
+    private var pendingScrollAnimation: ScrollAnimationRequest?
+
+    /// Represents an in-flight animated page turn, waiting for the scroll
+    /// animation to settle before completing.
+    private class ScrollAnimationRequest {
+        private var continuation: CheckedContinuation<Void, Never>?
+
+        init(_ continuation: CheckedContinuation<Void, Never>) {
+            self.continuation = continuation
+        }
+
+        /// Resumes the continuation. Safe to call multiple times; only the
+        /// first call has any effect.
+        func resume() {
+            continuation?.resume()
+            continuation = nil
+        }
+    }
+
+    private func scrollDidEnd(for request: ScrollAnimationRequest? = nil) {
+        guard request == nil || pendingScrollAnimation === request else {
+            return
+        }
+        pendingScrollAnimation?.resume()
+        pendingScrollAnimation = nil
+    }
+
     @discardableResult
-    private func go(to locator: Locator) async -> Bool {
+    private func go(to locator: Locator, animated: Bool) async -> Bool {
         if !["", "#"].contains(locator.href.string) {
             guard
                 let index = viewModel.readingOrder.firstIndexWithHREF(locator.href),
@@ -249,19 +302,19 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
 
         if locator.text.highlight != nil {
-            return await scroll(toLocator: locator)
+            return await scroll(toLocator: locator, animated: animated)
             // TODO: find the first fragment matching a tag ID (need a regex)
         } else if let id = locator.locations.fragments.first, !id.isEmpty {
-            return await scroll(toTagID: id)
+            return await scroll(toTagID: id, animated: animated)
         } else {
             let progression = locator.locations.progression ?? 0
-            return await scroll(toProgression: progression)
+            return await scroll(toProgression: progression, animated: animated)
         }
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)
     @discardableResult
-    private func scroll(toProgression progression: Double) async -> Bool {
+    private func scroll(toProgression progression: Double, animated: Bool) async -> Bool {
         guard progression >= 0, progression <= 1 else {
             log(.warning, "Scrolling to invalid progression \(progression)")
             return false
@@ -277,15 +330,15 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return true
         } else {
             let dir = viewModel.readingProgression.rawValue
-            await evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\')")
+            await evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\', \(animated))")
             return true
         }
     }
 
     /// Scrolls at the tag with ID `tagID`.
     @discardableResult
-    private func scroll(toTagID tagID: String) async -> Bool {
-        let result = await evaluateScript("readium.scrollToId(\'\(tagID)\');")
+    private func scroll(toTagID tagID: String, animated: Bool) async -> Bool {
+        let result = await evaluateScript("readium.scrollToId(\'\(tagID)\', \(animated));")
         switch result {
         case let .success(value):
             return (value as? Bool) ?? false
@@ -297,11 +350,11 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     /// Scrolls at the snippet matching the given text context.
     @discardableResult
-    private func scroll(toLocator locator: Locator) async -> Bool {
-        guard let json = locator.jsonString else {
+    private func scroll(toLocator locator: Locator, animated: Bool) async -> Bool {
+        guard let json = try? locator.jsonString() else {
             return false
         }
-        let result = await evaluateScript("readium.scrollToLocator(\(json));")
+        let result = await evaluateScript("readium.scrollToLocator(\(json), \(animated));")
         switch result {
         case let .success(value):
             return (value as? Bool) ?? false
@@ -352,6 +405,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return
         }
         previousProgression = nil
+
+        scrollDidEnd()
         delegate?.spreadViewPagesDidChange(self)
     }
 

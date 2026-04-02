@@ -66,13 +66,16 @@ public class Publication: Closeable, Loggable {
 
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
-    public convenience init(json: Any, warnings: WarningLogger? = nil) throws {
-        try self.init(manifest: Manifest(json: json, warnings: warnings))
+    public convenience init(json: JSONValue, warnings: WarningLogger? = nil) throws {
+        guard let manifest = try Manifest(json: json, warnings: warnings) else {
+            throw JSONError.parsing(Self.self)
+        }
+        self.init(manifest: manifest)
     }
 
     /// Returns the Readium Web Publication Manifest as JSON.
     public var jsonManifest: String? {
-        serializeJSONString(manifest.json)
+        try? manifest.jsonValue.jsonString()
     }
 
     /// Returns whether this publication conforms to the given Readium Web Publication Profile.
@@ -158,7 +161,7 @@ public class Publication: Closeable, Loggable {
     ///
     /// For a list of supported profiles, see the registry:
     /// https://readium.org/webpub-manifest/profiles/
-    public struct Profile: Hashable, Sendable {
+    public struct Profile: Hashable, RawRepresentable, Sendable {
         public let uri: String
 
         public init(_ uri: String) {
@@ -173,6 +176,16 @@ public class Publication: Closeable, Loggable {
         public static let divina = Profile("https://readium.org/webpub-manifest/profiles/divina")
         /// Profile for PDF documents.
         public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            uri
+        }
+
+        public init(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     /// Holds the components of a `Publication` to build it.

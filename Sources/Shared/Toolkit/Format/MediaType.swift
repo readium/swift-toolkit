@@ -18,7 +18,7 @@ import ReadiumInternal
 /// media type, for example `application/atom+xml;profile=opds-catalog` for an OPDS 1 catalog.
 ///
 /// Specification: https://tools.ietf.org/html/rfc6838
-public struct MediaType: Hashable, Loggable, Sendable {
+public struct MediaType: Sendable, Hashable, RawRepresentable, JSONValueEncodable, JSONValueDecodable, Loggable {
     /// The string representation of this media type.
     public var string: String {
         let params = parameters
@@ -291,9 +291,9 @@ public struct MediaType: Hashable, Loggable, Sendable {
     public static func ~= (pattern: MediaType, value: MediaType) -> Bool {
         pattern.matches(value)
     }
-}
 
-extension MediaType: RawRepresentable {
+    // MARK: RawRepresentable
+
     public var rawValue: String {
         string
     }

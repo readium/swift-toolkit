@@ -11,7 +11,7 @@ import ReadiumInternal
 /// Readium Guided Navigation specification.
 ///
 /// https://readium.org/guided-navigation/
-public struct GuidedNavigationObject: Hashable, Sendable {
+public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
     public typealias ID = String
 
     /// Unique identifier for this object, in the scope of the containing Guided
@@ -55,31 +55,31 @@ public struct GuidedNavigationObject: Hashable, Sendable {
         self.children = children
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-        guard let json = json as? [String: Any] else {
-            if json == nil {
-                return nil
-            }
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
+            return nil
+        }
+        guard let jsonObject = json.object else {
             warnings?.log("Invalid Guided Navigation Object", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
         let refs = try Refs(json: json, warnings: warnings)
-        let text = try Text(json: json["text"], warnings: warnings)
-        let children = [GuidedNavigationObject](json: json["children"], warnings: warnings)
+        let text = try Text(json: jsonObject["text"], warnings: warnings)
+        let children: [GuidedNavigationObject] = jsonObject["children"]?.decode(warnings: warnings) ?? []
 
         guard refs != nil || text != nil || !children.isEmpty else {
             warnings?.log("Guided Navigation Object requires at least one of audioref, imgref, textref, videoref, text, or children", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
 
-        let description = try Description(json: json["description"], warnings: warnings)
+        let description = try Description(json: jsonObject["description"], warnings: warnings)
 
         self.init(
-            id: json["id"] as? String,
+            id: jsonObject["id"]?.string,
             refs: refs,
             text: text,
-            roles: (json["role"] as? [String])?.map(Role.init) ?? [],
+            roles: jsonObject["role"]?.decode(warnings: warnings) ?? [],
             description: description,
             children: children
         )
@@ -87,7 +87,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
 
     /// Represents a collection of Guided Navigation References declared in a
     /// Readium Guided Navigation Object.
-    public struct Refs: Hashable, Sendable {
+    public struct Refs: Hashable, Sendable, JSONValueDecodable {
         /// References a textual resource or a fragment of it.
         public let text: AnyURL?
 
@@ -116,18 +116,18 @@ public struct GuidedNavigationObject: Hashable, Sendable {
             self.video = video
         }
 
-        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-            guard let json = json as? [String: Any] else {
-                if json == nil {
-                    return nil
-                }
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let json = json?.jsonValue else {
+                return nil
+            }
+            guard let jsonObject = json.object else {
                 warnings?.log("Invalid Guided Navigation Refs", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
-            let text = (json["textref"] as? String).flatMap(AnyURL.init(string:))
-            let img = (json["imgref"] as? String).flatMap(AnyURL.init(string:))
-            let audio = (json["audioref"] as? String).flatMap(AnyURL.init(string:))
-            let video = (json["videoref"] as? String).flatMap(AnyURL.init(string:))
+            let text = jsonObject["textref"]?.string.flatMap(AnyURL.init(string:))
+            let img = jsonObject["imgref"]?.string.flatMap(AnyURL.init(string:))
+            let audio = jsonObject["audioref"]?.string.flatMap(AnyURL.init(string:))
+            let video = jsonObject["videoref"]?.string.flatMap(AnyURL.init(string:))
 
             self.init(text: text, img: img, audio: audio, video: video)
         }
@@ -137,7 +137,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
     ///
     /// Can be either a bare string (normalized to `plain`) or an object with
     /// `plain`, `ssml`, and `language` properties.
-    public struct Text: Hashable, Sendable {
+    public struct Text: Hashable, Sendable, JSONValueDecodable {
         public let plain: String?
         public let ssml: String?
         public let language: Language?
@@ -155,15 +155,15 @@ public struct GuidedNavigationObject: Hashable, Sendable {
             self.language = language
         }
 
-        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-            if json == nil {
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let json = json?.jsonValue else {
                 return nil
             }
-            if let string = json as? String {
+            if let string = json.string {
                 self.init(plain: string)
-            } else if let obj = json as? [String: Any] {
-                let plain = obj["plain"] as? String
-                let ssml = obj["ssml"] as? String
+            } else if let obj = json.object {
+                let plain = obj["plain"]?.string
+                let ssml = obj["ssml"]?.string
                 guard plain?.isEmpty == false || ssml?.isEmpty == false else {
                     warnings?.log("Guided Navigation String requires at least one of plain, or ssml", model: Self.self, source: json, severity: .moderate)
                     return nil
@@ -172,7 +172,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
                 self.init(
                     plain: plain,
                     ssml: ssml,
-                    language: (obj["language"] as? String).map { Language(code: .bcp47($0)) }
+                    language: obj["language"]?.string.map { Language(code: .bcp47($0)) }
                 )
             } else {
                 warnings?.log("Invalid Guided Navigation Text", model: Self.self, source: json, severity: .moderate)
@@ -182,7 +182,7 @@ public struct GuidedNavigationObject: Hashable, Sendable {
     }
 
     /// Represents the description for a Guided Navigation object.
-    public struct Description: Hashable, Sendable {
+    public struct Description: Hashable, Sendable, JSONValueDecodable {
         /// References to resources referenced by this description.
         public let refs: Refs?
 
@@ -201,17 +201,17 @@ public struct GuidedNavigationObject: Hashable, Sendable {
             self.text = text
         }
 
-        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
-            guard let json = json as? [String: Any] else {
-                if json == nil {
-                    return nil
-                }
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let json = json?.jsonValue else {
+                return nil
+            }
+            guard let jsonObject = json.object else {
                 warnings?.log("Invalid Guided Navigation Description", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
             }
 
             let refs = try Refs(json: json, warnings: warnings)
-            let text = try Text(json: json["text"], warnings: warnings)
+            let text = try Text(json: jsonObject["text"], warnings: warnings)
 
             guard refs != nil || text != nil else {
                 warnings?.log("Guided Navigation Description requires at least one of audioref, imgref, textref, videoref, or text", model: Self.self, source: json, severity: .moderate)
@@ -225,11 +225,16 @@ public struct GuidedNavigationObject: Hashable, Sendable {
     /// Represents a role for a Guided Navigation Object.
     ///
     /// See https://readium.org/guided-navigation/roles
-    public struct Role: Hashable, Sendable {
+    public struct Role: Hashable, Sendable, JSONValueDecodable {
         public let id: String
 
         public init(_ id: String) {
             self.id = id
+        }
+
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+            guard let id = json?.jsonValue.string else { return nil }
+            self.init(id)
         }
 
         /// A sequential container for objects and/or child containers.
@@ -543,18 +548,5 @@ public struct GuidedNavigationObject: Hashable, Sendable {
 
         /// An area of text in a comic panel that represents a sound.
         public static let sound = Role("sound")
-    }
-}
-
-// MARK: - Array Extension
-
-public extension Array where Element == GuidedNavigationObject {
-    init(json: Any?, warnings: WarningLogger? = nil) {
-        self.init()
-        guard let json = json as? [Any] else {
-            return
-        }
-        let objects = json.compactMap { try? GuidedNavigationObject(json: $0, warnings: warnings) }
-        append(contentsOf: objects)
     }
 }

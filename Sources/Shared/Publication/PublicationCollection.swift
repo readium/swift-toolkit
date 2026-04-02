@@ -10,42 +10,35 @@ import ReadiumInternal
 /// Core Collection Model
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json
 /// Can be used as extension point in the Readium Web Publication Manifest.
-public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
-    public var metadata: [String: Any] {
-        get { metadataJSON.json }
-        set { metadataJSON = JSONDictionary(newValue) ?? JSONDictionary() }
-    }
+public struct PublicationCollection: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
+    public var metadata: [String: JSONValue]
 
     public var links: [Link]
 
     /// Subcollections indexed by their role in this collection.
     public var subcollections: [String: [PublicationCollection]]
 
-    /// Trick to keep the struct hashable despite [String: Any]
-    private var metadataJSON: JSONDictionary
-
-    public init(metadata: [String: Any] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {
-        metadataJSON = JSONDictionary(metadata) ?? JSONDictionary()
+    public init(metadata: [String: JSONValue] = [:], links: [Link], subcollections: [String: [PublicationCollection]] = [:]) {
+        self.metadata = metadata
         self.links = links
         self.subcollections = subcollections
     }
 
-    public init?(
-        json: Any,
-        warnings: WarningLogger? = nil
-    ) throws {
-        // Parses a list of links.
-        if let json = json as? [JSONDictionary.Wrapped] {
-            self.init(links: .init(json: json, warnings: warnings))
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
+            return nil
+        }
 
+        if let array = json.array {
+            // Parses a list of links.
+            self.init(links: array.decode(warnings: warnings))
+        } else if var jsonObject = json.object {
             // Parses a Collection object.
-        } else if var json = JSONDictionary(json) {
             self.init(
-                metadata: json.pop("metadata") as? JSONDictionary.Wrapped ?? [:],
-                links: .init(json: json.pop("links")),
-                subcollections: Self.makeCollections(json: json.json)
+                metadata: jsonObject.pop("metadata")?.object ?? [:],
+                links: jsonObject.pop("links")?.decode(warnings: warnings) ?? [],
+                subcollections: Self.makeCollections(json: .object(jsonObject), warnings: warnings)
             )
-
         } else {
             self.init(links: [])
         }
@@ -56,51 +49,40 @@ public struct PublicationCollection: JSONEquatable, Hashable, Sendable {
         }
     }
 
-    public var json: JSONDictionary.Wrapped {
-        makeJSON([
-            "metadata": encodeIfNotEmpty(metadata),
-            "links": links.json,
-        ], additional: Self.serializeCollections(subcollections))
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "metadata": metadata.orNullIfEmpty,
+            "links": links.orNullIfEmpty,
+        ], adding: Self.serializeCollections(subcollections))
     }
 
-    public static func == (lhs: PublicationCollection, rhs: PublicationCollection) -> Bool {
-        let lMetadata = try? JSONSerialization.data(withJSONObject: lhs.metadata, options: [.sortedKeys])
-        let rMetadata = try? JSONSerialization.data(withJSONObject: rhs.metadata, options: [.sortedKeys])
-        return lMetadata == rMetadata
-            && lhs.links == rhs.links
-            && lhs.subcollections == rhs.subcollections
-    }
-
-    static func makeCollections(json: Any?, warnings: WarningLogger? = nil) -> [String: [PublicationCollection]] {
-        guard let json = json as? [String: Any] else {
+    static func makeCollections(json: JSONValue?, warnings: WarningLogger? = nil) -> [String: [PublicationCollection]] {
+        guard let jsonObject = json?.object else {
             return [:]
         }
 
-        return json.compactMapValues { json in
+        return jsonObject.compactMapValues { json in
             // Parses list of links or a single collection object.
-            if let collection = try? PublicationCollection(json: json, warnings: warnings) {
+            if let collection: PublicationCollection = try? json.decode(warnings: warnings) {
                 return [collection]
-
+            } else if let collectionsArray = json.array {
                 // Parses list of collection objects.
-            } else if let collections = json as? [JSONDictionary.Wrapped] {
-                return collections.compactMap {
-                    try? PublicationCollection(json: $0, warnings: warnings)
-                }
-
+                let collections: [PublicationCollection] = collectionsArray.decode(warnings: warnings)
+                return collections.isEmpty ? nil : collections
             } else {
                 return nil
             }
         }
     }
 
-    static func serializeCollections(_ collections: [String: [PublicationCollection]]) -> JSONDictionary.Wrapped {
+    static func serializeCollections(_ collections: [String: [PublicationCollection]]) -> [String: JSONValue] {
         collections.compactMapValues { collections in
             if collections.isEmpty {
                 return nil
             } else if collections.count == 1 {
-                return collections[0].json
+                return collections[0].jsonValue
             } else {
-                return collections.map(\.json)
+                return collections.jsonValue
             }
         }
     }

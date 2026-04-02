@@ -49,9 +49,10 @@ public class OPDSFormatSniffer: FormatSniffer {
                 }
 
         } else if format.conformsTo(.json) {
-            return await blob.readAsJSON()
+            return await blob.read()
+                .asJSONObjectValue()
                 .map { json in
-                    guard let json = json as? [String: Any] else {
+                    guard let json = json else {
                         return nil
                     }
 

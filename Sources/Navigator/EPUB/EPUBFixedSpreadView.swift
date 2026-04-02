@@ -156,7 +156,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
 
     private var goToContinuations: [CheckedContinuation<Void, Never>] = []
 
-    override func go(to location: PageLocation) async {
+    override func go(to location: PageLocation, animated: Bool) async {
         // Fixed layout resources are always fully visible so we don't use the
         // location.
 

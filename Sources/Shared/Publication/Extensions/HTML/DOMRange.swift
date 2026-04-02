@@ -22,7 +22,7 @@ import ReadiumInternal
 /// represents a "collapsed" range that has identical `start` and `end` boundary points.
 ///
 /// https://github.com/readium/architecture/blob/master/models/locators/extensions/html.md#the-domrange-object
-public struct DOMRange: JSONEquatable {
+public struct DOMRange: Hashable, JSONValueDecodable, JSONObjectEncodable {
     /// A serializable representation of the "start" boundary point of the DOM Range.
     let start: Point
 
@@ -34,24 +34,27 @@ public struct DOMRange: JSONEquatable {
         self.end = end
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
         // Convenience when parsing parent structures.
-        if json == nil {
+        guard let json = json?.jsonValue else {
             return nil
         }
-        guard let jsonObject = json as? [String: Any],
-              let start = try? Point(json: jsonObject["start"], warnings: warnings)
+        guard let jsonObject = json.object,
+              let start: Point = try? jsonObject["start"]?.decode(warnings: warnings)
         else {
             warnings?.log("`start` is required", model: Self.self, source: json, severity: .moderate)
             throw JSONError.parsing(Self.self)
         }
-        self.init(start: start, end: try? Point(json: jsonObject["end"], warnings: warnings))
+        self.init(
+            start: start,
+            end: try? jsonObject["end"]?.decode(warnings: warnings)
+        )
     }
 
-    public var json: [String: Any] {
-        makeJSON([
-            "start": encodeIfNotEmpty(start.json),
-            "end": encodeIfNotEmpty(end?.json),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "start": start.orNullIfEmpty,
+            "end": end?.orNullIfEmpty,
         ])
     }
 
@@ -68,7 +71,7 @@ public struct DOMRange: JSONEquatable {
     /// node).
     ///
     /// https://github.com/readium/architecture/blob/master/models/locators/extensions/html.md#the-start-and-end-object
-    public struct Point: JSONEquatable {
+    public struct Point: Hashable, JSONValueDecodable, JSONObjectEncodable {
         let cssSelector: String
         let textNodeIndex: Int
         let charOffset: Int?
@@ -79,14 +82,14 @@ public struct DOMRange: JSONEquatable {
             self.charOffset = charOffset
         }
 
-        public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+        public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
             // Convenience when parsing parent structures.
-            if json == nil {
+            guard let json = json?.jsonValue else {
                 return nil
             }
-            guard let jsonObject = json as? [String: Any],
-                  let cssSelector = jsonObject["cssSelector"] as? String,
-                  let textNodeIndex: Int = parsePositive(jsonObject["textNodeIndex"])
+            guard let jsonObject = json.object,
+                  let cssSelector = jsonObject["cssSelector"]?.string,
+                  let textNodeIndex: Int = jsonObject["textNodeIndex"]?.nonNegative()
             else {
                 warnings?.log("`cssSelector` and `textNodeIndex` are required", model: Self.self, source: json, severity: .moderate)
                 throw JSONError.parsing(Self.self)
@@ -94,18 +97,18 @@ public struct DOMRange: JSONEquatable {
             self.init(
                 cssSelector: cssSelector,
                 textNodeIndex: textNodeIndex,
-                charOffset: parsePositive(jsonObject["charOffset"])
+                charOffset: jsonObject["charOffset"]?.nonNegative()
                     // The model was using `offset` before, so we still parse it to ensure backward-compatibility for
                     // reading apps having persisted legacy Locator models.
-                    ?? parsePositive(jsonObject["offset"])
+                    ?? jsonObject["offset"]?.nonNegative()
             )
         }
 
-        public var json: [String: Any] {
-            makeJSON([
+        public var jsonObject: [String: JSONValue] {
+            .init([
                 "cssSelector": cssSelector,
                 "textNodeIndex": textNodeIndex,
-                "charOffset": encodeIfNotNil(charOffset),
+                "charOffset": charOffset,
             ])
         }
     }

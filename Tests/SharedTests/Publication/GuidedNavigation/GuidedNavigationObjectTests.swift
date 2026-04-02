@@ -125,7 +125,7 @@ import Testing
 
         @Test("nil JSON returns nil")
         func nilJSON() throws {
-            let sut = try GuidedNavigationObject(json: nil)
+            let sut = try GuidedNavigationObject(json: nil as JSONValue?)
             #expect(sut == nil)
         }
     }

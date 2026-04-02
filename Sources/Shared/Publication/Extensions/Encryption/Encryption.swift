@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// Indicates that a resource is encrypted/obfuscated and provides relevant information for
 /// decryption.
-public struct Encryption: Equatable {
+public struct Encryption: Equatable, JSONValueDecodable, JSONObjectEncodable {
     /// Identifies the algorithm used to encrypt the resource.
     public let algorithm: String // URI
 
@@ -33,13 +33,13 @@ public struct Encryption: Equatable {
         self.scheme = scheme
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
         // Convenience when parsing parent structures.
-        if json == nil {
+        guard let json = json?.jsonValue else {
             return nil
         }
-        guard let jsonObject = json as? [String: Any],
-              let algorithm = jsonObject["algorithm"] as? String
+        guard let jsonObject = json.object,
+              let algorithm = jsonObject["algorithm"]?.string
         else {
             warnings?.log("`algorithm` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
@@ -47,23 +47,23 @@ public struct Encryption: Equatable {
 
         self.init(
             algorithm: algorithm,
-            compression: jsonObject["compression"] as? String,
-            originalLength: jsonObject["originalLength"] as? Int
+            compression: jsonObject["compression"]?.string,
+            originalLength: jsonObject["originalLength"]?.integer
                 // Fallback on `original-length` for legacy reasons
                 // See https://github.com/readium/webpub-manifest/pull/43
-                ?? jsonObject["original-length"] as? Int,
-            profile: jsonObject["profile"] as? String,
-            scheme: jsonObject["scheme"] as? String
+                ?? jsonObject["original-length"]?.integer,
+            profile: jsonObject["profile"]?.string,
+            scheme: jsonObject["scheme"]?.string
         )
     }
 
-    public var json: [String: Any] {
-        makeJSON([
+    public var jsonObject: [String: JSONValue] {
+        .init([
             "algorithm": algorithm,
-            "compression": encodeIfNotNil(compression),
-            "originalLength": encodeIfNotNil(originalLength),
-            "profile": encodeIfNotNil(profile),
-            "scheme": encodeIfNotNil(scheme),
+            "compression": compression,
+            "originalLength": originalLength,
+            "profile": profile,
+            "scheme": scheme,
         ])
     }
 }

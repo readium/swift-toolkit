@@ -20,7 +20,7 @@ class TDMTests: XCTestCase {
             try? TDM(json: [
                 "reservation": "all",
                 "policy": "https://policy",
-            ] as [String: Any]),
+            ] as JSONValue),
             TDM(
                 reservation: .all,
                 policy: HTTPURL(string: "https://policy")
@@ -35,22 +35,22 @@ class TDMTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            TDM(reservation: .none).json,
+        XCTAssertEqual(
+            TDM(reservation: .none).jsonObject,
             ["reservation": "none"]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             TDM(
                 reservation: .all,
                 policy: HTTPURL(string: "https://policy")
-            ).json,
+            ).jsonObject,
             [
                 "reservation": "all",
                 "policy": "https://policy",
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }

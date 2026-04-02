@@ -83,6 +83,11 @@ func render(_ m: ModuleSpec) -> String {
         lines.append("  s.xcconfig      = { \(pairs) }")
     }
 
+    // Required for Swift `package` access level, which needs a -package-name compiler flag.
+    // SPM sets this automatically from Package.swift `name`; CocoaPods does not.
+    // All Readium modules share the same package name so that `package` access works across them.
+    lines.append("  s.pod_target_xcconfig = { 'OTHER_SWIFT_FLAGS' => '-package-name \(packageName)' }")
+
     if !m.dependencies.isEmpty {
         lines.append("")
         for dep in m.dependencies {

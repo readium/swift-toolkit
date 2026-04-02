@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// EPUB Media Overlay metadata.
 /// https://readium.org/webpub-manifest/profiles/epub#5-metadata
-public struct EPUBMediaOverlay: Equatable, Sendable {
+public struct EPUBMediaOverlay: Equatable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// Author-defined CSS class name to apply to the currently-playing EPUB
     /// Content Document element.
     public var activeClass: String?
@@ -23,17 +23,19 @@ public struct EPUBMediaOverlay: Equatable, Sendable {
         self.playbackActiveClass = playbackActiveClass
     }
 
-    public init?(json: Any?) {
-        guard let json = json as? [String: Any] else { return nil }
-        activeClass = json["activeClass"] as? String
-        playbackActiveClass = json["playbackActiveClass"] as? String
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let jsonObject = json?.jsonValue.object else { return nil }
+
+        activeClass = jsonObject["activeClass"]?.string
+        playbackActiveClass = jsonObject["playbackActiveClass"]?.string
+
         guard activeClass != nil || playbackActiveClass != nil else { return nil }
     }
 
-    public var json: [String: Any] {
-        makeJSON([
-            "activeClass": encodeIfNotNil(activeClass),
-            "playbackActiveClass": encodeIfNotNil(playbackActiveClass),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "activeClass": activeClass,
+            "playbackActiveClass": playbackActiveClass,
         ])
     }
 }

@@ -18,10 +18,12 @@ public struct URITemplate: CustomStringConvertible {
         self.uri = uri
     }
 
+    private static let parametersRegex = NSRegularExpression(#"\{[?&]?([^}]+)\}"#)
+
     /// List of URI template parameter keys.
     public var parameters: Set<String> {
         Set(
-            NSRegularExpression(#"\{\??([^}]+)\}"#)
+            URITemplate.parametersRegex
                 .matchesGroups(in: uri)
                 .flatMap { groups -> [String] in
                     guard groups.count == 2 else {
@@ -35,7 +37,7 @@ public struct URITemplate: CustomStringConvertible {
 
     /// Expands the URI by replacing the template variables by the given parameters.
     ///
-    /// Any extra parameter is appended as query parameters.
+    /// Extra parameters not found in the template are ignored.
     /// See RFC 6570 on URI template: https://tools.ietf.org/html/rfc6570
     public func expand(with parameters: [String: LosslessStringConvertible]) -> String {
         let parameters = parameters.mapValues { $0.description }
@@ -43,27 +45,31 @@ public struct URITemplate: CustomStringConvertible {
         func expandSimpleString(_ string: String) -> String {
             string
                 .split(separator: ",")
-                .map { parameters[String($0)]?.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "" }
+                .map { parameters[String($0).trimmingCharacters(in: .whitespaces)]?.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "" }
                 .joined(separator: ",")
         }
 
-        func expandFormStyle(_ string: String) -> String {
-            "?" + string
+        func expandFormStyle(prefix: String, _ string: String) -> String {
+            let pairs = string
                 .split(separator: ",")
-                .map {
-                    "\($0)=\(parameters[String($0)]?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+                .compactMap { variable -> String? in
+                    let key = String(variable).trimmingCharacters(in: .whitespaces)
+                    guard let value = parameters[key] else { return nil }
+                    return "\(key)=\(value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
                 }
                 .joined(separator: "&")
+            return pairs.isEmpty ? "" : prefix + pairs
         }
 
-        return ReplacingRegularExpression(#"\{(\??)([^}]+)\}"#) { _, groups in
+        return ReplacingRegularExpression(#"\{([?&]?)([^}]+)\}"#) { _, groups in
             guard groups.count == 3 else {
                 return ""
             }
-            return (groups[1].isEmpty)
-                ? expandSimpleString(groups[2])
-                : expandFormStyle(groups[2])
-
+            switch groups[1] {
+            case "?": return expandFormStyle(prefix: "?", groups[2])
+            case "&": return expandFormStyle(prefix: "&", groups[2])
+            default: return expandSimpleString(groups[2])
+            }
         }.stringByReplacingMatches(in: uri)
     }
 

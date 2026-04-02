@@ -568,8 +568,8 @@ class ComicInfoParserTests: XCTestCase {
         let result = try ComicInfoParser.parse(data: XCTUnwrap(xml.data(using: .utf8)), warnings: nil)
         let metadata = result?.toMetadata()
 
-        XCTAssertEqual(metadata?.otherMetadata["https://anansi-project.github.io/docs/comicinfo/documentation#volume"] as? String, "2")
-        XCTAssertEqual(metadata?.otherMetadata["https://anansi-project.github.io/docs/comicinfo/documentation#characters"] as? String, "Batman, Robin")
-        XCTAssertEqual(metadata?.otherMetadata["https://anansi-project.github.io/docs/comicinfo/documentation#agerating"] as? String, "Teen")
+        XCTAssertEqual(metadata?.otherMetadata["https://anansi-project.github.io/docs/comicinfo/documentation#volume"]?.string, "2")
+        XCTAssertEqual(metadata?.otherMetadata["https://anansi-project.github.io/docs/comicinfo/documentation#characters"]?.string, "Batman, Robin")
+        XCTAssertEqual(metadata?.otherMetadata["https://anansi-project.github.io/docs/comicinfo/documentation#agerating"]?.string, "Teen")
     }
 }

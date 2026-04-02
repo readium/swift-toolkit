@@ -28,9 +28,9 @@ class OPDSAcquisitionTests: XCTestCase {
                             ["type": "sub-sub1"],
                             ["type": "sub-sub2"],
                         ],
-                    ] as [String: Any],
+                    ],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             OPDSAcquisition(type: "acquisition-type", children: [
                 OPDSAcquisition(type: "sub-acquisition", children: [
                     OPDSAcquisition(type: "sub-sub1"),
@@ -45,44 +45,12 @@ class OPDSAcquisitionTests: XCTestCase {
     }
 
     func testParseJSONRequiresType() {
-        XCTAssertThrowsError(try OPDSAcquisition(json: ["child": [] as [Any]]))
-    }
-
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [OPDSAcquisition](json: [
-                ["type": "acq1"],
-                ["type": "acq2"],
-            ]),
-            [
-                OPDSAcquisition(type: "acq1"),
-                OPDSAcquisition(type: "acq2"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayIgnoresInvalidAcquisitions() {
-        XCTAssertEqual(
-            [OPDSAcquisition](json: [
-                ["type": "acq1"],
-                ["invalid": "acq2"],
-            ]),
-            [
-                OPDSAcquisition(type: "acq1"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual(
-            [OPDSAcquisition](json: nil),
-            []
-        )
+        XCTAssertThrowsError(try OPDSAcquisition(json: ["child": [] as JSONValue]))
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            OPDSAcquisition(type: "acquisition-type").json,
+        XCTAssertEqual(
+            OPDSAcquisition(type: "acquisition-type").jsonObject,
             [
                 "type": "acquisition-type",
             ]
@@ -90,13 +58,13 @@ class OPDSAcquisitionTests: XCTestCase {
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             OPDSAcquisition(type: "acquisition-type", children: [
                 OPDSAcquisition(type: "sub-acquisition", children: [
                     OPDSAcquisition(type: "sub-sub1"),
                     OPDSAcquisition(type: "sub-sub2"),
                 ]),
-            ]).json,
+            ]).jsonObject,
             [
                 "type": "acquisition-type",
                 "child": [
@@ -106,22 +74,9 @@ class OPDSAcquisitionTests: XCTestCase {
                             ["type": "sub-sub1"],
                             ["type": "sub-sub2"],
                         ],
-                    ] as [String: Any],
+                    ],
                 ],
-            ] as [String: Any]
-        )
-    }
-
-    func testGetJSONArray() {
-        AssertJSONEqual(
-            [
-                OPDSAcquisition(type: "acq1"),
-                OPDSAcquisition(type: "acq2"),
-            ].json,
-            [
-                ["type": "acq1"],
-                ["type": "acq2"],
-            ]
+            ] as [String: JSONValue]
         )
     }
 }

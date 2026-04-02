@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
-public struct Subject: Hashable, Sendable {
+public struct Subject: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public var localizedName: LocalizedString
     public var name: String {
         localizedName.string
@@ -28,54 +28,38 @@ public struct Subject: Hashable, Sendable {
         self.links = links
     }
 
-    public init?(json: Any, warnings: WarningLogger? = nil) throws {
-        if let name = json as? String {
-            self.init(name: name)
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
+            return nil
+        }
 
-        } else if let json = json as? [String: Any], let name = try? LocalizedString(json: json["name"], warnings: warnings) {
+        if let name = json.string {
+            self.init(name: name)
+        } else if let dict = json.object {
+            guard let name: LocalizedString = try? dict["name"]?.decode(warnings: warnings) else {
+                warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)
+                throw JSONError.parsing(Self.self)
+            }
             self.init(
                 name: name,
-                sortAs: json["sortAs"] as? String,
-                scheme: json["scheme"] as? String,
-                code: json["code"] as? String,
-                links: .init(json: json["links"])
+                sortAs: dict["sortAs"]?.string,
+                scheme: dict["scheme"]?.string,
+                code: dict["code"]?.string,
+                links: dict["links"]?.decode(warnings: warnings) ?? []
             )
-
         } else {
             warnings?.log("Invalid Subject object", model: Self.self, source: json, severity: .minor)
             throw JSONError.parsing(Self.self)
         }
     }
 
-    public var json: [String: Any] {
-        makeJSON([
-            "name": localizedName.json,
-            "sortAs": encodeIfNotNil(sortAs),
-            "scheme": encodeIfNotNil(scheme),
-            "code": encodeIfNotNil(code),
-            "links": encodeIfNotEmpty(links.json),
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "name": localizedName,
+            "sortAs": sortAs,
+            "scheme": scheme,
+            "code": code,
+            "links": links.orNullIfEmpty,
         ])
-    }
-}
-
-public extension Array where Element == Subject {
-    /// Parses multiple JSON subjects into an array of Subjects.
-    /// eg. let subjects = [Subject](json: ["Apple", "Pear"])
-    init(json: Any?, warnings: WarningLogger? = nil) {
-        self.init()
-        guard let json = json else {
-            return
-        }
-
-        if let json = json as? [Any] {
-            let subjects = json.compactMap { try? Subject(json: $0, warnings: warnings) }
-            append(contentsOf: subjects)
-        } else if let subject = try? Subject(json: json, warnings: warnings) {
-            append(subject)
-        }
-    }
-
-    var json: [[String: Any]] {
-        map(\.json)
     }
 }

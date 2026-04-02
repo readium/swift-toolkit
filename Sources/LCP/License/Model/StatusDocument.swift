@@ -47,19 +47,19 @@ public struct StatusDocument {
     public let events: [Event]
 
     init(data: Data) throws {
-        guard let deserializedJSON = try? JSONSerialization.jsonObject(with: data) else {
+        guard let jsonValue = try? JSONValue(jsonData: data) else {
             throw ParsingError.malformedJSON
         }
 
-        guard let json = deserializedJSON as? [String: Any],
-              let id = json["id"] as? String,
-              let statusRaw = json["status"] as? String,
+        guard let json = jsonValue.object,
+              let id = json["id"]?.string,
+              let statusRaw = json["status"]?.string,
               let status = Status(rawValue: statusRaw),
-              let message = json["message"] as? String,
-              let updated = json["updated"] as? [String: Any],
-              let licenseUpdated = (updated["license"] as? String)?.dateFromISO8601,
-              let statusUpdated = (updated["status"] as? String)?.dateFromISO8601,
-              let links = json["links"] as? [[String: Any]]
+              let message = json["message"]?.string,
+              let updated = json["updated"]?.object,
+              let licenseUpdated = updated["license"]?.date,
+              let statusUpdated = updated["status"]?.date,
+              let links = try Links(json: json["links"])
         else {
             throw ParsingError.statusDocument
         }
@@ -69,19 +69,10 @@ public struct StatusDocument {
         self.message = message
         self.licenseUpdated = licenseUpdated
         self.updated = statusUpdated
-        self.links = try Links(json: links)
+        self.links = links
 
-        if let potentialRights = json["potential_rights"] as? [String: Any] {
-            self.potentialRights = try PotentialRights(json: potentialRights)
-        } else {
-            potentialRights = nil
-        }
-
-        if let events = json["events"] as? [[String: Any]] {
-            self.events = events.compactMap(Event.init)
-        } else {
-            events = []
-        }
+        events = json["events"]?.decode() ?? []
+        potentialRights = try? json["potential_rights"]?.decode()
     }
 
     /// Returns the first link containing the given rel.

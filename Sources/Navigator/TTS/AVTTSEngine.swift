@@ -146,7 +146,7 @@ public class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate, Logg
 
         @available(*, unavailable)
         required init?(coder: NSCoder) {
-            fatalError("Not supported")
+            fatalError("init(coder:) has not been implemented")
         }
     }
 

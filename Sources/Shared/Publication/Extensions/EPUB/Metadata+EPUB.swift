@@ -11,6 +11,6 @@ private let mediaOverlayKey = "mediaOverlay"
 public extension Metadata {
     /// Media overlay CSS class names for this publication.
     var mediaOverlay: EPUBMediaOverlay? {
-        EPUBMediaOverlay(json: otherMetadata[mediaOverlayKey])
+        try? otherMetadata[mediaOverlayKey]?.decode()
     }
 }

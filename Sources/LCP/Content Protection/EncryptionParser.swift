@@ -22,15 +22,18 @@ private func parseRPFEncryptionData(in container: Container) async -> ReadResult
 
     return await manifestResource
         .read()
-        .asJSONObject()
+        .asJSONObjectValue()
         .flatMap { json in
             do {
-                return try .success(Manifest(json: json))
+                guard let parsedManifest = try Manifest(json: json) else {
+                    return .failure(.decoding("Manifest JSON is invalid or could not be parsed"))
+                }
+                return .success(parsedManifest)
             } catch {
                 return .failure(.decoding(error))
             }
         }
-        .map { manifest in
+        .map { (manifest: Manifest) -> [AnyURL: ReadiumShared.Encryption] in
             (manifest.readingOrder + manifest.resources)
                 .reduce([:]) { data, link in
                     var data = data

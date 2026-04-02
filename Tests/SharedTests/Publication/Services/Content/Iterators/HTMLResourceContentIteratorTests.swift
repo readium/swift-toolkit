@@ -151,7 +151,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
             locations: {
                 $0.progression = progression
                 if let selector = selector {
-                    $0.otherLocations = ["cssSelector": selector]
+                    $0.otherLocations = ["cssSelector": .string(selector)]
                 }
             },
             text: {
@@ -277,7 +277,7 @@ class HTMLResourceContentIteratorTest: XCTestCase {
         </html>
         """
 
-        let iter = iterator(nbspHtml, start: locator(selector: ":root > :nth-child(2) > :nth-child(2)"))
+        let iter = iterator(nbspHtml, start: locator(selector: ":root > :nth-child(1) > :nth-child(2)"))
 
         let expectedElement = TextContentElement(
             locator: locator(
