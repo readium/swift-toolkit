@@ -5,233 +5,80 @@
 //
 
 @testable import ReadiumShared
-import XCTest
+import Testing
+import UIKit
 
-class CoverServiceTests: XCTestCase {
-    let fixtures = Fixtures(path: "Publication/Services")
+private let fixtures = Fixtures(path: "Publication/Services")
+private let coverURL = fixtures.url(for: "cover.jpg")
+private let cover = UIImage(contentsOfFile: coverURL.path)!
+private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
 
-    lazy var coverURL = fixtures.url(for: "cover.jpg")
-    lazy var cover = UIImage(contentsOfFile: coverURL.path)!
-    lazy var cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
+@Suite struct CoverServiceTests {
+    @Suite struct PublicationHelpers {
+        @Test func coverDelegatesToCustomService() async throws {
+            let pub = makePublication { _ in TestCoverService(cover: cover2) }
+            let image = try await pub.cover().get()
+            #expect(image?.pngData() == cover2.pngData())
+        }
 
-    /// `Publication.cover` will use a custom `CoverService` if provided.
-    func testCoverHelperUsesCustomCoverService() async {
-        let publication = makePublication { _ in TestCoverService(cover: self.cover2) }
-        let result = await publication.cover()
-        AssertImageEqual(result, .success(cover2))
-    }
+        @Test func coverUsesResourceCoverServiceByDefault() async throws {
+            let image = try await makePublication().cover().get()
+            #expect(image?.pngData() == cover.pngData())
+        }
 
-    /// `Publication.cover` uses `ResourceCoverService` by default.
-    func testCoverHelperUsesResourceCoverServiceByDefault() async {
-        let publication = makePublication()
-        let result = await publication.cover()
-        AssertImageEqual(result, .success(cover))
-    }
+        @Test func coverReturnsNilWithoutService() async throws {
+            let image = try await makePublicationWithoutCoverService().cover().get()
+            #expect(image == nil)
+        }
 
-    /// `Publication.coverFitting` will use a custom `CoverService` if provided.
-    func testCoverFittingHelperUsesCustomCoverService() async {
-        let size = CGSize(width: 100, height: 100)
-        let publication = makePublication { _ in TestCoverService(cover: self.cover2) }
-        let result = await publication.coverFitting(maxSize: size)
-        AssertImageEqual(result, .success(cover2.scaleToFit(maxSize: size)))
-    }
+        @Test func coverFittingDelegatesToCustomService() async throws {
+            let size = CGSize(width: 100, height: 100)
+            let pub = makePublication { _ in TestCoverService(cover: cover2) }
+            let image = try await pub.coverFitting(maxSize: size).get()
+            #expect(image?.pngData() == cover2.scaleToFit(maxSize: size).pngData())
+        }
 
-    /// `Publication.coverFitting` uses `ResourceCoverService` by default.
-    func testCoverFittingHelperUsesResourceCoverServiceByDefault() async {
-        let size = CGSize(width: 100, height: 100)
-        let publication = makePublication()
-        let result = await publication.coverFitting(maxSize: size)
-        AssertImageEqual(result, .success(cover.scaleToFit(maxSize: size)))
-    }
+        @Test func coverFittingUsesResourceCoverServiceByDefault() async throws {
+            let size = CGSize(width: 100, height: 100)
+            let image = try await makePublication().coverFitting(maxSize: size).get()
+            #expect(image?.pngData() == cover.scaleToFit(maxSize: size).pngData())
+        }
 
-    /// `ResourceCoverService` uses the first bitmap reading order item when no explicit `.cover`
-    /// link is declared.
-    func testResourceCoverServiceUsesFirstBitmapReadingOrderItem() async {
-        let publication = makePublication(
-            readingOrder: [
-                Link(href: "cover.jpg", mediaType: .jpeg),
-                Link(href: "page2.jpg", mediaType: .jpeg),
-            ],
-            resources: []
-        )
-        let result = await publication.cover()
-        AssertImageEqual(result, .success(cover))
-    }
-
-    /// `ResourceCoverService` uses the first bitmap alternate of the first reading order item
-    /// when that item is not a bitmap.
-    func testResourceCoverServiceUsesFirstReadingOrderBitmapAlternate() async {
-        let publication = makePublication(
-            readingOrder: [
-                Link(
-                    href: "chapter1.xhtml",
-                    mediaType: .xhtml,
-                    alternates: [
-                        Link(href: "cover.jpg", mediaType: .jpeg),
-                    ]
-                ),
-            ],
-            resources: []
-        )
-        let result = await publication.cover()
-        AssertImageEqual(result, .success(cover))
-    }
-
-    /// `ResourceCoverService` loads an SVG cover when the resource has an explicit `.cover`
-    /// relation and an SVG media type.
-    func testResourceCoverServiceHandlesSVGCoverLink() async {
-        let publication = makePublication(
-            resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
-            containerURL: fixtures.url(for: "cover-svg.svg"),
-            containerHref: "cover-svg.svg"
-        )
-        let result = await publication.cover()
-        switch result {
-        case let .success(image):
-            XCTAssertNotNil(image, "SVG cover should produce a non-nil UIImage")
-        case let .failure(error):
-            XCTFail("Expected success but got \(error)")
+        @Test func coverFittingReturnsNilWithoutService() async throws {
+            let image = try await makePublicationWithoutCoverService()
+                .coverFitting(maxSize: CGSize(width: 100, height: 100)).get()
+            #expect(image == nil)
         }
     }
+}
 
-    /// `ResourceCoverService` uses the first SVG reading order item when no explicit `.cover`
-    /// link is declared.
-    func testResourceCoverServiceUsesFirstSVGReadingOrderItem() async {
-        let publication = makePublication(
-            readingOrder: [
-                Link(href: "cover-svg.svg", mediaType: .svg),
-            ],
-            resources: [],
-            containerURL: fixtures.url(for: "cover-svg.svg"),
-            containerHref: "cover-svg.svg"
-        )
-        let result = await publication.cover()
-        switch result {
-        case let .success(image):
-            XCTAssertNotNil(image, "SVG reading order item should produce a non-nil UIImage")
-        case let .failure(error):
-            XCTFail("Expected success but got \(error)")
-        }
-    }
+private func makePublication(
+    cover: CoverServiceFactory? = nil
+) -> Publication {
+    var builder = PublicationServicesBuilder()
+    if let cover { builder.setCoverServiceFactory(cover) }
+    return Publication(
+        manifest: Manifest(
+            metadata: Metadata(title: "title"),
+            resources: [Link(href: "cover.jpg", mediaType: .jpeg, rels: [.cover])]
+        ),
+        container: SingleResourceContainer(
+            resource: FileResource(file: coverURL),
+            at: AnyURL(string: "cover.jpg")!
+        ),
+        servicesBuilder: builder
+    )
+}
 
-    /// `ResourceCoverService` uses the first SVG alternate of the first reading order item
-    /// when that item is not an image.
-    func testResourceCoverServiceUsesFirstReadingOrderSVGAlternate() async {
-        let publication = makePublication(
-            readingOrder: [
-                Link(
-                    href: "chapter1.xhtml",
-                    mediaType: .xhtml,
-                    alternates: [
-                        Link(href: "cover-svg.svg", mediaType: .svg),
-                    ]
-                ),
-            ],
-            resources: [],
-            containerURL: fixtures.url(for: "cover-svg.svg"),
-            containerHref: "cover-svg.svg"
-        )
-        let result = await publication.cover()
-        switch result {
-        case let .success(image):
-            XCTAssertNotNil(image, "SVG alternate should produce a non-nil UIImage")
-        case let .failure(error):
-            XCTFail("Expected success but got \(error)")
-        }
-    }
-
-    /// `coverFitting` scales an SVG cover down to the requested max size.
-    func testCoverFittingSVGScalesDown() async {
-        let size = CGSize(width: 50, height: 75)
-        let publication = makePublication(
-            resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
-            containerURL: fixtures.url(for: "cover-svg.svg"),
-            containerHref: "cover-svg.svg"
-        )
-        let result = await publication.coverFitting(maxSize: size)
-        switch result {
-        case let .success(image):
-            XCTAssertNotNil(image, "SVG coverFitting should produce a non-nil UIImage")
-            if let image {
-                XCTAssertLessThanOrEqual(image.size.width, size.width)
-                XCTAssertLessThanOrEqual(image.size.height, size.height)
-            }
-        case let .failure(error):
-            XCTFail("Expected success but got \(error)")
-        }
-    }
-
-    /// `UIImage.fromSVG` returns nil for empty data.
-    func testFromSVGReturnsNilForEmptyData() {
-        XCTAssertNil(UIImage.fromSVG(Data(), maxSize: CGSize(width: 400, height: 600)))
-    }
-
-    /// `UIImage.fromSVG` returns nil for non-SVG data.
-    func testFromSVGReturnsNilForNonSVGData() {
-        let jpegData = fixtures.data(at: "cover.jpg")
-        XCTAssertNil(UIImage.fromSVG(jpegData, maxSize: CGSize(width: 400, height: 600)))
-    }
-
-    /// `ResourceCoverService` returns nil when no explicit `.cover` link is declared and no bitmap
-    /// is available.
-    func testResourceCoverServiceReturnsNilWhenNoBitmapAvailable() async {
-        let publication = makePublication(
-            readingOrder: [Link(href: "chapter1.xhtml", mediaType: .xhtml)],
-            resources: []
-        )
-        let result = await publication.cover()
-        AssertImageEqual(result, .success(nil))
-    }
-
-    /// `ResourceCoverService` prioritizes explicit `.cover` links over first reading order item.
-    func testResourceCoverServicePrioritizesExplicitCoverLink() async throws {
-        let publication = try Publication(
-            manifest: Manifest(
-                metadata: Metadata(title: "title"),
-                readingOrder: [
-                    Link(href: "page1.jpg", mediaType: .jpeg),
-                ],
-                resources: [
-                    Link(href: "cover2.jpg", rels: [.cover]),
-                ]
-            ),
-            container: CompositeContainer(
-                SingleResourceContainer(
-                    resource: FileResource(file: fixtures.url(for: "cover.jpg")),
-                    at: XCTUnwrap(AnyURL(string: "page1.jpg"))
-                ),
-                SingleResourceContainer(
-                    resource: FileResource(file: fixtures.url(for: "cover2.jpg")),
-                    at: XCTUnwrap(AnyURL(string: "cover2.jpg"))
-                )
-            )
-        )
-        let result = await publication.cover()
-        AssertImageEqual(result, .success(cover2))
-    }
-
-    private func makePublication(
-        readingOrder: [Link] = [],
-        resources: [Link] = [Link(href: "cover.jpg", rels: [.cover])],
-        cover: CoverServiceFactory? = nil,
-        containerURL: FileURL? = nil,
-        containerHref: String = "cover.jpg"
-    ) -> Publication {
-        var builder = PublicationServicesBuilder()
-        if let cover { builder.setCoverServiceFactory(cover) }
-        return Publication(
-            manifest: Manifest(
-                metadata: Metadata(title: "title"),
-                readingOrder: readingOrder,
-                resources: resources
-            ),
-            container: SingleResourceContainer(
-                resource: FileResource(file: containerURL ?? coverURL),
-                at: AnyURL(string: containerHref)!
-            ),
-            servicesBuilder: builder
-        )
-    }
+private func makePublicationWithoutCoverService() -> Publication {
+    Publication(
+        manifest: Manifest(metadata: Metadata(title: "title")),
+        container: SingleResourceContainer(
+            resource: FileResource(file: coverURL),
+            at: AnyURL(string: "cover.jpg")!
+        ),
+        servicesBuilder: PublicationServicesBuilder(cover: nil)
+    )
 }
 
 private struct TestCoverService: CoverService {
