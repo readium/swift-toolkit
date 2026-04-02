@@ -5,6 +5,10 @@ on:
     branches: [ main, develop ]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   platform: ${{ 'iOS Simulator' }}
   device: ${{ 'iPhone 16 Pro' }}
