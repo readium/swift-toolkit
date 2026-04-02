@@ -206,6 +206,16 @@ class HTMLElementTests: XCTestCase {
         XCTAssertTrue(HTMLElement.html.hasAttribute(anyOf: ["lang"], in: html))
     }
 
+    func testHasAttributeReturnsTrueForXmlLangOnBody() {
+        let html = #"<html><body xml:lang="fr"></body></html>"#
+        XCTAssertTrue(HTMLElement.body.hasAttribute(anyOf: ["xml:lang", "lang"], in: html))
+    }
+
+    func testHasAttributeReturnsTrueForEmptyValue() {
+        let html = #"<html lang=""><body></body></html>"#
+        XCTAssertTrue(HTMLElement.html.hasAttribute(anyOf: ["lang"], in: html))
+    }
+
     // MARK: - attribute(firstOf:in:)
 
     func testAttributeReturnsLangValue() {
@@ -228,9 +238,19 @@ class HTMLElementTests: XCTestCase {
         XCTAssertNil(HTMLElement.html.attribute(firstOf: ["xml:lang", "lang"], in: html))
     }
 
-    func testAttributeReturnsNilForEmptyValue() {
+    func testAttributeReturnsEmptyStringForBlankValue() {
         let html = #"<html lang=""><body></body></html>"#
-        XCTAssertNil(HTMLElement.html.attribute(firstOf: ["xml:lang", "lang"], in: html))
+        XCTAssertEqual(HTMLElement.html.attribute(firstOf: ["xml:lang", "lang"], in: html), "")
+    }
+
+    func testAttributeTrimsWhitespace() {
+        let html = #"<html lang="  fr  "><body></body></html>"#
+        XCTAssertEqual(HTMLElement.html.attribute(firstOf: ["lang"], in: html), "fr")
+    }
+
+    func testAttributeReturnsEmptyStringForWhitespaceOnlyValue() {
+        let html = #"<html lang="   "><body></body></html>"#
+        XCTAssertEqual(HTMLElement.html.attribute(firstOf: ["lang"], in: html), "")
     }
 
     func testAttributeScopedToCorrectElement() {

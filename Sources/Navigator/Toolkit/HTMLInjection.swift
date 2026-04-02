@@ -97,34 +97,37 @@ struct HTMLElement: Hashable {
 }
 
 extension HTMLElement {
-    /// Returns the value of the first attribute from `names` found in this element's
-    /// opening tag in `html`. Names are tried in order; the first non-empty match wins.
-    /// Returns `nil` if none are found.
+    /// Returns the trimmed value of the first attribute from `names` found in
+    /// this element's opening tag in `html`. Names are tried in order; the
+    /// first match wins.
+    ///
+    /// - Returns: `""` if the attribute is present but blank, `nil` if the
+    ///   attribute is absent.
     func attribute(firstOf names: [String], in html: String) -> String? {
         guard let tagRange = startTagRange(in: html) else { return nil }
         let tag = String(html[tagRange])
         let nsRange = NSRange(tag.startIndex..., in: tag)
         for name in names {
             let escaped = NSRegularExpression.escapedPattern(for: name)
-            let regex = NSRegularExpression("\\s\(escaped)\\s*=\\s*[\"']([^\"']*)[\"']", options: [.caseInsensitive])
+            let regex = regex(for: "\\s\(escaped)\\s*=\\s*[\"']([^\"']*)[\"']")
             if let match = regex.firstMatch(in: tag, range: nsRange),
                let valueRange = Range(match.range(at: 1), in: tag)
             {
-                let value = String(tag[valueRange])
-                if !value.isEmpty { return value }
+                return String(tag[valueRange]).trimmingCharacters(in: .whitespaces)
             }
         }
         return nil
     }
 
-    /// Returns true if this element's opening tag in `html` has any attribute from `names`.
+    /// Returns true if this element's opening tag in `html` has any attribute
+    /// from `names`, regardless of its value (including blank values).
     func hasAttribute(anyOf names: [String], in html: String) -> Bool {
         guard let tagRange = startTagRange(in: html) else { return false }
         let tag = String(html[tagRange])
         let nsRange = NSRange(tag.startIndex..., in: tag)
         for name in names {
             let escaped = NSRegularExpression.escapedPattern(for: name)
-            let regex = NSRegularExpression("\\s\(escaped)\\s*=", options: [.caseInsensitive])
+            let regex = regex(for: "\\s\(escaped)\\s*=")
             if regex.firstMatch(in: tag, range: nsRange) != nil { return true }
         }
         return false
@@ -216,4 +219,16 @@ extension HTMLInjection {
 
 private func escapeAttribute(_ value: String) -> String {
     value.replacingOccurrences(of: "\"", with: "&quot;")
+}
+
+private let regexCache: Cache<NSString, NSRegularExpression> = Cache()
+
+private func regex(for pattern: String) -> NSRegularExpression {
+    let key = pattern as NSString
+    if let cached = regexCache[key] {
+        return cached
+    }
+    let regex = NSRegularExpression(pattern, options: [.caseInsensitive])
+    regexCache[key] = regex
+    return regex
 }
