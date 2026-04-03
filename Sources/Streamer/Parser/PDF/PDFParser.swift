@@ -68,8 +68,16 @@ public final class PDFParser: PublicationParser, Loggable {
                 ),
                 container: container,
                 servicesBuilder: PublicationServicesBuilder(
+                    content: DefaultContentService.makeFactory(
+                        resourceContentIteratorFactories: [
+                            PDFResourceContentIterator.Factory(pdfFactory: pdfFactory),
+                        ]
+                    ),
                     cover: document.cover().map(GeneratedCoverService.makeFactory(cover:)),
-                    positions: PDFPositionsService.makeFactory()
+                    positions: PDFPositionsService.makeFactory(),
+                    search: StringSearchService.makeFactory(
+                        extractorFactory: PDFResourceContentExtractorFactory()
+                    )
                 )
             ))
         } catch {
