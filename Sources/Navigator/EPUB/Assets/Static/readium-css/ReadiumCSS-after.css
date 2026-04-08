@@ -761,8 +761,7 @@ body {
 
 /* If there are inline-block elements in paragraphs, text-indent will inherit so we must reset it */
 
-:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p *,
-:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p:first-letter {
+:root[style*="readium-advanced-on"][style*="--USER__paraIndent"] p * {
   text-indent: 0 !important;
 }
 
