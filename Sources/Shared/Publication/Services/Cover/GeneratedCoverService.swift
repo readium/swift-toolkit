@@ -8,15 +8,28 @@ import Foundation
 import UIKit
 
 /// A `CoverService` which holds a lazily generated cover bitmap in memory.
-public final class GeneratedCoverService: CoverService {
+public final class GeneratedCoverService: CoverService, Sendable {
     enum Error: Swift.Error {
         case generationFailed
     }
 
-    private var _cover: ReadResult<UIImage>?
-    private let makeCover: () async -> ReadResult<UIImage>
+    private actor Cache {
+        var cover: ReadResult<UIImage>?
 
-    public init(makeCover: @escaping () async -> ReadResult<UIImage>) {
+        func getOrMake(make: () async -> ReadResult<UIImage>) async -> ReadResult<UIImage> {
+            if let cover = cover {
+                return cover
+            }
+            let newCover = await make()
+            cover = newCover
+            return newCover
+        }
+    }
+
+    private let cache = Cache()
+    private let makeCover: @Sendable () async -> ReadResult<UIImage>
+
+    public init(makeCover: @escaping @Sendable () async -> ReadResult<UIImage>) {
         self.makeCover = makeCover
     }
 
@@ -31,10 +44,7 @@ public final class GeneratedCoverService: CoverService {
     )
 
     private func cachedCover() async -> ReadResult<UIImage> {
-        if _cover == nil {
-            _cover = await makeCover()
-        }
-        return _cover!
+        await cache.getOrMake(make: makeCover)
     }
 
     public func cover() async -> ReadResult<UIImage?> {
@@ -53,11 +63,11 @@ public final class GeneratedCoverService: CoverService {
         return CoverResource(cover: cachedCover)
     }
 
-    public static func makeFactory(makeCover: @escaping () async -> ReadResult<UIImage>) -> (PublicationServiceContext) -> GeneratedCoverService? {
+    public static func makeFactory(makeCover: @escaping @Sendable () async -> ReadResult<UIImage>) -> @Sendable (PublicationServiceContext) -> GeneratedCoverService? {
         { _ in GeneratedCoverService(makeCover: makeCover) }
     }
 
-    public static func makeFactory(cover: UIImage) -> (PublicationServiceContext) -> GeneratedCoverService? {
+    public static func makeFactory(cover: UIImage) -> @Sendable (PublicationServiceContext) -> GeneratedCoverService? {
         { _ in GeneratedCoverService(cover: cover) }
     }
 
