@@ -8,7 +8,7 @@ import Foundation
 
 /// Simple `PositionsService` for a `Publication` which generates one position per `readingOrder`
 /// resource.
-public final class PerResourcePositionsService: PositionsService {
+public final class PerResourcePositionsService: PositionsService, Sendable {
     private let readingOrder: [Link]
 
     /// Media type that will be used as a fallback if the `Link` doesn't specify any.
@@ -20,26 +20,40 @@ public final class PerResourcePositionsService: PositionsService {
     }
 
     public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        .success(positions)
+        await .success(cache.getPositions(readingOrder: readingOrder, fallbackMediaType: fallbackMediaType))
     }
 
-    private lazy var pageCount: Int = readingOrder.count
+    private actor Cache {
+        var positions: [[Locator]]?
 
-    private lazy var positions: [[Locator]] = readingOrder.enumerated().map { index, link in
-        [
-            Locator(
-                href: link.url(),
-                mediaType: link.mediaType ?? fallbackMediaType,
-                title: link.title,
-                locations: Locator.Locations(
-                    totalProgression: Double(index) / Double(pageCount),
-                    position: index + 1
-                )
-            ),
-        ]
+        func getPositions(readingOrder: [Link], fallbackMediaType: MediaType) -> [[Locator]] {
+            if let positions = positions {
+                return positions
+            }
+
+            let pageCount = readingOrder.count
+            let newPositions: [[Locator]] = readingOrder.enumerated().map { index, link in
+                [
+                    Locator(
+                        href: link.url(),
+                        mediaType: link.mediaType ?? fallbackMediaType,
+                        title: link.title,
+                        locations: Locator.Locations(
+                            totalProgression: Double(index) / Double(pageCount),
+                            position: index + 1
+                        )
+                    ),
+                ]
+            }
+
+            positions = newPositions
+            return newPositions
+        }
     }
 
-    public static func makeFactory(fallbackMediaType: MediaType) -> (PublicationServiceContext) -> PerResourcePositionsService {
+    private let cache = Cache()
+
+    public static func makeFactory(fallbackMediaType: MediaType) -> @Sendable (PublicationServiceContext) -> PerResourcePositionsService {
         { context in
             PerResourcePositionsService(readingOrder: context.manifest.readingOrder, fallbackMediaType: fallbackMediaType)
         }
