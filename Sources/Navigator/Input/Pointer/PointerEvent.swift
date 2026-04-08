@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumShared
 
 /// Represents a pointer event (e.g. touch, mouse) emitted by a navigator.
 public struct PointerEvent: Equatable {
@@ -20,32 +21,25 @@ public struct PointerEvent: Equatable {
     /// Key modifiers pressed alongside the pointer.
     public var modifiers: KeyModifiers
 
-    /// Metadata about the element under the pointer, if available.
-    ///
-    /// This is typically provided by the EPUB navigator's JavaScript bridge
-    /// when the pointer is over a media element (img, svg, video, etc.).
+    /// The content element under the pointer, if recognized by the navigator.
     public var targetElement: TargetElement?
 
-    /// Metadata about the DOM element under a pointer event, extracted from
-    /// the JavaScript layer.
+    /// A content element targeted by a pointer event, paired with its
+    /// on-screen frame.
     public struct TargetElement: Equatable {
-        /// Tag name of the element (e.g. "img", "svg").
-        public var tag: String
-
-        /// Source URL of the media element, if available.
-        public var src: String?
-
-        /// Alt text of the element, if available.
-        public var alt: String?
-
         /// Frame of the element relative to the navigator's view.
         public var frame: CGRect
 
-        public init(tag: String, src: String?, alt: String? = nil, frame: CGRect) {
-            self.tag = tag
-            self.src = src
-            self.alt = alt
+        /// The content element under the pointer.
+        public var content: any ContentElement
+
+        public init(frame: CGRect, content: any ContentElement) {
             self.frame = frame
+            self.content = content
+        }
+
+        public static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.frame == rhs.frame && lhs.content.isEqualTo(rhs.content)
         }
     }
 

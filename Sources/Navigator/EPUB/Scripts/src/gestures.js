@@ -106,20 +106,20 @@ function onPointerEvent(phase, event) {
 
 /// Extracts metadata about the target element for gesture handling.
 ///
-/// Returns an object with the element's bounding rectangle, tag name, and
-/// media source URL if available. This information is used on the Swift side
-/// to build a `TargetElement`.
+/// Returns an object with the element's bounding rectangle, tag name, source
+/// URL, alt text, and a CSS selector. This information is used on the Swift
+/// side to build the appropriate `ContentElement`.
 function extractTargetElement(element) {
   if (!element || !element.getBoundingClientRect) {
     return null;
   }
 
-  let imageElement = findNearestImageElement(element);
-  if (!imageElement) {
+  let mediaElement = findNearestMediaElement(element);
+  if (!mediaElement) {
     return null;
   }
 
-  let rect = imageElement.getBoundingClientRect();
+  let rect = mediaElement.getBoundingClientRect();
   let adjustedOrigin = adjustPointToViewport({ x: rect.left, y: rect.top });
   let adjustedEnd = adjustPointToViewport({
     x: rect.left + rect.width,
@@ -127,28 +127,57 @@ function extractTargetElement(element) {
   });
 
   return {
-    tag: imageElement.tagName.toLowerCase(),
-    src: imageElement.src || imageElement.getAttribute("href") || null,
+    tag: mediaElement.tagName.toLowerCase(),
+    src: mediaElement.src || mediaElement.getAttribute("href") || null,
     frame: {
       x: adjustedOrigin.x,
       y: adjustedOrigin.y,
       width: adjustedEnd.x - adjustedOrigin.x,
       height: adjustedEnd.y - adjustedOrigin.y,
     },
-    alt: imageElement.getAttribute("alt") || null,
+    alt: mediaElement.getAttribute("alt") || null,
+    cssSelector: getCSSSelector(mediaElement),
   };
 }
 
-/// Walks up the DOM tree from the given element to find the nearest image
-/// element (img, svg).
-function findNearestImageElement(element) {
-  const imageTags = ["img", "svg"];
+/// Walks up the DOM tree from the given element to find the nearest media
+/// element (img, svg, audio, video).
+function findNearestMediaElement(element) {
+  const mediaTags = ["img", "svg", "audio", "video"];
   let current = element;
   while (current && current !== document.documentElement) {
-    if (imageTags.includes(current.tagName.toLowerCase())) {
+    if (mediaTags.includes(current.tagName.toLowerCase())) {
       return current;
     }
     current = current.parentElement;
   }
   return null;
+}
+
+/// Builds a CSS selector that uniquely identifies the given element within
+/// the document.
+function getCSSSelector(element) {
+  if (element.id) {
+    return "#" + CSS.escape(element.id);
+  }
+
+  let parts = [];
+  let current = element;
+  while (current && current !== document.documentElement) {
+    let selector = current.tagName.toLowerCase();
+    if (current.id) {
+      parts.unshift("#" + CSS.escape(current.id));
+      break;
+    }
+    let sibling = current;
+    let nth = 1;
+    while ((sibling = sibling.previousElementSibling)) {
+      if (sibling.tagName === current.tagName) nth++;
+    }
+    selector += ":nth-of-type(" + nth + ")";
+    parts.unshift(selector);
+    current = current.parentElement;
+  }
+
+  return parts.join(" > ");
 }

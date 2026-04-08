@@ -240,15 +240,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         event.location = convertPointToNavigatorSpace(event.location)
 
-        if var targetElement = PointerEvent.TargetElement(json: json["targetElement"]) {
-            // The src from JS is a fully-resolved readium:// URL.
-            // Relativize it against the publication base URL to get a
-            // publication-relative href usable with Publication.get().
-            targetElement.src = targetElement.src.flatMap { src in
-                guard let srcURL = URL(string: src) else { return src }
-                return viewModel.publicationBaseURL.relativize(srcURL)?.string ?? src
-            }
-            targetElement.frame = convertRectToNavigatorSpace(targetElement.frame)
+        if let targetElement = PointerEvent.TargetElement(json: json["targetElement"], in: self) {
             event.targetElement = targetElement
         }
 
@@ -727,9 +719,10 @@ private extension PointerEvent {
     }
 }
 
-/// Produced by gestures.js `extractTargetElement`
+/// Produced by gestures.js `extractTargetElement`.
+@MainActor
 extension PointerEvent.TargetElement {
-    init?(json: Any?) {
+    init?(json: Any?, in spreadView: EPUBSpreadView) {
         guard
             let dict = json as? [String: Any],
             let tag = dict["tag"] as? String,
@@ -742,12 +735,62 @@ extension PointerEvent.TargetElement {
             return nil
         }
 
-        self.init(
-            tag: tag,
-            src: dict["src"] as? String,
-            alt: dict["alt"] as? String,
-            frame: CGRect(x: x, y: y, width: width, height: height)
+        let frame = spreadView.convertRectToNavigatorSpace(
+            CGRect(x: x, y: y, width: width, height: height)
         )
+
+        // Relativize the src URL against the publication base URL so it
+        // becomes a publication-relative href. External URLs (http://) or
+        // already-relative URLs fall back to the raw value.
+        let publicationBaseURL = spreadView.viewModel.publicationBaseURL!
+        let src: String? = (dict["src"] as? String).flatMap { raw in
+            guard let srcURL = URL(string: raw) else { return raw }
+            return publicationBaseURL.relativize(srcURL)?.string ?? raw
+        }
+
+        // Look up the Link in the publication manifest so the client gets
+        // full metadata (media type, etc.). Falls back to a plain Link.
+        let publication = spreadView.viewModel.publication
+        let embeddedLink: Link = src.flatMap { href in
+            URL(string: href).flatMap { publication.linkWithHREF($0) }
+        } ?? Link(href: src ?? "")
+
+        // Build a locator pointing to the element inside the current
+        // XHTML resource.
+        let resourceLink = spreadView.spread.first.link
+        var locations = Locator.Locations()
+        if let cssSelector = dict["cssSelector"] as? String {
+            locations.otherLocations["cssSelector"] = .string(cssSelector)
+        }
+        let locator = Locator(
+            href: resourceLink.url(),
+            mediaType: resourceLink.mediaType ?? .xhtml,
+            locations: locations
+        )
+
+        let content: any ContentElement
+        switch tag {
+        case "img", "svg":
+            content = ImageContentElement(
+                locator: locator,
+                embeddedLink: embeddedLink,
+                caption: dict["alt"] as? String
+            )
+        case "audio":
+            content = AudioContentElement(
+                locator: locator,
+                embeddedLink: embeddedLink
+            )
+        case "video":
+            content = VideoContentElement(
+                locator: locator,
+                embeddedLink: embeddedLink
+            )
+        default:
+            return nil
+        }
+
+        self.init(frame: frame, content: content)
     }
 }
 
