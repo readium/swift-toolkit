@@ -240,7 +240,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         event.location = convertPointToNavigatorSpace(event.location)
 
-        if let targetElement = PointerEvent.TargetElement(json: json["targetElement"], in: self) {
+        if let targetElement = targetElement(from: json["targetElement"]) {
             event.targetElement = targetElement
         }
 
@@ -714,15 +714,17 @@ private extension PointerEvent {
             modifiers: KeyModifiers(json: json)
         )
         // FIXME:
-//        targetElement = dict["targetElement"] as? String ?? ""
 //        interactiveElement = dict["interactiveElement"] as? String
     }
 }
 
-/// Produced by gestures.js `extractTargetElement`.
-@MainActor
-extension PointerEvent.TargetElement {
-    init?(json: Any?, in spreadView: EPUBSpreadView) {
+// MARK: - Target Element Extraction
+
+extension EPUBSpreadView {
+    /// Parses the target element JSON produced by `extractTargetElement()` in
+    /// gestures.js and builds a `PointerEvent.TargetElement` with coordinates
+    /// converted to the spread view's coordinate space.
+    func targetElement(from json: Any?) -> PointerEvent.TargetElement? {
         guard
             let dict = json as? [String: Any],
             let tag = dict["tag"] as? String,
@@ -730,19 +732,19 @@ extension PointerEvent.TargetElement {
             let x = frameDict["x"] as? Double,
             let y = frameDict["y"] as? Double,
             let width = frameDict["width"] as? Double,
-            let height = frameDict["height"] as? Double
+            let height = frameDict["height"] as? Double,
+            let publicationBaseURL = viewModel.publicationBaseURL
         else {
             return nil
         }
 
-        let frame = spreadView.convertRectToNavigatorSpace(
+        let frame = convertRectToNavigatorSpace(
             CGRect(x: x, y: y, width: width, height: height)
         )
 
         // Relativize the src URL against the publication base URL so it
         // becomes a publication-relative href. External URLs (http://) or
         // already-relative URLs fall back to the raw value.
-        let publicationBaseURL = spreadView.viewModel.publicationBaseURL!
         let src: String? = (dict["src"] as? String).flatMap { raw in
             guard let srcURL = URL(string: raw) else { return raw }
             return publicationBaseURL.relativize(srcURL)?.string ?? raw
@@ -750,14 +752,12 @@ extension PointerEvent.TargetElement {
 
         // Look up the Link in the publication manifest so the client gets
         // full metadata (media type, etc.). Falls back to a plain Link.
-        let publication = spreadView.viewModel.publication
         let embeddedLink: Link = src.flatMap { href in
-            URL(string: href).flatMap { publication.linkWithHREF($0) }
+            URL(string: href).flatMap { viewModel.publication.linkWithHREF($0) }
         } ?? Link(href: src ?? "")
 
-        // Build a locator pointing to the element inside the current
-        // XHTML resource.
-        let resourceLink = spreadView.spread.first.link
+        // Build a locator pointing to the element inside the current XHTML resource.
+        let resourceLink = spread.first.link
         var locations = Locator.Locations()
         if let cssSelector = dict["cssSelector"] as? String {
             locations.otherLocations["cssSelector"] = .string(cssSelector)
@@ -768,29 +768,30 @@ extension PointerEvent.TargetElement {
             locations: locations
         )
 
-        let content: any ContentElement
-        switch tag {
+        // Map the HTML tag to the appropriate ContentElement subtype.
+        let content: (any ContentElement)? = switch tag {
         case "img", "svg":
-            content = ImageContentElement(
+            ImageContentElement(
                 locator: locator,
-                embeddedLink: embeddedLink,
+                embeddedLink: embeddedLink, 
                 caption: dict["alt"] as? String
             )
         case "audio":
-            content = AudioContentElement(
+            AudioContentElement(
                 locator: locator,
                 embeddedLink: embeddedLink
             )
         case "video":
-            content = VideoContentElement(
+            VideoContentElement(
                 locator: locator,
                 embeddedLink: embeddedLink
             )
         default:
-            return nil
+            nil
         }
 
-        self.init(frame: frame, content: content)
+        guard let content else { return nil }
+        return PointerEvent.TargetElement(frame: frame, content: content)
     }
 }
 
