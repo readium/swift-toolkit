@@ -8,37 +8,23 @@ import ReadiumNavigator
 import ReadiumShared
 import UIKit
 
-/// A simple fullscreen image viewer that supports pinch-to-zoom.
+/// A simple image preview presented as a sheet.
 ///
-/// Uses a custom `UIViewControllerAnimatedTransitioning`-based
-/// transition that animates the image from its source frame in the
-/// navigator to a centered, aspect-fitted position — and back on
-/// dismiss — giving a smooth Photos-like experience.
+/// Displays the image and basic metadata (href, caption) to demonstrate
+/// the Readium `ImageContentElement` API.
 final class ImagePreviewViewController: UIViewController {
-    private let link: Link
-    private let sourceFrame: CGRect
+    private let image: ImageContentElement
     private let publication: Publication
-    private let bgColor: UIColor
+    private let imageView = UIImageView()
+    private let linkLabel = UILabel()
 
-    private let scrollView: UIScrollView
-    private let imageView: UIImageView
-
-    init(link: Link,
-         publication: Publication,
-         altText: String? = nil,
-         sourceFrame: CGRect,
-         backgroundColor: UIColor = .black)
-    {
-        self.link = link
-        self.sourceFrame = sourceFrame
+    init(image: ImageContentElement, publication: Publication) {
+        self.image = image
         self.publication = publication
-        bgColor = backgroundColor
-        scrollView = UIScrollView()
-        imageView = UIImageView()
 
         super.init(nibName: nil, bundle: nil)
 
-        title = altText
+        title = image.caption
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             systemItem: .done,
             primaryAction: UIAction { [weak self] _ in
@@ -52,74 +38,40 @@ final class ImagePreviewViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func loadView() {
-        super.loadView()
-
-        view.backgroundColor = bgColor
-
-        scrollView.frame = view.bounds
-        scrollView.delegate = self
-        scrollView.minimumZoomScale = 1.0
-        scrollView.maximumZoomScale = 4.0
-        scrollView.showsHorizontalScrollIndicator = false
-        scrollView.showsVerticalScrollIndicator = false
-        scrollView.contentInsetAdjustmentBehavior = .never
-        scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(scrollView)
-
-        imageView.contentMode = .scaleAspectFit
-        imageView.clipsToBounds = true
-        scrollView.addSubview(imageView)
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        view.backgroundColor = .systemBackground
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
+
+        linkLabel.text = image.embeddedLink.href
+        linkLabel.textAlignment = .center
+        linkLabel.textColor = .secondaryLabel
+        linkLabel.numberOfLines = 0
+        linkLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(linkLabel)
+
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.6),
+
+            linkLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 12),
+            linkLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            linkLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+        ])
+
         Task { @MainActor in
+            let link = image.embeddedLink
             if let resource = publication.get(link),
                let imageData = try? await resource.read().get()
             {
                 imageView.image = UIImage(data: imageData)
             }
         }
-    }
-}
-
-// MARK: - ImagePreviewTransitioning
-
-extension ImagePreviewViewController: ImagePreviewTransitioning {
-    func prepareForTransition(isPresenting: Bool) {
-        if isPresenting {
-            imageView.frame = sourceFrame
-            view.backgroundColor = .clear
-        } else {
-            scrollView.zoomScale = scrollView.minimumZoomScale
-            scrollView.contentInset = .zero
-        }
-    }
-
-    func performTransition(isPresenting: Bool) {
-        let targetFrame: CGRect = {
-            var frame = view.bounds
-            guard let image = imageView.image else {
-                return frame
-            }
-            let aspectRatio = image.size.height / image.size.width
-            let width = view.bounds.width
-            let height = width * aspectRatio
-            frame.size = CGSize(width: width, height: height)
-            frame.origin = CGPoint(x: 0, y: (view.bounds.height - height) / 2)
-            return frame
-        }()
-        imageView.frame = isPresenting ? targetFrame : sourceFrame
-        view.backgroundColor = isPresenting ? bgColor : .clear
-    }
-}
-
-// MARK: - UIScrollViewDelegate
-
-extension ImagePreviewViewController: UIScrollViewDelegate {
-    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-        imageView
     }
 }

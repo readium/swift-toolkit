@@ -91,16 +91,16 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         )
         directionalNavigationAdapter?.bind(to: navigator)
 
-        // Present an image zoom viewer when tapping an image element.
+        // Present an image preview when tapping an image element.
         navigator.addObserver(.tap { [weak self] event in
             guard
                 let self,
-                let info = event.targetElement,
-                info.src != nil
+                let targetElement = event.targetElement,
+                targetElement.content is ImageContentElement
             else {
                 return false
             }
-            self.presentImagePreview(elementInfo: info)
+            self.presentImagePreview(targetElement)
             return true
         })
 
@@ -221,23 +221,15 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     // MARK: - VisualNavigatorDelegate
 
-    private func presentImagePreview(elementInfo info: PointerEvent.TargetElement) {
-        guard let src = info.src else { return }
-        let link = Link(href: src)
-        // Convert the element frame from the navigator's coordinate space to
-        // the presenting view controller's coordinate space for the animation.
-        let navigatorView = (navigator as? VisualNavigator)?.view ?? view
-        let sourceFrame = view.convert(info.frame, from: navigatorView)
+    private func presentImagePreview(_ targetElement: PointerEvent.TargetElement) {
+        guard let image = targetElement.content as? ImageContentElement else { return }
         let viewer = ImagePreviewViewController(
-            link: link,
-            publication: publication,
-            altText: info.alt,
-            sourceFrame: sourceFrame,
-            backgroundColor: navigator.view.backgroundColor ?? .black
+            image: image,
+            publication: publication
         )
-        let navController = ImagePreviewNavigationController(
-            rootViewController: viewer
-        )
+        let navController = UINavigationController(rootViewController: viewer)
+        navController.modalPresentationStyle = .fullScreen
+        navController.modalTransitionStyle = .crossDissolve
         present(navController, animated: true)
     }
 
