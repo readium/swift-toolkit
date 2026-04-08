@@ -15,7 +15,11 @@ final class AudioLocatorService: DefaultLocatorService {
 
     private actor Cache {
         let readingOrder: [Link]
+
+        /// Duration per reading order index.
         let durations: [Double]
+
+        /// Total duration of the publication.
         let totalDuration: Double?
 
         init(publication: Publication?) {
@@ -25,6 +29,8 @@ final class AudioLocatorService: DefaultLocatorService {
             totalDuration = (total > 0) ? total : nil
         }
 
+        /// Finds the reading order item containing the time `position` (in seconds), as well as its
+        /// start time.
         func readingOrderItemAtPosition(_ position: Double) -> (link: Link, startPosition: Double)? {
             var current: Double = 0
             for (i, duration) in durations.enumerated() {
