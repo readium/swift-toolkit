@@ -51,6 +51,7 @@ final class ImagePreviewViewController: UIViewController {
         linkLabel.textAlignment = .center
         linkLabel.textColor = .secondaryLabel
         linkLabel.numberOfLines = 0
+        linkLabel.font = .preferredFont(forTextStyle: .footnote)
         linkLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(linkLabel)
 
