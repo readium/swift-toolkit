@@ -62,22 +62,25 @@ extension UIImage {
         }
     }
 
-    /// Returns a copy of the image scaled down to fit within `maxSize` while
-    /// preserving the aspect ratio.
+    /// Returns the image scaled down to fit within `maxSize` pixels, preserving
+    /// the aspect ratio without upscaling.
     ///
-    /// If the image already fits within `maxSize` or is smaller, it is returned
-    /// unchanged.
+    /// The returned image always has `scale = 1`.
     func scaleToFit(maxSize: CGSize) -> UIImage {
-        if size.width <= maxSize.width, size.height <= maxSize.height {
-            return self
+        let pixelSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderSize: CGSize
+        if pixelSize.width <= maxSize.width, pixelSize.height <= maxSize.height {
+            if scale == 1 { return self }
+            renderSize = pixelSize
+        } else {
+            renderSize = AVMakeRect(aspectRatio: pixelSize, insideRect: CGRect(origin: .zero, size: maxSize)).size
         }
 
-        let targetSize = AVMakeRect(aspectRatio: size, insideRect: CGRect(origin: .zero, size: maxSize)).size
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
-        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+        let renderer = UIGraphicsImageRenderer(size: renderSize, format: format)
         return renderer.image { _ in
-            draw(in: CGRect(origin: .zero, size: targetSize))
+            draw(in: CGRect(origin: .zero, size: renderSize))
         }
     }
 }
