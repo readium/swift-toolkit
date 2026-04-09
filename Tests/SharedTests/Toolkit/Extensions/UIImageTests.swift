@@ -101,16 +101,16 @@ private let portraitImage = UIImage(contentsOfFile: fixtures.url(for: "cc-a-shar
         }
 
         @Test func rendersAtNativeSizeWhenSmaller() throws {
-            // SVG canvas is 100×150; it must not be upscaled.
-            let image = try #require(UIImage.fromSVG(fixtures.data(at: "cover-svg.svg"), maxSize: CGSize(width: 400, height: 600)))
-            #expect(image.size.width == 100)
-            #expect(image.size.height == 150)
+            // SVG canvas is 1400×2100; it must not be upscaled.
+            let image = try #require(UIImage.fromSVG(fixtures.data(at: "cover.svg"), maxSize: CGSize(width: 3000, height: 3000)))
+            #expect(image.size.width == 1400)
+            #expect(image.size.height == 2100)
         }
 
         @Test func scalesDownPreservingAspectRatio() throws {
-            // SVG canvas is 100×150; at maxSize 75×75 the aspect ratio matches exactly.
+            // SVG canvas is 1400×2100 (aspect ratio 2:3); at maxSize 75×75 height limits → 50×75
             let maxSize = CGSize(width: 75, height: 75)
-            let image = try #require(UIImage.fromSVG(fixtures.data(at: "cover-svg.svg"), maxSize: maxSize))
+            let image = try #require(UIImage.fromSVG(fixtures.data(at: "cover.svg"), maxSize: maxSize))
             #expect(image.size.width == 50)
             #expect(image.size.height == 75)
         }

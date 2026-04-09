@@ -84,9 +84,9 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
 
         @Test func usesSVGCoverLink() async throws {
             let pub = makePublication(
-                resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
-                containerURL: fixtures.url(for: "cover-svg.svg"),
-                containerHref: "cover-svg.svg"
+                resources: [Link(href: "cover.svg", mediaType: .svg, rels: [.cover])],
+                containerURL: fixtures.url(for: "cover.svg"),
+                containerHref: "cover.svg"
             )
             #expect(try await pub.cover().get() != nil)
         }
@@ -121,9 +121,9 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
         @Test func scalesDownSVG() async throws {
             let size = CGSize(width: 75, height: 75)
             let pub = makePublication(
-                resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
-                containerURL: fixtures.url(for: "cover-svg.svg"),
-                containerHref: "cover-svg.svg"
+                resources: [Link(href: "cover.svg", mediaType: .svg, rels: [.cover])],
+                containerURL: fixtures.url(for: "cover.svg"),
+                containerHref: "cover.svg"
             )
             let image = try #require(try await pub.coverFitting(maxSize: size).get())
             #expect(image.size.width == 50)
@@ -133,9 +133,9 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
         @Test func doesNotUpscaleSVG() async throws {
             // SVG canvas is 100×150; requesting a larger max size must not upscale it.
             let pub = makePublication(
-                resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
-                containerURL: fixtures.url(for: "cover-svg.svg"),
-                containerHref: "cover-svg.svg"
+                resources: [Link(href: "cover.svg", mediaType: .svg, rels: [.cover])],
+                containerURL: fixtures.url(for: "cover.svg"),
+                containerHref: "cover.svg"
             )
             let image = try #require(try await pub.coverFitting(maxSize: CGSize(width: 200, height: 300)).get())
             #expect(image.size.width == 100)
