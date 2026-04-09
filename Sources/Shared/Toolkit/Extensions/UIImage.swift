@@ -9,23 +9,6 @@ import CoreGraphics
 import Foundation
 import UIKit
 
-private enum CoreSVG {
-    typealias CreateFromData = @convention(c) (CFData, CFDictionary?) -> Unmanaged<CFTypeRef>?
-    typealias GetCanvasSize = @convention(c) (CFTypeRef) -> CGSize
-    typealias DrawInContext = @convention(c) (CGContext, CFTypeRef) -> Void
-    typealias ReleaseDocument = @convention(c) (CFTypeRef) -> Void
-
-    static let createFromData: CreateFromData? = load("CGSVGDocumentCreateFromData")
-    static let getCanvasSize: GetCanvasSize? = load("CGSVGDocumentGetCanvasSize")
-    static let drawInContext: DrawInContext? = load("CGContextDrawSVGDocument")
-    static let releaseDocument: ReleaseDocument? = load("CGSVGDocumentRelease")
-
-    private static func load<T>(_ name: String) -> T? {
-        guard let sym = dlsym(dlopen(nil, RTLD_LAZY), name) else { return nil }
-        return unsafeBitCast(sym, to: T.self)
-    }
-}
-
 extension UIImage {
     /// Creates a `UIImage` by rendering an SVG document from the given data,
     /// scaled down to fit `maxSize` while preserving the aspect ratio.
@@ -77,15 +60,39 @@ extension UIImage {
         }
     }
 
+    /// Returns a copy of the image scaled down to fit within `maxSize` while
+    /// preserving the aspect ratio.
+    ///
+    /// If the image already fits within `maxSize` or is smaller, it is returned
+    /// unchanged.
     func scaleToFit(maxSize: CGSize) -> UIImage {
         if size.width <= maxSize.width, size.height <= maxSize.height {
             return self
         }
 
-        let targetRect = AVMakeRect(aspectRatio: size, insideRect: CGRect(origin: .zero, size: maxSize))
-        let renderer = UIGraphicsImageRenderer(size: targetRect.size)
+        let targetSize = AVMakeRect(aspectRatio: size, insideRect: CGRect(origin: .zero, size: maxSize)).size
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
         return renderer.image { _ in
-            draw(in: targetRect)
+            draw(in: CGRect(origin: .zero, size: targetSize))
         }
+    }
+}
+
+private enum CoreSVG {
+    typealias CreateFromData = @convention(c) (CFData, CFDictionary?) -> Unmanaged<CFTypeRef>?
+    typealias GetCanvasSize = @convention(c) (CFTypeRef) -> CGSize
+    typealias DrawInContext = @convention(c) (CGContext, CFTypeRef) -> Void
+    typealias ReleaseDocument = @convention(c) (CFTypeRef) -> Void
+
+    static let createFromData: CreateFromData? = load("CGSVGDocumentCreateFromData")
+    static let getCanvasSize: GetCanvasSize? = load("CGSVGDocumentGetCanvasSize")
+    static let drawInContext: DrawInContext? = load("CGContextDrawSVGDocument")
+    static let releaseDocument: ReleaseDocument? = load("CGSVGDocumentRelease")
+
+    private static func load<T>(_ name: String) -> T? {
+        guard let sym = dlsym(dlopen(nil, RTLD_LAZY), name) else { return nil }
+        return unsafeBitCast(sym, to: T.self)
     }
 }
