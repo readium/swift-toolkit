@@ -773,7 +773,7 @@ extension EPUBSpreadView {
         case "img", "svg":
             ImageContentElement(
                 locator: locator,
-                embeddedLink: embeddedLink, 
+                embeddedLink: embeddedLink,
                 caption: dict["alt"] as? String
             )
         case "audio":
