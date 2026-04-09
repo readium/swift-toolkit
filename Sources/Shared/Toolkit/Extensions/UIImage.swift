@@ -49,7 +49,9 @@ extension UIImage {
             renderSize = targetRect.size
         }
 
-        let renderer = UIGraphicsImageRenderer(size: renderSize)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: renderSize, format: format)
         return renderer.image { ctx in
             let cgContext = ctx.cgContext
             let scaleX = renderSize.width / canvasSize.width

@@ -14,8 +14,8 @@ import UIKit
 /// 2. First `readingOrder` resource if it's a bitmap or SVG, or if it has a
 ///    bitmap/SVG `alternates`.
 public final class ResourceCoverService: CoverService {
-    /// Default maximum size in points for SVG cover rendering.
-    private static let defaultCoverMaxSize = CGSize(width: 400, height: 600)
+    /// Default maximum size in pixels for SVG cover rendering.
+    private static let defaultCoverMaxSize = CGSize(width: 800, height: 1200)
 
     private let context: PublicationServiceContext
 

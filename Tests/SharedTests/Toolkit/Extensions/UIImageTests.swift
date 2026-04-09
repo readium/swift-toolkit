@@ -18,8 +18,7 @@ private let portraitImage = UIImage(contentsOfFile: fixtures.url(for: "cc-a-shar
 
 @Suite struct UIImageTests {
     @Suite("scaleToFit(maxSize:)") struct ScaleToFit {
-
-        // The early-return code path is image-agnostic; one set of cases is enough.
+        /// The early-return code path is image-agnostic; one set of cases is enough.
         @Test func returnsSelfWhenFits() {
             #expect(image.scaleToFit(maxSize: image.size) === image)
         }
@@ -87,6 +86,32 @@ private let portraitImage = UIImage(contentsOfFile: fixtures.url(for: "cc-a-shar
                 let actual = portraitImage.scaleToFit(maxSize: CGSize(width: 400, height: 250))
                 #expect(actual.size == CGSize(width: 188, height: 250))
                 try assertImageMatchesFixture(actual, fixture: "cc-a-shared-culture-scaled.png")
+            }
+        }
+
+        @Suite("SVG image") struct SVGImage {
+            /// cover.svg is 1400×2100 (portrait, aspect ratio 2:3)
+            let svgData = fixtures.data(at: "cover.svg")
+
+            @Test func scalesDownFittingWidth() throws {
+                // Width-constrained: 1400×2100 → 500×750
+                let actual = try #require(UIImage.fromSVG(svgData, maxSize: CGSize(width: 500, height: 800)))
+                #expect(actual.size == CGSize(width: 500, height: 750))
+                try assertImageMatchesFixture(actual, fixture: "cover-svg-fitting-width.png")
+            }
+
+            @Test func scalesDownFittingHeight() throws {
+                // Height-constrained: 1400×2100 → 267×400
+                let actual = try #require(UIImage.fromSVG(svgData, maxSize: CGSize(width: 400, height: 400)))
+                #expect(actual.size == CGSize(width: 267, height: 400))
+                try assertImageMatchesFixture(actual, fixture: "cover-svg-fitting-height.png")
+            }
+
+            @Test func scalesDownFittingBothAxes() throws {
+                // Both axes: 1400×2100 → 350×525
+                let actual = try #require(UIImage.fromSVG(svgData, maxSize: CGSize(width: 350, height: 525)))
+                #expect(actual.size == CGSize(width: 350, height: 525))
+                try assertImageMatchesFixture(actual, fixture: "cover-svg-fitting-both-axes.png")
             }
         }
     }

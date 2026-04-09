@@ -11,28 +11,32 @@ public typealias CoverServiceFactory = (PublicationServiceContext) -> CoverServi
 
 /// Provides an easy access to a bitmap version of the publication cover.
 ///
-/// While at first glance, getting the cover could be seen as a helper, the implementation
-/// actually depends on the publication format:
+/// While at first glance, getting the cover could be seen as a helper, the
+/// implementation actually depends on the publication format:
 ///
-///  - Some might allow vector images or even HTML pages, in which case they need to be converted
-///    to bitmaps.
+///  - Some might allow vector images or even HTML pages, in which case they
+///    need to be converted to bitmaps.
 ///  - Others require to render the cover from a specific file format, e.g. PDF.
 ///
-/// Furthermore, a reading app might want to use a custom strategy to choose the cover image, for
-/// example by:
+/// Furthermore, a reading app might want to use a custom strategy to choose the
+/// cover image, for example by:
 ///
-/// - iterating through the images collection for a publication parsed from an OPDS 2 feed
+/// - iterating through the images collection for a publication parsed from an
+///   OPDS 2 feed
 /// - generating a bitmap from scratch using the publication's title
 /// - using a cover selected by the user
 public protocol CoverService: PublicationService {
     /// Returns the publication cover as a bitmap at its maximum size.
     ///
-    /// If the cover is not a bitmap format (e.g. SVG), it will be rendered at its intrinsic size,
-    /// or scaled down to a reasonable maximum to avoid excessive memory usage.
+    /// If the cover is not a bitmap format (e.g. SVG), it will be rendered at
+    /// its intrinsic size, or scaled down to a reasonable maximum to avoid
+    /// excessive memory usage.
     func cover() async -> ReadResult<UIImage?>
 
-    /// Returns the publication cover as a bitmap, scaled down to fit within `maxSize` while
-    /// preserving the aspect ratio. The cover might be cached in memory for next calls.
+    /// Returns the publication cover as a bitmap scaled down to fit within
+    /// `maxSize` pixels, preserving the aspect ratio without upscaling.
+    ///
+    /// Pass `pointSize * screenScale` to generate a device-sharp thumbnail.
     func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?>
 }
 
@@ -53,7 +57,8 @@ public extension Publication {
         return await service.cover()
     }
 
-    /// Returns the publication cover as a bitmap, scaled down to fit the given `maxSize`.
+    /// Returns the publication cover as a bitmap scaled down to fit within `maxSize` pixels.
+    /// See ``CoverService/coverFitting(maxSize:)`` for details.
     func coverFitting(maxSize: CGSize) async -> ReadResult<UIImage?> {
         guard let service = findService(CoverService.self) else {
             return .success(nil)
