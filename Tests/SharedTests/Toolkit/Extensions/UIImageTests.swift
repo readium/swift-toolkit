@@ -150,7 +150,7 @@ private func assertImageMatchesFixture(
     _ actual: UIImage,
     fixture name: String,
     record: Bool = false,
-    filePath: StaticString = #file
+    filePath: StaticString = #filePath
 ) throws {
     if record {
         // Derive the fixtures path from the test file's source path so we
@@ -171,6 +171,7 @@ private func assertImageMatchesFixture(
 
     // Load the golden file as raw Data to avoid a lossy UIImage
     // decode+re-encode round-trip.
-    let expectedData = try? Data(contentsOf: fixtures.url(for: name).url)
-    #expect(actual.pngData() == expectedData)
+    let actualData = try #require(actual.pngData())
+    let expectedData = try Data(contentsOf: fixtures.url(for: name).url)
+    #expect(actualData == expectedData)
 }

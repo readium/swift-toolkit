@@ -11,7 +11,8 @@ import UIKit
 
 extension UIImage {
     /// Creates a `UIImage` by rendering an SVG document from the given data,
-    /// scaled down to fit `maxSize` while preserving the aspect ratio.
+    /// scaled down to fit `maxSize` pixels with `scale = 1` while preserving
+    /// the aspect ratio.
     ///
     /// If the SVG canvas is smaller than `maxSize`, it is rendered at its
     /// native size to avoid upscaling embedded bitmaps.
