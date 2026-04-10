@@ -6,8 +6,6 @@
 
 import Foundation
 
-public typealias HTTPResult<Success> = Result<Success, HTTPError>
-
 /// Represents an error occurring during an `HTTPClient` activity.
 public enum HTTPError: Error, Loggable {
     /// The provided request was not valid.

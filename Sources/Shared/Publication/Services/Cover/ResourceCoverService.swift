@@ -24,11 +24,11 @@ public final class ResourceCoverService: CoverService {
     }
 
     public func cover() async throws(ReadError) -> UIImage? {
-        try await loadCover(maxSize: nil)
+        await loadCover(maxSize: nil)
     }
 
     public func coverFitting(maxSize: CGSize) async throws(ReadError) -> UIImage? {
-        try await loadCover(maxSize: maxSize)
+        await loadCover(maxSize: maxSize)
     }
 
     private func loadCover(maxSize: CGSize?) async -> UIImage? {

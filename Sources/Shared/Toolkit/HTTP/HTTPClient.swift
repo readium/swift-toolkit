@@ -17,32 +17,26 @@ public protocol HTTPClient: Loggable {
     ///   - request: Request to the streamed resource.
     ///     also access it in the completion block after consuming the data.
     ///   - consume: Callback called for each chunk of data received. Callers
-    ///     are responsible to accumulate the data if needed. Return an error
+    ///     are responsible to accumulate the data if needed. Throw an error
     ///     to abort the request.
     func stream(
         request: HTTPRequestConvertible,
-        consume: @escaping (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
-    ) async -> HTTPResult<HTTPResponse>
+        consume: @escaping (_ chunk: Data, _ progress: Double?) throws(HTTPError) -> Void
+    ) async throws(HTTPError) -> HTTPResponse
 }
 
 public extension HTTPClient {
     /// Fetches the resource from the given `request`.
-    func fetch(_ request: HTTPRequestConvertible) async -> HTTPResult<HTTPResponse> {
+    func fetch(_ request: HTTPRequestConvertible) async throws(HTTPError) -> HTTPResponse {
         var data = Data()
-        let response = await stream(
+        var response = try await stream(
             request: request,
             consume: { chunk, _ in
                 data.append(chunk)
-                return .success(())
             }
         )
-
+        response.body = data
         return response
-            .map {
-                var response = $0
-                response.body = data
-                return response
-            }
     }
 
     /// Fetches the resource and attempts to decode it with the given `decoder`.
@@ -51,42 +45,41 @@ public extension HTTPClient {
     func fetch<T>(
         _ request: HTTPRequestConvertible,
         decoder: @escaping (HTTPResponse, Data) throws -> T?
-    ) async -> HTTPResult<T> {
-        await fetch(request)
-            .flatMap { response in
-                do {
-                    guard
-                        let body = response.body,
-                        let result = try decoder(response, body)
-                    else {
-                        return .failure(.malformedResponse(nil))
-                    }
-                    return .success(result)
-
-                } catch {
-                    return .failure(.malformedResponse(error))
-                }
+    ) async throws(HTTPError) -> T {
+        let response = try await fetch(request)
+        do {
+            guard
+                let body = response.body,
+                let result = try decoder(response, body)
+            else {
+                throw HTTPError.malformedResponse(nil)
             }
+            return result
+        } catch let error as HTTPError {
+            throw error
+        } catch {
+            throw .malformedResponse(error)
+        }
     }
 
     /// Fetches the resource as a JSON object.
-    func fetchJSON(_ request: HTTPRequestConvertible) async -> HTTPResult<[String: Any]> {
-        await fetch(request) {
+    func fetchJSON(_ request: HTTPRequestConvertible) async throws(HTTPError) -> [String: Any] {
+        try await fetch(request) {
             try JSONSerialization.jsonObject(with: $1) as? [String: Any]
         }
     }
 
     /// Fetches the resource as a `String`.
-    func fetchString(_ request: HTTPRequestConvertible) async -> HTTPResult<String> {
-        await fetch(request) { response, body in
+    func fetchString(_ request: HTTPRequestConvertible) async throws(HTTPError) -> String {
+        try await fetch(request) { response, body in
             let encoding = response.mediaType?.encoding ?? .utf8
             return String(data: body, encoding: encoding)
         }
     }
 
     /// Fetches the resource as an `UIImage`.
-    func fetchImage(_ request: HTTPRequestConvertible) async -> HTTPResult<UIImage> {
-        await fetch(request) {
+    func fetchImage(_ request: HTTPRequestConvertible) async throws(HTTPError) -> UIImage {
+        try await fetch(request) {
             UIImage(data: $1)
         }
     }
@@ -97,7 +90,7 @@ public extension HTTPClient {
     func download(
         _ request: HTTPRequestConvertible,
         onProgress: @escaping (Double) -> Void
-    ) async -> HTTPResult<HTTPDownload> {
+    ) async throws(HTTPError) -> HTTPDownload {
         let location = await FileURL(
             url: URL(
                 fileURLWithPath: NSTemporaryDirectory(),
@@ -110,42 +103,38 @@ public extension HTTPClient {
             try "".write(to: location.url, atomically: true, encoding: .utf8)
             fileHandle = try FileHandle(forWritingTo: location.url)
         } catch {
-            return .failure(.fileSystem(.io(error)))
+            throw .fileSystem(.io(error))
         }
 
-        let result = await stream(
-            request: request,
-            consume: { data, progression in
-                do {
-                    try fileHandle.seekToEnd()
-                    try fileHandle.write(contentsOf: data)
-                } catch {
-                    return .failure(.fileSystem(.io(error)))
+        do {
+            let response = try await stream(
+                request: request,
+                consume: { data, progression throws(HTTPError) in
+                    do {
+                        try fileHandle.seekToEnd()
+                        try fileHandle.write(contentsOf: data)
+                    } catch {
+                        throw HTTPError.fileSystem(.io(error))
+                    }
+
+                    if let progression = progression {
+                        onProgress(progression)
+                    }
                 }
+            )
 
-                if let progression = progression {
-                    onProgress(progression)
-                }
-
-                return .success(())
-            }
-        )
-
-        switch result {
-        case let .success(response):
-            return .success(HTTPDownload(
+            return HTTPDownload(
                 location: location,
                 suggestedFilename: response.filename,
                 mediaType: response.mediaType
-            ))
-
-        case let .failure(error):
+            )
+        } catch let httpError {
             do {
                 try FileManager.default.removeItem(at: location.url)
             } catch {
                 log(.warning, error)
             }
-            return .failure(error)
+            throw httpError
         }
     }
 }

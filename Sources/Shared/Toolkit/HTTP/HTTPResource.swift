@@ -46,10 +46,10 @@ public actor HTTPResource: Resource {
     /// metadata.
     private func headResponse() async throws(ReadError) -> HTTPResponse? {
         if _headResponse == nil {
-            switch await client.fetch(HTTPRequest(url: url, method: .head)) {
-            case let .success(response):
+            do {
+                let response = try await client.fetch(HTTPRequest(url: url, method: .head))
                 _headResponse = .success(response)
-            case let .failure(error):
+            } catch {
                 switch error {
                 case let .errorResponse(response) where response.status == .methodNotAllowed:
                     _headResponse = .success(nil)
@@ -73,18 +73,14 @@ public actor HTTPResource: Resource {
             return request
         }()
 
-        let result = await client.stream(
-            request: request,
-            consume: { data, _ in
-                consume(data)
-                return .success(())
-            }
-        )
-
-        switch result {
-        case .success:
-            break
-        case let .failure(error):
+        do {
+            _ = try await client.stream(
+                request: request,
+                consume: { data, _ in
+                    consume(data)
+                }
+            )
+        } catch {
             throw ReadError.access(.http(error))
         }
     }

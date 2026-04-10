@@ -127,7 +127,7 @@ extension HTTPRequest: CustomStringConvertible {
 
 /// Convenience protocol to pass an URL or similar objects to an `HTTPClient`.
 public protocol HTTPRequestConvertible {
-    func httpRequest() -> HTTPResult<HTTPRequest>
+    func httpRequest() throws(HTTPError) -> HTTPRequest
 }
 
 public enum HTTPRequestError: Error, Sendable {
@@ -135,55 +135,49 @@ public enum HTTPRequestError: Error, Sendable {
 }
 
 extension HTTPRequest: HTTPRequestConvertible {
-    public func httpRequest() -> HTTPResult<HTTPRequest> {
-        .success(self)
-    }
-}
-
-extension Result: HTTPRequestConvertible where Success == HTTPRequest, Failure == HTTPError {
-    public func httpRequest() -> HTTPResult<HTTPRequest> {
+    public func httpRequest() throws(HTTPError) -> HTTPRequest {
         self
     }
 }
 
 extension HTTPURL: HTTPRequestConvertible {
-    public func httpRequest() -> HTTPResult<HTTPRequest> {
-        .success(HTTPRequest(url: self))
+    public func httpRequest() throws(HTTPError) -> HTTPRequest {
+        HTTPRequest(url: self)
     }
 }
 
 extension URL: HTTPRequestConvertible {
-    public func httpRequest() -> HTTPResult<HTTPRequest> {
+    public func httpRequest() throws(HTTPError) -> HTTPRequest {
         guard let url = HTTPURL(url: self) else {
-            return .failure(.malformedRequest(url: absoluteString))
+            throw .malformedRequest(url: absoluteString)
         }
-        return url.httpRequest()
+        return try url.httpRequest()
     }
 }
 
 extension URLComponents: HTTPRequestConvertible {
-    public func httpRequest() -> HTTPResult<HTTPRequest> {
+    public func httpRequest() throws(HTTPError) -> HTTPRequest {
         guard let url = url else {
-            return .failure(.malformedRequest(url: description))
+            throw .malformedRequest(url: description)
         }
-        return url.httpRequest()
+        return try url.httpRequest()
     }
 }
 
 extension String: HTTPRequestConvertible {
-    public func httpRequest() -> HTTPResult<HTTPRequest> {
+    public func httpRequest() throws(HTTPError) -> HTTPRequest {
         guard let url = HTTPURL(string: self) else {
-            return .failure(.malformedRequest(url: self))
+            throw .malformedRequest(url: self)
         }
-        return url.httpRequest()
+        return try url.httpRequest()
     }
 }
 
 extension Link: HTTPRequestConvertible {
-    public func httpRequest() -> HTTPResult<HTTPRequest> {
+    public func httpRequest() throws(HTTPError) -> HTTPRequest {
         guard let url = url().httpURL else {
-            return .failure(.malformedRequest(url: href))
+            throw .malformedRequest(url: href)
         }
-        return url.httpRequest()
+        return try url.httpRequest()
     }
 }

@@ -58,11 +58,10 @@ final class DeviceService {
             throw LCPError.licenseInteractionNotAvailable
         }
 
-        let data = await httpClient.fetch(HTTPRequest(url: url, method: .post))
-            .map(\.body)
+        let response = try await httpClient.fetch(HTTPRequest(url: url, method: .post))
 
         try await repository.registerDevice(for: license.id)
 
-        return try data.get()
+        return response.body
     }
 }

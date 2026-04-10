@@ -118,7 +118,7 @@ final class LicensesService: Loggable {
         let download = try await httpClient.download(
             url,
             onProgress: { onProgress(.percent(Float($0))) }
-        ).get()
+        )
 
         let format = try await injectLicenseAndGetFormat(
             license,

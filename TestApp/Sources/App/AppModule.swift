@@ -102,7 +102,7 @@ extension AppModule: OPDSModuleDelegate {
             throw OPDSError.invalidURL(link.href)
         }
 
-        let fileURL = try await readium.httpClient.download(url, onProgress: progress).get().location
+        let fileURL = try await readium.httpClient.download(url, onProgress: progress).location
         return try await library.importPublication(from: fileURL, sender: sender, progress: progress)
     }
 }

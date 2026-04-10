@@ -221,10 +221,9 @@ extension License: LCPLicense {
 
             // We fetch the Status Document again after the HTML interaction is
             // done, in case it changed the License.
-            return try await httpClient
+            let response = try await httpClient
                 .fetch(HTTPRequest(url: statusURL, headers: ["Accept": MediaType.lcpStatusDocument.string]))
-                .map { $0.body ?? Data() }
-                .get()
+            return response.body ?? Data()
         }
 
         /// Programmatically renew the loan with a PUT request.
@@ -250,24 +249,24 @@ extension License: LCPLicense {
 
             let url = try await makeRenewURL(from: preferredEndDate())
 
-            return try await httpClient.fetch(HTTPRequest(url: url, method: .put))
-                .map { $0.body ?? Data() }
-                .mapError { error -> RenewError in
-                    switch error {
-                    case let .errorResponse(response):
-                        switch response.status {
-                        case .badRequest:
-                            return .renewFailed
-                        case .forbidden:
-                            return .invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
-                        default:
-                            return .unexpectedServerError(error)
-                        }
+            do {
+                let response = try await httpClient.fetch(HTTPRequest(url: url, method: .put))
+                return response.body ?? Data()
+            } catch {
+                switch error {
+                case let .errorResponse(response):
+                    switch response.status {
+                    case .badRequest:
+                        throw RenewError.renewFailed
+                    case .forbidden:
+                        throw RenewError.invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
                     default:
-                        return .unexpectedServerError(error)
+                        throw RenewError.unexpectedServerError(error)
                     }
+                default:
+                    throw RenewError.unexpectedServerError(error)
                 }
-                .get()
+            }
         }
 
         do {
@@ -294,24 +293,25 @@ extension License: LCPLicense {
         }
 
         do {
-            let data = try await httpClient.fetch(HTTPRequest(url: url, method: .put))
-                .mapError { error -> ReturnError in
-                    switch error {
-                    case let .errorResponse(response):
-                        switch response.status {
-                        case .badRequest:
-                            return .returnFailed
-                        case .forbidden:
-                            return .alreadyReturnedOrExpired
-                        default:
-                            return .unexpectedServerError(error)
-                        }
+            let data: Data
+            do {
+                let response = try await httpClient.fetch(HTTPRequest(url: url, method: .put))
+                data = response.body ?? Data()
+            } catch {
+                switch error {
+                case let .errorResponse(response):
+                    switch response.status {
+                    case .badRequest:
+                        throw ReturnError.returnFailed
+                    case .forbidden:
+                        throw ReturnError.alreadyReturnedOrExpired
                     default:
-                        return .unexpectedServerError(error)
+                        throw ReturnError.unexpectedServerError(error)
                     }
+                default:
+                    throw ReturnError.unexpectedServerError(error)
                 }
-                .map { $0.body ?? Data() }
-                .get()
+            }
 
             try await validateStatusDocument(data: data)
 

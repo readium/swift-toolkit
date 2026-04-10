@@ -27,7 +27,7 @@ public protocol DefaultHTTPClientDelegate: AnyObject {
     ///
     /// You can modify the `request`, for example by adding additional HTTP headers or redirecting to a different URL,
     /// before calling the `completion` handler with the new request.
-    func httpClient(_ httpClient: DefaultHTTPClient, willStartRequest request: HTTPRequest) async -> HTTPResult<HTTPRequestConvertible>
+    func httpClient(_ httpClient: DefaultHTTPClient, willStartRequest request: HTTPRequest) async throws(HTTPError) -> HTTPRequestConvertible
 
     /// Asks the delegate to recover from an `error` received for the given `request`.
     ///
@@ -37,7 +37,7 @@ public protocol DefaultHTTPClientDelegate: AnyObject {
     ///   * a new request to start
     ///   * the `error` argument, if you cannot recover from it
     ///   * a new `HTTPError` to provide additional information
-    func httpClient(_ httpClient: DefaultHTTPClient, recoverRequest request: HTTPRequest, fromError error: HTTPError) async -> HTTPResult<HTTPRequestConvertible>
+    func httpClient(_ httpClient: DefaultHTTPClient, recoverRequest request: HTTPRequest, fromError error: HTTPError) async throws(HTTPError) -> HTTPRequestConvertible
 
     /// Tells the delegate that we received an HTTP response for the given `request`.
     ///
@@ -64,12 +64,12 @@ public protocol DefaultHTTPClientDelegate: AnyObject {
 }
 
 public extension DefaultHTTPClientDelegate {
-    func httpClient(_ httpClient: DefaultHTTPClient, willStartRequest request: HTTPRequest) async -> HTTPResult<HTTPRequestConvertible> {
-        .success(request)
+    func httpClient(_ httpClient: DefaultHTTPClient, willStartRequest request: HTTPRequest) async throws(HTTPError) -> HTTPRequestConvertible {
+        request
     }
 
-    func httpClient(_ httpClient: DefaultHTTPClient, recoverRequest request: HTTPRequest, fromError error: HTTPError) async -> HTTPResult<HTTPRequestConvertible> {
-        .failure(error)
+    func httpClient(_ httpClient: DefaultHTTPClient, recoverRequest request: HTTPRequest, fromError error: HTTPError) async throws(HTTPError) -> HTTPRequestConvertible {
+        throw error
     }
 
     func httpClient(_ httpClient: DefaultHTTPClient, request: HTTPRequest, didReceiveResponse response: HTTPResponse) {}
@@ -185,23 +185,20 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
     public func stream(
         request: any HTTPRequestConvertible,
-        consume: @escaping (Data, Double?) -> HTTPResult<Void>
-    ) async -> HTTPResult<HTTPResponse> {
-        await request.httpRequest()
-            .asyncFlatMap(willStartRequest)
-            .asyncFlatMap { request in
-                await startTask(for: request, consume: consume)
-                    .asyncRecover { error in
-                        await recover(request, from: error)
-                            .asyncFlatMap { newRequest in
-                                await stream(request: newRequest, consume: consume)
-                            }
-                    }
-            }
+        consume: @escaping (Data, Double?) throws(HTTPError) -> Void
+    ) async throws(HTTPError) -> HTTPResponse {
+        let httpRequest = try request.httpRequest()
+        let startRequest = try await willStartRequest(httpRequest)
+        do {
+            return try await startTask(for: startRequest, consume: consume)
+        } catch {
+            let newRequest = try await recover(startRequest, from: error)
+            return try await stream(request: newRequest, consume: consume)
+        }
     }
 
     /// Creates and starts a new task for the `request`, whose cancellable will be exposed through `mediator`.
-    private func startTask(for request: HTTPRequest, consume: @escaping HTTPTask.Consume) async -> HTTPResult<HTTPResponse> {
+    private func startTask(for request: HTTPRequest, consume: @escaping (Data, Double?) throws(HTTPError) -> Void) async throws(HTTPError) -> HTTPResponse {
         var request = request
         if request.userAgent == nil {
             request.userAgent = userAgent
@@ -222,31 +219,42 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                     return .performDefaultHandling
                 }
             },
-            consume: consume
+            consume: { data, progress in
+                do {
+                    try consume(data, progress)
+                    return .success(())
+                } catch let error as HTTPError {
+                    return .failure(error)
+                } catch {
+                    return .failure(.other(error))
+                }
+            }
         )
 
-        if let delegate = delegate, case let .failure(error) = result {
-            delegate.httpClient(self, request: request, didFailWithError: error)
+        switch result {
+        case let .success(response):
+            return response
+        case let .failure(error):
+            delegate?.httpClient(self, request: request, didFailWithError: error)
+            throw error
         }
-
-        return result
     }
 
     /// Lets the `delegate` customize the `request` if needed, before actually starting it.
-    private func willStartRequest(_ request: HTTPRequest) async -> HTTPResult<HTTPRequest> {
+    private func willStartRequest(_ request: HTTPRequest) async throws(HTTPError) -> HTTPRequest {
         guard let delegate = delegate else {
-            return .success(request)
+            return request
         }
-        return await delegate.httpClient(self, willStartRequest: request)
-            .flatMap { $0.httpRequest() }
+        let convertible = try await delegate.httpClient(self, willStartRequest: request)
+        return try convertible.httpRequest()
     }
 
     /// Attempts to recover from a `error` by asking the `delegate` for a new request.
-    private func recover(_ request: HTTPRequest, from error: HTTPError) async -> HTTPResult<HTTPRequestConvertible> {
+    private func recover(_ request: HTTPRequest, from error: HTTPError) async throws(HTTPError) -> HTTPRequestConvertible {
         if let delegate = delegate {
-            return await delegate.httpClient(self, recoverRequest: request, fromError: error)
+            return try await delegate.httpClient(self, recoverRequest: request, fromError: error)
         } else {
-            return .failure(error)
+            throw error
         }
     }
 
@@ -260,7 +268,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             receiveResponse: @escaping HTTPTask.ReceiveResponse,
             receiveChallenge: @escaping HTTPTask.ReceiveChallenge,
             consume: @escaping HTTPTask.Consume
-        ) async -> HTTPResult<HTTPResponse> {
+        ) async -> Result<HTTPResponse, HTTPError> {
             let task = HTTPTask(
                 request: request,
                 task: sessionTask,
@@ -321,10 +329,10 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
     /// Represents an on-going HTTP task.
     private class HTTPTask: Cancellable, Loggable {
-        typealias Continuation = CheckedContinuation<HTTPResult<HTTPResponse>, Never>
+        typealias Continuation = CheckedContinuation<Result<HTTPResponse, HTTPError>, Never>
         typealias ReceiveResponse = (HTTPResponse) -> Void
         typealias ReceiveChallenge = (URLAuthenticationChallenge) async -> URLAuthenticationChallengeResponse
-        typealias Consume = (Data, Double?) -> HTTPResult<Void>
+        typealias Consume = (Data, Double?) -> Result<Void, HTTPError>
 
         private let request: HTTPRequest
         fileprivate let task: URLSessionTask

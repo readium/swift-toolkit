@@ -292,15 +292,14 @@ extension LicenseValidation {
     private func fetchStatus(of license: LicenseDocument) async throws {
         let url = try license.url(for: .status, preferredType: .lcpStatusDocument)
 
-        let data = try await httpClient
+        let response = try await httpClient
             .fetch(HTTPRequest(
                 url: url,
                 headers: ["Accept": MediaType.lcpStatusDocument.string],
                 // Short timeout to avoid blocking the License, since the LSD is optional.
                 timeoutInterval: 5
             ))
-            .map { $0.body ?? Data() }
-            .get()
+        let data = response.body ?? Data()
 
         try await raise(.retrievedStatusData(data))
     }
@@ -313,11 +312,10 @@ extension LicenseValidation {
     private func fetchLicense(from status: StatusDocument) async throws {
         let url = try status.url(for: .license, preferredType: .lcpLicenseDocument)
 
-        let data = try await httpClient
+        let response = try await httpClient
             // Short timeout to avoid blocking the License, since it can be updated next time.
             .fetch(HTTPRequest(url: url, timeoutInterval: 5))
-            .map { $0.body ?? Data() }
-            .get()
+        let data = response.body ?? Data()
 
         try await raise(.retrievedLicenseData(data))
     }
