@@ -49,6 +49,19 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 .coverFitting(maxSize: CGSize(width: 100, height: 100)).get()
             #expect(image == nil)
         }
+
+        @Test func coverDataDelegatesToCustomService() async throws {
+            // TestCoverService does not override coverData, so the protocol default returns .success(nil).
+            let pub = makePublication { _ in TestCoverService(cover: cover2) }
+            let result = try await pub.coverData(accepting: [.jpeg]).get()
+            #expect(result == nil)
+        }
+
+        @Test func coverDataReturnsNilWithoutService() async throws {
+            let result = try await makePublicationWithoutCoverService()
+                .coverData(accepting: [.jpeg]).get()
+            #expect(result == nil)
+        }
     }
 }
 
