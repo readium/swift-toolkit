@@ -50,6 +50,7 @@ public protocol CoverService: PublicationService {
     /// Returns `nil` if the cover is not natively available in any of the
     /// accepted media types. In that case, fall back to ``cover()`` to obtain a
     /// bitmap.
+    @_spi(Experimental)
     func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?>
 }
 
@@ -100,6 +101,7 @@ public extension Publication {
     /// Returns `nil` if the cover is not natively available in any of the
     /// accepted media types. In that case, fall back to ``cover()`` to obtain a
     /// bitmap.
+    @_spi(Experimental)
     func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?> {
         guard let service = findService(CoverService.self) else {
             return .success(nil)

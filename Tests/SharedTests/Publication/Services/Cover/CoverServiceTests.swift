@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import ReadiumShared
+@_spi(Experimental) @testable import ReadiumShared
 import Testing
 import UIKit
 
