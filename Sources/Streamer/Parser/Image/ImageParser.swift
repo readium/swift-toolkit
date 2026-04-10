@@ -98,7 +98,6 @@ public final class ImageParser: PublicationParser {
                     using: assetRetriever,
                     ignoring: ignores
                 )
-                .get()
         } catch {
             throw .reading(error)
         }

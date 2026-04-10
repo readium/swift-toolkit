@@ -111,7 +111,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
             NowPlayingInfo.shared.media = await .init(
                 title: publication.metadata.title ?? "",
                 artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
-                artwork: try? publication.cover().get()
+                artwork: try? publication.cover()
             )
         }
 
@@ -229,7 +229,7 @@ class AudiobookViewModel: ObservableObject {
         self.navigator = navigator
 
         Task {
-            cover = try? await navigator.publication.cover().get()
+            cover = try? await navigator.publication.cover()
         }
     }
 

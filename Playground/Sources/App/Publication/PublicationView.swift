@@ -73,7 +73,7 @@ struct PublicationView: View {
             }
             let result = try await openPublication(at: url)
             publication = result.publication
-            cover = try? await result.publication.cover().get()
+            cover = try? await result.publication.cover()
         } catch {
             self.error = UserError(error)
         }

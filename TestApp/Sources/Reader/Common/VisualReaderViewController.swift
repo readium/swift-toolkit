@@ -45,8 +45,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         updateHighlightDecorations()
 
         Task {
-            self.positionCount = try? await publication.positions().get().count
-
+            self.positionCount = try? await publication.positions().count
             await updatePageListDecorations()
         }
     }

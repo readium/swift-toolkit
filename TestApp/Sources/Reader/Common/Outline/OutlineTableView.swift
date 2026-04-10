@@ -40,7 +40,7 @@ struct OutlineTableView: View {
     }
 
     private func loadTableOfContents() async {
-        guard let toc = try? await publication.tableOfContents().get() else {
+        guard let toc = try? await publication.tableOfContents() else {
             return
         }
 

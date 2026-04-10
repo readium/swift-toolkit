@@ -34,7 +34,7 @@ extension Container {
     func sniffFormats(
         using assetRetriever: AssetRetriever,
         ignoring: (AnyURL) -> Bool
-    ) async -> Result<[AnyURL: Format], ReadError> {
+    ) async throws(ReadError) -> [AnyURL: Format] {
         let urls = entries.filter { !ignoring($0) }
         var entries = [AnyURL: Format]()
         for url in urls {
@@ -50,11 +50,11 @@ extension Container {
                 case .formatNotSupported:
                     break
                 case let .reading(error):
-                    return .failure(error)
+                    throw error
                 }
             }
         }
 
-        return .success(entries)
+        return entries
     }
 }

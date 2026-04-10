@@ -87,7 +87,6 @@ public final class AudioParser: PublicationParser {
                     using: assetRetriever,
                     ignoring: ignores
                 )
-                .get()
         } catch {
             throw .reading(error)
         }

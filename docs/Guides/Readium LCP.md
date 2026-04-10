@@ -294,21 +294,16 @@ You are now ready to open the publication file with your `PublicationOpener` ins
 ```swift
 // Retrieve an `Asset` to access the file content.
 let url = FileURL(path: "/path/to/lcp-protected-book.epub", isDirectory: false)
-let asset = try await assetRetriever.retrieve(url: url).get()
+let asset = try await assetRetriever.retrieve(url: url)
  
 // Open a `Publication` from the `Asset`.
-let result = await publicationOpener.open(
+let publication = try await publicationOpener.open(
     asset: asset,
     allowUserInteraction: true,
     sender: hostViewController
 )
 
-switch result {
-case .success(let publication):
-    // Import or present the publication.
-case .failure(let error):
-    // Present the error.
-}
+// Import or present the publication.
 ```
 
 The `allowUserInteraction` and `sender` arguments are forwarded to the `LCPAuthenticating` implementation when the passphrase is unknown. `LCPDialogAuthentication` shows a pop-up only if `allowUserInteraction` is `true`, using the `sender` as the pop-up's host `UIViewController`.
@@ -359,14 +354,14 @@ let publicationOpener = PublicationOpener(
 
 // Retrieve an `Asset` to access the LCPL content.
 let url = FileURL(path: "/path/to/license.lcpl", isDirectory: false)
-let asset = try await assetRetriever.retrieve(url: url).get()
+let asset = try await assetRetriever.retrieve(url: url)
  
 // Open a `Publication` from the LCPL `Asset`.
 let publication = try await publicationOpener.open(
     asset: asset,
     allowUserInteraction: true,
     sender: hostViewController
-).get()
+)
     
 print("Opened \(publication.metadata.title)")
 ```

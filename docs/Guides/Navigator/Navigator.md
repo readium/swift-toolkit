@@ -155,7 +155,7 @@ if let locator = await publication.locate(progression: 0.5) {
 > [!NOTE]
 > Readium does not have the concept of pages, as they are not useful when dealing with reflowable publications across different screen sizes. Instead, we use [**positions**](https://readium.org/architecture/models/locators/positions/) which remain stable even when the user changes the font size or device.
 
-Not all Navigators provide positions, but most `VisualNavigator` implementations do. To find the total positions in the publication, use `try await publication.positions().get().count`. You can get the current position with `navigator.currentLocation?.locations.position`.
+Not all Navigators provide positions, but most `VisualNavigator` implementations do. To find the total positions in the publication, use `try await publication.positions().count`. You can get the current position with `navigator.currentLocation?.locations.position`.
 
 ## Navigating with edge taps and keyboard arrows
 

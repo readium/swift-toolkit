@@ -80,9 +80,9 @@ The `EmbeddedContentElement` protocol is implemented by any element referencing 
 
 ```swift
 if let element = element as? EmbeddedContentElement {
-    let bytes = try publication
+    let bytes = try await publication
         .get(element.embeddedLink)
-        .read().get()
+        .read()
 }
 ```
 
@@ -180,8 +180,8 @@ struct ImageIndex: View {
                 .compactMap { element in
                     guard
                         let element = element as? ImageContentElement,
-                        let image = try? publication.get(element.embeddedLink)
-                            .read().map(UIImage.init).get()
+                        let image = try? await publication.get(element.embeddedLink)
+                            .read().flatMap(UIImage.init)
                     else {
                         return nil
                     }

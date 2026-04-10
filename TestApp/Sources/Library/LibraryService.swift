@@ -171,7 +171,7 @@ final class LibraryService: Loggable {
     /// Imports the publication cover and return its path relative to the Covers/ folder.
     private func importCover(of publication: Publication) async throws -> String? {
         do {
-            guard let cover = try await publication.cover().get()?.pngData() else {
+            guard let cover = try await publication.cover()?.pngData() else {
                 return nil
             }
             let coverURL = Paths.covers.appendingUniquePathComponent()

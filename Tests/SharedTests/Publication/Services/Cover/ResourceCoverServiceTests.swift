@@ -33,7 +33,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                     )
                 )
             )
-            let image = try await pub.cover().get()
+            let image = try await pub.cover()
             #expect(image?.pngData() == cover2.pngData())
         }
 
@@ -51,7 +51,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                     at: #require(AnyURL(string: "cover2.jpg"))
                 )
             )
-            let image = try await pub.cover().get()
+            let image = try await pub.cover()
             #expect(image?.pngData() == cover2.pngData())
         }
 
@@ -63,7 +63,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 ],
                 resources: []
             )
-            let image = try await pub.cover().get()
+            let image = try await pub.cover()
             #expect(image?.pngData() == cover.pngData())
         }
 
@@ -78,7 +78,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 ],
                 resources: []
             )
-            let image = try await pub.cover().get()
+            let image = try await pub.cover()
             #expect(image?.pngData() == cover.pngData())
         }
 
@@ -88,7 +88,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 containerURL: fixtures.url(for: "cover-svg.svg"),
                 containerHref: "cover-svg.svg"
             )
-            #expect(try await pub.cover().get() != nil)
+            #expect(try await pub.cover() != nil)
         }
 
         @Test func returnsNilWhenNoCoverImageFound() async throws {
@@ -96,7 +96,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 readingOrder: [Link(href: "chapter1.xhtml", mediaType: .xhtml)],
                 resources: []
             )
-            #expect(try await pub.cover().get() == nil)
+            #expect(try await pub.cover() == nil)
         }
     }
 
@@ -104,7 +104,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
         @Test func doesNotUpscaleBitmap() async throws {
             // cover.jpg is 598×800; requesting a larger max size must not upscale it.
             let size = CGSize(width: 1000, height: 1200)
-            let image = try await makePublication().coverFitting(maxSize: size).get()
+            let image = try await makePublication().coverFitting(maxSize: size)
             #expect(image?.pngData() == cover.pngData())
         }
 
@@ -114,7 +114,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 readingOrder: [Link(href: "cover.jpg", mediaType: .jpeg)],
                 resources: []
             )
-            let image = try await pub.coverFitting(maxSize: size).get()
+            let image = try await pub.coverFitting(maxSize: size)
             #expect(image?.pngData() == cover.scaleToFit(maxSize: size).pngData())
         }
 
@@ -125,7 +125,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 containerURL: fixtures.url(for: "cover-svg.svg"),
                 containerHref: "cover-svg.svg"
             )
-            let image = try #require(try await pub.coverFitting(maxSize: size).get())
+            let image = try #require(try await pub.coverFitting(maxSize: size))
             #expect(image.size.width == 50)
             #expect(image.size.height == 75)
         }
@@ -137,7 +137,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 containerURL: fixtures.url(for: "cover-svg.svg"),
                 containerHref: "cover-svg.svg"
             )
-            let image = try #require(try await pub.coverFitting(maxSize: CGSize(width: 200, height: 300)).get())
+            let image = try #require(try await pub.coverFitting(maxSize: CGSize(width: 200, height: 300)))
             #expect(image.size.width == 100)
             #expect(image.size.height == 150)
         }
