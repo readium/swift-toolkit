@@ -425,7 +425,7 @@ extension HTMLDecorationTemplate {
             layout: .bounds,
             width: .page,
             element: { decoration in
-                let config = decoration.style.config as? PageListConfig
+                let config = decoration.style.config?.unwrap(as: PageListConfig.self)
 
                 // Using `var(--RS__backgroundColor)` is a trick to use the
                 // same background color as the Readium theme. If we don't set

@@ -87,7 +87,7 @@ public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
     ///
     /// It is media type agnostic, meaning that each Navigator will translate the style into a set of rendering
     /// instructions which makes sense for the resource type.
-    public struct Style: Hashable {
+    public struct Style: Hashable, Sendable {
         /// Unique ID for a style.
         public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable, JSONValueEncodable, Sendable {
             public let rawValue: String
@@ -117,7 +117,7 @@ public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
             .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive))
         }
 
-        public struct HighlightConfig: Hashable {
+        public struct HighlightConfig: Hashable, Sendable {
             public var tint: UIColor?
             public var isActive: Bool
             public init(tint: UIColor? = nil, isActive: Bool = false) {
@@ -127,11 +127,11 @@ public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
         }
 
         public let id: Id
-        public let config: AnyHashable?
+        public let config: AnySendableHashable?
 
-        public init(id: Id, config: AnyHashable? = nil) {
+        public init<T: Hashable & Sendable>(id: Id, config: T? = nil) {
             self.id = id
-            self.config = config
+            self.config = config.map(AnySendableHashable.init)
         }
     }
 

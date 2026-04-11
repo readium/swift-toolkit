@@ -244,16 +244,16 @@ public struct ContentAttributeKey<V>: Hashable, Sendable {
     }
 }
 
-public struct ContentAttribute: Hashable {
+public struct ContentAttribute: Hashable, Sendable {
     public let key: String
-    public let value: AnyHashable
+    public let value: AnySendableHashable
 
-    public init<T: Hashable>(key: ContentAttributeKey<T>, value: T) {
+    public init<T: Hashable & Sendable>(key: ContentAttributeKey<T>, value: T) {
         self.key = key.key
-        self.value = value
+        self.value = AnySendableHashable(value)
     }
 
-    public init(key: String, value: AnyHashable) {
+    public init(key: String, value: AnySendableHashable) {
         self.key = key
         self.value = value
     }
@@ -275,14 +275,14 @@ public extension ContentAttributesHolder {
     }
 
     /// Gets the first attribute with the given `key`.
-    subscript<T>(_ key: ContentAttributeKey<T>) -> T? {
+    subscript<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> T? {
         attribute(key)
     }
 
     /// Gets the first attribute with the given `key`.
-    func attribute<T>(_ key: ContentAttributeKey<T>) -> T? {
+    func attribute<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> T? {
         attributes.first { attr in
-            if attr.key == key.key, let value = attr.value as? T {
+            if attr.key == key.key, let value = attr.value.unwrap(as: T.self) {
                 return value
             } else {
                 return nil
@@ -291,9 +291,9 @@ public extension ContentAttributesHolder {
     }
 
     /// Gets all the attributes with the given `key`.
-    func attributes<T>(_ key: ContentAttributeKey<T>) -> [T] {
+    func attributes<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> [T] {
         attributes.compactMap { attr in
-            if attr.key == key.key, let value = attr.value as? T {
+            if attr.key == key.key, let value = attr.value.unwrap(as: T.self) {
                 return value
             } else {
                 return nil

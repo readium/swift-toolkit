@@ -95,7 +95,7 @@ public struct HTMLDecorationTemplate: JSONObjectEncodable {
         return HTMLDecorationTemplate(
             layout: .boxes,
             element: { decoration in
-                let config = decoration.style.config as! Decoration.Style.HighlightConfig
+                let config = decoration.style.config!.unwrap(as: Decoration.Style.HighlightConfig.self)!
                 let tint = config.tint ?? defaultTint
                 let isActive = config.isActive
                 var css = ""

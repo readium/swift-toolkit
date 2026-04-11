@@ -127,7 +127,7 @@ extension HTMLDecorationTemplate {
             // Span the full page so the label can float left
             width: .page, 
             element: { decoration in
-                let config = decoration.style.config as? PageListConfig
+                let config = decoration.style.config?.unwrap(as: PageListConfig.self)
 
                 // var(--RS__backgroundColor) matches the Readium CSS theme background.
                 // Setting it inline prevents it being forced transparent by Readium CSS.
