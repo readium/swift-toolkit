@@ -60,7 +60,7 @@ public struct OnDecorationActivatedEvent {
 /// a discrete `locator` in the publication.
 ///
 /// For example, decorations can be used to draw highlights, images or buttons.
-public struct Decoration: Hashable, JSONObjectEncodable {
+public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
     /// An identifier for this decoration. It must be unique in the group the decoration is applied to.
     public var id: Id
 
@@ -71,9 +71,9 @@ public struct Decoration: Hashable, JSONObjectEncodable {
     public var style: Style
 
     /// Additional context data specific to a reading app. Readium does not use it.
-    public var userInfo: [AnyHashable: AnyHashable]
+    public var userInfo: [String: AnySendableHashable]
 
-    public init(id: Id, locator: Locator, style: Style, userInfo: [AnyHashable: AnyHashable] = [:]) {
+    public init(id: Id, locator: Locator, style: Style, userInfo: [String: AnySendableHashable] = [:]) {
         self.id = id
         self.style = style
         self.locator = locator
