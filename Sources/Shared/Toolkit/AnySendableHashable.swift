@@ -14,8 +14,8 @@ public struct AnySendableHashable: Hashable, Sendable {
 
     public init<T: Hashable & Sendable>(_ base: T) {
         self.base = base
-        self.equals = { ($0 as? T) == base }
-        self.hasher = { base.hash(into: &$0) }
+        equals = { ($0 as? T) == base }
+        hasher = { base.hash(into: &$0) }
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
