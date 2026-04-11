@@ -45,9 +45,9 @@ public extension InputObserving where Self == DragPointerObserver {
 
     private enum State {
         case idle
-        case pending(id: AnyHashable, startLocation: CGPoint)
-        case dragging(id: AnyHashable, lastEvent: PointerEvent)
-        case failed(activePointers: Set<AnyHashable>)
+        case pending(id: PointerId, startLocation: CGPoint)
+        case dragging(id: PointerId, lastEvent: PointerEvent)
+        case failed(activePointers: Set<PointerId>)
     }
 
     private enum Action {
