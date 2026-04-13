@@ -44,12 +44,13 @@ public protocol CoverService: PublicationService {
     ///
     /// This is useful when you want to store the original cover while retaining
     /// the original compression and encoding. The media types in `accepting`
-    /// are listed in order of preference; the first one matched by the cover
-    /// resource is returned.
+    /// are listed in order of preference; the first one matched by a cover
+    /// resource is returned. Note that type preference takes priority over
+    /// link-list order.
     ///
     /// Returns `nil` if the cover is not natively available in any of the
-    /// accepted media types. In that case, fall back to ``cover()`` to obtain a
-    /// bitmap.
+    /// accepted media types, or if reading the cover resource fails. In that
+    /// case, fall back to ``cover()`` to obtain a bitmap.
     @_spi(Experimental)
     func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?>
 }
@@ -59,6 +60,7 @@ public extension CoverService {
         await cover().map { $0?.scaleToFit(maxSize: maxSize) }
     }
 
+    @_spi(Experimental)
     func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?> {
         .success(nil)
     }
@@ -95,12 +97,13 @@ public extension Publication {
     ///
     /// This is useful when you want to store the original cover while retaining
     /// the original compression and encoding. The media types in `accepting`
-    /// are listed in order of preference; the first one matched by the cover
-    /// resource is returned.
+    /// are listed in order of preference; the first one matched by a cover
+    /// resource is returned. Note that type preference takes priority over
+    /// link-list order.
     ///
     /// Returns `nil` if the cover is not natively available in any of the
-    /// accepted media types. In that case, fall back to ``cover()`` to obtain a
-    /// bitmap.
+    /// accepted media types, or if reading the cover resource fails. In that
+    /// case, fall back to ``cover()`` to obtain a bitmap.
     @_spi(Experimental)
     func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?> {
         guard let service = findService(CoverService.self) else {
