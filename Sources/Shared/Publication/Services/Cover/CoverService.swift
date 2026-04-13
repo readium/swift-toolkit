@@ -52,7 +52,7 @@ public protocol CoverService: PublicationService {
     /// accepted media types, or if reading the cover resource fails. In that
     /// case, fall back to ``cover()`` to obtain a bitmap.
     @_spi(Experimental)
-    func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?>
+    func coverData(accepting mediaTypes: [MediaType]) async throws(ReadError) -> (data: Data, mediaType: MediaType)?
 }
 
 public extension CoverService {
@@ -61,8 +61,8 @@ public extension CoverService {
     }
 
     @_spi(Experimental)
-    func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?> {
-        .success(nil)
+    func coverData(accepting mediaTypes: [MediaType]) async throws(ReadError) -> (data: Data, mediaType: MediaType)? {
+        nil
     }
 }
 
@@ -105,11 +105,11 @@ public extension Publication {
     /// accepted media types, or if reading the cover resource fails. In that
     /// case, fall back to ``cover()`` to obtain a bitmap.
     @_spi(Experimental)
-    func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?> {
+    func coverData(accepting mediaTypes: [MediaType]) async throws(ReadError) -> (data: Data, mediaType: MediaType)? {
         guard let service = findService(CoverService.self) else {
-            return .success(nil)
+            return nil
         }
-        return await service.coverData(accepting: mediaTypes)
+        return try await service.coverData(accepting: mediaTypes)
     }
 }
 

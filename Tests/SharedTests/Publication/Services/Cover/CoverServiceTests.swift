@@ -51,15 +51,15 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
         }
 
         @Test func coverDataDelegatesToCustomService() async throws {
-            // TestCoverService does not override coverData, so the protocol default returns .success(nil).
+            // TestCoverService does not override coverData, so the protocol default returns nil.
             let pub = makePublication { _ in TestCoverService(cover: cover2) }
-            let result = try await pub.coverData(accepting: [.jpeg]).get()
+            let result = try await pub.coverData(accepting: [.jpeg])
             #expect(result == nil)
         }
 
         @Test func coverDataReturnsNilWithoutService() async throws {
             let result = try await makePublicationWithoutCoverService()
-                .coverData(accepting: [.jpeg]).get()
+                .coverData(accepting: [.jpeg])
             #expect(result == nil)
         }
     }

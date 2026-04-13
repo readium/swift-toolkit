@@ -136,7 +136,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 resources: [Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover)]
             )
 
-            let result = try await pub.coverData(accepting: [.jpeg]).get()
+            let result = try await pub.coverData(accepting: [.jpeg])
             #expect(result?.mediaType == .jpeg)
             #expect(result?.data == fixtures.data(at: "cover.jpg"))
         }
@@ -150,7 +150,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 ]
             )
 
-            let result = try await pub.coverData(accepting: [.png, .jpeg]).get()
+            let result = try await pub.coverData(accepting: [.png, .jpeg])
             #expect(result?.mediaType == .png)
             #expect(result?.data == fixtures.data(at: "cover.png"))
         }
@@ -161,7 +161,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 resources: [Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover)]
             )
             // cover is JPEG but only PNG is accepted
-            let result = try await pub.coverData(accepting: [.png]).get()
+            let result = try await pub.coverData(accepting: [.png])
             #expect(result == nil)
         }
 
@@ -174,7 +174,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                     Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover),
                 ]
             )
-            let result = try await pub.coverData(accepting: [.jpeg]).get()
+            let result = try await pub.coverData(accepting: [.jpeg])
             #expect(result?.mediaType == .jpeg)
             #expect(result?.data == fixtures.data(at: "cover.jpg"))
         }
@@ -188,7 +188,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                     Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover),
                 ]
             )
-            let result = try await pub.coverData(accepting: [.jpeg]).get()
+            let result = try await pub.coverData(accepting: [.jpeg])
             #expect(result?.mediaType == .jpeg)
             #expect(result?.data == fixtures.data(at: "cover.jpg"))
         }
@@ -198,7 +198,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 readingOrder: [Link(href: "cover.jpg", mediaType: .jpeg)],
                 resources: []
             )
-            let result = try await pub.coverData(accepting: [.jpeg]).get()
+            let result = try await pub.coverData(accepting: [.jpeg])
             #expect(result?.mediaType == .jpeg)
             #expect(result?.data == fixtures.data(at: "cover.jpg"))
         }
@@ -208,7 +208,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 readingOrder: [],
                 resources: [Link(href: "cover.svg", mediaType: .svg, rel: .cover)]
             )
-            let result = try await pub.coverData(accepting: [.svg]).get()
+            let result = try await pub.coverData(accepting: [.svg])
             #expect(result?.mediaType == .svg)
             #expect(result?.data == fixtures.data(at: "cover.svg"))
         }
@@ -224,7 +224,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 ],
                 resources: []
             )
-            let result = try await pub.coverData(accepting: [.jpeg]).get()
+            let result = try await pub.coverData(accepting: [.jpeg])
             #expect(result?.mediaType == .jpeg)
             #expect(result?.data == fixtures.data(at: "cover.jpg"))
         }
@@ -234,7 +234,7 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
                 readingOrder: [Link(href: "chapter1.xhtml", mediaType: .xhtml)],
                 resources: []
             )
-            let result = try await pub.coverData(accepting: [.jpeg, .png]).get()
+            let result = try await pub.coverData(accepting: [.jpeg, .png])
             #expect(result == nil)
         }
     }

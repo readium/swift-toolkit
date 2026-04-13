@@ -31,7 +31,7 @@ public final class ResourceCoverService: CoverService {
         await loadCover(maxSize: maxSize)
     }
 
-    public func coverData(accepting mediaTypes: [MediaType]) async -> ReadResult<(data: Data, mediaType: MediaType)?> {
+    public func coverData(accepting mediaTypes: [MediaType]) async throws(ReadError) -> (data: Data, mediaType: MediaType)? {
         let links = coverLinks()
         for mediaType in mediaTypes {
             for link in links {
@@ -42,10 +42,10 @@ public final class ResourceCoverService: CoverService {
                 else {
                     continue
                 }
-                return .success(result)
+                return result
             }
         }
-        return .success(nil)
+        return nil
     }
 
     /// Returns all candidate cover links in priority order:
