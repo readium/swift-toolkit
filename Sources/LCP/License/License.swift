@@ -259,7 +259,7 @@ extension License: LCPLicense {
                     case .badRequest:
                         throw RenewError.renewFailed
                     case .forbidden:
-                        throw RenewError.invalidRenewalPeriod(maxRenewDate: self.maxRenewDate)
+                        throw RenewError.invalidRenewalPeriod(maxRenewDate: maxRenewDate)
                     default:
                         throw RenewError.unexpectedServerError(error)
                     }
