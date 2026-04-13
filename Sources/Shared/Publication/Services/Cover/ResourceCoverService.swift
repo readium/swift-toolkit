@@ -68,8 +68,8 @@ public final class ResourceCoverService: CoverService {
         return links
     }
 
-    /// Reads the raw bytes from a cover link, returning `nil` if the link's
-    /// media type is not a bitmap/SVG or the resource cannot be read.
+    /// Reads the raw bytes from a cover link, returning `nil` if the resource
+    /// cannot be read.
     private func readData(from link: Link) async -> (data: Data, mediaType: MediaType)? {
         guard
             let mediaType = link.mediaType,
