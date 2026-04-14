@@ -396,11 +396,9 @@ open class PDFNavigatorViewController:
     }
 
     @objc private func pageDidChange() {
-        let (locator, newViewport) = computeLocatorAndViewport()
-        if let locator {
+        if let locator = currentPosition {
             delegate?.navigator(self, locationDidChange: locator)
         }
-        viewport = newViewport
     }
 
     @objc private func visiblePagesDidChange() {

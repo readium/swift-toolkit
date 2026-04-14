@@ -77,7 +77,7 @@ enum PDFViewportCalculator {
         let positionRange: ClosedRange<Int>? = resourcePositions.isEmpty ? nil : {
             let firstPos = resourcePositions.getOrNil(firstPage - 1)?.locations.position
             let lastPos = resourcePositions.getOrNil(lastPage - 1)?.locations.position
-            guard let fp = firstPos, let lp = lastPos else { return nil }
+            guard let fp = firstPos, let lp = lastPos, fp <= lp else { return nil }
             return fp ... lp
         }()
 
