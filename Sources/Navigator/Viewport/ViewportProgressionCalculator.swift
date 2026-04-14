@@ -9,7 +9,6 @@ import ReadiumShared
 /// Computes total publication progression from resource-level progressions and
 /// the publication's position list.
 enum ViewportProgressionCalculator {
-    
     /// Returns the visible total progression range across one or two visible
     /// resources, or `nil` when the resources cannot be found in the reading
     /// order or the position list is unavailable.
@@ -73,7 +72,7 @@ enum ViewportProgressionCalculator {
         guard
             let index = readingOrder.firstIndexWithHREF(href),
             let resourceStart = positionsByReadingOrder.getOrNil(index)?
-                .first?.locations.totalProgression
+            .first?.locations.totalProgression
         else {
             return nil
         }

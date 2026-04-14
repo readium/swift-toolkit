@@ -396,11 +396,11 @@ open class PDFNavigatorViewController:
     }
 
     @objc private func pageDidChange() {
-        guard let locator = currentPosition else {
-            return
+        let (locator, newViewport) = computeLocatorAndViewport()
+        if let locator {
+            delegate?.navigator(self, locationDidChange: locator)
         }
-        delegate?.navigator(self, locationDidChange: locator)
-        updateViewport()
+        viewport = newViewport
     }
 
     @objc private func visiblePagesDidChange() {
@@ -410,7 +410,8 @@ open class PDFNavigatorViewController:
         if !settings.scroll {
             updateScaleFactors(zoomToFit: true)
         }
-        updateViewport()
+
+        viewport = computeLocatorAndViewport().viewport
     }
 
     @discardableResult
@@ -553,17 +554,16 @@ open class PDFNavigatorViewController:
             let pdfView = pdfView,
             let currentResourceIndex = currentResourceIndex,
             let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,
-            publication.readingOrder.indices.contains(currentResourceIndex),
             let positionsByReadingOrder = positionsByReadingOrder
         else {
             return nil
         }
-        let positions = positionsByReadingOrder[currentResourceIndex]
-        guard positions.count > 0, 1 ... positions.count ~= pageNumber else {
-            return nil
-        }
-
-        return positions[pageNumber - 1]
+        return PDFViewportCalculator.computeLocator(
+            currentPageNumber: pageNumber,
+            currentResourceIndex: currentResourceIndex,
+            readingOrder: publication.readingOrder,
+            positionsByReadingOrder: positionsByReadingOrder
+        )
     }
 
     // MARK: - Configurable
@@ -588,7 +588,7 @@ open class PDFNavigatorViewController:
             defaults: config.defaults
         )
     }
-    
+
     // MARK: - ViewportObservingNavigator
 
     public private(set) var viewport: NavigatorViewport? {
@@ -598,65 +598,41 @@ open class PDFNavigatorViewController:
         }
     }
 
-    private func updateViewport() {
+    private func computeLocatorAndViewport() -> (locator: Locator?, viewport: NavigatorViewport?) {
         guard
             let pdfView = pdfView,
             let currentResourceIndex = currentResourceIndex,
             let positionsByReadingOrder = positionsByReadingOrder,
-            publication.readingOrder.indices.contains(currentResourceIndex),
-            let document = pdfView.document
+            let document = pdfView.document,
+            let currentPageNumber = pdfView.currentPage?.pageRef?.pageNumber
         else {
-            viewport = nil
-            return
+            return (nil, nil)
         }
 
-        let visiblePageNumbers = pdfView.visiblePages
-            .compactMap { $0.pageRef?.pageNumber }
-            .sorted()
+        let visiblePageNumbers = extractVisiblePageNumbers(from: pdfView) ?? (currentPageNumber ... currentPageNumber)
 
-        guard
-            let firstPage = visiblePageNumbers.first,
-            let lastPage = visiblePageNumbers.last
-        else {
-            return
-        }
-
-        let pageCount = document.pageCount
-        // Progression within the PDF document (0–1), from the start of the
-        // first visible page to the end of the last visible page.
-        // The end of page N equals the start of page N+1, so that consecutive
-        // viewports share the same boundary value.
-        let resourceProgressionLow = pageCount > 1 ? Double(firstPage - 1) / Double(pageCount - 1) : 0.0
-        let resourceProgressionHigh = pageCount > 1 ? min(1.0, Double(lastPage) / Double(pageCount - 1)) : 1.0
-        let resourceProgression = resourceProgressionLow ... resourceProgressionHigh
-
-        let href = publication.readingOrder[currentResourceIndex].url()
-
-        let resourcePositions = positionsByReadingOrder.getOrNil(currentResourceIndex) ?? []
-        let positionRange: ClosedRange<Int>? = resourcePositions.isEmpty ? nil : {
-            let firstPos = resourcePositions.getOrNil(firstPage - 1)?.locations.position
-            let lastPos = resourcePositions.getOrNil(lastPage - 1)?.locations.position
-            guard let fp = firstPos, let lp = lastPos else { return nil }
-            return fp ... lp
-        }()
-
-        let totalProgression = ViewportProgressionCalculator.totalProgressionRange(
-            firstResource: (href: href, progression: resourceProgression),
-            lastResource: (href: href, progression: resourceProgression),
+        return PDFViewportCalculator.compute(
+            currentPageNumber: currentPageNumber,
+            visiblePageNumbers: visiblePageNumbers,
+            pageCount: document.pageCount,
+            currentResourceIndex: currentResourceIndex,
             readingOrder: publication.readingOrder,
             positionsByReadingOrder: positionsByReadingOrder
-        ) ?? (resourceProgressionLow ... resourceProgressionHigh)
-
-        viewport = NavigatorViewport(
-            resources: [
-                NavigatorViewport.Resource(
-                    href: href,
-                    progression: resourceProgression
-                ),
-            ],
-            progression: totalProgression,
-            positions: positionRange
         )
+    }
+
+    private func extractVisiblePageNumbers(from pdfView: PDFDocumentView) -> ClosedRange<Int>? {
+        let sorted = pdfView.visiblePages
+            .compactMap { $0.pageRef?.pageNumber }
+            .sorted()
+        guard
+            let first = sorted.first,
+            let last = sorted.last
+        else {
+            return nil
+        }
+
+        return first ... last
     }
 
     // MARK: - SelectableNavigator
