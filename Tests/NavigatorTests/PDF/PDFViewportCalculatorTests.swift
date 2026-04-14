@@ -278,6 +278,51 @@ import Testing
         }
     }
 
+    /// The locator's totalProgression intentionally differs from
+    /// viewport.progression.lowerBound for most pages. The positions service
+    /// uses (page-1)/total (N equal slots), while the viewport calculator uses
+    /// (page-1)/(pageCount-1) (N-1 intervals, so consecutive viewports share
+    /// boundary values). Unlike EPUB — where positions are coarse snapshots and
+    /// the continuous scroll value is more accurate — PDF pages are the natural
+    /// discrete unit, so the position-based value is kept as-is in the locator.
+    @Suite("Locator vs viewport progression") struct LocatorVsViewportProgression {
+        @Test("locator totalProgression is position-based, not viewport-based")
+        func locatorAndViewportProgressionDiffer() {
+            // 1 resource, 4 pages.
+            // Positions (totalProgression = absoluteIndex / total = index/4):
+            //   page 1 → 0/4 = 0.0,  page 2 → 1/4 = 0.25,
+            //   page 3 → 2/4 = 0.5,  page 4 → 3/4 = 0.75
+            // Viewport lower bound (resourceProgression = (page-1)/(pageCount-1)):
+            //   page 2 → 1/3 ≈ 0.333,  page 4 → 1.0
+            let positions = makePositions(resourceCount: 1, pagesPerResource: 4)
+            let readingOrder = makeReadingOrder(count: 1)
+
+            // Page 2: locator at 0.25, viewport lower bound at 1/3.
+            let (locator2, viewport2) = PDFViewportCalculator.compute(
+                currentPageNumber: 2,
+                visiblePageNumbers: 2 ... 2,
+                pageCount: 4,
+                currentResourceIndex: 0,
+                readingOrder: readingOrder,
+                positionsByReadingOrder: positions
+            )
+            #expect(locator2?.locations.totalProgression == 0.25)
+            #expect(viewport2?.progression.lowerBound == 1.0 / 3.0)
+
+            // Last page: locator at 0.75, viewport lower bound at 1.0.
+            let (locator4, viewport4) = PDFViewportCalculator.compute(
+                currentPageNumber: 4,
+                visiblePageNumbers: 4 ... 4,
+                pageCount: 4,
+                currentResourceIndex: 0,
+                readingOrder: readingOrder,
+                positionsByReadingOrder: positions
+            )
+            #expect(locator4?.locations.totalProgression == 0.75)
+            #expect(viewport4?.progression.lowerBound == 1.0)
+        }
+    }
+
     @Suite("Nil result") struct NilResult {
         @Test("out-of-bounds resource index returns (nil, nil) from compute")
         func outOfBoundsResourceIndexReturnsNilPair() {
