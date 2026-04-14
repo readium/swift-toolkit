@@ -17,6 +17,11 @@ All notable changes to this project will be documented in this file. Take a look
 * Added support for SVG covers in `ResourceCoverService`. SVG images can now be used as publication covers and are rendered to bitmaps (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/751)).
 * `Publication` has a new experimental `coverData(accepting:)` API that returns the raw bytes and media type of the cover, useful for storing the original cover without re-encoding.
 
+#### Navigator
+
+* New `ViewportObservingNavigator` protocol, implemented by both the EPUB and PDF navigators, which exposes information about the current visible portion of the publication (e.g. progression and position ranges).
+    * The EPUB navigator's `Viewport` type is now a deprecated typealias for `NavigatorViewport`.
+
 ### Removed
 
 * Carthage is no longer a supported distribution method. Please migrate to Swift Package Manager or CocoaPods.

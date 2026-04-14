@@ -9,8 +9,8 @@ import ReadiumShared
 import Testing
 
 @Suite enum EPUBViewportAndLocationCalculatorTests {
-    @Suite("Viewport") struct ViewportSuite {
-        @Test("builds reading order URLs from a single-resource spread")
+    @Suite struct Viewport {
+        @Test("builds resource list from a single-resource spread")
         func singleResourceReadingOrder() async {
             let ro = makeReadingOrder(count: 2)
             let (_, viewport) = await EPUBViewportAndLocationCalculator.compute(
@@ -21,7 +21,7 @@ import Testing
                 tableOfContentsTitleByHref: [:],
                 fallbackLocator: noFallback
             )
-            #expect(viewport.readingOrder == [ro[0].url()])
+            #expect(viewport.resources.map(\.href) == [ro[0].url()])
         }
 
         @Test("records progression range for the visible resource")
@@ -35,7 +35,7 @@ import Testing
                 tableOfContentsTitleByHref: [:],
                 fallbackLocator: noFallback
             )
-            #expect(viewport.progressions[ro[0].url()] == 0.25 ... 0.75)
+            #expect(viewport.resources.first(where: { $0.href.string == ro[0].href })?.progression == 0.25 ... 0.75)
         }
 
         @Test("includes both resources for a two-index spread")
@@ -49,13 +49,26 @@ import Testing
                 tableOfContentsTitleByHref: [:],
                 fallbackLocator: noFallback
             )
-            #expect(viewport.readingOrder == [ro[0].url(), ro[1].url()])
-            #expect(viewport.progressions[ro[0].url()] == 0.0 ... 1.0)
-            #expect(viewport.progressions[ro[1].url()] == 0.0 ... 1.0)
+            #expect(viewport.resources.map(\.href) == [ro[0].url(), ro[1].url()])
+            #expect(viewport.resources.first(where: { $0.href.string == ro[0].href })?.progression == 0.0 ... 1.0)
+            #expect(viewport.resources.first(where: { $0.href.string == ro[1].href })?.progression == 0.0 ... 1.0)
+        }
+
+        @Test("total progression range lower bound matches locator totalProgression")
+        func totalProgressionLowerBoundMatchesLocator() async {
+            let (locator, viewport) = await EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 0,
+                progression: { _ in 0.5 ... 0.75 },
+                readingOrder: makeReadingOrder(count: 2),
+                positionsByReadingOrder: makePositions(resourceCount: 2, positionsPerResource: 4),
+                tableOfContentsTitleByHref: [:],
+                fallbackLocator: noFallback
+            )
+            #expect(viewport.progression.lowerBound == locator?.locations.totalProgression)
         }
     }
 
-    @Suite("Locator - positions available") struct LocatorWithPositionsSuite {
+    @Suite("Locator - positions available") struct LocatorWithPositions {
         // 2 resources × 4 positions = 8 total.
         // Resource 0: totalProgression 0/8 … 3/8; resource 1: 4/8 … 7/8.
         // resourceTotalProgressionEnd for resource 0 = 4/8 = 0.5.
@@ -103,7 +116,7 @@ import Testing
         @Test("totalProgression interpolates linearly mid-resource")
         func totalProgressionInterpolation() async {
             // At 0.5 progression in resource 0:
-            // continuousTotalProgression = 0.0 + 0.5 * (0.5 - 0.0) = 0.25
+            // totalProgression = 0.0 + 0.5 * (0.5 - 0.0) = 0.25
             let (locator, _) = await EPUBViewportAndLocationCalculator.compute(
                 readingOrderIndices: 0 ... 0,
                 progression: { _ in 0.5 ... 0.5 },
@@ -186,7 +199,7 @@ import Testing
         }
     }
 
-    @Suite("Viewport positions - positions available") struct ViewportPositionsSuite {
+    @Suite("Viewport positions - positions available") struct ViewportPositions {
         @Test("positions range is single position when viewing start of resource")
         func singlePositionAtStart() async {
             let (_, viewport) = await EPUBViewportAndLocationCalculator.compute(
@@ -256,7 +269,59 @@ import Testing
         }
     }
 
-    @Suite("Locator - no positions (fallback)") struct FallbackSuite {
+    @Suite("Viewport progression - positions available") struct ViewportProgression {
+        // 2 resources × 4 positions = 8 total.
+        // Resource 0 total progression window: 0.0 … 0.5
+        // Resource 1 total progression window: 0.5 … 1.0
+
+        @Test("progression lower bound is 0.0 when scrolled to start")
+        func progressionAtStart() async {
+            let (_, viewport) = await EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 0,
+                progression: { _ in 0.0 ... 0.5 },
+                readingOrder: makeReadingOrder(count: 2),
+                positionsByReadingOrder: makePositions(resourceCount: 2, positionsPerResource: 4),
+                tableOfContentsTitleByHref: [:],
+                fallbackLocator: noFallback
+            )
+            // lower = 0.0 + 0.0 * 0.5 = 0.0
+            // upper = 0.0 + 0.5 * 0.5 = 0.25
+            #expect(viewport.progression.lowerBound == 0.0)
+            #expect(viewport.progression.upperBound == 0.25)
+        }
+
+        @Test("progression upper bound is 1.0 when scrolled to end of last resource")
+        func progressionAtEnd() async {
+            let (_, viewport) = await EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 1 ... 1,
+                progression: { _ in 0.5 ... 1.0 },
+                readingOrder: makeReadingOrder(count: 2),
+                positionsByReadingOrder: makePositions(resourceCount: 2, positionsPerResource: 4),
+                tableOfContentsTitleByHref: [:],
+                fallbackLocator: noFallback
+            )
+            // lower = 0.5 + 0.5 * 0.5 = 0.75
+            // upper = 0.5 + 1.0 * 0.5 = 1.0
+            #expect(viewport.progression.upperBound == 1.0)
+        }
+
+        @Test("progression spans both resources in a two-index FXL spread")
+        func progressionSpansBothResources() async {
+            // Resource 0 visible fully, resource 1 visible fully.
+            // lower = 0.0 (start of resource 0), upper = 1.0 (end of resource 1)
+            let (_, viewport) = await EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 1,
+                progression: { _ in 0.0 ... 1.0 },
+                readingOrder: makeReadingOrder(count: 2),
+                positionsByReadingOrder: makePositions(resourceCount: 2, positionsPerResource: 1),
+                tableOfContentsTitleByHref: [:],
+                fallbackLocator: noFallback
+            )
+            #expect(viewport.progression == 0.0 ... 1.0)
+        }
+    }
+
+    @Suite("Locator - no positions (fallback)") struct Fallback {
         @Test("uses fallback locator when positionsByReadingOrder is empty")
         func useFallback() async {
             let ro = makeReadingOrder(count: 1)
@@ -319,12 +384,12 @@ import Testing
         }
     }
 
-    @Suite("Two-index spread (FXL)") struct TwoIndexSpreadSuite {
+    @Suite("Two-index spread (FXL)") struct TwoIndexSpread {
         @Test("totalProgression is computed from the first resource's range")
         func totalProgressionUsesFirstResource() async {
             // FXL: progression always returns 0...1, so firstProgression=0.0.
             // Resource 0 range: 0/2 = 0.0 … 1/2 = 0.5.
-            // continuousTotalProgression = 0.0 + 0.0 * (0.5 - 0.0) = 0.0
+            // totalProgression = 0.0 + 0.0 * (0.5 - 0.0) = 0.0
             let (locator, _) = await EPUBViewportAndLocationCalculator.compute(
                 readingOrderIndices: 0 ... 1,
                 progression: { _ in 0.0 ... 1.0 },
@@ -350,7 +415,7 @@ import Testing
             #expect(viewport.positions == 1 ... 2)
         }
 
-        @Test("viewport progressions contains an entry for each visible resource")
+        @Test("viewport resources contains an entry for each visible resource")
         func viewportContainsBothResources() async {
             let ro = makeReadingOrder(count: 2)
             let (_, viewport) = await EPUBViewportAndLocationCalculator.compute(
@@ -361,8 +426,8 @@ import Testing
                 tableOfContentsTitleByHref: [:],
                 fallbackLocator: noFallback
             )
-            #expect(viewport.progressions[ro[0].url()] == 0.1 ... 0.9)
-            #expect(viewport.progressions[ro[1].url()] == 0.2 ... 0.8)
+            #expect(viewport.resources.first(where: { $0.href.string == ro[0].href })?.progression == 0.1 ... 0.9)
+            #expect(viewport.resources.first(where: { $0.href.string == ro[1].href })?.progression == 0.2 ... 0.8)
         }
     }
 }

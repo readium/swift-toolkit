@@ -9,7 +9,9 @@ import PDFKit
 import ReadiumShared
 import UIKit
 
-public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
+public protocol PDFNavigatorDelegate: VisualNavigatorDelegate,
+    SelectableNavigatorDelegate, ViewportObservingNavigatorDelegate
+{
     /// Called after the `PDFDocumentView` is created.
     ///
     /// Override to customize its behavior.
@@ -23,7 +25,8 @@ public extension PDFNavigatorDelegate {
 /// A view controller used to render a PDF `Publication`.
 open class PDFNavigatorViewController:
     InputObservableViewController,
-    VisualNavigator, SelectableNavigator, Configurable, Loggable
+    VisualNavigator, ViewportObservingNavigator, SelectableNavigator,
+    Configurable, Loggable
 {
     public struct Configuration {
         /// Initial set of setting preferences.
@@ -239,6 +242,7 @@ open class PDFNavigatorViewController:
         }
 
         currentResourceIndex = nil
+        viewport = nil
         let pdfView = PDFDocumentView(
             frame: view.bounds,
             editingActions: editingActions,
@@ -396,6 +400,7 @@ open class PDFNavigatorViewController:
             return
         }
         delegate?.navigator(self, locationDidChange: locator)
+        updateViewport()
     }
 
     @objc private func visiblePagesDidChange() {
@@ -405,6 +410,7 @@ open class PDFNavigatorViewController:
         if !settings.scroll {
             updateScaleFactors(zoomToFit: true)
         }
+        updateViewport()
     }
 
     @discardableResult
@@ -580,6 +586,76 @@ open class PDFNavigatorViewController:
             initialPreferences: preferences,
             metadata: publication.metadata,
             defaults: config.defaults
+        )
+    }
+    
+    // MARK: - ViewportObservingNavigator
+
+    public private(set) var viewport: NavigatorViewport? {
+        didSet {
+            guard oldValue != viewport else { return }
+            delegate?.navigator(self, viewportDidChange: viewport)
+        }
+    }
+
+    private func updateViewport() {
+        guard
+            let pdfView = pdfView,
+            let currentResourceIndex = currentResourceIndex,
+            let positionsByReadingOrder = positionsByReadingOrder,
+            publication.readingOrder.indices.contains(currentResourceIndex),
+            let document = pdfView.document
+        else {
+            viewport = nil
+            return
+        }
+
+        let visiblePageNumbers = pdfView.visiblePages
+            .compactMap { $0.pageRef?.pageNumber }
+            .sorted()
+
+        guard
+            let firstPage = visiblePageNumbers.first,
+            let lastPage = visiblePageNumbers.last
+        else {
+            return
+        }
+
+        let pageCount = document.pageCount
+        // Progression within the PDF document (0–1), from the start of the
+        // first visible page to the end of the last visible page.
+        // The end of page N equals the start of page N+1, so that consecutive
+        // viewports share the same boundary value.
+        let resourceProgressionLow = pageCount > 1 ? Double(firstPage - 1) / Double(pageCount - 1) : 0.0
+        let resourceProgressionHigh = pageCount > 1 ? min(1.0, Double(lastPage) / Double(pageCount - 1)) : 1.0
+        let resourceProgression = resourceProgressionLow ... resourceProgressionHigh
+
+        let href = publication.readingOrder[currentResourceIndex].url()
+
+        let resourcePositions = positionsByReadingOrder.getOrNil(currentResourceIndex) ?? []
+        let positionRange: ClosedRange<Int>? = resourcePositions.isEmpty ? nil : {
+            let firstPos = resourcePositions.getOrNil(firstPage - 1)?.locations.position
+            let lastPos = resourcePositions.getOrNil(lastPage - 1)?.locations.position
+            guard let fp = firstPos, let lp = lastPos else { return nil }
+            return fp ... lp
+        }()
+
+        let totalProgression = ViewportProgressionCalculator.totalProgressionRange(
+            firstResource: (href: href, progression: resourceProgression),
+            lastResource: (href: href, progression: resourceProgression),
+            readingOrder: publication.readingOrder,
+            positionsByReadingOrder: positionsByReadingOrder
+        ) ?? (resourceProgressionLow ... resourceProgressionHigh)
+
+        viewport = NavigatorViewport(
+            resources: [
+                NavigatorViewport.Resource(
+                    href: href,
+                    progression: resourceProgression
+                ),
+            ],
+            progression: totalProgression,
+            positions: positionRange
         )
     }
 

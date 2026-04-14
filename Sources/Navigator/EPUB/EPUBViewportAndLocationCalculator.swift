@@ -34,25 +34,23 @@ enum EPUBViewportAndLocationCalculator {
         positionsByReadingOrder: [[Locator]],
         tableOfContentsTitleByHref: [AnyURL: String],
         fallbackLocator: (Link) async -> Locator?
-    ) async -> (locator: Locator?, viewport: EPUBNavigatorViewController.Viewport) {
-        let visibleReadingOrder: [(index: Int, href: AnyURL)] = readingOrderIndices
-            .map { ($0, readingOrder[$0].url()) }
-
-        var viewport = EPUBNavigatorViewController.Viewport(
-            readingOrder: visibleReadingOrder.map(\.href),
-            progressions: visibleReadingOrder.reduce(into: [:]) { acc, i in
-                acc[i.href] = progression(i.index)
-            },
-            positions: nil
-        )
-
+    ) async -> (locator: Locator?, viewport: NavigatorViewport) {
         let firstIndex = readingOrderIndices.lowerBound
         let lastIndex = readingOrderIndices.upperBound
         let firstProgressionInFirstResource = min(max(progression(firstIndex).lowerBound, 0.0), 1.0)
         let lastProgressionInLastResource = min(max(progression(lastIndex).upperBound, 0.0), 1.0)
 
+        let visibleResources: [NavigatorViewport.Resource] = readingOrderIndices
+            .map { index in
+                NavigatorViewport.Resource(
+                    href: readingOrder[index].url(),
+                    progression: progression(index)
+                )
+            }
+
         let link = readingOrder[firstIndex]
         let locator: Locator?
+        var positions: ClosedRange<Int>? = nil
 
         if
             // The positions are not always available, for example a Readium
@@ -81,18 +79,17 @@ enum EPUBViewportAndLocationCalculator {
                     Int(ceil(lastProgressionInLastResource * Double(positionsOfLastResource.count - 1))) - 1
                 )
 
-            // Compute a continuous totalProgression by linearly interpolating
-            // the resource-level progression within the resource's global
-            // range. The resource's range spans from the totalProgression of
-            // its first position to the totalProgression of the next resource's
-            // first position (or 1.0 for the last resource).
-            let resourceTotalProgressionStart = positionsOfFirstResource.first?.locations.totalProgression ?? 0.0
-            let resourceTotalProgressionEnd = positionsByReadingOrder.getOrNil(firstIndex + 1)?
-                .first?.locations.totalProgression ?? 1.0
-            let continuousTotalProgression =
-                resourceTotalProgressionStart
-                    + firstProgressionInFirstResource
-                    * (resourceTotalProgressionEnd - resourceTotalProgressionStart)
+            // Compute the total progression range by linearly interpolating
+            // each resource-level progression within the resource's global
+            // range. The lower bound becomes the locator's totalProgression.
+            let firstHref = readingOrder[firstIndex].url()
+            let lastHref = readingOrder[lastIndex].url()
+            let totalProgressionRange = ViewportProgressionCalculator.totalProgressionRange(
+                firstResource: (href: firstHref, progression: progression(firstIndex)),
+                lastResource: (href: lastHref, progression: progression(lastIndex)),
+                readingOrder: readingOrder,
+                positionsByReadingOrder: positionsByReadingOrder
+            ) ?? (firstProgressionInFirstResource ... firstProgressionInFirstResource)
 
             // Build the locator from the nearest position, then override
             // progression fields with the actual continuous scroll values.
@@ -100,7 +97,7 @@ enum EPUBViewportAndLocationCalculator {
                 title: tableOfContentsTitleByHref[link.url()],
                 locations: {
                     $0.progression = firstProgressionInFirstResource
-                    $0.totalProgression = continuousTotalProgression
+                    $0.totalProgression = totalProgressionRange.lowerBound
                 }
             )
 
@@ -108,15 +105,30 @@ enum EPUBViewportAndLocationCalculator {
                 let firstPosition = locator?.locations.position,
                 let lastPosition = positionsOfLastResource[lastPositionIndex].locations.position
             {
-                viewport.positions = firstPosition ... lastPosition
+                positions = firstPosition ... lastPosition
             }
+
+            let viewport = NavigatorViewport(
+                resources: visibleResources,
+                progression: totalProgressionRange,
+                positions: positions
+            )
+            return (locator, viewport)
 
         } else {
             locator = await fallbackLocator(link)?.copy(
                 locations: { $0.progression = firstProgressionInFirstResource }
             )
-        }
 
-        return (locator, viewport)
+            let fallbackProgression = locator?.locations.totalProgression
+                .map { $0 ... $0 } ?? 0.0 ... 0.0
+
+            let viewport = NavigatorViewport(
+                resources: visibleResources,
+                progression: fallbackProgression,
+                positions: nil
+            )
+            return (locator, viewport)
+        }
     }
 }
