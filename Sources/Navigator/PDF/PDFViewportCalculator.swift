@@ -64,11 +64,13 @@ enum PDFViewportCalculator {
         let firstPage = visiblePageNumbers.lowerBound
         let lastPage = visiblePageNumbers.upperBound
 
-        // Intra-resource progression (0–1). The end of page N equals the start
-        // of page N+1, so that consecutive viewports share the same boundary
-        // value.
-        let resourceProgressionLow = pageCount > 1 ? Double(firstPage - 1) / Double(pageCount - 1) : 0.0
-        let resourceProgressionHigh = pageCount > 1 ? min(1.0, Double(lastPage) / Double(pageCount - 1)) : 1.0
+        // Intra-resource progression (0–1) using the same N-slot formula as
+        // the positions service: page P → (P-1)/pageCount. Consecutive
+        // viewports share the boundary: page N ends at N/pageCount, which is
+        // where page N+1 begins. This keeps viewport.progression.lowerBound
+        // equal to the current page's locator totalProgression.
+        let resourceProgressionLow = pageCount > 1 ? Double(firstPage - 1) / Double(pageCount) : 0.0
+        let resourceProgressionHigh = pageCount > 1 ? Double(lastPage) / Double(pageCount) : 1.0
         let resourceProgression = resourceProgressionLow ... resourceProgressionHigh
 
         let href = readingOrder[currentResourceIndex].url()

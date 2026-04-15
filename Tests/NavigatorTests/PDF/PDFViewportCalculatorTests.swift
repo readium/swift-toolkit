@@ -75,8 +75,8 @@ import Testing
 
     @Suite("Resource progression") struct ResourceProgression {
         // 1 resource, 4 pages. Progression formula:
-        //   low  = (firstPage - 1) / (pageCount - 1)
-        //   high = min(1.0, lastPage / (pageCount - 1))
+        //   low  = (firstPage - 1) / pageCount
+        //   high = lastPage / pageCount
 
         @Test("first page only — progression starts at 0")
         func firstPageOnly() {
@@ -88,10 +88,10 @@ import Testing
                 readingOrder: makeReadingOrder(count: 1),
                 positionsByReadingOrder: makePositions(resourceCount: 1, pagesPerResource: 4)
             )
-            // low  = (1 - 1) / 3 = 0.0
-            // high = min(1.0, 1 / 3) ≈ 0.333…
+            // low  = (1 - 1) / 4 = 0.0
+            // high = 1 / 4 = 0.25
             #expect(viewport?.resources.first?.progression.lowerBound == 0.0)
-            #expect(viewport?.resources.first?.progression.upperBound == 1.0 / 3.0)
+            #expect(viewport?.resources.first?.progression.upperBound == 0.25)
         }
 
         @Test("last page only — progression ends at 1")
@@ -104,9 +104,9 @@ import Testing
                 readingOrder: makeReadingOrder(count: 1),
                 positionsByReadingOrder: makePositions(resourceCount: 1, pagesPerResource: 4)
             )
-            // low  = (4 - 1) / 3 = 1.0
-            // high = min(1.0, 4 / 3) = 1.0
-            #expect(viewport?.resources.first?.progression == 1.0 ... 1.0)
+            // low  = (4 - 1) / 4 = 0.75
+            // high = 4 / 4 = 1.0
+            #expect(viewport?.resources.first?.progression == 0.75 ... 1.0)
         }
 
         @Test("all pages visible — full 0…1 range")
@@ -132,10 +132,10 @@ import Testing
                 readingOrder: makeReadingOrder(count: 1),
                 positionsByReadingOrder: makePositions(resourceCount: 1, pagesPerResource: 4)
             )
-            // low  = (2 - 1) / 3 = 1/3
-            // high = min(1.0, 3 / 3) = 1.0
-            #expect(viewport?.resources.first?.progression.lowerBound == 1.0 / 3.0)
-            #expect(viewport?.resources.first?.progression.upperBound == 1.0)
+            // low  = (2 - 1) / 4 = 0.25
+            // high = 3 / 4 = 0.75
+            #expect(viewport?.resources.first?.progression.lowerBound == 0.25)
+            #expect(viewport?.resources.first?.progression.upperBound == 0.75)
         }
 
         @Test("single-page document — progression is always 0…1")
@@ -223,11 +223,11 @@ import Testing
                 readingOrder: makeReadingOrder(count: 2),
                 positionsByReadingOrder: makePositions(resourceCount: 2, pagesPerResource: 4)
             )
-            // resourceProgression = 0.0 … 1/3
-            // totalProgression lower = 0.0 + 0.0   * 0.5 = 0.0
-            // totalProgression upper = 0.0 + (1/3) * 0.5 ≈ 0.1667
+            // resourceProgression = 0.0 … 0.25
+            // totalProgression lower = 0.0 + 0.0  * 0.5 = 0.0
+            // totalProgression upper = 0.0 + 0.25 * 0.5 = 0.125
             #expect(viewport?.progression.lowerBound == 0.0)
-            #expect(viewport?.progression.upperBound == (1.0 / 3.0) * 0.5)
+            #expect(viewport?.progression.upperBound == 0.125)
         }
 
         @Test("last page of first resource — upper bound is 0.5")
@@ -240,9 +240,10 @@ import Testing
                 readingOrder: makeReadingOrder(count: 2),
                 positionsByReadingOrder: makePositions(resourceCount: 2, pagesPerResource: 4)
             )
-            // resourceProgression = 1.0 … 1.0
-            // totalProgression = 0.0 + 1.0 * 0.5 = 0.5
-            #expect(viewport?.progression == 0.5 ... 0.5)
+            // resourceProgression = 0.75 … 1.0
+            // totalProgression lower = 0.0 + 0.75 * 0.5 = 0.375
+            // totalProgression upper = 0.0 + 1.0  * 0.5 = 0.5
+            #expect(viewport?.progression == 0.375 ... 0.5)
         }
 
         @Test("last page of publication — upper bound is 1.0")
@@ -255,9 +256,10 @@ import Testing
                 readingOrder: makeReadingOrder(count: 2),
                 positionsByReadingOrder: makePositions(resourceCount: 2, pagesPerResource: 4)
             )
-            // Resource 1, page 4/4 → resourceProgression = 1.0 … 1.0
-            // totalProgression = 0.5 + 1.0 * 0.5 = 1.0
-            #expect(viewport?.progression == 1.0 ... 1.0)
+            // Resource 1, page 4/4 → resourceProgression = 0.75 … 1.0
+            // totalProgression lower = 0.5 + 0.75 * 0.5 = 0.875
+            // totalProgression upper = 0.5 + 1.0  * 0.5 = 1.0
+            #expect(viewport?.progression == 0.875 ... 1.0)
         }
 
         @Test("falls back to resource progression when no positions available")
@@ -271,33 +273,26 @@ import Testing
                 positionsByReadingOrder: []
             )
             // No positions → fallback = resourceProgression
-            // low  = (1 - 1) / 3 = 0.0
-            // high = min(1.0, 2 / 3) ≈ 0.667
+            // low  = (1 - 1) / 4 = 0.0
+            // high = 2 / 4 = 0.5
             #expect(viewport?.progression.lowerBound == 0.0)
-            #expect(viewport?.progression.upperBound == 2.0 / 3.0)
+            #expect(viewport?.progression.upperBound == 0.5)
         }
     }
 
-    /// The locator's totalProgression intentionally differs from
-    /// viewport.progression.lowerBound for most pages. The positions service
-    /// uses (page-1)/total (N equal slots), while the viewport calculator uses
-    /// (page-1)/(pageCount-1) (N-1 intervals, so consecutive viewports share
-    /// boundary values). Unlike EPUB — where positions are coarse snapshots and
-    /// the continuous scroll value is more accurate — PDF pages are the natural
-    /// discrete unit, so the position-based value is kept as-is in the locator.
+    /// Both the locator's totalProgression and viewport.progression.lowerBound
+    /// use the same N-slot formula — (page-1)/pageCount — so they agree.
     @Suite("Locator vs viewport progression") struct LocatorVsViewportProgression {
-        @Test("locator totalProgression is position-based, not viewport-based")
-        func locatorAndViewportProgressionDiffer() {
+        @Test("locator totalProgression equals viewport lowerBound")
+        func locatorAndViewportProgressionAgree() {
             // 1 resource, 4 pages.
-            // Positions (totalProgression = absoluteIndex / total = index/4):
+            // Both locator and viewport use (page-1)/pageCount:
             //   page 1 → 0/4 = 0.0,  page 2 → 1/4 = 0.25,
             //   page 3 → 2/4 = 0.5,  page 4 → 3/4 = 0.75
-            // Viewport lower bound (resourceProgression = (page-1)/(pageCount-1)):
-            //   page 2 → 1/3 ≈ 0.333,  page 4 → 1.0
             let positions = makePositions(resourceCount: 1, pagesPerResource: 4)
             let readingOrder = makeReadingOrder(count: 1)
 
-            // Page 2: locator at 0.25, viewport lower bound at 1/3.
+            // Page 2: locator and viewport lowerBound both at 0.25.
             let (locator2, viewport2) = PDFViewportCalculator.compute(
                 currentPageNumber: 2,
                 visiblePageNumbers: 2 ... 2,
@@ -307,9 +302,9 @@ import Testing
                 positionsByReadingOrder: positions
             )
             #expect(locator2?.locations.totalProgression == 0.25)
-            #expect(viewport2?.progression.lowerBound == 1.0 / 3.0)
+            #expect(viewport2?.progression.lowerBound == 0.25)
 
-            // Last page: locator at 0.75, viewport lower bound at 1.0.
+            // Last page: locator and viewport lowerBound both at 0.75.
             let (locator4, viewport4) = PDFViewportCalculator.compute(
                 currentPageNumber: 4,
                 visiblePageNumbers: 4 ... 4,
@@ -319,7 +314,7 @@ import Testing
                 positionsByReadingOrder: positions
             )
             #expect(locator4?.locations.totalProgression == 0.75)
-            #expect(viewport4?.progression.lowerBound == 1.0)
+            #expect(viewport4?.progression.lowerBound == 0.75)
         }
     }
 
