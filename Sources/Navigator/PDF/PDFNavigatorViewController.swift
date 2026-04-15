@@ -620,7 +620,7 @@ open class PDFNavigatorViewController:
     }
 
     private func extractVisiblePageNumbers(from pdfView: PDFDocumentView) -> ClosedRange<Int>? {
-        let sorted = pdfView.visiblePages
+        let sorted = visiblePages(in: pdfView)
             .compactMap { $0.pageRef?.pageNumber }
             .sorted()
         guard
@@ -631,6 +631,27 @@ open class PDFNavigatorViewController:
         }
 
         return first ... last
+    }
+
+    /// `PDFView.visiblePages` does not correctly account for the current
+    /// zoom scale in scroll mode, returning pages that are outside the
+    /// visible viewport. We filter each candidate page through PDFKit's own
+    /// `convert(_:from:)`, which maps page bounds into view coordinates
+    /// accounting for both scroll position and zoom, and discard any pages
+    /// that don't actually intersect the view's visible bounds.
+    private func visiblePages(in pdfView: PDFDocumentView) -> [PDFPage] {
+        var pages = pdfView.visiblePages
+
+        if settings.scroll {
+            let viewBounds = pdfView.bounds
+            pages = pages
+                .filter { page in
+                    let pageRectInView = pdfView.convert(page.bounds(for: pdfView.displayBox), from: page)
+                    return pageRectInView.intersects(viewBounds)
+                }
+        }
+
+        return pages
     }
 
     // MARK: - SelectableNavigator
