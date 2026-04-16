@@ -548,7 +548,6 @@ open class PDFNavigatorViewController:
 
     private func locator(to pageNumber: Int) -> Locator? {
         guard
-            let document = pdfView?.document,
             let currentResourceIndex = currentResourceIndex,
             let readingOrderLink = publication.readingOrder.getOrNil(currentResourceIndex),
             let mediaType = readingOrderLink.mediaType
@@ -580,12 +579,8 @@ open class PDFNavigatorViewController:
             return nil
         }
 
-        var href = locator.href.string
-        if let fragment = locator.locations.fragments.first {
-            href += "#\(fragment)"
-        }
-
-        return Link(href: href, mediaType: locator.mediaType)
+        let href = locator.href.replacingFragment(locator.locations.fragments.first)
+        return Link(href: href.string, mediaType: locator.mediaType)
     }
 
     /// Returns the position locator of the current page.

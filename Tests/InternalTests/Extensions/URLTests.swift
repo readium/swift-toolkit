@@ -5,17 +5,20 @@
 //
 
 @testable import ReadiumInternal
-import XCTest
+import Testing
 
-class URLTests: XCTestCase {
-    func testAddingSchemeWhenMissing() {
-        XCTAssertEqual(
-            URL(string: "//www.google.com/path")?.addingSchemeWhenMissing("test"),
-            URL(string: "test://www.google.com/path")
-        )
-        XCTAssertEqual(
-            URL(string: "http://www.google.com/path")?.addingSchemeWhenMissing("test"),
-            URL(string: "http://www.google.com/path")
-        )
+@Suite enum URLTests {
+    @Suite("addingSchemeWhenMissing") struct AddingSchemeWhenMissing {
+        @Test("adds scheme to schemeless URL")
+        func addingSchemeWhenMissing() {
+            #expect(
+                URL(string: "//www.google.com/path")?.addingSchemeWhenMissing("test")
+                    == URL(string: "test://www.google.com/path")
+            )
+            #expect(
+                URL(string: "http://www.google.com/path")?.addingSchemeWhenMissing("test")
+                    == URL(string: "http://www.google.com/path")
+            )
+        }
     }
 }

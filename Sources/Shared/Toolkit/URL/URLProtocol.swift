@@ -128,9 +128,15 @@ public extension URLProtocol {
 
     /// Creates a copy of this URL after removing its fragment portion.
     func removingFragment() -> Self {
-        if let url = url.copy({ $0.fragment = nil }) {
+        replacingFragment(nil)
+    }
+
+    /// Creates a copy of this URL after replacing its fragment with the given
+    /// value, or removing it when `fragment` is `nil`.
+    func replacingFragment(_ fragment: String?) -> Self {
+        if let url = url.copy({ $0.fragment = fragment }) {
             return Self(url: url)!
-        } else if let withoutFragment = string.components(separatedBy: "#").first {
+        } else if fragment == nil, let withoutFragment = string.components(separatedBy: "#").first {
             return Self(string: withoutFragment)!
         } else {
             return self
