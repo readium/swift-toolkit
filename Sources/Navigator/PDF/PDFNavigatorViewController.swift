@@ -549,8 +549,7 @@ open class PDFNavigatorViewController:
     private func locator(to pageNumber: Int) -> Locator? {
         guard
             let currentResourceIndex = currentResourceIndex,
-            let readingOrderLink = publication.readingOrder.getOrNil(currentResourceIndex),
-            let mediaType = readingOrderLink.mediaType
+            let readingOrderLink = publication.readingOrder.getOrNil(currentResourceIndex)
         else {
             return nil
         }
@@ -558,7 +557,7 @@ open class PDFNavigatorViewController:
         let href = readingOrderLink.url().removingFragment()
         return Locator(
             href: href,
-            mediaType: mediaType,
+            mediaType: readingOrderLink.mediaType ?? .pdf,
             locations: .init(
                 fragments: ["page=\(pageNumber)"]
             )
@@ -570,8 +569,12 @@ open class PDFNavigatorViewController:
             return nil
         }
 
-        let pageNumber = document.index(for: page) + 1
-        return locator(to: pageNumber)
+        let index = document.index(for: page)
+        guard index != NSNotFound else {
+            return nil
+        }
+
+        return locator(to: index + 1)
     }
 
     private func link(to page: PDFPage) -> Link? {

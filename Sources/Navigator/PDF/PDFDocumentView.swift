@@ -7,7 +7,7 @@
 import Foundation
 import PDFKit
 
-protocol PDFDocumentViewDelegate: AnyObject {
+@MainActor protocol PDFDocumentViewDelegate: AnyObject {
     func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets?
 
     /// Called before PDFKit navigates to an internal link destination.
