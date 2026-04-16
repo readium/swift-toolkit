@@ -8,8 +8,8 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum RelativeURLTests {
-    @Suite struct Equality {
+enum RelativeURLTests {
+    struct Equality {
         @Test("equal URLs compare as equal")
         func equality() throws {
             #expect(RelativeURL(string: "dir/file") == RelativeURL(string: "dir/file"))
@@ -18,7 +18,7 @@ import Testing
         }
     }
 
-    @Suite struct URLProtocolImplementation {
+    struct URLProtocolImplementation {
         @Test("creates from Foundation URL")
         func createFromURL() throws {
             #expect(try RelativeURL(url: #require(URL(string: "https://domain.com"))) == nil)
@@ -191,7 +191,7 @@ import Testing
         }
     }
 
-    @Suite struct RelativeURLImplementation {
+    struct RelativeURLImplementation {
         @Test("resolves against any URLConvertible")
         func resolveURLConvertible() throws {
             let base = try #require(RelativeURL(string: "foo/bar"))

@@ -8,8 +8,8 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum URLQueryTests {
-    @Suite struct Parsing {
+enum URLQueryTests {
+    struct Parsing {
         @Test("URL without query returns nil")
         func parseEmptyQuery() throws {
             let query = try URLQuery(url: #require(URL(string: "foo")))
@@ -18,8 +18,8 @@ import Testing
 
         @Test("first(named:) returns the first matching parameter value")
         func getFirstQueryParameterNamedX() throws {
-            let query = try #require(try URLQuery(
-                url: #require(URL(string: "foo?query=param&fruit=banana&query=other&empty"))
+            let query = try #require(URLQuery(
+                url: URL(string: "foo?query=param&fruit=banana&query=other&empty")!
             ))
             #expect(query.first(named: "query") == "param")
             #expect(query.first(named: "fruit") == "banana")
@@ -29,8 +29,8 @@ import Testing
 
         @Test("all(named:) returns all matching parameter values")
         func getAllQueryParametersNamedX() throws {
-            let query = try #require(try URLQuery(
-                url: #require(URL(string: "foo?query=param&fruit=banana&query=other&empty"))
+            let query = try #require(URLQuery(
+                url: URL(string: "foo?query=param&fruit=banana&query=other&empty")!
             ))
             #expect(query.all(named: "query") == ["param", "other"])
             #expect(query.all(named: "fruit") == ["banana"])
@@ -40,8 +40,8 @@ import Testing
 
         @Test("parameter values are percent-decoded")
         func queryParameterArePercentDecoded() throws {
-            let query = try #require(try URLQuery(
-                url: #require(URL(string: "foo?query=hello%20world"))
+            let query = try #require(URLQuery(
+                url: URL(string: "foo?query=hello%20world")!
             ))
             #expect(query.first(named: "query") == "hello world")
         }

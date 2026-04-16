@@ -13,7 +13,7 @@ private let coverURL = fixtures.url(for: "cover.jpg")
 private let cover = UIImage(contentsOfFile: coverURL.path)!
 private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
 
-@Suite struct ResourceCoverServiceTests {
+enum ResourceCoverServiceTests {
     @Suite("cover()") struct Cover {
         @Test func prioritizesExplicitCoverLinkOverReadingOrder() async throws {
             let pub = makePublication(

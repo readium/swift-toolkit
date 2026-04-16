@@ -8,8 +8,8 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum AnyURLTests {
-    @Suite struct Equality {
+enum AnyURLTests {
+    struct Equality {
         @Test("equal URLs compare as equal")
         func equality() throws {
             #expect(AnyURL(string: "opds://domain.com") == AnyURL(string: "opds://domain.com"))
@@ -25,7 +25,7 @@ import Testing
         }
     }
 
-    @Suite struct Creation {
+    struct Creation {
         @Test("invalid URLs return nil")
         func createFromInvalidUrl() {
             #expect(AnyURL(string: "") == nil)
@@ -68,7 +68,7 @@ import Testing
         }
     }
 
-    @Suite struct Resolution {
+    struct Resolution {
         @Test("resolves relative URLs against an HTTP base")
         func resolveHTTPURL() throws {
             var base = try #require(AnyURL(string: "http://example.com/foo/bar"))
@@ -117,7 +117,7 @@ import Testing
         }
     }
 
-    @Suite struct Relativization {
+    struct Relativization {
         @Test("relativizes URLs against an HTTP base")
         func relativizeHTTPURL() throws {
             var base = try #require(AnyURL(string: "http://example.com/foo"))
@@ -160,7 +160,7 @@ import Testing
         }
     }
 
-    @Suite struct Normalization {
+    struct Normalization {
         @Test("scheme is lowercased, path is decoded, relative segments are resolved")
         func normalized() {
             // Scheme is lower case.
@@ -187,7 +187,7 @@ import Testing
         }
     }
 
-    @Suite struct Fragment {
+    struct Fragment {
         @Test("replacingFragment sets or removes the fragment")
         func replacingFragment() {
             // Sets fragment on URL without one.

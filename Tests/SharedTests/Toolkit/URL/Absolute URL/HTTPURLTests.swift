@@ -8,8 +8,8 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum HTTPURLTests {
-    @Suite struct Equality {
+enum HTTPURLTests {
+    struct Equality {
         @Test("equal URLs compare as equal, fragments are significant")
         func equality() throws {
             #expect(HTTPURL(string: "http://domain.com") == HTTPURL(string: "http://domain.com"))
@@ -20,7 +20,7 @@ import Testing
         }
     }
 
-    @Suite struct URLProtocolImplementation {
+    struct URLProtocolImplementation {
         @Test("creates from Foundation URL")
         func createFromURL() throws {
             #expect(try HTTPURL(url: #require(URL(string: "http://domain.com")))?.string == "http://domain.com")
@@ -169,7 +169,7 @@ import Testing
         }
     }
 
-    @Suite struct AbsoluteURLImplementation {
+    struct AbsoluteURLImplementation {
         @Test("scheme is normalized to lowercase")
         func scheme() {
             #expect(HTTPURL(string: "http://foo/bar")?.scheme == .http)

@@ -8,7 +8,7 @@
 import ReadiumShared
 import Testing
 
-@Suite enum PDFViewportCalculatorTests {
+enum PDFViewportCalculatorTests {
     // Layout used by most multi-resource tests:
     // 2 resources × 4 pages = 8 total positions.
     // Resource 0 total progression window: 0.0 … 0.5

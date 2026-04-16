@@ -9,7 +9,7 @@ import Foundation
 import ReadiumShared
 import Testing
 
-@Suite struct LCPKeychainLicenseRepositoryTests {
+struct LCPKeychainLicenseRepositoryTests {
     let repository: LCPKeychainLicenseRepository
 
     init() throws {

@@ -9,7 +9,7 @@ import ReadiumShared
 @testable import ReadiumStreamer
 import Testing
 
-@Suite enum SMILParserTests {
+enum SMILParserTests {
     static let fixtures = Fixtures(path: "SMIL")
 
     /// Returns the parsed document for the given SMIL fixture filename.

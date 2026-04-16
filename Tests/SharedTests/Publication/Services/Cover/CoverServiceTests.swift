@@ -13,8 +13,8 @@ private let coverURL = fixtures.url(for: "cover.jpg")
 private let cover = UIImage(contentsOfFile: coverURL.path)!
 private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
 
-@Suite struct CoverServiceTests {
-    @Suite struct PublicationHelpers {
+enum CoverServiceTests {
+    struct PublicationHelpers {
         @Test func coverDelegatesToCustomService() async throws {
             let pub = makePublication { _ in TestCoverService(cover: cover2) }
             let image = try await pub.cover().get()

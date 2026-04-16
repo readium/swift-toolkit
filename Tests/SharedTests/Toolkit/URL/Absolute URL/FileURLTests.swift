@@ -8,8 +8,8 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum FileURLTests {
-    @Suite struct Equality {
+enum FileURLTests {
+    struct Equality {
         @Test("equal URLs compare as equal, fragments are ignored")
         func equality() throws {
             #expect(FileURL(string: "file:///foo/bar") == FileURL(string: "file:///foo/bar"))
@@ -26,7 +26,7 @@ import Testing
         }
     }
 
-    @Suite struct URLProtocolImplementation {
+    struct URLProtocolImplementation {
         @Test("creates from Foundation URL")
         func createFromURL() throws {
             #expect(try FileURL(url: #require(URL(string: "file:///foo/bar")))?.string == "file:///foo/bar")
@@ -182,7 +182,7 @@ import Testing
         }
     }
 
-    @Suite struct AbsoluteURLImplementation {
+    struct AbsoluteURLImplementation {
         @Test("scheme is normalized to lowercase")
         func scheme() {
             #expect(FileURL(string: "file:///foo/bar")?.scheme == .file)

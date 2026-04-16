@@ -8,8 +8,8 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum UnknownAbsoluteURLTests {
-    @Suite struct Equality {
+enum UnknownAbsoluteURLTests {
+    struct Equality {
         @Test("equal URLs compare as equal, fragments are significant")
         func equality() throws {
             #expect(UnknownAbsoluteURL(string: "opds://domain.com") == UnknownAbsoluteURL(string: "opds://domain.com"))
@@ -20,7 +20,7 @@ import Testing
         }
     }
 
-    @Suite struct URLProtocolImplementation {
+    struct URLProtocolImplementation {
         @Test("creates from Foundation URL")
         func createFromURL() throws {
             #expect(try UnknownAbsoluteURL(url: #require(URL(string: "opds://callback")))?.string == "opds://callback")
@@ -161,7 +161,7 @@ import Testing
         }
     }
 
-    @Suite struct AbsoluteURLImplementation {
+    struct AbsoluteURLImplementation {
         @Test("scheme is normalized to lowercase")
         func scheme() {
             #expect(UnknownAbsoluteURL(string: "opds://foo/bar")?.scheme == URLScheme(rawValue: "opds"))

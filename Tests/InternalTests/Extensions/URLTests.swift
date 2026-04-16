@@ -8,7 +8,7 @@ import Foundation
 @testable import ReadiumInternal
 import Testing
 
-@Suite enum URLTests {
+enum URLTests {
     @Suite("addingSchemeWhenMissing") struct AddingSchemeWhenMissing {
         @Test("adds scheme to schemeless URL")
         func addingSchemeWhenMissing() {

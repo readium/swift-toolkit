@@ -8,8 +8,8 @@
 import ReadiumShared
 import Testing
 
-@Suite enum EPUBViewportAndLocationCalculatorTests {
-    @Suite struct Viewport {
+enum EPUBViewportAndLocationCalculatorTests {
+    struct Viewport {
         @Test("builds resource list from a single-resource spread")
         func singleResourceReadingOrder() async {
             let ro = makeReadingOrder(count: 2)

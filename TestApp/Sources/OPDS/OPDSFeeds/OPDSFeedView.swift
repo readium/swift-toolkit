@@ -86,8 +86,6 @@ struct OPDSFeedView: View {
     private func facetDestinationView() -> some View {
         if let url = facetNavigationURL {
             OPDSFeedView(feedURL: url, delegate: delegate)
-        } else {
-            EmptyView()
         }
     }
 
