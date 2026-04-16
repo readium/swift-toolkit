@@ -546,6 +546,48 @@ open class PDFNavigatorViewController:
         return position
     }
 
+    private func locator(to pageNumber: Int) -> Locator? {
+        guard
+            let document = pdfView?.document,
+            let currentResourceIndex = currentResourceIndex,
+            let readingOrderLink = publication.readingOrder.getOrNil(currentResourceIndex),
+            let mediaType = readingOrderLink.mediaType
+        else {
+            return nil
+        }
+
+        let href = readingOrderLink.url().removingFragment()
+        return Locator(
+            href: href,
+            mediaType: mediaType,
+            locations: .init(
+                fragments: ["page=\(pageNumber)"]
+            )
+        )
+    }
+
+    private func locator(to page: PDFPage) -> Locator? {
+        guard let document = pdfView?.document else {
+            return nil
+        }
+
+        let pageNumber = document.index(for: page) + 1
+        return locator(to: pageNumber)
+    }
+
+    private func link(to page: PDFPage) -> Link? {
+        guard let locator = locator(to: page) else {
+            return nil
+        }
+
+        var href = locator.href.string
+        if let fragment = locator.locations.fragments.first {
+            href += "#\(fragment)"
+        }
+
+        return Link(href: href, mediaType: locator.mediaType)
+    }
+
     /// Returns the position locator of the current page.
     private var currentPosition: Locator? {
         guard
@@ -782,8 +824,6 @@ open class PDFNavigatorViewController:
 
 extension PDFNavigatorViewController: PDFViewDelegate {
     public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
-        log(.debug, "Click URL: \(url)")
-
         let url = url.addingSchemeWhenMissing("http")
         delegate?.navigator(self, presentExternalURL: url)
     }
@@ -796,6 +836,28 @@ extension PDFNavigatorViewController: PDFViewDelegate {
 extension PDFNavigatorViewController: PDFDocumentViewDelegate {
     func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets? {
         delegate?.navigatorContentInset(self)
+    }
+
+    func pdfDocumentView(_ pdfDocumentView: PDFDocumentView, shouldGoTo destination: PDFDestination) -> Bool {
+        guard
+            let page = destination.page,
+            let link = link(to: page)
+        else {
+            return true
+        }
+
+        return delegate?.navigator(self, shouldNavigateToLink: link) ?? true
+    }
+
+    func pdfDocumentView(_ pdfDocumentView: PDFDocumentView, didGoTo destination: PDFDestination) {
+        guard
+            let page = destination.page,
+            let locator = locator(to: page)
+        else {
+            return
+        }
+
+        delegate?.navigator(self, didJumpTo: locator)
     }
 }
 
