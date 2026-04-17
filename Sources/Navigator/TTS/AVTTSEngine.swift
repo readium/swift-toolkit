@@ -128,8 +128,6 @@ public final class AVTTSEngine: NSObject, TTSEngine, AVSpeechSynthesizerDelegate
 
     private func taskUtterance(with task: Task) -> TaskUtterance {
         let utter = TaskUtterance(task: task)
-//        utter.rate = rateMultiplierToAVRate(task.utterance.rateMultiplier)
-//        utter.pitchMultiplier = Float(task.utterance.pitchMultiplier)
         utter.preUtteranceDelay = task.utterance.delay
         utter.voice = voice(for: task.utterance)
         delegate?.avTTSEngine(self, didCreateUtterance: utter)
