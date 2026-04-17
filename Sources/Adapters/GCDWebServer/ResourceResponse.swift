@@ -8,15 +8,6 @@ import Foundation
 import ReadiumGCDWebServer
 import ReadiumShared
 
-/// Errors thrown by the `WebServerResourceResponse`
-///
-/// - streamOpenFailed: The stream is not open, stream.open() failed.
-/// - invalidRange: The range queried is invalid.
-enum WebServerResponseError: Error {
-    case streamOpenFailed
-    case invalidRange
-}
-
 /// The object containing the response's ressource data.
 /// If the ressource to be served is too big, multiple responses will be created.
 class ResourceResponse: ReadiumGCDWebServerResponse, Loggable {
