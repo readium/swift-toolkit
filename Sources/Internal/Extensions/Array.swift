@@ -61,20 +61,4 @@ public extension Array where Element: Hashable {
         }
         return result
     }
-
-    @inlinable func removing(_ element: Element) -> Self {
-        var array = self
-        array.removeAll { other in other == element }
-        return array
-    }
-
-    @inlinable mutating func remove(_ element: Element) {
-        removeAll { other in other == element }
-    }
-}
-
-public extension Array where Element: Equatable {
-    func firstMemberFrom(_ candidates: Element?...) -> Element? {
-        candidates.compactMap { $0 }.first { contains($0) }
-    }
 }
