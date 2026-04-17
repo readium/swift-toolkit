@@ -271,7 +271,3 @@ public class OPDS2Parser: Loggable {
         }
     }
 }
-
-private func hrefNormalizer(_ baseURL: URL?) -> (String) -> (String) {
-    { href in URLHelper.getAbsolute(href: href, base: baseURL) ?? href }
-}

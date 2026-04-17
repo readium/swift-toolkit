@@ -13,8 +13,6 @@ public enum OPDSParserError: Error, Sendable {
 }
 
 public enum OPDSParser: Sendable {
-    static var feedURL: URL?
-
     /// Parse an OPDS feed or publication.
     /// Feed can be v1 (XML) or v2 (JSON).
     /// - Parameters:
@@ -22,8 +20,6 @@ public enum OPDSParser: Sendable {
     ///   - completion: A closure called when the parsing is complete, returning the
     ///     parsed `ParseData` on success, or an `Error` if the operation failed.
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
-        feedURL = url
-
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, let response = response else {
                 completion(nil, error ?? OPDSParserError.documentNotFound)
