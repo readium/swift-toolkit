@@ -406,13 +406,14 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 continuation.resume(returning: .success(response))
 
             case let .failure(continuation, error):
-                var errorDescription = ""
-                dump(error, to: &errorDescription)
-                
-                if case .cancelled = error {} else {
+                if case .cancelled = error {
+                    // no-op
+                } else {
+                    var errorDescription = ""
+                    dump(error, to: &errorDescription)
                     log(.error, "\(request.method) \(request.url) failed with:\n\(errorDescription)")
                 }
-                
+
                 continuation.resume(returning: .failure(error))
 
             case .initializing, .finished:
