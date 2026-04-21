@@ -115,6 +115,12 @@ import WebKit
     /// Oldest entries are evicted when the cache exceeds its capacity.
     private var resourceCache = BoundedResourceCache()
 
+    /// Removes cached resources matching the given predicate, forcing them to
+    /// be re-served on the next request.
+    func clearResourceCache(where predicate: (RelativeURL, MediaType) -> Bool) {
+        resourceCache.remove(where: predicate)
+    }
+
     // MARK: - WKURLSchemeHandler
 
     func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
@@ -354,5 +360,15 @@ private struct BoundedResourceCache {
             let evicted = order.removeFirst()
             entries.removeValue(forKey: evicted)
         }
+    }
+
+    mutating func remove(where predicate: (RelativeURL, MediaType) -> Bool) {
+        let toRemove = order.filter { url in
+            entries[url].map { predicate(url, $0.1) } ?? false
+        }
+        for url in toRemove {
+            entries.removeValue(forKey: url)
+        }
+        order = order.filter { entries[$0] != nil }
     }
 }
