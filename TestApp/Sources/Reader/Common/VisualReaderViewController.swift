@@ -96,11 +96,11 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             guard
                 let self,
                 let targetElement = event.targetElement,
-                targetElement.content is ImageContentElement
+                let image = targetElement.content as? ImageContentElement
             else {
                 return false
             }
-            self.presentImagePreview(targetElement)
+            self.presentImagePreview(image)
             return true
         })
 
@@ -220,18 +220,6 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     }
 
     // MARK: - VisualNavigatorDelegate
-
-    private func presentImagePreview(_ targetElement: PointerEvent.TargetElement) {
-        guard let image = targetElement.content as? ImageContentElement else { return }
-        let viewer = ImagePreviewViewController(
-            image: image,
-            publication: publication
-        )
-        let navController = UINavigationController(rootViewController: viewer)
-        navController.modalPresentationStyle = .fullScreen
-        navController.modalTransitionStyle = .crossDissolve
-        present(navController, animated: true)
-    }
 
     override func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
         super.navigator(navigator, locationDidChange: locator)
@@ -354,6 +342,19 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             popoverController.delegate = self
             present(highlightContextMenu!, animated: true, completion: nil)
         }
+    }
+
+    // MARK: - Image Preview
+
+    private func presentImagePreview(_ image: ImageContentElement) {
+        let viewer = UIHostingController(
+            rootView: ImagePreviewView(
+                publication: publication,
+                image: image
+            )
+        )
+        viewer.modalPresentationStyle = .pageSheet
+        present(viewer, animated: true)
     }
 }
 
