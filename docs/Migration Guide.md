@@ -2,9 +2,23 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
 
-## 3.8.0
+### Deprecated Viewport Method in `EPUBNavigatorDelegate`
+
+The following delegate method was removed from `EPUBNavigatorDelegate`.
+
+```swift
+func navigator(_ navigator: EPUBNavigatorViewController, viewportDidChange viewport: NavigatorViewport?)
+```
+
+The protocol now only inherits from `ViewportObservingNavigatorDelegate` the generic version:
+
+```swift
+func navigator(_ navigator: any ViewportObservingNavigator, viewportDidChange viewport: NavigatorViewport?)
+```
+
+If your delegate implementation used the concrete `EPUBNavigatorViewController` signature, it will no longer be called. Update your delegate to implement the generic method instead.
 
 ### Migrating to `JSONValue` for JSON Parsing
 
@@ -44,6 +58,8 @@ The free functions `serializeJSONString` and `serializeJSONData` have been repla
 +let data = locator.jsonData()
 ```
 
+
+## 3.8.0
 
 ### Removing the HTTP Server from the EPUB Navigator
 

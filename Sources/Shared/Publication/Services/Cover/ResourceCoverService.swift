@@ -31,36 +31,69 @@ public final class ResourceCoverService: CoverService {
         await loadCover(maxSize: maxSize)
     }
 
+    public func coverData(accepting mediaTypes: [MediaType]) async throws(ReadError) -> (data: Data, mediaType: MediaType)? {
+        let links = coverLinks()
+        for mediaType in mediaTypes {
+            for link in links {
+                guard
+                    let linkMediaType = link.mediaType,
+                    linkMediaType.matches(mediaType),
+                    let result = await readData(from: link)
+                else {
+                    continue
+                }
+                return result
+            }
+        }
+        return nil
+    }
+
+    /// Returns all candidate cover links in priority order:
+    /// 1. Links with explicit `.cover` relation.
+    /// 2. First reading-order link if it is a bitmap or SVG.
+    /// 3. Bitmap/SVG alternates of the first reading-order link.
+    private func coverLinks() -> [Link] {
+        var links = context.manifest.linksWithRel(.cover)
+        if !links.isEmpty {
+            return links
+        }
+
+        if let firstLink = context.manifest.readingOrder.first {
+            if firstLink.mediaType.isSupportedImage {
+                links.append(firstLink)
+            }
+            links.append(contentsOf: firstLink.alternates.filter(\.mediaType.isSupportedImage))
+        }
+
+        return links
+    }
+
+    /// Reads the raw bytes from a cover link, returning `nil` if the resource
+    /// cannot be read.
+    private func readData(from link: Link) async -> (data: Data, mediaType: MediaType)? {
+        guard
+            let mediaType = link.mediaType,
+            let resource = context.container[link.url()],
+            let data = try? await resource.read().get()
+        else {
+            return nil
+        }
+        return (data: data, mediaType: mediaType)
+    }
+
     private func loadCover(maxSize: CGSize?) async -> ReadResult<UIImage?> {
-        // Try resources with explicit `cover` relation
-        for link in context.manifest.linksWithRel(.cover) {
+        for link in coverLinks() {
             if let image = await loadImage(from: link, maxSize: maxSize) {
                 return .success(image)
             }
         }
-
-        // Fallback: first reading order bitmap/SVG or alternate
-        if let firstLink = context.manifest.readingOrder.first {
-            if let image = await loadImage(from: firstLink, maxSize: maxSize) {
-                return .success(image)
-            }
-
-            for alternate in firstLink.alternates {
-                if let image = await loadImage(from: alternate, maxSize: maxSize) {
-                    return .success(image)
-                }
-            }
-        }
-
         return .success(nil)
     }
 
     private func loadImage(from link: Link, maxSize: CGSize?) async -> UIImage? {
         guard
-            let mediaType = link.mediaType,
-            mediaType.isBitmap || mediaType.matches(.svg),
-            let resource = context.container[link.url()],
-            let data = try? await resource.read().get()
+            let (data, mediaType) = await readData(from: link),
+            mediaType.isSupportedImage
         else {
             return nil
         }
@@ -70,13 +103,26 @@ public final class ResourceCoverService: CoverService {
         }
 
         let image = UIImage(data: data)
-        if let maxSize = maxSize {
+        if let maxSize {
             return image?.scaleToFit(maxSize: maxSize)
         }
+
         return image
     }
 
     public static func makeFactory() -> (PublicationServiceContext) -> ResourceCoverService {
         { ResourceCoverService(context: $0) }
+    }
+}
+
+private extension MediaType? {
+    var isSupportedImage: Bool {
+        self?.isSupportedImage ?? false
+    }
+}
+
+private extension MediaType {
+    var isSupportedImage: Bool {
+        isBitmap || matches(.svg)
     }
 }

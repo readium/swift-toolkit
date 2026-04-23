@@ -6,219 +6,243 @@
 
 import Foundation
 @testable import ReadiumShared
-import XCTest
+import Testing
 
-class RelativeURLTests: XCTestCase {
-    func testEquality() throws {
-        XCTAssertEqual(
-            RelativeURL(string: "dir/file"),
-            RelativeURL(string: "dir/file")
-        )
-        XCTAssertNotEqual(
-            try XCTUnwrap(RelativeURL(string: "dir/file/")),
-            try XCTUnwrap(RelativeURL(string: "dir/file"))
-        )
-        XCTAssertNotEqual(
-            try XCTUnwrap(RelativeURL(string: "dir")),
-            try XCTUnwrap(RelativeURL(string: "dir/file"))
-        )
+enum RelativeURLTests {
+    struct Equality {
+        @Test("equal URLs compare as equal")
+        func equality() throws {
+            #expect(RelativeURL(string: "dir/file") == RelativeURL(string: "dir/file"))
+            #expect(try #require(RelativeURL(string: "dir/file/")) != #require(RelativeURL(string: "dir/file")))
+            #expect(try #require(RelativeURL(string: "dir")) != #require(RelativeURL(string: "dir/file")))
+        }
     }
 
-    // MARK: - URLProtocol
+    struct URLProtocolImplementation {
+        @Test("creates from Foundation URL")
+        func createFromURL() throws {
+            #expect(try RelativeURL(url: #require(URL(string: "https://domain.com"))) == nil)
+            #expect(RelativeURL(url: URL(fileURLWithPath: "/dir/file")) == nil)
+            #expect(try RelativeURL(url: #require(URL(string: "/dir/file")))?.string == "/dir/file")
+        }
 
-    func testCreateFromURL() throws {
-        XCTAssertNil(try RelativeURL(url: XCTUnwrap(URL(string: "https://domain.com"))))
-        XCTAssertNil(RelativeURL(url: URL(fileURLWithPath: "/dir/file")))
-        XCTAssertEqual(try RelativeURL(url: XCTUnwrap(URL(string: "/dir/file")))?.string, "/dir/file")
+        @Test("creates from decoded path string")
+        func createFromPath() {
+            // Empty
+            #expect(RelativeURL(path: "")?.string == nil)
+            // Whitespace
+            #expect(RelativeURL(path: "  ")?.string == "%20%20")
+            // Relative path
+            #expect(RelativeURL(path: "foo/bar")?.string == "foo/bar")
+            // Absolute to root
+            #expect(RelativeURL(path: "/foo/bar")?.string == "/foo/bar")
+            // Containing special characters valid in a path
+            #expect(RelativeURL(path: "$&+,/=@")?.string == "$&+,/=@")
+            // Containing special characters and ..
+            #expect(RelativeURL(path: "foo/../bar baz")?.string == "foo/../bar%20baz")
+            #expect(RelativeURL(path: "../foo")?.string == "../foo")
+        }
+
+        @Test("creates from percent-encoded string")
+        func createFromString() {
+            // Empty
+            #expect(RelativeURL(string: "")?.string == nil)
+            // Whitespace
+            #expect(RelativeURL(string: "%20%20")?.string == "%20%20")
+            // Percent-encoded special characters
+            #expect(RelativeURL(string: "foo/../bar%20baz?query#fragment")?.string == "foo/../bar%20baz?query#fragment")
+            // Invalid characters
+            #expect(RelativeURL(string: "foo/../bar baz") == nil)
+            // Absolute URL
+            #expect(RelativeURL(string: "https://domain.com") == nil)
+            #expect(RelativeURL(string: "file:///dir/file") == nil)
+            // Fragment only
+            #expect(RelativeURL(string: "#")?.string == "#")
+            #expect(RelativeURL(string: "#fragment")?.string == "#fragment")
+            // Query only
+            #expect(RelativeURL(string: "?query=foo%bar")?.string == "?query=foo%bar")
+        }
+
+        @Test("url property returns Foundation URL")
+        func url() {
+            #expect(RelativeURL(string: "foo/bar?query#fragment")?.url == URL(string: "foo/bar?query#fragment"))
+        }
+
+        @Test("string property returns percent-encoded string")
+        func string() {
+            #expect(RelativeURL(string: "foo/bar?query#fragment")?.string == "foo/bar?query#fragment")
+        }
+
+        @Test("path is percent-decoded")
+        func path() {
+            #expect(RelativeURL(string: "foo/bar%20baz")?.path == "foo/bar baz")
+            #expect(RelativeURL(string: "foo/bar%20baz/")?.path == "foo/bar baz/")
+            #expect(RelativeURL(string: "/foo/bar%20baz")?.path == "/foo/bar baz")
+            #expect(RelativeURL(string: "foo/bar?query#fragment")?.path == "foo/bar")
+            #expect(RelativeURL(string: "#fragment")?.path == "")
+            #expect(RelativeURL(string: "?query")?.path == "")
+        }
+
+        @Test("appendingPath appends a decoded path segment")
+        func appendingPath() throws {
+            var base = try #require(RelativeURL(string: "foo/bar"))
+            #expect(base.appendingPath("", isDirectory: false).string == "foo/bar")
+            #expect(base.appendingPath("baz/quz", isDirectory: false).string == "foo/bar/baz/quz")
+            #expect(base.appendingPath("/baz/quz", isDirectory: false).string == "foo/bar/baz/quz")
+            // The path is supposed to be decoded
+            #expect(base.appendingPath("baz quz", isDirectory: false).string == "foo/bar/baz%20quz")
+            #expect(base.appendingPath("baz%20quz", isDirectory: false).string == "foo/bar/baz%2520quz")
+            // Directory
+            #expect(base.appendingPath("baz/quz", isDirectory: true).string == "foo/bar/baz/quz/")
+            #expect(base.appendingPath("baz/quz/", isDirectory: true).string == "foo/bar/baz/quz/")
+            #expect(base.appendingPath("baz/quz", isDirectory: false).string == "foo/bar/baz/quz")
+            #expect(base.appendingPath("baz/quz/", isDirectory: false).string == "foo/bar/baz/quz")
+
+            // With trailing slash.
+            base = try #require(RelativeURL(string: "foo/bar/"))
+            #expect(base.appendingPath("baz/quz", isDirectory: false).string == "foo/bar/baz/quz")
+        }
+
+        @Test("pathSegments returns percent-decoded segments")
+        func pathSegments() {
+            #expect(RelativeURL(string: "foo")?.pathSegments == ["foo"])
+            // Segments are percent-decoded.
+            #expect(RelativeURL(string: "foo/bar%20baz")?.pathSegments == ["foo", "bar baz"])
+            #expect(RelativeURL(string: "foo/bar%20baz/")?.pathSegments == ["foo", "bar baz"])
+            #expect(RelativeURL(string: "/foo/bar%20baz")?.pathSegments == ["foo", "bar baz"])
+            #expect(RelativeURL(string: "foo/bar?query#fragment")?.pathSegments == ["foo", "bar"])
+            #expect(RelativeURL(string: "#fragment")?.pathSegments == [])
+            #expect(RelativeURL(string: "?query")?.pathSegments == [])
+        }
+
+        @Test("lastPathSegment returns the last decoded segment")
+        func lastPathSegment() {
+            #expect(RelativeURL(string: "foo/bar%20baz")?.lastPathSegment == "bar baz")
+            #expect(RelativeURL(string: "foo/bar%20baz/")?.lastPathSegment == "bar baz")
+            #expect(RelativeURL(string: "foo/bar?query#fragment")?.lastPathSegment == "bar")
+            #expect(RelativeURL(string: "#fragment")?.lastPathSegment == nil)
+            #expect(RelativeURL(string: "?query")?.lastPathSegment == nil)
+        }
+
+        @Test("removingLastPathSegment removes the last path segment")
+        func removingLastPathSegment() {
+            #expect(RelativeURL(string: "foo")?.removingLastPathSegment().string == "./")
+            #expect(RelativeURL(string: "foo/bar")?.removingLastPathSegment().string == "foo/")
+            #expect(RelativeURL(string: "foo/bar/")?.removingLastPathSegment().string == "foo/")
+            #expect(RelativeURL(string: "/foo")?.removingLastPathSegment().string == "/")
+            #expect(RelativeURL(string: "/foo/bar")?.removingLastPathSegment().string == "/foo/")
+            #expect(RelativeURL(string: "/foo/bar/")?.removingLastPathSegment().string == "/foo/")
+        }
+
+        @Test("pathExtension returns the file extension")
+        func pathExtension() {
+            #expect(RelativeURL(string: "foo/bar.txt")?.pathExtension == "txt")
+            #expect(RelativeURL(string: "foo/bar")?.pathExtension == nil)
+            #expect(RelativeURL(string: "foo/bar/")?.pathExtension == nil)
+            #expect(RelativeURL(string: "foo/.hidden")?.pathExtension == nil)
+        }
+
+        @Test("replacingPathExtension replaces or removes the file extension")
+        func replacingPathExtension() {
+            #expect(RelativeURL(string: "/foo/bar")?.replacingPathExtension("xml").string == "/foo/bar.xml")
+            #expect(RelativeURL(string: "/foo/bar.txt")?.replacingPathExtension("xml").string == "/foo/bar.xml")
+            #expect(RelativeURL(string: "/foo/bar.txt")?.replacingPathExtension(nil).string == "/foo/bar")
+            #expect(RelativeURL(string: "/foo/bar/")?.replacingPathExtension("xml").string == "/foo/bar/")
+            #expect(RelativeURL(string: "/foo/bar/")?.replacingPathExtension(nil).string == "/foo/bar/")
+        }
+
+        @Test("query returns parsed query parameters")
+        func query() {
+            #expect(RelativeURL(string: "foo/bar")?.query == nil)
+            #expect(
+                RelativeURL(string: "foo/bar?param=quz%20baz")?.query
+                    == URLQuery(parameters: [.init(name: "param", value: "quz baz")])
+            )
+        }
+
+        @Test("removingQuery removes the query component")
+        func removingQuery() {
+            #expect(RelativeURL(string: "foo/bar")?.removingQuery() == RelativeURL(string: "foo/bar"))
+            #expect(RelativeURL(string: "foo/bar?param=quz%20baz")?.removingQuery() == RelativeURL(string: "foo/bar"))
+        }
+
+        @Test("fragment is percent-decoded")
+        func fragment() {
+            #expect(RelativeURL(string: "foo/bar")?.fragment == nil)
+            #expect(RelativeURL(string: "foo/bar#quz%20baz")?.fragment == "quz baz")
+        }
+
+        @Test("removingFragment removes the fragment component")
+        func removingFragment() {
+            #expect(RelativeURL(string: "foo/bar")?.removingFragment() == RelativeURL(string: "foo/bar"))
+            #expect(RelativeURL(string: "foo/bar#quz%20baz")?.removingFragment() == RelativeURL(string: "foo/bar"))
+        }
+
+        @Test("replacingFragment sets or removes the fragment")
+        func replacingFragment() {
+            // Sets fragment on URL without one.
+            #expect(RelativeURL(string: "foo/bar")?.replacingFragment("baz").string == "foo/bar#baz")
+            // Replaces existing fragment.
+            #expect(RelativeURL(string: "foo/bar#old")?.replacingFragment("new").string == "foo/bar#new")
+            // Removing via nil matches removingFragment().
+            #expect(RelativeURL(string: "foo/bar#quz%20baz")?.replacingFragment(nil) == RelativeURL(string: "foo/bar"))
+            // Fragment is percent-encoded.
+            #expect(RelativeURL(string: "foo/bar")?.replacingFragment("quz baz").string == "foo/bar#quz%20baz")
+        }
     }
 
-    func testCreateFromPath() {
-        // Empty
-        XCTAssertNil(RelativeURL(path: "")?.string, "")
-        // Whitespace
-        XCTAssertEqual(RelativeURL(path: "  ")?.string, "%20%20")
-        // Relative path
-        XCTAssertEqual(RelativeURL(path: "foo/bar")?.string, "foo/bar")
-        // Absolute to root
-        XCTAssertEqual(RelativeURL(path: "/foo/bar")?.string, "/foo/bar")
-        // Containing special characters valid in a path
-        XCTAssertEqual(RelativeURL(path: "$&+,/=@")?.string, "$&+,/=@")
-        // Containing special characters and ..
-        XCTAssertEqual(RelativeURL(path: "foo/../bar baz")?.string, "foo/../bar%20baz")
-        XCTAssertEqual(RelativeURL(path: "../foo")?.string, "../foo")
-    }
+    struct RelativeURLImplementation {
+        @Test("resolves against any URLConvertible")
+        func resolveURLConvertible() throws {
+            let base = try #require(RelativeURL(string: "foo/bar"))
+            #expect(try base.resolve(#require(AnyURL(string: "quz")))?.string == "foo/quz")
+            #expect(try base.resolve(#require(HTTPURL(string: "http://domain.com")))?.string == "http://domain.com")
+            #expect(try base.resolve(#require(FileURL(string: "file:///foo")))?.string == "file:///foo")
+        }
 
-    func testCreateFromString() {
-        // Empty
-        XCTAssertNil(RelativeURL(string: "")?.string)
-        // Whitespace
-        XCTAssertEqual(RelativeURL(string: "%20%20")?.string, "%20%20")
-        // Percent-encoded special characters
-        XCTAssertEqual(RelativeURL(string: "foo/../bar%20baz?query#fragment")?.string, "foo/../bar%20baz?query#fragment")
-        // Invalid characters
-        XCTAssertNil(RelativeURL(string: "foo/../bar baz"))
-        // Absolute URL
-        XCTAssertNil(RelativeURL(string: "https://domain.com"))
-        XCTAssertNil(RelativeURL(string: "file:///dir/file"))
-        // Fragment only
-        XCTAssertEqual(RelativeURL(string: "#")?.string, "#")
-        XCTAssertEqual(RelativeURL(string: "#fragment")?.string, "#fragment")
-        // Query only
-        XCTAssertEqual(RelativeURL(string: "?query=foo%bar")?.string, "?query=foo%bar")
-    }
+        @Test("resolves relative URL against another relative URL")
+        func resolveRelativeURL() throws {
+            var base = try #require(RelativeURL(string: "foo/bar"))
+            #expect(try base.resolve(#require(RelativeURL(string: "quz/baz"))) == RelativeURL(string: "foo/quz/baz"))
+            #expect(try base.resolve(#require(RelativeURL(string: "../quz/baz"))) == RelativeURL(string: "quz/baz"))
+            #expect(try base.resolve(#require(RelativeURL(string: "/quz/baz"))) == RelativeURL(string: "/quz/baz"))
+            #expect(try base.resolve(#require(RelativeURL(string: "#fragment"))) == RelativeURL(string: "foo/bar#fragment"))
 
-    func testURL() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.url, URL(string: "foo/bar?query#fragment"))
-    }
+            // With trailing slash
+            base = try #require(RelativeURL(string: "foo/bar/"))
+            #expect(try base.resolve(#require(RelativeURL(string: "quz/baz"))) == RelativeURL(string: "foo/bar/quz/baz"))
+            #expect(try base.resolve(#require(RelativeURL(string: "../quz/baz"))) == RelativeURL(string: "foo/quz/baz"))
 
-    func testString() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.string, "foo/bar?query#fragment")
-    }
+            // With starting slash
+            base = try #require(RelativeURL(string: "/foo/bar"))
+            #expect(try base.resolve(#require(RelativeURL(string: "quz/baz"))) == RelativeURL(string: "/foo/quz/baz"))
+            #expect(try base.resolve(#require(RelativeURL(string: "/quz/baz"))) == RelativeURL(string: "/quz/baz"))
+        }
 
-    func testPath() {
-        // Path is percent-decoded.
-        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz")?.path, "foo/bar baz")
-        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz/")?.path, "foo/bar baz/")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar%20baz")?.path, "/foo/bar baz")
-        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.path, "foo/bar")
-        XCTAssertEqual(RelativeURL(string: "#fragment")?.path, "")
-        XCTAssertEqual(RelativeURL(string: "?query")?.path, "")
-    }
+        @Test("relativizes a URL against this base")
+        func relativize() throws {
+            var base = try #require(RelativeURL(string: "foo"))
+            #expect(try base.relativize(#require(AnyURL(string: "foo/quz/baz"))) == RelativeURL(string: "quz/baz"))
+            #expect(try base.relativize(#require(AnyURL(string: "foo#fragment"))) == RelativeURL(string: "#fragment"))
+            #expect(try base.relativize(#require(AnyURL(string: "quz/baz"))) == nil)
+            #expect(try base.relativize(#require(AnyURL(string: "/foo/bar"))) == nil)
 
-    func testAppendingPath() throws {
-        var base = try XCTUnwrap(RelativeURL(string: "foo/bar"))
-        XCTAssertEqual(base.appendingPath("", isDirectory: false).string, "foo/bar")
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
-        XCTAssertEqual(base.appendingPath("/baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
-        // The path is supposed to be decoded
-        XCTAssertEqual(base.appendingPath("baz quz", isDirectory: false).string, "foo/bar/baz%20quz")
-        XCTAssertEqual(base.appendingPath("baz%20quz", isDirectory: false).string, "foo/bar/baz%2520quz")
-        // Directory
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: true).string, "foo/bar/baz/quz/")
-        XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: true).string, "foo/bar/baz/quz/")
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
-        XCTAssertEqual(base.appendingPath("baz/quz/", isDirectory: false).string, "foo/bar/baz/quz")
+            // With trailing slash
+            base = try #require(RelativeURL(string: "foo/"))
+            #expect(try base.relativize(#require(AnyURL(string: "foo/quz/baz"))) == RelativeURL(string: "quz/baz"))
 
-        // With trailing slash.
-        base = try XCTUnwrap(RelativeURL(string: "foo/bar/"))
-        XCTAssertEqual(base.appendingPath("baz/quz", isDirectory: false).string, "foo/bar/baz/quz")
-    }
+            // With starting slash
+            base = try #require(RelativeURL(string: "/foo"))
+            #expect(try base.relativize(#require(AnyURL(string: "/foo/quz/baz"))) == RelativeURL(string: "quz/baz"))
+            #expect(try base.relativize(#require(AnyURL(string: "foo/quz"))) == nil)
+            #expect(try base.relativize(#require(AnyURL(string: "/quz/baz"))) == nil)
+        }
 
-    func testPathSegments() {
-        XCTAssertEqual(RelativeURL(string: "foo")?.pathSegments, ["foo"])
-        // Segments are percent-decoded.
-        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz")?.pathSegments, ["foo", "bar baz"])
-        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz/")?.pathSegments, ["foo", "bar baz"])
-        XCTAssertEqual(RelativeURL(string: "/foo/bar%20baz")?.pathSegments, ["foo", "bar baz"])
-        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.pathSegments, ["foo", "bar"])
-        XCTAssertEqual(RelativeURL(string: "#fragment")?.pathSegments, [])
-        XCTAssertEqual(RelativeURL(string: "?query")?.pathSegments, [])
-    }
-
-    func testLastPathSegment() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz")?.lastPathSegment, "bar baz")
-        XCTAssertEqual(RelativeURL(string: "foo/bar%20baz/")?.lastPathSegment, "bar baz")
-        XCTAssertEqual(RelativeURL(string: "foo/bar?query#fragment")?.lastPathSegment, "bar")
-        XCTAssertNil(RelativeURL(string: "#fragment")?.lastPathSegment)
-        XCTAssertNil(RelativeURL(string: "?query")?.lastPathSegment)
-    }
-
-    func testRemovingLastPathSegment() {
-        XCTAssertEqual(RelativeURL(string: "foo")?.removingLastPathSegment().string, "./")
-        XCTAssertEqual(RelativeURL(string: "foo/bar")?.removingLastPathSegment().string, "foo/")
-        XCTAssertEqual(RelativeURL(string: "foo/bar/")?.removingLastPathSegment().string, "foo/")
-        XCTAssertEqual(RelativeURL(string: "/foo")?.removingLastPathSegment().string, "/")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar")?.removingLastPathSegment().string, "/foo/")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar/")?.removingLastPathSegment().string, "/foo/")
-    }
-
-    func testPathExtension() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar.txt")?.pathExtension, "txt")
-        XCTAssertNil(RelativeURL(string: "foo/bar")?.pathExtension)
-        XCTAssertNil(RelativeURL(string: "foo/bar/")?.pathExtension)
-        XCTAssertNil(RelativeURL(string: "foo/.hidden")?.pathExtension)
-    }
-
-    func testReplacingPathExtension() {
-        XCTAssertEqual(RelativeURL(string: "/foo/bar")?.replacingPathExtension("xml").string, "/foo/bar.xml")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar.txt")?.replacingPathExtension("xml").string, "/foo/bar.xml")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar.txt")?.replacingPathExtension(nil).string, "/foo/bar")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar/")?.replacingPathExtension("xml").string, "/foo/bar/")
-        XCTAssertEqual(RelativeURL(string: "/foo/bar/")?.replacingPathExtension(nil).string, "/foo/bar/")
-    }
-
-    func testQuery() {
-        XCTAssertNil(RelativeURL(string: "foo/bar")?.query)
-        XCTAssertEqual(
-            RelativeURL(string: "foo/bar?param=quz%20baz")?.query,
-            URLQuery(parameters: [.init(name: "param", value: "quz baz")])
-        )
-    }
-
-    func testRemovingQuery() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar")?.removingQuery(), RelativeURL(string: "foo/bar"))
-        XCTAssertEqual(RelativeURL(string: "foo/bar?param=quz%20baz")?.removingQuery(), RelativeURL(string: "foo/bar"))
-    }
-
-    func testFragment() {
-        XCTAssertNil(RelativeURL(string: "foo/bar")?.fragment)
-        XCTAssertEqual(RelativeURL(string: "foo/bar#quz%20baz")?.fragment, "quz baz")
-    }
-
-    func testRemovingFragment() {
-        XCTAssertEqual(RelativeURL(string: "foo/bar")?.removingFragment(), RelativeURL(string: "foo/bar"))
-        XCTAssertEqual(RelativeURL(string: "foo/bar#quz%20baz")?.removingFragment(), RelativeURL(string: "foo/bar"))
-    }
-
-    // MARK: - RelativeURL
-
-    func testResolveURLConvertible() throws {
-        let base = try XCTUnwrap(RelativeURL(string: "foo/bar"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(AnyURL(string: "quz")))?.string, "foo/quz")
-        XCTAssertEqual(try base.resolve(XCTUnwrap(HTTPURL(string: "http://domain.com")))?.string, "http://domain.com")
-        XCTAssertEqual(try base.resolve(XCTUnwrap(FileURL(string: "file:///foo")))?.string, "file:///foo")
-    }
-
-    func testResolveRelativeURL() throws {
-        var base = try XCTUnwrap(RelativeURL(string: "foo/bar"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "quz/baz"))), RelativeURL(string: "foo/quz/baz"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "../quz/baz"))), RelativeURL(string: "quz/baz"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "/quz/baz"))), RelativeURL(string: "/quz/baz"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "#fragment"))), RelativeURL(string: "foo/bar#fragment"))
-
-        // With trailing slash
-        base = try XCTUnwrap(RelativeURL(string: "foo/bar/"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "quz/baz"))), RelativeURL(string: "foo/bar/quz/baz"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "../quz/baz"))), RelativeURL(string: "foo/quz/baz"))
-
-        // With starting slash
-        base = try XCTUnwrap(RelativeURL(string: "/foo/bar"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "quz/baz"))), RelativeURL(string: "/foo/quz/baz"))
-        XCTAssertEqual(try base.resolve(XCTUnwrap(RelativeURL(string: "/quz/baz"))), RelativeURL(string: "/quz/baz"))
-    }
-
-    func testRelativize() throws {
-        var base = try XCTUnwrap(RelativeURL(string: "foo"))
-
-        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "foo/quz/baz"))), RelativeURL(string: "quz/baz"))
-        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "foo#fragment"))), RelativeURL(string: "#fragment"))
-        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "quz/baz"))))
-        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "/foo/bar"))))
-
-        // With trailing slash
-        base = try XCTUnwrap(RelativeURL(string: "foo/"))
-        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "foo/quz/baz"))), RelativeURL(string: "quz/baz"))
-
-        // With starting slash
-        base = try XCTUnwrap(RelativeURL(string: "/foo"))
-        XCTAssertEqual(try base.relativize(XCTUnwrap(AnyURL(string: "/foo/quz/baz"))), RelativeURL(string: "quz/baz"))
-        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "foo/quz"))))
-        XCTAssertNil(try base.relativize(XCTUnwrap(AnyURL(string: "/quz/baz"))))
-    }
-
-    func testRelativizeAbsoluteURL() throws {
-        let base = try XCTUnwrap(RelativeURL(string: "foo"))
-        XCTAssertNil(try base.relativize(XCTUnwrap(HTTPURL(string: "http://example.com/foo/bar"))))
-        XCTAssertNil(try base.relativize(XCTUnwrap(FileURL(string: "file:///foo"))))
+        @Test("absolute URL returns nil when relativized against a relative base")
+        func relativizeAbsoluteURL() throws {
+            let base = try #require(RelativeURL(string: "foo"))
+            #expect(try base.relativize(#require(HTTPURL(string: "http://example.com/foo/bar"))) == nil)
+            #expect(try base.relativize(#require(FileURL(string: "file:///foo"))) == nil)
+        }
     }
 }

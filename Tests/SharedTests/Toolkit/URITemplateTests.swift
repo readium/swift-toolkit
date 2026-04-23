@@ -7,8 +7,8 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite struct URITemplateTests {
-    @Suite struct Parameters {
+enum URITemplateTests {
+    struct Parameters {
         @Test func simpleVariables() {
             #expect(URITemplate("{x,hello,y}").parameters == ["x", "hello", "y"])
         }
@@ -34,8 +34,8 @@ import Testing
         }
     }
 
-    @Suite struct Expand {
-        @Suite struct SimpleString {
+    enum Expand {
+        struct SimpleString {
             @Test func multipleVariables() {
                 #expect(
                     URITemplate("/url{x,hello,y}name{z,y,w}").expand(with: [
@@ -53,7 +53,7 @@ import Testing
             }
         }
 
-        @Suite struct FormQuery {
+        struct FormQuery {
             @Test func standardExpansion() {
                 #expect(
                     URITemplate("/url{?x,hello,y}name").expand(with: [
@@ -73,7 +73,7 @@ import Testing
             }
         }
 
-        @Suite struct FormContinuation {
+        struct FormContinuation {
             @Test func standardExpansion() {
                 #expect(
                     URITemplate("{&x,y}").expand(with: ["x": "a", "y": "b"]) == "&x=a&y=b"
@@ -99,7 +99,7 @@ import Testing
             }
         }
 
-        @Suite struct General {
+        struct General {
             @Test func noVariableTemplateUnchanged() {
                 #expect(URITemplate("/path").expand(with: ["search": "banana"]) == "/path")
             }

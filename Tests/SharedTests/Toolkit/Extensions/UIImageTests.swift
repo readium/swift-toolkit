@@ -16,7 +16,7 @@ private let squareImage = UIImage(contentsOfFile: fixtures.url(for: "readium.png
 /// cc-a-shared-culture.jpg is 376×500
 private let portraitImage = UIImage(contentsOfFile: fixtures.url(for: "cc-a-shared-culture.jpg").path)!
 
-@Suite struct UIImageTests {
+enum UIImageTests {
     @Suite("scaleToFit(maxSize:)") struct ScaleToFit {
         /// The early-return code path is image-agnostic; one set of cases is enough.
         @Test func returnsSelfWhenFits() {

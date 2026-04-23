@@ -7,7 +7,7 @@
 import ReadiumShared
 import Testing
 
-@Suite enum MetadataEPUBTests {
+enum MetadataEPUBTests {
     @Suite("EPUBMediaOverlay") enum EPUBMediaOverlayTests {
         @Suite("JSON parsing") struct JSONParsing {
             @Test("full content")

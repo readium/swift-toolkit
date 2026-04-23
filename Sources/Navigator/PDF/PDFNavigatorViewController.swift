@@ -9,7 +9,9 @@ import PDFKit
 import ReadiumShared
 import UIKit
 
-public protocol PDFNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
+public protocol PDFNavigatorDelegate: VisualNavigatorDelegate,
+    SelectableNavigatorDelegate, ViewportObservingNavigatorDelegate
+{
     /// Called after the `PDFDocumentView` is created.
     ///
     /// Override to customize its behavior.
@@ -23,7 +25,8 @@ public extension PDFNavigatorDelegate {
 /// A view controller used to render a PDF `Publication`.
 open class PDFNavigatorViewController:
     InputObservableViewController,
-    VisualNavigator, SelectableNavigator, Configurable, Loggable
+    VisualNavigator, ViewportObservingNavigator, SelectableNavigator,
+    Configurable, Loggable
 {
     public struct Configuration {
         /// Initial set of setting preferences.
@@ -239,6 +242,7 @@ open class PDFNavigatorViewController:
         }
 
         currentResourceIndex = nil
+        viewport = nil
         let pdfView = PDFDocumentView(
             frame: view.bounds,
             editingActions: editingActions,
@@ -392,10 +396,9 @@ open class PDFNavigatorViewController:
     }
 
     @objc private func pageDidChange() {
-        guard let locator = currentPosition else {
-            return
+        if let locator = currentPosition {
+            delegate?.navigator(self, locationDidChange: locator)
         }
-        delegate?.navigator(self, locationDidChange: locator)
     }
 
     @objc private func visiblePagesDidChange() {
@@ -405,6 +408,8 @@ open class PDFNavigatorViewController:
         if !settings.scroll {
             updateScaleFactors(zoomToFit: true)
         }
+
+        viewport = computeLocatorAndViewport().viewport
     }
 
     @discardableResult
@@ -541,23 +546,62 @@ open class PDFNavigatorViewController:
         return position
     }
 
+    private func locator(to pageNumber: Int) -> Locator? {
+        guard
+            let currentResourceIndex = currentResourceIndex,
+            let readingOrderLink = publication.readingOrder.getOrNil(currentResourceIndex)
+        else {
+            return nil
+        }
+
+        let href = readingOrderLink.url().removingFragment()
+        return Locator(
+            href: href,
+            mediaType: readingOrderLink.mediaType ?? .pdf,
+            locations: .init(
+                fragments: ["page=\(pageNumber)"]
+            )
+        )
+    }
+
+    private func locator(to page: PDFPage) -> Locator? {
+        guard let document = pdfView?.document else {
+            return nil
+        }
+
+        let index = document.index(for: page)
+        guard index != NSNotFound else {
+            return nil
+        }
+
+        return locator(to: index + 1)
+    }
+
+    private func link(to page: PDFPage) -> Link? {
+        guard let locator = locator(to: page) else {
+            return nil
+        }
+
+        let href = locator.href.replacingFragment(locator.locations.fragments.first)
+        return Link(href: href.string, mediaType: locator.mediaType)
+    }
+
     /// Returns the position locator of the current page.
     private var currentPosition: Locator? {
         guard
             let pdfView = pdfView,
             let currentResourceIndex = currentResourceIndex,
             let pageNumber = pdfView.currentPage?.pageRef?.pageNumber,
-            publication.readingOrder.indices.contains(currentResourceIndex),
             let positionsByReadingOrder = positionsByReadingOrder
         else {
             return nil
         }
-        let positions = positionsByReadingOrder[currentResourceIndex]
-        guard positions.count > 0, 1 ... positions.count ~= pageNumber else {
-            return nil
-        }
-
-        return positions[pageNumber - 1]
+        return PDFViewportCalculator.computeLocator(
+            currentPageNumber: pageNumber,
+            currentResourceIndex: currentResourceIndex,
+            readingOrder: publication.readingOrder,
+            positionsByReadingOrder: positionsByReadingOrder
+        )
     }
 
     // MARK: - Configurable
@@ -581,6 +625,73 @@ open class PDFNavigatorViewController:
             metadata: publication.metadata,
             defaults: config.defaults
         )
+    }
+
+    // MARK: - ViewportObservingNavigator
+
+    public private(set) var viewport: NavigatorViewport? {
+        didSet {
+            guard oldValue != viewport else { return }
+            delegate?.navigator(self, viewportDidChange: viewport)
+        }
+    }
+
+    private func computeLocatorAndViewport() -> (locator: Locator?, viewport: NavigatorViewport?) {
+        guard
+            let pdfView = pdfView,
+            let currentResourceIndex = currentResourceIndex,
+            let positionsByReadingOrder = positionsByReadingOrder,
+            let document = pdfView.document,
+            let currentPageNumber = pdfView.currentPage?.pageRef?.pageNumber
+        else {
+            return (nil, nil)
+        }
+
+        let visiblePageNumbers = extractVisiblePageNumbers(from: pdfView) ?? (currentPageNumber ... currentPageNumber)
+
+        return PDFViewportCalculator.compute(
+            currentPageNumber: currentPageNumber,
+            visiblePageNumbers: visiblePageNumbers,
+            pageCount: document.pageCount,
+            currentResourceIndex: currentResourceIndex,
+            readingOrder: publication.readingOrder,
+            positionsByReadingOrder: positionsByReadingOrder
+        )
+    }
+
+    private func extractVisiblePageNumbers(from pdfView: PDFDocumentView) -> ClosedRange<Int>? {
+        let sorted = visiblePages(in: pdfView)
+            .compactMap { $0.pageRef?.pageNumber }
+            .sorted()
+        guard
+            let first = sorted.first,
+            let last = sorted.last
+        else {
+            return nil
+        }
+
+        return first ... last
+    }
+
+    /// `PDFView.visiblePages` does not correctly account for the current
+    /// zoom scale in scroll mode, returning pages that are outside the
+    /// visible viewport. We filter each candidate page through PDFKit's own
+    /// `convert(_:from:)`, which maps page bounds into view coordinates
+    /// accounting for both scroll position and zoom, and discard any pages
+    /// that don't actually intersect the view's visible bounds.
+    private func visiblePages(in pdfView: PDFDocumentView) -> [PDFPage] {
+        var pages = pdfView.visiblePages
+
+        if settings.scroll {
+            let viewBounds = pdfView.bounds
+            pages = pages
+                .filter { page in
+                    let pageRectInView = pdfView.convert(page.bounds(for: pdfView.displayBox), from: page)
+                    return pageRectInView.intersects(viewBounds)
+                }
+        }
+
+        return pages
     }
 
     // MARK: - SelectableNavigator
@@ -711,8 +822,6 @@ open class PDFNavigatorViewController:
 
 extension PDFNavigatorViewController: PDFViewDelegate {
     public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
-        log(.debug, "Click URL: \(url)")
-
         let url = url.addingSchemeWhenMissing("http")
         delegate?.navigator(self, presentExternalURL: url)
     }
@@ -725,6 +834,28 @@ extension PDFNavigatorViewController: PDFViewDelegate {
 extension PDFNavigatorViewController: PDFDocumentViewDelegate {
     func pdfDocumentViewContentInset(_ pdfDocumentView: PDFDocumentView) -> UIEdgeInsets? {
         delegate?.navigatorContentInset(self)
+    }
+
+    func pdfDocumentView(_ pdfDocumentView: PDFDocumentView, shouldGoTo destination: PDFDestination) -> Bool {
+        guard
+            let page = destination.page,
+            let link = link(to: page)
+        else {
+            return true
+        }
+
+        return delegate?.navigator(self, shouldNavigateToLink: link) ?? true
+    }
+
+    func pdfDocumentView(_ pdfDocumentView: PDFDocumentView, didGoTo destination: PDFDestination) {
+        guard
+            let page = destination.page,
+            let locator = locator(to: page)
+        else {
+            return
+        }
+
+        delegate?.navigator(self, didJumpTo: locator)
     }
 }
 

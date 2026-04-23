@@ -9,7 +9,7 @@ import ReadiumShared
 @testable import ReadiumStreamer
 import Testing
 
-@Suite class ReadiumGuidedNavigationServiceTests {
+class ReadiumGuidedNavigationServiceTests {
     /// Per-resource GN alternate link.
     lazy var gnLink = Link(
         href: "guided.json",

@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import ReadiumShared
+@_spi(Experimental) @testable import ReadiumShared
 import Testing
 import UIKit
 
@@ -13,8 +13,8 @@ private let coverURL = fixtures.url(for: "cover.jpg")
 private let cover = UIImage(contentsOfFile: coverURL.path)!
 private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
 
-@Suite struct CoverServiceTests {
-    @Suite struct PublicationHelpers {
+enum CoverServiceTests {
+    struct PublicationHelpers {
         @Test func coverDelegatesToCustomService() async throws {
             let pub = makePublication { _ in TestCoverService(cover: cover2) }
             let image = try await pub.cover().get()
@@ -48,6 +48,19 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
             let image = try await makePublicationWithoutCoverService()
                 .coverFitting(maxSize: CGSize(width: 100, height: 100)).get()
             #expect(image == nil)
+        }
+
+        @Test func coverDataDelegatesToCustomService() async throws {
+            // TestCoverService does not override coverData, so the protocol default returns nil.
+            let pub = makePublication { _ in TestCoverService(cover: cover2) }
+            let result = try await pub.coverData(accepting: [.jpeg])
+            #expect(result == nil)
+        }
+
+        @Test func coverDataReturnsNilWithoutService() async throws {
+            let result = try await makePublicationWithoutCoverService()
+                .coverData(accepting: [.jpeg])
+            #expect(result == nil)
         }
     }
 }

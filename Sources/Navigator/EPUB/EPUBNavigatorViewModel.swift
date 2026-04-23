@@ -349,6 +349,13 @@ enum EPUBScriptScope {
         let previous = css
         css.update(with: settings)
 
+        // HTML resources in the cache have the CSS already injected at the time
+        // they were first served. Evict them so that any future resource load
+        // (e.g. after a screen rotation) reflects the updated CSS instead of
+        // the stale cached version. Non-HTML resources (images, audio, etc.)
+        // are not affected by CSS changes and can remain cached.
+        server.clearResourceCache { _, mediaType in mediaType.isHTML }
+
         if commitNow {
             commitCSSChange(from: previous, to: css)
         }

@@ -8,8 +8,8 @@ import Foundation
 @testable import ReadiumInternal
 import Testing
 
-@Suite struct RangeTests {
-    @Suite struct HTTPByteRangeParsing {
+enum RangeTests {
+    struct HTTPByteRangeParsing {
         let totalLength: UInt64 = 10000
 
         // MARK: - Closed range: bytes=N-M
