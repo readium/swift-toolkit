@@ -314,16 +314,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
                     embeddedLink: embeddedLink,
                     caption: json["alt"] as? String
                 )
-            case "audio":
-                return AudioContentElement(
-                    locator: locator,
-                    embeddedLink: embeddedLink
-                )
-            case "video":
-                return VideoContentElement(
-                    locator: locator,
-                    embeddedLink: embeddedLink
-                )
             default:
                 break
             }
