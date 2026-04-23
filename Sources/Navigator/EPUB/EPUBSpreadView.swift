@@ -247,6 +247,98 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         delegate?.spreadView(self, didReceive: event)
     }
 
+    /// Parses the target element JSON produced by `extractTargetElement()` in
+    /// gestures.js and builds a `PointerEvent.TargetElement` with coordinates
+    /// converted to the spread view's coordinate space.
+    private func targetElement(from json: Any?) -> PointerEvent.TargetElement? {
+        guard
+            let dict = json as? [String: Any],
+            let frameDict = dict["frame"] as? [String: Any],
+            let x = frameDict["x"] as? Double,
+            let y = frameDict["y"] as? Double,
+            let width = frameDict["width"] as? Double,
+            let height = frameDict["height"] as? Double
+        else {
+            return nil
+        }
+
+        let frame = convertRectToNavigatorSpace(
+            CGRect(x: x, y: y, width: width, height: height)
+        )
+
+        // Build a locator pointing to the element inside the current resource.
+        let resourceLink = spread.first.link
+        var locator = Locator(
+            href: resourceLink.url(),
+            mediaType: resourceLink.mediaType ?? .xhtml
+        )
+        if let cssSelector = dict["cssSelector"] as? String {
+            locator.locations.cssSelector = cssSelector
+        }
+
+        guard let content = contentElement(locator: locator, json: dict) else {
+            return nil
+        }
+        return PointerEvent.TargetElement(frame: frame, content: content)
+    }
+
+    private func contentElement(
+        locator: Locator,
+        json: [String: Any]
+    ) -> (any ContentElement)? {
+        guard
+            let tag = json["tag"] as? String,
+            let html = json["html"] as? String
+        else {
+            return nil
+        }
+
+        // Relativize the src URL against the publication base URL so it
+        // becomes a publication-relative href. External URLs (http://) or
+        // already-relative URLs fall back to the raw value.
+        let src: AnyURL? = (json["src"] as? String)
+            .flatMap { AnyURL(string: $0) }
+            .flatMap { viewModel.publicationBaseURL.relativize($0)?.anyURL ?? $0 }
+
+        // Look up the Link in the publication manifest so the client gets
+        // full metadata (media type, etc.). Falls back to a plain Link.
+        let embeddedLink: Link? = src.flatMap {
+            viewModel.publication.linkWithHREF($0) ?? Link(href: $0.string)
+        }
+
+        if let embeddedLink {
+            switch tag {
+            case "img", "svg":
+                return ImageContentElement(
+                    locator: locator,
+                    embeddedLink: embeddedLink,
+                    caption: json["alt"] as? String
+                )
+            case "audio":
+                return AudioContentElement(
+                    locator: locator,
+                    embeddedLink: embeddedLink
+                )
+            case "video":
+                return VideoContentElement(
+                    locator: locator,
+                    embeddedLink: embeddedLink
+                )
+            default:
+                break
+            }
+        }
+
+        switch tag {
+        case "svg":
+            return SVGContentElement(locator: locator, svg: html)
+        default:
+            break
+        }
+
+        return nil
+    }
+
     /// Converts the given JavaScript point into a point in the webview's coordinate space.
     func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         // To override in subclasses.
@@ -715,83 +807,6 @@ private extension PointerEvent {
         )
         // FIXME:
 //        interactiveElement = dict["interactiveElement"] as? String
-    }
-}
-
-// MARK: - Target Element Extraction
-
-extension EPUBSpreadView {
-    /// Parses the target element JSON produced by `extractTargetElement()` in
-    /// gestures.js and builds a `PointerEvent.TargetElement` with coordinates
-    /// converted to the spread view's coordinate space.
-    func targetElement(from json: Any?) -> PointerEvent.TargetElement? {
-        guard
-            let dict = json as? [String: Any],
-            let tag = dict["tag"] as? String,
-            let frameDict = dict["frame"] as? [String: Any],
-            let x = frameDict["x"] as? Double,
-            let y = frameDict["y"] as? Double,
-            let width = frameDict["width"] as? Double,
-            let height = frameDict["height"] as? Double,
-            let publicationBaseURL = viewModel.publicationBaseURL
-        else {
-            return nil
-        }
-
-        let frame = convertRectToNavigatorSpace(
-            CGRect(x: x, y: y, width: width, height: height)
-        )
-
-        // Relativize the src URL against the publication base URL so it
-        // becomes a publication-relative href. External URLs (http://) or
-        // already-relative URLs fall back to the raw value.
-        let src: String? = (dict["src"] as? String).flatMap { raw in
-            guard let srcURL = URL(string: raw) else { return raw }
-            return publicationBaseURL.relativize(srcURL)?.string ?? raw
-        }
-
-        // Look up the Link in the publication manifest so the client gets
-        // full metadata (media type, etc.). Falls back to a plain Link.
-        let embeddedLink: Link = src.flatMap { href in
-            URL(string: href).flatMap { viewModel.publication.linkWithHREF($0) }
-        } ?? Link(href: src ?? "")
-
-        // Build a locator pointing to the element inside the current XHTML resource.
-        let resourceLink = spread.first.link
-        var locations = Locator.Locations()
-        if let cssSelector = dict["cssSelector"] as? String {
-            locations.otherLocations["cssSelector"] = .string(cssSelector)
-        }
-        let locator = Locator(
-            href: resourceLink.url(),
-            mediaType: resourceLink.mediaType ?? .xhtml,
-            locations: locations
-        )
-
-        // Map the HTML tag to the appropriate ContentElement subtype.
-        let content: (any ContentElement)? = switch tag {
-        case "img", "svg":
-            ImageContentElement(
-                locator: locator,
-                embeddedLink: embeddedLink,
-                caption: dict["alt"] as? String
-            )
-        case "audio":
-            AudioContentElement(
-                locator: locator,
-                embeddedLink: embeddedLink
-            )
-        case "video":
-            VideoContentElement(
-                locator: locator,
-                embeddedLink: embeddedLink
-            )
-        default:
-            nil
-        }
-
-        guard let content else { return nil }
-        return PointerEvent.TargetElement(frame: frame, content: content)
     }
 }
 

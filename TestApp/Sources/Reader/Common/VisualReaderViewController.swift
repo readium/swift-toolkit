@@ -100,6 +100,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             else {
                 return false
             }
+
             self.presentImagePreview(image)
             return true
         })
@@ -348,7 +349,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 
     private func presentImagePreview(_ image: ImageContentElement) {
         let viewer = UIHostingController(
-            rootView: ImagePreviewView(
+            rootView: ImagePreview(
                 publication: publication,
                 image: image
             )

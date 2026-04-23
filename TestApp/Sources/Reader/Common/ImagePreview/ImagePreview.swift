@@ -4,15 +4,14 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumNavigator
 import ReadiumShared
 import SwiftUI
 
-/// A simple image preview.
+/// A bitmap image preview.
 ///
 /// Displays the image and basic metadata (href, caption) to demonstrate
 /// the Readium `PointerEvent.targetElement` API.
-struct ImagePreviewView: View {
+struct ImagePreview: View {
     let publication: Publication
     let image: ImageContentElement
 
@@ -27,7 +26,6 @@ struct ImagePreviewView: View {
                         .scaledToFit()
                 } else {
                     ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
 
                 Text(image.embeddedLink.href)

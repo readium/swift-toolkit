@@ -6,12 +6,23 @@
 
 import Foundation
 
+private let cssSelectorKey = "cssSelector"
+
 /// HTML extensions for `Locator.Locations`.
 /// https://github.com/readium/architecture/blob/master/models/locators/extensions/html.md
 public extension Locator.Locations {
     /// A CSS Selector.
     var cssSelector: String? {
-        otherLocations["cssSelector"]?.string
+        get {
+            otherLocations[cssSelectorKey]?.string
+        }
+        set {
+            if let newValue {
+                otherLocations[cssSelectorKey] = .string(newValue)
+            } else {
+                otherLocations.removeValue(forKey: cssSelectorKey)
+            }
+        }
     }
 
     /// `partialCFI` is an expression conforming to the "right-hand" side of the EPUB CFI syntax,

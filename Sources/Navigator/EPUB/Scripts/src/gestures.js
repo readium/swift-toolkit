@@ -7,6 +7,7 @@
 import { findDecorationTarget, handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
+import { getCssSelector } from "css-selector-generator";
 
 let isSelecting = false;
 
@@ -128,6 +129,7 @@ function extractTargetElement(element) {
 
   return {
     tag: mediaElement.tagName.toLowerCase(),
+    html: mediaElement.outerHTML,
     src: mediaElement.src || mediaElement.getAttribute("href") || null,
     frame: {
       x: adjustedOrigin.x,
@@ -136,7 +138,7 @@ function extractTargetElement(element) {
       height: adjustedEnd.y - adjustedOrigin.y,
     },
     alt: mediaElement.getAttribute("alt") || null,
-    cssSelector: getCSSSelector(mediaElement),
+    cssSelector: getCssSelector(mediaElement),
   };
 }
 
@@ -152,32 +154,4 @@ function findNearestMediaElement(element) {
     current = current.parentElement;
   }
   return null;
-}
-
-/// Builds a CSS selector that uniquely identifies the given element within
-/// the document.
-function getCSSSelector(element) {
-  if (element.id) {
-    return "#" + CSS.escape(element.id);
-  }
-
-  let parts = [];
-  let current = element;
-  while (current && current !== document.documentElement) {
-    let selector = current.tagName.toLowerCase();
-    if (current.id) {
-      parts.unshift("#" + CSS.escape(current.id));
-      break;
-    }
-    let sibling = current;
-    let nth = 1;
-    while ((sibling = sibling.previousElementSibling)) {
-      if (sibling.tagName === current.tagName) nth++;
-    }
-    selector += ":nth-of-type(" + nth + ")";
-    parts.unshift(selector);
-    current = current.parentElement;
-  }
-
-  return parts.join(" > ");
 }

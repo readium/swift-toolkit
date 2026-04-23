@@ -130,10 +130,10 @@ public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualCont
 public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
     public var locator: Locator
     public var embeddedLink: Link
+    public var attributes: [ContentAttribute]
 
     /// Short piece of text associated with the image.
     public var caption: String?
-    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -145,6 +145,21 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
     public var text: String? {
         // The caption might be a better text description than the accessibility label, when available.
         caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
+    }
+}
+
+/// An SVG image.
+public struct SVGContentElement: Hashable, ContentElement {
+    public var locator: Locator
+    public var attributes: [ContentAttribute]
+
+    /// Raw SVG contents.
+    public var svg: String
+
+    public init(locator: Locator, svg: String, attributes: [ContentAttribute] = []) {
+        self.locator = locator
+        self.svg = svg
+        self.attributes = attributes
     }
 }
 
