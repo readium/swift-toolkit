@@ -149,17 +149,26 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// An SVG image.
-public struct SVGContentElement: Hashable, ContentElement {
+public struct SVGContentElement: Hashable, TextualContentElement {
     public var locator: Locator
     public var attributes: [ContentAttribute]
 
     /// Raw SVG contents.
     public var svg: String
 
-    public init(locator: Locator, svg: String, attributes: [ContentAttribute] = []) {
+    /// Optional human-readable description of the image (e.g. from `<title>`,
+    ///  `<desc>`, `alt` or `title`).
+    public var caption: String?
+
+    public init(locator: Locator, svg: String, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
         self.svg = svg
+        self.caption = caption
         self.attributes = attributes
+    }
+
+    public var text: String? {
+        caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
     }
 }
 

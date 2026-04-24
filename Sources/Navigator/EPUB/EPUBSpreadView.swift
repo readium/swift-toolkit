@@ -266,11 +266,19 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             CGRect(x: x, y: y, width: width, height: height)
         )
 
-        // Build a locator pointing to the element inside the current resource.
-        let resourceLink = spread.first.link
+        // In a two-page FXL spread both resources are loaded in separate
+        // iframes, so we use `resourceHref` to identify the correct reading
+        // order resource.
+        let link = (dict["resourceHref"] as? String)
+            .flatMap { AnyURL(string: $0) }
+            .flatMap { spread.linkWithHREF($0) }
+        guard let link else { return nil }
+
+        // Build a locator pointing to the element inside the resource that
+        // contains it.
         var locator = Locator(
-            href: resourceLink.url(),
-            mediaType: resourceLink.mediaType ?? .xhtml
+            href: link.url(),
+            mediaType: link.mediaType ?? .xhtml
         )
         if let cssSelector = dict["cssSelector"] as? String {
             locator.locations.cssSelector = cssSelector
@@ -286,10 +294,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         locator: Locator,
         json: [String: Any]
     ) -> (any ContentElement)? {
-        guard
-            let tag = json["tag"] as? String,
-            let html = json["html"] as? String
-        else {
+        guard let tag = json["tag"] as? String else {
             return nil
         }
 
@@ -300,8 +305,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             .flatMap { AnyURL(string: $0) }
             .flatMap { viewModel.publicationBaseURL.relativize($0)?.anyURL ?? $0 }
 
-        // Look up the Link in the publication manifest so the client gets
-        // full metadata (media type, etc.). Falls back to a plain Link.
+        // Look up the Link in the publication manifest so the client gets full
+        // metadata (media type, etc.). For resources not in the manifest (e.g.
+        // external http:// images) we synthesise a plain Link.
         let embeddedLink: Link? = src.flatMap {
             viewModel.publication.linkWithHREF($0) ?? Link(href: $0.string)
         }
@@ -319,11 +325,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             }
         }
 
-        switch tag {
-        case "svg":
-            return SVGContentElement(locator: locator, svg: html)
-        default:
-            break
+        // Inline SVG fallback.
+        if tag == "svg", let html = json["html"] as? String {
+            return SVGContentElement(
+                locator: locator,
+                svg: html,
+                caption: json["alt"] as? String
+            )
         }
 
         return nil

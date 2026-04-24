@@ -80,19 +80,8 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 //            return false
 //        })
 
-        // This adapter will automatically turn pages when the user taps the
-        // screen edges or press arrow keys.
-        //
-        // Bind it to the navigator before adding your own observers to prevent
-        // triggering your actions when turning pages.
-        directionalNavigationAdapter = DirectionalNavigationAdapter(
-            pointerPolicy: .init(types: [.mouse, .touch]),
-            animatedTransition: true
-        )
-        directionalNavigationAdapter?.bind(to: navigator)
-
         // Present an image preview when tapping an image element.
-        navigator.addObserver(.tap { [weak self] event in
+        navigator.addObserver(.activate { [weak self] event in
             guard
                 let self,
                 let targetElement = event.targetElement,
@@ -117,6 +106,17 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             searchViewModel.selectedLocator = nil
             return true
         })
+
+        // This adapter will automatically turn pages when the user taps the
+        // screen edges or press arrow keys.
+        //
+        // Bind it to the navigator before adding your own observers to prevent
+        // triggering your actions when turning pages.
+        directionalNavigationAdapter = DirectionalNavigationAdapter(
+            pointerPolicy: .init(types: [.mouse, .touch]),
+            animatedTransition: true
+        )
+        directionalNavigationAdapter?.bind(to: navigator)
 
         // Toggle the navigation bar on tap, if nothing else took precedence.
         navigator.addObserver(.activate { [weak self] _ in

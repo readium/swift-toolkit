@@ -74,6 +74,14 @@ function onPointerEvent(phase, event) {
     phase = "cancel";
   }
 
+  // Looking for the elements is costly, so we avoid doing it on every move event.
+  var interactiveElement;
+  var targetElement;
+  if (phase != "move") {
+    interactiveElement = findNearestInteractiveElement(event.target);
+    targetElement = extractTargetElement(event.target);
+  }
+
   let point = adjustPointToViewport({ x: event.clientX, y: event.clientY });
   let pointerEvent = {
     phase: phase,
@@ -83,8 +91,8 @@ function onPointerEvent(phase, event) {
     x: point.x,
     y: point.y,
     buttons: event.buttons,
-    interactiveElement: findNearestInteractiveElement(event.target),
-    targetElement: extractTargetElement(event.target),
+    interactiveElement: interactiveElement,
+    targetElement: targetElement,
     option: event.altKey,
     control: event.ctrlKey,
     shift: event.shiftKey,
@@ -105,50 +113,68 @@ function onPointerEvent(phase, event) {
   // event.preventDefault();
 }
 
-/// Extracts metadata about the target element for gesture handling.
-///
-/// Returns an object with the element's bounding rectangle, tag name, source
-/// URL, alt text, and a CSS selector. This information is used on the Swift
-/// side to build the appropriate `ContentElement`.
+/**
+ * Extracts metadata about the target element for gesture handling.
+ *
+ * Returns an object with the element's bounding rectangle, tag name, source
+ * URL, alt text, a CSS selector, and the href of the document that contains
+ * the element. This information is used on the Swift side to build the
+ * appropriate `ContentElement`.
+ */
 function extractTargetElement(element) {
   if (!element || !element.getBoundingClientRect) {
     return null;
   }
 
-  let mediaElement = findNearestMediaElement(element);
-  if (!mediaElement) {
+  let imageElement = findNearestImageElement(element);
+  if (!imageElement) {
     return null;
   }
 
-  let rect = mediaElement.getBoundingClientRect();
+  let rect = imageElement.getBoundingClientRect();
+  // Adjust only the origin through the viewport transform; size is already
+  // in viewport-relative units and does not depend on the frame offset.
   let adjustedOrigin = adjustPointToViewport({ x: rect.left, y: rect.top });
-  let adjustedEnd = adjustPointToViewport({
-    x: rect.left + rect.width,
-    y: rect.top + rect.height,
-  });
+
+  let rawSrc =
+    imageElement.getAttribute("src") ||
+    imageElement.getAttribute("href") ||
+    null;
+
+  // Resolve the raw src/href attribute to an absolute URL using the document's
+  // base URI. `getAttribute` returns the literal attribute value (possibly
+  // relative), while we need the absolute form so Swift can relativize it
+  // against the publication base URL to recover the correct manifest href.
+  let src = rawSrc ? new URL(rawSrc, document.baseURI).href : null;
+
+  // `html` is only needed for inline SVGs that have no resolvable `src`.
+  let html = src ? null : imageElement.outerHTML;
 
   return {
-    tag: mediaElement.tagName.toLowerCase(),
-    html: mediaElement.outerHTML,
-    src: mediaElement.src || mediaElement.getAttribute("href") || null,
+    tag: imageElement.tagName.toLowerCase(),
+    html: html,
+    src: src,
+    resourceHref: window.readium?.link?.href ?? null,
     frame: {
       x: adjustedOrigin.x,
       y: adjustedOrigin.y,
-      width: adjustedEnd.x - adjustedOrigin.x,
-      height: adjustedEnd.y - adjustedOrigin.y,
+      width: rect.width,
+      height: rect.height,
     },
-    alt: mediaElement.getAttribute("alt") || null,
-    cssSelector: getCssSelector(mediaElement),
+    alt: imageElement.getAttribute("alt") || null,
+    cssSelector: getCssSelector(imageElement),
   };
 }
 
-/// Walks up the DOM tree from the given element to find the nearest media
-/// element (img, svg, audio, video).
-function findNearestMediaElement(element) {
-  const mediaTags = ["img", "svg", "audio", "video"];
+/**
+ * Walks up the DOM tree from the given element to find the nearest image
+ * element (img, svg).
+ */
+function findNearestImageElement(element) {
+  const imageTags = ["img", "svg"];
   let current = element;
   while (current && current !== document.documentElement) {
-    if (mediaTags.includes(current.tagName.toLowerCase())) {
+    if (imageTags.includes(current.tagName.toLowerCase())) {
       return current;
     }
     current = current.parentElement;
