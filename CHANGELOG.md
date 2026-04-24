@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file. Take a look
 * New `ViewportObservingNavigator` protocol, implemented by both the EPUB and PDF navigators, which exposes information about the current visible portion of the publication (e.g. progression and position ranges).
     * The EPUB navigator's `Viewport` type is now a deprecated typealias for `NavigatorViewport`.
 * The PDF navigator now calls `VisualNavigatorDelegate.navigator(_:shouldNavigateToLink:)` and `NavigatorDelegate.navigator(_:didJumpTo:)` when the user taps an internal link, matching the behavior of the EPUB navigator.
+* The EPUB navigator now populates `PointerEvent.targetElement` when the user taps an image, enabling features such as image zoom. This is an experimental API gated behind `@_spi(ExperimentalTargetElement)`. See [the user guide](docs/Guides/Navigator/EPUB%20Image%20Preview.md) for details (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/747)).
 
 ### Removed
 
