@@ -53,8 +53,8 @@ playground.xcworkspace
 out/
 
 ## Claude Code
-.claude
-CLAUDE.md
+.claude/agent-memory
+.claude/settings.local.json
 
 # DocC generation
 .build-docs
