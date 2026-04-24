@@ -22,11 +22,11 @@ public struct PointerEvent: Equatable {
     public var modifiers: KeyModifiers
 
     /// The content element under the pointer, if recognized by the navigator.
-    public var targetElement: TargetElement?
+    @_spi(ExperimentalTargetElement) public var targetElement: TargetElement?
 
     /// A content element targeted by a pointer event, paired with its
     /// on-screen frame.
-    public struct TargetElement: Equatable {
+    @_spi(ExperimentalTargetElement) public struct TargetElement: Equatable {
         /// Frame of the element relative to the navigator's view.
         public var frame: CGRect
 

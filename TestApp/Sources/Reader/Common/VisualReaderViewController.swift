@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import ReadiumNavigator
+@_spi(ExperimentalTargetElement) import ReadiumNavigator
 import ReadiumShared
 import SwiftUI
 import UIKit
