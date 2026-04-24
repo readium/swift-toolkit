@@ -19,7 +19,25 @@ struct ImagePreview: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
+            List {
+                Section {
+                    LabeledContent("HREF") {
+                        Text(image.embeddedLink.href)
+                    }
+
+                    if let caption = image.caption {
+                        LabeledContent("Caption") {
+                            Text(caption)
+                        }
+                    }
+
+                    if let accessibilityLabel = image.accessibilityLabel {
+                        LabeledContent("Accessibility Label") {
+                            Text(accessibilityLabel)
+                        }
+                    }
+                }
+
                 if let uiImage {
                     Image(uiImage: uiImage)
                         .resizable()
@@ -27,12 +45,7 @@ struct ImagePreview: View {
                 } else {
                     ProgressView()
                 }
-
-                Text(image.embeddedLink.href)
             }
-            .padding()
-            .navigationTitle(image.caption ?? "")
-            .navigationBarTitleDisplayMode(.inline)
         }
         .task {
             let link = image.embeddedLink

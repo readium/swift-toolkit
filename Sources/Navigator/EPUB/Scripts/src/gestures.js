@@ -117,9 +117,9 @@ function onPointerEvent(phase, event) {
  * Extracts metadata about the target element for gesture handling.
  *
  * Returns an object with the element's bounding rectangle, tag name, source
- * URL, alt text, a CSS selector, and the href of the document that contains
- * the element. This information is used on the Swift side to build the
- * appropriate `ContentElement`.
+ * URL, a CSS selector, the href of the document that contains the element,
+ * an accessibility label, and a caption. This information is used on the
+ * Swift side to build the appropriate `ContentElement`.
  */
 function extractTargetElement(element) {
   if (!element || !element.getBoundingClientRect) {
@@ -161,9 +161,49 @@ function extractTargetElement(element) {
       width: rect.width,
       height: rect.height,
     },
-    alt: imageElement.getAttribute("alt") || null,
+    accessibilityLabel: imageElement.getAttribute("aria-label")?.trim() || null,
+    caption: extractCaption(imageElement),
     cssSelector: getCssSelector(imageElement),
   };
+}
+
+/**
+ * Returns a human-readable caption for an image element by checking, in
+ * order: the `alt` attribute, the `title` attribute, the text content of the
+ * first SVG `<title>` child, the text content of the first SVG `<desc>`
+ * child, and the text content of a `<figcaption>` inside a parent `<figure>`.
+ * Returns `null` when none of these are present.
+ *
+ * When `alt` is present — even as an empty string (decorative image) — no
+ * other source is consulted, so that an explicit `alt=""` suppresses fallback
+ * captions rather than incorrectly propagating them.
+ */
+function extractCaption(imageElement) {
+  if (imageElement.hasAttribute("alt")) {
+    const alt = imageElement.getAttribute("alt").trim();
+    return alt || null;
+  }
+
+  const title = imageElement.getAttribute("title")?.trim();
+  if (title) return title;
+
+  const svgTitle = imageElement
+    .querySelector(":scope > title")
+    ?.textContent.trim();
+  if (svgTitle) return svgTitle;
+
+  const svgDesc = imageElement
+    .querySelector(":scope > desc")
+    ?.textContent.trim();
+  if (svgDesc) return svgDesc;
+
+  const figure = imageElement.closest("figure");
+  if (figure) {
+    const figcaption = figure.querySelector("figcaption")?.textContent.trim();
+    if (figcaption) return figcaption;
+  }
+
+  return null;
 }
 
 /**

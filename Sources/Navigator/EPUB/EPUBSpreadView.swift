@@ -312,13 +312,20 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             viewModel.publication.linkWithHREF($0) ?? Link(href: $0.string)
         }
 
+        var attributes: [ContentAttribute] = []
+        if let label = json["accessibilityLabel"] as? String, !label.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibilityLabel, value: label))
+        }
+        let caption = json["caption"] as? String
+
         if let embeddedLink {
             switch tag {
             case "img", "svg":
                 return ImageContentElement(
                     locator: locator,
                     embeddedLink: embeddedLink,
-                    caption: json["alt"] as? String
+                    caption: caption,
+                    attributes: attributes
                 )
             default:
                 break
@@ -330,7 +337,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return SVGContentElement(
                 locator: locator,
                 svg: html,
-                caption: json["alt"] as? String
+                caption: caption,
+                attributes: attributes
             )
         }
 
