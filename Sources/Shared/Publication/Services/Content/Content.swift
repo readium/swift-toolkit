@@ -126,7 +126,7 @@ public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualCont
     }
 }
 
-/// A bitmap image.
+/// An embedded image (bitmap or SVG).
 public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
     public var locator: Locator
     public var embeddedLink: Link
@@ -148,7 +148,7 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
     }
 }
 
-/// An SVG image.
+/// An inline SVG image.
 public struct SVGContentElement: Hashable, TextualContentElement {
     public var locator: Locator
     public var attributes: [ContentAttribute]

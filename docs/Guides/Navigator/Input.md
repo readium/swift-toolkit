@@ -68,10 +68,10 @@ navigator.addObserver(.activate { event in
 
 The `content` property is a **`ContentElement`** value. The following concrete types may be reported:
 
-| Type                      | Description                     | Navigators |
-|---------------------------|---------------------------------|------------|
-| **`ImageContentElement`** | Bitmap image (`<img>`, `<svg>`) | EPUB       |
-| **`SVGContentElement`**   | Inline SVG (`<svg>`)            | EPUB       |
+| Type                      | Description                        | Navigators |
+|---------------------------|------------------------------------|------------|
+| **`ImageContentElement`** | Embedded images (`<img>`, `<svg>`) | EPUB       |
+| **`SVGContentElement`**   | Inline SVG (`<svg>`)               | EPUB       |
 
 `targetElement.frame` gives you the element's on-screen `CGRect` relative to the navigator's view, which you can use to anchor a popover or animate a zoom transition.
 

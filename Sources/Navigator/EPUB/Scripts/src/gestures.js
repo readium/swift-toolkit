@@ -75,6 +75,9 @@ function onPointerEvent(phase, event) {
   }
 
   // Looking for the elements is costly, so we avoid doing it on every move event.
+  // Skipping interactiveElement for move events is intentional: the Swift-side filter
+  // that ignores events on interactive elements is meant to prevent hijacking taps on
+  // links and inputs, not drag/scroll gestures, so move events can safely bypass it.
   var interactiveElement;
   var targetElement;
   if (phase != "move") {
