@@ -712,14 +712,7 @@ private extension EPUBSpreadView {
         }
 
         activityIndicatorView?.removeFromSuperview()
-        let view = UIActivityIndicatorView(style: .medium)
-        view.color = color
-        view.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(view)
-        view.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        view.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        view.startAnimating()
-        activityIndicatorView = view
+        activityIndicatorView = addCenteredActivityIndicator(color: color)
     }
 
     private func setNeedsStopActivityIndicator() {

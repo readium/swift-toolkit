@@ -253,6 +253,10 @@ open class PDFNavigatorViewController:
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
 
+        if let indicator = loadingIndicator {
+            view.bringSubviewToFront(indicator)
+        }
+
         tapGestureController = PDFTapGestureController(
             pdfView: pdfView,
             touchTypes: [.direct, .indirect],
@@ -456,6 +460,9 @@ open class PDFNavigatorViewController:
         }
 
         if currentResourceIndex != index {
+            showLoadingIndicator()
+            defer { hideLoadingIndicator() }
+
             guard let document = await makeDocument(at: url) else {
                 log(.error, "Can't open PDF document at \(url)")
                 return false
@@ -817,6 +824,20 @@ open class PDFNavigatorViewController:
             return false
         }
         return await go(to: previousPosition, options: options)
+    }
+
+    // MARK: - Loading Indicator
+
+    private weak var loadingIndicator: UIActivityIndicatorView?
+
+    private func showLoadingIndicator() {
+        loadingIndicator?.removeFromSuperview()
+        loadingIndicator = view.addCenteredActivityIndicator()
+    }
+
+    private func hideLoadingIndicator() {
+        loadingIndicator?.removeFromSuperview()
+        loadingIndicator = nil
     }
 }
 
