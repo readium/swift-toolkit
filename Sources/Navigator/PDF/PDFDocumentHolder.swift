@@ -21,14 +21,14 @@ final class PDFDocumentHolder {
 extension PDFDocumentHolder: ReadiumShared.PDFDocumentFactory {
     func open(file: FileURL, password: String?) throws -> ReadiumShared.PDFDocument {
         guard let document = document, file.anyURL == href else {
-            throw PDFDocumentError.openFailed
+            throw PDFDocumentError.openFailed(nil)
         }
         return document
     }
 
     func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> ReadiumShared.PDFDocument {
         guard let document = document, self.href == href.anyURL else {
-            throw PDFDocumentError.openFailed
+            throw PDFDocumentError.openFailed(nil)
         }
         return document
     }

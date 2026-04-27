@@ -53,26 +53,46 @@ extension PDFKit.PDFDocument: PDFDocument {
 
 /// Creates a `PDFDocument` using PDFKit.
 public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
+    public init() {}
+
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
         guard let document = PDFKit.PDFDocument(url: file.url) else {
-            throw PDFDocumentError.openFailed
+            throw PDFDocumentError.openFailed(nil)
         }
 
         return try open(document: document, password: password)
     }
 
     public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+        // Fast-path in case the resource actually references a file on the
+        // disk.
         if let file = resource.sourceURL?.fileURL {
             return try await open(file: file, password: password)
         }
 
-        // Unfortunately, PDFKit doesn't support streams, so we need to load the full document in
-        // memory. If this is an issue for you, use `CPDFDocumentFactory` instead.
-        guard
-            let data = try? await resource.read().get(),
-            let document = PDFKit.PDFDocument(data: data)
-        else {
-            throw PDFDocumentError.openFailed
+        // Unfortunately, PDFKit doesn't support streams, so we need to load the
+        // full document in memory. If this is an issue for you, use
+        // `CGPDFDocumentFactory` instead.
+        //
+        // We read chunk by chunk and monitor available memory to avoid OOM
+        // crashes. PDFKit will also need memory to parse the document, so we
+        // require at least 2x the data size to remain available.
+        let data: Data
+        do {
+            data = try await resource.readMonitoringMemory(factor: 1)
+        } catch {
+            switch error {
+            case let .read(error):
+                throw PDFDocumentError.openFailed(error)
+            case let .outOfMemory(estimatedLength: estimatedLength, availableMemory: availableMemory):
+                throw PDFDocumentError.resourceTooLarge(estimatedLength: estimatedLength, availableMemory: availableMemory)
+            case .cancelled:
+                throw CancellationError()
+            }
+        }
+
+        guard let document = PDFKit.PDFDocument(data: data) else {
+            throw PDFDocumentError.openFailed(nil)
         }
 
         return try open(document: document, password: password)
