@@ -13,7 +13,7 @@ import SwiftUI
 /// responsive for large manifests. A `ProgressView` is shown until the result is ready.
 struct JSONView: View {
     /// The JSON dictionary to render.
-    var json: [String: Any]
+    var json: [String: JSONValue]
 
     /// The colorized attributed text; `nil` while the background task is running.
     @State private var attributedText: AttributedString?
@@ -56,9 +56,9 @@ struct JSONView: View {
     /// - **Numbers**: orange
     /// - **Booleans**: purple
     /// - **null**: grey
-    @concurrent private func colorizeJSON(_ json: [String: Any]) async throws -> AttributedString {
+    @concurrent private func colorizeJSON(_ json: [String: JSONValue]) async throws -> AttributedString {
         let data = try JSONSerialization.data(
-            withJSONObject: json,
+            withJSONObject: json.mapValues(\.any),
             options: [.prettyPrinted, .withoutEscapingSlashes]
         )
 

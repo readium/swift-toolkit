@@ -33,7 +33,7 @@ struct PublicationView: View {
                         }
 
                         NavigationLink("JSON Manifest") {
-                            JSONView(json: publication.manifest.json)
+                            JSONView(json: publication.manifest.jsonObject)
                                 .navigationTitle("JSON Manifest")
                         }
                     }
