@@ -37,7 +37,6 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * All public types that parsed or serialized JSON now use the new type-safe `JSONValue` enum instead of `Any` / `[String: Any]`. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
-* New `PDFDocumentError.resourceTooLarge(estimatedLength:availableMemory:)` case, thrown when a PDF resource cannot be loaded into memory safely.
 
 #### Navigator
 
@@ -53,6 +52,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed parsing of URI templates.
     * Fixed `URITemplate` not recognizing `{&...}` (form-style query continuation) expressions.
     * Fixed `URITemplate` expanding a form-style expression (`{?...}` or `{&...}`) to a bare `?` or `&` when none of the listed variables are provided. It now correctly expands to an empty string.
+* PDF loading failures caused by memory limits are now reported through the new `ReadError.outOfMemory` case when a PDF resource cannot be loaded into memory safely, instead of crashing.
 
 #### Navigator
 

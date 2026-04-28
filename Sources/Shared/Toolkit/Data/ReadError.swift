@@ -42,20 +42,22 @@ public enum ReadError: Error {
     ///
     /// Returns `nil` if the error cannot be mapped to a known `ReadError`.
     public static func wrap(_ error: Error) -> ReadError? {
-        if let error = HTTPError.wrap(error) {
-            if case .cancelled = error {
-                return .cancelled
-            }
-            return .access(.http(error))
-        }
-
-        return switch error {
+        switch error {
+        case is CancellationError:
+            return .cancelled
         case let error as CocoaError:
-            wrap(error)
+            return wrap(error)
         case let error as POSIXError:
-            wrap(error)
+            return wrap(error)
         default:
-            nil
+            if let error = HTTPError.wrap(error) {
+                if case .cancelled = error {
+                    return .cancelled
+                }
+                return .access(.http(error))
+            } else {
+                return nil
+            }
         }
     }
 
