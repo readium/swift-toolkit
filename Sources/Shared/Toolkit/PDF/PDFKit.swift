@@ -87,11 +87,10 @@ public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
         // `CGPDFDocumentFactory` instead.
         //
         // We read chunk by chunk and monitor available memory to avoid OOM
-        // crashes. PDFKit will also need memory to parse the document, so we
-        // require at least 2x the data size to remain available.
+        // crashes.
         let data: Data
         do {
-            data = try await resource.readMonitoringMemory(factor: 2)
+            data = try await resource.readMonitoringMemory()
         } catch ReadError.cancelled {
             throw CancellationError()
         } catch {
