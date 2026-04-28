@@ -226,6 +226,7 @@ extension CGPDFDocument: PDFDocument {
 }
 
 /// Creates a `PDFDocument` using Core Graphics.
+@available(*, deprecated, renamed: "PDFKitPDFDocumentFactory", message: "The PDFKitPDFDocumentFactory is more capable")
 public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
     public init() {}
 

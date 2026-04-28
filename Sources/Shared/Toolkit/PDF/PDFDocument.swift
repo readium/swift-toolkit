@@ -60,8 +60,7 @@ public protocol PDFDocumentFactory {
 }
 
 public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
-    /// The default PDF document factory uses Core Graphics.
-    private let factory = CGPDFDocumentFactory()
+    private let factory = PDFKitPDFDocumentFactory()
 
     public init() {}
 

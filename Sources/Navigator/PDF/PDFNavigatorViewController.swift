@@ -79,33 +79,18 @@ open class PDFNavigatorViewController:
     private var swipeLeftGestureRecognizer: UISwipeGestureRecognizer?
     private var swipeRightGestureRecognizer: UISwipeGestureRecognizer?
 
-    private let server: HTTPServer?
-    private let publicationEndpoint: HTTPServerEndpoint?
-    private var publicationBaseURL: HTTPURL!
-
     public init(
         publication: Publication,
         initialLocation: Locator?,
         config: Configuration = .init(),
-        delegate: PDFNavigatorDelegate? = nil,
-        httpServer: HTTPServer
+        delegate: PDFNavigatorDelegate? = nil
     ) throws {
         guard !publication.isRestricted else {
             throw Error.publicationRestricted
         }
 
-        let uuidEndpoint: HTTPServerEndpoint = UUID().uuidString
-        let publicationEndpoint: HTTPServerEndpoint?
-        if publication.baseURL != nil {
-            publicationEndpoint = nil
-        } else {
-            publicationEndpoint = uuidEndpoint
-        }
-
         self.publication = publication
         self.initialLocation = initialLocation
-        server = httpServer
-        self.publicationEndpoint = publicationEndpoint
         self.config = config
         self.delegate = delegate
         editingActions = EditingActionsController(
@@ -121,23 +106,6 @@ open class PDFNavigatorViewController:
 
         super.init(nibName: nil, bundle: nil)
 
-        if let url = publication.baseURL {
-            publicationBaseURL = url
-        } else {
-            publicationBaseURL = try httpServer.serve(
-                at: uuidEndpoint,
-                publication: publication,
-                onFailure: { [weak self] request, error in
-                    DispatchQueue.main.async {
-                        guard let self = self, let href = request.href else {
-                            return
-                        }
-                        self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
-                    }
-                }
-            )
-        }
-
         editingActions.delegate = self
 
         // Wraps the PDF factories of publication services to return the currently opened document
@@ -150,6 +118,17 @@ open class PDFNavigatorViewController:
         }
     }
 
+    @available(*, deprecated, message: "The httpServer is not needed anymore.")
+    public convenience init(
+        publication: Publication,
+        initialLocation: Locator?,
+        config: Configuration = .init(),
+        delegate: PDFNavigatorDelegate? = nil,
+        httpServer: HTTPServer?
+    ) throws {
+        try self.init(publication: publication, initialLocation: initialLocation, config: config, delegate: delegate)
+    }
+
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -157,14 +136,6 @@ open class PDFNavigatorViewController:
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-
-        if let endpoint = publicationEndpoint {
-            do {
-                try server?.remove(at: endpoint)
-            } catch {
-                log(.warning, "Failed to remove the server endpoint \(endpoint): \(error.localizedDescription)")
-            }
-        }
     }
 
     override open func viewDidLoad() {
@@ -453,7 +424,6 @@ open class PDFNavigatorViewController:
     private func go<HREF: URLConvertible>(to href: HREF, pageNumber: Int?, isJump: Bool) async -> Bool {
         guard
             let pdfView = pdfView,
-            let url = publicationBaseURL.resolve(href),
             let index = publication.readingOrder.firstIndexWithHREF(href)
         else {
             return false
@@ -463,8 +433,8 @@ open class PDFNavigatorViewController:
             showLoadingIndicator()
             defer { hideLoadingIndicator() }
 
-            guard let document = await makeDocument(at: url) else {
-                log(.error, "Can't open PDF document at \(url)")
+            let link = publication.readingOrder[index]
+            guard let document = await makeDocument(at: link) else {
                 return false
             }
 
@@ -491,11 +461,21 @@ open class PDFNavigatorViewController:
         return true
     }
 
-    private func makeDocument(at url: AbsoluteURL) async -> PDFKit.PDFDocument? {
-        let task = Task.detached(priority: .userInitiated) {
-            PDFDocument(url: url.url)
+    private func makeDocument(at href: some URLConvertible) async -> PDFKit.PDFDocument? {
+        do {
+            guard
+                let resource = publication.get(href),
+                let document = try await PDFKitPDFDocumentFactory().open(resource: resource, at: href, password: nil) as? PDFKit.PDFDocument
+            else {
+                log(.error, "Can't open PDF document at \(href)")
+                return nil
+            }
+            return document
+
+        } catch {
+            log(.error, "Can't open PDF document at \(href): \(error)")
+            return nil
         }
-        return await task.value
     }
 
     /// Updates the scale factors to match the currently visible pages.
