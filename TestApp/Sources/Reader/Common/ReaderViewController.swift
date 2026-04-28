@@ -106,7 +106,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
             do {
                 try await books.saveProgress(for: bookId, locator: locator)
             } catch {
-                moduleDelegate?.presentError(UserError(error), from: self)
+                moduleDelegate?.presentError(error, from: self)
             }
         }
     }
@@ -120,7 +120,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
     }
 
     func navigator(_ navigator: Navigator, presentError error: NavigatorError) {
-        moduleDelegate?.presentError(UserError(error), from: self)
+        moduleDelegate?.presentError(error, from: self)
     }
 
     func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {

@@ -18,7 +18,7 @@ enum LibraryError: Error {
 }
 
 extension LibraryError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .publicationIsNotValid:
@@ -35,7 +35,7 @@ extension LibraryError: UserErrorConvertible {
                 return "library_error_bookDeletionFailed".localized
             case let .publicationIsRestricted(error):
                 if let error = error as? UserErrorConvertible {
-                    return error.userError().message
+                    return error.userError()?.message
                 } else {
                     return "library_error_publicationIsRestricted".localized
                 }

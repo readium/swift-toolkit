@@ -84,7 +84,7 @@ final class ReaderModule: ReaderModuleAPI {
                 )
                 await present(readerViewController)
             } catch {
-                delegate.presentError(UserError(error), from: navigationController)
+                delegate.presentError(error, from: navigationController)
             }
         }
     }
@@ -116,7 +116,7 @@ extension ReaderModule: ReaderFormatModuleDelegate {
         delegate?.presentAlert(title, message: message, from: viewController)
     }
 
-    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController) {
+    func presentError(_ error: Error, from viewController: UIViewController) {
         delegate?.presentError(error, from: viewController)
     }
 }
