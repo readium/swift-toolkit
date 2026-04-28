@@ -116,18 +116,18 @@ package extension Streamable {
     /// - Throws: `OutOfMemoryError` if memory is insufficient,
     ///  `CancellationError` if cancelled, or `ReadError` if the underlying
     ///   stream fails.
-    func readMonitoringMemory(factor: UInt64 = 2) async throws(ReadMonitoringMemoryError) -> Data {
+    func readMonitoringMemory(factor: Int = 2) async throws(ReadMonitoringMemoryError) -> Data {
         let estimated = await estimatedLength().getOrNil() ?? nil
 
         // `availableMemory` will be 0 on the Simulator.
-        let availableMemory = UInt64(os_proc_available_memory())
+        let availableMemory = os_proc_available_memory()
         if availableMemory > 0, let length = estimated, length > availableMemory / factor {
-            throw .outOfMemory(estimatedLength: length, availableMemory: availableMemory)
+            throw .outOfMemory(estimatedLength: length, availableMemory: UInt64(availableMemory))
         }
 
         var data = Data()
-        if let capacity = estimated {
-            data.reserveCapacity(Int(capacity))
+        if let capacity = estimated.map(Int.init), capacity <= Int.max {
+            data.reserveCapacity(capacity)
         }
 
         var error: ReadMonitoringMemoryError? = nil {
@@ -146,9 +146,9 @@ package extension Streamable {
                 return
             }
 
-            let availableMemory = UInt64(os_proc_available_memory())
-            guard availableMemory == 0 || UInt64(chunk.count) < availableMemory else {
-                error = .outOfMemory(estimatedLength: estimated, availableMemory: availableMemory)
+            let availableMemory = os_proc_available_memory()
+            guard availableMemory == 0 || (data.count + chunk.count) <= availableMemory / factor else {
+                error = .outOfMemory(estimatedLength: estimated, availableMemory: UInt64(availableMemory))
                 return
             }
 

@@ -212,6 +212,8 @@ open class PDFNavigatorViewController:
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
 
+        // The loading indicator may have been added before viewDidLoad fired (e.g. go(to:)
+        // called immediately after init). Re-stack it above the newly inserted PDFView.
         if let indicator = loadingIndicator {
             view.bringSubviewToFront(indicator)
         }
@@ -451,7 +453,7 @@ open class PDFNavigatorViewController:
     private func openDocument<HREF: URLConvertible>(at href: HREF) async -> PDFKit.PDFDocument? {
         let service = publication.pdfDocumentService
 
-        if let cached = service?.cachedDocument(at: href) as? PDFKitDocumentProviding {
+        if let cached = await service?.cachedDocument(at: href) as? PDFKitDocumentProviding {
             return cached.pdfKitDocument
         }
 
@@ -463,7 +465,7 @@ open class PDFNavigatorViewController:
             return nil
         }
 
-        service?.setCachedDocument(opened, at: href)
+        await service?.setCachedDocument(opened, at: href)
 
         return opened
     }

@@ -15,19 +15,18 @@ package protocol PDFDocumentService: PublicationService {
     /// caches the result, and returns it.
     func openDocument<HREF: URLConvertible>(at href: HREF) async throws -> PDFDocument
 
-    /// Synchronous peek at the cached document. Returns `nil` if nothing is cached or the cached
-    /// HREF does not match.
-    func cachedDocument<HREF: URLConvertible>(at href: HREF) -> PDFDocument?
+    /// Returns the cached document if `href` matches, or `nil` otherwise.
+    func cachedDocument<HREF: URLConvertible>(at href: HREF) async -> PDFDocument?
 
     /// Replaces the cached document. Use this to seed the cache (parser) or to override it with
     /// a different concrete type (navigator forcing PDFKit).
-    func setCachedDocument<HREF: URLConvertible>(_ document: PDFDocument?, at href: HREF)
+    func setCachedDocument<HREF: URLConvertible>(_ document: PDFDocument?, at href: HREF) async
 
     /// Clears all cached documents.
-    func removeCachedDocuments()
+    func removeCachedDocuments() async
 }
 
-package final class DefaultPDFDocumentService: PDFDocumentService {
+package actor DefaultPDFDocumentService: PDFDocumentService {
     private let factory: any PDFDocumentFactory
     private let container: Container
     private var cachedHREF: AnyURL?
@@ -48,7 +47,7 @@ package final class DefaultPDFDocumentService: PDFDocumentService {
     }
 
     package func openDocument<HREF: URLConvertible>(at href: HREF) async throws -> PDFDocument {
-        if let cached, cachedHREF == href.anyURL {
+        if let cached, let cachedHREF, cachedHREF.isEquivalentTo(href) {
             return cached
         }
 

@@ -91,7 +91,7 @@ public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
         // require at least 2x the data size to remain available.
         let data: Data
         do {
-            data = try await resource.readMonitoringMemory(factor: 1)
+            data = try await resource.readMonitoringMemory(factor: 2)
         } catch {
             switch error {
             case let .read(error):
