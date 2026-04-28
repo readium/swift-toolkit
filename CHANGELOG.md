@@ -28,15 +28,22 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Carthage is no longer a supported distribution method. Please migrate to Swift Package Manager or CocoaPods.
 
+### Deprecated
+
+* `ReadiumAdapterGCDWebServer` is deprecated. The PDF navigator was the last Readium component requiring an HTTP server, and it no longer does. You can remove the `ReadiumAdapterGCDWebServer` dependency from your project.
+
 ### Changed
 
 #### Shared
 
 * All public types that parsed or serialized JSON now use the new type-safe `JSONValue` enum instead of `Any` / `[String: Any]`. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
+* New `PDFDocumentError.resourceTooLarge(estimatedLength:availableMemory:)` case, thrown when a PDF resource cannot be loaded into memory safely.
 
 #### Navigator
 
 * The `DirectionalNavigationAdapter`'s policies and animated transitions are now mutable, allowing you to update the adapter's behavior after creation.
+* Opening a PDF is now significantly faster: ~99% faster for regular PDFs and ~94% faster for LCP-protected PDFs. Non-protected PDFs no longer have a size cap when loading.
+* The PDF navigator no longer requires an HTTP server. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
 
 ### Fixed
 
