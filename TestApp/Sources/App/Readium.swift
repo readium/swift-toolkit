@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumAdapterGCDWebServer
 import ReadiumNavigator
 import ReadiumShared
 import ReadiumStreamer
@@ -17,7 +16,6 @@ import ReadiumStreamer
 
 final class Readium {
     lazy var httpClient: HTTPClient = DefaultHTTPClient()
-    lazy var httpServer: HTTPServer = GCDHTTPServer(assetRetriever: assetRetriever)
 
     lazy var formatSniffer: FormatSniffer = DefaultFormatSniffer()
 

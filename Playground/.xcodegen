@@ -46,10 +46,6 @@
         },
         {
           "package" : "Readium",
-          "product" : "ReadiumAdapterGCDWebServer"
-        },
-        {
-          "package" : "Readium",
           "product" : "ReadiumOPDS"
         }
       ],

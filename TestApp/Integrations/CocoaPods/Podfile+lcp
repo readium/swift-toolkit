@@ -12,7 +12,6 @@ target 'TestApp' do
   pod 'ReadiumNavigator', '~> VERSION'
   pod 'ReadiumOPDS', '~> VERSION'
   pod 'ReadiumLCP', '~> VERSION'
-  pod 'ReadiumAdapterGCDWebServer', '~> VERSION'
   pod 'R2LCPClient', podspec: 'LCP_URL'
 
   pod 'GRDB.swift', '~> 6.0'

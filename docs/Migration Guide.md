@@ -4,6 +4,21 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Removing the HTTP Server from the PDF Navigator
+
+The PDF navigator no longer requires an HTTP server. The `httpServer` parameter of `PDFNavigatorViewController` is now deprecated and can be removed:
+
+```diff
+ let navigator = try PDFNavigatorViewController(
+     publication: publication,
+     initialLocation: lastReadLocation,
+-    httpServer: GCDHTTPServer.shared
+ )
+```
+
+> [!NOTE]
+> This was the last Readium component using the `ReadiumAdapterGCDWebServer` package. You can remove this dependency from your project.
+
 ### Deprecated Viewport Method in `EPUBNavigatorDelegate`
 
 The following delegate method was removed from `EPUBNavigatorDelegate`.

@@ -10,6 +10,7 @@ import ReadiumInternal
 import ReadiumShared
 import UIKit
 
+@available(*, deprecated, message: "The Readium navigators do not need an HTTP server anymore. This adapter will be removed in a future version of the toolkit.")
 public enum GCDHTTPServerError: Error {
     case failedToStartServer(cause: Error)
     case serverNotStarted
@@ -18,6 +19,7 @@ public enum GCDHTTPServerError: Error {
 }
 
 /// Implementation of `HTTPServer` using ReadiumGCDWebServer under the hood.
+@available(*, deprecated, message: "The Readium navigators do not need an HTTP server anymore. This adapter will be removed in a future version of the toolkit.")
 public class GCDHTTPServer: HTTPServer, Loggable {
     /// The actual underlying HTTP server instance.
     private let server = ReadiumGCDWebServer()
