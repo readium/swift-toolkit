@@ -69,7 +69,7 @@ public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
 
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
         guard let document = PDFKit.PDFDocument(url: file.url) else {
-            throw PDFDocumentError.openFailed(nil)
+            throw PDFDocumentError.openFailed
         }
 
         return try open(document: document, password: password)
@@ -92,19 +92,14 @@ public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
         let data: Data
         do {
             data = try await resource.readMonitoringMemory(factor: 2)
+        } catch ReadError.cancelled {
+            throw CancellationError()
         } catch {
-            switch error {
-            case let .read(error):
-                throw PDFDocumentError.openFailed(error)
-            case let .outOfMemory(estimatedLength: estimatedLength, availableMemory: availableMemory):
-                throw PDFDocumentError.resourceTooLarge(estimatedLength: estimatedLength, availableMemory: availableMemory)
-            case .cancelled:
-                throw CancellationError()
-            }
+            throw PDFDocumentError.reading(error)
         }
 
         guard let document = PDFKit.PDFDocument(data: data) else {
-            throw PDFDocumentError.openFailed(nil)
+            throw PDFDocumentError.openFailed
         }
 
         return try open(document: document, password: password)

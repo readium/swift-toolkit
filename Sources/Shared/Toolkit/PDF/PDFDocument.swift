@@ -11,9 +11,9 @@ public enum PDFDocumentError: Error {
     /// The provided password was incorrect.
     case invalidPassword
     /// Impossible to open the given PDF.
-    case openFailed(Error?)
-    /// The resource is too large to be loaded into memory safely.
-    case resourceTooLarge(estimatedLength: UInt64?, availableMemory: UInt64)
+    case openFailed
+    /// An error occurred while reading the content.
+    case reading(ReadError)
 }
 
 /// Represents a PDF document.
@@ -98,7 +98,7 @@ public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
                 continue
             }
         }
-        throw PDFDocumentError.openFailed(nil)
+        throw PDFDocumentError.openFailed
     }
 }
 

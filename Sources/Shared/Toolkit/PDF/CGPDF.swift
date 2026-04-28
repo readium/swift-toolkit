@@ -232,7 +232,7 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
 
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
         guard let document = CGPDFDocument(file.url as CFURL) else {
-            throw PDFDocumentError.openFailed(nil)
+            throw PDFDocumentError.openFailed
         }
 
         return try open(document: document, password: password)
@@ -314,7 +314,7 @@ public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
             let provider = CGDataProvider(sequentialInfo: contextRef, callbacks: &callbacks),
             let document = UIKit.CGPDFDocument(provider)
         else {
-            throw PDFDocumentError.openFailed(nil)
+            throw PDFDocumentError.openFailed
         }
 
         return try open(document: document, password: password)

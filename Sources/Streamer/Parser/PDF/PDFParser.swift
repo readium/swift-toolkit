@@ -83,6 +83,8 @@ public final class PDFParser: PublicationParser, Loggable {
                     )
                 )
             )
+        } catch let PDFDocumentError.reading(error) {
+            return .failure(.reading(error))
         } catch {
             return .failure(.reading(.wrap(error) ?? .decoding(error)))
         }

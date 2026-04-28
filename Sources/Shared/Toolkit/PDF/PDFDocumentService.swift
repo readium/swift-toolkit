@@ -52,7 +52,7 @@ package actor DefaultPDFDocumentService: PDFDocumentService {
         }
 
         guard let resource = container[href] else {
-            throw PDFDocumentError.openFailed(nil)
+            throw PDFDocumentError.openFailed
         }
 
         let document = try await factory.open(resource: resource, at: href, password: nil)
