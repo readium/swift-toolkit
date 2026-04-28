@@ -70,9 +70,6 @@ open class PDFNavigatorViewController:
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
 
-    /// Holds the currently opened PDF Document.
-    private let documentHolder = PDFDocumentHolder()
-
     // Holds a reference to make sure they are not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
     private var clickGestureController: PDFTapGestureController?
@@ -107,15 +104,6 @@ open class PDFNavigatorViewController:
         super.init(nibName: nil, bundle: nil)
 
         editingActions.delegate = self
-
-        // Wraps the PDF factories of publication services to return the currently opened document
-        // held in `documentHolder` when relevant. This prevents opening several times the same
-        // document, which is useful in particular with `LCPDFPositionService`.
-        for service in publication.findServices(PDFPublicationService.self) {
-            service.pdfFactory = CompositePDFDocumentFactory(factories: [
-                documentHolder, service.pdfFactory,
-            ])
-        }
     }
 
     @available(*, deprecated, message: "The httpServer is not needed anymore.")
@@ -433,13 +421,12 @@ open class PDFNavigatorViewController:
             showLoadingIndicator()
             defer { hideLoadingIndicator() }
 
-            let link = publication.readingOrder[index]
-            guard let document = await makeDocument(at: link) else {
+            guard let document = await openDocument(at: href) else {
+                log(.error, "Can't open PDF document at \(href)")
                 return false
             }
 
             currentResourceIndex = index
-            documentHolder.set(document, at: href)
             pdfView.document = document
             updateScaleFactors(zoomToFit: true)
         }
@@ -461,21 +448,24 @@ open class PDFNavigatorViewController:
         return true
     }
 
-    private func makeDocument(at href: some URLConvertible) async -> PDFKit.PDFDocument? {
-        do {
-            guard
-                let resource = publication.get(href),
-                let document = try await PDFKitPDFDocumentFactory().open(resource: resource, at: href, password: nil) as? PDFKit.PDFDocument
-            else {
-                log(.error, "Can't open PDF document at \(href)")
-                return nil
-            }
-            return document
+    private func openDocument<HREF: URLConvertible>(at href: HREF) async -> PDFKit.PDFDocument? {
+        let service = publication.pdfDocumentService
 
-        } catch {
-            log(.error, "Can't open PDF document at \(href): \(error)")
+        if let cached = service?.cachedDocument(at: href) as? PDFKitDocumentProviding {
+            return cached.pdfKitDocument
+        }
+
+        let factory = PDFKitPDFDocumentFactory()
+        guard
+            let resource = publication.get(href),
+            let opened = try? await factory.open(resource: resource, at: href, password: nil) as? PDFKit.PDFDocument
+        else {
             return nil
         }
+
+        service?.setCachedDocument(opened, at: href)
+
+        return opened
     }
 
     /// Updates the scale factors to match the currently visible pages.

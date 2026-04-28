@@ -7,6 +7,18 @@
 import Foundation
 import PDFKit
 
+/// Allows extracting a `PDFKit.PDFDocument` from any `PDFDocument` implementation that wraps one,
+/// without the caller needing to know about concrete types.
+public protocol PDFKitDocumentProviding {
+    var pdfKitDocument: PDFKit.PDFDocument { get }
+}
+
+extension PDFKit.PDFDocument: PDFKitDocumentProviding {
+    public var pdfKitDocument: PDFKit.PDFDocument {
+        self
+    }
+}
+
 /// Extends PDFKit's `PDFDocument` with our shared `PDFDocument` protocol.
 ///
 /// Unfortunately, PDFKit doesn't support streams, so we need to load the full document in memory.

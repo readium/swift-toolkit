@@ -126,9 +126,10 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                         } else if manifest.conforms(to: .audiobook) {
                             $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
 
-                        } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory = pdfFactory {
-                            $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory(pdfFactory: pdfFactory))
-                            $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
+                        } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory {
+                            $0.setPDFDocumentServiceFactory(DefaultPDFDocumentService.makeFactory(factory: pdfFactory))
+                            $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory())
+                            $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory())
                         }
 
                         // FIXME: WebPositionsService from Kotlin?
