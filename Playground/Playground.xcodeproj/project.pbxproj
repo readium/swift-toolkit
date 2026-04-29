@@ -31,7 +31,6 @@
 		21B9812F732ED2F093918E79 /* Logger+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+Ext.swift"; sourceTree = "<group>"; };
 		2C1CFC0B9AEB966345163620 /* PublicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationView.swift; sourceTree = "<group>"; };
 		3A9F2917BE7D720CB89EBC9C /* UserError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserError.swift; sourceTree = "<group>"; };
-		49AE7091F7FDAB9233952D95 /* swift-toolkit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift-toolkit; path = ..; sourceTree = SOURCE_ROOT; };
 		4DC581D9DDE636037C5FAB4A /* HTMLText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLText.swift; sourceTree = "<group>"; };
 		59844953100C517348EF23D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5BD99839EEEAFBFAF8A2264F /* PublicationMetadataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationMetadataView.swift; sourceTree = "<group>"; };
@@ -43,6 +42,7 @@
 		B77C0B458C816697C5C670E9 /* PlaygroundApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaygroundApp.swift; sourceTree = "<group>"; };
 		BDA9169E926B14087F3B1BA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CCB6D3C4C19C2038573D2B90 /* JSONView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONView.swift; sourceTree = "<group>"; };
+		D4ED8674105B331259C428CB /* swift-toolkit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift-toolkit; path = ..; sourceTree = SOURCE_ROOT; };
 		D608867E2F9CC0B751114DE9 /* A02-ReadMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "A02-ReadMetadata.swift"; sourceTree = "<group>"; };
 		E40DD68F934F5F0D2981ACA1 /* Playground.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Playground.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -129,7 +129,7 @@
 		75054112A41CDCE58ADACF92 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				49AE7091F7FDAB9233952D95 /* swift-toolkit */,
+				D4ED8674105B331259C428CB /* swift-toolkit */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
