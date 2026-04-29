@@ -381,20 +381,20 @@ open class PDFNavigatorViewController:
     private func go(to locator: Locator, isJump: Bool) async -> Bool {
         let locator = publication.normalizeLocator(locator)
 
-        let href: AnyURL? = {
-            if isPDFFile {
-                return publication.readingOrder.first?.url()
-            } else {
-                return publication.readingOrder.firstWithHREF(locator.href)?.url()
-            }
-        }()
-        guard let href = href else {
+        let readingOrderIndex: Int? =
+            if isPDFFile { 0 }
+            else { publication.readingOrder.firstIndexWithHREF(locator.href) }
+
+        guard let readingOrderIndex else {
             return false
         }
 
         return await go(
-            to: href,
-            pageNumber: pageNumber(for: locator),
+            to: publication.readingOrder[readingOrderIndex],
+            pageNumber: pageNumber(
+                for: locator,
+                readingOrderIndex: readingOrderIndex
+            ),
             isJump: isJump
         )
     }
@@ -495,34 +495,13 @@ open class PDFNavigatorViewController:
         }
     }
 
-    private func pageNumber(for locator: Locator) -> Int? {
-        for fragment in locator.locations.fragments {
-            // https://tools.ietf.org/rfc/rfc3778
-            let optionalPageParam = fragment
-                .components(separatedBy: CharacterSet(charactersIn: "&#"))
-                .map { $0.components(separatedBy: "=") }
-                .first { $0.first == "page" && $0.count == 2 }
-            if let pageParam = optionalPageParam, let pageNumber = Int(pageParam[1]) {
-                return pageNumber
-            }
-        }
-
-        guard
-            let positions = positionsByReadingOrder,
-            var position = locator.locations.position
-        else {
-            return nil
-        }
-
-        if
-            publication.readingOrder.count > 1,
-            let index = publication.readingOrder.firstIndexWithHREF(locator.href),
-            let firstPosition = positions[index].first?.locations.position
-        {
-            position = position - firstPosition + 1
-        }
-
-        return position
+    private func pageNumber(for locator: Locator, readingOrderIndex: Int) -> Int? {
+        PDFPageNumberResolver.resolve(
+            from: locator,
+            readingOrderIndex: readingOrderIndex,
+            positionsByReadingOrder: positionsByReadingOrder,
+            documentPageCount: pdfView?.document?.pageCount
+        )
     }
 
     private func locator(to pageNumber: Int) -> Locator? {
