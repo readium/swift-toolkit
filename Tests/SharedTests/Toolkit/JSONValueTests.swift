@@ -8,7 +8,7 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite struct JSONValueTests {
+enum JSONValueTests {
     /// Shared helper used by Decode suites.
     private struct StringItem: JSONValueDecodable, Equatable {
         let value: String
@@ -23,7 +23,7 @@ import Testing
         }
     }
 
-    @Suite struct JSONValueEncodableConformances {
+    struct JSONValueEncodableConformances {
         @Test func string() {
             #expect("hello".jsonValue == .string("hello"))
         }
@@ -84,7 +84,7 @@ import Testing
         }
     }
 
-    @Suite struct JSONValueDecodableConformances {
+    struct JSONValueDecodableConformances {
         @Test func string() throws {
             #expect(try String(json: JSONValue.string("hello")) == "hello")
             #expect(try String(json: JSONValue.integer(42)) == nil)
@@ -115,7 +115,7 @@ import Testing
 
     /// All tests are per-accessor: each verifies the happy path and
     /// representative nil cases for one accessor property.
-    @Suite struct Accessors {
+    struct Accessors {
         @Test func bool() {
             #expect(JSONValue.bool(true).bool == true)
             #expect(JSONValue.bool(false).bool == false)
@@ -158,7 +158,7 @@ import Testing
         }
     }
 
-    @Suite struct FromAny {
+    struct FromAny {
         /// nil input → failable init returns nil (not .null)
         @Test func nilReturnsNil() {
             #expect(JSONValue(nil) == nil)
@@ -245,7 +245,7 @@ import Testing
         }
     }
 
-    @Suite struct AnyConversion {
+    struct AnyConversion {
         @Test func primitives() {
             #expect(JSONValue.null.any is NSNull)
             #expect(JSONValue.bool(true).any as? Bool == true)
@@ -260,7 +260,7 @@ import Testing
         }
     }
 
-    @Suite struct LiteralConformance {
+    struct LiteralConformance {
         @Test func scalarLiterals() {
             #expect(nil as JSONValue == .null)
             #expect(true as JSONValue == .bool(true))
@@ -275,7 +275,7 @@ import Testing
         }
     }
 
-    @Suite struct NonNegative {
+    struct NonNegative {
         @Test func fromInteger() {
             #expect(JSONValue.integer(42).nonNegative() == Int(42))
             #expect(JSONValue.integer(42).nonNegative() == UInt64(42))
@@ -307,7 +307,7 @@ import Testing
         }
     }
 
-    @Suite struct DecodeSingle {
+    struct DecodeSingle {
         @Test func decodesValidValue() throws {
             let result: StringItem? = try JSONValue.string("hello").decode()
             #expect(result == StringItem(value: "hello"))
@@ -339,7 +339,7 @@ import Testing
         }
     }
 
-    @Suite struct DecodeArray {
+    struct DecodeArray {
         @Test func decodesArray() {
             let json = JSONValue.array([.string("a"), .string("b"), .string("c")])
             let result: [StringItem] = json.decode()
@@ -376,7 +376,7 @@ import Testing
         }
     }
 
-    @Suite struct Decode {
+    struct Decode {
         @Test func decodesValidElements() {
             let array: [JSONValue] = [.string("a"), .string("b"), .string("c")]
             let result: [StringItem] = array.decode()
@@ -395,7 +395,7 @@ import Testing
         }
     }
 
-    @Suite struct DictionaryInit {
+    struct DictionaryInit {
         @Test func jsonObjectIsIdentity() {
             let dict: [String: JSONValue] = ["a": .integer(1), "b": .bool(false)]
             #expect(dict.jsonObject == dict)
@@ -427,7 +427,7 @@ import Testing
         }
     }
 
-    @Suite struct Pop {
+    struct Pop {
         @Test func presentKeyReturnsValueAndRemovesIt() {
             var dict: [String: JSONValue] = ["a": .integer(1), "b": .string("x")]
             let value = dict.pop("a")
@@ -443,7 +443,7 @@ import Testing
         }
     }
 
-    @Suite struct OrNullIfEmpty {
+    struct OrNullIfEmpty {
         @Test func emptyArrayReturnsNull() {
             #expect(([] as [String]).orNullIfEmpty == .null)
         }
@@ -462,7 +462,7 @@ import Testing
         }
     }
 
-    @Suite struct RawRepresentableConformances {
+    struct RawRepresentableConformances {
         private enum Color: String, JSONValueEncodable, JSONValueDecodable {
             case red, green, blue
         }
@@ -494,7 +494,7 @@ import Testing
         }
     }
 
-    @Suite struct DateParsing {
+    struct DateParsing {
         @Test func validISO8601StringReturnsDate() {
             let date = JSONValue.string("2019-03-12T07:58:31Z").date
             #expect(date != nil)
@@ -513,7 +513,7 @@ import Testing
         }
     }
 
-    @Suite struct Serialization {
+    struct Serialization {
         private let value: JSONValue = [
             "string": "hello",
             "int": 42,
@@ -562,7 +562,7 @@ import Testing
         }
     }
 
-    @Suite struct Deserialization {
+    struct Deserialization {
         @Test func initFromValidJSONData() throws {
             let data = #"{"key": "value", "count": 3}"#.data(using: .utf8)!
             let value = try JSONValue(jsonData: data)
@@ -672,8 +672,8 @@ import Testing
         }
     }
 
-    @Suite struct ReadResultExtensions {
-        @Suite struct NonOptionalData {
+    enum ReadResultExtensions {
+        struct NonOptionalData {
             @Test func asJSONValue() {
                 let data = #"{"foo": "bar"}"#.data(using: .utf8)!
                 let result: ReadResult<Data> = .success(data)
@@ -701,7 +701,7 @@ import Testing
             }
         }
 
-        @Suite struct OptionalData {
+        struct OptionalData {
             @Test func asJSONValue() {
                 let data = #"{"foo": "bar"}"#.data(using: .utf8)!
                 let result: ReadResult<Data?> = .success(data)

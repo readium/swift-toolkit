@@ -20,7 +20,7 @@ playground:
 	# The repository might be cloned to a different location than "swift-toolkit".
 	# XcodeGen will use the name of the folder in the project, which is not desirable.
 	# This will replace all occurrences of this folder by "swift-toolkit".
-	perl -i -0777 -pe 'if (/name = (\S+); path = \.\.; /) { my $$n = $$1; s/name = \Q$$n\E; path = \.\./name = swift-toolkit; path = ../; s|/\* \Q$$n\E \*/|/* swift-toolkit */|g; }' Playground/Playground.xcodeproj/project.pbxproj
+	perl -i -0777 -pe 'if (/name = "?([^"]+)"?; path = \.\.; /) { my $$n = $$1; s/name = "?\Q$$n\E"?; path = \.\./name = swift-toolkit; path = ../; s|/\* \Q$$n\E \*/|/* swift-toolkit */|g; }' Playground/Playground.xcodeproj/project.pbxproj
 
 .PHONY: podspecs
 podspecs:

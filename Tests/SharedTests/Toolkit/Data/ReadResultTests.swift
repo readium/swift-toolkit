@@ -8,7 +8,7 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite enum ReadResultDataTests {
+enum ReadResultDataTests {
     static let accessError: ReadError = .access(.fileSystem(.fileNotFound(nil)))
 
     @Suite("decode") struct Decode {
@@ -86,7 +86,7 @@ import Testing
     }
 }
 
-@Suite enum ReadResultOptionalDataTests {
+enum ReadResultOptionalDataTests {
     static let accessError: ReadError = .access(.fileSystem(.fileNotFound(nil)))
 
     @Suite("decode") struct Decode {

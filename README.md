@@ -89,6 +89,7 @@ Guides are available to help you make the most of the toolkit.
 * [Integrating the Navigator with SwiftUI](docs/Guides/Navigator/SwiftUI.md) – glue to setup the Navigator in a SwiftUI application
 * [Implementing Highlights](docs/Guides/Navigator/Highlights.md) – add and manage highlights in a publication
 * [Font families in the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md) – support custom font families with reflowable EPUB publications
+* [EPUB image preview](docs/Guides/Navigator/EPUB%20Image%20Preview.md) – detect tapped images and present an image detail view
 
 ### DRM
 

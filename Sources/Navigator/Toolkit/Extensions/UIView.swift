@@ -16,4 +16,20 @@ extension UIView {
             .first { $0 is UIScrollView }
             as? UIScrollView
     }
+
+    /// Creates and animates a standard activity indicator of the given color,
+    /// adds it as a centered subview then returns it.
+    @discardableResult
+    func addCenteredActivityIndicator(color: UIColor? = nil) -> UIActivityIndicatorView {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        if let color {
+            indicator.color = color
+        }
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(indicator)
+        indicator.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+        indicator.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        indicator.startAnimating()
+        return indicator
+    }
 }

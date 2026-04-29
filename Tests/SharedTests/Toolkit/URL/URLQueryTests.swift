@@ -6,40 +6,44 @@
 
 import Foundation
 @testable import ReadiumShared
-import XCTest
+import Testing
 
-class URLQueryTests: XCTestCase {
-    func testParseEmptyQuery() throws {
-        let query = try URLQuery(url: XCTUnwrap(URL(string: "foo")))
-        XCTAssertNil(query)
-    }
+enum URLQueryTests {
+    struct Parsing {
+        @Test("URL without query returns nil")
+        func parseEmptyQuery() throws {
+            let query = try URLQuery(url: #require(URL(string: "foo")))
+            #expect(query == nil)
+        }
 
-    func testGetFirstQueryParameterNamedX() throws {
-        let query = try XCTUnwrap(try URLQuery(
-            url: XCTUnwrap(URL(string: "foo?query=param&fruit=banana&query=other&empty"))
-        ))
+        @Test("first(named:) returns the first matching parameter value")
+        func getFirstQueryParameterNamedX() throws {
+            let query = try #require(URLQuery(
+                url: URL(string: "foo?query=param&fruit=banana&query=other&empty")!
+            ))
+            #expect(query.first(named: "query") == "param")
+            #expect(query.first(named: "fruit") == "banana")
+            #expect(query.first(named: "empty") == nil)
+            #expect(query.first(named: "not-found") == nil)
+        }
 
-        XCTAssertEqual(query.first(named: "query"), "param")
-        XCTAssertEqual(query.first(named: "fruit"), "banana")
-        XCTAssertNil(query.first(named: "empty"))
-        XCTAssertNil(query.first(named: "not-found"))
-    }
+        @Test("all(named:) returns all matching parameter values")
+        func getAllQueryParametersNamedX() throws {
+            let query = try #require(URLQuery(
+                url: URL(string: "foo?query=param&fruit=banana&query=other&empty")!
+            ))
+            #expect(query.all(named: "query") == ["param", "other"])
+            #expect(query.all(named: "fruit") == ["banana"])
+            #expect(query.all(named: "empty") == [])
+            #expect(query.all(named: "not-found") == [])
+        }
 
-    func testGetAllQueryParametersNamedX() throws {
-        let query = try XCTUnwrap(try URLQuery(
-            url: XCTUnwrap(URL(string: "foo?query=param&fruit=banana&query=other&empty"))
-        ))
-
-        XCTAssertEqual(query.all(named: "query"), ["param", "other"])
-        XCTAssertEqual(query.all(named: "fruit"), ["banana"])
-        XCTAssertEqual(query.all(named: "empty"), [])
-        XCTAssertEqual(query.all(named: "not-found"), [])
-    }
-
-    func testQueryParameterArePercentDecoded() throws {
-        let query = try XCTUnwrap(try URLQuery(
-            url: XCTUnwrap(URL(string: "foo?query=hello%20world"))
-        ))
-        XCTAssertEqual(query.first(named: "query"), "hello world")
+        @Test("parameter values are percent-decoded")
+        func queryParameterArePercentDecoded() throws {
+            let query = try #require(URLQuery(
+                url: URL(string: "foo?query=hello%20world")!
+            ))
+            #expect(query.first(named: "query") == "hello world")
+        }
     }
 }

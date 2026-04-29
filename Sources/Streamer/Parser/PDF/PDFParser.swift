@@ -44,42 +44,55 @@ public final class PDFParser: PublicationParser, Loggable {
 
         do {
             let container = SingleResourceContainer(publication: asset)
+            let href = container.entry
             let resource = asset.resource
-            let document = try await pdfFactory.open(resource: resource, at: container.entry, password: nil)
+            let document = try await pdfFactory.open(resource: resource, at: href, password: nil)
             let authors = try await Array(ofNotNil: document.author().map { Contributor(name: $0) })
 
-            return try await .success(Publication.Builder(
-                manifest: Manifest(
-                    metadata: Metadata(
-                        identifier: document.identifier(),
-                        conformsTo: [.pdf],
-                        title: document.title(),
-                        authors: authors,
-                        readingProgression: document.readingProgression() ?? .auto,
-                        numberOfPages: document.pageCount()
-                    ),
-                    readingOrder: [
-                        Link(
-                            href: container.entry.string,
-                            mediaType: .pdf
+            return try await .success(
+                Publication.Builder(
+                    manifest: Manifest(
+                        metadata: Metadata(
+                            identifier: document.identifier(),
+                            conformsTo: [.pdf],
+                            title: document.title(),
+                            authors: authors,
+                            readingProgression: document.readingProgression() ?? .auto,
+                            numberOfPages: document.pageCount()
                         ),
-                    ],
-                    tableOfContents: document.tableOfContents().linksWithDocumentHREF(container.entry)
-                ),
-                container: container,
-                servicesBuilder: PublicationServicesBuilder(
-                    content: DefaultContentService.makeFactory(
-                        resourceContentIteratorFactories: [
-                            PDFResourceContentIterator.Factory(pdfFactory: pdfFactory),
-                        ]
+                        readingOrder: [
+                            Link(
+                                href: href.string,
+                                mediaType: .pdf
+                            ),
+                        ],
+                        tableOfContents: document.tableOfContents().linksWithDocumentHREF(href)
                     ),
-                    cover: document.cover().map(GeneratedCoverService.makeFactory(cover:)),
-                    positions: PDFPositionsService.makeFactory(),
-                    search: StringSearchService.makeFactory(
-                        extractorFactory: PDFResourceContentExtractorFactory()
+                    container: container,
+                    servicesBuilder: PublicationServicesBuilder(
+                        content: DefaultContentService.makeFactory(
+                            resourceContentIteratorFactories: [
+                                PDFResourceContentIterator.Factory(pdfFactory: pdfFactory),
+                            ]
+                        ),
+                        cover: document.cover().map(GeneratedCoverService.makeFactory(cover:)),
+                        positions: PDFPositionsService.makeFactory(),
+                        search: StringSearchService.makeFactory(
+                            extractorFactory: PDFResourceContentExtractorFactory()
+                        ),
+                        setup: {
+                            $0.setPDFDocumentServiceFactory(
+                                DefaultPDFDocumentService.makeFactory(
+                                    factory: pdfFactory,
+                                    cached: (href: href, document: document)
+                                )
+                            )
+                        }
                     )
                 )
-            ))
+            )
+        } catch let PDFDocumentError.reading(error) {
+            return .failure(.reading(error))
         } catch {
             return .failure(.reading(.wrap(error) ?? .decoding(error)))
         }

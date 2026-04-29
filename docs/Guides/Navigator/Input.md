@@ -45,6 +45,38 @@ navigator.addObserver(.click(modifiers: [.shift]) { event in
 })
 ```
 
+## Identifying the tapped element
+
+When supported by the navigator, a `PointerEvent` carries a `targetElement` property describing the content element under the pointer. This lets you respond differently depending on *what* the user tapped.
+
+Combine `targetElement` with an `.activate` observer to handle specific element types:
+
+```swift
+@_spi(ExperimentalTargetElement) import ReadiumNavigator
+
+navigator.addObserver(.activate { event in
+    guard
+        let targetElement = event.targetElement,
+        let image = targetElement.content as? ImageContentElement
+    else {
+        return false
+    }
+    // Handle the tapped image.
+    return true
+})
+```
+
+The `content` property is a **`ContentElement`** value. The following concrete types may be reported:
+
+| Type                      | Description                        | Navigators |
+|---------------------------|------------------------------------|------------|
+| **`ImageContentElement`** | Embedded images (`<img>`, `<svg>`) | EPUB       |
+| **`SVGContentElement`**   | Inline SVG (`<svg>`)               | EPUB       |
+
+`targetElement.frame` gives you the element's on-screen `CGRect` relative to the navigator's view, which you can use to anchor a popover or animate a zoom transition.
+
+See [EPUB Image Preview](EPUB%20Image%20Preview.md) for a full example.
+
 ## Observing keyboard events
 
 Similarly, the `KeyObserver` implementation provides an easy method to intercept keyboard events.

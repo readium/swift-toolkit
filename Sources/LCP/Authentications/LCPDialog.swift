@@ -213,9 +213,10 @@ public struct LCPDialog: View {
 
         if let onForgotPassphrase = onForgotPassphrase {
             Section {
-                Button(ReadiumLCPLocalizedStringKey("dialog.actions.recoverPassphrase"), role: .destructive) {
+                Button(ReadiumLCPLocalizedStringKey("dialog.actions.recoverPassphrase")) {
                     onForgotPassphrase()
                 }
+                .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
             }
         }

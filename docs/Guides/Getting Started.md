@@ -26,10 +26,6 @@ The toolkit has been designed following these core tenets:
 * `ReadiumOPDS` parses [OPDS catalog feeds](https://opds.io) (both OPDS 1 and 2).
 * [`ReadiumLCP` downloads and decrypts LCP-protected publications](Readium%20LCP.md).
 
-### Adapters to third-party dependencies
-
-* `ReadiumAdapterGCDWebServer` provides an HTTP server built with [GCDWebServer](https://github.com/swisspol/GCDWebServer), used by the PDF navigator.
-
 ## Overview of the shared models (`ReadiumShared`)
 
 The Readium toolkit provides models used as exchange types between packages.

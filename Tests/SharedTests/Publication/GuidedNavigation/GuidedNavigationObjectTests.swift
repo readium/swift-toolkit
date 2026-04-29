@@ -7,7 +7,7 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite enum GuidedNavigationObjectTests {
+enum GuidedNavigationObjectTests {
     @Suite("Parsing") struct Parsing {
         @Test("minimal JSON with only textref")
         func minimalTextref() throws {

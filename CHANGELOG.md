@@ -15,10 +15,22 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * Added support for SVG covers in `ResourceCoverService`. SVG images can now be used as publication covers and are rendered to bitmaps (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/751)).
+* `Publication` has a new experimental `coverData(accepting:)` API that returns the raw bytes and media type of the cover, useful for storing the original cover without re-encoding.
+
+#### Navigator
+
+* New `ViewportObservingNavigator` protocol, implemented by both the EPUB and PDF navigators, which exposes information about the current visible portion of the publication (e.g. progression and position ranges).
+    * The EPUB navigator's `Viewport` type is now a deprecated typealias for `NavigatorViewport`.
+* The PDF navigator now calls `VisualNavigatorDelegate.navigator(_:shouldNavigateToLink:)` and `NavigatorDelegate.navigator(_:didJumpTo:)` when the user taps an internal link, matching the behavior of the EPUB navigator.
+* The EPUB navigator now populates `PointerEvent.targetElement` when the user taps an image, enabling features such as image zoom. This is an experimental API gated behind `@_spi(ExperimentalTargetElement)`. See [the user guide](docs/Guides/Navigator/EPUB%20Image%20Preview.md) for details (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/747)).
 
 ### Removed
 
 * Carthage is no longer a supported distribution method. Please migrate to Swift Package Manager or CocoaPods.
+
+### Deprecated
+
+* `ReadiumAdapterGCDWebServer` is deprecated. The PDF navigator was the last Readium component requiring an HTTP server, and it no longer does. You can remove the `ReadiumAdapterGCDWebServer` dependency from your project.
 
 ### Changed
 
@@ -29,23 +41,28 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The `DirectionalNavigationAdapter`'s policies and animated transitions are now mutable, allowing you to update the adapter's behavior after creation.
+* Opening a PDF is now significantly faster: ~99% faster for regular PDFs and ~94% faster for LCP-protected PDFs. Non-protected PDFs no longer have a size cap when loading.
+* The PDF navigator no longer requires an HTTP server. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
 
 ### Fixed
 
 #### Shared
 
+* Fixed `Publication.coverFitting(maxSize:)` producing incorrectly scaled images with pixel offsets.
 * Fixed parsing of URI templates.
     * Fixed `URITemplate` not recognizing `{&...}` (form-style query continuation) expressions.
     * Fixed `URITemplate` expanding a form-style expression (`{?...}` or `{&...}`) to a bare `?` or `&` when none of the listed variables are provided. It now correctly expands to an empty string.
+* PDF loading failures caused by memory limits are now reported through the new `ReadError.outOfMemory` case when a PDF resource cannot be loaded into memory safely, instead of crashing.
 
 #### Navigator
 
 * [#737](https://github.com/readium/swift-toolkit/issues/737) Improved page turn animations in the EPUB navigator.
-    * Fixed screen glitches when turning with animations disabled.
+    * Fixed screen glitches when animations are disabled.
     * A slide animation is now used when navigating between adjacent resources.
 * The EPUB navigator now reports a continuous `locator.locations.totalProgression` value, interpolated from the actual scroll position within the resource's global progression range. Previously, the value was quantized to the nearest position in the position list.
 * Fixed a race condition in `EPUBNavigatorViewController` where rapidly calling `apply(decorations:in:)` for the same group could cause multiple decorations to appear simultaneously.
 * [#721](https://github.com/readium/swift-toolkit/issues/721) Fixed position of EPUB decorations when using the paragraph indent preference.
+* Fixed the EPUB navigator reverting to the previous EPUB preferences after a screen rotation for previously loaded resources.
 
 #### Streamer
 

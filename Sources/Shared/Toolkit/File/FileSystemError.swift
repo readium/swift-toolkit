@@ -23,67 +23,14 @@ public enum FileSystemError: Error {
     /// Wraps a native error into a `FileSystemError`, if possible.
     ///
     /// Returns `nil` if the error is not related to the file system.
+    @available(*, deprecated, message: "Use ReadError.wrap() instead")
     public static func wrap(_ error: Error) -> FileSystemError? {
-        if let error = error as? CocoaError {
-            return switch error.code {
-            case .fileNoSuchFile, .fileReadNoSuchFile:
-                .fileNotFound(error)
-
-            case .fileReadNoPermission, .fileWriteNoPermission:
-                .forbidden(error)
-
-            case .fileWriteOutOfSpace:
-                .outOfSpace(error)
-
-            case
-                .fileLocking,
-                .fileReadCorruptFile,
-                .fileReadInvalidFileName,
-                .fileReadTooLarge,
-                .fileReadUnknown,
-                .fileReadUnsupportedScheme,
-                .fileWriteFileExists,
-                .fileWriteInapplicableStringEncoding,
-                .fileWriteInvalidFileName,
-                .fileWriteUnknown,
-                .fileWriteUnsupportedScheme,
-                .fileWriteVolumeReadOnly:
-                .io(error)
-
-            default:
-                nil
-            }
-        } else if let error = error as? POSIXError {
-            return switch error.code {
-            case .ENOENT:
-                .fileNotFound(error)
-            case .EPERM, .EACCES, .EAUTH:
-                .forbidden(error)
-            case .ENOSPC, .EDQUOT:
-                .outOfSpace(error)
-            case
-                .EIO,
-                .ENXIO,
-                .EBADF,
-                .EBUSY,
-                .EEXIST,
-                .ENOTDIR,
-                .EISDIR,
-                .ENFILE,
-                .EMFILE,
-                .EFBIG,
-                .EROFS,
-                .EMLINK,
-                .ENAMETOOLONG,
-                .ELOOP,
-                .ENOTEMPTY,
-                .ESTALE,
-                .ENOLCK:
-                .io(error)
-            default:
-                nil
-            }
+        guard
+            case let .access(error) = ReadError.wrap(error),
+            case let .fileSystem(error) = error
+        else {
+            return nil
         }
-        return nil
+        return error
     }
 }

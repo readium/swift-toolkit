@@ -15,9 +15,12 @@ struct UserError: LocalizedError {
     let message: String
     let cause: Error?
 
-    init(_ error: Error) {
+    init?(_ error: Error) {
         if let error = error as? UserErrorConvertible {
-            self = error.userError()
+            guard let error = error.userError() else {
+                return nil
+            }
+            self = error
         } else {
             self.init("error".localized, cause: error)
         }
@@ -31,11 +34,15 @@ struct UserError: LocalizedError {
         self.cause = cause
     }
 
-    init(
+    init?(
         cause: Error? = nil,
-        message: () -> String
+        message: () -> String?
     ) {
-        self.init(message(), cause: cause)
+        guard let message = message() else {
+            return nil
+        }
+
+        self.init(message, cause: cause)
     }
 
     var errorDescription: String? {
@@ -43,22 +50,24 @@ struct UserError: LocalizedError {
     }
 }
 
-/// Convenience protocol for an object (usually an ``Error``) that can be converted
-/// into a ``UserError``.
+/// Convenience protocol for an object (usually an ``Error``) that can be
+/// converted into a ``UserError``.
 protocol UserErrorConvertible {
-    func userError() -> UserError
+    func userError() -> UserError?
 }
 
 extension UserError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         self
     }
 }
 
 extension UIViewController {
     /// Presents an alert describing the given `UserError`.
-    func alert<T: UserErrorConvertible>(_ error: T) {
-        let error = error.userError()
+    func alert<T: UserErrorConvertible>(_ error: T?) {
+        guard let error = error?.userError() else {
+            return
+        }
 
         var dumpDescription = ""
         dump(error, to: &dumpDescription)

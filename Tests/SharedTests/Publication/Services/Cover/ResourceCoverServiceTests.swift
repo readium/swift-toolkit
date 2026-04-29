@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import ReadiumShared
+@_spi(Experimental) @testable import ReadiumShared
 import Testing
 import UIKit
 
@@ -13,43 +13,24 @@ private let coverURL = fixtures.url(for: "cover.jpg")
 private let cover = UIImage(contentsOfFile: coverURL.path)!
 private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
 
-@Suite struct ResourceCoverServiceTests {
+enum ResourceCoverServiceTests {
     @Suite("cover()") struct Cover {
         @Test func prioritizesExplicitCoverLinkOverReadingOrder() async throws {
-            let pub = try Publication(
-                manifest: Manifest(
-                    metadata: Metadata(title: "title"),
-                    readingOrder: [Link(href: "page1.jpg", mediaType: .jpeg)],
-                    resources: [Link(href: "cover2.jpg", mediaType: .jpeg, rels: [.cover])]
-                ),
-                container: CompositeContainer(
-                    SingleResourceContainer(
-                        resource: FileResource(file: fixtures.url(for: "cover.jpg")),
-                        at: #require(AnyURL(string: "page1.jpg"))
-                    ),
-                    SingleResourceContainer(
-                        resource: FileResource(file: fixtures.url(for: "cover2.jpg")),
-                        at: #require(AnyURL(string: "cover2.jpg"))
-                    )
-                )
+            let pub = makePublication(
+                readingOrder: [Link(href: "cover.jpg", mediaType: .jpeg)],
+                resources: [Link(href: "cover2.jpg", mediaType: .jpeg, rel: .cover)]
             )
             let image = try await pub.cover().get()
             #expect(image?.pngData() == cover2.pngData())
         }
 
         @Test func fallsBackToNextCoverLinkOnMissingResource() async throws {
-            let pub = try Publication(
-                manifest: Manifest(
-                    metadata: Metadata(title: "title"),
-                    resources: [
-                        Link(href: "missing.jpg", mediaType: .jpeg, rels: [.cover]),
-                        Link(href: "cover2.jpg", mediaType: .jpeg, rels: [.cover]),
-                    ]
-                ),
-                container: SingleResourceContainer(
-                    resource: FileResource(file: fixtures.url(for: "cover2.jpg")),
-                    at: #require(AnyURL(string: "cover2.jpg"))
-                )
+            let pub = makePublication(
+                readingOrder: [],
+                resources: [
+                    Link(href: "missing.jpg", mediaType: .jpeg, rel: .cover),
+                    Link(href: "cover2.jpg", mediaType: .jpeg, rel: .cover),
+                ]
             )
             let image = try await pub.cover().get()
             #expect(image?.pngData() == cover2.pngData())
@@ -82,13 +63,16 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
             #expect(image?.pngData() == cover.pngData())
         }
 
-        @Test func usesSVGCoverLink() async throws {
+        @Test func capsSVGCoverAtDefaultMaxSize() async throws {
+            // SVG canvas is 1400×2100, which exceeds defaultCoverMaxSize.
+            // cover() must cap it to the default maximum.
             let pub = makePublication(
-                resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
-                containerURL: fixtures.url(for: "cover-svg.svg"),
-                containerHref: "cover-svg.svg"
+                readingOrder: [],
+                resources: [Link(href: "cover.svg", mediaType: .svg, rel: .cover)]
             )
-            #expect(try await pub.cover().get() != nil)
+            let image = try #require(try await pub.cover().get())
+            #expect(image.size.width == 800)
+            #expect(image.size.height == 1200)
         }
 
         @Test func returnsNilWhenNoCoverImageFound() async throws {
@@ -104,15 +88,19 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
         @Test func doesNotUpscaleBitmap() async throws {
             // cover.jpg is 598×800; requesting a larger max size must not upscale it.
             let size = CGSize(width: 1000, height: 1200)
-            let image = try await makePublication().coverFitting(maxSize: size).get()
+            let pub = makePublication(
+                readingOrder: [],
+                resources: [Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover)]
+            )
+            let image = try await pub.coverFitting(maxSize: size).get()
             #expect(image?.pngData() == cover.pngData())
         }
 
         @Test func scalesDownBitmap() async throws {
             let size = CGSize(width: 100, height: 100)
             let pub = makePublication(
-                readingOrder: [Link(href: "cover.jpg", mediaType: .jpeg)],
-                resources: []
+                readingOrder: [],
+                resources: [Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover)]
             )
             let image = try await pub.coverFitting(maxSize: size).get()
             #expect(image?.pngData() == cover.scaleToFit(maxSize: size).pngData())
@@ -121,9 +109,8 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
         @Test func scalesDownSVG() async throws {
             let size = CGSize(width: 75, height: 75)
             let pub = makePublication(
-                resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
-                containerURL: fixtures.url(for: "cover-svg.svg"),
-                containerHref: "cover-svg.svg"
+                readingOrder: [],
+                resources: [Link(href: "cover.svg", mediaType: .svg, rel: .cover)]
             )
             let image = try #require(try await pub.coverFitting(maxSize: size).get())
             #expect(image.size.width == 50)
@@ -131,38 +118,149 @@ private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
         }
 
         @Test func doesNotUpscaleSVG() async throws {
-            // SVG canvas is 100×150; requesting a larger max size must not upscale it.
+            // SVG canvas is 1400×2100; requesting a larger max size must not upscale it.
             let pub = makePublication(
-                resources: [Link(href: "cover-svg.svg", mediaType: .svg, rels: [.cover])],
-                containerURL: fixtures.url(for: "cover-svg.svg"),
-                containerHref: "cover-svg.svg"
+                readingOrder: [],
+                resources: [Link(href: "cover.svg", mediaType: .svg, rel: .cover)]
             )
-            let image = try #require(try await pub.coverFitting(maxSize: CGSize(width: 200, height: 300)).get())
-            #expect(image.size.width == 100)
-            #expect(image.size.height == 150)
+            let image = try #require(try await pub.coverFitting(maxSize: CGSize(width: 3000, height: 3000)).get())
+            #expect(image.size.width == 1400)
+            #expect(image.size.height == 2100)
+        }
+    }
+
+    @Suite("coverData(accepting:)") struct CoverData {
+        @Test func returnsDataForExplicitCoverLinkWithMatchingType() async throws {
+            let pub = makePublication(
+                readingOrder: [],
+                resources: [Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover)]
+            )
+
+            let result = try await pub.coverData(accepting: [.jpeg])
+            #expect(result?.mediaType == .jpeg)
+            #expect(result?.data == fixtures.data(at: "cover.jpg"))
+        }
+
+        @Test func returnsMatchingTypeEvenWhenListedLast() async throws {
+            let pub = makePublication(
+                readingOrder: [],
+                resources: [
+                    Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover),
+                    Link(href: "cover.png", mediaType: .png, rel: .cover),
+                ]
+            )
+
+            let result = try await pub.coverData(accepting: [.png, .jpeg])
+            #expect(result?.mediaType == .png)
+            #expect(result?.data == fixtures.data(at: "cover.png"))
+        }
+
+        @Test func skipsExplicitCoverWhenTypeNotAccepted() async throws {
+            let pub = makePublication(
+                readingOrder: [],
+                resources: [Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover)]
+            )
+            // cover is JPEG but only PNG is accepted
+            let result = try await pub.coverData(accepting: [.png])
+            #expect(result == nil)
+        }
+
+        @Test func fallsBackToNextCoverLinkWhenFirstTypeNotAccepted() async throws {
+            // First cover link is PNG, which is not in the accepted list
+            let pub = makePublication(
+                readingOrder: [],
+                resources: [
+                    Link(href: "cover.png", mediaType: .png, rel: .cover),
+                    Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover),
+                ]
+            )
+            let result = try await pub.coverData(accepting: [.jpeg])
+            #expect(result?.mediaType == .jpeg)
+            #expect(result?.data == fixtures.data(at: "cover.jpg"))
+        }
+
+        @Test func fallsBackToNextCoverLinkWhenFirstResourceMissing() async throws {
+            // First cover link type is accepted but the resource is absent from the container.
+            let pub = makePublication(
+                readingOrder: [],
+                resources: [
+                    Link(href: "missing.jpg", mediaType: .jpeg, rel: .cover),
+                    Link(href: "cover.jpg", mediaType: .jpeg, rel: .cover),
+                ]
+            )
+            let result = try await pub.coverData(accepting: [.jpeg])
+            #expect(result?.mediaType == .jpeg)
+            #expect(result?.data == fixtures.data(at: "cover.jpg"))
+        }
+
+        @Test func fallsBackToReadingOrderBitmapWhenNoCoverLink() async throws {
+            let pub = makePublication(
+                readingOrder: [Link(href: "cover.jpg", mediaType: .jpeg)],
+                resources: []
+            )
+            let result = try await pub.coverData(accepting: [.jpeg])
+            #expect(result?.mediaType == .jpeg)
+            #expect(result?.data == fixtures.data(at: "cover.jpg"))
+        }
+
+        @Test func returnsSVGDataWhenAccepted() async throws {
+            let pub = makePublication(
+                readingOrder: [],
+                resources: [Link(href: "cover.svg", mediaType: .svg, rel: .cover)]
+            )
+            let result = try await pub.coverData(accepting: [.svg])
+            #expect(result?.mediaType == .svg)
+            #expect(result?.data == fixtures.data(at: "cover.svg"))
+        }
+
+        @Test func fallsBackToAlternatesOfFirstReadingOrderItem() async throws {
+            let pub = makePublication(
+                readingOrder: [
+                    Link(
+                        href: "chapter1.xhtml",
+                        mediaType: .xhtml,
+                        alternates: [Link(href: "cover.jpg", mediaType: .jpeg)]
+                    ),
+                ],
+                resources: []
+            )
+            let result = try await pub.coverData(accepting: [.jpeg])
+            #expect(result?.mediaType == .jpeg)
+            #expect(result?.data == fixtures.data(at: "cover.jpg"))
+        }
+
+        @Test func returnsNilWhenNoCoverFound() async throws {
+            let pub = makePublication(
+                readingOrder: [Link(href: "chapter1.xhtml", mediaType: .xhtml)],
+                resources: []
+            )
+            let result = try await pub.coverData(accepting: [.jpeg, .png])
+            #expect(result == nil)
         }
     }
 }
 
 private func makePublication(
-    readingOrder: [Link] = [],
-    resources: [Link] = [Link(href: "cover.jpg", mediaType: .jpeg, rels: [.cover])],
-    cover: CoverServiceFactory? = nil,
-    containerURL: FileURL? = nil,
-    containerHref: String = "cover.jpg"
+    readingOrder: [Link],
+    resources: [Link]
 ) -> Publication {
-    var builder = PublicationServicesBuilder()
-    if let cover { builder.setCoverServiceFactory(cover) }
+    var links = readingOrder + resources
+    links.append(contentsOf: readingOrder.flatMap(\.alternates))
+    links.append(contentsOf: resources.flatMap(\.alternates))
+
     return Publication(
         manifest: Manifest(
             metadata: Metadata(title: "title"),
             readingOrder: readingOrder,
             resources: resources
         ),
-        container: SingleResourceContainer(
-            resource: FileResource(file: containerURL ?? coverURL),
-            at: AnyURL(string: containerHref)!
-        ),
-        servicesBuilder: builder
+        container: CompositeContainer(
+            links.map { link in
+                SingleResourceContainer(
+                    resource: FileResource(file: fixtures.url(for: link.href)),
+                    at: link.url()
+                )
+            }
+        )
     )
 }

@@ -16,9 +16,12 @@ protocol EPUBSpreadProtocol {
     /// Return the number of positions contained in the spread.
     func positionCount(in readingOrder: ReadingOrder, positionsByReadingOrder: [[Locator]]) -> Int
 
+    /// Returns the link in the spread matching the given `href`.
+    func linkWithHREF(_ href: some URLConvertible) -> Link?
+
     /// Returns a JSON representation of the links in the spread.
     ///
-    /// The JSON is an array of link objects in reading progression order.
+    /// The JSON is an array of link objects in reading order.
     /// Each link object contains:
     ///   - link: Link object of the resource in the Publication
     ///   - url: Full URL to the resource.
@@ -69,6 +72,10 @@ enum EPUBSpread: EPUBSpreadProtocol {
 
     func positionCount(in readingOrder: ReadingOrder, positionsByReadingOrder: [[Locator]]) -> Int {
         spread.positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
+    }
+
+    func linkWithHREF(_ href: some URLConvertible) -> Link? {
+        spread.linkWithHREF(href)
     }
 
     func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [JSONValue] {
@@ -230,6 +237,13 @@ struct EPUBSingleSpread: EPUBSpreadProtocol, Loggable {
         positionsByReadingOrder.getOrNil(resource.index)?.count ?? 0
     }
 
+    func linkWithHREF(_ href: some URLConvertible) -> Link? {
+        guard resource.link.url().isEquivalentTo(href) else {
+            return nil
+        }
+        return resource.link
+    }
+
     func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [JSONValue] {
         [
             .object(resource.json(
@@ -285,6 +299,16 @@ struct EPUBDoubleSpread: EPUBSpreadProtocol, Loggable {
 
     func contains(index: ReadingOrder.Index) -> Bool {
         first.index == index || second.index == index
+    }
+
+    func linkWithHREF(_ href: some URLConvertible) -> Link? {
+        if first.link.url().isEquivalentTo(href) {
+            return first.link
+        } else if second.link.url().isEquivalentTo(href) {
+            return second.link
+        } else {
+            return nil
+        }
     }
 
     func positionCount(in readingOrder: ReadingOrder, positionsByReadingOrder: [[Locator]]) -> Int {

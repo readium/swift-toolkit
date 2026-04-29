@@ -4,7 +4,6 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumAdapterGCDWebServer
 import ReadiumNavigator
 import ReadiumShared
 import ReadiumStreamer
@@ -16,14 +15,12 @@ import UIKit
 
     let memoryTracker = MemoryTracker()
     let httpClient: HTTPClient
-    let httpServer: HTTPServer
     let assetRetriever: AssetRetriever
     let publicationOpener: PublicationOpener
 
     init() {
         httpClient = DefaultHTTPClient()
         assetRetriever = AssetRetriever(httpClient: httpClient)
-        httpServer = GCDHTTPServer(assetRetriever: assetRetriever)
 
         publicationOpener = PublicationOpener(
             parser: DefaultPublicationParser(
@@ -70,8 +67,7 @@ import UIKit
     func pdfNavigator(for publication: Publication) throws -> PDFNavigatorViewController {
         let navigator = try PDFNavigatorViewController(
             publication: publication,
-            initialLocation: nil,
-            httpServer: httpServer
+            initialLocation: nil
         )
         memoryTracker.track(navigator)
         return navigator

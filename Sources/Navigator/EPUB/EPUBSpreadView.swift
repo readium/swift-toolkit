@@ -239,7 +239,110 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
 
         event.location = convertPointToNavigatorSpace(event.location)
+
+        if let targetElement = targetElement(from: json["targetElement"]) {
+            event.targetElement = targetElement
+        }
+
         delegate?.spreadView(self, didReceive: event)
+    }
+
+    /// Parses the target element JSON produced by `extractTargetElement()` in
+    /// gestures.js and builds a `PointerEvent.TargetElement` with coordinates
+    /// converted to the spread view's coordinate space.
+    private func targetElement(from json: Any?) -> PointerEvent.TargetElement? {
+        guard
+            let dict = json as? [String: Any],
+            let frameDict = dict["frame"] as? [String: Any],
+            let x = frameDict["x"] as? Double,
+            let y = frameDict["y"] as? Double,
+            let width = frameDict["width"] as? Double,
+            let height = frameDict["height"] as? Double
+        else {
+            return nil
+        }
+
+        let frame = convertRectToNavigatorSpace(
+            CGRect(x: x, y: y, width: width, height: height)
+        )
+
+        // In a two-page FXL spread both resources are loaded in separate
+        // iframes, so we use `resourceHref` to identify the correct reading
+        // order resource.
+        let link = (dict["resourceHref"] as? String)
+            .flatMap { AnyURL(string: $0) }
+            .flatMap { spread.linkWithHREF($0) }
+        guard let link else { return nil }
+
+        // Build a locator pointing to the element inside the resource that
+        // contains it.
+        var locator = Locator(
+            href: link.url(),
+            mediaType: link.mediaType ?? .xhtml
+        )
+        if let cssSelector = dict["cssSelector"] as? String {
+            locator.locations.cssSelector = cssSelector
+        }
+
+        guard let content = contentElement(locator: locator, json: dict) else {
+            return nil
+        }
+        return PointerEvent.TargetElement(frame: frame, content: content)
+    }
+
+    private func contentElement(
+        locator: Locator,
+        json: [String: Any]
+    ) -> (any ContentElement)? {
+        guard let tag = json["tag"] as? String else {
+            return nil
+        }
+
+        // Relativize the src URL against the publication base URL so it
+        // becomes a publication-relative href. External URLs (http://) or
+        // already-relative URLs fall back to the raw value.
+        let src: AnyURL? = (json["src"] as? String)
+            .flatMap { AnyURL(string: $0) }
+            .flatMap { viewModel.publicationBaseURL.relativize($0)?.anyURL ?? $0 }
+
+        // Look up the Link in the publication manifest so the client gets full
+        // metadata (media type, etc.). For resources not in the manifest (e.g.
+        // external http:// images) we synthesise a plain Link.
+        let embeddedLink: Link? = src.flatMap {
+            viewModel.publication.linkWithHREF($0) ?? Link(href: $0.string)
+        }
+
+        var attributes: [ContentAttribute] = []
+        if let label = json["accessibilityLabel"] as? String, !label.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibilityLabel, value: label))
+        }
+        let caption = json["caption"] as? String
+
+        if let embeddedLink {
+            switch tag {
+            case "img", "svg":
+                return ImageContentElement(
+                    locator: locator,
+                    embeddedLink: embeddedLink,
+                    caption: caption,
+                    attributes: attributes
+                )
+            default:
+                break
+            }
+        }
+
+        // Inline SVG fallback.
+        if tag == "svg", let html = json["html"] as? String {
+            return SVGContentElement(
+                locator: locator,
+                svg: html,
+                caption: caption,
+                attributes: attributes
+            )
+        }
+
+        return nil
     }
 
     /// Converts the given JavaScript point into a point in the webview's coordinate space.
@@ -609,14 +712,7 @@ private extension EPUBSpreadView {
         }
 
         activityIndicatorView?.removeFromSuperview()
-        let view = UIActivityIndicatorView(style: .medium)
-        view.color = color
-        view.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(view)
-        view.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        view.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        view.startAnimating()
-        activityIndicatorView = view
+        activityIndicatorView = addCenteredActivityIndicator(color: color)
     }
 
     private func setNeedsStopActivityIndicator() {
@@ -709,7 +805,6 @@ private extension PointerEvent {
             modifiers: KeyModifiers(json: json)
         )
         // FIXME:
-//        targetElement = dict["targetElement"] as? String ?? ""
 //        interactiveElement = dict["interactiveElement"] as? String
     }
 }

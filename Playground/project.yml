@@ -28,8 +28,6 @@ targets:
       - package: Readium
         product: ReadiumNavigator
       - package: Readium
-        product: ReadiumAdapterGCDWebServer
-      - package: Readium
         product: ReadiumOPDS
     settings:
       SWIFT_APPROACHABLE_CONCURRENCY: Yes

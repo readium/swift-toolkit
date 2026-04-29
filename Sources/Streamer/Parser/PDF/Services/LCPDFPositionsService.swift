@@ -8,15 +8,17 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 
-final class LCPDFPositionsService: PositionsService, PDFPublicationService, Loggable {
+/// Generates positions for an LCPDF publication by opening each PDF resource
+/// to get its page count.
+///
+/// Requires the publication to have a ``PDFDocumentService``.
+final class LCPDFPositionsService: PositionsService, Loggable {
     private let readingOrder: [Link]
-    private let container: Container
-    var pdfFactory: PDFDocumentFactory
+    private let publication: Weak<Publication>
 
-    init(readingOrder: [Link], container: Container, pdfFactory: PDFDocumentFactory) {
+    init(readingOrder: [Link], publication: Weak<Publication>) {
         self.readingOrder = readingOrder
-        self.container = container
-        self.pdfFactory = pdfFactory
+        self.publication = publication
     }
 
     func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
@@ -24,12 +26,15 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
     }
 
     private lazy var positionsByReadingOrderTask: Task<ReadResult<[[Locator]]>, Never> = Task {
+        guard let pdfDocumentService = self.publication.ref?.pdfDocumentService else {
+            return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFPositionsService")))
+        }
+
         // Calculates the page count of each resource from the reading order.
         let resources = await readingOrder.asyncMap { link -> (Int, Link) in
             let href = link.url()
             guard
-                let resource = container[href],
-                let document = try? await pdfFactory.open(resource: resource, at: href, password: nil),
+                let document = try? await pdfDocumentService.openDocument(at: href),
                 let pageCount = try? await document.pageCount()
             else {
                 log(.warning, "Can't get the number of pages from PDF document at \(link)")
@@ -71,12 +76,11 @@ final class LCPDFPositionsService: PositionsService, PDFPublicationService, Logg
         }
     }
 
-    static func makeFactory(pdfFactory: PDFDocumentFactory) -> (PublicationServiceContext) -> LCPDFPositionsService? {
+    static func makeFactory() -> (PublicationServiceContext) -> LCPDFPositionsService? {
         { context in
             LCPDFPositionsService(
                 readingOrder: context.manifest.readingOrder,
-                container: context.container,
-                pdfFactory: pdfFactory
+                publication: context.publication
             )
         }
     }

@@ -8,7 +8,7 @@
 import ReadiumShared
 import Testing
 
-@Suite enum EPUBSpreadTests {
+enum EPUBSpreadTests {
     @Suite("Single pages") struct SinglePages {
         @Test("with an empty reading order")
         func emptyReadingOrder() {
@@ -268,8 +268,8 @@ import Testing
         }
     }
 
-    @Suite enum Properties {
-        @Suite struct SingleSpread {
+    enum Properties {
+        struct SingleSpread {
             @Test func readingOrderIndices() {
                 let spread = EPUBSpread.single(EPUBSingleSpread(
                     resource: EPUBSpreadResource(index: 3, link: link("p.html"))
@@ -294,7 +294,7 @@ import Testing
             }
         }
 
-        @Suite struct DoubleSpread {
+        struct DoubleSpread {
             @Test func readingOrderIndices() {
                 let spread = EPUBSpread.double(EPUBDoubleSpread(
                     first: EPUBSpreadResource(index: 2, link: link("p1.html")),
@@ -345,7 +345,7 @@ import Testing
         }
     }
 
-    @Suite struct PositionCount {
+    struct PositionCount {
         @Test("for a single spread")
         func single() {
             let readingOrder: ReadingOrder = [
@@ -404,7 +404,7 @@ import Testing
         }
     }
 
-    @Suite struct FirstIndexWithReadingOrderIndex {
+    struct FirstIndexWithReadingOrderIndex {
         @Test("finds the spread index containing a reading order index")
         func findsSpreadIndex() {
             let spreads: [EPUBSpread] = [

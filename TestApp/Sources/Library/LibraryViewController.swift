@@ -65,7 +65,7 @@ class LibraryViewController: UIViewController, Loggable {
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 if case let .failure(error) = completion {
-                    self.libraryDelegate?.presentError(UserError(error), from: self)
+                    self.libraryDelegate?.presentError(error, from: self)
                 }
             } receiveValue: { newBooks in
                 self.books = newBooks
@@ -212,7 +212,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
             do {
                 try await library.importPublications(from: urls, sender: self)
             } catch {
-                libraryDelegate?.presentError(UserError(error), from: self)
+                libraryDelegate?.presentError(error, from: self)
             }
         }
     }
@@ -304,7 +304,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
                 }
                 libraryDelegate.libraryDidSelectPublication(pub, book: book)
             } catch {
-                libraryDelegate.presentError(UserError(error), from: self)
+                libraryDelegate.presentError(error, from: self)
             }
         }
     }
@@ -324,7 +324,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
                 do {
                     try await self.library.remove(book)
                 } catch {
-                    self.libraryDelegate?.presentError(UserError(error), from: self)
+                    self.libraryDelegate?.presentError(error, from: self)
                 }
             }
         })
@@ -347,7 +347,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
                 pubMetadataViewController.modalPresentationStyle = .popover
                 self.navigationController?.pushViewController(pubMetadataViewController, animated: true)
             } catch {
-                libraryDelegate?.presentError(UserError(error), from: self)
+                libraryDelegate?.presentError(error, from: self)
             }
         }
     }

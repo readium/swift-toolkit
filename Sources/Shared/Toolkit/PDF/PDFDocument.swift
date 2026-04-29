@@ -12,6 +12,8 @@ public enum PDFDocumentError: Error {
     case invalidPassword
     /// Impossible to open the given PDF.
     case openFailed
+    /// An error occurred while reading the content.
+    case reading(ReadError)
 }
 
 /// Represents a PDF document.
@@ -58,8 +60,7 @@ public protocol PDFDocumentFactory {
 }
 
 public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
-    /// The default PDF document factory uses Core Graphics.
-    private let factory = CGPDFDocumentFactory()
+    private let factory = PDFKitPDFDocumentFactory()
 
     public init() {}
 
@@ -73,6 +74,7 @@ public class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
 }
 
 /// A PDF document factory which will iterate over a list of factories until one works.
+@available(*, deprecated, message: "Not used anymore")
 public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
     private let factories: [PDFDocumentFactory]
 
@@ -106,6 +108,7 @@ public class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
 /// example, if a PDF document was opened by a PDF Navigator, we can reuse its instance when used by
 /// a PositionsService. In this case, the PDF Navigator can overwrite the `pdfFactory` property
 /// of all the services conforming to `PDFPublicationService`.
+@available(*, deprecated, message: "Not used anymore")
 public protocol PDFPublicationService: AnyObject, PublicationService {
     /// Factory used by the publication service to open PDF documents.
     var pdfFactory: PDFDocumentFactory { get set }
