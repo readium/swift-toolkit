@@ -13,12 +13,18 @@ public protocol ResourceContentExtractor {
     func extractText(of resource: Resource) async -> ReadResult<String>
 }
 
+@available(*, unavailable, renamed: "ResourceContentExtractor")
+public typealias _ResourceContentExtractor = ResourceContentExtractor
+
 /// Creates a `ResourceContentExtractor` for a given resource and media type.
 public protocol ResourceContentExtractorFactory {
     /// Creates a `ResourceContentExtractor` instance for the given `resource`.
     /// Returns nil if the resource format is not supported.
     func makeExtractor(for resource: Resource, mediaType: MediaType) -> ResourceContentExtractor?
 }
+
+@available(*, unavailable, renamed: "ResourceContentExtractorFactory")
+public typealias _ResourceContentExtractorFactory = ResourceContentExtractorFactory
 
 /// Default `ResourceContentExtractorFactory` supporting HTML resources.
 public class DefaultResourceContentExtractorFactory: ResourceContentExtractorFactory {
@@ -32,6 +38,9 @@ public class DefaultResourceContentExtractorFactory: ResourceContentExtractorFac
         }
     }
 }
+
+@available(*, unavailable, renamed: "DefaultResourceContentExtractorFactory")
+public typealias _DefaultResourceContentExtractorFactory = DefaultResourceContentExtractorFactory
 
 /// `ResourceContentExtractor` implementation for HTML resources.
 class HTMLResourceContentExtractor: ResourceContentExtractor {
