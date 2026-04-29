@@ -20,9 +20,12 @@ struct UserError: LocalizedError {
     let cause: Error?
 
     /// Creates a `UserError` from any `Error`.
-    init(_ error: Error) {
+    init?(_ error: Error) {
         if let error = error as? UserErrorConvertible {
-            self = error.userError
+            guard let error = error.userError else {
+                return nil
+            }
+            self = error
         } else {
             self.init(error.localizedDescription, cause: error)
         }
@@ -53,30 +56,41 @@ struct UserError: LocalizedError {
 /// Convenience protocol for an object (usually an ``Error``) that can be
 /// converted into a ``UserError``.
 protocol UserErrorConvertible {
-    var message: String { get }
-    var cause: (any Error)? { get }
+    var userErrorMessage: String? { get }
+    var userErrorCause: (any Error)? { get }
 }
 
 extension UserErrorConvertible {
-    var userError: UserError {
-        UserError(message, cause: cause)
+    var userError: UserError? {
+        guard let message = userErrorMessage else {
+            return nil
+        }
+        return UserError(message, cause: userErrorCause)
     }
 }
 
 extension UserErrorConvertible where Self: Error {
-    var cause: Error? {
+    var userErrorCause: (any Error)? {
         self
     }
 }
 
-extension UserError: UserErrorConvertible {}
+extension UserError: UserErrorConvertible {
+    var userErrorMessage: String? {
+        message
+    }
+
+    var userErrorCause: (any Error)? {
+        cause
+    }
+}
 
 extension String: UserErrorConvertible {
-    var message: String {
+    var userErrorMessage: String? {
         self
     }
 
-    var cause: (any Error)? {
+    var userErrorCause: (any Error)? {
         nil
     }
 }
