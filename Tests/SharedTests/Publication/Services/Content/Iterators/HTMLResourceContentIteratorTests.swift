@@ -432,6 +432,88 @@ struct HTMLResourceContentIteratorTests {
         #expect(result == nil)
     }
 
+    struct AudioVideoFallbackContent {
+        @Test func audioWithOnlyFallbackTextProducesNoElement() async throws {
+            let html = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <audio>
+                    <p>audio fallback text</p>
+                </audio>
+            </body>
+            </html>
+            """
+
+            let result = try await makeIterator(html).next()
+            #expect(result == nil)
+        }
+
+        @Test func audioWithSourceAndFallbackTextEmitsOnlyAudioElement() async throws {
+            let html = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <audio>
+                    <source src="audio.mp3" type="audio/mpeg" />
+                    <p>audio fallback text</p>
+                </audio>
+            </body>
+            </html>
+            """
+
+            let iter = makeIterator(html)
+            let first = try await iter.next()
+            #expect(first?.equatable() == AudioContentElement(
+                locator: makeLocator(progression: 0.0, selector: "html > body > audio"),
+                embeddedLink: Link(href: "dir/audio.mp3", mediaType: .mp3),
+                attributes: []
+            ).equatable())
+            let second = try await iter.next()
+            #expect(second == nil)
+        }
+
+        @Test func videoWithOnlyFallbackTextProducesNoElement() async throws {
+            let html = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <video>
+                    <p>video fallback text</p>
+                </video>
+            </body>
+            </html>
+            """
+
+            let result = try await makeIterator(html).next()
+            #expect(result == nil)
+        }
+
+        @Test func videoWithSourceAndFallbackTextEmitsOnlyVideoElement() async throws {
+            let html = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <video>
+                    <source src="video.mp4" type="video/mp4" />
+                    <p>video fallback text</p>
+                </video>
+            </body>
+            </html>
+            """
+
+            let iter = makeIterator(html)
+            let first = try await iter.next()
+            #expect(first?.equatable() == VideoContentElement(
+                locator: makeLocator(progression: 0.0, selector: "html > body > video"),
+                embeddedLink: Link(href: "dir/video.mp4", mediaType: MediaType("video/mp4")),
+                attributes: []
+            ).equatable())
+            let second = try await iter.next()
+            #expect(second == nil)
+        }
+    }
+
     struct CSSSelectorIDOptimization {
         @Test func imageInsideNamedParentUsesParentIDInSelector() async throws {
             let html = """

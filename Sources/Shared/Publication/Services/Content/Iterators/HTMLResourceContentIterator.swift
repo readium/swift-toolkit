@@ -225,12 +225,22 @@ public class HTMLResourceContentIterator: ContentIterator {
 
         private var selectorGenerator = CSSSelectorGenerator()
 
+        /// Stack of ancestor elements whose subtrees should be skipped during
+        /// content extraction (e.g. audio/video whose children are fallback content).
+        private var skippedAncestors: [Element] = []
+
+        private var isInsideSkippedElement: Bool {
+            !skippedAncestors.isEmpty
+        }
+
         func head(_ node: Node, _ depth: Int) throws {
             if let node = node as? Element {
                 let parent = ParentElement(element: node, cssSelector: selectorGenerator.cssSelector(for: node))
                 if node.isBlock() {
                     flushText()
-                    breadcrumbs.append(parent)
+                    if !isInsideSkippedElement {
+                        breadcrumbs.append(parent)
+                    }
                 }
 
                 let tag = node.tagNameNormal()
@@ -266,6 +276,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
                 } else if tag == "audio" || tag == "video" {
                     flushText()
+                    skippedAncestors.append(node)
 
                     let link: Link? = try {
                         if let href = try node.srcRelativeToHREF(baseHREF) {
@@ -308,6 +319,8 @@ public class HTMLResourceContentIterator: ContentIterator {
 
         func tail(_ node: Node, _ depth: Int) throws {
             if let node = node as? TextNode {
+                guard !isInsideSkippedElement else { return }
+
                 guard let wholeText = node.getWholeText().orNilIfBlank() else {
                     return
                 }
@@ -323,9 +336,15 @@ public class HTMLResourceContentIterator: ContentIterator {
                 try appendNormalisedText(text)
 
             } else if let node = node as? Element {
-                if node.isBlock() {
+                if skippedAncestors.last === node {
+                    skippedAncestors.removeLast()
+                }
+
+                if node.isBlock(), !isInsideSkippedElement {
                     assert(breadcrumbs.last?.element == node)
-                    flushText()
+                    if skippedAncestors.last !== node {
+                        flushText()
+                    }
                     breadcrumbs.removeLast()
                 }
             }
