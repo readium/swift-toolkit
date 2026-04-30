@@ -18,6 +18,10 @@ struct SearchServiceTestConfig: CustomTestStringConvertible {
     let serviceFactory: SearchServiceFactory
 
     /// Whether the service supports matching results spanning multiple
+    /// elements within the same resource (e.g., across `<p>` boundaries).
+    let supportsCrossElementSearch: Bool
+
+    /// Whether the service supports matching results spanning multiple
     /// resources.
     let supportsCrossResourceSearch: Bool
 
@@ -44,7 +48,7 @@ struct SearchServiceTestConfig: CustomTestStringConvertible {
 /// **Fixture layout:**
 ///
 /// `search-reflowable.epub` (3 chapters):
-/// - chapter1: "Alice went to wonderland. The café was lovely." + `<img alt="invisible alt text"/>`
+/// - chapter1: "Alice went to wonderland. The café was lovely." + `<img alt="invisible alt text"/>` + `<p>The quick</p><p>brown fox.</p>` (two paragraphs for cross-element test)
 /// - chapter2: "ALICE found a naïve cat on 2024-01-15." + `<audio fallback>` + "The sun" (ends with "sun" for cross-resource test)
 /// - chapter3: "rise greeted alice who likes wonderland very much." (starts with "rise" for cross-resource test)
 ///
@@ -60,6 +64,7 @@ struct SearchServiceTests {
         .init(
             testDescription: "StringSearchService",
             serviceFactory: StringSearchService.makeFactory(),
+            supportsCrossElementSearch: false,
             supportsCrossResourceSearch: false,
             supportsCaseSensitivity: true,
             supportsDiacriticSensitivity: true,
@@ -101,7 +106,7 @@ struct SearchServiceTests {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "wonderland")
 
-            #expect(results.count == 2)
+            try #require(results.count == 2)
             #expect(results[0].href.string == "EPUB/chapter1.xhtml")
             #expect(results[1].href.string == "EPUB/chapter3.xhtml")
         }
@@ -113,7 +118,7 @@ struct SearchServiceTests {
             let pub = try await openPublication(.fxl, config: config)
             let results = try await search(pub, query: "Bella")
 
-            #expect(results.count == 3)
+            try #require(results.count == 3)
             #expect(results[0].href.string == "EPUB/page2.xhtml")
             #expect(results[1].href.string == "EPUB/page3.xhtml")
             #expect(results[2].href.string == "EPUB/page4.xhtml")
@@ -130,7 +135,7 @@ struct SearchServiceTests {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "sunrise")
 
-            #expect(results.count == 1)
+            try #require(results.count == 1)
             #expect(results[0].href.string == "EPUB/chapter2.xhtml")
         }
 
@@ -142,8 +147,25 @@ struct SearchServiceTests {
             let pub = try await openPublication(.fxl, config: config)
             let results = try await search(pub, query: "named Bella")
 
-            #expect(results.count == 1)
+            try #require(results.count == 1)
             #expect(results[0].href.string == "EPUB/page1.xhtml")
+        }
+    }
+
+    struct CrossElementSearch {
+        /// "quick brown" is split across two `<p>` elements in chapter1
+        /// (`<p>The quick</p><p>brown fox.</p>`). It never appears within a
+        /// single element, so only a service with a cross-element algorithm can
+        /// find it.
+        @Test(arguments: configs)
+        func crossElementSearch(config: SearchServiceTestConfig) async throws {
+            guard config.supportsCrossElementSearch else { return }
+            let pub = try await openPublication(.reflowable, config: config)
+            let results = try await search(pub, query: "quick brown")
+
+            try #require(results.count == 1)
+            #expect(results[0].href.string == "EPUB/chapter1.xhtml")
+            #expect(results[0].text.highlight == "quick brown")
         }
     }
 
@@ -156,7 +178,7 @@ struct SearchServiceTests {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "alice", options: .init(caseSensitive: false))
 
-            #expect(results.count == 3)
+            try #require(results.count == 3)
             #expect(results[0].href.string == "EPUB/chapter1.xhtml")
             #expect(results[0].text.highlight == "Alice")
             #expect(results[1].href.string == "EPUB/chapter2.xhtml")
@@ -173,7 +195,7 @@ struct SearchServiceTests {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "alice", options: .init(caseSensitive: true))
 
-            #expect(results.count == 1)
+            try #require(results.count == 1)
             #expect(results[0].href.string == "EPUB/chapter3.xhtml")
             #expect(results[0].text.highlight == "alice")
         }
@@ -187,7 +209,7 @@ struct SearchServiceTests {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "cafe", options: .init(diacriticSensitive: false))
 
-            #expect(results.count == 1)
+            try #require(results.count == 1)
             #expect(results[0].href.string == "EPUB/chapter1.xhtml")
             #expect(results[0].text.highlight == "café")
         }
@@ -215,7 +237,7 @@ struct SearchServiceTests {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "Alice", options: .init(exact: true))
 
-            #expect(results.count == 1)
+            try #require(results.count == 1)
             #expect(results[0].href.string == "EPUB/chapter1.xhtml")
             #expect(results[0].text.highlight == "Alice")
         }
@@ -230,7 +252,7 @@ struct SearchServiceTests {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: #"\d{4}-\d{2}-\d{2}"#, options: .init(regularExpression: true))
 
-            #expect(results.count == 1)
+            try #require(results.count == 1)
             #expect(results[0].href.string == "EPUB/chapter2.xhtml")
             #expect(results[0].text.highlight == "2024-01-15")
         }
@@ -260,7 +282,19 @@ struct SearchServiceTests {
 
             let first = try #require(results.first { $0.href.string == "EPUB/chapter3.xhtml" })
             #expect(first.text.highlight?.lowercased() == "rise greeted")
-            #expect(first.text.before == nil || first.text.before!.coalescingWhitespaces().isEmpty)
+            #expect(first.text.before == nil)
+        }
+
+        /// A match at the very end of a resource should have nil `after`.
+        @Test(arguments: configs)
+        func snippetNoAfterAtResourceEnd(config: SearchServiceTestConfig) async throws {
+            let pub = try await openPublication(.reflowable, config: config)
+            // chapter2 ends with "The sun"
+            let results = try await search(pub, query: "sun", options: .init(caseSensitive: false))
+
+            let first = try #require(results.first { $0.href.string == "EPUB/chapter2.xhtml" })
+            #expect(first.text.highlight?.lowercased() == "sun")
+            #expect(first.text.after == nil)
         }
     }
 

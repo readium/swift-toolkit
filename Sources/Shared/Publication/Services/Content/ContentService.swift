@@ -12,12 +12,13 @@ public typealias ContentServiceFactory = (PublicationServiceContext) -> ContentS
 public protocol ContentService: PublicationService {
     /// Creates a `Content` starting from the given `start` location.
     ///
-    /// The implementation must be fast and non-blocking. Do the actual extraction inside the
-    /// `Content` implementation.
+    /// The implementation must be fast and non-blocking. Do the actual
+    /// extraction inside the `Content` implementation.
     func content(from start: Locator?) -> Content?
 }
 
-/// Default implementation of `ContentService`, delegating the content parsing to `ResourceContentIteratorFactory`.
+/// Default implementation of `ContentService`, delegating the content parsing
+/// to `ResourceContentIteratorFactory`.
 public class DefaultContentService: ContentService {
     private let publication: Weak<Publication>
     private let resourceContentIteratorFactories: [ResourceContentIteratorFactory]
@@ -64,8 +65,8 @@ public class DefaultContentService: ContentService {
 // MARK: Publication Helpers
 
 public extension Publication {
-    /// Creates a [Content] starting from the given `start` location, or the beginning of the
-    /// publication when missing.
+    /// Creates a `Content` starting from the given `start` location, or the
+    /// beginning of the publication when missing.
     func content(from start: Locator? = nil) -> Content? {
         findService(ContentService.self)?.content(from: start)
     }

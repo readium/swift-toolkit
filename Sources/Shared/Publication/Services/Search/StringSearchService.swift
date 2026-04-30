@@ -205,9 +205,17 @@ public class StringSearchService: SearchService {
                 after.append(char)
             }
 
+            // Trim if the entire prefix/suffix is whitespace
+            if text[..<range.lowerBound].allSatisfy(\.isWhitespace) {
+                before = ""
+            }
+            if text[range.upperBound...].allSatisfy(\.isWhitespace) {
+                after = ""
+            }
+
             return Locator.Text(
-                after: after,
-                before: before,
+                after: after.orNilIfEmpty(),
+                before: before.orNilIfEmpty(),
                 highlight: String(text[range])
             )
         }
