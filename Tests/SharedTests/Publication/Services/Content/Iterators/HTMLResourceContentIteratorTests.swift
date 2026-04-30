@@ -48,10 +48,13 @@ struct HTMLResourceContentIteratorTests {
         #expect(back?.equatable() == sampleElements[0])
     }
 
-    @Test(arguments: zip([0.5, 0.21, 0.81], [2, 1, 4]))
-    func startingFromProgression(progression: Double, elementIndex: Int) async throws {
+    @Test(arguments: zip(
+        [0.5, 0.21, 0.81],
+        [sampleElements[2], sampleElements[1], sampleElements[4]]
+    ))
+    func startingFromProgression(progression: Double, expected: AnyEquatableContentElement) async throws {
         let result = try await makeIterator(sampleHTML, start: makeLocator(progression: progression)).next()
-        #expect(result?.equatable() == sampleElements[elementIndex])
+        #expect(result?.equatable() == expected)
     }
 
     @Test func startingFromCSSSelector() async throws {
@@ -358,6 +361,77 @@ struct HTMLResourceContentIteratorTests {
         #expect(result == nil)
     }
 
+    @Test func iteratingOverTextNodesLocatedAroundANestedBlockElement() async throws {
+        let html = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+            <div id="a">begin a <div id="b">in b</div> end a</div>
+            <div id="c">in c</div>
+        </body>
+        </html>
+        """
+
+        let expectedElements: [AnyEquatableContentElement] = [
+            TextContentElement(
+                locator: makeLocator(progression: 0.0, selector: "#a", highlight: "begin a"),
+                role: .body,
+                segments: [
+                    TextContentElement.Segment(
+                        locator: makeLocator(progression: 0.0, selector: "#a", highlight: "begin a"),
+                        text: "begin a",
+                        attributes: []
+                    ),
+                ],
+                attributes: []
+            ).equatable(),
+            TextContentElement(
+                locator: makeLocator(progression: 0.25, selector: "#b", before: "begin a ", highlight: "in b"),
+                role: .body,
+                segments: [
+                    TextContentElement.Segment(
+                        locator: makeLocator(progression: 0.25, selector: "#b", before: "begin a ", highlight: "in b"),
+                        text: "in b",
+                        attributes: []
+                    ),
+                ],
+                attributes: []
+            ).equatable(),
+            TextContentElement(
+                locator: makeLocator(progression: 0.5, selector: "#a", before: "begin a in b  ", highlight: "end a"),
+                role: .body,
+                segments: [
+                    TextContentElement.Segment(
+                        locator: makeLocator(progression: 0.5, selector: "#a", before: "begin a in b ", highlight: "end a"),
+                        text: "end a",
+                        attributes: []
+                    ),
+                ],
+                attributes: []
+            ).equatable(),
+            TextContentElement(
+                locator: makeLocator(progression: 0.75, selector: "#c", before: "begin a in b end a", highlight: "in c"),
+                role: .body,
+                segments: [
+                    TextContentElement.Segment(
+                        locator: makeLocator(progression: 0.75, selector: "#c", before: "begin a in b end a", highlight: "in c"),
+                        text: "in c",
+                        attributes: []
+                    ),
+                ],
+                attributes: []
+            ).equatable(),
+        ]
+
+        let iter = makeIterator(html)
+        for expected in expectedElements {
+            let result = try await iter.next()
+            #expect(result?.equatable() == expected)
+        }
+        let result = try await iter.next()
+        #expect(result == nil)
+    }
+
     struct CSSSelectorIDOptimization {
         @Test func imageInsideNamedParentUsesParentIDInSelector() async throws {
             let html = """
@@ -397,76 +471,46 @@ struct HTMLResourceContentIteratorTests {
             let result = try await makeIterator(html).next()
             #expect(result?.locator.locations.cssSelector == "#txt")
         }
+    }
 
-        @Test func iteratingOverTextNodesLocatedAroundANestedBlockElement() async throws {
+    struct CSSSelectorEscaping {
+        @Test func idWithSpecialCharactersIsEscaped() async throws {
             let html = """
             <?xml version="1.0" encoding="UTF-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
             <body>
-                <div id="a">begin a <div id="b">in b</div> end a</div>
-                <div id="c">in c</div>
+                <p id="foo.bar">Hello</p>
             </body>
             </html>
             """
+            let result = try await makeIterator(html).next()
+            #expect(result?.locator.locations.cssSelector == "#foo\\.bar")
+        }
 
-            let expectedElements: [AnyEquatableContentElement] = [
-                TextContentElement(
-                    locator: makeLocator(progression: 0.0, selector: "#a", highlight: "begin a"),
-                    role: .body,
-                    segments: [
-                        TextContentElement.Segment(
-                            locator: makeLocator(progression: 0.0, selector: "#a", highlight: "begin a"),
-                            text: "begin a",
-                            attributes: []
-                        ),
-                    ],
-                    attributes: []
-                ).equatable(),
-                TextContentElement(
-                    locator: makeLocator(progression: 0.25, selector: "#b", before: "begin a ", highlight: "in b"),
-                    role: .body,
-                    segments: [
-                        TextContentElement.Segment(
-                            locator: makeLocator(progression: 0.25, selector: "#b", before: "begin a ", highlight: "in b"),
-                            text: "in b",
-                            attributes: []
-                        ),
-                    ],
-                    attributes: []
-                ).equatable(),
-                TextContentElement(
-                    locator: makeLocator(progression: 0.5, selector: "#a", before: "begin a in b  ", highlight: "end a"),
-                    role: .body,
-                    segments: [
-                        TextContentElement.Segment(
-                            locator: makeLocator(progression: 0.5, selector: "#a", before: "begin a in b ", highlight: "end a"),
-                            text: "end a",
-                            attributes: []
-                        ),
-                    ],
-                    attributes: []
-                ).equatable(),
-                TextContentElement(
-                    locator: makeLocator(progression: 0.75, selector: "#c", before: "begin a in b end a", highlight: "in c"),
-                    role: .body,
-                    segments: [
-                        TextContentElement.Segment(
-                            locator: makeLocator(progression: 0.75, selector: "#c", before: "begin a in b end a", highlight: "in c"),
-                            text: "in c",
-                            attributes: []
-                        ),
-                    ],
-                    attributes: []
-                ).equatable(),
-            ]
+        @Test func classWithSpecialCharactersIsEscaped() async throws {
+            let html = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <p class="foo.bar">Hello</p>
+            </body>
+            </html>
+            """
+            let result = try await makeIterator(html).next()
+            #expect(result?.locator.locations.cssSelector == "html > body > p.foo\\.bar")
+        }
 
-            let iter = makeIterator(html)
-            for expected in expectedElements {
-                let result = try await iter.next()
-                #expect(result?.equatable() == expected)
-            }
-            let result = try await iter.next()
-            #expect(result == nil)
+        @Test func multipleClassesAreSortedAlphabetically() async throws {
+            let html = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <p class="zebra apple mango">Hello</p>
+            </body>
+            </html>
+            """
+            let result = try await makeIterator(html).next()
+            #expect(result?.locator.locations.cssSelector == "html > body > p.apple.mango.zebra")
         }
     }
 }

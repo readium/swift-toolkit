@@ -485,7 +485,7 @@ private struct CSSSelectorGenerator {
             result = nil
         }
 
-        selectorCache[key] = result
+        selectorCache.updateValue(result, forKey: key)
         return result
     }
 
@@ -497,7 +497,7 @@ private struct CSSSelectorGenerator {
         var segment = tagName
 
         if let classSet = try? element.classNames(), !classSet.isEmpty {
-            segment += "." + classSet.map(cssEscapeIdentifier).joined(separator: ".")
+            segment += "." + classSet.sorted().map(cssEscapeIdentifier).joined(separator: ".")
         }
 
         let parentId = ObjectIdentifier(parent)
