@@ -69,6 +69,28 @@ jobs:
   #         make navigator-ui-tests-project
   #         xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
+  playground:
+    name: Playground
+    runs-on: macos-15
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
+      - name: Check Playground project is up-to-date
+        run: |
+          make playground
+          git diff --exit-code Playground/.xcodegen
+      - name: Build
+        run: |
+          set -eo pipefail
+          xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+
   lint:
     name: Lint
     runs-on: macos-15

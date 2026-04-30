@@ -70,42 +70,24 @@ open class PDFNavigatorViewController:
     /// Reading order index of the current resource.
     private var currentResourceIndex: Int?
 
-    /// Holds the currently opened PDF Document.
-    private let documentHolder = PDFDocumentHolder()
-
     // Holds a reference to make sure they are not garbage-collected.
     private var tapGestureController: PDFTapGestureController?
     private var clickGestureController: PDFTapGestureController?
     private var swipeLeftGestureRecognizer: UISwipeGestureRecognizer?
     private var swipeRightGestureRecognizer: UISwipeGestureRecognizer?
 
-    private let server: HTTPServer?
-    private let publicationEndpoint: HTTPServerEndpoint?
-    private var publicationBaseURL: HTTPURL!
-
     public init(
         publication: Publication,
         initialLocation: Locator?,
         config: Configuration = .init(),
-        delegate: PDFNavigatorDelegate? = nil,
-        httpServer: HTTPServer
+        delegate: PDFNavigatorDelegate? = nil
     ) throws {
         guard !publication.isRestricted else {
             throw Error.publicationRestricted
         }
 
-        let uuidEndpoint: HTTPServerEndpoint = UUID().uuidString
-        let publicationEndpoint: HTTPServerEndpoint?
-        if publication.baseURL != nil {
-            publicationEndpoint = nil
-        } else {
-            publicationEndpoint = uuidEndpoint
-        }
-
         self.publication = publication
         self.initialLocation = initialLocation
-        server = httpServer
-        self.publicationEndpoint = publicationEndpoint
         self.config = config
         self.delegate = delegate
         editingActions = EditingActionsController(
@@ -121,33 +103,18 @@ open class PDFNavigatorViewController:
 
         super.init(nibName: nil, bundle: nil)
 
-        if let url = publication.baseURL {
-            publicationBaseURL = url
-        } else {
-            publicationBaseURL = try httpServer.serve(
-                at: uuidEndpoint,
-                publication: publication,
-                onFailure: { [weak self] request, error in
-                    DispatchQueue.main.async {
-                        guard let self = self, let href = request.href else {
-                            return
-                        }
-                        self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
-                    }
-                }
-            )
-        }
-
         editingActions.delegate = self
+    }
 
-        // Wraps the PDF factories of publication services to return the currently opened document
-        // held in `documentHolder` when relevant. This prevents opening several times the same
-        // document, which is useful in particular with `LCPDFPositionService`.
-        for service in publication.findServices(PDFPublicationService.self) {
-            service.pdfFactory = CompositePDFDocumentFactory(factories: [
-                documentHolder, service.pdfFactory,
-            ])
-        }
+    @available(*, deprecated, message: "The httpServer is not needed anymore.")
+    public convenience init(
+        publication: Publication,
+        initialLocation: Locator?,
+        config: Configuration = .init(),
+        delegate: PDFNavigatorDelegate? = nil,
+        httpServer: HTTPServer?
+    ) throws {
+        try self.init(publication: publication, initialLocation: initialLocation, config: config, delegate: delegate)
     }
 
     @available(*, unavailable)
@@ -157,14 +124,6 @@ open class PDFNavigatorViewController:
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-
-        if let endpoint = publicationEndpoint {
-            do {
-                try server?.remove(at: endpoint)
-            } catch {
-                log(.warning, "Failed to remove the server endpoint \(endpoint): \(error.localizedDescription)")
-            }
-        }
     }
 
     override open func viewDidLoad() {
@@ -252,6 +211,12 @@ open class PDFNavigatorViewController:
         pdfView.delegate = self
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
+
+        // The loading indicator may have been added before viewDidLoad fired (e.g. go(to:)
+        // called immediately after init). Re-stack it above the newly inserted PDFView.
+        if let indicator = loadingIndicator {
+            view.bringSubviewToFront(indicator)
+        }
 
         tapGestureController = PDFTapGestureController(
             pdfView: pdfView,
@@ -449,20 +414,21 @@ open class PDFNavigatorViewController:
     private func go<HREF: URLConvertible>(to href: HREF, pageNumber: Int?, isJump: Bool) async -> Bool {
         guard
             let pdfView = pdfView,
-            let url = publicationBaseURL.resolve(href),
             let index = publication.readingOrder.firstIndexWithHREF(href)
         else {
             return false
         }
 
         if currentResourceIndex != index {
-            guard let document = await makeDocument(at: url) else {
-                log(.error, "Can't open PDF document at \(url)")
+            showLoadingIndicator()
+            defer { hideLoadingIndicator() }
+
+            guard let document = await openDocument(at: href) else {
+                log(.error, "Can't open PDF document at \(href)")
                 return false
             }
 
             currentResourceIndex = index
-            documentHolder.set(document, at: href)
             pdfView.document = document
             updateScaleFactors(zoomToFit: true)
         }
@@ -484,11 +450,24 @@ open class PDFNavigatorViewController:
         return true
     }
 
-    private func makeDocument(at url: AbsoluteURL) async -> PDFKit.PDFDocument? {
-        let task = Task.detached(priority: .userInitiated) {
-            PDFDocument(url: url.url)
+    private func openDocument<HREF: URLConvertible>(at href: HREF) async -> PDFKit.PDFDocument? {
+        let service = publication.pdfDocumentService
+
+        if let cached = await service?.cachedDocument(at: href) as? PDFKitDocumentProviding {
+            return cached.pdfKitDocument
         }
-        return await task.value
+
+        let factory = PDFKitPDFDocumentFactory()
+        guard
+            let resource = publication.get(href),
+            let opened = try? await factory.open(resource: resource, at: href, password: nil) as? PDFKit.PDFDocument
+        else {
+            return nil
+        }
+
+        await service?.setCachedDocument(opened, at: href)
+
+        return opened
     }
 
     /// Updates the scale factors to match the currently visible pages.
@@ -817,6 +796,20 @@ open class PDFNavigatorViewController:
             return false
         }
         return await go(to: previousPosition, options: options)
+    }
+
+    // MARK: - Loading Indicator
+
+    private weak var loadingIndicator: UIActivityIndicatorView?
+
+    private func showLoadingIndicator() {
+        loadingIndicator?.removeFromSuperview()
+        loadingIndicator = view.addCenteredActivityIndicator()
+    }
+
+    private func hideLoadingIndicator() {
+        loadingIndicator?.removeFromSuperview()
+        loadingIndicator = nil
     }
 }
 

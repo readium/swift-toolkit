@@ -1,5 +1,5 @@
 # XCODEGEN VERSION
-2.45.3
+2.45.4
 
 # SPEC
 {
@@ -43,10 +43,6 @@
         {
           "package" : "Readium",
           "product" : "ReadiumNavigator"
-        },
-        {
-          "package" : "Readium",
-          "product" : "ReadiumAdapterGCDWebServer"
         },
         {
           "package" : "Readium",

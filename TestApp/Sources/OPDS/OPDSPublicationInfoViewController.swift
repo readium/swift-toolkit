@@ -103,7 +103,7 @@ class OPDSPublicationInfoViewController: UIViewController, Loggable {
                     from: self
                 )
             } catch {
-                delegate.presentError(UserError(error), from: self)
+                delegate.presentError(error, from: self)
             }
 
             downloadActivityIndicator.stopAnimating()

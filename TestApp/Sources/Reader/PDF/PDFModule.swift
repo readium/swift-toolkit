@@ -39,8 +39,7 @@ final class PDFModule: ReaderFormatModule {
             bookmarks: bookmarks,
             highlights: highlights,
             initialPreferences: preferencesStore.preferences(for: bookId),
-            preferencesStore: preferencesStore,
-            httpServer: readium.httpServer
+            preferencesStore: preferencesStore
         )
         viewController.moduleDelegate = delegate
         return viewController

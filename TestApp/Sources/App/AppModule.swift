@@ -15,13 +15,13 @@ import UIKit
 /// Provides basic shared functionalities.
 protocol ModuleDelegate: AnyObject {
     func presentAlert(_ title: String, message: String, from viewController: UIViewController)
-    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController)
+    func presentError(_ error: Error, from viewController: UIViewController)
 }
 
 /// Main application module, it:
 /// - owns the sub-modules (library, reader, etc.)
 /// - orchestrates the communication between its sub-modules, through the modules' delegates.
-final class AppModule {
+final class AppModule: Loggable {
     // App modules
     var library: LibraryModuleAPI!
     var reader: ReaderModuleAPI!
@@ -78,7 +78,12 @@ extension AppModule: ModuleDelegate {
         }
     }
 
-    func presentError<T: UserErrorConvertible>(_ error: T, from viewController: UIViewController) {
+    func presentError(_ error: any Error, from viewController: UIViewController) {
+        guard let error = UserError(error) else {
+            log(.error, error)
+            return
+        }
+
         viewController.alert(error)
     }
 }

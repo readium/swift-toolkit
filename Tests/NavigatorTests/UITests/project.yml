@@ -29,8 +29,6 @@ targets:
         product: ReadiumStreamer
       - package: Readium
         product: ReadiumNavigator
-      - package: Readium
-        product: ReadiumAdapterGCDWebServer
     settings:
       INFOPLIST_FILE: NavigatorTestHost/Info.plist
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.test.NavigatorTestHost

@@ -23,13 +23,13 @@
 "build_version_caption" = "Build Version:";
 
 "error" = "An error occurred.";
-"error_cancelled" = "The operation was cancelled.";
 "error_decoding" = "Failed to decode the resource.";
 "error_forbidden" = "You are not allowed to access this resource.";
 "error_io" = "A file system error occurred.";
 "error_network" = "A networking error occurred.";
 "error_not_found" = "The resource was not found.";
 "error_out_of_space" = "Your storage is full. Please free up some space to continue.";
+"error_out_of_memory" = "It seems that your device has run out of memory.";
 "error_read" = "Failed to read the resource.";
 
 

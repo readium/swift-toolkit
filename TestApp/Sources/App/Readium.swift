@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumAdapterGCDWebServer
 import ReadiumNavigator
 import ReadiumShared
 import ReadiumStreamer
@@ -17,7 +16,6 @@ import ReadiumStreamer
 
 final class Readium {
     lazy var httpClient: HTTPClient = DefaultHTTPClient()
-    lazy var httpServer: HTTPServer = GCDHTTPServer(assetRetriever: assetRetriever)
 
     lazy var formatSniffer: FormatSniffer = DefaultFormatSniffer()
 
@@ -70,22 +68,26 @@ final class Readium {
 }
 
 extension ReadiumShared.ReadError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case let .access(error):
-                return error.userError().message
+                return error.userError()?.message
             case .decoding:
                 return "error_decoding".localized
             case .unsupportedOperation:
                 return "error_read".localized
+            case .outOfMemory:
+                return "error_out_of_memory".localized
+            case .cancelled:
+                return nil
             }
         }
     }
 }
 
 extension ReadiumShared.AccessError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         switch self {
         case let .http(error):
             return error.userError()
@@ -98,7 +100,7 @@ extension ReadiumShared.AccessError: UserErrorConvertible {
 }
 
 extension ReadiumShared.HTTPError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case let .errorResponse(response):
@@ -111,9 +113,9 @@ extension ReadiumShared.HTTPError: UserErrorConvertible {
                     return "error_network".localized
                 }
             case let .fileSystem(error):
-                return error.userError().message
+                return error.userError()?.message
             case .cancelled:
-                return "error_cancelled".localized
+                return nil
             case .malformedRequest, .malformedResponse, .timeout, .unreachable, .redirection, .security, .rangeNotSupported, .offline, .other:
                 return "error_network".localized
             }
@@ -122,7 +124,7 @@ extension ReadiumShared.HTTPError: UserErrorConvertible {
 }
 
 extension ReadiumShared.FileSystemError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .fileNotFound:
@@ -139,20 +141,20 @@ extension ReadiumShared.FileSystemError: UserErrorConvertible {
 }
 
 extension ReadiumShared.AssetRetrieveError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .formatNotSupported:
                 return "reader_error_formatNotSupported".localized
             case let .reading(error):
-                return error.userError().message
+                return error.userError()?.message
             }
         }
     }
 }
 
 extension ReadiumShared.AssetRetrieveURLError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .schemeNotSupported:
@@ -160,40 +162,40 @@ extension ReadiumShared.AssetRetrieveURLError: UserErrorConvertible {
             case .formatNotSupported:
                 return "reader_error_formatNotSupported".localized
             case let .reading(error):
-                return error.userError().message
+                return error.userError()?.message
             }
         }
     }
 }
 
 extension ReadiumShared.SearchError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .publicationNotSearchable, .badQuery:
                 return "reader_error_search".localized
             case let .reading(error):
-                return error.userError().message
+                return error.userError()?.message
             }
         }
     }
 }
 
 extension ReadiumStreamer.PublicationOpenError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .formatNotSupported:
                 return "reader_error_formatNotSupported".localized
             case let .reading(error):
-                return error.userError().message
+                return error.userError()?.message
             }
         }
     }
 }
 
 extension ReadiumNavigator.NavigatorError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .copyForbidden:
@@ -204,7 +206,7 @@ extension ReadiumNavigator.NavigatorError: UserErrorConvertible {
 }
 
 extension ReadiumNavigator.TTSError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .languageNotSupported:
@@ -219,7 +221,7 @@ extension ReadiumNavigator.TTSError: UserErrorConvertible {
 #if LCP
 
     extension LCPError: UserErrorConvertible {
-        func userError() -> UserError {
+        func userError() -> UserError? {
             UserError(cause: self) {
                 switch self {
                 case .missingPassphrase:

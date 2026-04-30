@@ -30,7 +30,7 @@ public actor FileResource: Resource, Loggable {
                     _length = .failure(.access(.fileSystem(.fileNotFound(nil))))
                 }
             } catch {
-                _length = .failure(.access(.fileSystem(.wrap(error) ?? .io(error))))
+                _length = .failure(.wrap(error) ?? .access(.fileSystem(.io(error))))
             }
         }
         return _length!
@@ -58,7 +58,7 @@ public actor FileResource: Resource, Loggable {
                     }
                 }
             } catch {
-                return .failure(.access(.fileSystem(.io(error))))
+                return .failure(.wrap(error) ?? .access(.fileSystem(.io(error))))
             }
 
             return .success(())
@@ -71,10 +71,12 @@ public actor FileResource: Resource, Loggable {
         if _handle == nil {
             do {
                 let values = try fileURL.url.resourceValues(forKeys: [.isReadableKey, .isDirectoryKey])
-                if let isReadable = values.isReadable, isReadable, values.isDirectory != true {
-                    _handle = try .success(FileHandle(forReadingFrom: fileURL.url))
-                } else {
+                if values.isDirectory == true {
                     _handle = .failure(.access(.fileSystem(.fileNotFound(nil))))
+                } else if let isReadable = values.isReadable, !isReadable {
+                    _handle = .failure(.access(.fileSystem(.forbidden(nil))))
+                } else {
+                    _handle = try .success(FileHandle(forReadingFrom: fileURL.url))
                 }
             } catch {
                 _handle = .failure(.access(.fileSystem(.io(error))))
