@@ -178,6 +178,32 @@ struct SearchServiceTests {
             #expect(results[0].href.string == "EPUB/chapter1.xhtml")
             #expect(results[0].text.highlight == "quick brown")
         }
+
+        /// A cross-element match should not carry a `cssSelector` because the
+        /// renderer would scope its text search to a single DOM node that
+        /// cannot contain the full highlight.
+        @Test(arguments: configs)
+        func crossElementMatchHasNoCssSelector(config: SearchServiceTestConfig) async throws {
+            guard config.supportsCrossElementSearch else { return }
+            let pub = try await openPublication(.reflowable, config: config)
+            let results = try await search(pub, query: "quick brown")
+
+            let locator = try #require(results.first)
+            #expect(locator.locations.otherLocations["cssSelector"] == nil)
+        }
+
+        // FIXME: To restore after dropping strippedForSnippetPositioning
+        /// A single-element match should preserve the `cssSelector` set by the
+        /// HTML content iterator.
+//        @Test(arguments: configs)
+//        func singleElementMatchPreservesCssSelector(config: SearchServiceTestConfig) async throws {
+//            guard config.supportsCrossElementSearch else { return }
+//            let pub = try await openPublication(.reflowable, config: config)
+//            let results = try await search(pub, query: "wonderland")
+//
+//            let locator = try #require(results.first)
+//            #expect(locator.locations.otherLocations["cssSelector"] != nil)
+//        }
     }
 
     struct CaseSensitivity {

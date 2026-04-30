@@ -351,46 +351,94 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
             startOffset: startOffset
         )
 
-        return baseLocator.copy(text: { $0 = Locator.Text(after: after, before: before, highlight: highlight) })
+        return strippedForSnippetPositioning(
+            baseLocator.copy(text: { $0 = Locator.Text(after: after, before: before, highlight: highlight) })
+        )
     }
 
+    // FIXME: Temporary workaround – remove when SearchResultItem is introduced.
+    //
+    // Why it exists: snippets now span multiple content elements within the
+    // same resource, to provide more context to the user in the user interface.
+    // So the `cssSelector` in the locator's `locations` may point to a single
+    // DOM node that does not contain the full before/after text. The renderer
+    // would anchor to that node and fail to find the highlight when it extends
+    // across sibling elements.
+    //
+    // In the future, we might introduce a dedicated `SearchResultItem` type
+    // that carries both a full *display* snippet (crossing elements) and a
+    // separate *precise* locator (with `cssSelector`) for navigation. When that
+    // type is introduced:
+    //   1. Restore the `cssSelector` in the locator produced by `makeLocator`.
+    //   2. Move the cross-element snippet text into SearchResultItem's display
+    //      field.
+    //   3. Delete this method entirely.
+    private func strippedForSnippetPositioning(_ locator: Locator) -> Locator {
+        guard locator.locations.cssSelector != nil else {
+            return locator
+        }
+        return locator.copy(locations: {
+            $0.cssSelector = nil
+        })
+    }
+    
+    // FIXME: To restore after dropping strippedForSnippetPositioning
     /// Extracts `before` / `after` snippet text, stopping at element-separator
     /// boundaries and capping at `snippetLength` characters (word-bounded).
+    /// Works around HTML-based content iterators that set a `cssSelector` in
+    /// the locator's `locations`. When a match spans multiple content
+    /// elements, the `cssSelector` anchors the renderer to a single DOM node,
+    /// preventing it from finding the full highlight text across sibling
+    /// nodes.
+    ///
+    /// Not all content services produce a `cssSelector` — this adjustment is
+    /// a no-op when the key is absent.
+    private func adjustedForCrossElementMatch(
+        _ locator: Locator,
+        startOffset: Int,
+        endOffset: Int,
+        searchUnits: [SearchUnit]
+    ) -> Locator {
+        let startUnit = searchUnits.first { !$0.isSeparator && $0.range.contains(startOffset) }
+        let endUnit = searchUnits.last { !$0.isSeparator && $0.range.contains(endOffset - 1) }
+
+        guard
+            let startUnit, let endUnit,
+            startUnit.range != endUnit.range,
+            locator.locations.cssSelector != nil
+        else {
+            return locator
+        }
+
+        return locator.copy(locations: {
+            $0.cssSelector = nil
+        })
+    }
+
+    /// Extracts `before` / `after` snippet text, allowing context to cross
+    /// element boundaries within the same resource. Snippets are capped at
+    /// `snippetLength` characters (word-bounded). Separator units are skipped
+    /// during extraction but no longer act as hard boundaries.
     private func makeSnippet(
         range: Range<String.Index>,
         searchUnits: [SearchUnit],
         searchText: String,
         startOffset: Int
     ) -> (before: String?, after: String?) {
-        let endOffset = searchText.distance(from: searchText.startIndex, to: range.upperBound)
-
-        let prevSepUpperBound = searchUnits
-            .lazy
-            .filter { $0.isSeparator && $0.range.upperBound <= startOffset }
-            .map(\.range.upperBound)
-            .max() ?? 0
-
-        let nextSepLowerBound = searchUnits
-            .lazy
-            .filter { $0.isSeparator && $0.range.lowerBound >= endOffset }
-            .map(\.range.lowerBound)
-            .min() ?? searchText.count
-
-        let contextStart = searchText.index(searchText.startIndex, offsetBy: prevSepUpperBound)
-        let contextEnd = searchText.index(searchText.startIndex, offsetBy: nextSepLowerBound)
-
         let before = extractSnippetBefore(
             searchText: searchText,
-            contextStart: contextStart,
+            contextStart: searchText.startIndex,
             matchStart: range.lowerBound,
-            trimLeading: prevSepUpperBound == 0
+            trimLeading: startOffset == 0
         )
+
+        let endOffset = searchText.distance(from: searchText.startIndex, to: range.upperBound)
 
         let after = extractSnippetAfter(
             searchText: searchText,
             matchEnd: range.upperBound,
-            contextEnd: contextEnd,
-            trimTrailing: nextSepLowerBound == searchText.count
+            contextEnd: searchText.endIndex,
+            trimTrailing: endOffset == searchText.count
         )
 
         return (before, after)
