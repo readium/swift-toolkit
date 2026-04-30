@@ -135,7 +135,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                         // FIXME: WebPositionsService from Kotlin?
 
                         if manifest.readingOrder.allAreHTML {
-                            $0.setSearchServiceFactory(StringSearchService.makeFactory())
+                            $0.setSearchServiceFactory(ContentSearchService.makeFactory())
                             $0.setContentServiceFactory(DefaultContentService.makeFactory(
                                 resourceContentIteratorFactories: [
                                     HTMLResourceContentIterator.Factory(),

@@ -62,6 +62,17 @@ struct SearchServiceTests {
     /// introduced.
     static let configs: [SearchServiceTestConfig] = [
         .init(
+            testDescription: "ContentSearchService",
+            serviceFactory: ContentSearchService.makeFactory(),
+            supportsCrossElementSearch: true,
+            supportsCrossResourceSearch: false,
+            supportsCaseSensitivity: true,
+            supportsDiacriticSensitivity: true,
+            supportsExactMatch: true,
+            supportsRegularExpression: true,
+            ignoresFallbackContent: true
+        ),
+        .init(
             testDescription: "StringSearchService",
             serviceFactory: StringSearchService.makeFactory(),
             supportsCrossElementSearch: false,
