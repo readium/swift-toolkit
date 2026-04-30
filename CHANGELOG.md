@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
+* Fixed a performance bottleneck in `HTMLResourceContentIterator` (used with TTS and `publication.content()`, for example) where CSS selector generation was O(N²). Selectors are now computed in linear time using a custom generator with parent selector caching.
 * Fixed `Publication.coverFitting(maxSize:)` producing incorrectly scaled images with pixel offsets.
 * Fixed parsing of URI templates.
     * Fixed `URITemplate` not recognizing `{&...}` (form-style query continuation) expressions.
