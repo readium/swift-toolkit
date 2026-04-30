@@ -221,16 +221,13 @@ public class HTMLResourceContentIterator: ContentIterator {
         private struct ParentElement {
             let element: Element
             let cssSelector: String?
-
-            init(element: Element) {
-                self.element = element
-                cssSelector = try? element.cssSelector()
-            }
         }
+
+        private var selectorGenerator = CSSSelectorGenerator()
 
         func head(_ node: Node, _ depth: Int) throws {
             if let node = node as? Element {
-                let parent = ParentElement(element: node)
+                let parent = ParentElement(element: node, cssSelector: selectorGenerator.cssSelector(for: node))
                 if node.isBlock() {
                     flushText()
                     breadcrumbs.append(parent)
@@ -443,6 +440,102 @@ public class HTMLResourceContentIterator: ContentIterator {
             rawTextAcc = ""
             textAcc.clear()
         }
+    }
+}
+
+/// Builds CSS selectors for SwiftSoup `Element` nodes, equivalent to
+/// SwiftSoup's `cssSelector()` but in O(N) total time by caching parent
+/// selectors and per-parent sibling counts.
+private struct CSSSelectorGenerator {
+    /// Cache of fully-built CSS selectors keyed by SwiftSoup element identity.
+    private var selectorCache: [ObjectIdentifier: String?] = [:]
+
+    /// Per-parent count of children grouped by tag name, used to decide
+    /// whether `:nth-child(N)` disambiguation is needed.
+    private var tagCountCache: [ObjectIdentifier: [String: Int]] = [:]
+
+    /// 1-based child index of each element within its parent, populated
+    /// alongside `tagCountCache`.
+    private var elementIndexCache: [ObjectIdentifier: Int] = [:]
+
+    /// Returns a unique CSS selector for `element`, or `nil` if one cannot be
+    /// constructed (e.g. a detached node with no id and no parent).
+    mutating func cssSelector(for element: Element) -> String? {
+        let key = ObjectIdentifier(element)
+        if let cached = selectorCache[key] {
+            return cached
+        }
+
+        let result: String?
+        let elementId = element.id()
+
+        if !elementId.isEmpty {
+            result = "#" + cssEscapeIdentifier(elementId)
+        } else if let parent = element.parent() {
+            let tagName = element.tagName().replacingOccurrences(of: ":", with: "|")
+            let segment = selectorSegment(tagName: tagName, element: element, parent: parent)
+            if parent is Document {
+                result = segment
+            } else if let parentSelector = cssSelector(for: parent) {
+                result = "\(parentSelector) > \(segment)"
+            } else {
+                result = segment
+            }
+        } else {
+            result = nil
+        }
+
+        selectorCache[key] = result
+        return result
+    }
+
+    /// Builds the selector segment for a single element (e.g. `p`,
+    /// `div.center`, `p:nth-child(3)`). Appends `:nth-child(N)` when more than
+    /// one sibling shares the same tag name, so positional uniqueness is always
+    /// guaranteed.
+    private mutating func selectorSegment(tagName: String, element: Element, parent: Element) -> String {
+        var segment = tagName
+
+        if let classSet = try? element.classNames(), !classSet.isEmpty {
+            segment += "." + classSet.map(cssEscapeIdentifier).joined(separator: ".")
+        }
+
+        let parentId = ObjectIdentifier(parent)
+        if tagCountCache[parentId] == nil {
+            var counts: [String: Int] = [:]
+            var index = 0
+            for child in parent.children() {
+                index += 1
+                let tag = child.tagName().replacingOccurrences(of: ":", with: "|")
+                counts[tag, default: 0] += 1
+                elementIndexCache[ObjectIdentifier(child)] = index
+            }
+            tagCountCache[parentId] = counts
+        }
+
+        if
+            (tagCountCache[parentId]?[tagName] ?? 0) > 1,
+            let index = elementIndexCache[ObjectIdentifier(element)]
+        {
+            segment += ":nth-child(\(index))"
+        }
+
+        return segment
+    }
+
+    /// Escapes a CSS identifier, matching SwiftSoup's `Element.cssEscapeIdentifier`.
+    private func cssEscapeIdentifier(_ identifier: String) -> String {
+        var escaped = ""
+        escaped.reserveCapacity(identifier.count)
+        for character in identifier {
+            if character.isLetter || character.isNumber || character == "-" || character == "_" {
+                escaped.append(character)
+            } else {
+                escaped.append("\\")
+                escaped.append(character)
+            }
+        }
+        return escaped
     }
 }
 
