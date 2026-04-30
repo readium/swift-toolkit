@@ -28,7 +28,7 @@ public class ContentSearchService: SearchService {
     ///   - snippetLength: Maximum length of the `before` and `after` text
     ///     snippets in the returned locators.
     ///   - searchAlgorithm: Implements the actual search algorithm in the
-    ///     sanatized text.
+    ///     sanitized text.
     public static func makeFactory(
         snippetLength: Int = 200,
         searchAlgorithm: StringSearchAlgorithm = BasicStringSearchAlgorithm()
@@ -84,36 +84,34 @@ public class ContentSearchService: SearchService {
 /// Maps a span of characters in a search string to a content segment's locator.
 private struct SearchUnit {
     let locator: Locator
-
-    /// Character-count range (from the start of the owning search string).
     let range: Range<Int>
-
-    /// `true` when this unit represents the artificial space separator inserted
-    /// between adjacent elements in the tail-carry search text.
     let isSeparator: Bool
 }
 
-private class Iterator: SearchIterator, Loggable {
-    private(set) var resultCount: Int? = 0
+private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
+    private let lock = NSLock()
+
+    private var _resultCount: Int = 0
+
+    var resultCount: Int? {
+        lock.lock()
+        defer { lock.unlock() }
+        return _resultCount
+    }
 
     private let contentIterator: ContentIterator
-    private let language: Language?
     private let snippetLength: Int
     private let searchAlgorithm: StringSearchAlgorithm
     private let query: String
     private let options: SearchOptions
+    private let currentLanguage: Language?
 
     // Tail-carry state
-
     private var tail: String = ""
     private var tailUnits: [SearchUnit] = []
-
-    /// Number of characters kept as tail between elements.
-    /// For plain query: `query.count - 1`; regex: capped at 256.
     private let tailCapacity: Int
 
     // Per-resource batching state
-
     private var currentHREF: AnyURL?
     private var pendingLocators: [Locator] = []
 
@@ -126,79 +124,72 @@ private class Iterator: SearchIterator, Loggable {
         options: SearchOptions?
     ) {
         self.contentIterator = contentIterator
-        self.language = language
         self.snippetLength = snippetLength
         self.searchAlgorithm = searchAlgorithm
         self.query = query
         self.options = options ?? SearchOptions()
+        currentLanguage = self.options.language ?? language
         tailCapacity = (options?.regularExpression ?? false)
             ? 256
             : max(0, query.count - 1)
     }
 
-    // MARK: next()
+    /// Thread-safe increment of result count
+    private func incrementResultCount(by count: Int) {
+        lock.lock()
+        defer { lock.unlock() }
+        _resultCount += count
+    }
+
+    // MARK: - next()
 
     func next() async -> SearchResult<LocatorCollection?> {
         while let element = await nextElement() {
             guard !Task.isCancelled else {
-                return partialResult()
+                return emitBatch()
             }
 
             guard
-                let element = element as? TextContentElement,
-                !(element.text ?? "").isEmpty
+                let textElement = element as? TextContentElement,
+                !textElement.segments.isEmpty
             else {
                 continue
             }
 
-            if element.locator.href != currentHREF {
-                // Resource boundary: flush deferred tail matches.
+            if textElement.locator.href != currentHREF {
                 let tailLocators = await flushTail()
                 pendingLocators.append(contentsOf: tailLocators)
 
                 if currentHREF != nil, !pendingLocators.isEmpty {
-                    // Emit the completed resource batch, then seed the next.
                     let batch = pendingLocators
                     pendingLocators = []
-                    currentHREF = element.locator.href
-                    let newLocators = await processElement(element)
-                    pendingLocators.append(contentsOf: newLocators)
-                    resultCount = (resultCount ?? 0) + batch.count
+                    currentHREF = textElement.locator.href
+                    await pendingLocators.append(contentsOf: processElement(textElement))
+                    incrementResultCount(by: batch.count)
                     return .success(LocatorCollection(locators: batch))
                 }
-                currentHREF = element.locator.href
+                currentHREF = textElement.locator.href
             }
 
-            let newLocators = await processElement(element)
-            pendingLocators.append(contentsOf: newLocators)
+            await pendingLocators.append(contentsOf: processElement(textElement))
         }
 
         // Content exhausted — flush any remaining deferred matches.
-        let tailLocators = await flushTail()
-        pendingLocators.append(contentsOf: tailLocators)
-
-        if !pendingLocators.isEmpty {
-            let batch = pendingLocators
-            pendingLocators = []
-            resultCount = (resultCount ?? 0) + batch.count
-            return .success(LocatorCollection(locators: batch))
-        }
-        return .success(nil)
+        await pendingLocators.append(contentsOf: flushTail())
+        return emitBatch()
     }
 
-    /// Returns whatever is in `pendingLocators` as a partial result (used on
-    /// cancellation).
-    private func partialResult() -> SearchResult<LocatorCollection?> {
+    /// Returns whatever is in `pendingLocators` as a batch result.
+    private func emitBatch() -> SearchResult<LocatorCollection?> {
         guard !pendingLocators.isEmpty else { return .success(nil) }
         let batch = pendingLocators
         pendingLocators = []
-        resultCount = (resultCount ?? 0) + batch.count
+        incrementResultCount(by: batch.count)
         return .success(LocatorCollection(locators: batch))
     }
 
     /// Advances the content iterator, returning `nil` on normal exhaustion
-    /// **or** on an iterator error (which is logged but not propagated so
-    /// callers treat it as EOF).
+    /// or on an iterator error (which is logged but not propagated).
     private func nextElement() async -> ContentElement? {
         do {
             return try await contentIterator.next()
@@ -211,79 +202,98 @@ private class Iterator: SearchIterator, Loggable {
     // MARK: - Core algorithm
 
     /// Processes one `TextContentElement`, returning any locators whose matches
-    /// are safely outside the danger zone (i.e., cannot be superseded by a
-    /// cross-element match in the next iteration).
+    /// are safely outside the danger zone.
     private func processElement(_ element: TextContentElement) async -> [Locator] {
-        // Build element text and per-segment offset map.
-        var elementText = ""
-        var elementUnits: [SearchUnit] = []
-
-        for segment in element.segments {
-            guard !segment.text.isEmpty else { continue }
-            let start = elementText.count
-            elementText.append(contentsOf: segment.text)
-            let end = elementText.count
-            elementUnits.append(SearchUnit(locator: segment.locator, range: start ..< end, isSeparator: false))
-        }
-
+        let (elementText, elementUnits) = buildElementContext(from: element)
         guard !elementText.isEmpty else { return [] }
 
-        // Build combined search text: tail + " " + elementText (or just
-        // elementText).
-        let searchText: String
-        let searchUnits: [SearchUnit]
-
-        if tail.isEmpty {
-            searchText = elementText
-            searchUnits = elementUnits
-        } else {
-            let tailLen = tail.count
-            searchText = tail + " " + elementText
-
-            let separatorUnit = SearchUnit(
-                locator: elementUnits.first?.locator ?? tailUnits.last!.locator,
-                range: tailLen ..< tailLen + 1,
-                isSeparator: true
-            )
-            let shiftedElementUnits = elementUnits.map { (unit: SearchUnit) -> SearchUnit in
-                SearchUnit(
-                    locator: unit.locator,
-                    range: (unit.range.lowerBound + tailLen + 1) ..< (unit.range.upperBound + tailLen + 1),
-                    isSeparator: false
-                )
-            }
-            searchUnits = tailUnits + [separatorUnit] + shiftedElementUnits
-        }
+        let (searchText, searchUnits) = buildSearchContext(
+            elementText: elementText,
+            elementUnits: elementUnits
+        )
 
         let searchTextCount = searchText.count
-        let currentLanguage = options.language ?? language
-        let ranges = await searchAlgorithm.findRanges(of: query, options: options, in: searchText, language: currentLanguage)
+        let ranges = await searchAlgorithm.findRanges(
+            of: query,
+            options: options,
+            in: searchText,
+            language: currentLanguage
+        )
 
-        // Only emit matches whose start is before the danger zone (last
-        // `tailCapacity` chars). Matches starting in the danger zone are
-        // deferred – they may form a cross-element match in the next iteration
-        // when we prepend this tail.
-        let dangerZoneStartOffset = searchTextCount - min(tailCapacity, searchTextCount)
+        let dangerZoneStart = max(0, searchTextCount - tailCapacity)
 
-        var emittedLocators: [Locator] = []
-        for range in ranges {
-            guard !Task.isCancelled else { break }
+        let emittedLocators = ranges.compactMap { range -> Locator? in
+            guard !Task.isCancelled else { return nil }
             let startOffset = searchText.distance(from: searchText.startIndex, to: range.lowerBound)
-            if startOffset < dangerZoneStartOffset,
-               let locator = makeLocator(range: range, searchUnits: searchUnits, searchText: searchText)
-            {
-                emittedLocators.append(locator)
-            }
+            guard startOffset < dangerZoneStart else { return nil }
+            return makeLocator(range: range, searchUnits: searchUnits, searchText: searchText)
         }
 
-        // Update tail: keep the last `tailCapacity` characters of the combined
-        // text.
-        let newTailStartOffset = searchTextCount - min(tailCapacity, searchTextCount)
-        let newTailStartIndex = searchText.index(searchText.startIndex, offsetBy: newTailStartOffset)
-        tail = String(searchText[newTailStartIndex...])
+        updateTail(from: searchText, searchUnits: searchUnits, searchTextCount: searchTextCount)
 
-        // Rebuild tailUnits with ranges re-based to the new tail's start offset.
-        tailUnits = searchUnits.compactMap { (unit: SearchUnit) -> SearchUnit? in
+        return emittedLocators
+    }
+
+    /// Builds text and units from a single element's segments.
+    private func buildElementContext(from element: TextContentElement) -> (String, [SearchUnit]) {
+        var text = ""
+        var units: [SearchUnit] = []
+
+        for segment in element.segments where !segment.text.isEmpty {
+            let start = text.count
+            text.append(contentsOf: segment.text)
+            units.append(SearchUnit(
+                locator: segment.locator,
+                range: start ..< text.count,
+                isSeparator: false
+            ))
+        }
+
+        return (text, units)
+    }
+
+    /// Combines tail with current element text for cross-element matching.
+    private func buildSearchContext(
+        elementText: String,
+        elementUnits: [SearchUnit]
+    ) -> (text: String, units: [SearchUnit]) {
+        guard !tail.isEmpty else {
+            return (elementText, elementUnits)
+        }
+
+        let tailLen = tail.count
+        let offset = tailLen + 1
+
+        // Safe locator resolution: prefer elementUnits, fall back to tailUnits
+        guard let separatorLocator = elementUnits.first?.locator ?? tailUnits.last?.locator else {
+            // If both are empty, return element context without tail
+            return (elementText, elementUnits)
+        }
+
+        let separatorUnit = SearchUnit(
+            locator: separatorLocator,
+            range: tailLen ..< offset,
+            isSeparator: true
+        )
+
+        let shiftedUnits = elementUnits.map {
+            SearchUnit(
+                locator: $0.locator,
+                range: ($0.range.lowerBound + offset) ..< ($0.range.upperBound + offset),
+                isSeparator: false
+            )
+        }
+
+        return (tail + " " + elementText, tailUnits + [separatorUnit] + shiftedUnits)
+    }
+
+    /// Updates tail state for the next iteration.
+    private func updateTail(from searchText: String, searchUnits: [SearchUnit], searchTextCount: Int) {
+        let newTailStartOffset = max(0, searchTextCount - tailCapacity)
+
+        tail = String(searchText.suffix(min(tailCapacity, searchTextCount)))
+
+        tailUnits = searchUnits.compactMap { unit -> SearchUnit? in
             let lo = max(unit.range.lowerBound, newTailStartOffset)
             let hi = unit.range.upperBound
             guard lo < hi else { return nil }
@@ -293,15 +303,9 @@ private class Iterator: SearchIterator, Loggable {
                 isSeparator: unit.isSeparator
             )
         }
-
-        return emittedLocators
     }
 
-    /// Searches the remaining `tail` with no danger zone (all matches emitted),
-    /// then clears it.
-    ///
-    /// Called at resource boundaries and after content is exhausted to avoid
-    /// silently dropping deferred matches.
+    /// Searches the remaining `tail` with no danger zone, then clears it.
     private func flushTail() async -> [Locator] {
         guard !tail.isEmpty else { return [] }
         defer {
@@ -309,10 +313,14 @@ private class Iterator: SearchIterator, Loggable {
             tailUnits = []
         }
 
-        let currentLanguage = options.language ?? language
-        let ranges = await searchAlgorithm.findRanges(of: query, options: options, in: tail, language: currentLanguage)
+        let ranges = await searchAlgorithm.findRanges(
+            of: query,
+            options: options,
+            in: tail,
+            language: currentLanguage
+        )
 
-        return ranges.compactMap { (range: Range<String.Index>) -> Locator? in
+        return ranges.compactMap { range -> Locator? in
             guard !Task.isCancelled else { return nil }
             return makeLocator(range: range, searchUnits: tailUnits, searchText: tail)
         }
@@ -327,16 +335,9 @@ private class Iterator: SearchIterator, Loggable {
     ) -> Locator? {
         let startOffset = searchText.distance(from: searchText.startIndex, to: range.lowerBound)
 
-        // Find the first non-separator unit that contains the match start.
-        // Fall back to the next unit after the start (match starts at a
-        // separator edge), or the last non-separator unit as a last resort.
-        var owningUnit = searchUnits.first(where: { !$0.isSeparator && $0.range.contains(startOffset) })
-        if owningUnit == nil {
-            owningUnit = searchUnits.first(where: { !$0.isSeparator && $0.range.lowerBound > startOffset })
-        }
-        if owningUnit == nil {
-            owningUnit = searchUnits.last(where: { !$0.isSeparator })
-        }
+        let owningUnit = searchUnits.first { !$0.isSeparator && $0.range.contains(startOffset) }
+            ?? searchUnits.first { !$0.isSeparator && $0.range.lowerBound > startOffset }
+            ?? searchUnits.last(where: { !$0.isSeparator })
 
         guard let baseLocator = owningUnit?.locator else {
             return nil
@@ -363,12 +364,14 @@ private class Iterator: SearchIterator, Loggable {
     ) -> (before: String?, after: String?) {
         let endOffset = searchText.distance(from: searchText.startIndex, to: range.upperBound)
 
-        // Context region: bounded by the nearest separators on each side.
         let prevSepUpperBound = searchUnits
+            .lazy
             .filter { $0.isSeparator && $0.range.upperBound <= startOffset }
             .map(\.range.upperBound)
             .max() ?? 0
+
         let nextSepLowerBound = searchUnits
+            .lazy
             .filter { $0.isSeparator && $0.range.lowerBound >= endOffset }
             .map(\.range.lowerBound)
             .min() ?? searchText.count
@@ -376,28 +379,64 @@ private class Iterator: SearchIterator, Loggable {
         let contextStart = searchText.index(searchText.startIndex, offsetBy: prevSepUpperBound)
         let contextEnd = searchText.index(searchText.startIndex, offsetBy: nextSepLowerBound)
 
-        var before = ""
+        let before = extractSnippetBefore(
+            searchText: searchText,
+            contextStart: contextStart,
+            matchStart: range.lowerBound,
+            trimLeading: prevSepUpperBound == 0
+        )
+
+        let after = extractSnippetAfter(
+            searchText: searchText,
+            matchEnd: range.upperBound,
+            contextEnd: contextEnd,
+            trimTrailing: nextSepLowerBound == searchText.count
+        )
+
+        return (before, after)
+    }
+
+    private func extractSnippetBefore(
+        searchText: String,
+        contextStart: String.Index,
+        matchStart: String.Index,
+        trimLeading: Bool
+    ) -> String? {
+        var result = ""
         var count = snippetLength
-        for char in searchText[contextStart ..< range.lowerBound].reversed() {
-            guard count >= 0 || !char.isWhitespace else { break }
+
+        for char in searchText[contextStart ..< matchStart].reversed() {
+            guard count > 0 || !char.isWhitespace else { break }
             count -= 1
-            before.insert(char, at: before.startIndex)
-        }
-        if prevSepUpperBound == 0 {
-            before = before.trimmingCharacters(in: .whitespacesAndNewlines)
+            result.insert(char, at: result.startIndex)
         }
 
-        var after = ""
-        count = snippetLength
-        for char in searchText[range.upperBound ..< contextEnd] {
-            guard count >= 0 || !char.isWhitespace else { break }
-            count -= 1
-            after.append(char)
-        }
-        if nextSepLowerBound == searchText.count {
-            after = after.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimLeading {
+            result = result.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
-        return (before.isEmpty ? nil : before, after.isEmpty ? nil : after)
+        return result.isEmpty ? nil : result
+    }
+
+    private func extractSnippetAfter(
+        searchText: String,
+        matchEnd: String.Index,
+        contextEnd: String.Index,
+        trimTrailing: Bool
+    ) -> String? {
+        var result = ""
+        var count = snippetLength
+
+        for char in searchText[matchEnd ..< contextEnd] {
+            guard count > 0 || !char.isWhitespace else { break }
+            count -= 1
+            result.append(char)
+        }
+
+        if trimTrailing {
+            result = result.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return result.isEmpty ? nil : result
     }
 }
