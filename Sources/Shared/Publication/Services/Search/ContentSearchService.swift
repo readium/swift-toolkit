@@ -89,16 +89,8 @@ private struct SearchUnit {
     let isSeparator: Bool
 }
 
-private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
-    private let lock = NSLock()
-
-    private var _resultCount: Int = 0
-
-    var resultCount: Int? {
-        lock.lock()
-        defer { lock.unlock() }
-        return _resultCount
-    }
+private final class Iterator: SearchIterator, Loggable {
+    private(set) var resultCount: Int? = 0
 
     private let contentIterator: ContentIterator
     private let snippetLength: Int
@@ -147,13 +139,6 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         tailCapacity = (self.options.regularExpression ?? false)
             ? 256
             : max(0, query.count - 1)
-    }
-
-    /// Thread-safe increment of result count
-    private func incrementResultCount(by count: Int) {
-        lock.lock()
-        defer { lock.unlock() }
-        _resultCount += count
     }
 
     // MARK: - next()
@@ -213,7 +198,7 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         await fillLookahead(currentHREF: currentHREF)
         let afterCtx = afterContextText(currentHREF: currentHREF)
         await pendingLocators.append(contentsOf: processElement(newElement, afterContext: afterCtx))
-        incrementResultCount(by: batch.count)
+        resultCount = (resultCount ?? 0) + batch.count
         return .success(LocatorCollection(locators: batch))
     }
 
@@ -222,7 +207,7 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         guard !pendingLocators.isEmpty else { return .success(nil) }
         let batch = pendingLocators
         pendingLocators = []
-        incrementResultCount(by: batch.count)
+        resultCount = (resultCount ?? 0) + batch.count
         return .success(LocatorCollection(locators: batch))
     }
 
