@@ -60,10 +60,17 @@ struct SearchServiceTestConfig: CustomTestStringConvertible {
 struct SearchServiceTests {
     /// Add new configs here as additional ``SearchService`` implementations are
     /// introduced.
-    static let configs: [SearchServiceTestConfig] = [
+    static func configs(snippetLength: Int = 200) -> [SearchServiceTestConfig] {
+        [
+            contentSearchServiceConfig(snippetLength: snippetLength),
+            stringSearchServiceConfig(snippetLength: snippetLength),
+        ]
+    }
+
+    static func contentSearchServiceConfig(snippetLength: Int) -> SearchServiceTestConfig {
         .init(
             testDescription: "ContentSearchService",
-            serviceFactory: ContentSearchService.makeFactory(),
+            serviceFactory: ContentSearchService.makeFactory(snippetLength: snippetLength),
             supportsCrossElementSearch: true,
             supportsCrossResourceSearch: false,
             supportsCaseSensitivity: true,
@@ -71,10 +78,13 @@ struct SearchServiceTests {
             supportsExactMatch: true,
             supportsRegularExpression: true,
             ignoresFallbackContent: true
-        ),
+        )
+    }
+
+    static func stringSearchServiceConfig(snippetLength: Int) -> SearchServiceTestConfig {
         .init(
             testDescription: "StringSearchService",
-            serviceFactory: StringSearchService.makeFactory(),
+            serviceFactory: StringSearchService.makeFactory(snippetLength: snippetLength),
             supportsCrossElementSearch: false,
             supportsCrossResourceSearch: false,
             supportsCaseSensitivity: true,
@@ -82,17 +92,17 @@ struct SearchServiceTests {
             supportsExactMatch: true,
             supportsRegularExpression: true,
             ignoresFallbackContent: false
-        ),
-    ]
+        )
+    }
 
-    @Test(arguments: configs)
+    @Test(arguments: configs())
     func searchServiceIsAvailable(config: SearchServiceTestConfig) async throws {
         let pub = try await openPublication(.reflowable, config: config)
         #expect(pub.isSearchable)
     }
 
     struct BasicSearch {
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func basicSearch(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "wonderland")
@@ -102,7 +112,7 @@ struct SearchServiceTests {
             #expect(first.text.highlight == "wonderland")
         }
 
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func noResults(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "xyzzy_nonexistent")
@@ -112,7 +122,7 @@ struct SearchServiceTests {
 
     struct MultipleResources {
         /// "wonderland" appears in chapter1 and chapter3, in reading order.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func multipleResourcesReflowable(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "wonderland")
@@ -124,7 +134,7 @@ struct SearchServiceTests {
 
         /// "Bella" appears in pages 2, 3 and 4 (as a substring of "Bella's"),
         /// in reading order.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func multipleResourcesFXL(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.fxl, config: config)
             let results = try await search(pub, query: "Bella")
@@ -140,7 +150,7 @@ struct SearchServiceTests {
         /// "sunrise" spans the chapter2/chapter3 boundary ("sun" + "rise").
         /// It never appears within a single resource so only a cross-resource
         /// algorithm can find it.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func crossResourceSearchReflowable(config: SearchServiceTestConfig) async throws {
             guard config.supportsCrossResourceSearch else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -152,7 +162,7 @@ struct SearchServiceTests {
 
         /// "named Bella" spans the page1/page2 boundary.
         /// It never appears within a single resource.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func crossResourceSearchFXL(config: SearchServiceTestConfig) async throws {
             guard config.supportsCrossResourceSearch else { return }
             let pub = try await openPublication(.fxl, config: config)
@@ -168,7 +178,7 @@ struct SearchServiceTests {
         /// (`<p>The quick</p><p>brown fox.</p>`). It never appears within a
         /// single element, so only a service with a cross-element algorithm can
         /// find it.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func crossElementSearch(config: SearchServiceTestConfig) async throws {
             guard config.supportsCrossElementSearch else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -182,7 +192,7 @@ struct SearchServiceTests {
         /// A cross-element match should not carry a `cssSelector` because the
         /// renderer would scope its text search to a single DOM node that
         /// cannot contain the full highlight.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func crossElementMatchHasNoCssSelector(config: SearchServiceTestConfig) async throws {
             guard config.supportsCrossElementSearch else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -195,7 +205,7 @@ struct SearchServiceTests {
         // FIXME: To restore after dropping strippedForSnippetPositioning
         /// A single-element match should preserve the `cssSelector` set by the
         /// HTML content iterator.
-//        @Test(arguments: configs)
+//        @Test(arguments: configs())
 //        func singleElementMatchPreservesCssSelector(config: SearchServiceTestConfig) async throws {
 //            guard config.supportsCrossElementSearch else { return }
 //            let pub = try await openPublication(.reflowable, config: config)
@@ -209,7 +219,7 @@ struct SearchServiceTests {
     struct CaseSensitivity {
         /// Case-insensitive (default) search finds "Alice" (ch1), "ALICE" (ch2)
         /// and "alice" (ch3).
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func caseInsensitiveSearch(config: SearchServiceTestConfig) async throws {
             guard config.supportsCaseSensitivity else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -226,7 +236,7 @@ struct SearchServiceTests {
 
         /// Case-sensitive search for "alice" finds only the lowercase variant
         /// in chapter3.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func caseSensitiveSearch(config: SearchServiceTestConfig) async throws {
             guard config.supportsCaseSensitivity else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -240,7 +250,7 @@ struct SearchServiceTests {
 
     struct DiacriticSensitivity {
         /// Diacritic-insensitive search for "cafe" matches "café" in chapter1.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func diacriticInsensitiveSearch(config: SearchServiceTestConfig) async throws {
             guard config.supportsDiacriticSensitivity else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -252,7 +262,7 @@ struct SearchServiceTests {
         }
 
         /// Diacritic-sensitive search for "cafe" does not match "café".
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func diacriticSensitiveSearch(config: SearchServiceTestConfig) async throws {
             guard config.supportsDiacriticSensitivity else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -268,7 +278,7 @@ struct SearchServiceTests {
         ///
         /// `exact: true` uses NSString `.literal` comparison, which disables
         /// all folding (case and diacritics) simultaneously.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func exactMatch(config: SearchServiceTestConfig) async throws {
             guard config.supportsExactMatch else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -283,7 +293,7 @@ struct SearchServiceTests {
     struct RegularExpression {
         /// Regex `\d{4}-\d{2}-\d{2}` matches the ISO date "2024-01-15" in
         /// chapter2.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func regularExpressionSearch(config: SearchServiceTestConfig) async throws {
             guard config.supportsRegularExpression else { return }
             let pub = try await openPublication(.reflowable, config: config)
@@ -297,7 +307,7 @@ struct SearchServiceTests {
 
     struct SnippetExtraction {
         /// A match surrounded by text should populate `before` and `after`.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func snippetBeforeAndAfter(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.reflowable, config: config)
             // "wonderland" in chapter1: "Alice went to wonderland. The café was
@@ -311,7 +321,7 @@ struct SearchServiceTests {
         }
 
         /// A match at the very start of a resource should have nil `before`.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func snippetNoBeforeAtResourceStart(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.reflowable, config: config)
             // chapter3 starts with "rise greeted alice..."
@@ -323,7 +333,7 @@ struct SearchServiceTests {
         }
 
         /// A match at the very end of a resource should have nil `after`.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func snippetNoAfterAtResourceEnd(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.reflowable, config: config)
             // chapter2 ends with "The sun"
@@ -333,12 +343,76 @@ struct SearchServiceTests {
             #expect(first.text.highlight?.lowercased() == "sun")
             #expect(first.text.after == nil)
         }
+
+        /// A cross-element match should have a `before` snippet that extends
+        /// to the requested snippet length and reflects actual preceding
+        /// element text.
+        @Test(arguments: configs())
+        func crossElementSnippetBeforeHasFullContext(config: SearchServiceTestConfig) async throws {
+            guard config.supportsCrossElementSearch else { return }
+            let pub = try await openPublication(.reflowable, config: config)
+            let results = try await search(pub, query: "quick brown")
+
+            let first = try #require(results.first)
+            #expect(first.text.highlight == "quick brown")
+            #expect(first.text.before == "Alice went to wonderland. The café was lovely. The ")
+        }
+
+        /// When a space falls at exactly `snippetLength` chars before the match,
+        /// the before snippet must extend past it to the prior word boundary
+        /// rather than stopping at the space character.
+        ///
+        /// chapter3: "rise greeted alice who likes wonderland very much."
+        /// With snippetLength=8, position 9 from "alice" is the space between
+        /// "rise" and "greeted" — a hard-truncating guard (`> 0`) breaks there,
+        /// producing "greeted ". The correct word-boundary guard (`>= 0`) must
+        /// include "rise".
+        @Test(arguments: configs(snippetLength: 8))
+        func snippetBeforeExtendsToWordBoundary(config: SearchServiceTestConfig) async throws {
+            let pub = try await openPublication(.reflowable, config: config)
+            let results = try await search(pub, query: "alice", options: .init(caseSensitive: true))
+
+            let match = try #require(results.first { $0.href.string == "EPUB/chapter3.xhtml" })
+            #expect(match.text.before == "rise greeted ")
+        }
+
+        /// When a space falls at exactly `snippetLength` chars after the match,
+        /// the after snippet must extend past it to the next word boundary.
+        ///
+        /// chapter3: "rise greeted alice who likes wonderland very much."
+        /// With snippetLength=4, position 5 from "alice" end is the space after
+        /// "who" — a hard-truncating guard stops there, producing " who".
+        /// The correct guard must extend to include "likes".
+        @Test(arguments: configs(snippetLength: 4))
+        func snippetAfterExtendsToWordBoundary(config: SearchServiceTestConfig) async throws {
+            let pub = try await openPublication(.reflowable, config: config)
+            let results = try await search(pub, query: "alice", options: .init(caseSensitive: true))
+
+            let match = try #require(results.first { $0.href.string == "EPUB/chapter3.xhtml" })
+            #expect(match.text.after == " who likes")
+        }
+
+        /// After-snippet context should extend into subsequent elements of the
+        /// same resource when the match ends near an element boundary.
+        @Test(arguments: configs())
+        func crossElementSnippetAfterHasContext(config: SearchServiceTestConfig) async throws {
+            guard config.supportsCrossElementSearch else { return }
+            let pub = try await openPublication(.reflowable, config: config)
+            // "lovely" is near the end of chapter1's first paragraph
+            // ("...The café was lovely."). After the match only "." remains in
+            // that element; the lookahead should extend `after` into the
+            // subsequent <p>The quick</p><p>brown fox.</p> elements.
+            let results = try await search(pub, query: "lovely")
+
+            let first = try #require(results.first { $0.href.string == "EPUB/chapter1.xhtml" })
+            #expect(first.text.after == ". The quick brown fox.")
+        }
     }
 
     struct ResultCount {
         /// `resultCount` on the iterator should reflect all results collected
         /// so far and reach the total after exhaustion.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func resultCountIncreasesPerBatch(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.reflowable, config: config)
             // "alice" (case-insensitive) appears in chapter1, chapter2,
@@ -357,7 +431,7 @@ struct SearchServiceTests {
     struct InvisibleElements {
         /// `img` `alt` attributes are not part of text content, so they are
         ///  never searchable.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func imgAltNotSearchable(config: SearchServiceTestConfig) async throws {
             let pub = try await openPublication(.reflowable, config: config)
             let results = try await search(pub, query: "invisible alt text")
@@ -365,7 +439,7 @@ struct SearchServiceTests {
         }
 
         /// Fallback content (`<audio>…</audio>`) should not be searchable.
-        @Test(arguments: configs)
+        @Test(arguments: configs())
         func fallbackContentNotSearchable(config: SearchServiceTestConfig) async throws {
             guard config.ignoresFallbackContent else { return }
             let pub = try await openPublication(.reflowable, config: config)

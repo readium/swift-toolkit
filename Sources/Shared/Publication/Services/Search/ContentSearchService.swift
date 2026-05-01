@@ -111,9 +111,23 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
     private var tailUnits: [SearchUnit] = []
     private let tailCapacity: Int
 
+    /// Extra characters stored beyond `snippetLength` in the context buffers.
+    /// Ensures `extractSnippetBefore/After` — which may overshoot `snippetLength`
+    /// by up to one word — never reaches a hard-truncated buffer edge.
+    private let snippetWordOvershootMargin = 100
+
     // Per-resource batching state
     private var currentHREF: AnyURL?
     private var pendingLocators: [Locator] = []
+
+    /// Snippet context: last snippetLength chars from earlier elements in the
+    /// current resource, ending where the current tail begins. Used to extend
+    /// before-snippets beyond the tail window.
+    private var snippetContextBuffer: String = ""
+
+    /// Lookahead queue for after-snippet context: elements read ahead from the
+    /// ContentIterator but not yet processed for matching.
+    private var lookaheadQueue: [ContentElement] = []
 
     fileprivate init(
         contentIterator: ContentIterator,
@@ -160,18 +174,29 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
                 let tailLocators = await flushTail()
                 pendingLocators.append(contentsOf: tailLocators)
 
-                if currentHREF != nil, !pendingLocators.isEmpty {
+                // Reset before-context for the new resource — before any processElement
+                // call, covering both the early-return and fall-through paths.
+                snippetContextBuffer = ""
+                currentHREF = textElement.locator.href
+
+                if !pendingLocators.isEmpty {
                     let batch = pendingLocators
                     pendingLocators = []
-                    currentHREF = textElement.locator.href
-                    await pendingLocators.append(contentsOf: processElement(textElement))
+                    // fillLookahead called here (early-return path only).
+                    await fillLookahead(currentHREF: currentHREF)
+                    let afterCtx = afterContextText(currentHREF: currentHREF)
+                    await pendingLocators.append(contentsOf: processElement(textElement, afterContext: afterCtx))
                     incrementResultCount(by: batch.count)
                     return .success(LocatorCollection(locators: batch))
                 }
-                currentHREF = textElement.locator.href
+                // Fall-through: no pending batch — fillLookahead called below (shared path).
             }
 
-            await pendingLocators.append(contentsOf: processElement(textElement))
+            // Shared path: normal elements AND boundary-branch fall-through.
+            // fillLookahead is called exactly once here for all non-early-return cases.
+            await fillLookahead(currentHREF: currentHREF)
+            let afterCtx = afterContextText(currentHREF: currentHREF)
+            await pendingLocators.append(contentsOf: processElement(textElement, afterContext: afterCtx))
         }
 
         // Content exhausted — flush any remaining deferred matches.
@@ -188,9 +213,17 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         return .success(LocatorCollection(locators: batch))
     }
 
-    /// Advances the content iterator, returning `nil` on normal exhaustion
-    /// or on an iterator error (which is logged but not propagated).
+    /// Drains from `lookaheadQueue` first, then falls back to the ContentIterator.
     private func nextElement() async -> ContentElement? {
+        if !lookaheadQueue.isEmpty {
+            return lookaheadQueue.removeFirst()
+        }
+        return await rawNextElement()
+    }
+
+    /// Advances the ContentIterator directly, returning `nil` on normal exhaustion
+    /// or on an iterator error (which is logged but not propagated).
+    private func rawNextElement() async -> ContentElement? {
         do {
             return try await contentIterator.next()
         } catch {
@@ -199,11 +232,47 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         }
     }
 
+    // MARK: - Lookahead (after-snippet context)
+
+    /// Pre-reads elements from the ContentIterator into `lookaheadQueue` until
+    /// at least `snippetLength` chars of same-resource text are queued, or we
+    /// reach a resource boundary or exhaustion.
+    ///
+    /// The boundary element (if any) is appended to the queue for normal
+    /// processing later but does NOT count toward the lookahead budget.
+    private func fillLookahead(currentHREF: AnyURL?) async {
+        var textCount = lookaheadQueue
+            .compactMap { $0 as? TextContentElement }
+            .filter { $0.locator.href == currentHREF }
+            .reduce(0) { $0 + $1.text.count }
+
+        while textCount < snippetLength + snippetWordOvershootMargin {
+            guard let el = await rawNextElement() else { break }
+            lookaheadQueue.append(el)
+            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else { continue }
+            guard textEl.locator.href == currentHREF else { break }
+            textCount += textEl.text.count
+        }
+    }
+
+    /// Returns up to `snippetLength` chars of text from queued elements that
+    /// belong to the same resource as `currentHREF`.
+    private func afterContextText(currentHREF: AnyURL?) -> String {
+        var text = ""
+        for el in lookaheadQueue {
+            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else { continue }
+            guard textEl.locator.href == currentHREF else { break }
+            text += (text.isEmpty ? "" : " ") + textEl.text
+            if text.count >= snippetLength + snippetWordOvershootMargin { break }
+        }
+        return String(text.prefix(snippetLength + snippetWordOvershootMargin))
+    }
+
     // MARK: - Core algorithm
 
     /// Processes one `TextContentElement`, returning any locators whose matches
     /// are safely outside the danger zone.
-    private func processElement(_ element: TextContentElement) async -> [Locator] {
+    private func processElement(_ element: TextContentElement, afterContext: String) async -> [Locator] {
         let (elementText, elementUnits) = buildElementContext(from: element)
         guard !elementText.isEmpty else { return [] }
 
@@ -226,10 +295,22 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
             guard !Task.isCancelled else { return nil }
             let startOffset = searchText.distance(from: searchText.startIndex, to: range.lowerBound)
             guard startOffset < dangerZoneStart else { return nil }
-            return makeLocator(range: range, searchUnits: searchUnits, searchText: searchText)
+            return makeLocator(range: range, searchUnits: searchUnits, searchText: searchText,
+                               afterContext: afterContext)
         }
 
         updateTail(from: searchText, searchUnits: searchUnits, searchTextCount: searchTextCount)
+
+        // Append the committed prefix (everything before the new tail) to the
+        // snippet context buffer so future elements have full before-context.
+        let prefixCount = max(0, searchTextCount - tailCapacity)
+        if prefixCount > 0 {
+            let committed = String(searchText.prefix(prefixCount))
+            snippetContextBuffer = String(
+                (snippetContextBuffer.isEmpty ? committed : snippetContextBuffer + committed)
+                    .suffix(snippetLength + snippetWordOvershootMargin)
+            )
+        }
 
         return emittedLocators
     }
@@ -322,7 +403,8 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
 
         return ranges.compactMap { range -> Locator? in
             guard !Task.isCancelled else { return nil }
-            return makeLocator(range: range, searchUnits: tailUnits, searchText: tail)
+            // At resource boundary: no same-resource after-context available.
+            return makeLocator(range: range, searchUnits: tailUnits, searchText: tail, afterContext: "")
         }
     }
 
@@ -331,7 +413,8 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
     private func makeLocator(
         range: Range<String.Index>,
         searchUnits: [SearchUnit],
-        searchText: String
+        searchText: String,
+        afterContext: String
     ) -> Locator? {
         let startOffset = searchText.distance(from: searchText.startIndex, to: range.lowerBound)
 
@@ -348,7 +431,8 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
             range: range,
             searchUnits: searchUnits,
             searchText: searchText,
-            startOffset: startOffset
+            startOffset: startOffset,
+            afterContext: afterContext
         )
 
         return strippedForSnippetPositioning(
@@ -381,7 +465,7 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
             $0.cssSelector = nil
         })
     }
-    
+
     // FIXME: To restore after dropping strippedForSnippetPositioning
     /// Extracts `before` / `after` snippet text, stopping at element-separator
     /// boundaries and capping at `snippetLength` characters (word-bounded).
@@ -415,46 +499,41 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         })
     }
 
-    /// Extracts `before` / `after` snippet text, allowing context to cross
-    /// element boundaries within the same resource. Snippets are capped at
-    /// `snippetLength` characters (word-bounded). Separator units are skipped
-    /// during extraction but no longer act as hard boundaries.
+    /// Builds the `before` and `after` snippet strings for a match.
+    ///
+    /// `before` is extended with `snippetContextBuffer` (text from earlier
+    /// elements in the same resource). `after` is extended with `afterContext`
+    /// (text from later elements, pre-read via the lookahead queue).
     private func makeSnippet(
         range: Range<String.Index>,
         searchUnits: [SearchUnit],
         searchText: String,
-        startOffset: Int
+        startOffset: Int,
+        afterContext: String
     ) -> (before: String?, after: String?) {
+        let extendedBefore = snippetContextBuffer + searchText[searchText.startIndex ..< range.lowerBound]
         let before = extractSnippetBefore(
-            searchText: searchText,
-            contextStart: searchText.startIndex,
-            matchStart: range.lowerBound,
-            trimLeading: startOffset == 0
+            text: extendedBefore,
+            trimLeading: snippetContextBuffer.isEmpty && startOffset == 0
         )
 
         let endOffset = searchText.distance(from: searchText.startIndex, to: range.upperBound)
-
+        let rawAfter = String(searchText[range.upperBound...])
+        let extendedAfter = afterContext.isEmpty ? rawAfter : rawAfter + " " + afterContext
         let after = extractSnippetAfter(
-            searchText: searchText,
-            matchEnd: range.upperBound,
-            contextEnd: searchText.endIndex,
-            trimTrailing: endOffset == searchText.count
+            text: extendedAfter,
+            trimTrailing: afterContext.isEmpty && endOffset == searchText.count
         )
 
         return (before, after)
     }
 
-    private func extractSnippetBefore(
-        searchText: String,
-        contextStart: String.Index,
-        matchStart: String.Index,
-        trimLeading: Bool
-    ) -> String? {
+    private func extractSnippetBefore(text: String, trimLeading: Bool) -> String? {
         var result = ""
         var count = snippetLength
 
-        for char in searchText[contextStart ..< matchStart].reversed() {
-            guard count > 0 || !char.isWhitespace else { break }
+        for char in text.reversed() {
+            guard count >= 0 || !char.isWhitespace else { break }
             count -= 1
             result.insert(char, at: result.startIndex)
         }
@@ -466,17 +545,12 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         return result.isEmpty ? nil : result
     }
 
-    private func extractSnippetAfter(
-        searchText: String,
-        matchEnd: String.Index,
-        contextEnd: String.Index,
-        trimTrailing: Bool
-    ) -> String? {
+    private func extractSnippetAfter(text: String, trimTrailing: Bool) -> String? {
         var result = ""
         var count = snippetLength
 
-        for char in searchText[matchEnd ..< contextEnd] {
-            guard count > 0 || !char.isWhitespace else { break }
+        for char in text {
+            guard count >= 0 || !char.isWhitespace else { break }
             count -= 1
             result.append(char)
         }
