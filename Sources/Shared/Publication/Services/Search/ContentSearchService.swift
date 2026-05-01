@@ -23,7 +23,7 @@ import Foundation
 /// are not affected by this limitation.
 ///
 /// This service requires the publication to have a configured `ContentService`.
-public class ContentSearchService: SearchService {
+public class ContentSearchService: SearchService, Loggable {
     /// - Parameters:
     ///   - snippetLength: Maximum length of the `before` and `after` text
     ///     snippets in the returned locators.
@@ -50,7 +50,7 @@ public class ContentSearchService: SearchService {
     private let snippetLength: Int
     private let searchAlgorithm: StringSearchAlgorithm
 
-    init(
+    public init(
         publication: Weak<Publication>,
         language: Language?,
         snippetLength: Int,
@@ -68,6 +68,7 @@ public class ContentSearchService: SearchService {
 
     public func search(query: String, options: SearchOptions?) async -> SearchResult<any SearchIterator> {
         guard let content = publication()?.content() else {
+            log(.error, "ContentSearchService requires a ContentService but none is registered for this publication.")
             return .failure(.publicationNotSearchable)
         }
         return .success(Iterator(
@@ -143,7 +144,7 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         self.query = query
         self.options = options ?? SearchOptions()
         currentLanguage = self.options.language ?? language
-        tailCapacity = (options?.regularExpression ?? false)
+        tailCapacity = (self.options.regularExpression ?? false)
             ? 256
             : max(0, query.count - 1)
     }
@@ -171,29 +172,13 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
             }
 
             if textElement.locator.href != currentHREF {
-                let tailLocators = await flushTail()
-                pendingLocators.append(contentsOf: tailLocators)
-
-                // Reset before-context for the new resource — before any processElement
-                // call, covering both the early-return and fall-through paths.
-                snippetContextBuffer = ""
-                currentHREF = textElement.locator.href
-
-                if !pendingLocators.isEmpty {
-                    let batch = pendingLocators
-                    pendingLocators = []
-                    // fillLookahead called here (early-return path only).
-                    await fillLookahead(currentHREF: currentHREF)
-                    let afterCtx = afterContextText(currentHREF: currentHREF)
-                    await pendingLocators.append(contentsOf: processElement(textElement, afterContext: afterCtx))
-                    incrementResultCount(by: batch.count)
-                    return .success(LocatorCollection(locators: batch))
+                if let batch = await handleResourceBoundary(newElement: textElement) {
+                    return batch
                 }
-                // Fall-through: no pending batch — fillLookahead called below (shared path).
+                // Fall-through: no pending batch — process newElement on the shared path.
             }
 
-            // Shared path: normal elements AND boundary-branch fall-through.
-            // fillLookahead is called exactly once here for all non-early-return cases.
+            // Shared path: normal elements AND boundary fall-through.
             await fillLookahead(currentHREF: currentHREF)
             let afterCtx = afterContextText(currentHREF: currentHREF)
             await pendingLocators.append(contentsOf: processElement(textElement, afterContext: afterCtx))
@@ -202,6 +187,34 @@ private final class Iterator: SearchIterator, Loggable, @unchecked Sendable {
         // Content exhausted — flush any remaining deferred matches.
         await pendingLocators.append(contentsOf: flushTail())
         return emitBatch()
+    }
+
+    /// Handles a resource-boundary transition when `newElement` belongs to a
+    /// different resource than `currentHREF`.
+    ///
+    /// If a batch of pending locators has accumulated, emits it while starting
+    /// to process `newElement` for the next batch.
+    ///
+    /// - Returns `.success` with the ready batch, or `nil` to signal
+    ///   fall-through to the shared element-processing path (no batch was ready
+    ///   to emit).
+    private func handleResourceBoundary(newElement: TextContentElement) async -> SearchResult<LocatorCollection?>? {
+        let tailLocators = await flushTail()
+        pendingLocators.append(contentsOf: tailLocators)
+        snippetContextBuffer = ""
+        currentHREF = newElement.locator.href
+
+        guard !pendingLocators.isEmpty else {
+            return nil
+        }
+
+        let batch = pendingLocators
+        pendingLocators = []
+        await fillLookahead(currentHREF: currentHREF)
+        let afterCtx = afterContextText(currentHREF: currentHREF)
+        await pendingLocators.append(contentsOf: processElement(newElement, afterContext: afterCtx))
+        incrementResultCount(by: batch.count)
+        return .success(LocatorCollection(locators: batch))
     }
 
     /// Returns whatever is in `pendingLocators` as a batch result.
