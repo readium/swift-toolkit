@@ -103,7 +103,7 @@ enum PDFResourceContentIteratorTests {
             let iter = makeIterator()
             for i in 0 ..< 8 {
                 let element = try await iter.next()
-                #expect(element?.locator.locations.progression == Double(i) / 8.0)
+                #expect(element?.locator.locations.progression == Double(i + 1) / 9.0)
             }
         }
 
@@ -141,7 +141,7 @@ enum PDFResourceContentIteratorTests {
             let iter = makeIterator(totalProgressionRange: range)
             for i in 0 ..< 8 {
                 let element = try await iter.next()
-                let expected = range.lowerBound + Double(i) / 8.0 * (range.upperBound - range.lowerBound)
+                let expected = range.lowerBound + Double(i + 1) / 9.0 * (range.upperBound - range.lowerBound)
                 #expect(element?.locator.locations.totalProgression == expected)
             }
         }
@@ -183,11 +183,10 @@ private let p9Before = "nd learning that she was\nD A I S Y M I L L E R\n3\n\n"
 
 private func makeElement(
     pageNumber: Int,
-    progressionIndex: Int,
     text: String,
     before: String? = nil
 ) -> AnyEquatableContentElement {
-    let progression = Double(progressionIndex) / 8.0
+    let progression = Double(pageNumber - 1) / 9.0
     let loc = makeLocator(
         position: pageNumber,
         progression: progression,
@@ -202,14 +201,14 @@ private func makeElement(
 }
 
 private let sampleElements: [AnyEquatableContentElement] = [
-    makeElement(pageNumber: 2, progressionIndex: 0, text: p2Text),
-    makeElement(pageNumber: 3, progressionIndex: 1, text: p3Text, before: p3Before),
-    makeElement(pageNumber: 4, progressionIndex: 2, text: p4Text, before: p4Before),
-    makeElement(pageNumber: 5, progressionIndex: 3, text: p5Text, before: p5Before),
-    makeElement(pageNumber: 6, progressionIndex: 4, text: p6Text, before: p6Before),
-    makeElement(pageNumber: 7, progressionIndex: 5, text: p7Text, before: p7Before),
-    makeElement(pageNumber: 8, progressionIndex: 6, text: p8Text, before: p8Before),
-    makeElement(pageNumber: 9, progressionIndex: 7, text: p9Text, before: p9Before),
+    makeElement(pageNumber: 2, text: p2Text),
+    makeElement(pageNumber: 3, text: p3Text, before: p3Before),
+    makeElement(pageNumber: 4, text: p4Text, before: p4Before),
+    makeElement(pageNumber: 5, text: p5Text, before: p5Before),
+    makeElement(pageNumber: 6, text: p6Text, before: p6Before),
+    makeElement(pageNumber: 7, text: p7Text, before: p7Before),
+    makeElement(pageNumber: 8, text: p8Text, before: p8Before),
+    makeElement(pageNumber: 9, text: p9Text, before: p9Before),
 ]
 
 private func makeLocator(

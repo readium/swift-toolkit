@@ -192,8 +192,8 @@ public class PDFResourceContentIterator: ContentIterator {
         var result = parsed
         let range = await totalProgressionRange.value
 
-        result.elements = parsed.elements.enumerated().map { index, element in
-            let progression = Double(index) / count
+        result.elements = parsed.elements.enumerated().map { _, element in
+            let progression = element.locator.locations.progression ?? 0
             let totalProgression = range.map { $0.lowerBound + progression * ($0.upperBound - $0.lowerBound) }
 
             return TextContentElement(
