@@ -78,7 +78,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ReadiumStreamerTests",
-            dependencies: ["ReadiumStreamer"],
+            dependencies: ["ReadiumStreamer", "TestPublications"],
             path: "Tests/StreamerTests",
             resources: [
                 .copy("Fixtures"),

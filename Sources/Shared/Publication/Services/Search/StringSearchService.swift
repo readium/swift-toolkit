@@ -14,6 +14,7 @@ import Foundation
 /// content from markups (e.g. HTML) or binary (e.g. PDF) resources.
 ///
 /// The actual search is implemented by the provided `searchAlgorithm`.
+@available(*, deprecated, renamed: "ContentSearchService", message: "Use ContentSearchService for new integrations.")
 public class StringSearchService: SearchService {
     public static func makeFactory(
         snippetLength: Int = 200,
@@ -205,75 +206,20 @@ public class StringSearchService: SearchService {
                 after.append(char)
             }
 
+            // Trim if the entire prefix/suffix is whitespace
+            if text[..<range.lowerBound].allSatisfy(\.isWhitespace) {
+                before = ""
+            }
+            if text[range.upperBound...].allSatisfy(\.isWhitespace) {
+                after = ""
+            }
+
             return Locator.Text(
-                after: after,
-                before: before,
+                after: after.orNilIfEmpty(),
+                before: before.orNilIfEmpty(),
                 highlight: String(text[range])
             )
         }
-    }
-}
-
-/// Implements the actual search algorithm in sanitized text content.
-public protocol StringSearchAlgorithm {
-    /// Default value for the search options available with this algorithm.
-    ///
-    /// If an option does not have a value, it is not supported by the algorithm.
-    var options: SearchOptions { get }
-
-    /// Finds all the ranges of occurrences of the given `query` in the `text`.
-    func findRanges(
-        of query: String,
-        options: SearchOptions,
-        in text: String,
-        language: Language?
-    ) async -> [Range<String.Index>]
-}
-
-/// A basic `StringSearchAlgorithm` using the native `String.range(of:)` APIs.
-public class BasicStringSearchAlgorithm: StringSearchAlgorithm {
-    public let options: SearchOptions = .init(
-        caseSensitive: false,
-        diacriticSensitive: false,
-        exact: false,
-        regularExpression: false
-    )
-
-    public init() {}
-
-    public func findRanges(
-        of query: String,
-        options: SearchOptions,
-        in text: String,
-        language: Language?
-    ) async -> [Range<String.Index>] {
-        var compareOptions: NSString.CompareOptions = []
-        if options.regularExpression ?? false {
-            compareOptions.insert(.regularExpression)
-        } else if options.exact ?? false {
-            compareOptions.insert(.literal)
-        } else {
-            if !(options.caseSensitive ?? false) {
-                compareOptions.insert(.caseInsensitive)
-            }
-            if !(options.diacriticSensitive ?? false) {
-                compareOptions.insert(.diacriticInsensitive)
-            }
-        }
-
-        var ranges: [Range<String.Index>] = []
-        var index = text.startIndex
-        while
-            !Task.isCancelled,
-            index < text.endIndex,
-            let range = text.range(of: query, options: compareOptions, range: index ..< text.endIndex, locale: language?.locale),
-            !range.isEmpty
-        {
-            ranges.append(range)
-            index = text.index(range.lowerBound, offsetBy: 1)
-        }
-
-        return ranges
     }
 }
 

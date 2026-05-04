@@ -14,45 +14,47 @@ let unexpected = "Something went wrong. Please try again."
 // MARK: - ReadiumShared Errors
 
 extension ReadiumShared.AssetRetrieveError: UserErrorConvertible {
-    var message: String {
+    var userErrorMessage: String? {
         switch self {
         case .formatNotSupported: "Unsupported file type. Please try a different file."
-        case let .reading(error): error.message
+        case let .reading(error): error.userErrorMessage
         }
     }
 }
 
 extension ReadiumShared.AssetRetrieveURLError: UserErrorConvertible {
-    var message: String {
+    var userErrorMessage: String? {
         switch self {
         case .schemeNotSupported, .formatNotSupported: "Unsupported file type. Please try a different file."
-        case let .reading(error): error.message
+        case let .reading(error): error.userErrorMessage
         }
     }
 }
 
 extension ReadiumShared.ReadError: UserErrorConvertible {
-    var message: String {
+    var userErrorMessage: String? {
         switch self {
-        case let .access(error): error.message
+        case let .access(error): error.userErrorMessage
         case .decoding: "We couldn't open this content. The file might be corrupted or use a format we don't support. Please try with a different file."
+        case .outOfMemory: "This file is too large for the available memory."
         case .unsupportedOperation: unexpected
+        case .cancelled: nil
         }
     }
 }
 
 extension ReadiumShared.AccessError: UserErrorConvertible {
-    var message: String {
+    var userErrorMessage: String? {
         switch self {
-        case let .http(error): error.message
-        case let .fileSystem(error): error.message
+        case let .http(error): error.userErrorMessage
+        case let .fileSystem(error): error.userErrorMessage
         case .other: unexpected
         }
     }
 }
 
 extension ReadiumShared.FileSystemError: UserErrorConvertible {
-    var message: String {
+    var userErrorMessage: String? {
         switch self {
         case .fileNotFound: "Couldn't open file. The file was not found."
         case .forbidden: "Cannot open file. Access denied."
@@ -63,7 +65,7 @@ extension ReadiumShared.FileSystemError: UserErrorConvertible {
 }
 
 extension ReadiumShared.HTTPError: UserErrorConvertible {
-    var message: String {
+    var userErrorMessage: String? {
         switch self {
         case .malformedRequest, .redirection, .cancelled, .other:
             "Something went wrong. Please check your internet connection or try again later."
@@ -82,7 +84,7 @@ extension ReadiumShared.HTTPError: UserErrorConvertible {
         case .security: "Secure connection failed. Please try again later."
         case .rangeNotSupported: "The server doesn't support the required loading method."
         case .offline: "You're offline. Check your internet connection."
-        case let .fileSystem(error): error.message
+        case let .fileSystem(error): error.userErrorMessage
         }
     }
 }
@@ -90,10 +92,10 @@ extension ReadiumShared.HTTPError: UserErrorConvertible {
 // MARK: - ReadiumStreamer Errors
 
 extension ReadiumStreamer.PublicationOpenError: UserErrorConvertible {
-    var message: String {
+    var userErrorMessage: String? {
         switch self {
         case .formatNotSupported: "Unsupported file type. Please try a different file."
-        case let .reading(error): error.message
+        case let .reading(error): error.userErrorMessage
         }
     }
 }
