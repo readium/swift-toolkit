@@ -94,8 +94,10 @@ public class ContentSearchService: SearchService, Loggable {
 private struct ElementEntry {
     /// Concatenated text of all non-empty segments in this element.
     let text: String
+
     /// Per-segment locators and their character ranges within `text`.
     let segments: [(locator: Locator, range: Range<Int>)]
+
     /// Window-relative offset where this entry's text begins. Rebased on trim.
     var startOffset: Int
 }
@@ -110,13 +112,17 @@ private final class Iterator: SearchIterator, Loggable {
     private let options: SearchOptions
     private let currentLanguage: Language?
 
+    /// Danger-zone capacity used for regex queries (heuristic).
+    private static let regexTailCapacity = 256
+
     /// Number of characters at the end of the searchable slice that form the
     /// *danger zone*. Matches starting in this zone are deferred to the next
     /// iteration because the query might extend into the following element,
     /// potentially yielding a longer or different match. At resource boundaries
     /// (or content exhaustion), the danger zone is flushed with no deferral.
     ///
-    /// For plain text: `max(0, query.count - 1)`. For regex: 256 (heuristic).
+    /// For plain text: `max(0, query.count - 1)`.
+    /// For regex: `regexTailCapacity` (heuristic).
     private let tailCapacity: Int
 
     /// Extra characters stored beyond `snippetLength` in the context buffers.
@@ -157,6 +163,10 @@ private final class Iterator: SearchIterator, Loggable {
     // MARK: Per-resource batching
 
     private var currentHREF: AnyURL?
+
+    /// Locators found so far in the current batch, waiting to be returned by
+    /// the next `emitBatch()` call. Flushed at resource boundaries and on
+    /// content exhaustion.
     private var pendingLocators: [Locator] = []
 
     /// Elements read ahead from the ContentIterator that have not yet been
@@ -172,18 +182,20 @@ private final class Iterator: SearchIterator, Loggable {
         query: String,
         options: SearchOptions?
     ) {
+        let options = options ?? SearchOptions()
+
         self.contentIterator = contentIterator
         self.snippetLength = snippetLength
         self.searchAlgorithm = searchAlgorithm
         self.query = query
-        self.options = options ?? SearchOptions()
-        currentLanguage = self.options.language ?? language
-        tailCapacity = (self.options.regularExpression ?? false)
-            ? 256
+        self.options = options
+        currentLanguage = options.language ?? language
+        tailCapacity = (options.regularExpression ?? false)
+            ? Iterator.regexTailCapacity
             : max(0, query.count - 1)
     }
 
-    // MARK: - Public interface
+    // MARK: - SearchIterator
 
     func next() async -> SearchResult<LocatorCollection?> {
         while let element = await nextElement() {
@@ -199,10 +211,11 @@ private final class Iterator: SearchIterator, Loggable {
             }
 
             // Resource boundary detection.
-            if textElement.locator.href != currentHREF {
-                if let batch = await handleResourceBoundary(newElement: textElement) {
-                    return batch
-                }
+            if
+                textElement.locator.href != currentHREF,
+                let batch = await handleResourceBoundary(newElement: textElement)
+            {
+                return batch
             }
 
             // Append element to window, advance searchCeiling, read ahead for
@@ -210,7 +223,7 @@ private final class Iterator: SearchIterator, Loggable {
             appendToWindow(textElement)
             searchCeiling = windowTextCount
             await fillLookahead()
-            await pendingLocators.append(contentsOf: searchAndEmitSafe())
+            await pendingLocators.append(contentsOf: search())
             trimFront()
         }
 
@@ -244,7 +257,7 @@ private final class Iterator: SearchIterator, Loggable {
         appendToWindow(newElement)
         searchCeiling = windowTextCount
         await fillLookahead()
-        await pendingLocators.append(contentsOf: searchAndEmitSafe())
+        await pendingLocators.append(contentsOf: search())
         trimFront()
 
         resultCount = (resultCount ?? 0) + batch.count
@@ -332,15 +345,14 @@ private final class Iterator: SearchIterator, Loggable {
     /// are available beyond `searchCeiling`, or a resource boundary / EOF is
     /// reached.
     private func fillLookahead() async {
-        // Count text already in lookaheadBuffer for same resource.
-        var textCount = lookaheadBuffer
-            .compactMap { $0 as? TextContentElement }
-            .filter { $0.locator.href == currentHREF && !$0.segments.isEmpty }
-            .reduce(0) { $0 + $1.text.count }
-
-        // Also count text already appended to window beyond searchCeiling.
-        let lookaheadInWindow = windowTextCount - searchCeiling
-        textCount += max(0, lookaheadInWindow)
+        // Count text already available as lookahead: both the in-window slice
+        // beyond searchCeiling and same-resource text in lookaheadBuffer.
+        var textCount = max(0, windowTextCount - searchCeiling)
+        for el in lookaheadBuffer {
+            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else { continue }
+            guard textEl.locator.href == currentHREF else { break }
+            textCount += textEl.text.count
+        }
 
         let budget = snippetLength + snippetWordOvershootMargin
 
@@ -355,14 +367,17 @@ private final class Iterator: SearchIterator, Loggable {
 
         // Append same-resource lookahead elements to the window (they become
         // the lookahead slice — beyond searchCeiling, not searched yet).
-        while let first = lookaheadBuffer.first {
-            guard let textEl = first as? TextContentElement, !textEl.segments.isEmpty else {
-                // Non-text or empty element in lookahead — skip it but keep in buffer
-                // for nextElement() to process.
-                break
+        // Non-text elements and stale old-resource elements are skipped in-place
+        // so they remain in the buffer for nextElement() to return in order.
+        var i = lookaheadBuffer.startIndex
+        while i < lookaheadBuffer.endIndex {
+            let el = lookaheadBuffer[i]
+            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else {
+                i += 1
+                continue
             }
             guard textEl.locator.href == currentHREF else { break }
-            lookaheadBuffer.removeFirst()
+            lookaheadBuffer.remove(at: i)
             appendToWindow(textEl)
         }
     }
@@ -394,9 +409,10 @@ private final class Iterator: SearchIterator, Loggable {
         let firstKept = entries[dropCount]
         let trimAmount: Int
         if firstKept.startOffset > 0 {
-            // The separator before firstKept is at firstKept.startOffset - 1.
-            // We trim everything before that separator.
-            trimAmount = firstKept.startOffset - 1
+            // Include the separator that precedes firstKept so that windowText
+            // starts directly with the first kept entry's text after rebasing,
+            // avoiding a leading space in before-snippets.
+            trimAmount = firstKept.startOffset
         } else {
             trimAmount = 0
         }
@@ -422,10 +438,24 @@ private final class Iterator: SearchIterator, Loggable {
 
     // MARK: - Search
 
-    /// Searches the searchable slice `[searchFloor, searchCeiling)` and emits
+    /// Flushes all remaining deferred matches in the searchable slice with no
+    /// danger zone (used at resource boundaries and content exhaustion).
+    private func flush() async -> [Locator] {
+        searchCeiling = windowTextCount
+        return await search(dangerZoneCapacity: 0)
+    }
+
+    /// Searches the searchable slice `[searchFloor, searchCeiling)` and returns
     /// matches whose start offset is before the danger zone. Advances
     /// `searchFloor` past emitted text (up to the danger zone start).
-    private func searchAndEmitSafe() async -> [Locator] {
+    private func search() async -> [Locator] {
+        await search(dangerZoneCapacity: tailCapacity)
+    }
+
+    /// Searches `[searchFloor, searchCeiling)` and emits all matches whose
+    /// start offset falls before the danger zone. Advances `searchFloor` to the
+    /// danger zone start (= `searchCeiling` when `dangerZoneCapacity` is 0).
+    private func search(dangerZoneCapacity: Int) async -> [Locator] {
         guard searchCeiling > searchFloor else { return [] }
 
         let sliceStart = windowText.index(windowText.startIndex, offsetBy: searchFloor)
@@ -440,7 +470,7 @@ private final class Iterator: SearchIterator, Loggable {
         )
 
         let sliceCount = searchCeiling - searchFloor
-        let dangerZoneStart = max(0, sliceCount - tailCapacity)
+        let dangerZoneStart = max(0, sliceCount - dangerZoneCapacity)
 
         var locators: [Locator] = []
         for range in ranges {
@@ -456,45 +486,7 @@ private final class Iterator: SearchIterator, Loggable {
             }
         }
 
-        // Advance searchFloor to the danger zone start.
-        let newFloor = searchFloor + dangerZoneStart
-        searchFloor = newFloor
-
-        return locators
-    }
-
-    /// Flushes all remaining deferred matches in the searchable slice with no
-    /// danger zone (used at resource boundaries and content exhaustion).
-    private func flush() async -> [Locator] {
-        // Move searchCeiling to include all window text (any lookahead in the
-        // window that hasn't been searched yet).
-        searchCeiling = windowTextCount
-        guard searchCeiling > searchFloor else { return [] }
-
-        let sliceStart = windowText.index(windowText.startIndex, offsetBy: searchFloor)
-        let sliceEnd = windowText.index(windowText.startIndex, offsetBy: searchCeiling)
-        let searchSlice = String(windowText[sliceStart ..< sliceEnd])
-
-        let ranges = await searchAlgorithm.findRanges(
-            of: query,
-            options: options,
-            in: searchSlice,
-            language: currentLanguage
-        )
-
-        var locators: [Locator] = []
-        for range in ranges {
-            guard !Task.isCancelled else { break }
-            let localStart = searchSlice.distance(from: searchSlice.startIndex, to: range.lowerBound)
-            let windowStart = searchFloor + localStart
-            let windowEnd = searchFloor + searchSlice.distance(from: searchSlice.startIndex, to: range.upperBound)
-
-            if let locator = makeLocator(matchStart: windowStart, matchEnd: windowEnd) {
-                locators.append(locator)
-            }
-        }
-
-        searchFloor = searchCeiling
+        searchFloor += dangerZoneStart
         return locators
     }
 
@@ -507,15 +499,14 @@ private final class Iterator: SearchIterator, Loggable {
     /// resolves the segment locator, and builds before/after snippets from the
     /// surrounding window text.
     private func makeLocator(matchStart: Int, matchEnd: Int) -> Locator? {
-        guard let (entry, segmentLocator) = resolveLocator(at: matchStart) else {
+        guard let segmentLocator = resolveLocator(at: matchStart) else {
             return nil
         }
 
+        let highlightStart = windowText.index(windowText.startIndex, offsetBy: matchStart)
+        let highlightEnd = windowText.index(windowText.startIndex, offsetBy: matchEnd)
         let highlight = String(
-            windowText[
-                windowText.index(windowText.startIndex, offsetBy: matchStart) ..<
-                windowText.index(windowText.startIndex, offsetBy: matchEnd)
-            ]
+            windowText[highlightStart ..< highlightEnd]
         )
 
         let before = extractSnippetBefore(matchStart: matchStart)
@@ -525,25 +516,14 @@ private final class Iterator: SearchIterator, Loggable {
             $0 = Locator.Text(after: after, before: before, highlight: highlight)
         })
 
-        // Determine if this is a cross-element match (start and end fall in
-        // different entries).
-        let isCrossElement: Bool
-        if matchEnd > matchStart {
-            let endEntry = entryContaining(offset: matchEnd - 1)
-            isCrossElement = endEntry.map { $0.startOffset != entry.startOffset } ?? false
-        } else {
-            isCrossElement = false
-        }
-
-        if isCrossElement {
-            return strippedForSnippetPositioning(locator)
-        }
         return strippedForSnippetPositioning(locator)
     }
 
-    /// Finds the entry and segment locator for a given window offset.
-    private func resolveLocator(at offset: Int) -> (entry: ElementEntry, locator: Locator)? {
-        guard let entry = entryContaining(offset: offset) else { return nil }
+    /// Finds the segment locator for a given window offset.
+    private func resolveLocator(at offset: Int) -> Locator? {
+        guard let entry = entryContaining(offset: offset) else {
+            return nil
+        }
 
         // Compute offset within the entry's text.
         let localOffset = offset - entry.startOffset
@@ -553,19 +533,19 @@ private final class Iterator: SearchIterator, Loggable {
             ?? entry.segments.first { $0.range.lowerBound > localOffset }
             ?? entry.segments.last
 
-        guard let seg = segment else { return nil }
-        return (entry, seg.locator)
+        return segment?.locator
     }
 
     /// Returns the entry whose text range contains the given window offset.
     private func entryContaining(offset: Int) -> ElementEntry? {
-        entries.first { entry in
-            let entryEnd = entry.startOffset + entry.text.count
-            return offset >= entry.startOffset && offset < entryEnd
-        }
-        // Fallback: offset is on a separator — attribute to the next entry.
-        ?? entries.first { $0.startOffset > offset }
-        ?? entries.last
+        entries
+            .first { entry in
+                let entryEnd = entry.startOffset + entry.text.count
+                return offset >= entry.startOffset && offset < entryEnd
+            }
+            // Fallback: offset is on a separator — attribute to the next entry.
+            ?? entries.first { $0.startOffset > offset }
+            ?? entries.last
     }
 
     // MARK: - Snippet extraction
@@ -585,14 +565,15 @@ private final class Iterator: SearchIterator, Loggable {
 
         let available = windowText[windowText.startIndex ..< windowText.index(windowText.startIndex, offsetBy: matchStart)]
 
-        var result = ""
+        var chars: [Character] = []
         var count = snippetLength
 
         for char in available.reversed() {
             guard count >= 0 || !char.isWhitespace else { break }
             count -= 1
-            result.insert(char, at: result.startIndex)
+            chars.append(char)
         }
+        var result = String(chars.reversed())
 
         // If we captured all the way back to the start of the resource and
         // the text begins with whitespace, trim it — leading whitespace at
@@ -638,7 +619,7 @@ private final class Iterator: SearchIterator, Loggable {
             return textEl.locator.href == currentHREF
         }
 
-        if !hasMoreSameResource && matchEnd + result.count >= windowTextCount {
+        if !hasMoreSameResource && matchEnd + result.count == windowTextCount {
             result = result.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 

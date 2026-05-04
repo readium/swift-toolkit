@@ -407,6 +407,48 @@ struct SearchServiceTests {
             let first = try #require(results.first { $0.href.string == "EPUB/chapter1.xhtml" })
             #expect(first.text.after == ". The quick brown fox.")
         }
+
+        /// The window-fill lookahead loop must skip (not stop at) non-text
+        /// elements such as `<img>`. A match whose after-snippet requires text
+        /// that follows a non-text element within the same resource must
+        /// include that text.
+        @Test(arguments: configs())
+        func snippetAfterSkipsNonTextElementInLookahead(config: SearchServiceTestConfig) async throws {
+            guard config.supportsCrossElementSearch else { return }
+            let pub = try await openPublication(.reflowable, config: config)
+            // chapter1: "Alice went to wonderland. The café was lovely." <img> "The quick" "brown fox."
+            // "lovely." ends at the very last character of the first paragraph,
+            // so matchEnd == windowTextCount when the <img> stops the lookahead
+            // loop, producing after = nil instead of the text that follows.
+            let results = try await search(pub, query: "lovely.", options: .init(caseSensitive: true))
+
+            let match = try #require(results.first { $0.href.string == "EPUB/chapter1.xhtml" })
+            #expect(match.text.after == "The quick brown fox.")
+        }
+
+        /// Non-text elements read into the lookahead buffer during a previous
+        /// resource's budget loop remain in the buffer after the window is
+        /// reset at a resource boundary. They sit at the front of the buffer
+        /// when the first element of the new resource is processed, causing the
+        /// window-fill loop to stop immediately — the same break-on-non-text
+        /// bug, but triggered by a stale element rather than a freshly-read
+        /// one.
+        @Test(arguments: configs())
+        func snippetAfterAtResourceBoundarySkipsStaleNonTextElement(config: SearchServiceTestConfig) async throws {
+            guard config.supportsCrossElementSearch else { return }
+            let pub = try await openPublication(.reflowable, config: config)
+            // chapter2: "ALICE found a naïve cat on 2024-01-15." <audio> "The sun"
+            // The <audio> element is read into lookaheadBuffer during
+            // chapter1's budget-loop phase and is still there after the
+            // resource-boundary reset. "2024-01-15." ends at the last character
+            // of the first text element, so matchEnd == windowTextCount when
+            // the stale <audio> stops the window-fill loop, producing
+            // after = nil instead of "The sun" from the next text element.
+            let results = try await search(pub, query: "2024-01-15.")
+
+            let match = try #require(results.first { $0.href.string == "EPUB/chapter2.xhtml" })
+            #expect(match.text.after == "The sun")
+        }
     }
 
     struct ResultCount {
