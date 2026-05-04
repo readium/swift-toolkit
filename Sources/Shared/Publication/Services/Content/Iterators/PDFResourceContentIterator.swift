@@ -139,6 +139,7 @@ public class PDFResourceContentIterator: ContentIterator {
             let beforeText = String(accumulatedText.suffix(beforeMaxLength))
             let pageLocator = locator.copy(
                 locations: {
+                    $0.fragments = ["page=\(pageNumber)"]
                     $0.position = pageNumber
                     $0.progression = pageProgression
                 },
