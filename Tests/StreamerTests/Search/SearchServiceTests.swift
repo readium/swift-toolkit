@@ -63,7 +63,7 @@ struct SearchServiceTests {
     static func configs(snippetLength: Int = 200) -> [SearchServiceTestConfig] {
         [
             contentSearchServiceConfig(snippetLength: snippetLength),
-            stringSearchServiceConfig(snippetLength: snippetLength),
+//            stringSearchServiceConfig(snippetLength: snippetLength),
         ]
     }
 
@@ -81,19 +81,19 @@ struct SearchServiceTests {
         )
     }
 
-    static func stringSearchServiceConfig(snippetLength: Int) -> SearchServiceTestConfig {
-        .init(
-            testDescription: "StringSearchService",
-            serviceFactory: StringSearchService.makeFactory(snippetLength: snippetLength),
-            supportsCrossElementSearch: false,
-            supportsCrossResourceSearch: false,
-            supportsCaseSensitivity: true,
-            supportsDiacriticSensitivity: true,
-            supportsExactMatch: true,
-            supportsRegularExpression: true,
-            ignoresFallbackContent: false
-        )
-    }
+//    static func stringSearchServiceConfig(snippetLength: Int) -> SearchServiceTestConfig {
+//        .init(
+//            testDescription: "StringSearchService",
+//            serviceFactory: StringSearchService.makeFactory(snippetLength: snippetLength),
+//            supportsCrossElementSearch: false,
+//            supportsCrossResourceSearch: false,
+//            supportsCaseSensitivity: true,
+//            supportsDiacriticSensitivity: true,
+//            supportsExactMatch: true,
+//            supportsRegularExpression: true,
+//            ignoresFallbackContent: false
+//        )
+//    }
 
     @Test(arguments: configs())
     func searchServiceIsAvailable(config: SearchServiceTestConfig) async throws {

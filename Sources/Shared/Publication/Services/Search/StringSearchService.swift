@@ -14,6 +14,7 @@ import Foundation
 /// content from markups (e.g. HTML) or binary (e.g. PDF) resources.
 ///
 /// The actual search is implemented by the provided `searchAlgorithm`.
+@available(*, deprecated, renamed: "ContentSearchService", message: "Use ContentSearchService for new integrations.")
 public class StringSearchService: SearchService {
     public static func makeFactory(
         snippetLength: Int = 200,
