@@ -342,9 +342,7 @@ public class HTMLResourceContentIterator: ContentIterator {
 
                 if node.isBlock(), !isInsideSkippedElement {
                     assert(breadcrumbs.last?.element == node)
-                    if skippedAncestors.last !== node {
-                        flushText()
-                    }
+                    flushText()
                     breadcrumbs.removeLast()
                 }
             }

@@ -189,7 +189,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
         self.attributes = attributes
     }
 
-    public var text: String {
+    public var text: String? {
         segments.map(\.text).joined()
     }
 

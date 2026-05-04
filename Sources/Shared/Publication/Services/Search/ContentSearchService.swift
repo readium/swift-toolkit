@@ -284,13 +284,15 @@ private final class Iterator: SearchIterator, Loggable {
         return await rawNextElement()
     }
 
-    /// Advances the ContentIterator, returning `nil` on exhaustion or error.
+    /// Advances the ContentIterator, returning `nil` only on exhaustion.
+    /// On error, logs the warning and retries so that a single failing element
+    /// does not truncate the rest of the search results.
     private func rawNextElement() async -> ContentElement? {
         do {
             return try await contentIterator.next()
         } catch {
             log(.warning, error)
-            return nil
+            return await rawNextElement()
         }
     }
 
@@ -351,7 +353,7 @@ private final class Iterator: SearchIterator, Loggable {
         for el in lookaheadBuffer {
             guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else { continue }
             guard textEl.locator.href == currentHREF else { break }
-            textCount += textEl.text.count
+            textCount += textEl.text?.count ?? 0
         }
 
         let budget = snippetLength + snippetWordOvershootMargin
@@ -362,7 +364,7 @@ private final class Iterator: SearchIterator, Loggable {
             lookaheadBuffer.append(el)
             guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else { continue }
             guard textEl.locator.href == currentHREF else { break }
-            textCount += textEl.text.count
+            textCount += textEl.text?.count ?? 0
         }
 
         // Append same-resource lookahead elements to the window (they become
