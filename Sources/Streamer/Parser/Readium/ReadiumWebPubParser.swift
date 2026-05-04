@@ -135,9 +135,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                                     PDFResourceContentIterator.Factory(pdfFactory: pdfFactory),
                                 ]
                             ))
-                            $0.setSearchServiceFactory(StringSearchService.makeFactory(
-                                extractorFactory: PDFResourceContentExtractorFactory()
-                            ))
+                            $0.setSearchServiceFactory(ContentSearchService.makeFactory())
                         }
 
                         // FIXME: WebPositionsService from Kotlin?

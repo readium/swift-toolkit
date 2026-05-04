@@ -761,9 +761,3 @@ private func makeIterator(
         locator: startLocator ?? makeLocator()
     )
 }
-
-private extension ContentElement {
-    func equatable() -> AnyEquatableContentElement {
-        AnyEquatableContentElement(self)
-    }
-}

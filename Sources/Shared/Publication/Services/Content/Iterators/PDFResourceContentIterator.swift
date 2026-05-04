@@ -6,15 +6,15 @@
 
 import Foundation
 import PDFKit
-import ReadiumShared
 
 /// Iterates a PDF `resource`, starting from the given `locator`.
 ///
-/// Extracts text content from PDF pages using PDFKit. Each page is converted to a
-/// `TextContentElement` with a proper locator for navigation and TTS.
+/// Extracts text content from PDF pages using PDFKit. Each page is converted to
+/// a `TextContentElement` with a proper locator for navigation and TTS.
 ///
-/// If you want to start mid-resource, the `locator` must contain a `position` key
-/// in its `Locator.Locations` object indicating the 1-based page number.
+/// If you want to start mid-resource, the `locator` must contain a `position`
+/// key in its `Locator.Locations` object indicating the 1-based page number, or
+/// a `page=` fragment.
 ///
 /// If you want to start from the end of the resource, the `locator` must have
 /// a `progression` of 1.0.
@@ -33,7 +33,7 @@ public class PDFResourceContentIterator: ContentIterator {
             resource: Resource,
             locator: Locator
         ) -> ContentIterator? {
-            guard publication.readingOrder.getOrNil(readingOrderIndex)?.mediaType == .pdf else {
+            guard locator.mediaType.matches(.pdf) else {
                 return nil
             }
 

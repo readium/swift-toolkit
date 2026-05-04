@@ -12,3 +12,9 @@ extension Locator {
         self.init(href: AnyURL(string: href)!, mediaType: mediaType, title: title, locations: locations, text: text)
     }
 }
+
+extension ContentElement {
+    func equatable() -> AnyEquatableContentElement {
+        AnyEquatableContentElement(self)
+    }
+}

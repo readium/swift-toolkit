@@ -77,9 +77,7 @@ public final class PDFParser: PublicationParser, Loggable {
                         ),
                         cover: document.cover().map(GeneratedCoverService.makeFactory(cover:)),
                         positions: PDFPositionsService.makeFactory(),
-                        search: StringSearchService.makeFactory(
-                            extractorFactory: PDFResourceContentExtractorFactory()
-                        ),
+                        search: ContentSearchService.makeFactory(),
                         setup: {
                             $0.setPDFDocumentServiceFactory(
                                 DefaultPDFDocumentService.makeFactory(
