@@ -55,7 +55,7 @@ public class HTMLResourceContentIterator: ContentIterator {
     private let resource: Resource
     private let locator: Locator
     private let beforeMaxLength: Int = 50
-    private let totalProgressionRange: Task<ClosedRange<Double>?, Never>
+    private let fetchTotalProgressionRange: () async -> ClosedRange<Double>?
 
     public init(
         resource: Resource,
@@ -64,7 +64,7 @@ public class HTMLResourceContentIterator: ContentIterator {
     ) {
         self.resource = resource
         self.locator = locator
-        self.totalProgressionRange = Task { await totalProgressionRange() }
+        self.fetchTotalProgressionRange = totalProgressionRange
     }
 
     public func previous() async throws -> ContentElement? {
@@ -98,13 +98,14 @@ public class HTMLResourceContentIterator: ContentIterator {
     }
 
     private lazy var elementsTask = Task {
-        await resource
+        let range = await fetchTotalProgressionRange()
+        return await resource
             .read()
             .asString()
             .eraseToAnyError()
             .tryMap { try SwiftSoup.parse($0) }
             .tryMap { try parse(document: $0, locator: locator, beforeMaxLength: beforeMaxLength) }
-            .asyncMap { await adjustProgressions(of: $0) }
+            .asyncMap { await adjustProgressions(of: $0, totalProgressionRange: range) }
     }
 
     private func parse(document: Document, locator: Locator, beforeMaxLength: Int) throws -> ParsedElements {
@@ -125,7 +126,7 @@ public class HTMLResourceContentIterator: ContentIterator {
         return parser.result
     }
 
-    private func adjustProgressions(of elements: ParsedElements) async -> ParsedElements {
+    private func adjustProgressions(of elements: ParsedElements, totalProgressionRange: ClosedRange<Double>?) async -> ParsedElements {
         let count = Double(elements.elements.count)
         guard count > 0 else {
             return elements
@@ -136,7 +137,7 @@ public class HTMLResourceContentIterator: ContentIterator {
             let progression = Double(index) / count
             return await element.copy(
                 progression: progression,
-                totalProgression: totalProgressionRange.value.map { range in
+                totalProgression: totalProgressionRange.map { range in
                     range.lowerBound + progression * (range.upperBound - range.lowerBound)
                 }
             )

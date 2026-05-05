@@ -16,9 +16,8 @@ public enum PDFResourceContentIteratorError: Error {
 /// Extracts text content from PDF pages. Each page is converted to a
 /// `TextContentElement` with a proper locator for navigation and TTS.
 ///
-/// If you want to start mid-resource, the `locator` must contain a `position`
-/// key in its `Locator.Locations` object indicating the 1-based page number, a
-/// `page=` fragment, or a `progression` value.
+/// If you want to start mid-resource, the `locator` must contain a `page=`
+/// fragment, `position`, or a `progression` value.
 ///
 /// If you want to start from the end of the resource, the `locator` must have
 /// a `progression` of 1.0.
@@ -29,7 +28,6 @@ public enum PDFResourceContentIteratorError: Error {
 /// - Note: This iterator is intended for single-consumer use. Concurrent calls
 ///   to `next()` or `previous()` from multiple tasks are not safe.
 public class PDFResourceContentIterator: ContentIterator, Loggable {
-    
     /// Factory for a `PDFResourceContentIterator`.
     public class Factory: ResourceContentIteratorFactory {
         public init() {}
@@ -51,35 +49,57 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
                     }
                     return try await service.openDocument(at: locator.href)
                 },
-                totalProgressionRange: {
+                resourceInfo: {
                     let positions = await publication.positionsByReadingOrder().getOrNil() ?? []
-                    return positions.getOrNil(readingOrderIndex)?
-                        .first?.locations.totalProgression
-                        .map { start in
-                            let end = positions.getOrNil(readingOrderIndex + 1)?
-                                .first?.locations.totalProgression
-                                ?? 1.0
-                            return start ... end
-                        }
+                    let resourcePositions = positions.getOrNil(readingOrderIndex)
+                    return ResourceInfo(
+                        positionOffset: (resourcePositions?.first?.locations.position ?? 1) - 1,
+                        totalProgressionRange: resourcePositions?.first?.locations.totalProgression
+                            .map { start -> ClosedRange<Double> in
+                                let end = positions.getOrNil(readingOrderIndex + 1)?
+                                    .first?.locations.totalProgression ?? 1.0
+                                return start ... end
+                            }
+                    )
                 },
                 locator: locator
             )
         }
     }
 
-    private let openDocument: () async throws -> PDFDocument
-    private let locator: Locator
-    private let beforeMaxLength: Int = 50
-    private let totalProgressionRange: Task<ClosedRange<Double>?, Never>
+    /// Holds per-resource metadata needed to produce correct global locators.
+    struct ResourceInfo {
+        
+        /// Number of positions that precede this resource in the publication.
+        /// Added to each local page number to produce the global `position`.
+        var positionOffset: Int
+        
+        /// Range of `totalProgression` values occupied by this resource, used
+        /// to map intra-resource progressions to publication-wide progressions.
+        var totalProgressionRange: ClosedRange<Double>?
+    }
 
+    /// Async closure that opens and returns the ``PDFDocument`` for this
+    /// resource.
+    private let openDocument: () async throws -> PDFDocument
+    
+    /// Starting position within the resource.
+    private let locator: Locator
+    
+    /// Async closure that returns the ``ResourceInfo`` for this resource.
+    /// Called at most once, lazily, when content is first requested.
+    private let makeResourceInfo: () async -> ResourceInfo
+
+    private let beforeMaxLength: Int = 50
+    
     init(
         openDocument: @escaping () async throws -> PDFDocument,
-        totalProgressionRange: @escaping () async -> ClosedRange<Double>?,
+        resourceInfo: @escaping () async -> ResourceInfo,
         locator: Locator
     ) {
         self.openDocument = openDocument
         self.locator = locator
-        self.totalProgressionRange = Task { await totalProgressionRange() }
+        self.makeResourceInfo = resourceInfo
     }
 
     public func previous() async throws -> ContentElement? {
@@ -114,15 +134,25 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
 
     private lazy var elementsTask: Task<Result<ParsedElements, Error>, Never> = Task {
         do {
-            let parsed = try await self.extractElements()
-            let adjusted = await self.adjustProgressions(of: parsed)
+            let info = await self.makeResourceInfo()
+            let parsed = try await self.extractElements(resourceInfo: info)
+            let adjusted = await self.adjustProgressions(of: parsed, resourceInfo: info)
             return .success(adjusted)
         } catch {
             return .failure(error)
         }
     }
 
-    private func extractElements() async throws -> ParsedElements {
+    /// Extracts a ``TextContentElement`` per non-empty page from the PDF
+    /// document.
+    ///
+    /// Page positions are expressed as global publication positions by adding
+    /// `resourceInfo.positionOffset` to each 1-based local page number.
+    ///
+    /// - Parameter resourceInfo: Metadata used to compute global positions and progressions.
+    /// - Returns: The parsed elements together with the index of the starting element
+    ///   determined from `locator`.
+    private func extractElements(resourceInfo: ResourceInfo) async throws -> ParsedElements {
         let document = try await openDocument()
 
         guard let textDocument = document as? PDFDocumentTextProviding else {
@@ -153,7 +183,7 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
             let pageLocator = locator.copy(
                 locations: {
                     $0.fragments = ["page=\(pageNumber)"]
-                    $0.position = pageNumber
+                    $0.position = resourceInfo.positionOffset + pageNumber
                     $0.progression = pageProgression
                 },
                 text: {
@@ -177,18 +207,26 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
             ))
 
             let newContent = pageText + "\n\n"
-            suffixBuffer = String((suffixBuffer + newContent).suffix(beforeMaxLength))
+            if newContent.count >= beforeMaxLength {
+                suffixBuffer = String(newContent.suffix(beforeMaxLength))
+            } else {
+                suffixBuffer = String((suffixBuffer + newContent).suffix(beforeMaxLength))
+            }
         }
 
         let startIndex = computeStartIndex(in: elements)
         return ParsedElements(elements: elements, startIndex: startIndex)
     }
 
+    /// Determines the index of the first element to yield from the locator.
+    ///
+    /// Priority: `page=` fragment → global `position` → `progression == 1.0` (last page) →
+    /// largest element whose progression ≤ the requested progression → 0.
     private func computeStartIndex(in elements: [TextContentElement]) -> Int {
-        if let position = locator.locations.position {
-            return elements.firstIndex { $0.locator.locations.position == position } ?? 0
-        } else if let page = locator.locations.page {
+        if let page = locator.locations.page {
             return elements.firstIndex { $0.locator.locations.page == page } ?? 0
+        } else if let position = locator.locations.position {
+            return elements.firstIndex { $0.locator.locations.position == position } ?? 0
         } else if locator.locations.progression == 1.0 {
             return max(0, elements.count - 1)
         } else if let progression = locator.locations.progression, progression > 0 {
@@ -200,14 +238,19 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
         }
     }
 
-    private func adjustProgressions(of parsed: ParsedElements) async -> ParsedElements {
-        let count = Double(parsed.elements.count)
-        guard count > 0 else {
+    /// Rewrites the `progression` and `totalProgression` of every element and segment in `parsed`.
+    ///
+    /// `progression` is left as-is (already a 0–1 fraction within the resource).
+    /// `totalProgression` is mapped into `resourceInfo.totalProgressionRange` so it represents
+    /// a publication-wide fraction. If `totalProgressionRange` is `nil`, `totalProgression`
+    /// is left unset.
+    private func adjustProgressions(of parsed: ParsedElements, resourceInfo: ResourceInfo) async -> ParsedElements {
+        guard !parsed.elements.isEmpty else {
             return parsed
         }
 
         var result = parsed
-        let range = await totalProgressionRange.value
+        let range = resourceInfo.totalProgressionRange
 
         result.elements = parsed.elements.map { element in
             let progression = element.locator.locations.progression ?? 0

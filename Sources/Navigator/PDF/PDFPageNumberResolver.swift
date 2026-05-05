@@ -30,7 +30,7 @@ enum PDFPageNumberResolver {
     ///   determined.
     static func resolve(
         from locator: Locator,
-        readingOrderIndex: Int,
+        readingOrderIndex: Int?,
         positionsByReadingOrder: [[Locator]]?,
         documentPageCount: Int?
     ) -> Int? {
@@ -38,8 +38,21 @@ enum PDFPageNumberResolver {
             return page
         }
 
+        if
+            let position = locator.locations.position,
+            let readingOrderIndex,
+            let allPositions = positionsByReadingOrder
+        {
+            let pagesBeforeResource = allPositions[0 ..< readingOrderIndex].reduce(0) { $0 + $1.count }
+            let localPage = position - pagesBeforeResource
+            if localPage >= 1 {
+                return localPage
+            }
+        }
+
         if let progression = locator.locations.progression {
             if
+                let readingOrderIndex,
                 let resourcePositions = positionsByReadingOrder?.getOrNil(readingOrderIndex),
                 !resourcePositions.isEmpty,
                 let page = pageNumber(from: progression, in: resourcePositions)

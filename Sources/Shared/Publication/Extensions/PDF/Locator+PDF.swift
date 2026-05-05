@@ -8,7 +8,6 @@ import Foundation
 
 /// PDF extensions for `Locator.Locations`.
 public extension Locator.Locations {
-    
     /// The 1-based page number extracted from a `page=N` fragment parameter,
     /// if present.
     var page: Int? {

@@ -169,6 +169,39 @@ enum PDFResourceContentIteratorTests {
             }
         }
     }
+
+    struct PositionOffset {
+        @Test func positionsAreOffsetByPositionOffset() async throws {
+            // offset 10: pages 1–9 of the PDF map to global positions 11–19
+            let iter = makeIterator(positionOffset: 10)
+            let expectedPositions = [12, 13, 14, 15, 16, 17, 18, 19]
+            for expected in expectedPositions {
+                let element = try await iter.next()
+                #expect(element?.locator.locations.position == expected)
+            }
+        }
+
+        @Test func startingFromGlobalPositionWithOffset() async throws {
+            // position 12 with offset 10 = page 2 of the PDF = sampleElements[0] (first non-empty page)
+            let iter = makeIterator(
+                start: makeLocator(position: 12),
+                positionOffset: 10
+            )
+            let first = try await iter.next()
+            // position 12 maps to the element with position 12 (pageNumber=2, offset=10 → 12)
+            #expect(first?.locator.locations.position == 12)
+        }
+
+        @Test func pageFragmentStartStillWorksWithOffset() async throws {
+            // page=5 fragment should still land on the element for page 5, regardless of offset
+            let iter = makeIterator(
+                start: makeLocator(pageFragment: 5),
+                positionOffset: 10
+            )
+            let first = try await iter.next()
+            #expect(first?.locator.locations.fragments == ["page=5"])
+        }
+    }
 }
 
 // MARK: - Helpers
@@ -247,6 +280,7 @@ private func makeLocator(
 
 private func makeIterator(
     start startLocator: Locator? = nil,
+    positionOffset: Int = 0,
     totalProgressionRange: ClosedRange<Double>? = nil
 ) -> PDFResourceContentIterator {
     let data = Fixtures(path: "Publication/Services").data(at: "daisy-truncated.pdf")
@@ -254,7 +288,7 @@ private func makeIterator(
     let href = baseLocator.href
     return PDFResourceContentIterator(
         openDocument: { try await DefaultPDFDocumentFactory().open(resource: resource, at: href, password: nil) },
-        totalProgressionRange: { totalProgressionRange },
+        resourceInfo: { PDFResourceContentIterator.ResourceInfo(positionOffset: positionOffset, totalProgressionRange: totalProgressionRange) },
         locator: startLocator ?? baseLocator
     )
 }

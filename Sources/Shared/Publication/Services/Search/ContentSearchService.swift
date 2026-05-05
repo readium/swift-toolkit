@@ -288,12 +288,14 @@ private final class Iterator: SearchIterator, Loggable {
     /// On error, logs the warning and retries so that a single failing element
     /// does not truncate the rest of the search results.
     private func rawNextElement() async -> ContentElement? {
-        do {
-            return try await contentIterator.next()
-        } catch {
-            log(.warning, error)
-            return await rawNextElement()
+        while !Task.isCancelled {
+            do {
+                return try await contentIterator.next()
+            } catch {
+                log(.warning, error)
+            }
         }
+        return nil
     }
 
     // MARK: - Window management
@@ -569,10 +571,10 @@ private final class Iterator: SearchIterator, Loggable {
 
         var chars: [Character] = []
         var count = snippetLength
+        var overshoot = snippetWordOvershootMargin
 
         for char in available.reversed() {
-            guard count >= 0 || !char.isWhitespace else { break }
-            count -= 1
+            guard shouldContinueOvershooting(count: &count, overshoot: &overshoot, char: char) else { break }
             chars.append(char)
         }
         var result = String(chars.reversed())
@@ -607,10 +609,10 @@ private final class Iterator: SearchIterator, Loggable {
 
         var result = ""
         var count = snippetLength
+        var overshoot = snippetWordOvershootMargin
 
         for char in available {
-            guard count >= 0 || !char.isWhitespace else { break }
-            count -= 1
+            guard shouldContinueOvershooting(count: &count, overshoot: &overshoot, char: char) else { break }
             result.append(char)
         }
 
@@ -626,6 +628,21 @@ private final class Iterator: SearchIterator, Loggable {
         }
 
         return result.isEmpty ? nil : result
+    }
+
+    /// Determines whether to continue iterating through characters for snippet extraction.
+    /// Returns `false` when hitting whitespace after the budget is exhausted, or when
+    /// the overshoot budget is exhausted.
+    private func shouldContinueOvershooting(count: inout Int, overshoot: inout Int, char: Character) -> Bool {
+        if count >= 0 {
+            count -= 1
+            return true
+        } else if char.isWhitespace {
+            return false
+        } else {
+            overshoot -= 1
+            return overshoot >= 0
+        }
     }
 
     // MARK: - CSS selector workaround

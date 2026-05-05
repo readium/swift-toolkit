@@ -7,8 +7,7 @@
 @testable import ReadiumShared
 import Testing
 
-@Suite struct LocatorLocationsPDFTests {
-
+struct LocatorLocationsPDFTests {
     @Test func pageIsNilWhenNoFragments() {
         #expect(Locator.Locations().page == nil)
     }
