@@ -13,10 +13,6 @@ public enum PDFResourceContentIteratorError: Error {
 
 /// Iterates a PDF resource, starting from the given `locator`.
 ///
-/// Extracts text content from PDF pages using lazy batch loading: pages are
-/// read on demand as the caller advances through the iterator, rather than
-/// loading the entire document upfront.
-///
 /// Each non-empty page is converted to a `TextContentElement` with a proper
 /// locator for navigation and TTS.
 ///
@@ -31,12 +27,7 @@ public enum PDFResourceContentIteratorError: Error {
 public class PDFResourceContentIterator: ContentIterator, Loggable {
     /// Factory for a `PDFResourceContentIterator`.
     public class Factory: ResourceContentIteratorFactory {
-        /// Minimum number of non-empty content elements to load per batch.
-        public let minimumElementsPerBatch: Int
-
-        public init(minimumElementsPerBatch: Int = 10) {
-            self.minimumElementsPerBatch = minimumElementsPerBatch
-        }
+        public init() {}
 
         public func make(
             publication: Publication,
@@ -69,8 +60,7 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
                             }
                     )
                 },
-                locator: locator,
-                minimumElementsPerBatch: minimumElementsPerBatch
+                locator: locator
             )
         }
     }
@@ -90,249 +80,126 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
     private let makeResourceInfo: () async -> ResourceInfo
     private let locator: Locator
 
-    private let minimumElementsPerBatch: Int
-
-    // MARK: - State
-
-    /// All loaded content elements, growing in both directions as batches are
-    /// fetched.
-    private var elements: [TextContentElement] = []
-
-    /// Range of PDF page indices (0-based) that have been processed so far.
-    /// `nil` until the initial batch has been loaded.
-    private var loadedPageRange: Range<Int>?
-
     /// The opened PDF document; retained for the lifetime of the iterator.
     private var document: (any PDFDocumentTextProviding)?
 
-    /// Total number of pages in the document, fetched once on first access.
+    /// Total number of pages in the document.
     private var pageCount: Int = 0
 
     /// Resource-level metadata fetched once on first access.
     private var resourceInfo: ResourceInfo?
 
-    /// Index into `elements` of the element corresponding to the initial
+    /// The page index (0-based) to start iteration from, derived from the
     /// locator.
-    private var startElementIndex: Int = 0
+    private var startPageIndex: Int = 0
 
-    /// Whether `loadInitialBatch()` has completed successfully.
-    private var initialBatchLoaded: Bool = false
+    /// Whether initialization has completed.
+    private var initialized: Bool = false
 
-    /// Error captured during `loadInitialBatch()` to rethrow on subsequent
-    /// calls.
-    private var initialBatchError: Error?
-
-    /// Current iteration position within `elements`. `nil` means not yet
-    /// advanced.
-    private var currentIndex: Int?
+    /// Current page index (0-based). `nil` means iteration hasn't started yet.
+    private var currentPageIndex: Int?
 
     init(
         openDocument: @escaping () async throws -> PDFDocument,
         resourceInfo: @escaping () async -> ResourceInfo,
-        locator: Locator,
-        minimumElementsPerBatch: Int = 10
+        locator: Locator
     ) {
         self.openDocument = openDocument
         makeResourceInfo = resourceInfo
         self.locator = locator
-        self.minimumElementsPerBatch = max(1, minimumElementsPerBatch)
     }
 
     // MARK: - ContentIterator
 
     public func next() async throws -> ContentElement? {
-        if !initialBatchLoaded {
-            try await loadInitialBatch()
+        try await initializeIfNeeded()
+
+        var pageIndex = (currentPageIndex ?? (startPageIndex - 1)) + 1
+
+        while pageIndex < pageCount {
+            if let element = try await elementForPage(at: pageIndex) {
+                currentPageIndex = pageIndex
+                return element
+            }
+            pageIndex += 1
         }
 
-        let index = (currentIndex ?? (startElementIndex - 1)) + 1
-        if index >= elements.count {
-            guard let range = loadedPageRange, range.upperBound < pageCount else {
-                return nil
-            }
-            let countBefore = elements.count
-            try await loadBatchForward(from: range.upperBound)
-            if elements.count == countBefore {
-                // All remaining pages were empty.
-                return nil
-            }
-        }
-
-        guard index < elements.count else { return nil }
-        currentIndex = index
-        return elements[index]
+        return nil
     }
 
     public func previous() async throws -> ContentElement? {
-        if !initialBatchLoaded {
-            try await loadInitialBatch()
+        try await initializeIfNeeded()
+
+        var pageIndex = (currentPageIndex ?? startPageIndex) - 1
+
+        while pageIndex >= 0 {
+            if let element = try await elementForPage(at: pageIndex) {
+                currentPageIndex = pageIndex
+                return element
+            }
+            pageIndex -= 1
         }
 
-        var index = (currentIndex ?? startElementIndex) - 1
-
-        while index < 0 {
-            guard let range = loadedPageRange, range.lowerBound > 0 else {
-                return nil
-            }
-            let countBefore = elements.count
-            try await loadBatchBackward()
-            let added = elements.count - countBefore
-            if added == 0 {
-                return nil
-            }
-            // Prepending `added` elements shifts the target index forward.
-            index += added
-        }
-
-        guard let content = elements.getOrNil(index) else { return nil }
-        currentIndex = index
-        return content
+        return nil
     }
 
-    // MARK: - Initial Load
+    // MARK: - Initialization
 
-    private func loadInitialBatch() async throws {
-        // Rethrow any previously captured error.
-        if let error = initialBatchError {
-            throw error
+    private func initializeIfNeeded() async throws {
+        guard !initialized else { return }
+        initialized = true
+
+        let info = await makeResourceInfo()
+        resourceInfo = info
+
+        let doc = try await openDocument()
+        guard let textDoc = doc as? PDFDocumentTextProviding else {
+            log(.warning, "The PDF document does not support text extraction; no content elements will be produced.")
+            return
         }
 
-        do {
-            let info = await makeResourceInfo()
-            resourceInfo = info
-
-            let doc = try await openDocument()
-            guard let textDoc = doc as? PDFDocumentTextProviding else {
-                log(.warning, "The PDF document does not support text extraction; no content elements will be produced.")
-                initialBatchLoaded = true
-                return
-            }
-
-            document = textDoc
-            pageCount = try await textDoc.pageCount()
-
-            guard pageCount > 0 else {
-                initialBatchLoaded = true
-                return
-            }
-
-            let startPage = computeStartPage(positionOffset: info.positionOffset)
-            try await loadBatchForward(from: startPage)
-            startElementIndex = findStartElementIndex(for: startPage)
-
-            initialBatchLoaded = true
-        } catch {
-            initialBatchError = error
-            throw error
-        }
+        document = textDoc
+        pageCount = try await textDoc.pageCount()
+        startPageIndex = computeStartPage(positionOffset: info.positionOffset)
     }
 
-    /// Computes the 0-based page index to start loading from, derived directly
-    /// from the locator without scanning any page text.
+    /// Computes the 0-based page index to start from, derived from the locator.
     private func computeStartPage(positionOffset: Int) -> Int {
+        guard pageCount > 0 else { return 0 }
+
         if let page = locator.locations.page {
-            return max(0, min(page - 1, pageCount - 1))
+            return clampPageIndex(page - 1)
         } else if let position = locator.locations.position {
-            return max(0, position - positionOffset - 1)
+            return clampPageIndex(position - positionOffset - 1)
         } else if locator.locations.progression == 1.0 {
             return pageCount - 1
         } else if let progression = locator.locations.progression, progression > 0 {
-            return min(Int(progression * Double(pageCount)), pageCount - 1)
+            return clampPageIndex(Int(progression * Double(pageCount)))
         } else {
             return 0
         }
     }
 
-    /// Returns the index in `elements` of the element that best matches the
-    /// start page, falling back to 0.
-    private func findStartElementIndex(for startPage: Int) -> Int {
-        let pageNumber = startPage + 1
-        if locator.locations.page != nil {
-            return elements.firstIndex { $0.locator.locations.page == pageNumber } ?? 0
-        } else if let position = locator.locations.position {
-            return elements.firstIndex { $0.locator.locations.position == position } ?? 0
-        } else {
-            return elements.firstIndex { ($0.locator.locations.page ?? 0) >= pageNumber } ?? 0
-        }
+    private func clampPageIndex(_ index: Int) -> Int {
+        max(0, min(index, pageCount - 1))
     }
 
-    // MARK: - Batch Loading
+    // MARK: - Element Creation
 
-    /// Loads PDF pages starting at `startPageIndex`, appending elements until
-    /// `minimumElementsPerBatch` non-empty pages are found or the end of the
-    /// document is reached.
-    private func loadBatchForward(from startPageIndex: Int) async throws {
-        guard let doc = document, let info = resourceInfo else { return }
+    /// Returns a `TextContentElement` for the page at `pageIndex`, or `nil` if
+    /// the page is empty.
+    private func elementForPage(at pageIndex: Int) async throws -> TextContentElement? {
+        guard let doc = document, let info = resourceInfo else { return nil }
 
-        var newElements: [TextContentElement] = []
-        var nextPageIndex = startPageIndex
-
-        while nextPageIndex < pageCount, newElements.count < minimumElementsPerBatch {
-            let pageIndex = nextPageIndex
-            nextPageIndex += 1
-
-            guard
-                let pageText = try await doc.pageText(at: pageIndex),
-                !pageText.isBlank
-            else { continue }
-
-            newElements.append(makeElement(pageIndex: pageIndex, pageText: pageText, resourceInfo: info))
-        }
-
-        elements.append(contentsOf: newElements)
-        if let existingRange = loadedPageRange {
-            loadedPageRange = existingRange.lowerBound ..< nextPageIndex
-        } else {
-            loadedPageRange = startPageIndex ..< nextPageIndex
-        }
-    }
-
-    /// Loads PDF pages just before the current `loadedPageRange`, prepending
-    /// elements until `minimumElementsPerBatch` non-empty pages are found or
-    /// the beginning of the document is reached.
-    ///
-    /// After prepending, `currentIndex` and `startElementIndex` are shifted to
-    /// keep them pointing at the same logical elements.
-    private func loadBatchBackward() async throws {
         guard
-            let doc = document,
-            let range = loadedPageRange,
-            range.lowerBound > 0,
-            let info = resourceInfo
-        else { return }
-
-        var newElements: [TextContentElement] = []
-        var pageIndex = range.lowerBound - 1
-        var lowestProcessedIndex = range.lowerBound
-
-        while pageIndex >= 0, newElements.count < minimumElementsPerBatch {
-            lowestProcessedIndex = pageIndex
-            if let pageText = try await doc.pageText(at: pageIndex),
-               !pageText.isBlank
-            {
-                // Prepend to maintain reading order (lowest page index first).
-                newElements.insert(
-                    makeElement(pageIndex: pageIndex, pageText: pageText, resourceInfo: info),
-                    at: 0
-                )
-            }
-            pageIndex -= 1
+            let pageText = try await doc.pageText(at: pageIndex),
+            !pageText.isBlank
+        else {
+            return nil
         }
 
-        loadedPageRange = lowestProcessedIndex ..< range.upperBound
-
-        guard !newElements.isEmpty else { return }
-
-        let addedCount = newElements.count
-        elements.insert(contentsOf: newElements, at: 0)
-
-        if let idx = currentIndex {
-            currentIndex = idx + addedCount
-        }
-        startElementIndex += addedCount
+        return makeElement(pageIndex: pageIndex, pageText: pageText, resourceInfo: info)
     }
-
-    // MARK: - Helpers
 
     private func makeElement(pageIndex: Int, pageText: String, resourceInfo: ResourceInfo) -> TextContentElement {
         let pageNumber = pageIndex + 1

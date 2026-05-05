@@ -233,101 +233,6 @@ enum PDFResourceContentIteratorTests {
             #expect(result == nil)
         }
     }
-
-    struct LazyLoading {
-        @Test func initialForwardBatchOnlyLoadsNeededPages() async throws {
-            // With minimumElementsPerBatch=3 and 3 non-empty pages at indices
-            // 1,2,3, the initial batch should stop after loading those 3 pages.
-            let mock = MockPDFDocument(texts: [nil, "P2", "P3", "P4", "P5", "P6"])
-            let iter = makeIteratorFromMock(mock, minimumElementsPerBatch: 3)
-
-            let first = try await iter.next()
-
-            // Pages 0 (empty) + 1, 2, 3 (3 non-empty) = 4 pages checked
-            #expect(mock.requestedPageIndices == [0, 1, 2, 3])
-            #expect((first as? TextContentElement)?.text == "P2")
-        }
-
-        @Test func nextBatchLoadedWhenForwardBatchExhausted() async throws {
-            let mock = MockPDFDocument(texts: [nil, "P2", "P3", "P4", "P5", "P6"])
-            let iter = makeIteratorFromMock(mock, minimumElementsPerBatch: 2)
-
-            // Exhaust first batch (2 elements: P2, P3)
-            _ = try await iter.next()
-            _ = try await iter.next()
-            mock.resetTracking()
-
-            // Third next() should trigger a new forward batch and return P4
-            let third = try await iter.next()
-
-            #expect(mock.requestedPageIndices.contains(3))
-            #expect((third as? TextContentElement)?.text == "P4")
-        }
-
-        @Test func midDocumentStartLoadsOnlyFromStartPage() async throws {
-            // Start at page=4 (1-based), so page index 3.
-            // Only pages from index 3 onward should be requested initially.
-            let mock = MockPDFDocument(texts: [nil, "P2", "P3", "P4", "P5", "P6"])
-            let iter = makeIteratorFromMock(
-                mock,
-                startLocator: Locator(href: "mock.pdf", mediaType: .pdf)
-                    .copy(locations: { $0.fragments = ["page=4"] }),
-                minimumElementsPerBatch: 10
-            )
-
-            let first = try await iter.next()
-
-            // Only pages at index 3+ should have been requested
-            #expect(mock.requestedPageIndices.allSatisfy { $0 >= 3 })
-            #expect((first as? TextContentElement)?.text == "P4")
-        }
-
-        @Test func backwardBatchLoadsWhenNavigatingBeforeStart() async throws {
-            // Start at page=4 (index 3). Initial batch (batchSize=1) loads only P4.
-            // previous() from P4 triggers a backward load of P3.
-            let mock = MockPDFDocument(texts: ["P1", "P2", "P3", "P4", "P5"])
-            let iter = makeIteratorFromMock(
-                mock,
-                startLocator: Locator(href: "mock.pdf", mediaType: .pdf)
-                    .copy(locations: { $0.fragments = ["page=4"] }),
-                minimumElementsPerBatch: 1
-            )
-
-            _ = try await iter.next() // loads P4
-            mock.resetTracking()
-            let prev = try await iter.previous() // triggers backward load → returns P3
-
-            #expect(mock.requestedPageIndices.contains(2))
-            #expect((prev as? TextContentElement)?.text == "P3")
-        }
-
-        @Test func twoConsecutiveBackwardBatchesShiftIndexCorrectly() async throws {
-            // 9 pages: page 0 empty, pages 1-8 non-empty. Start at last page
-            // (index 8). batchSize=2: initial batch loads [P9]. Navigate back
-            // through two backward batches: batch 1 loads [P7, P8], batch 2
-            // loads [P5, P6].
-            let mock = MockPDFDocument(texts: [nil, "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"])
-            let iter = makeIteratorFromMock(
-                mock,
-                startLocator: Locator(href: "mock.pdf", mediaType: .pdf)
-                    .copy(locations: { $0.progression = 1.0 }),
-                minimumElementsPerBatch: 2
-            )
-
-            // returns P9
-            _ = try await iter.next()
-            // backward batch 1: loads [P7, P8] → returns P8
-            _ = try await iter.previous()
-            // returns P7 (no new batch needed)
-            _ = try await iter.previous()
-            // backward batch 2: loads [P5, P6] → returns P6
-            _ = try await iter.previous()
-            // returns P5
-            let result = try await iter.previous()
-
-            #expect((result as? TextContentElement)?.text == "P5")
-        }
-    }
 }
 
 // MARK: - Helpers
@@ -502,13 +407,11 @@ private class MockNonTextPDFDocument: PDFDocument {
 
 private func makeIteratorFromMock(
     _ mock: MockPDFDocument,
-    startLocator: Locator? = nil,
-    minimumElementsPerBatch: Int = 10
+    startLocator: Locator? = nil
 ) -> PDFResourceContentIterator {
     PDFResourceContentIterator(
         openDocument: { mock },
         resourceInfo: { PDFResourceContentIterator.ResourceInfo(positionOffset: 0, totalProgressionRange: nil) },
-        locator: startLocator ?? Locator(href: "mock.pdf", mediaType: .pdf),
-        minimumElementsPerBatch: minimumElementsPerBatch
+        locator: startLocator ?? Locator(href: "mock.pdf", mediaType: .pdf)
     )
 }
