@@ -48,22 +48,21 @@ enum PDFResourceContentIteratorTests {
             #expect(back?.equatable() == sampleElements[0])
         }
 
-        @Test func iterateBackwardFromEnd() async throws {
-            // The first element loaded has before=nil (pages before it haven't
-            // been loaded yet). Navigating backward triggers a backward batch
-            // that populates before text.
+        @Test func iterateFullyBackwardFromEnd() async throws {
             let iter = makeIterator(start: makeLocator(progression: 1.0))
-            let last = try await iter.next()
-            #expect(last?.equatable() == makeElement(pageNumber: 9, text: p9Text))
-            let secondToLast = try await iter.previous()
-            #expect(secondToLast?.equatable() == sampleElements[6])
+            _ = try await iter.next() // Position at last element
+
+            var backwardElements: [AnyEquatableContentElement] = []
+            while let element = try await iter.previous() {
+                backwardElements.append(element.equatable())
+            }
+
+            #expect(backwardElements == sampleElements.dropLast().reversed())
         }
     }
 
     struct StartingPosition {
         @Test func startingFromPosition() async throws {
-            // Position 5 = page 5. With lazy loading, before text is nil since
-            // pages preceding the start page are not loaded upfront.
             let result = try await makeIterator(start: makeLocator(position: 5)).next()
             #expect(result?.equatable() == makeElement(pageNumber: 5, text: p5Text))
         }
@@ -90,13 +89,27 @@ enum PDFResourceContentIteratorTests {
     }
 
     struct ContentCorrectness {
+        @Test func zeroPagesReturnsNil() async throws {
+            let mock = MockPDFDocument(texts: [])
+            let iter = makeIteratorFromMock(mock)
+
+            #expect(try await iter.next() == nil)
+            #expect(try await iter.previous() == nil)
+        }
+
         @Test func emptyPagesAreSkipped() async throws {
             let iter = makeIterator()
-            var count = 0
-            while let _ = try await iter.next() {
-                count += 1
+            var pageNumbers: [Int] = []
+            while let element = try await iter.next() {
+                pageNumbers.append(element.locator.locations.page ?? 0)
             }
-            #expect(count == 8)
+            #expect(pageNumbers == [2, 3, 4, 5, 6, 7, 8, 9])
+        }
+
+        @Test func allEmptyPagesReturnsNil() async throws {
+            let mock = MockPDFDocument(texts: [nil, "", "   ", "\n\t"])
+            let iter = makeIteratorFromMock(mock)
+            #expect(try await iter.next() == nil)
         }
 
         @Test func elementLocatorHasCorrectPagePosition() async throws {
@@ -125,22 +138,13 @@ enum PDFResourceContentIteratorTests {
             }
         }
 
-        @Test func beforeSnippetIsPopulatedAfterFirstPage() async throws {
+        @Test func highlightIsFullPageText() async throws {
             let iter = makeIterator()
-            let first = try await iter.next()
-            #expect(first?.locator.text.before == nil)
-            let second = try await iter.next()
-            #expect(second?.locator.text.before == p3Before)
-        }
-
-        @Test func highlightSnippetIsPrefix() async throws {
-            let iter = makeIterator()
-            // Verify a long page: page 7 (index 5), whose text exceeds 280 chars
-            for _ in 0 ..< 5 {
-                _ = try await iter.next()
+            let pageFull = [p2Text, p3Text, p4Text, p5Text, p6Text, p7Text, p8Text, p9Text]
+            for expected in pageFull {
+                let element = try await iter.next()
+                #expect(element?.locator.text.highlight == expected)
             }
-            let element = try await iter.next()
-            #expect(element?.locator.text.highlight == String(p7Text.prefix(280)))
         }
 
         @Test func segmentTextMatchesFullPageText() async throws {
@@ -339,26 +343,15 @@ private let p7Text = "At the little town of Vevey, in Switzerland, there is a pa
 private let p8Text = "princesses sitting in the garden; little Polish boys walking about\nheld by the hand, with their governors; a view of the sunny crest\nof the Dent du Midi and the picturesque towers of the Castle of\nChillon.\nI hardly know whether it was the analogies or the differences\nthat were uppermost in the mind of a young American, who,\ntwo or three years ago, sat in the garden of the \u{201C}Trois\nCouronnes,\u{201D} looking about him, rather idly, at some of the\ngraceful objects I have mentioned. It was a beautiful summer\nmorning, and in whatever fashion the young American looked at\nthings, they must have seemed to him charming. He had come\nfrom Geneva the day before by the little steamer, to see his aunt,\nwho was staying at the hotel\u{2014}Geneva having been for a long\ntime his place of residence. But his aunt had a headache\u{2014}his\naunt had almost always a headache\u{2014}and now she was shut up in\nher room, smelling camphor, so that he was at liberty to wander\nabout. He was some seven-and-twenty years of age; when his\nfriends spoke of him, they usually said that he was at Geneva\n\u{201C}studying.\u{201D}When his enemies spoke of him, they said\u{2014}but, after\nall, he had no enemies; he was an extremely amiable fellow, and\nuniversally liked.What I should say is, simply, that when certain\npersons spoke of him they affirmed that the reason of his spend-\ning so much time at Geneva was that he was extremely devoted\nto a lady who lived there\u{2014}a foreign lady\u{2014}a person older than\nhimself. Very few Americans\u{2014}indeed, I think none\u{2014}had ever\nseen this lady, about whom there were some singular stories. But\nWinterbourne had an old attachment for the little metropolis of\nCalvinism; he had been put to school there as a boy, and he had\nafterward gone to college there\u{2014}circumstances which had led\nto his forming a great many youthful friendships. Many of these\nhe had kept, and they were a source of great satisfaction to him.\nAfter knocking at his aunt\u{2019}s door and learning that she was\nD A I S Y M I L L E R\n3"
 private let p9Text = "Nevertheless, he went back to live at Geneva, whence there\ncontinue to come the most contradictory accounts of his\nmotives of sojourn: a report that he is \u{201C}studying\u{201D} hard—an inti-\nmation that he is much interested in a very clever foreign lady.\nThe End\nD A I S Y M I L L E R\n75"
 
-// `before` snippets: suffix(50) of text accumulated before each page.
-private let p3Before = "D A I S Y M I L L E R\n\n"
-private let p4Before = "A I S Y M I L L E R\n\nDAISY MILLER\nBy Henry James\n\n"
-private let p5Before = "L E R\n\nDAISY MILLER\nBy Henry James\n\nDaisy Miller\n\n"
-private let p6Before = " W O\n1 7\nPA R T T H R E E\n3 6\nPA R T F O U R\n5 4\n\n"
-private let p7Before = " T H R E E\n3 6\nPA R T F O U R\n5 4\n\nP A R T O N E\n\n"
-private let p8Before = "who look like secretaries of legation; Russian\n2\n\n"
-private let p9Before = "nd learning that she was\nD A I S Y M I L L E R\n3\n\n"
-
 private func makeElement(
     pageNumber: Int,
-    text: String,
-    before: String? = nil
+    text: String
 ) -> AnyEquatableContentElement {
     let progression = Double(pageNumber - 1) / 9.0
     let loc = makeLocator(
         position: pageNumber,
         progression: progression,
-        before: before,
-        highlight: String(text.prefix(280))
+        highlight: text
     ).copy(locations: { $0.fragments = ["page=\(pageNumber)"] })
     return TextContentElement(
         locator: loc,
@@ -369,20 +362,19 @@ private func makeElement(
 
 private let sampleElements: [AnyEquatableContentElement] = [
     makeElement(pageNumber: 2, text: p2Text),
-    makeElement(pageNumber: 3, text: p3Text, before: p3Before),
-    makeElement(pageNumber: 4, text: p4Text, before: p4Before),
-    makeElement(pageNumber: 5, text: p5Text, before: p5Before),
-    makeElement(pageNumber: 6, text: p6Text, before: p6Before),
-    makeElement(pageNumber: 7, text: p7Text, before: p7Before),
-    makeElement(pageNumber: 8, text: p8Text, before: p8Before),
-    makeElement(pageNumber: 9, text: p9Text, before: p9Before),
+    makeElement(pageNumber: 3, text: p3Text),
+    makeElement(pageNumber: 4, text: p4Text),
+    makeElement(pageNumber: 5, text: p5Text),
+    makeElement(pageNumber: 6, text: p6Text),
+    makeElement(pageNumber: 7, text: p7Text),
+    makeElement(pageNumber: 8, text: p8Text),
+    makeElement(pageNumber: 9, text: p9Text),
 ]
 
 private func makeLocator(
     position: Int? = nil,
     pageFragment: Int? = nil,
     progression: Double? = nil,
-    before: String? = nil,
     highlight: String? = nil
 ) -> Locator {
     baseLocator.copy(
@@ -394,7 +386,6 @@ private func makeLocator(
             }
         },
         text: {
-            $0.before = before
             $0.highlight = highlight
         }
     )

@@ -28,9 +28,6 @@ public enum PDFResourceContentIteratorError: Error {
 ///
 /// This ``ContentIterator`` requires the ``Publication`` to have a
 /// ``PDFDocumentService``.
-///
-/// - Note: This iterator is intended for single-consumer use. Concurrent calls
-///   to `next()` or `previous()` from multiple tasks are not safe.
 public class PDFResourceContentIterator: ContentIterator, Loggable {
     /// Factory for a `PDFResourceContentIterator`.
     public class Factory: ResourceContentIteratorFactory {
@@ -94,20 +91,16 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
     private let locator: Locator
 
     private let minimumElementsPerBatch: Int
-    private let beforeMaxLength: Int = 50
 
     // MARK: - State
 
-    /// All loaded content elements, growing in both directions as batches are fetched.
+    /// All loaded content elements, growing in both directions as batches are
+    /// fetched.
     private var elements: [TextContentElement] = []
 
     /// Range of PDF page indices (0-based) that have been processed so far.
     /// `nil` until the initial batch has been loaded.
     private var loadedPageRange: Range<Int>?
-
-    /// Trailing text from the most recently forward-loaded page, used to
-    /// populate the `before` snippet of the next batch's first element.
-    private var forwardSuffixBuffer: String = ""
 
     /// The opened PDF document; retained for the lifetime of the iterator.
     private var document: (any PDFDocumentTextProviding)?
@@ -118,14 +111,19 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
     /// Resource-level metadata fetched once on first access.
     private var resourceInfo: ResourceInfo?
 
-    /// Index into `elements` of the element corresponding to the initial locator.
+    /// Index into `elements` of the element corresponding to the initial
+    /// locator.
     private var startElementIndex: Int = 0
 
-    /// Whether `loadInitialBatch()` has completed at least once.
-    /// Set to `true` even on failure so that a permanent error is not retried on every call.
+    /// Whether `loadInitialBatch()` has completed successfully.
     private var initialBatchLoaded: Bool = false
 
-    /// Current iteration position within `elements`. `nil` means not yet advanced.
+    /// Error captured during `loadInitialBatch()` to rethrow on subsequent
+    /// calls.
+    private var initialBatchError: Error?
+
+    /// Current iteration position within `elements`. `nil` means not yet
+    /// advanced.
     private var currentIndex: Int?
 
     init(
@@ -194,28 +192,39 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
     // MARK: - Initial Load
 
     private func loadInitialBatch() async throws {
-        // Mark as loaded upfront so that a thrown error is not retried on every call.
-        initialBatchLoaded = true
-
-        let info = await makeResourceInfo()
-        resourceInfo = info
-
-        let doc = try await openDocument()
-        guard let textDoc = doc as? PDFDocumentTextProviding else {
-            log(.warning, "The PDF document does not support text extraction; no content elements will be produced.")
-            return
+        // Rethrow any previously captured error.
+        if let error = initialBatchError {
+            throw error
         }
 
-        document = textDoc
-        pageCount = try await textDoc.pageCount()
+        do {
+            let info = await makeResourceInfo()
+            resourceInfo = info
 
-        guard pageCount > 0 else {
-            return
+            let doc = try await openDocument()
+            guard let textDoc = doc as? PDFDocumentTextProviding else {
+                log(.warning, "The PDF document does not support text extraction; no content elements will be produced.")
+                initialBatchLoaded = true
+                return
+            }
+
+            document = textDoc
+            pageCount = try await textDoc.pageCount()
+
+            guard pageCount > 0 else {
+                initialBatchLoaded = true
+                return
+            }
+
+            let startPage = computeStartPage(positionOffset: info.positionOffset)
+            try await loadBatchForward(from: startPage)
+            startElementIndex = findStartElementIndex(for: startPage)
+
+            initialBatchLoaded = true
+        } catch {
+            initialBatchError = error
+            throw error
         }
-
-        let startPage = computeStartPage(positionOffset: info.positionOffset)
-        try await loadBatchForward(from: startPage)
-        startElementIndex = findStartElementIndex(for: startPage)
     }
 
     /// Computes the 0-based page index to start loading from, derived directly
@@ -256,7 +265,6 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
         guard let doc = document, let info = resourceInfo else { return }
 
         var newElements: [TextContentElement] = []
-        var localBuffer = forwardSuffixBuffer
         var nextPageIndex = startPageIndex
 
         while nextPageIndex < pageCount, newElements.count < minimumElementsPerBatch {
@@ -265,11 +273,10 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
 
             guard
                 let pageText = try await doc.pageText(at: pageIndex),
-                !pageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                !pageText.isBlank
             else { continue }
 
-            newElements.append(makeElement(pageIndex: pageIndex, pageText: pageText, before: localBuffer, resourceInfo: info))
-            localBuffer = updateSuffixBuffer(localBuffer, with: pageText)
+            newElements.append(makeElement(pageIndex: pageIndex, pageText: pageText, resourceInfo: info))
         }
 
         elements.append(contentsOf: newElements)
@@ -278,7 +285,6 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
         } else {
             loadedPageRange = startPageIndex ..< nextPageIndex
         }
-        forwardSuffixBuffer = localBuffer
     }
 
     /// Loads PDF pages just before the current `loadedPageRange`, prepending
@@ -295,58 +301,45 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
             let info = resourceInfo
         else { return }
 
-        var collectedPages: [(index: Int, text: String)] = []
+        var newElements: [TextContentElement] = []
         var pageIndex = range.lowerBound - 1
         var lowestProcessedIndex = range.lowerBound
 
-        while pageIndex >= 0, collectedPages.count < minimumElementsPerBatch {
+        while pageIndex >= 0, newElements.count < minimumElementsPerBatch {
             lowestProcessedIndex = pageIndex
             if let pageText = try await doc.pageText(at: pageIndex),
-               !pageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+               !pageText.isBlank
             {
-                collectedPages.append((index: pageIndex, text: pageText))
+                // Prepend to maintain reading order (lowest page index first).
+                newElements.insert(
+                    makeElement(pageIndex: pageIndex, pageText: pageText, resourceInfo: info),
+                    at: 0
+                )
             }
             pageIndex -= 1
         }
 
         loadedPageRange = lowestProcessedIndex ..< range.upperBound
 
-        guard !collectedPages.isEmpty else { return }
+        guard !newElements.isEmpty else { return }
 
-        // Build elements in forward (reading) order.
-        var localBuffer = ""
-        var newElements: [TextContentElement] = []
-
-        for (idx, (pgIdx, pageText)) in collectedPages.reversed().enumerated() {
-            let before = idx == 0 ? "" : localBuffer
-            newElements.append(makeElement(pageIndex: pgIdx, pageText: pageText, before: before, resourceInfo: info))
-            localBuffer = updateSuffixBuffer(localBuffer, with: pageText)
-        }
-
-        // Update `before` of the previously-first element to reflect the text
-        // that now immediately precedes it.
-        if !elements.isEmpty {
-            elements[0] = updatingBefore(elements[0], before: localBuffer.isEmpty ? nil : localBuffer)
-        }
-
-        let K = newElements.count
+        let addedCount = newElements.count
         elements.insert(contentsOf: newElements, at: 0)
 
         if let idx = currentIndex {
-            currentIndex = idx + K
+            currentIndex = idx + addedCount
         }
-        startElementIndex += K
+        startElementIndex += addedCount
     }
 
     // MARK: - Helpers
 
-    private func makeElement(pageIndex: Int, pageText: String, before: String, resourceInfo: ResourceInfo) -> TextContentElement {
+    private func makeElement(pageIndex: Int, pageText: String, resourceInfo: ResourceInfo) -> TextContentElement {
         let pageNumber = pageIndex + 1
-        let pageProgression = Double(pageIndex) / Double(pageCount)
+        let pageProgression = pageCount > 0 ? Double(pageIndex) / Double(pageCount) : 0.0
         let totalProgression = resourceInfo.totalProgressionRange.map {
             $0.lowerBound + pageProgression * ($0.upperBound - $0.lowerBound)
         }
-        let beforeText = before.isEmpty ? nil : before
 
         let pageLocator = locator.copy(
             locations: {
@@ -356,11 +349,7 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
                 $0.totalProgression = totalProgression
             },
             text: {
-                $0 = Locator.Text(
-                    after: nil,
-                    before: beforeText,
-                    highlight: String(pageText.prefix(280))
-                )
+                $0 = Locator.Text(highlight: pageText)
             }
         )
 
@@ -370,32 +359,6 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
             segments: [
                 TextContentElement.Segment(locator: pageLocator, text: pageText),
             ]
-        )
-    }
-
-    private func updateSuffixBuffer(_ buffer: String, with pageText: String) -> String {
-        let newContent = pageText + "\n\n"
-        if newContent.count >= beforeMaxLength {
-            return String(newContent.suffix(beforeMaxLength))
-        } else {
-            return String((buffer + newContent).suffix(beforeMaxLength))
-        }
-    }
-
-    /// Returns a copy of `element` with the `before` text updated on both
-    /// the element locator and all segment locators.
-    private func updatingBefore(_ element: TextContentElement, before: String?) -> TextContentElement {
-        let newLocator = element.locator.copy(text: { $0.before = before })
-        return TextContentElement(
-            locator: newLocator,
-            role: element.role,
-            segments: element.segments.map { seg in
-                TextContentElement.Segment(
-                    locator: seg.locator.copy(text: { $0.before = before }),
-                    text: seg.text,
-                    attributes: seg.attributes
-                )
-            }
         )
     }
 }
