@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file. Take a look
 * Added support for SVG covers in `ResourceCoverService`. SVG images can now be used as publication covers and are rendered to bitmaps (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/751)).
 * `Publication` has a new experimental `coverData(accepting:)` API that returns the raw bytes and media type of the cover, useful for storing the original cover without re-encoding.
 * New `ContentSearchService` implementation of `SearchService` that uses the Content API to search through publication resources.
+* PDF publications now support text extraction and search through the [Content](docs/Guides/Content.md) and [Search](docs/Guides/Search.md) APIs.
+    * **Note:** TTS support is not yet ready because sentence segmentation needs further refinement.
 
 #### Navigator
 
