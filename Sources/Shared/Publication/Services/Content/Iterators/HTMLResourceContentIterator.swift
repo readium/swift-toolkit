@@ -64,7 +64,7 @@ public class HTMLResourceContentIterator: ContentIterator {
     ) {
         self.resource = resource
         self.locator = locator
-        self.fetchTotalProgressionRange = totalProgressionRange
+        fetchTotalProgressionRange = totalProgressionRange
     }
 
     public func previous() async throws -> ContentElement? {
@@ -135,7 +135,7 @@ public class HTMLResourceContentIterator: ContentIterator {
         var elements = elements
         elements.elements = await elements.elements.enumerated().asyncMap { index, element in
             let progression = Double(index) / count
-            return await element.copy(
+            return element.copy(
                 progression: progression,
                 totalProgression: totalProgressionRange.map { range in
                     range.lowerBound + progression * (range.upperBound - range.lowerBound)
