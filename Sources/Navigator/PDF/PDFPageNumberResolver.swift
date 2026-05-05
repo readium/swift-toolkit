@@ -34,7 +34,7 @@ enum PDFPageNumberResolver {
         positionsByReadingOrder: [[Locator]]?,
         documentPageCount: Int?
     ) -> Int? {
-        if let page = pageNumber(from: locator) {
+        if let page = locator.locations.page {
             return page
         }
 
@@ -68,21 +68,6 @@ enum PDFPageNumberResolver {
             ($0.locations.progression ?? 0.0) <= progression
         } ?? positions.first
 
-        return pageLocator.flatMap { pageNumber(from: $0) }
-    }
-
-    /// Extracts a page number from a `page=N` parameter in the given locator's
-    /// fragments.
-    private static func pageNumber(from locator: Locator) -> Int? {
-        for fragment in locator.locations.fragments {
-            let optionalPageParam = fragment
-                .components(separatedBy: CharacterSet(charactersIn: "&#"))
-                .map { $0.components(separatedBy: "=") }
-                .first { $0.first == "page" && $0.count == 2 }
-            if let pageParam = optionalPageParam, let pageNumber = Int(pageParam[1]) {
-                return pageNumber
-            }
-        }
-        return nil
+        return pageLocator?.locations.page
     }
 }

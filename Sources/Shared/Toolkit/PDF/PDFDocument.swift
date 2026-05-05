@@ -51,6 +51,14 @@ public protocol PDFDocument {
     func tableOfContents() async throws -> [PDFOutlineNode]
 }
 
+/// Refinement of `PDFDocument` for implementations that support text
+/// extraction.
+public protocol PDFDocumentTextProviding: PDFDocument {
+    /// Returns the text content of the page at the given 0-based `pageIndex`,
+    /// or `nil` when the page exists but carries no text layer.
+    func pageText(at pageIndex: Int) async throws -> String?
+}
+
 public protocol PDFDocumentFactory {
     /// Opens a PDF from a local file path.
     func open(file: FileURL, password: String?) async throws -> PDFDocument

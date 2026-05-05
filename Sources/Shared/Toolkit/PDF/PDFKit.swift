@@ -63,6 +63,12 @@ extension PDFKit.PDFDocument: PDFDocument {
     }
 }
 
+extension PDFKit.PDFDocument: PDFDocumentTextProviding {
+    public func pageText(at pageIndex: Int) async throws -> String? {
+        page(at: pageIndex)?.string
+    }
+}
+
 /// Creates a `PDFDocument` using PDFKit.
 public class PDFKitPDFDocumentFactory: PDFDocumentFactory {
     public init() {}

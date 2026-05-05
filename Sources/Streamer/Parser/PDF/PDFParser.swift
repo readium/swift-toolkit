@@ -72,7 +72,7 @@ public final class PDFParser: PublicationParser, Loggable {
                     servicesBuilder: PublicationServicesBuilder(
                         content: DefaultContentService.makeFactory(
                             resourceContentIteratorFactories: [
-                                PDFResourceContentIterator.Factory(pdfFactory: pdfFactory),
+                                PDFResourceContentIterator.Factory(),
                             ]
                         ),
                         cover: document.cover().map(GeneratedCoverService.makeFactory(cover:)),

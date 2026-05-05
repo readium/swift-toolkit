@@ -5,27 +5,34 @@
 //
 
 import Foundation
-import PDFKit
 
-/// Iterates a PDF `resource`, starting from the given `locator`.
+public enum PDFResourceContentIteratorError: Error {
+    /// The publication must have a ``PDFDocumentService`` to open the document.
+    case missingPDFDocumentService
+}
+
+/// Iterates a PDF resource, starting from the given `locator`.
 ///
-/// Extracts text content from PDF pages using PDFKit. Each page is converted to
-/// a `TextContentElement` with a proper locator for navigation and TTS.
+/// Extracts text content from PDF pages. Each page is converted to a
+/// `TextContentElement` with a proper locator for navigation and TTS.
 ///
 /// If you want to start mid-resource, the `locator` must contain a `position`
-/// key in its `Locator.Locations` object indicating the 1-based page number, or
-/// a `page=` fragment.
+/// key in its `Locator.Locations` object indicating the 1-based page number, a
+/// `page=` fragment, or a `progression` value.
 ///
 /// If you want to start from the end of the resource, the `locator` must have
 /// a `progression` of 1.0.
-public class PDFResourceContentIterator: ContentIterator {
+///
+/// This ``ContentIterator`` requires the ``Publication`` to have a
+/// ``PDFDocumentService``.
+///
+/// - Note: This iterator is intended for single-consumer use. Concurrent calls
+///   to `next()` or `previous()` from multiple tasks are not safe.
+public class PDFResourceContentIterator: ContentIterator, Loggable {
+    
     /// Factory for a `PDFResourceContentIterator`.
     public class Factory: ResourceContentIteratorFactory {
-        private let pdfFactory: PDFDocumentFactory
-
-        public init(pdfFactory: PDFDocumentFactory) {
-            self.pdfFactory = pdfFactory
-        }
+        public init() {}
 
         public func make(
             publication: Publication,
@@ -38,7 +45,12 @@ public class PDFResourceContentIterator: ContentIterator {
             }
 
             return PDFResourceContentIterator(
-                resource: resource,
+                openDocument: {
+                    guard let service = publication.pdfDocumentService else {
+                        throw PDFResourceContentIteratorError.missingPDFDocumentService
+                    }
+                    return try await service.openDocument(at: locator.href)
+                },
                 totalProgressionRange: {
                     let positions = await publication.positionsByReadingOrder().getOrNil() ?? []
                     return positions.getOrNil(readingOrderIndex)?
@@ -55,17 +67,17 @@ public class PDFResourceContentIterator: ContentIterator {
         }
     }
 
-    private let resource: Resource
+    private let openDocument: () async throws -> PDFDocument
     private let locator: Locator
     private let beforeMaxLength: Int = 50
     private let totalProgressionRange: Task<ClosedRange<Double>?, Never>
 
-    public init(
-        resource: Resource,
+    init(
+        openDocument: @escaping () async throws -> PDFDocument,
         totalProgressionRange: @escaping () async -> ClosedRange<Double>?,
         locator: Locator
     ) {
-        self.resource = resource
+        self.openDocument = openDocument
         self.locator = locator
         self.totalProgressionRange = Task { await totalProgressionRange() }
     }
@@ -111,23 +123,24 @@ public class PDFResourceContentIterator: ContentIterator {
     }
 
     private func extractElements() async throws -> ParsedElements {
-        let data = try await resource.read().get()
-        guard let pdfDocument = PDFKit.PDFDocument(data: data) else {
+        let document = try await openDocument()
+
+        guard let textDocument = document as? PDFDocumentTextProviding else {
+            log(.warning, "The PDF document does not support text extraction; no content elements will be produced.")
             return ParsedElements(elements: [], startIndex: 0)
         }
 
-        let pageCount = pdfDocument.pageCount
+        let pageCount = try await textDocument.pageCount()
         guard pageCount > 0 else {
             return ParsedElements(elements: [], startIndex: 0)
         }
 
-        var elements: [ContentElement] = []
-        var accumulatedText = ""
+        var elements: [TextContentElement] = []
+        var suffixBuffer = ""
 
         for pageIndex in 0 ..< pageCount {
             guard
-                let page = pdfDocument.page(at: pageIndex),
-                let pageText = page.string,
+                let pageText = try await textDocument.pageText(at: pageIndex),
                 !pageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             else {
                 continue
@@ -136,7 +149,7 @@ public class PDFResourceContentIterator: ContentIterator {
             let pageNumber = pageIndex + 1
             let pageProgression = Double(pageIndex) / Double(pageCount)
 
-            let beforeText = String(accumulatedText.suffix(beforeMaxLength))
+            let beforeText = String(suffixBuffer.suffix(beforeMaxLength))
             let pageLocator = locator.copy(
                 locations: {
                     $0.fragments = ["page=\(pageNumber)"]
@@ -163,16 +176,19 @@ public class PDFResourceContentIterator: ContentIterator {
                 ]
             ))
 
-            accumulatedText += pageText + "\n\n"
+            let newContent = pageText + "\n\n"
+            suffixBuffer = String((suffixBuffer + newContent).suffix(beforeMaxLength))
         }
 
-        let startIndex = computeStartIndex(in: elements, pageCount: pageCount)
+        let startIndex = computeStartIndex(in: elements)
         return ParsedElements(elements: elements, startIndex: startIndex)
     }
 
-    private func computeStartIndex(in elements: [ContentElement], pageCount: Int) -> Int {
+    private func computeStartIndex(in elements: [TextContentElement]) -> Int {
         if let position = locator.locations.position {
             return elements.firstIndex { $0.locator.locations.position == position } ?? 0
+        } else if let page = locator.locations.page {
+            return elements.firstIndex { $0.locator.locations.page == page } ?? 0
         } else if locator.locations.progression == 1.0 {
             return max(0, elements.count - 1)
         } else if let progression = locator.locations.progression, progression > 0 {
@@ -193,7 +209,7 @@ public class PDFResourceContentIterator: ContentIterator {
         var result = parsed
         let range = await totalProgressionRange.value
 
-        result.elements = parsed.elements.enumerated().map { _, element in
+        result.elements = parsed.elements.map { element in
             let progression = element.locator.locations.progression ?? 0
             let totalProgression = range.map { $0.lowerBound + progression * ($0.upperBound - $0.lowerBound) }
 
@@ -202,8 +218,8 @@ public class PDFResourceContentIterator: ContentIterator {
                     $0.progression = progression
                     $0.totalProgression = totalProgression
                 }),
-                role: (element as? TextContentElement)?.role ?? .body,
-                segments: (element as? TextContentElement)?.segments.map { segment in
+                role: element.role,
+                segments: element.segments.map { segment in
                     TextContentElement.Segment(
                         locator: segment.locator.copy(locations: {
                             $0.progression = progression
@@ -212,7 +228,7 @@ public class PDFResourceContentIterator: ContentIterator {
                         text: segment.text,
                         attributes: segment.attributes
                     )
-                } ?? []
+                }
             )
         }
 
@@ -220,7 +236,7 @@ public class PDFResourceContentIterator: ContentIterator {
     }
 
     private struct ParsedElements {
-        var elements: [ContentElement]
+        var elements: [TextContentElement]
         var startIndex: Int
     }
 }

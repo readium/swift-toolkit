@@ -64,6 +64,12 @@ enum PDFResourceContentIteratorTests {
             #expect(result?.equatable() == sampleElements[3])
         }
 
+        @Test func startingFromPageFragment() async throws {
+            // page=5 fragment (no position) should land on the same element as position 5
+            let result = try await makeIterator(start: makeLocator(pageFragment: 5)).next()
+            #expect(result?.equatable() == sampleElements[3])
+        }
+
         @Test func startingFromProgression() async throws {
             // Pre-adjustment progressions: [1/9, 2/9, 3/9, ...]; 0.4 > 3/9≈0.333, so
             // lastIndex where progression ≤ 0.4 is index 2 (3/9). First next() → element 2 (page 4).
@@ -219,6 +225,7 @@ private let sampleElements: [AnyEquatableContentElement] = [
 
 private func makeLocator(
     position: Int? = nil,
+    pageFragment: Int? = nil,
     progression: Double? = nil,
     before: String? = nil,
     highlight: String? = nil
@@ -227,6 +234,9 @@ private func makeLocator(
         locations: {
             $0.position = position
             $0.progression = progression
+            if let page = pageFragment {
+                $0.fragments = ["page=\(page)"]
+            }
         },
         text: {
             $0.before = before
@@ -240,8 +250,10 @@ private func makeIterator(
     totalProgressionRange: ClosedRange<Double>? = nil
 ) -> PDFResourceContentIterator {
     let data = Fixtures(path: "Publication/Services").data(at: "daisy-truncated.pdf")
+    let resource = DataResource(data: data)
+    let href = baseLocator.href
     return PDFResourceContentIterator(
-        resource: DataResource(data: data),
+        openDocument: { try await DefaultPDFDocumentFactory().open(resource: resource, at: href, password: nil) },
         totalProgressionRange: { totalProgressionRange },
         locator: startLocator ?? baseLocator
     )

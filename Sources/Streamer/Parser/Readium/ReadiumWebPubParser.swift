@@ -132,7 +132,7 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                             $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory())
                             $0.setContentServiceFactory(DefaultContentService.makeFactory(
                                 resourceContentIteratorFactories: [
-                                    PDFResourceContentIterator.Factory(pdfFactory: pdfFactory),
+                                    PDFResourceContentIterator.Factory(),
                                 ]
                             ))
                             $0.setSearchServiceFactory(ContentSearchService.makeFactory())
