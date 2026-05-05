@@ -43,7 +43,7 @@ enum PDFPageNumberResolver {
             let readingOrderIndex,
             let allPositions = positionsByReadingOrder
         {
-            let pagesBeforeResource = allPositions[0 ..< readingOrderIndex].reduce(0) { $0 + $1.count }
+            let pagesBeforeResource = allPositions.prefix(readingOrderIndex).reduce(0) { $0 + $1.count }
             let localPage = position - pagesBeforeResource
             if localPage >= 1 {
                 return localPage

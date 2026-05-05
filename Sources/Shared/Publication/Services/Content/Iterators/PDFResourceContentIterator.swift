@@ -147,7 +147,6 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
 
     private func initializeIfNeeded() async throws {
         guard !initialized else { return }
-        initialized = true
 
         let info = await makeResourceInfo()
         resourceInfo = info
@@ -155,12 +154,14 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
         let doc = try await openDocument()
         guard let textDoc = doc as? PDFDocumentTextProviding else {
             log(.warning, "The PDF document does not support text extraction; no content elements will be produced.")
+            initialized = true
             return
         }
 
         document = textDoc
         pageCount = try await textDoc.pageCount()
         startPageIndex = computeStartPage(positionOffset: info.positionOffset)
+        initialized = true
     }
 
     /// Computes the 0-based page index to start from, derived from the locator.
