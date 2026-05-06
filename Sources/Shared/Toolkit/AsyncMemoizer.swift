@@ -32,4 +32,8 @@ package actor AsyncMemoizer<T> {
         task = newTask
         return await newTask.value
     }
+
+    deinit {
+        task?.cancel()
+    }
 }
