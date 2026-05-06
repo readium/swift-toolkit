@@ -19,10 +19,18 @@ import Foundation
 open class TransformingResource: Resource {
     private let resource: Resource
     private let _transform: ((ReadResult<Data>) async -> ReadResult<Data>)?
+    private var data: AsyncMemoizer<ReadResult<Data>>!
 
     public init(_ resource: Resource, transform: ((ReadResult<Data>) async -> ReadResult<Data>)? = nil) {
         self.resource = resource
         _transform = transform
+
+        data = AsyncMemoizer { [weak self] in
+            guard let self else {
+                return .failure(.decoding(DebugError("TransformingResource is deallocated")))
+            }
+            return await self.transform(data: resource.read())
+        }
     }
 
     open func transform(data: ReadResult<Data>) async -> ReadResult<Data> {
@@ -52,15 +60,6 @@ open class TransformingResource: Resource {
             }
             return ()
         }
-    }
-
-    private var _data: ReadResult<Data>?
-
-    private func data() async -> ReadResult<Data> {
-        if _data == nil {
-            _data = await transform(data: resource.read())
-        }
-        return _data!
     }
 }
 
