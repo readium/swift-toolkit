@@ -161,7 +161,10 @@ final class LCPDecryptor {
                 // Encrypted data is shifted by AESBlockSize, because of IV and because the
                 // previous block must be provided to perform XOR on intermediate blocks.
                 let encryptedStart = rangeFirst.floorMultiple(of: AESBlockSize)
-                let encryptedEndExclusive = (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize
+                let encryptedEndExclusive = min(
+                    (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize,
+                    encryptedLength
+                )
 
                 return await resource.read(range: encryptedStart ..< encryptedEndExclusive)
                     .combine(plainTextSize)
