@@ -145,11 +145,13 @@ let package = Package(
         // TODO: Find a solution to run the tests with GitHub action.
         // .testTarget(
         //     name: "ReadiumLCPTests",
-        //     dependencies: ["ReadiumLCP"],
-        //     path: "Tests/LCPTests",
-        //     resources: [
-        //         .copy("../Fixtures"),
-        //     ]
+        //     dependencies: [
+        //         "ReadiumLCP",
+        //         "ReadiumShared",
+        //         "ReadiumStreamer",
+        //         "TestPublications",
+        //     ],
+        //     path: "Tests/LCPTests"
         // ),
 
         .target(

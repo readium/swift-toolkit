@@ -26,7 +26,7 @@ public enum KeychainError: Error {
 ///
 /// This class handles low-level Security framework calls for storing, retrieving,
 /// updating, and deleting data from the iOS/macOS Keychain.
-public final class Keychain: Sendable {
+package final class Keychain: Sendable {
     private let serviceName: String
     private let synchronizable: Bool
 
@@ -35,7 +35,7 @@ public final class Keychain: Sendable {
     /// - Parameters:
     ///   - serviceName: The service identifier for Keychain items.
     ///   - synchronizable: Whether items should sync via iCloud Keychain.
-    public init(
+    package init(
         serviceName: String,
         synchronizable: Bool = true
     ) {
@@ -48,7 +48,7 @@ public final class Keychain: Sendable {
     /// - Parameters:
     ///   - data: The data to save.
     ///   - key: The account identifier.
-    public func save(data: Data, forKey key: String) throws(KeychainError) {
+    package func save(data: Data, forKey key: String) throws(KeychainError) {
         var query = baseQuery(forKey: key, forAdding: true)
         query[kSecValueData as String] = data
 
@@ -63,7 +63,7 @@ public final class Keychain: Sendable {
     ///
     /// - Parameter key: The account identifier.
     /// - Returns: The data if found, or `nil` if no item exists with this key.
-    public func load(forKey key: String) throws(KeychainError) -> Data? {
+    package func load(forKey key: String) throws(KeychainError) -> Data? {
         var query = baseQuery(forKey: key, forAdding: false)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -91,7 +91,7 @@ public final class Keychain: Sendable {
     /// - Parameters:
     ///   - data: The new data to save.
     ///   - key: The account identifier.
-    public func update(data: Data, forKey key: String) throws(KeychainError) {
+    package func update(data: Data, forKey key: String) throws(KeychainError) {
         let query = baseQuery(forKey: key, forAdding: false)
         let attributesToUpdate: [String: Any] = [
             kSecValueData as String: data,
@@ -107,7 +107,7 @@ public final class Keychain: Sendable {
     /// Deletes an item from the Keychain for the specified key.
     ///
     /// - Parameter key: The account identifier.
-    public func delete(forKey key: String) throws(KeychainError) {
+    package func delete(forKey key: String) throws(KeychainError) {
         let query = baseQuery(forKey: key, forAdding: false)
         let status = SecItemDelete(query as CFDictionary)
 
@@ -118,7 +118,7 @@ public final class Keychain: Sendable {
     }
 
     /// Deletes all items for this service from the Keychain.
-    public func deleteAll() throws(KeychainError) {
+    package func deleteAll() throws(KeychainError) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
@@ -134,7 +134,7 @@ public final class Keychain: Sendable {
     /// Returns all account identifiers (keys) stored for this service.
     ///
     /// - Returns: An array of account identifiers.
-    public func allKeys() throws(KeychainError) -> [String] {
+    package func allKeys() throws(KeychainError) -> [String] {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
@@ -165,7 +165,7 @@ public final class Keychain: Sendable {
     ///
     /// - Returns: A dictionary where keys are account identifiers and values are
     ///   the stored data.
-    public func allItems() throws(KeychainError) -> [String: Data] {
+    package func allItems() throws(KeychainError) -> [String: Data] {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
