@@ -206,5 +206,5 @@ if [ "$SERVE_SITE" = true ]; then
     # Serve from OUTPUT_ROOT so the subdirectory /swift-toolkit/ exists.
     python3 -m http.server -d "$OUTPUT_ROOT" 8080
 else
-    echo "    Run 'BuildTools/Scripts/generate-docs.sh --serve' to preview."
+    echo "    Run 'scripts/generate-docs.sh --serve' to preview."
 fi

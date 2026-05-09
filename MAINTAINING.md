@@ -56,7 +56,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
 5. Update the [migration guide](Documentation/Migration%20Guide.md) in case of breaking changes.
 6. Prepare the release.
     ```shell
-    BuildTools/Scripts/release-prepare.sh 3.0.1
+    scripts/release-prepare.sh 3.0.1
     ```
     This script does the following:
 
@@ -69,12 +69,12 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
 7. Verify the CI checks pass for the PR. **Do not merge it yet**.
 8. Release the updated Podspecs.
     ```shell
-    BuildTools/Scripts/release-publish-podspecs.sh
+    scripts/release-publish-podspecs.sh
     ```
 9. Squash and merge the release PR on GitHub.
 10. Tag the new version from `develop`.
     ```shell
-    BuildTools/Scripts/release-tag.sh 3.0.1
+    scripts/release-tag.sh 3.0.1
     ```
     This script does the following:
     ```shell
@@ -87,7 +87,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
 12. Announce the release.
     1. Create a new release on GitHub.
         ```shell
-        BuildTools/Scripts/release-github.sh 3.0.1
+        scripts/release-github.sh 3.0.1
         ```
         The script creates a draft release pre-filled with documentation links and the formatted changelog. Edit the draft on GitHub to add the "What's Changed" section via "Generate release notes".
     2. Write a high-level summary of the changelog for the blog.

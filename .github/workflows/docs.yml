@@ -35,9 +35,9 @@ jobs:
 
       - name: Generate Documentation
         run: |
-          chmod +x BuildTools/Scripts/generate-docs.sh
-          ./BuildTools/Scripts/generate-docs.sh ${{ steps.versioning.outputs.READIUM_VERSION }}
-          ./BuildTools/Scripts/generate-docs.sh latest
+          chmod +x scripts/generate-docs.sh
+          ./scripts/generate-docs.sh ${{ steps.versioning.outputs.READIUM_VERSION }}
+          ./scripts/generate-docs.sh latest
 
       - name: Setup Root Redirect
         run: |
