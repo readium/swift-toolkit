@@ -1,33 +1,29 @@
 #!/usr/bin/env bash
 # =============================================================================
-# release-github.sh VERSION
+# release-github.sh [--dry-run] [--skip-git-checks] VERSION
 # =============================================================================
 # Create a draft GitHub release pre-filled with formatted release notes drawn
 # from CHANGELOG.md.
 #
 # VERSION - The version to release (e.g. 3.9.0) — tag must exist locally
+# --dry-run - Skip the actual GitHub release creation.
+# --skip-git-checks - Skip the local tag existence check
 # =============================================================================
 
 set -euo pipefail
 
 . "$(cd "$(dirname "$0")" && pwd)/release-common.sh"
 
-# Argument
-VERSION="${1:-}"
-[[ -n "$VERSION" ]] || error "Usage: $(basename "$0") VERSION"
-check_semver "$VERSION"
+parse_flags "$@"
 
 # Prerequisites
-command -v gh &>/dev/null      || error "'gh' CLI not found — install from https://cli.github.com"
+command -v gh &>/dev/null || error "'gh' CLI not found — install from https://cli.github.com"
 command -v python3 &>/dev/null || error "'python3' not found"
 
-git -C "$REPO_ROOT" rev-parse "$VERSION" &>/dev/null || \
-    error "Tag '$VERSION' not found locally. Run release-tag.sh $VERSION first."
-
-# Previous tag
-PREV_TAG="$(git -C "$REPO_ROOT" tag --sort=-version:refname | grep -v "^${VERSION}$" | head -1)"
-[[ -n "$PREV_TAG" ]] || error "Could not determine the previous tag."
-info "Previous tag: $PREV_TAG"
+if [[ $SKIP_GIT_CHECKS -eq 0 ]]; then
+    git -C "$REPO_ROOT" rev-parse "$VERSION" &>/dev/null || \
+        error "Tag '$VERSION' not found locally."
+fi
 
 # Changelog content
 info "Extracting changelog section for $VERSION"
@@ -49,11 +45,8 @@ while IFS= read -r line; do
     fi
 done < "$MIGRATION_GUIDE"
 
-info "Migration guide anchor: #${MG_ANCHOR}"
-
 # Build release body
-TMPFILE="$(mktemp /tmp/release-notes-XXXXXX.md)"
-trap 'rm -f "$TMPFILE"' EXIT
+TMPFILE="$(mktemp /tmp/release-notes-XXXXXX)"
 
 cat > "$TMPFILE" <<BODY
 > [!WARNING]
@@ -68,16 +61,22 @@ cat > "$TMPFILE" <<BODY
 
 ${CHANGELOG_CONTENT}
 
----
-_Add "What's Changed" section: edit this draft on GitHub and click "Generate release notes"._
 BODY
 
 # Create draft release
 info "Creating draft GitHub release for $VERSION"
-RELEASE_URL="$(gh release create "$VERSION" \
-    --title "$VERSION" \
-    --notes-file "$TMPFILE" \
-    --draft)"
-
-info "Draft release created: $RELEASE_URL"
-open "$RELEASE_URL"
+if [[ $DRY_RUN -eq 1 ]]; then
+    dry_skip "gh release create $VERSION --title $VERSION --notes-file $TMPFILE --draft"
+    echo ""
+    echo "=== Release: $VERSION ==="
+    echo ""
+    cat "$TMPFILE"
+    echo ""
+else
+    RELEASE_URL="$(gh release create "$VERSION" \
+        --title "$VERSION" \
+        --notes-file "$TMPFILE" \
+        --draft)"
+    info "Draft release created: $RELEASE_URL"
+    open "$RELEASE_URL"
+fi

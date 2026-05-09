@@ -1,40 +1,41 @@
 #!/usr/bin/env bash
 # =============================================================================
-# release-prepare.sh VERSION
+# release-prepare.sh [--dry-run] [--skip-git-checks] VERSION
 # =============================================================================
 # Create the release branch, bump all version strings, close the CHANGELOG and
 # Migration Guide, commit, and open a PR.
 #
 # VERSION - The new version to release (e.g. 3.9.0)
+# --dry-run - Skip `git push` and `gh pr create`
+# --skip-git-checks - Skip branch and clean working tree checks
 # =============================================================================
 
 set -euo pipefail
 
 . "$(cd "$(dirname "$0")" && pwd)/release-common.sh"
 
-VERSION="${1:-}"
-[[ -n "$VERSION" ]] || error "Usage: $(basename "$0") VERSION"
-
-check_semver "$VERSION"
+parse_flags "$@"
 
 # Prerequisite checks
 command -v gh &>/dev/null || error "'gh' CLI not found — install from https://cli.github.com"
 command -v python3 &>/dev/null || error "'python3' not found"
 command -v make &>/dev/null || error "'make' not found"
 
-CURRENT_BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
-[[ "$CURRENT_BRANCH" == "develop" ]] || \
-    error "Must be on the 'develop' branch (currently on '$CURRENT_BRANCH')"
+if [[ $SKIP_GIT_CHECKS -eq 0 ]]; then
+    CURRENT_BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
+    [[ "$CURRENT_BRANCH" == "develop" ]] || \
+        error "Must be on the 'develop' branch (currently on '$CURRENT_BRANCH')"
 
-git -C "$REPO_ROOT" fetch origin
+    git -C "$REPO_ROOT" fetch origin
 
-LOCAL_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
-REMOTE_SHA="$(git -C "$REPO_ROOT" rev-parse origin/develop)"
-# [[ "$LOCAL_SHA" == "$REMOTE_SHA" ]] || \
-#     error "Local 'develop' is not in sync with 'origin/develop'. Pull or push first."
+    LOCAL_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+    REMOTE_SHA="$(git -C "$REPO_ROOT" rev-parse origin/develop)"
+    [[ "$LOCAL_SHA" == "$REMOTE_SHA" ]] || \
+        error "Local 'develop' is not in sync with 'origin/develop'. Pull or push first."
 
-[[ -z "$(git -C "$REPO_ROOT" status --porcelain)" ]] || \
-    error "Working tree is not clean. Commit or stash changes first."
+    [[ -z "$(git -C "$REPO_ROOT" status --porcelain)" ]] || \
+        error "Working tree is not clean. Commit or stash changes first."
+fi
 
 grep -q '^podspecs:' "$REPO_ROOT/Makefile" || \
     error "'podspecs' target not found in Makefile"
@@ -77,19 +78,29 @@ python3 "$SCRIPT_DIR/release-md-tools.py" close-migration-guide "$VERSION" "$MIG
 
 # Commit
 info "Staging and committing"
-git -C "$REPO_ROOT" add \
-    "$SPECS_FILE" \
-    "$REPO_ROOT/Support/CocoaPods"/*.podspec \
-    "$REPO_ROOT/README.md" \
-    "$PLIST_FILE" \
-    "$REPO_ROOT/CHANGELOG.md" \
-    "$MIGRATION_GUIDE"
-git -C "$REPO_ROOT" commit -m "$VERSION"
+if [[ $DRY_RUN -eq 1 ]]; then
+    dry_skip "git add *"
+    dry_skip "git commit -m \"$VERSION\""
+else
+    git -C "$REPO_ROOT" add \
+        "$SPECS_FILE" \
+        "$REPO_ROOT/Support/CocoaPods"/*.podspec \
+        "$REPO_ROOT/README.md" \
+        "$PLIST_FILE" \
+        "$REPO_ROOT/CHANGELOG.md" \
+        "$MIGRATION_GUIDE"
+    git -C "$REPO_ROOT" commit -m "$VERSION"
+fi
 
 # Push + PR
 info "Pushing branch '$VERSION'"
-# git -C "$REPO_ROOT" push -u origin "$VERSION"
-
-info "Creating PR"
-# PR_URL="$(gh pr create --base develop --title "$VERSION" --body "" | tail -1)"
-# open "$PR_URL"
+if [[ $DRY_RUN -eq 1 ]]; then
+    dry_skip "git add *"
+    dry_skip "git commit -m \"$VERSION\""
+    dry_skip "git push -u origin $VERSION"
+    dry_skip "gh pr create --base develop --title \"$VERSION\" --body \"\""
+else
+    git -C "$REPO_ROOT" push -u origin "$VERSION"
+    PR_URL="$(gh pr create --base develop --title "$VERSION" --body "" | tail -1)"
+    open "$PR_URL"
+fi
