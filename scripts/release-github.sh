@@ -66,7 +66,7 @@ BODY
 # Create draft release
 info "Creating draft GitHub release for $VERSION"
 if [[ $DRY_RUN -eq 1 ]]; then
-    dry_skip "gh release create $VERSION --title $VERSION --notes-file $TMPFILE --draft"
+    dry_skip "gh release create $VERSION --title $VERSION --notes-file $TMPFILE --generate-notes --draft"
     echo ""
     echo "=== Release: $VERSION ==="
     echo ""

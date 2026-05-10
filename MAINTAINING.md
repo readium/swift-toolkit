@@ -6,7 +6,7 @@ To bump the minimum required iOS version, update these files:
 
 - `README.md`, section "Minimum Requirements"
 - `Package.swift`
-- `Support/CocoaPods/*.podspec` — edit `iosTarget` in `Support/CocoaPods/Specs.swift`, then run `make podspecs` and commit the generated files
+- `Support/CocoaPods/*.podspec` – edit `iosTarget` in `Support/CocoaPods/Specs.swift`, then run `make podspecs` and commit the generated files
 
 ## Creating a New Package
 
@@ -61,7 +61,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
     This script does the following:
 
     1. Create a branch with the same name as the future tag, from `develop`.
-    2. Bump `version` in `Support/CocoaPods/Specs.swift`, run `make podspecs`, and commit the generated files.
+    2. Bump `version` in `Support/CocoaPods/Specs.swift`, then run `make podspecs`.
     3. Bump the version numbers in `README.md`, and check the "Minimum Requirements" section.
     4. Bump the version numbers in `TestApp/Sources/Info.plist`.
     5. Close the version in the `CHANGELOG.md`, [for example](https://github.com/readium/swift-toolkit/pull/353/commits/a0714589b3da928dd923ba78f379116715797333#diff-06572a96a58dc510037d5efa622f9bec8519bc1beab13c9f251e97e657a9d4ed).
