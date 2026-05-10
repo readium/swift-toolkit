@@ -16,6 +16,10 @@ set -euo pipefail
 
 parse_flags "$@"
 
+VERSION="$(positional_args "$@")"
+[[ -n "$VERSION" ]] || error "Usage: $(basename "$0") [--dry-run] [--skip-git-checks] VERSION"
+check_semver "$VERSION"
+
 # Prerequisite checks
 command -v gh &>/dev/null || error "'gh' CLI not found — install from https://cli.github.com"
 command -v python3 &>/dev/null || error "'python3' not found"
@@ -95,8 +99,6 @@ fi
 # Push + PR
 info "Pushing branch '$VERSION'"
 if [[ $DRY_RUN -eq 1 ]]; then
-    dry_skip "git add *"
-    dry_skip "git commit -m \"$VERSION\""
     dry_skip "git push -u origin $VERSION"
     dry_skip "gh pr create --base develop --title \"$VERSION\" --body \"\""
 else

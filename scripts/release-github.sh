@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # =============================================================================
-# release-github.sh [--dry-run] [--skip-git-checks] VERSION
+# release-github.sh [--dry-run]
 # =============================================================================
 # Create a draft GitHub release pre-filled with formatted release notes drawn
 # from CHANGELOG.md.
 #
-# VERSION - The version to release (e.g. 3.9.0) — tag must exist locally
+# The version is determined automatically from the tag pointing to the last
+# commit (HEAD). Run release-tag.sh first to create that tag.
 # --dry-run - Skip the actual GitHub release creation.
-# --skip-git-checks - Skip the local tag existence check
 # =============================================================================
 
 set -euo pipefail
@@ -20,10 +20,10 @@ parse_flags "$@"
 command -v gh &>/dev/null || error "'gh' CLI not found — install from https://cli.github.com"
 command -v python3 &>/dev/null || error "'python3' not found"
 
-if [[ $SKIP_GIT_CHECKS -eq 0 ]]; then
-    git -C "$REPO_ROOT" rev-parse "$VERSION" &>/dev/null || \
-        error "Tag '$VERSION' not found locally."
-fi
+# Derive VERSION from the tag pointing to HEAD
+VERSION="$(git -C "$REPO_ROOT" describe --tags --exact-match HEAD 2>/dev/null)" || \
+    error "No tag found on HEAD."
+check_semver "$VERSION"
 
 # Changelog content
 info "Extracting changelog section for $VERSION"
@@ -54,8 +54,8 @@ cat > "$TMPFILE" <<BODY
 
 ## Documentation
 
-* [**Versioned Documentation**](https://readium.org/swift-toolkit/${VERSION}/documentation/readium/)
-* [**Migration Guide**](docs/Migration%20Guide.md#${MG_ANCHOR})
+* [**Versioned Documentation**](https://readium.org/swift-toolkit/${VERSION}/documentation/readium/) – Complete API reference on readium.org.
+* [**Migration Guide**](docs/Migration%20Guide.md#${MG_ANCHOR}) – Instructions for upgrading from previous versions.
 
 ## Changelog
 

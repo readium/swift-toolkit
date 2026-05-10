@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # =============================================================================
-# release-tag.sh [--dry-run] VERSION
+# release-tag.sh [--skip-git-checks] [--dry-run]
 # =============================================================================
 # Tag the new version from `develop` and push the tag.
 #
-# VERSION - The version to tag (e.g. 3.9.0) — must match the last commit
-#   message on develop (format: `VERSION (#N)` or `VERSION`)
-# --dry-run - Skip `git push --tags` (tag is still created locally)
+# The version is extracted automatically from the last commit message on
+# develop (expected format: `VERSION (#N)` or `VERSION`).
+#
+# --skip-git-checks - Skip branch check
+# --dry-run - Skip the actual creation of the tag
 # =============================================================================
 
 set -euo pipefail
@@ -15,33 +17,35 @@ set -euo pipefail
 
 parse_flags "$@"
 
-# Branch check
-CURRENT_BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
-[[ "$CURRENT_BRANCH" == "develop" ]] || \
-    error "Must be on the 'develop' branch (currently on '$CURRENT_BRANCH')"
+if [[ $SKIP_GIT_CHECKS -eq 0 ]]; then
+    # Branch check
+    CURRENT_BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
+    [[ "$CURRENT_BRANCH" == "develop" ]] || \
+        error "Must be on the 'develop' branch (currently on '$CURRENT_BRANCH')"
 
-# Fast-forward to latest origin/develop
-info "Fetching and fast-forwarding develop"
-git -C "$REPO_ROOT" fetch origin
-git -C "$REPO_ROOT" merge --ff-only origin/develop
+    # Fast-forward to latest origin/develop
+    info "Fetching and fast-forwarding develop"
+    git -C "$REPO_ROOT" fetch origin
+    git -C "$REPO_ROOT" merge --ff-only origin/develop
+fi
 
-# Verify last commit is the release PR merge or a direct version commit
+# Extract VERSION from the last commit message (format: "a.b.c" or "a.b.c (#N)")
 LAST_MSG="$(git -C "$REPO_ROOT" log -1 --format="%s")"
-EXPECTED_PATTERN="^${VERSION//./\\.}( \(#[0-9]+\))?$"
-[[ "$LAST_MSG" =~ $EXPECTED_PATTERN ]] || \
-    error "Last commit on develop is not the release PR merge.
-  Expected: \"$VERSION (#N)\" or \"$VERSION\"
-  Got:      \"$LAST_MSG\"
+if [[ "$LAST_MSG" =~ ^([0-9]+\.[0-9]+(\.[0-9]+)?)( \(#[0-9]+\))?$ ]]; then
+    VERSION="${BASH_REMATCH[1]}"
+else
+    error "Cannot extract version from last commit message: \"$LAST_MSG\"
+  Expected format: \"a.b.c\" or \"a.b.c (#N)\"
 Squash-merge the release PR before tagging."
+fi
+check_semver "$VERSION"
 
 # Tag and push
-info "Tagging $VERSION"
-git -C "$REPO_ROOT" tag -a "$VERSION" -m "$VERSION"
-
-info "Pushing tag"
 if [[ $DRY_RUN -eq 1 ]]; then
+    dry_skip "git tag -a \"$VERSION\" -m \"$VERSION\""
     dry_skip "git push --tags"
 else
+    git -C "$REPO_ROOT" tag -a "$VERSION" -m "$VERSION"
     git -C "$REPO_ROOT" push --tags
 fi
 

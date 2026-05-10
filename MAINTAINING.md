@@ -47,7 +47,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
     2. Clone the `swift-toolkit` from the previous version (`main` branch).
     3. Under `TestApp`, initialize it with the next toolkit version:
         ```shell
-        make spm version=3.0.1 lcp=...
+        make spm version=VERSION lcp=...
         ```
     4. Try to run the Test App, adjusting the integration if needed.
     5. Delete the Git tag created previously.
@@ -56,7 +56,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
 5. Update the [migration guide](Documentation/Migration%20Guide.md) in case of breaking changes.
 6. Prepare the release.
     ```shell
-    scripts/release-prepare.sh 3.0.1
+    scripts/release-prepare.sh VERSION
     ```
     This script does the following:
 
@@ -74,20 +74,20 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
 9. Squash and merge the release PR on GitHub.
 10. Tag the new version from `develop`.
     ```shell
-    scripts/release-tag.sh 3.0.1
+    scripts/release-tag.sh
     ```
     This script does the following:
     ```shell
     git checkout develop
     git pull
-    git tag -a 3.0.1 -m 3.0.1
+    git tag -a VERSION -m VERSION
     git push --tags
     ```
-11. Verify you can fetch the new version from the latest Test App with `make spm|cocoapods version=3.0.1`
+11. Verify you can fetch the new version from the latest Test App with `make spm|cocoapods version=VERSION`
 12. Announce the release.
     1. Create a new release on GitHub.
         ```shell
-        scripts/release-github.sh 3.0.1
+        scripts/release-github.sh
         ```
         The script creates a draft release pre-filled with documentation links and the formatted changelog. Edit the draft on GitHub to add the "What's Changed" section via "Generate release notes".
     2. Write a high-level summary of the changelog for the blog.
