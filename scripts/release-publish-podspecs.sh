@@ -48,7 +48,7 @@ fi
 command -v pod &>/dev/null || error "'pod' (CocoaPods) not found on PATH"
 
 # Repo setup
-if ! pod repo list | grep -q '^readium'; then
+if ! pod repo list | sed $'s/\033\\[[0-9;]*m//g' | grep -q '^readium'; then
     info "Adding 'readium' CocoaPods repo"
     pod repo add readium git@github.com:readium/podspecs.git
 fi
