@@ -4,7 +4,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumShared"
-  s.version       = "3.8.0"
+  s.version       = "3.9.0"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium Shared"
   s.homepage      = "http://readium.github.io"
@@ -23,7 +23,7 @@ Pod::Spec.new do |s|
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
   s.pod_target_xcconfig = { 'OTHER_SWIFT_FLAGS' => '-package-name Readium' }
 
-  s.dependency 'ReadiumInternal', '~> 3.8.0'
+  s.dependency 'ReadiumInternal', '~> 3.9.0'
   s.dependency 'Minizip', '~> 1.0.0'
   s.dependency 'SwiftSoup', '~> 2.11.0'
   s.dependency 'ReadiumFuzi', '~> 4.0.0'
