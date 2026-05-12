@@ -47,7 +47,7 @@ A number of features are implemented only for some publication formats.
 | Pagination                    |       ✅      |     ✅     |  ✅ |
 | Scrolling                     |       ✅      |     👀     |  ✅ |
 | Right-to-left (RTL)           |       ✅      |     ✅     |  ✅ |
-| Search in textual content     |       ✅      |     ✅     |  👀 |
+| Search in textual content     |       ✅      |     ✅     |  ✅ |
 | Highlighting (Decoration API) |       ✅      |     ✅     |  👀 |
 | Text-to-speech (TTS)          |       ✅      |     ✅     |  👀 |
 | Media overlays                |       📆      |     📆     |     |
@@ -102,14 +102,14 @@ Guides are available to help you make the most of the toolkit.
 
 <!-- https://swiftversion.net/ -->
 
-| Readium   | iOS  | Swift compiler | Xcode |
-|-----------|------|----------------|-------|
-| `develop` | 15.0 | 6.0            | 16.4  |
-| 3.8.0     | 15.0 | 6.0            | 16.4  |
-| 3.0.0     | 13.4 | 5.10           | 15.4  |
-| 2.5.1     | 11.0 | 5.6.1          | 13.4  |
-| 2.5.0     | 10.0 | 5.6.1          | 13.4  |
-| 2.4.0     | 10.0 | 5.3.2          | 12.4  |
+| Readium | iOS | Swift compiler | Xcode |
+|---------|-----|----------------|-------|
+| `develop` | 15.0 | 6.0 | 16.4  |
+| 3.8.0 | 15.0 | 6.0 | 16.4 |
+| 3.0.0 | 13.4 | 5.10 | 15.4 |
+| 2.5.1 | 11.0 | 5.6.1 | 13.4 |
+| 2.5.0 | 10.0 | 5.6.1 | 13.4 |
+| 2.4.0 | 10.0 | 5.3.2 | 12.4 |
 
 
 ### Dependencies
@@ -134,11 +134,11 @@ Add the following `pod` statements to your `Podfile` for the Readium libraries y
 source 'https://github.com/readium/podspecs'
 source 'https://cdn.cocoapods.org/'
 
-pod 'ReadiumShared', '~> 3.8.0'
-pod 'ReadiumStreamer', '~> 3.8.0'
-pod 'ReadiumNavigator', '~> 3.8.0'
-pod 'ReadiumOPDS', '~> 3.8.0'
-pod 'ReadiumLCP', '~> 3.8.0'
+pod 'ReadiumShared', '~> 3.9.0'
+pod 'ReadiumStreamer', '~> 3.9.0'
+pod 'ReadiumNavigator', '~> 3.9.0'
+pod 'ReadiumOPDS', '~> 3.9.0'
+pod 'ReadiumLCP', '~> 3.9.0'
 ```
 
 Take a look at [CocoaPods's documentation](https://guides.cocoapods.org/using/using-cocoapods.html) for more information.
