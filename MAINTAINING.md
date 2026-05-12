@@ -52,7 +52,7 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
     4. Try to run the Test App, adjusting the integration if needed.
     5. Delete the Git tag created previously.
 3. Review the list of supported features in `README.md`.
-4. Update the [migration guide](Documentation/Migration%20Guide.md) in case of breaking changes.
+4. Update the [migration guide](docs/Migration%20Guide.md) in case of breaking changes.
 5. Prepare the release.
     ```shell
     scripts/release-prepare.sh VERSION
