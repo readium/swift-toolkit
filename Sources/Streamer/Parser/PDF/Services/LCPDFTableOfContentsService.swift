@@ -71,7 +71,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, Loggable {
 
     private let cache = Cache()
 
-        static func makeFactory() -> (PublicationServiceContext) -> LCPDFTableOfContentsService? {
+    static func makeFactory() -> (PublicationServiceContext) -> LCPDFTableOfContentsService? {
         { context in
             LCPDFTableOfContentsService(
                 manifest: context.manifest,
