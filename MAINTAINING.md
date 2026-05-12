@@ -51,10 +51,9 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
         ```
     4. Try to run the Test App, adjusting the integration if needed.
     5. Delete the Git tag created previously.
-3. Update the localized strings (`make update-locales`).
-4. Review the list of supported features in `README.md`.
-5. Update the [migration guide](Documentation/Migration%20Guide.md) in case of breaking changes.
-6. Prepare the release.
+3. Review the list of supported features in `README.md`.
+4. Update the [migration guide](Documentation/Migration%20Guide.md) in case of breaking changes.
+5. Prepare the release.
     ```shell
     scripts/release-prepare.sh VERSION
     ```
@@ -65,14 +64,15 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
     3. Bump the version numbers in `README.md`, and check the "Minimum Requirements" section.
     4. Bump the version numbers in `TestApp/Sources/Info.plist`.
     5. Close the version in the `CHANGELOG.md`, [for example](https://github.com/readium/swift-toolkit/pull/353/commits/a0714589b3da928dd923ba78f379116715797333#diff-06572a96a58dc510037d5efa622f9bec8519bc1beab13c9f251e97e657a9d4ed).
-    6. Create a PR to merge in `develop`.
-7. Verify the CI checks pass for the PR. **Do not merge it yet**.
-8. Release the updated Podspecs.
+    6. Update the localized strings (`make update-locales`).
+    7. Create a PR to merge in `develop`.
+6. Verify the CI checks pass for the PR. **Do not merge it yet**.
+7. Release the updated Podspecs.
     ```shell
     scripts/release-publish-podspecs.sh
     ```
-9. Squash and merge the release PR on GitHub.
-10. Tag the new version from `develop`.
+8. Squash and merge the release PR on GitHub.
+9. Tag the new version from `develop`.
     ```shell
     scripts/release-tag.sh
     ```
@@ -83,8 +83,8 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
     git tag -a VERSION -m VERSION
     git push --tags
     ```
-11. Verify you can fetch the new version from the latest Test App with `make spm|cocoapods version=VERSION`
-12. Announce the release.
+10. Verify you can fetch the new version from the latest Test App with `make spm|cocoapods version=VERSION`
+11. Announce the release.
     1. Create a new release on GitHub.
         ```shell
         scripts/release-github.sh
@@ -92,6 +92,6 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
         The script creates a draft release pre-filled with documentation links and the formatted changelog. Edit the draft on GitHub to add the "What's Changed" section via "Generate release notes".
     2. Write a high-level summary of the changelog for the blog.
     3. Post the blog summary on Discord's `#announcement`, with a link to the GitHub release.
-13. > **Note:** Before merging, verify that SPM and CocoaPods builds succeed against the new tag.
+12. > **Note:** Before merging, verify that SPM and CocoaPods builds succeed against the new tag.
 
    Merge `develop` into `main`.
