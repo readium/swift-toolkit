@@ -59,13 +59,13 @@ You are ready to release a new version of the Swift toolkit? Great, follow these
     ```
     This script does the following:
 
-    1. Create a branch with the same name as the future tag, from `develop`.
-    2. Bump `version` in `Support/CocoaPods/Specs.swift`, then run `make podspecs`.
-    3. Bump the version numbers in `README.md`, and check the "Minimum Requirements" section.
-    4. Bump the version numbers in `TestApp/Sources/Info.plist`.
-    5. Close the version in the `CHANGELOG.md`, [for example](https://github.com/readium/swift-toolkit/pull/353/commits/a0714589b3da928dd923ba78f379116715797333#diff-06572a96a58dc510037d5efa622f9bec8519bc1beab13c9f251e97e657a9d4ed).
-    6. Update the localized strings (`make update-locales`).
-    7. Create a PR to merge in `develop`.
+    1. Creates a branch with the same name as the future tag, from `develop`.
+    2. Bumps `version` in `Support/CocoaPods/Specs.swift`, then runs `make podspecs`.
+    3. Bumps the version numbers in `README.md`, and checks the "Minimum Requirements" section.
+    4. Bumps the version numbers in `TestApp/Sources/Info.plist`.
+    5. Closes the version in the `CHANGELOG.md`, [for example](https://github.com/readium/swift-toolkit/pull/353/commits/a0714589b3da928dd923ba78f379116715797333#diff-06572a96a58dc510037d5efa622f9bec8519bc1beab13c9f251e97e657a9d4ed).
+    6. Updates the localized strings (`make update-locales`).
+    7. Creates a PR to merge in `develop`.
 6. Verify the CI checks pass for the PR. **Do not merge it yet**.
 7. Release the updated Podspecs.
     ```shell
