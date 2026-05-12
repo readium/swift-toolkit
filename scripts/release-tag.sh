@@ -43,10 +43,10 @@ check_semver "$VERSION"
 # Tag and push
 if [[ $DRY_RUN -eq 1 ]]; then
     dry_skip "git tag -a \"$VERSION\" -m \"$VERSION\""
-    dry_skip "git push --tags"
+    dry_skip "git push origin \"$VERSION\""
 else
     git -C "$REPO_ROOT" tag -a "$VERSION" -m "$VERSION"
-    git -C "$REPO_ROOT" push --tags
+    git -C "$REPO_ROOT" push origin "$VERSION"
 fi
 
 info "Tagged and pushed $VERSION."
