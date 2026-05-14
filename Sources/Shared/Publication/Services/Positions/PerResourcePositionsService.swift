@@ -20,7 +20,7 @@ public final class PerResourcePositionsService: PositionsService, Sendable {
     }
 
     public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        await .success(cache.getPositions(readingOrder: readingOrder, fallbackMediaType: fallbackMediaType))
+        .success(await cache.getPositions(readingOrder: readingOrder, fallbackMediaType: fallbackMediaType))
     }
 
     private actor Cache {
