@@ -129,9 +129,14 @@ public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
         public let id: Id
         public let config: AnySendableHashable?
 
-        public init<T: Hashable & Sendable>(id: Id, config: T? = nil) {
+        public init(id: Id) {
             self.id = id
-            self.config = config.map(AnySendableHashable.init)
+            config = nil
+        }
+
+        public init<T: Hashable & Sendable>(id: Id, config: T) {
+            self.id = id
+            self.config = AnySendableHashable(config)
         }
     }
 

@@ -26,7 +26,7 @@ public struct PointerEvent: Equatable, Sendable {
 
     /// A content element targeted by a pointer event, paired with its
     /// on-screen frame.
-    @_spi(ExperimentalTargetElement) public struct TargetElement: Equatable {
+    @_spi(ExperimentalTargetElement) public struct TargetElement: Equatable, Sendable {
         /// Frame of the element relative to the navigator's view.
         public var frame: CGRect
 

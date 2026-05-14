@@ -40,7 +40,7 @@ public extension Content {
 }
 
 /// Represents a single semantic content element part of a publication.
-public protocol ContentElement: ContentAttributesHolder {
+public protocol ContentElement: ContentAttributesHolder, Sendable {
     /// Locator targeting this element in the Publication.
     var locator: Locator { get }
 

@@ -13,9 +13,15 @@ public struct AnySendableHashable: Hashable, Sendable {
     private let hasher: @Sendable (inout Hasher) -> Void
 
     public init<T: Hashable & Sendable>(_ base: T) {
-        self.base = base
-        equals = { ($0 as? T) == base }
-        hasher = { base.hash(into: &$0) }
+        if let nested = base as? AnySendableHashable {
+            self.base = nested.base
+            equals = nested.equals
+            hasher = nested.hasher
+        } else {
+            self.base = base
+            equals = { ($0 as? T) == base }
+            hasher = { base.hash(into: &$0) }
+        }
     }
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
