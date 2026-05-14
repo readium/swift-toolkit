@@ -7,6 +7,10 @@
 import Foundation
 import UIKit
 
+private struct SendableImage: @unchecked Sendable {
+    let image: UIImage
+}
+
 /// A `CoverService` which holds a lazily generated cover bitmap in memory.
 public final class GeneratedCoverService: CoverService, Sendable {
     enum Error: Swift.Error {
@@ -68,7 +72,8 @@ public final class GeneratedCoverService: CoverService, Sendable {
     }
 
     public static func makeFactory(cover: UIImage) -> @Sendable (PublicationServiceContext) -> GeneratedCoverService? {
-        { _ in GeneratedCoverService(cover: cover) }
+        let wrapped = SendableImage(image: cover)
+        return { _ in GeneratedCoverService(cover: wrapped.image) }
     }
 
     private class CoverResource: Resource {

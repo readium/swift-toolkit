@@ -24,8 +24,7 @@ final class LCPDFPositionsService: PositionsService, Loggable {
     func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
         await cache.getOrMakeTask(
             readingOrder: readingOrder,
-            container: container,
-            pdfFactory: pdfFactory
+            publication: publication
         ).value
     }
 
@@ -34,15 +33,14 @@ final class LCPDFPositionsService: PositionsService, Loggable {
 
         func getOrMakeTask(
             readingOrder: [Link],
-            container: Container,
-            pdfFactory: PDFDocumentFactory
+            publication: Weak<Publication>
         ) -> Task<ReadResult<[[Locator]]>, Never> {
             if let task = task {
                 return task
             }
 
             let newTask = Task<ReadResult<[[Locator]]>, Never> {
-                guard let pdfDocumentService = self.publication.ref?.pdfDocumentService else {
+                guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
                     return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFPositionsService")))
                 }
                 // Calculates the page count of each resource from the reading order.

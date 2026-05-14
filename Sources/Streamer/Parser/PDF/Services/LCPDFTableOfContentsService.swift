@@ -27,8 +27,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, Loggable {
     func tableOfContents() async -> ReadResult<[Link]> {
         await cache.getOrMakeTask(
             manifest: manifest,
-            container: container,
-            pdfFactory: pdfFactory
+            publication: publication
         ).value
     }
 
@@ -37,8 +36,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, Loggable {
 
         func getOrMakeTask(
             manifest: Manifest,
-            container: Container,
-            pdfFactory: PDFDocumentFactory
+            publication: Weak<Publication>
         ) -> Task<ReadResult<[Link]>, Never> {
             if let task = task {
                 return task

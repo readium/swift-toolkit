@@ -31,6 +31,10 @@ public final class PerResourcePositionsService: PositionsService, Sendable {
                 return positions
             }
 
+            guard !readingOrder.isEmpty else {
+                return []
+            }
+
             let pageCount = readingOrder.count
             let newPositions: [[Locator]] = readingOrder.enumerated().map { index, link in
                 [

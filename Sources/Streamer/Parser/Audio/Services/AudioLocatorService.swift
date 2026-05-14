@@ -13,7 +13,7 @@ final class AudioLocatorService: DefaultLocatorService {
         { context in AudioLocatorService(publication: context.publication) }
     }
 
-    private actor Cache {
+    private struct Cache: Sendable {
         let readingOrder: [Link]
 
         /// Duration per reading order index.
@@ -63,7 +63,7 @@ final class AudioLocatorService: DefaultLocatorService {
         }
 
         let positionInPublication = progression * totalDuration
-        guard let (link, resourcePosition) = await cache.readingOrderItemAtPosition(positionInPublication) else {
+        guard let (link, resourcePosition) = cache.readingOrderItemAtPosition(positionInPublication) else {
             return nil
         }
 
