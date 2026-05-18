@@ -83,14 +83,6 @@ public struct VisualNavigatorPresentation {
     }
 }
 
-/// Direction of a scroll event.
-public enum ScrollDirection {
-    /// Scrolling up (vertical) or left (horizontal).
-    case backward
-    /// Scrolling down (vertical) or right (horizontal).
-    case forward
-}
-
 @MainActor public protocol VisualNavigatorDelegate: NavigatorDelegate {
     /// Returns the content insets that the navigator applies to its view.
     ///
@@ -126,11 +118,20 @@ public enum ScrollDirection {
     /// present the link yourself
     func navigator(_ navigator: VisualNavigator, shouldNavigateToLink link: Link) -> Bool
 
-    /// Called when the user scrolls through the content.
+    /// Called continuously while the user drags the content.
     ///
-    /// - Parameter direction: The direction of the scroll (forward = down/right,
-    ///   backward = up/left).
-    func navigator(_ navigator: VisualNavigator, didScrollIn direction: ScrollDirection)
+    /// `delta` is the distance in points along the scroll axis since the last
+    /// call. Positive values indicate forward progression through the content.
+    ///
+    /// Not called during momentum deceleration after the user lifts their
+    /// finger.
+    func navigator(_ navigator: any VisualNavigator, didDragBy delta: CGFloat)
+
+    /// Called when the user lifts their finger after dragging.
+    ///
+    /// `velocity` is in points per second along the scroll axis. Positive
+    /// values indicate forward momentum.
+    func navigator(_ navigator: any VisualNavigator, didEndDraggingWithVelocity velocity: CGFloat)
 }
 
 public extension VisualNavigatorDelegate {
@@ -158,7 +159,11 @@ public extension VisualNavigatorDelegate {
         true
     }
 
-    func navigator(_ navigator: VisualNavigator, didScrollIn direction: ScrollDirection) {
+    func navigator(_ navigator: any VisualNavigator, didDragBy delta: CGFloat) {
+        // Optional
+    }
+
+    func navigator(_ navigator: any VisualNavigator, didEndDraggingWithVelocity velocity: CGFloat) {
         // Optional
     }
 }
