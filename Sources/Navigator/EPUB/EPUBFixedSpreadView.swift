@@ -54,7 +54,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         {
             wrapperPage = wrapperPage.replacingOccurrences(
                 of: "{{ASSETS_URL}}",
-                with: viewModel.assetsURL.string
+                with: viewModel.assetsBaseURL.string
             )
 
             // The publication's base URL is used to make sure we can access the resources through the iframe with JavaScript.
@@ -156,7 +156,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
 
     private var goToContinuations: [CheckedContinuation<Void, Never>] = []
 
-    override func go(to location: PageLocation) async {
+    override func go(to location: PageLocation, animated: Bool) async {
         // Fixed layout resources are always fully visible so we don't use the
         // location.
 

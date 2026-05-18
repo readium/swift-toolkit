@@ -60,4 +60,31 @@ public enum HTTPError: Error, Loggable {
 
         return try HTTPProblemDetails(data: body)
     }
+
+    /// Wraps a native error into an `HTTPError`, if possible.
+    ///
+    /// Returns `nil` if the error is not related to HTTP.
+    public static func wrap(_ error: Error) -> HTTPError? {
+        guard let error = error as? URLError else {
+            return nil
+        }
+        return switch error.code {
+        case .httpTooManyRedirects, .redirectToNonExistentLocation:
+            .redirection(error)
+        case .secureConnectionFailed, .clientCertificateRejected, .clientCertificateRequired, .appTransportSecurityRequiresSecureConnection, .userAuthenticationRequired:
+            .security(error)
+        case .badServerResponse, .zeroByteResource, .cannotDecodeContentData, .cannotDecodeRawData, .dataLengthExceedsMaximum:
+            .malformedResponse(error)
+        case .notConnectedToInternet, .networkConnectionLost:
+            .offline(error)
+        case .cannotConnectToHost, .cannotFindHost:
+            .unreachable(error)
+        case .timedOut:
+            .timeout(error)
+        case .cancelled, .userCancelledAuthentication:
+            .cancelled
+        default:
+            .other(error)
+        }
+    }
 }

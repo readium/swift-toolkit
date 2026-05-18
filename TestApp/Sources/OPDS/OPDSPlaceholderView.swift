@@ -42,7 +42,7 @@ class OPDSPlaceholderListView: OPDSPlaceholderView, Placeholder {}
 // MARK: - Placeholder protocol specific to publication screen
 
 extension OPDSPlaceholderPublicationView {
-    public func add(to imageView: KFCrossPlatformImageView) {
+    func add(to imageView: KFCrossPlatformImageView) {
         imageView.addSubview(self)
 
         translatesAutoresizingMaskIntoConstraints = false

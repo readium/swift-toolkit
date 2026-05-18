@@ -39,7 +39,9 @@ struct Book: Codable {
     /// reading progression, spreads).
     var preferencesJSON: String?
 
-    var mediaType: MediaType { MediaType(type) ?? .binary }
+    var mediaType: MediaType {
+        MediaType(type) ?? .binary
+    }
 
     init(
         id: Id? = nil,
@@ -127,7 +129,7 @@ final class BookRepository {
     }
 
     func saveProgress(for id: Book.Id, locator: Locator) async throws {
-        guard let json = locator.jsonString else {
+        guard let json = try? locator.jsonString() else {
             return
         }
 

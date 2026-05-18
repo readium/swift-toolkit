@@ -34,7 +34,9 @@ public struct EmptyContainer: Container {
     public let sourceURL: AbsoluteURL? = nil
     public let entries: Set<AnyURL> = Set()
 
-    public subscript(url: any URLConvertible) -> Resource? { nil }
+    public subscript(url: any URLConvertible) -> Resource? {
+        nil
+    }
 }
 
 /// Concatenates several containers.

@@ -31,9 +31,11 @@ private let positionsLink = Link(
 )
 
 public extension PositionsService {
-    var links: [Link] { [positionsLink] }
+    var links: [Link] {
+        [positionsLink]
+    }
 
-    func get<T>(_ href: T) -> (any Resource)? where T: URLConvertible {
+    func get<T: URLConvertible>(_ href: T) -> (any Resource)? {
         guard href.anyURL.isEquivalentTo(positionsLink.url()) else {
             return nil
         }
@@ -60,12 +62,12 @@ private class PositionsResource: Resource {
 
     func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         await positions().flatMap { positions in
-            let response: [String: Any] = [
+            let response: [String: JSONValue] = .init([
                 "total": positions.count,
-                "positions": positions.json,
-            ]
+                "positions": positions,
+            ])
 
-            guard let jsonResponse = serializeJSONData(response) else {
+            guard let jsonResponse = try? response.jsonData() else {
                 return .failure(.decoding(JSONError.serializing(PositionsService.self)))
             }
 
@@ -103,8 +105,9 @@ public extension Publication {
     private func positionsFromManifest() async -> ReadResult<[Locator]> {
         await links.firstWithMediaType(.readiumPositions)
             .flatMap { get($0) }?
-            .readAsJSONObject()
-            .map { [Locator](json: $0["positions"]) }
+            .read()
+            .asJSONObjectValue()
+            .map { json -> [Locator] in json["positions"]?.decode() ?? [] }
             ?? .success([])
     }
 }

@@ -124,7 +124,9 @@ public enum SearchError: Error {
 // MARK: Publication Helpers
 
 public extension Publication {
-    private var searchService: SearchService? { findService(SearchService.self) }
+    private var searchService: SearchService? {
+        findService(SearchService.self)
+    }
 
     /// Indicates whether the content of this publication can be searched.
     var isSearchable: Bool {

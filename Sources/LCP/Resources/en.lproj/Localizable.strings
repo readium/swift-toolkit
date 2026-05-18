@@ -1,44 +1,13 @@
-/* 
-  Copyright 2025 Readium Foundation. All rights reserved.
-  Use of this source code is governed by the BSD-style license
-  available in the top-level LICENSE file of the project.
-*/
+// DO NOT EDIT. File generated automatically from the en JSON strings of https://github.com/edrlab/thorium-locales/.
 
-/* LCP Dialog Authentication */
-
-"ReadiumLCP.dialog.title" = "Enter Password";
-"ReadiumLCP.dialog.cancel" = "Cancel";
-"ReadiumLCP.dialog.continue" = "Continue";
-"ReadiumLCP.dialog.forgotYourPassphrase" = "Forgot Your Password?";
-"ReadiumLCP.dialog.hint" = "**Hint:** %@";
-"ReadiumLCP.dialog.header" = "This publication requires an LCP password to open, which is provided by your library or bookstore. Enter it once, and you're all set to read on this device.";
-"ReadiumLCP.dialog.details.title" = "What is LCP?";
-"ReadiumLCP.dialog.details.body" = "This publication is protected by LCP (Licensed Content Protection), a DRM technology that prevents unauthorized copying while keeping your reading experience simple. LCP is an open standard that balances user-friendliness with the needs of publishers.";
-"ReadiumLCP.dialog.details.more" = "Learn more…";
-"ReadiumLCP.dialog.passphrase.placeholder" = "Password";
-"ReadiumLCP.dialog.error.incorrectPassphrase" = "Incorrect password.";
-
-// MARK: - Legacy strings (LCPDialogViewController)
-
-/* Prompt messages when asking for the passphrase */
-"ReadiumLCP.dialog.prompt.message1" = "This publication is protected by Readium LCP.";
-"ReadiumLCP.dialog.prompt.message2" = "In order to open it, we need to know the passphrase required by:\n\n%@\n\nTo help you remember it, the following hint is available:";
-/* Reason to ask for the passphrase when it was not found */
-"ReadiumLCP.dialog.reason.passphraseNotFound" = "Passphrase Required";
-/* Reason to ask for the passphrase when the one entered was incorrect */
-"ReadiumLCP.dialog.reason.invalidPassphrase" = "Incorrect Passphrase";
-/* Forgot passphrase button */
-"ReadiumLCP.dialog.prompt.forgotPassphrase" = "Forgot your passphrase?";
-/* Support button */
-"ReadiumLCP.dialog.prompt.support" = "Need more help?";
-/* Continue button */
-"ReadiumLCP.dialog.prompt.continue" = "Continue";
-/* Passphrase placeholder */
-"ReadiumLCP.dialog.prompt.passphrase" = "Passphrase";
-
-/* Button to contact the support when entering the passphrase */
-"ReadiumLCP.dialog.support" = "Support";
-"ReadiumLCP.dialog.support.website" = "Website";
-"ReadiumLCP.dialog.support.phone" = "Phone";
-"ReadiumLCP.dialog.support.mail" = "Mail";
-
+"readium.lcp.dialog.actions.cancel" = "Cancel";
+"readium.lcp.dialog.actions.continue" = "Continue";
+"readium.lcp.dialog.actions.recoverPassphrase" = "Forgot Your Password?";
+"readium.lcp.dialog.errors.incorrectPassphrase" = "Incorrect password.";
+"readium.lcp.dialog.info.body" = "This publication is protected by LCP (Licensed Content Protection), a DRM technology that prevents unauthorized copying while keeping your reading experience simple. LCP is an open standard that balances user-friendliness with the needs of publishers.";
+"readium.lcp.dialog.info.more" = "Learn more…";
+"readium.lcp.dialog.info.title" = "What is LCP?";
+"readium.lcp.dialog.message" = "This publication requires an LCP password to open, which is provided by your library or bookstore. Enter it once, and you're all set to read on this device.";
+"readium.lcp.dialog.passphrase.hint" = "**Hint:** %1$@";
+"readium.lcp.dialog.passphrase.placeholder" = "Password";
+"readium.lcp.dialog.title" = "Enter Password";

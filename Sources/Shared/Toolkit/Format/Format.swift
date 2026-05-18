@@ -164,6 +164,7 @@ public struct FormatSpecification: RawRepresentable, Hashable {
     public static let bmp = FormatSpecification(rawValue: "bmp")
     public static let gif = FormatSpecification(rawValue: "gif")
     public static let jpeg = FormatSpecification(rawValue: "jpeg")
+    public static let jxl = FormatSpecification(rawValue: "jxl")
     public static let png = FormatSpecification(rawValue: "png")
     public static let tiff = FormatSpecification(rawValue: "tiff")
     public static let webp = FormatSpecification(rawValue: "webp")

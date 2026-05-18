@@ -106,15 +106,13 @@ public extension [TTSVoice] {
                 // 3. Add remaining regions ordered by localized name.
                 ordered.append(contentsOf: regions.sorted {
                     ($0.localizedName(in: displayLocale) ?? $0.code) < ($1.localizedName(in: displayLocale) ?? $1.code)
-                }
-                )
+                })
 
                 ordered = ordered.removingDuplicates()
 
                 // Assign priorities: lower Int = higher priority
                 let priorities = Dictionary(uniqueKeysWithValues:
-                    ordered.enumerated().map { idx, region in (region, idx) }
-                )
+                    ordered.enumerated().map { idx, region in (region, idx) })
 
                 return (language, priorities)
             })
@@ -132,11 +130,11 @@ public extension [TTSVoice] {
                 if
                     let region = voice.language.region,
                     let regionPriorities = regionPrioritiesByLanguage[language]
-            {
-                regionPriorities[region] ?? .max
-            } else {
-                .max
-            }
+                {
+                    regionPriorities[region] ?? .max
+                } else {
+                    .max
+                }
 
             return (
                 language: language.localizedLanguage(in: displayLocale) ?? voice.language.code.bcp47,
@@ -230,7 +228,7 @@ private let defaultRegionByLanguage: [Language.Code: Language.Region] = [
     .bcp47("yue"): "HK",
 ]
 
-// Quality order priority: higher to lower
+/// Quality order priority: higher to lower
 private let qualityPriorities: [TTSVoice.Quality: Int] = [
     .higher: 0,
     .high: 1,
@@ -239,7 +237,7 @@ private let qualityPriorities: [TTSVoice.Quality: Int] = [
     .lower: 4,
 ]
 
-// Gender order priority: female > male > unspecified
+/// Gender order priority: female > male > unspecified
 private let genderPriorities: [TTSVoice.Gender: Int] = [
     .female: 0,
     .male: 1,

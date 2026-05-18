@@ -1,0 +1,108 @@
+# XCODEGEN VERSION
+2.45.4
+
+# SPEC
+{
+  "name" : "Playground",
+  "options" : {
+    "bundleIdPrefix" : "org.readium"
+  },
+  "packages" : {
+    "Readium" : {
+      "path" : ".."
+    }
+  },
+  "schemes" : {
+    "Playground" : {
+      "build" : {
+        "targets" : {
+          "Playground" : ""
+        }
+      },
+      "test" : {
+        "testPlans" : [
+          {
+            "defaultPlan" : true,
+            "path" : "Playground.xctestplan"
+          }
+        ]
+      }
+    }
+  },
+  "targets" : {
+    "Playground" : {
+      "dependencies" : [
+        {
+          "package" : "Readium",
+          "product" : "ReadiumShared"
+        },
+        {
+          "package" : "Readium",
+          "product" : "ReadiumStreamer"
+        },
+        {
+          "package" : "Readium",
+          "product" : "ReadiumNavigator"
+        },
+        {
+          "package" : "Readium",
+          "product" : "ReadiumOPDS"
+        }
+      ],
+      "deploymentTarget" : "16.0",
+      "platform" : "iOS",
+      "settings" : {
+        "SWIFT_APPROACHABLE_CONCURRENCY" : true,
+        "SWIFT_DEFAULT_ACTOR_ISOLATION" : "MainActor"
+      },
+      "sources" : [
+        {
+          "path" : "Sources"
+        }
+      ],
+      "type" : "application"
+    }
+  }
+}
+
+# FILES
+Sources
+Sources/App
+Sources/App/Common
+Sources/App/Common/Extensions
+Sources/App/Common/Extensions/FileManager+Ext.swift
+Sources/App/Common/Extensions/Logger+Ext.swift
+Sources/App/Common/UserError.swift
+Sources/App/Common/UserError+Readium.swift
+Sources/App/Common/Views
+Sources/App/Common/Views/HTMLText.swift
+Sources/App/Common/Views/JSONView.swift
+Sources/App/Data
+Sources/App/Data/DocumentList.swift
+Sources/App/Data/DocumentRepository.swift
+Sources/App/PlaygroundApp.swift
+Sources/App/Publication
+Sources/App/Publication/PublicationMetadataView.swift
+Sources/App/Publication/PublicationView.swift
+Sources/Assets.xcassets
+Sources/Assets.xcassets/AppIcon.appiconset
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon29x29.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon29x29@2x-1.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon29x29@2x.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon29x29@3x.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon40x40.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon40x40@2x-1.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon40x40@2x.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon40x40@3x.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon60x60@2x.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon60x60@3x.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon76x76.png
+Sources/Assets.xcassets/AppIcon.appiconset/AppIcon76x76@2x.png
+Sources/Assets.xcassets/AppIcon.appiconset/Contents.json
+Sources/Assets.xcassets/AppIcon.appiconset/icon_1024x1024.png
+Sources/Assets.xcassets/AppIcon.appiconset/readiumlogo_2048-83.5@2x.png
+Sources/Assets.xcassets/Contents.json
+Sources/Info.plist
+Sources/Recipes
+Sources/Recipes/A01-OpenPublication.swift
+Sources/Recipes/A02-ReadMetadata.swift"

@@ -5,18 +5,27 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Link relations as defined in https://readium.org/webpub-manifest/relationships.html
-public struct LinkRelation: Sendable {
-    /// The string representation of this link relation.
-    public let string: String
+public struct LinkRelation: Sendable, Hashable, RawRepresentable, JSONValueEncodable {
+    public var rawValue: String
 
-    public init(_ string: String) {
+    /// The string representation of this link relation.
+    public var string: String {
+        rawValue
+    }
+
+    public init?(rawValue: String) {
         // > Registered relation type names MUST conform to the reg-rel-type rule
         // > (see Section 3.3) and MUST be compared character by character in a
         // > case-insensitive fashion.
         // https://tools.ietf.org/html/rfc8288#section-2.1.1
-        self.string = string.lowercased()
+        self.rawValue = rawValue.lowercased()
+    }
+
+    public init(_ string: String) {
+        self.init(rawValue: string)!
     }
 
     public func hasPrefix(_ prefix: String) -> Bool {
@@ -35,6 +44,10 @@ public struct LinkRelation: Sendable {
         hasPrefix("http://opds-spec.org/acquisition")
     }
 
+    public var jsonValue: JSONValue {
+        .string(string)
+    }
+
     // MARK: - Known Link Relations
 
     /// Designates a substitute for the link's context.
@@ -45,6 +58,8 @@ public struct LinkRelation: Sendable {
     public static let cover = LinkRelation("cover")
     /// Links to a manifest.
     public static let manifest = LinkRelation("manifest")
+    /// Identifies a related resource.
+    public static let related = LinkRelation("related")
     /// Refers to a URI or templated URI that will perform a search.
     public static let search = LinkRelation("search")
     /// Conveys an identifier for the link's context.
@@ -124,16 +139,16 @@ public struct LinkRelation: Sendable {
 
     // Authentication for OPDS – https://drafts.opds.io/authentication-for-opds-1.0.html
 
-    // Location where a client can authenticate the user with OAuth.
+    /// Location where a client can authenticate the user with OAuth.
     public static let opdsAuthenticate = LinkRelation("authenticate")
-    // Location where a client can refresh the Access Token by sending a Refresh Token.
+    /// Location where a client can refresh the Access Token by sending a Refresh Token.
     public static let opdsRefresh = LinkRelation("refresh")
 
-    // Logo associated to the Catalog provider.
+    /// Logo associated to the Catalog provider.
     public static let opdsLogo = LinkRelation("logo")
-    // Location where a user can register.
+    /// Location where a user can register.
     public static let opdsRegister = LinkRelation("register")
-    // Support resources for the user (either a website, an email or a telephone number).
+    /// Support resources for the user (either a website, an email or a telephone number).
     public static let opdsHelp = LinkRelation("help")
 }
 
@@ -143,33 +158,7 @@ extension LinkRelation: ExpressibleByStringLiteral {
     }
 }
 
-extension LinkRelation: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(string)
-    }
-
-    public var hashValue: Int {
-        string.hashValue
-    }
-}
-
-public extension Array where Element == LinkRelation {
-    /// Parses multiple JSON relations into an array of `LinkRelation`.
-    init(json: Any?) {
-        self.init()
-
-        if let json = json as? String {
-            append(LinkRelation(json))
-        } else if let json = json as? [String] {
-            let rels = json.compactMap { LinkRelation($0) }
-            append(contentsOf: rels)
-        }
-    }
-
-    var json: [String] {
-        map(\.string)
-    }
-
+public extension [LinkRelation] {
     func contains(_ other: String) -> Bool {
         contains(LinkRelation(other))
     }

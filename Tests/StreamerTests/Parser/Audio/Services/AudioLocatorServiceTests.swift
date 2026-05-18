@@ -69,16 +69,16 @@ class AudioLocatorServiceTests: XCTestCase {
         )
     }
 
-    func testLocateLocatorUsingTotalProgressionKeepsTitleAndText() async {
+    func testLocateLocatorUsingTotalProgressionKeepsTitleAndText() async throws {
         let service = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
 
-        let result = await service.locate(
+        let result = try await service.locate(
             Locator(
                 href: "wrong",
-                mediaType: MediaType("text/plain")!,
+                mediaType: XCTUnwrap(MediaType("text/plain")),
                 title: "Title",
                 locations: .init(
                     fragments: ["ignored"],

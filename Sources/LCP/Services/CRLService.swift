@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Certificate Revocation List
 final class CRLService {
-    // Number of days before the CRL cache expires.
+    /// Number of days before the CRL cache expires.
     private static let expiration = 7
 
     private static let crlKey = "org.readium.r2-lcp-swift.CRL"

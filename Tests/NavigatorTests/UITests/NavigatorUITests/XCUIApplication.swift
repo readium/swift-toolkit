@@ -42,10 +42,6 @@ extension XCUIApplication {
 struct ReaderUI {
     let app: XCUIApplication
 
-    init(app: XCUIApplication) {
-        self.app = app
-    }
-
     /// Activates the Close button.
     @discardableResult
     func close(assertMemoryDeallocated: Bool = true) -> XCUIApplication {

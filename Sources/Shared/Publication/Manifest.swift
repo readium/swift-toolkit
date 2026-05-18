@@ -11,7 +11,7 @@ import ReadiumInternal
 /// Manifest.
 ///
 /// See. https://readium.org/webpub-manifest/
-public struct Manifest: JSONEquatable, Hashable, Sendable {
+public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public var context: [String] // @context
 
     public var metadata: Metadata
@@ -65,24 +65,27 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
     ///
     /// If a non-fatal parsing error occurs, it will be logged through `warnings`.
-    public init(json: Any, warnings: WarningLogger? = nil) throws {
-        guard var json = JSONDictionary(json) else {
-            throw JSONError.parsing(Publication.self)
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
+            return nil
+        }
+        guard var json = json.object else {
+            throw JSONError.parsing(Manifest.self)
         }
 
-        context = parseArray(json.pop("@context"), allowingSingle: true)
-        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings)
+        context = json.pop("@context")?.decode(allowingSingle: true) ?? []
+        metadata = try Metadata(json: json.pop("metadata"), warnings: warnings) ?? Metadata()
 
-        links = [Link](json: json.pop("links"), warnings: warnings)
+        links = json.pop("links")?.decode(warnings: warnings) ?? []
 
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        readingOrder = [Link](json: json.pop("readingOrder") ?? json.pop("spine"), warnings: warnings)
+        readingOrder = ((json.pop("readingOrder") ?? json.pop("spine"))?.decode(warnings: warnings) ?? [])
             .filter { $0.mediaType != nil }
-        resources = [Link](json: json.pop("resources"), warnings: warnings)
+        resources = (json.pop("resources")?.decode(warnings: warnings) ?? [])
             .filter { $0.mediaType != nil }
 
         // Parses sub-collections from remaining JSON properties.
-        subcollections = PublicationCollection.makeCollections(json: json.json, warnings: warnings)
+        subcollections = PublicationCollection.makeCollections(json: json.jsonValue, warnings: warnings)
     }
 
     /// The URL where this publication is served, computed from the `Link` with
@@ -95,15 +98,15 @@ public struct Manifest: JSONEquatable, Hashable, Sendable {
             .flatMap { HTTPURL(string: $0.href)?.removingLastPathSegment() }
     }
 
-    public var json: JSONDictionary.Wrapped {
-        makeJSON([
-            "@context": encodeIfNotEmpty(context),
-            "metadata": metadata.json,
-            "links": links.json,
-            "readingOrder": readingOrder.json,
-            "resources": encodeIfNotEmpty(resources.json),
-            "toc": encodeIfNotEmpty(tableOfContents.json),
-        ], additional: PublicationCollection.serializeCollections(subcollections))
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "@context": context.orNullIfEmpty,
+            "metadata": metadata,
+            "links": links.orNullIfEmpty,
+            "readingOrder": readingOrder.orNullIfEmpty,
+            "resources": resources.orNullIfEmpty,
+            "toc": tableOfContents.orNullIfEmpty,
+        ], adding: PublicationCollection.serializeCollections(subcollections))
     }
 
     /// Returns whether this manifest conforms to the given Readium Web Publication Profile.

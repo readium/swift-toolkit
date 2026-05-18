@@ -54,7 +54,7 @@ public class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
         }
     }
 
-    private var webPageContinuation: CheckedContinuation<Void, Never>? = nil
+    private var webPageContinuation: CheckedContinuation<Void, Never>?
 }
 
 extension LCPDefaultRenewDelegate: UIAdaptivePresentationControllerDelegate {

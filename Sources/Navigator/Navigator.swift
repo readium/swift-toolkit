@@ -25,7 +25,7 @@ public protocol Navigator: AnyObject {
     @discardableResult
     func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool
 
-    /// Moves to the position in the publication targeted by the given link.
+    // Moves to the position in the publication targeted by the given link.
 
     /// - Returns: Whether the navigator is able to move to the locator. The
     ///   completion block is only called if true was returned.
@@ -49,22 +49,16 @@ public protocol Navigator: AnyObject {
     func goBackward(options: NavigatorGoOptions) async -> Bool
 }
 
-public struct NavigatorGoOptions {
+public struct NavigatorGoOptions: Hashable {
     /// Indicates whether the move should be animated when possible.
     public var animated: Bool = false
 
     /// Extension point for navigator implementations.
-    public var otherOptions: [String: Any] {
-        get { otherOptionsJSON.json }
-        set { otherOptionsJSON = JSONDictionary(newValue) ?? JSONDictionary() }
-    }
+    public var otherOptions: [String: JSONValue]
 
-    // Trick to keep the struct equatable despite [String: Any]
-    private var otherOptionsJSON: JSONDictionary
-
-    public init(animated: Bool = false, otherOptions: [String: Any] = [:]) {
+    public init(animated: Bool = false, otherOptions: [String: JSONValue] = [:]) {
         self.animated = animated
-        otherOptionsJSON = JSONDictionary(otherOptions) ?? JSONDictionary()
+        self.otherOptions = .init(otherOptions)
     }
 
     public static var none: NavigatorGoOptions {

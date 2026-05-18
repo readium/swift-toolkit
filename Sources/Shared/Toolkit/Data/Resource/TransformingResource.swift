@@ -19,18 +19,26 @@ import Foundation
 open class TransformingResource: Resource {
     private let resource: Resource
     private let _transform: ((ReadResult<Data>) async -> ReadResult<Data>)?
+    private var data: AsyncMemoizer<ReadResult<Data>>!
 
     public init(_ resource: Resource, transform: ((ReadResult<Data>) async -> ReadResult<Data>)? = nil) {
         self.resource = resource
         _transform = transform
+
+        data = AsyncMemoizer { [weak self] in
+            guard let self else {
+                return .failure(.decoding(DebugError("TransformingResource is deallocated")))
+            }
+            return await self.transform(data: resource.read())
+        }
     }
 
     open func transform(data: ReadResult<Data>) async -> ReadResult<Data> {
         await _transform!(data)
     }
 
-    // As the resource is transformed, we can't use the original source URL
-    // as reference.
+    /// As the resource is transformed, we can't use the original source URL
+    /// as reference.
     public let sourceURL: AbsoluteURL? = nil
 
     open func estimatedLength() async -> ReadResult<UInt64?> {
@@ -53,15 +61,6 @@ open class TransformingResource: Resource {
             return ()
         }
     }
-
-    private var _data: ReadResult<Data>?
-
-    private func data() async -> ReadResult<Data> {
-        if _data == nil {
-            _data = await transform(data: resource.read())
-        }
-        return _data!
-    }
 }
 
 /// Convenient shortcuts to create a `TransformingResource`.
@@ -70,11 +69,11 @@ public extension Resource {
         TransformingResource(self, transform: { await $0.asyncMap(transform) })
     }
 
-    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping (String) -> String) -> Resource {
+    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping (String) async -> String) -> Resource {
         TransformingResource(self) {
-            $0.map { data in
+            await $0.asyncMap { data in
                 let string = String(data: data, encoding: encoding) ?? ""
-                return transform(string).data(using: .utf8) ?? Data()
+                return await transform(string).data(using: .utf8) ?? Data()
             }
         }
     }

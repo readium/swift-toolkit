@@ -14,7 +14,7 @@ public enum LinkError: Error, Equatable {
 
 /// Link Object for the Readium Web Publication Manifest.
 /// https://readium.org/webpub-manifest/schema/link.schema.json
-public struct Link: JSONEquatable, Hashable, Sendable {
+public struct Link: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// URI or URI template of the linked resource.
     /// Note: a String because templates are lost with URL.
     public var href: String // URI
@@ -91,18 +91,17 @@ public struct Link: JSONEquatable, Hashable, Sendable {
         self.children = children
     }
 
-    public init(
-        json: Any,
-        warnings: WarningLogger? = nil
-    ) throws {
-        guard let jsonObject = json as? JSONDictionary.Wrapped,
-              var href = jsonObject["href"] as? String
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        let json = json?.jsonValue
+
+        guard let jsonObject = json?.object,
+              var href = jsonObject["href"]?.string
         else {
             warnings?.log("`href` is required", model: Self.self, source: json)
             throw JSONError.parsing(Self.self)
         }
 
-        let templated = (jsonObject["templated"] as? Bool) ?? false
+        let templated = jsonObject["templated"]?.bool ?? false
 
         // We support existing publications with incorrect HREFs (not valid percent-encoded
         // URIs). We try to parse them first as valid, but fall back on a percent-decoded
@@ -117,36 +116,36 @@ public struct Link: JSONEquatable, Hashable, Sendable {
 
         self.init(
             href: href,
-            mediaType: (jsonObject["type"] as? String).flatMap { MediaType($0) },
+            mediaType: jsonObject["type"]?.decode(),
             templated: templated,
-            title: jsonObject["title"] as? String,
-            rels: .init(json: jsonObject["rel"]),
-            properties: (try? Properties(json: jsonObject["properties"], warnings: warnings)) ?? Properties(),
-            height: parsePositive(jsonObject["height"]),
-            width: parsePositive(jsonObject["width"]),
-            bitrate: parsePositiveDouble(jsonObject["bitrate"]),
-            duration: parsePositiveDouble(jsonObject["duration"]),
-            languages: parseArray(jsonObject["language"], allowingSingle: true),
-            alternates: .init(json: jsonObject["alternate"], warnings: warnings),
-            children: .init(json: jsonObject["children"], warnings: warnings)
+            title: jsonObject["title"]?.string,
+            rels: jsonObject["rel"]?.decode(allowingSingle: true) ?? [],
+            properties: (try? jsonObject["properties"]?.decode(warnings: warnings)) ?? Properties(),
+            height: jsonObject["height"]?.nonNegative(),
+            width: jsonObject["width"]?.nonNegative(),
+            bitrate: jsonObject["bitrate"]?.nonNegative(),
+            duration: jsonObject["duration"]?.nonNegative(),
+            languages: jsonObject["language"]?.decode(allowingSingle: true) ?? [],
+            alternates: jsonObject["alternate"]?.decode(warnings: warnings) ?? [],
+            children: jsonObject["children"]?.decode(warnings: warnings) ?? []
         )
     }
 
-    public var json: JSONDictionary.Wrapped {
-        makeJSON([
+    public var jsonObject: [String: JSONValue] {
+        .init([
             "href": href,
-            "type": encodeIfNotNil(mediaType?.string),
+            "type": mediaType?.string,
             "templated": templated,
-            "title": encodeIfNotNil(title),
-            "rel": encodeIfNotEmpty(rels.json),
-            "properties": encodeIfNotEmpty(properties.json),
-            "height": encodeIfNotNil(height),
-            "width": encodeIfNotNil(width),
-            "bitrate": encodeIfNotNil(bitrate),
-            "duration": encodeIfNotNil(duration),
-            "language": encodeIfNotEmpty(languages),
-            "alternate": encodeIfNotEmpty(alternates.json),
-            "children": encodeIfNotEmpty(children.json),
+            "title": title,
+            "rel": rels.orNullIfEmpty,
+            "properties": properties.orNullIfEmpty,
+            "height": height,
+            "width": width,
+            "bitrate": bitrate,
+            "duration": duration,
+            "language": languages.orNullIfEmpty,
+            "alternate": alternates.orNullIfEmpty,
+            "children": children.orNullIfEmpty,
         ])
     }
 
@@ -172,8 +171,8 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     ///
     /// If the HREF is a template, the `parameters` are used to expand it
     /// according to RFC 6570.
-    public func url<T: URLConvertible>(
-        relativeTo baseURL: T?,
+    public func url(
+        relativeTo baseURL: URLConvertible?,
         parameters: [String: LosslessStringConvertible] = [:]
     ) -> AnyURL {
         let url = url(parameters: parameters)
@@ -202,31 +201,18 @@ public struct Link: JSONEquatable, Hashable, Sendable {
     }
 
     ///  Merges in the given additional other `properties`.
-    public mutating func addProperties(_ properties: JSONDictionary.Wrapped) {
+    public mutating func addProperties(_ properties: [String: JSONValue]) {
         self.properties.add(properties)
     }
 }
 
-public extension Array where Element == Link {
-    /// Parses multiple JSON links into an array of Link.
-    /// eg. let links = [Link](json: [["href", "http://link1"], ["href", "http://link2"]])
-    init(
-        json: Any?,
-        warnings: WarningLogger? = nil
-    ) {
-        self.init()
-        guard let json = json as? [Any] else {
-            return
-        }
-
-        let links = json.compactMap { try? Link(json: $0, warnings: warnings) }
-        append(contentsOf: links)
+extension Link: URLConvertible {
+    public var anyURL: AnyURL {
+        url()
     }
+}
 
-    var json: [JSONDictionary.Wrapped] {
-        map(\.json)
-    }
-
+public extension [Link] {
     /// Finds the first link with the given relation.
     func firstWithRel(_ rel: LinkRelation) -> Link? {
         first { $0.rels.contains(rel) }
@@ -286,6 +272,11 @@ public extension Array where Element == Link {
     /// Returns whether all the resources in the collection are HTML documents.
     var allAreHTML: Bool {
         allSatisfy { $0.mediaType?.isHTML == true }
+    }
+
+    /// Returns whether any resource in the collection matches the given media type.
+    func anyMatchingMediaType(_ mediaType: MediaType) -> Bool {
+        contains { mediaType.matches($0.mediaType) }
     }
 
     /// Returns whether all the resources in the collection are matching the given media type.

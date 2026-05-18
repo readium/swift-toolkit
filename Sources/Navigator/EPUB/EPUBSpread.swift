@@ -16,14 +16,17 @@ protocol EPUBSpreadProtocol {
     /// Return the number of positions contained in the spread.
     func positionCount(in readingOrder: ReadingOrder, positionsByReadingOrder: [[Locator]]) -> Int
 
+    /// Returns the link in the spread matching the given `href`.
+    func linkWithHREF(_ href: some URLConvertible) -> Link?
+
     /// Returns a JSON representation of the links in the spread.
     ///
-    /// The JSON is an array of link objects in reading progression order.
+    /// The JSON is an array of link objects in reading order.
     /// Each link object contains:
     ///   - link: Link object of the resource in the Publication
     ///   - url: Full URL to the resource.
     ///   - page [left|center|right]: (optional) Page position of the linked resource in the spread.
-    func json(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> [[String: Any]]
+    func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [JSONValue]
 }
 
 /// Represents a spread of EPUB resources displayed in the viewport. A spread
@@ -71,12 +74,16 @@ enum EPUBSpread: EPUBSpreadProtocol {
         spread.positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
     }
 
-    func json(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> [[String: Any]] {
+    func linkWithHREF(_ href: some URLConvertible) -> Link? {
+        spread.linkWithHREF(href)
+    }
+
+    func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [JSONValue] {
         spread.json(forBaseURL: baseURL, readingProgression: readingProgression)
     }
 
-    func jsonString(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> String {
-        serializeJSONString(json(forBaseURL: baseURL, readingProgression: readingProgression)) ?? "[]"
+    func jsonString(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> String {
+        (try? json(forBaseURL: baseURL, readingProgression: readingProgression).jsonString()) ?? "[]"
     }
 
     /// Builds a list of spreads for the given Publication.
@@ -110,6 +117,9 @@ enum EPUBSpread: EPUBSpreadProtocol {
     }
 
     /// Builds a list of two-page spreads for the given Publication.
+    ///
+    /// `offsetFirstPage` is the user preference used to control if the first
+    /// resource is displayed on its own.
     private static func makeTwoPagesSpreads(
         for publication: Publication,
         readingOrder: [Link],
@@ -122,12 +132,22 @@ enum EPUBSpread: EPUBSpreadProtocol {
         while index < readingOrder.count {
             var first = readingOrder[index]
 
-            // If the `offsetFirstPage` is set, we override the default
-            // position of the first resource to display it either:
-            // - (true) on its own and centered
-            // - (false) next to the second resource
-            if index == 0, let offsetFirstPage = offsetFirstPage {
-                first.properties.page = offsetFirstPage ? .center : nil
+            // The first resource (often the cover) has special rules for its
+            // position in the spread.
+            if index == 0 {
+                if let offsetFirstPage = offsetFirstPage {
+                    // User explicitly chose to offset (or not) the first page.
+                    first.properties.page = offsetFirstPage ? .center : nil
+                } else if first.properties.page == nil, publication.metadata.layout == .fixed {
+                    // For FXL publications, default to displaying the first
+                    // page (typically a cover) on its own when the publication
+                    // doesn't provide an explicit page position. This is the
+                    // behavior of Apple Books, so it's expected by publishers.
+                    //
+                    // We display it centered rather than on the left or right
+                    // to ensure it fills the entire viewport in portrait mode.
+                    first.properties.page = .center
+                }
             }
 
             let nextIndex = index + 1
@@ -163,7 +183,8 @@ enum EPUBSpread: EPUBSpreadProtocol {
     }
 
     /// Two resources are consecutive if their position hint (Properties.Page)
-    /// are paired according to the reading progression.
+    /// are paired according to the reading progression from the publication
+    /// (not user preferences).
     private static func areConsecutive(
         _ first: Link,
         _ second: Link,
@@ -193,13 +214,13 @@ struct EPUBSpreadResource {
     let link: Link
 
     /// Returns a JSON representation of the resource for the spread scripts.
-    func json(forBaseURL baseURL: HTTPURL, page: Properties.Page) -> [String: Any] {
-        [
+    func json(forBaseURL baseURL: AbsoluteURL, page: Properties.Page) -> [String: JSONValue] {
+        .init([
             "index": index,
-            "link": link.json,
+            "link": link,
             "url": link.url(relativeTo: baseURL).string,
             "page": page.rawValue,
-        ]
+        ])
     }
 }
 
@@ -216,13 +237,36 @@ struct EPUBSingleSpread: EPUBSpreadProtocol, Loggable {
         positionsByReadingOrder.getOrNil(resource.index)?.count ?? 0
     }
 
-    func json(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> [[String: Any]] {
+    func linkWithHREF(_ href: some URLConvertible) -> Link? {
+        guard resource.link.url().isEquivalentTo(href) else {
+            return nil
+        }
+        return resource.link
+    }
+
+    func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [JSONValue] {
         [
-            resource.json(
+            .object(resource.json(
                 forBaseURL: baseURL,
-                page: resource.link.properties.page ?? readingProgression.startingPage
-            ),
+                page: resource.link.properties.page ?? defaultPage(in: readingProgression)
+            )),
         ]
+    }
+
+    /// Returns the default spread position (left or right) for the single
+    /// resource, in the given reading progression.
+    ///
+    /// The first page (typically a cover) defaults to the starting page (right
+    /// for LTR). Other unpaired pages default to the leading position they
+    /// would have had in a spread pair.
+    private func defaultPage(in readingProgression: ReadingProgression) -> Properties.Page {
+        let isFirstPage = (resource.index == 0)
+        return switch readingProgression {
+        case .ltr:
+            isFirstPage ? .right : .left
+        case .rtl:
+            isFirstPage ? .left : .right
+        }
     }
 }
 
@@ -257,16 +301,26 @@ struct EPUBDoubleSpread: EPUBSpreadProtocol, Loggable {
         first.index == index || second.index == index
     }
 
+    func linkWithHREF(_ href: some URLConvertible) -> Link? {
+        if first.link.url().isEquivalentTo(href) {
+            return first.link
+        } else if second.link.url().isEquivalentTo(href) {
+            return second.link
+        } else {
+            return nil
+        }
+    }
+
     func positionCount(in readingOrder: ReadingOrder, positionsByReadingOrder: [[Locator]]) -> Int {
         let firstPositions = positionsByReadingOrder.getOrNil(first.index)?.count ?? 0
         let secondPositions = positionsByReadingOrder.getOrNil(second.index)?.count ?? 0
         return firstPositions + secondPositions
     }
 
-    func json(forBaseURL baseURL: HTTPURL, readingProgression: ReadingProgression) -> [[String: Any]] {
+    func json(forBaseURL baseURL: AbsoluteURL, readingProgression: ReadingProgression) -> [JSONValue] {
         [
-            left(for: readingProgression).json(forBaseURL: baseURL, page: .left),
-            right(for: readingProgression).json(forBaseURL: baseURL, page: .right),
+            .object(left(for: readingProgression).json(forBaseURL: baseURL, page: .left)),
+            .object(right(for: readingProgression).json(forBaseURL: baseURL, page: .right)),
         ]
     }
 }

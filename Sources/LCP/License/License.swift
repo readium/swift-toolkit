@@ -9,7 +9,7 @@ import ReadiumShared
 import ReadiumZIPFoundation
 
 final class License: Loggable {
-    // Last Documents which passed the integrity checks.
+    /// Last Documents which passed the integrity checks.
     private var documents: ValidatedDocuments
 
     // Dependencies
@@ -37,19 +37,19 @@ final class License: Loggable {
 
 /// Public API
 extension License: LCPLicense {
-    public var license: LicenseDocument {
+    var license: LicenseDocument {
         documents.license
     }
 
-    public var status: StatusDocument? {
+    var status: StatusDocument? {
         documents.status
     }
 
-    public var isRestricted: Bool {
+    var isRestricted: Bool {
         documents.context.getOrNil() == nil
     }
 
-    public var error: LCPError? {
+    var error: LCPError? {
         switch documents.context {
         case .success:
             return nil
@@ -65,11 +65,11 @@ extension License: LCPLicense {
         }
     }
 
-    public var encryptionProfile: String? {
+    var encryptionProfile: String? {
         license.encryption.profile
     }
 
-    public func decipher(_ data: Data) throws -> Data? {
+    func decipher(_ data: Data) throws -> Data? {
         let context = try documents.context.get()
         return client.decrypt(data: data, using: context)
     }
@@ -153,7 +153,7 @@ extension License: LCPLicense {
                     return
                 }
 
-                rights.copy = max(0, printLeft - pageCount)
+                rights.print = max(0, printLeft - pageCount)
             }
 
             return allowed
@@ -185,7 +185,7 @@ extension License: LCPLicense {
             }
         }
 
-        // Finds the renew link according to `prefersWebPage`.
+        /// Finds the renew link according to `prefersWebPage`.
         func findRenewLink() -> Link? {
             guard let status = documents.status else {
                 return nil
@@ -208,7 +208,7 @@ extension License: LCPLicense {
             return status.linkWithNoType(for: .renew)
         }
 
-        // Renew the loan by presenting a web page to the user.
+        /// Renew the loan by presenting a web page to the user.
         func renewWithWebPage(_ link: Link) async throws -> Data {
             guard
                 let statusURL = try? license.url(for: .status, preferredType: .lcpStatusDocument),
@@ -227,9 +227,9 @@ extension License: LCPLicense {
                 .get()
         }
 
-        // Programmatically renew the loan with a PUT request.
+        /// Programmatically renew the loan with a PUT request.
         func renewProgrammatically(_ link: Link) async throws -> Data {
-            // Asks the delegate for a renew date if there's an `end` parameter.
+            /// Asks the delegate for a renew date if there's an `end` parameter.
             func preferredEndDate() async throws -> Date? {
                 (link.templateParameters.contains("end"))
                     ? try await delegate.preferredEndDate(maximum: maxRenewDate)

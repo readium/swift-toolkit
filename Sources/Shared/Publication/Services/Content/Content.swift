@@ -63,9 +63,13 @@ public struct AnyEquatableContentElement: Equatable, ContentElement {
         self.element = element
     }
 
-    public var locator: Locator { element.locator }
+    public var locator: Locator {
+        element.locator
+    }
 
-    public var attributes: [ContentAttribute] { element.attributes }
+    public var attributes: [ContentAttribute] {
+        element.attributes
+    }
 
     public func isEqualTo(_ other: ContentElement) -> Bool {
         element.isEqualTo(other)
@@ -85,7 +89,9 @@ public protocol TextualContentElement: ContentElement {
 }
 
 public extension TextualContentElement {
-    var text: String? { accessibilityLabel }
+    var text: String? {
+        accessibilityLabel
+    }
 }
 
 /// An element referencing an embedded external resource.
@@ -120,14 +126,14 @@ public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualCont
     }
 }
 
-/// A bitmap image.
+/// An embedded image (bitmap or SVG).
 public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
     public var locator: Locator
     public var embeddedLink: Link
+    public var attributes: [ContentAttribute]
 
     /// Short piece of text associated with the image.
     public var caption: String?
-    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -138,6 +144,30 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
 
     public var text: String? {
         // The caption might be a better text description than the accessibility label, when available.
+        caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
+    }
+}
+
+/// An inline SVG image.
+public struct SVGContentElement: Hashable, TextualContentElement {
+    public var locator: Locator
+    public var attributes: [ContentAttribute]
+
+    /// Raw SVG contents.
+    public var svg: String
+
+    /// Optional human-readable description of the image (e.g. from `<title>`,
+    ///  `<desc>`, `alt` or `title`).
+    public var caption: String?
+
+    public init(locator: Locator, svg: String, caption: String? = nil, attributes: [ContentAttribute] = []) {
+        self.locator = locator
+        self.svg = svg
+        self.caption = caption
+        self.attributes = attributes
+    }
+
+    public var text: String? {
         caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
     }
 }
@@ -200,8 +230,13 @@ public struct TextContentElement: Hashable, TextualContentElement {
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
 public struct ContentAttributeKey<V>: Hashable {
-    public static var accessibilityLabel: ContentAttributeKey<String> { .init("accessibilityLabel") }
-    public static var language: ContentAttributeKey<Language> { .init("language") }
+    public static var accessibilityLabel: ContentAttributeKey<String> {
+        .init("accessibilityLabel")
+    }
+
+    public static var language: ContentAttributeKey<Language> {
+        .init("language")
+    }
 
     public let key: String
     public init(_ key: String) {
@@ -231,8 +266,13 @@ public protocol ContentAttributesHolder {
 }
 
 public extension ContentAttributesHolder {
-    var language: Language? { self[.language] }
-    var accessibilityLabel: String? { self[.accessibilityLabel] }
+    var language: Language? {
+        self[.language]
+    }
+
+    var accessibilityLabel: String? {
+        self[.accessibilityLabel]
+    }
 
     /// Gets the first attribute with the given `key`.
     subscript<T>(_ key: ContentAttributeKey<T>) -> T? {

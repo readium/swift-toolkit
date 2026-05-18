@@ -26,14 +26,15 @@ public struct RPFFormatSniffer: FormatSniffer {
         return nil
     }
 
-    public func sniffContainer<C>(_ container: C, refining format: Format) async -> ReadResult<Format?> where C: Container {
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
         guard let resource = container[AnyURL(path: "manifest.json")!] else {
             return .success(nil)
         }
 
-        return await resource.readAsJSONObject()
-            .map {
-                guard let manifest = try? Manifest(json: $0) else {
+        return await resource.read()
+            .asJSONObjectValue()
+            .map { json in
+                guard let manifest = try? Manifest(json: json) else {
                     return nil
                 }
 

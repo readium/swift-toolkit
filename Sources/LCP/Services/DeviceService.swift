@@ -38,7 +38,7 @@ final class DeviceService {
         self.httpClient = httpClient
     }
 
-    // Device ID and name as query parameters for HTTP requests.
+    /// Device ID and name as query parameters for HTTP requests.
     var asQueryParameters: [String: String] {
         [
             "id": id,

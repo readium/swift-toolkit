@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<smil xmlns="http://www.w3.org/ns/SMIL" xmlns:epub="http://www.idpf.org/2007/ops" version="3.0">
+  <body>
+    <seq id="s1">
+      <!-- This par has no <text> element — it must be skipped -->
+      <par id="p-no-text">
+        <audio src="audio.mp3" clipBegin="0s" clipEnd="5s"/>
+      </par>
+      <!-- This par is valid and must be kept -->
+      <par id="p-valid">
+        <text src="chapter01.xhtml#id1"/>
+        <audio src="audio.mp3" clipBegin="5s" clipEnd="10s"/>
+      </par>
+    </seq>
+  </body>
+</smil>

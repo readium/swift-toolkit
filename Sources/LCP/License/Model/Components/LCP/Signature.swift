@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import ReadiumShared
 
 /// Signature allowing to certify the License Document integrity.
-public struct Signature {
+public struct Signature: JSONValueDecodable {
     /// Algorithm used to calculate the signature, identified using the URIs given in [XML-SIG]. This MUST match the signature algorithm named in the Encryption Profile identified in `encryption/profile`.
     public let algorithm: String
     /// The Provider Certificate: an X509 certificate used by the Content Provider.
@@ -15,10 +16,11 @@ public struct Signature {
     /// Value of the signature.
     public let value: String
 
-    init(json: [String: Any]) throws {
-        guard let algorithm = json["algorithm"] as? String,
-              let certificate = json["certificate"] as? String,
-              let value = json["value"] as? String
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue.object,
+              let algorithm = json["algorithm"]?.string,
+              let certificate = json["certificate"]?.string,
+              let value = json["value"]?.string
         else {
             throw ParsingError.signature
         }

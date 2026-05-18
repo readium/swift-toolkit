@@ -19,7 +19,9 @@ public protocol AudioSessionUser: AnyObject {
 }
 
 public extension AudioSessionUser {
-    var audioConfiguration: AudioSession.Configuration { .init() }
+    var audioConfiguration: AudioSession.Configuration {
+        .init()
+    }
 }
 
 /// Manages an activated `AVAudioSession`.

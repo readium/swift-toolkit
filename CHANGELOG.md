@@ -2,9 +2,133 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [3.9.0] - 2026-05-12
 
 ### Added
+
+#### Playground
+
+* New `Playground` iOS app – a minimal SwiftUI sample demonstrating how to use the Readium Swift Toolkit and to test its API.
+    * `Recipes/` contains self-contained and explained code you can reuse in your own application.
+    * `App/` folder contains the scaffolding (file management, navigation, error handling) needed to run the Playground.
+
+#### Shared
+
+* Added support for SVG covers in `ResourceCoverService`. SVG images can now be used as publication covers and are rendered to bitmaps (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/751)).
+* `Publication` has a new experimental `coverData(accepting:)` API that returns the raw bytes and media type of the cover, useful for storing the original cover without re-encoding.
+* New `ContentSearchService` implementation of `SearchService` that uses the Content API to search through publication resources.
+* PDF publications now support text extraction and search through the [Content](docs/Guides/Content.md) and [Search](docs/Guides/Search.md) APIs.
+    * **Note:** TTS support is not yet ready because sentence segmentation needs further refinement.
+
+#### Navigator
+
+* New `ViewportObservingNavigator` protocol, implemented by both the EPUB and PDF navigators, which exposes information about the current visible portion of the publication (e.g. progression and position ranges).
+    * The EPUB navigator's `Viewport` type is now a deprecated typealias for `NavigatorViewport`.
+* The PDF navigator now calls `VisualNavigatorDelegate.navigator(_:shouldNavigateToLink:)` and `NavigatorDelegate.navigator(_:didJumpTo:)` when the user taps an internal link, matching the behavior of the EPUB navigator.
+* The EPUB navigator now populates `PointerEvent.targetElement` when the user taps an image, enabling features such as image zoom. This is an experimental API gated behind `@_spi(ExperimentalTargetElement)`. See [the user guide](docs/Guides/Navigator/EPUB%20Image%20Preview.md) for details (contributed by [@grighakobian](https://github.com/readium/swift-toolkit/pull/747)).
+
+### Removed
+
+* Carthage is no longer a supported distribution method. Please migrate to Swift Package Manager or CocoaPods.
+
+### Deprecated
+
+* `ReadiumAdapterGCDWebServer` is deprecated. The PDF navigator was the last Readium component requiring an HTTP server, and it no longer does. You can remove the `ReadiumAdapterGCDWebServer` dependency from your project.
+
+### Changed
+
+#### Shared
+
+* All public types that parsed or serialized JSON now use the new type-safe `JSONValue` enum instead of `Any` / `[String: Any]`. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
+
+#### Navigator
+
+* The `DirectionalNavigationAdapter`'s policies and animated transitions are now mutable, allowing you to update the adapter's behavior after creation.
+* Opening a PDF is now significantly faster: ~99% faster for regular PDFs and ~94% faster for LCP-protected PDFs. Non-protected PDFs no longer have a size cap when loading.
+* The PDF navigator no longer requires an HTTP server. See [the migration guide](docs/Migration%20Guide.md) for upgrade instructions.
+
+### Fixed
+
+#### Shared
+
+* Fixed a performance bottleneck in `HTMLResourceContentIterator` (used with TTS and `publication.content()`, for example) where CSS selector generation was O(N²). Selectors are now computed in linear time using a custom generator with parent selector caching.
+* Fixed `Publication.coverFitting(maxSize:)` producing incorrectly scaled images with pixel offsets.
+* Fixed parsing of URI templates.
+    * Fixed `URITemplate` not recognizing `{&...}` (form-style query continuation) expressions.
+    * Fixed `URITemplate` expanding a form-style expression (`{?...}` or `{&...}`) to a bare `?` or `&` when none of the listed variables are provided. It now correctly expands to an empty string.
+* PDF loading failures caused by memory limits are now reported through the new `ReadError.outOfMemory` case when a PDF resource cannot be loaded into memory safely, instead of crashing.
+
+#### Navigator
+
+* [#737](https://github.com/readium/swift-toolkit/issues/737) Improved page turn animations in the EPUB navigator.
+    * Fixed screen glitches when animations are disabled.
+    * A slide animation is now used when navigating between adjacent resources.
+* The EPUB navigator now reports a continuous `locator.locations.totalProgression` value, interpolated from the actual scroll position within the resource's global progression range. Previously, the value was quantized to the nearest position in the position list.
+* Fixed a race condition in `EPUBNavigatorViewController` where rapidly calling `apply(decorations:in:)` for the same group could cause multiple decorations to appear simultaneously.
+* [#721](https://github.com/readium/swift-toolkit/issues/721) Fixed position of EPUB decorations when using the paragraph indent preference.
+* Fixed the EPUB navigator reverting to the previous EPUB preferences after a screen rotation for previously loaded resources.
+
+#### Streamer
+
+* Fixed parsing of EPUB contributors.
+    * Fixed `media:narrator` contributors not being recognized as narrators.
+    * Fixed `dc:creator` elements with a known MARC relator role (e.g. `opf:role="trl"`) being incorrectly routed to the `author` collection instead of the role's collection.
+    * A known role on a contributor no longer leaks into the `roles` field of the `Contributor` object when it is already expressed by the contributor's collection (e.g. `authors`, `publishers`).
+
+
+## [3.8.0]
+
+### Added
+
+#### LCP
+
+* New Keychain-based implementations of the LCP license and passphrase repositories: `LCPKeychainLicenseRepository` and `LCPKeychainPassphraseRepository`.
+    * Stored securely in the iOS/macOS Keychain.
+    * Persist across app reinstalls.
+    * Optionally synchronized across devices via iCloud Keychain.
+
+### Changed
+
+#### Navigator
+
+* The EPUB navigator no longer requires an HTTP server. Publication resources are now served directly to the web views using a custom URL scheme handler.
+    * The `httpServer` parameter of `EPUBNavigatorViewController` is deprecated and ignored.
+
+### Deprecated
+
+#### Navigator
+
+* `CBZNavigatorViewController` is now deprecated.
+    * Open CBZ publications with `EPUBNavigatorViewController` instead, which has more configuration options and preferences.
+
+#### LCP
+
+* `ReadiumAdapterLCPSQLite` is now deprecated in favor of the built-in Keychain repositories. See [the migration guide](docs/Migration%20Guide.md) for instructions.
+
+### Fixed
+
+* Fixed casting of `ResourceProperties`'s `mediaType` (contributed by [@lbeus](https://github.com/readium/swift-toolkit/pull/719)).
+
+#### Navigator
+
+* The first resource of a fixed-layout EPUB is now displayed on its own by default, matching Apple Books behavior.
+* Fixed the default spread position for single fixed-layout EPUB spreads that are not the first page.
+
+#### LCP
+
+* Fixed the `print` method consuming copy rights instead of print rights.
+
+
+## [3.7.0]
+
+### Added
+
+#### Shared
+
+* Added support for JXL (JPEG XL) bitmap images. JXL is decoded natively on iOS 17+.
+* `Publication.cover()` now falls back on the first reading order resource if it's a bitmap image and no cover is declared.
 
 #### Navigator
 
@@ -19,6 +143,21 @@ All notable changes to this project will be documented in this file. Take a look
 * EPUB manifest item fallbacks are now exposed as `alternates` in the corresponding `Link`.
 * EPUBs with only bitmap images in the spine are now treated as Divina publications with fixed layout.
     * When an EPUB spine item is HTML with a bitmap image fallback (or vice versa), the image is preferred as the primary link.
+* Standalone audio files (e.g. MP3) metadata extraction now includes `narrators` (from the composer metadata fields) and merges artist metadata into `authors`, following conventions used by common audiobook tools.
+
+### Changed
+
+* The iOS minimum deployment target is now iOS 15.0.
+
+#### Shared
+
+* Accessibility display strings are now sourced from the [thorium-locales](https://github.com/edrlab/thorium-locales/) repository (instead of W3C's repository). Contributions are welcome on [Weblate](https://hosted.weblate.org/projects/thorium-reader/publication-metadata/).
+
+#### LCP
+
+* The LCP dialog used by `LCPDialogAuthentication` has been redesigned.
+    * **Breaking:** The LCP dialog localization string keys have been renamed. If you overrode these strings in your app, you must update them. [See the migration guide](docs/Migration%20Guide.md) for the key mapping.
+* LCP localized strings are now sourced from the [thorium-locales](https://github.com/edrlab/thorium-locales/) repository. Contributions are welcome on [Weblate](https://hosted.weblate.org/projects/thorium-reader/readium-lcp/).
 
 ### Deprecated
 
@@ -1088,3 +1227,6 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.4.0]: https://github.com/readium/swift-toolkit/compare/3.3.0...3.4.0
 [3.5.0]: https://github.com/readium/swift-toolkit/compare/3.4.0...3.5.0
 [3.6.0]: https://github.com/readium/swift-toolkit/compare/3.5.0...3.6.0
+[3.7.0]: https://github.com/readium/swift-toolkit/compare/3.6.0...3.7.0
+[3.8.0]: https://github.com/readium/swift-toolkit/compare/3.7.0...3.8.0
+[3.9.0]: https://github.com/readium/swift-toolkit/compare/3.8.0...3.9.0

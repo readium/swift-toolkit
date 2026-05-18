@@ -29,7 +29,9 @@ public final class TransformingContainer: Container {
     }
 
     public let sourceURL: AbsoluteURL? = nil
-    public var entries: Set<AnyURL> { container.entries }
+    public var entries: Set<AnyURL> {
+        container.entries
+    }
 
     public subscript(url: any URLConvertible) -> Resource? {
         let url = url.anyURL

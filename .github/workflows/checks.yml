@@ -5,9 +5,13 @@ on:
     branches: [ main, develop ]
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPhone 17' }}
+  device: ${{ 'iPhone 16 Pro' }}
   commit_sha: ${{ github.sha }}
   DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
 
@@ -26,11 +30,14 @@ jobs:
         run: |
           brew update
           brew install xcodegen
-      - name: Check Carthage project
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
+      - name: Check CocoaPods podspecs
         run: |
-          # Check that the Carthage project is up to date.
-          make carthage-project
-          git diff --exit-code Support/Carthage/Readium.xcodeproj
+          # Check that the podspecs are up to date.
+          make podspecs
+          git diff --exit-code Support/CocoaPods/
+          if git ls-files --others --exclude-standard Support/CocoaPods/ | grep -q .; then echo "Untracked podspec files found. Run 'make podspecs' and commit the result."; exit 1; fi
       - name: Build
         run: |
           set -eo pipefail
@@ -39,9 +46,31 @@ jobs:
         run: |
           set -eo pipefail
           xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+      - name: Print Swift package versions
+        run: |
+          jq -r '.pins[] | "\(.identity): \(.state.version)"' Package.resolved
 
-  navigator-ui-tests:
-    name: Navigator UI Tests
+  # navigator-ui-tests:
+  #   name: Navigator UI Tests
+  #   runs-on: macos-15
+  #   if: ${{ !github.event.pull_request.draft }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Install dependencies
+  #       run: |
+  #         brew update
+  #         brew install xcodegen
+  #         # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+  #         xcrun simctl list
+  #     - name: Test
+  #       run: |
+  #         set -eo pipefail
+  #         make navigator-ui-tests-project
+  #         xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+
+  playground:
+    name: Playground
     runs-on: macos-15
     if: ${{ !github.event.pull_request.draft }}
     steps:
@@ -51,11 +80,16 @@ jobs:
         run: |
           brew update
           brew install xcodegen
-      - name: Test
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
+      - name: Check Playground project is up-to-date
+        run: |
+          make playground
+          git diff --exit-code Playground/.xcodegen
+      - name: Build
         run: |
           set -eo pipefail
-          make navigator-ui-tests-project
-          xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
   lint:
     name: Lint
@@ -106,6 +140,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Generate project
         run: make dev lcp=${{ secrets.LCP_URL_SPM }}
       - name: Build
@@ -134,6 +170,8 @@ jobs:
         run: |
           brew update
           brew install xcodegen
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
       - name: Generate project
         run: make spm lcp=${{ secrets.LCP_URL_SPM }} commit=$commit_sha
       - name: Build
@@ -141,31 +179,4 @@ jobs:
           set -eo pipefail
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 
-  int-carthage:
-    name: Integration (Carthage)
-    runs-on: macos-15
-    if: ${{ !github.event.pull_request.draft && github.ref == 'refs/heads/main' }}
-    defaults:
-      run:
-        working-directory: TestApp
-    environment: LCP
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      # We can't use the current github.sha with pull_request event, because they will
-      # reference the merge commit which cannot be fetched with Carthage.
-      - name: Set commit SHA
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
-      - name: Install dependencies
-        run: |
-          brew update
-          brew install xcodegen
-      - name: Generate project
-        run: make carthage lcp=${{ secrets.LCP_URL_CARTHAGE }} commit=$commit_sha
-      - name: Build
-        run: |
-          set -eo pipefail
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
 

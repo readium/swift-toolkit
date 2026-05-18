@@ -12,7 +12,7 @@ import ReadiumInternal
 /// as defined in a [W3C Community Group Report](https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/).
 ///
 /// https://github.com/readium/webpub-manifest/blob/master/schema/metadata.schema.json
-public struct TDM: Hashable, Sendable {
+public struct TDM: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public struct Reservation: RawRepresentable, Hashable, Sendable {
         public let rawValue: String
 
@@ -40,10 +40,14 @@ public struct TDM: Hashable, Sendable {
         self.policy = policy
     }
 
-    public init?(json: Any?, warnings: WarningLogger? = nil) throws {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
+            return nil
+        }
+
         guard
-            let json = json as? [String: Any],
-            let reservation = (json["reservation"] as? String).flatMap(Reservation.init(rawValue:))
+            let jsonObject = json.object,
+            let reservation: Reservation = jsonObject["reservation"]?.decode()
         else {
             warnings?.log("Invalid TDM object", model: Self.self, source: json, severity: .minor)
             throw JSONError.parsing(Self.self)
@@ -51,14 +55,14 @@ public struct TDM: Hashable, Sendable {
 
         self.init(
             reservation: reservation,
-            policy: (json["policy"] as? String).flatMap { HTTPURL(string: $0) }
+            policy: jsonObject["policy"]?.string.flatMap { HTTPURL(string: $0) }
         )
     }
 
-    public var json: [String: Any] {
-        makeJSON([
+    public var jsonObject: [String: JSONValue] {
+        .init([
             "reservation": reservation.rawValue,
-            "policy": encodeIfNotNil(policy?.string),
+            "policy": policy?.string,
         ])
     }
 }

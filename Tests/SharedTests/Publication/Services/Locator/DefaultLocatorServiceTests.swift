@@ -8,7 +8,7 @@
 import XCTest
 
 class DefaultLocatorServiceTests: XCTestCase {
-    // locate(Locator) checks that the href exists.
+    /// locate(Locator) checks that the href exists.
     func testFromLocator() async {
         let service = makeService(readingOrder: [
             Link(href: "chap1", mediaType: .xml),
@@ -164,12 +164,12 @@ class DefaultLocatorServiceTests: XCTestCase {
         )
     }
 
-    func testFromLinkWithFragment() async {
+    func testFromLinkWithFragment() async throws {
         let service = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
 
-        let result = await service.locate(Link(href: "/href#page=42", mediaType: MediaType("text/xml")!, title: "My link"))
+        let result = try await service.locate(Link(href: "/href#page=42", mediaType: XCTUnwrap(MediaType("text/xml")), title: "My link"))
         XCTAssertEqual(
             result,
             Locator(href: "/href", mediaType: .html, title: "Resource", locations: Locator.Locations(fragments: ["page=42"]))

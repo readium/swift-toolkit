@@ -4,66 +4,94 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import ReadiumShared
-import XCTest
+@_spi(Experimental) @testable import ReadiumShared
+import Testing
+import UIKit
 
-class CoverServiceTests: XCTestCase {
-    let fixtures = Fixtures(path: "Publication/Services")
+private let fixtures = Fixtures(path: "Publication/Services")
+private let coverURL = fixtures.url(for: "cover.jpg")
+private let cover = UIImage(contentsOfFile: coverURL.path)!
+private let cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
 
-    lazy var coverURL = fixtures.url(for: "cover.jpg")
-    lazy var cover = UIImage(contentsOfFile: coverURL.path)!
-    lazy var cover2 = UIImage(data: fixtures.data(at: "cover2.jpg"))!
+enum CoverServiceTests {
+    struct PublicationHelpers {
+        @Test func coverDelegatesToCustomService() async throws {
+            let pub = makePublication { _ in TestCoverService(cover: cover2) }
+            let image = try await pub.cover().get()
+            #expect(image?.pngData() == cover2.pngData())
+        }
 
-    /// `Publication.cover` will use the `CoverService` if there's one.
-    func testCoverHelperUsesCoverService() async {
-        let publication = makePublication { _ in TestCoverService(cover: self.cover2) }
-        let result = await publication.cover()
-        AssertImageEqual(result, .success(cover2))
+        @Test func coverUsesResourceCoverServiceByDefault() async throws {
+            let image = try await makePublication().cover().get()
+            #expect(image?.pngData() == cover.pngData())
+        }
+
+        @Test func coverReturnsNilWithoutService() async throws {
+            let image = try await makePublicationWithoutCoverService().cover().get()
+            #expect(image == nil)
+        }
+
+        @Test func coverFittingDelegatesToCustomService() async throws {
+            let size = CGSize(width: 100, height: 100)
+            let pub = makePublication { _ in TestCoverService(cover: cover2) }
+            let image = try await pub.coverFitting(maxSize: size).get()
+            #expect(image?.pngData() == cover2.scaleToFit(maxSize: size).pngData())
+        }
+
+        @Test func coverFittingUsesResourceCoverServiceByDefault() async throws {
+            let size = CGSize(width: 100, height: 100)
+            let image = try await makePublication().coverFitting(maxSize: size).get()
+            #expect(image?.pngData() == cover.scaleToFit(maxSize: size).pngData())
+        }
+
+        @Test func coverFittingReturnsNilWithoutService() async throws {
+            let image = try await makePublicationWithoutCoverService()
+                .coverFitting(maxSize: CGSize(width: 100, height: 100)).get()
+            #expect(image == nil)
+        }
+
+        @Test func coverDataDelegatesToCustomService() async throws {
+            // TestCoverService does not override coverData, so the protocol default returns nil.
+            let pub = makePublication { _ in TestCoverService(cover: cover2) }
+            let result = try await pub.coverData(accepting: [.jpeg])
+            #expect(result == nil)
+        }
+
+        @Test func coverDataReturnsNilWithoutService() async throws {
+            let result = try await makePublicationWithoutCoverService()
+                .coverData(accepting: [.jpeg])
+            #expect(result == nil)
+        }
     }
+}
 
-    /// `Publication.cover` will try to fetch the cover from a manifest link with rel `cover`, if
-    /// no `CoverService` is provided.
-    func testCoverHelperFallsBackOnManifest() async {
-        let publication = makePublication()
-        let result = await publication.cover()
-        AssertImageEqual(result, .success(cover))
-    }
+private func makePublication(
+    cover: CoverServiceFactory? = nil
+) -> Publication {
+    var builder = PublicationServicesBuilder()
+    if let cover { builder.setCoverServiceFactory(cover) }
+    return Publication(
+        manifest: Manifest(
+            metadata: Metadata(title: "title"),
+            resources: [Link(href: "cover.jpg", mediaType: .jpeg, rels: [.cover])]
+        ),
+        container: SingleResourceContainer(
+            resource: FileResource(file: coverURL),
+            at: AnyURL(string: "cover.jpg")!
+        ),
+        servicesBuilder: builder
+    )
+}
 
-    /// `Publication.coverFitting` will use the `CoverService` if there's one.
-    func testCoverFittingHelperUsesCoverService() async {
-        let size = CGSize(width: 100, height: 100)
-        let publication = makePublication { _ in TestCoverService(cover: self.cover2) }
-        let result = await publication.coverFitting(maxSize: size)
-        AssertImageEqual(result, .success(cover2.scaleToFit(maxSize: size)))
-    }
-
-    /// `Publication.coverFitting` will try to fetch the cover from a manifest link with rel `cover`, if
-    /// no `CoverService` is provided.
-    func testCoverFittingHelperFallsBackOnManifest() async {
-        let size = CGSize(width: 100, height: 100)
-        let publication = makePublication()
-        let result = await publication.coverFitting(maxSize: size)
-        AssertImageEqual(result, .success(cover.scaleToFit(maxSize: size)))
-    }
-
-    private func makePublication(cover: CoverServiceFactory? = nil) -> Publication {
-        let coverPath = "cover.jpg"
-        return Publication(
-            manifest: Manifest(
-                metadata: Metadata(
-                    title: "title"
-                ),
-                readingOrder: [
-                    Link(href: "titlepage.xhtml", rels: [.cover]),
-                ],
-                resources: [
-                    Link(href: coverPath, rels: [.cover]),
-                ]
-            ),
-            container: FileContainer(href: RelativeURL(path: coverPath)!, file: coverURL),
-            servicesBuilder: PublicationServicesBuilder(cover: cover)
-        )
-    }
+private func makePublicationWithoutCoverService() -> Publication {
+    Publication(
+        manifest: Manifest(metadata: Metadata(title: "title")),
+        container: SingleResourceContainer(
+            resource: FileResource(file: coverURL),
+            at: AnyURL(string: "cover.jpg")!
+        ),
+        servicesBuilder: PublicationServicesBuilder(cover: nil)
+    )
 }
 
 private struct TestCoverService: CoverService {

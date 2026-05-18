@@ -5,9 +5,10 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Holds information about how the resource is stored in the archive.
-public struct ArchiveProperties: Equatable {
+public struct ArchiveProperties: Equatable, JSONValueDecodable, JSONObjectEncodable {
     /// The length of the entry stored in the archive. It might be a compressed
     /// length if the entry is deflated.
     public let entryLength: UInt64
@@ -21,15 +22,14 @@ public struct ArchiveProperties: Equatable {
         self.isEntryCompressed = isEntryCompressed
     }
 
-    init?(json: Any?) throws {
-        if json == nil {
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
             return nil
         }
         guard
-            let jsonObject = json as? [String: Any],
-            let length: UInt64 = (jsonObject["entryLength"] as? NSNumber)?.uint64Value,
-            length >= 0,
-            let isEntryCompressed = jsonObject["isEntryCompressed"] as? Bool
+            let jsonObject = json.object,
+            let length: UInt64 = jsonObject["entryLength"]?.nonNegative(),
+            let isEntryCompressed = jsonObject["isEntryCompressed"]?.bool
         else {
             throw JSONError.parsing(Self.self)
         }
@@ -40,11 +40,11 @@ public struct ArchiveProperties: Equatable {
         )
     }
 
-    var json: [String: Any] {
-        [
-            "entryLength": entryLength as NSNumber,
+    public var jsonObject: [String: JSONValue] {
+        .init([
+            "entryLength": entryLength,
             "isEntryCompressed": isEntryCompressed,
-        ]
+        ])
     }
 }
 
@@ -53,15 +53,7 @@ private let archiveKey = "https://readium.org/webpub-manifest/properties#archive
 public extension ResourceProperties {
     /// Provides information about how the resource is stored in the publication archive.
     var archive: ArchiveProperties? {
-        get {
-            try? ArchiveProperties(json: properties[archiveKey])
-        }
-        set {
-            if let archive = newValue {
-                properties[archiveKey] = archive.json
-            } else {
-                properties.removeValue(forKey: archiveKey)
-            }
-        }
+        get { self[archiveKey] }
+        set { self[archiveKey] = newValue }
     }
 }

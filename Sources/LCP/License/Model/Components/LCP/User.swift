@@ -5,8 +5,9 @@
 //
 
 import Foundation
+import ReadiumShared
 
-public struct User {
+public struct User: JSONValueDecodable {
     public typealias ID = String
 
     /// Unique identifier for the User at a specific Provider.
@@ -16,16 +17,35 @@ public struct User {
     /// The User’s name.
     public let name: String?
     /// Implementor-specific extensions. Each extension is identified by an URI.
-    public let extensions: [String: Any]
+    public let extensions: [String: JSONValue]
     /// A list of which user object values are encrypted in this License Document.
     public let encrypted: [String]
 
-    init(json: [String: Any]?) throws {
-        var json = json ?? [:]
-        id = json.removeValue(forKey: "id") as? String
-        email = json.removeValue(forKey: "email") as? String
-        name = json.removeValue(forKey: "name") as? String
-        encrypted = (json.removeValue(forKey: "encrypted") as? [String]) ?? []
-        extensions = json
+    public init(
+        id: ID? = nil,
+        email: String? = nil,
+        name: String? = nil,
+        extensions: [String: JSONValue] = [:],
+        encrypted: [String] = []
+    ) {
+        self.id = id
+        self.email = email
+        self.name = name
+        self.extensions = extensions
+        self.encrypted = encrypted
+    }
+
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        guard let json = json?.jsonValue else {
+            return nil
+        }
+
+        var dict = json.object ?? [:]
+
+        id = dict.pop("id")?.string
+        email = dict.pop("email")?.string
+        name = dict.pop("name")?.string
+        encrypted = dict.pop("encrypted")?.decode() ?? []
+        extensions = dict
     }
 }

@@ -1,6 +1,6 @@
 // swift-tools-version:5.10
 //
-//  Copyright 2025 Readium Foundation. All rights reserved.
+//  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
 //  available in the top-level LICENSE file of the project.
 //
@@ -10,7 +10,7 @@ import PackageDescription
 let package = Package(
     name: "Readium",
     defaultLocalization: "en",
-    platforms: [.iOS("13.4")],
+    platforms: [.iOS("15.0")],
     products: [
         .library(name: "ReadiumShared", targets: ["ReadiumShared"]),
         .library(name: "ReadiumStreamer", targets: ["ReadiumStreamer"]),
@@ -29,8 +29,9 @@ let package = Package(
         .package(url: "https://github.com/readium/Fuzi.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/ZIPFoundation.git", from: "3.0.1"),
-        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.7.0"),
+        .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.13.0"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.15.0"),
+        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.3.0"),
     ],
     targets: [
         .target(
@@ -77,7 +78,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ReadiumStreamerTests",
-            dependencies: ["ReadiumStreamer"],
+            dependencies: ["ReadiumStreamer", "TestPublications"],
             path: "Tests/StreamerTests",
             resources: [
                 .copy("Fixtures"),
@@ -131,6 +132,7 @@ let package = Package(
             name: "ReadiumLCP",
             dependencies: [
                 "CryptoSwift",
+                "ReadiumInternal",
                 "ReadiumShared",
                 .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],
@@ -143,11 +145,13 @@ let package = Package(
         // TODO: Find a solution to run the tests with GitHub action.
         // .testTarget(
         //     name: "ReadiumLCPTests",
-        //     dependencies: ["ReadiumLCP"],
-        //     path: "Tests/LCPTests",
-        //     resources: [
-        //         .copy("../Fixtures"),
-        //     ]
+        //     dependencies: [
+        //         "ReadiumLCP",
+        //         "ReadiumShared",
+        //         "ReadiumStreamer",
+        //         "TestPublications",
+        //     ],
+        //     path: "Tests/LCPTests"
         // ),
 
         .target(

@@ -12,6 +12,8 @@ enum AccessibilityID: String {
     case close
     case allMemoryDeallocated
     case isNavigatorReady
+    case runStressTest
+    case stressTestCompleted
 }
 
 extension View {

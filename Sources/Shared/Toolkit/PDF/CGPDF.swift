@@ -226,7 +226,10 @@ extension CGPDFDocument: PDFDocument {
 }
 
 /// Creates a `PDFDocument` using Core Graphics.
+@available(*, deprecated, renamed: "PDFKitPDFDocumentFactory", message: "The PDFKitPDFDocumentFactory is more capable")
 public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
+    public init() {}
+
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
         guard let document = CGPDFDocument(file.url as CFURL) else {
             throw PDFDocumentError.openFailed

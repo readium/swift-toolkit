@@ -11,18 +11,18 @@ import ReadiumShared
 /// Package vocabularies used for `property`, `properties`, `scheme` and `rel`.
 /// http://www.idpf.org/epub/301/spec/epub-publications.html#sec-metadata-assoc
 enum OPFVocabulary: String {
-    // Fallback prefixes for metadata's properties and links' rels.
+    /// Fallback prefixes for metadata's properties and links' rels.
     case defaultMetadata, defaultLinkRel
 
-    // Reserved prefixes
-    // https://idpf.github.io/epub-prefixes/packages/
+    /// Reserved prefixes
+    /// https://idpf.github.io/epub-prefixes/packages/
     case a11y, dcterms, epubsc, marc, media, onix, rendition, schema, xsd
 
-    // Additional prefixes used in the streamer.
+    /// Additional prefixes used in the streamer.
     case calibre
 
-    // New TDM Reservation Protocol
-    // https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/
+    /// New TDM Reservation Protocol
+    /// https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/
     case tdm
 
     var uri: String {
@@ -255,7 +255,7 @@ struct OPFMetaList {
 
     /// Returns the JSON representation of the unknown metadata
     /// (for RWPM's `Metadata.otherMetadata`)
-    var otherMetadata: [String: Any] {
+    var otherMetadata: [String: JSONValue] {
         var metadata: [String: NSMutableOrderedSet] = [:]
 
         for meta in metas {
@@ -269,14 +269,23 @@ struct OPFMetaList {
         }
 
         return metadata.compactMapValues { values in
-            switch values.count {
-            case 0:
+            func toJSONValue(_ value: Any) -> JSONValue? {
+                if let v = value as? String { return .string(v) }
+                if let v = value as? [String: JSONValue] { return .object(v) }
                 return nil
-            case 1:
-                return values[0]
-            default:
-                return values.array
             }
+
+            let jsonValues = values.array.compactMap(toJSONValue)
+
+            if jsonValues.isEmpty {
+                return nil
+            }
+
+            if jsonValues.count == 1 {
+                return jsonValues[0]
+            }
+
+            return .array(jsonValues)
         }
     }
 
@@ -289,9 +298,9 @@ struct OPFMetaList {
         if let id = meta.id {
             let refines = metas.filter { $0.refines == id }
             if !refines.isEmpty {
-                var value: [String: Any] = ["@value": meta.content]
+                var value: [String: JSONValue] = ["@value": .string(meta.content)]
                 for refine in refines {
-                    value[refine.vocabularyURI + refine.property] = refine.content
+                    value[refine.vocabularyURI + refine.property] = .string(refine.content)
                 }
                 return value
             }
@@ -309,7 +318,7 @@ struct OPFMetaList {
             "language", "modified", "publisher", "subject", "title",
             "conformsTo",
         ],
-        .media: ["duration"],
+        .media: ["duration", "active-class", "playback-active-class", "narrator"],
         .rendition: ["layout"],
         .schema: [
             "numberOfPages", "accessMode", "accessModeSufficient",

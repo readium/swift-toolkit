@@ -10,7 +10,7 @@ import Foundation
 public struct RelativeURL: URLProtocol, Hashable {
     public let url: URL
 
-    /// Creates a ``RelativeURL`` from a standard Swift ``URL``.
+    /// Creates a ``RelativeURL`` from a standard Swift `URL`.
     public init?(url: URL) {
         guard url.scheme == nil else {
             return nil
@@ -124,7 +124,9 @@ public struct RelativeURL: URLProtocol, Hashable {
 
 /// Implements `URLConvertible`.
 extension RelativeURL: URLConvertible {
-    public var anyURL: AnyURL { .relative(self) }
+    public var anyURL: AnyURL {
+        .relative(self)
+    }
 }
 
 public extension RelativeURL {

@@ -93,6 +93,12 @@ public extension String {
     }
 
     func orNilIfBlank() -> String? {
-        trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : self
+        isBlank ? nil : self
+    }
+
+    /// Returns `true` if the string is empty or contains only whitespace and
+    /// newline characters.
+    var isBlank: Bool {
+        allSatisfy { $0.isWhitespace || $0.isNewline }
     }
 }

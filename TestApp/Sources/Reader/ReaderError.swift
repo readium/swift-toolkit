@@ -12,7 +12,7 @@ enum ReaderError: Error {
 }
 
 extension ReaderError: UserErrorConvertible {
-    func userError() -> UserError {
+    func userError() -> UserError? {
         UserError(cause: self) {
             switch self {
             case .formatNotSupported:

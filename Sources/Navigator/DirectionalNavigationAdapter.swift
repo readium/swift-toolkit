@@ -12,7 +12,7 @@ import Foundation
 ///
 /// This takes into account the reading progression of the navigator to turn
 /// pages in the right direction.
-public final class DirectionalNavigationAdapter {
+@MainActor public final class DirectionalNavigationAdapter {
     @available(*, deprecated, renamed: "Edges")
     public typealias TapEdges = Edges
 
@@ -33,6 +33,8 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
+    /// Policy controlling how pointer events (touches, mouse clicks) trigger
+    /// page turns.
     public struct PointerPolicy {
         /// The types of pointer that will trigger page turns.
         public var types: [PointerType]
@@ -81,6 +83,7 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
+    /// Policy controlling how keyboard events trigger page turns.
     public struct KeyboardPolicy {
         /// Indicates whether arrow keys should turn pages.
         public var handleArrowKeys: Bool
@@ -97,10 +100,20 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
-    private let pointerPolicy: PointerPolicy
-    private let keyboardPolicy: KeyboardPolicy
-    private let animatedTransition: Bool
-    private let onNavigation: @MainActor () -> Void
+    /// Policy controlling how pointer events (touches, mouse clicks) trigger
+    /// page turns.
+    public var pointerPolicy: PointerPolicy
+
+    /// Policy controlling how keyboard events trigger page turns.
+    public var keyboardPolicy: KeyboardPolicy
+
+    /// Indicates whether page turns should be animated.
+    public var animatedTransition: Bool
+
+    private let onNavigation: () -> Void
+
+    private var observerTokens: Set<InputObservableToken> = []
+    private weak var boundNavigator: (any VisualNavigator)?
 
     @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
     private weak var navigator: VisualNavigator?
@@ -117,7 +130,7 @@ public final class DirectionalNavigationAdapter {
         pointerPolicy: PointerPolicy = PointerPolicy(),
         keyboardPolicy: KeyboardPolicy = KeyboardPolicy(),
         animatedTransition: Bool = false,
-        onNavigation: @escaping @MainActor () -> Void = {}
+        onNavigation: @escaping () -> Void = {}
     ) {
         self.pointerPolicy = pointerPolicy
         self.keyboardPolicy = keyboardPolicy
@@ -125,42 +138,62 @@ public final class DirectionalNavigationAdapter {
         self.onNavigation = onNavigation
     }
 
+    deinit {
+        guard let nav = boundNavigator else {
+            return
+        }
+
+        let tokens = observerTokens
+        Task { @MainActor [weak nav] in
+            for token in tokens {
+                nav?.removeObserver(token)
+            }
+        }
+    }
+
     /// Binds the adapter to the given visual navigator.
     ///
     /// It will automatically observe pointer and key events to turn pages.
-    @MainActor public func bind(to navigator: VisualNavigator) {
-        for pointerType in PointerType.allCases {
-            guard pointerPolicy.types.contains(pointerType) else {
-                continue
-            }
+    /// If the adapter was previously bound to another navigator, it is
+    /// automatically unbound first.
+    public func bind(to navigator: VisualNavigator) {
+        unbind()
+        boundNavigator = navigator
 
-            switch pointerType {
-            case .touch:
-                navigator.addObserver(.tap { [self, weak navigator] event in
-                    guard let navigator = navigator else {
-                        return false
-                    }
-                    return await onTap(at: event.location, in: navigator)
-                })
-            case .mouse:
-                navigator.addObserver(.click { [self, weak navigator] event in
-                    guard let navigator = navigator else {
-                        return false
-                    }
-                    return await onTap(at: event.location, in: navigator)
-                })
+        observerTokens = [
+            navigator.addObserver(.tap { [weak self, weak navigator] event in
+                guard let self, self.pointerPolicy.types.contains(.touch), let navigator else {
+                    return false
+                }
+                return await self.onTap(at: event.location, in: navigator)
+            }),
+            navigator.addObserver(.click { [weak self, weak navigator] event in
+                guard let self, self.pointerPolicy.types.contains(.mouse), let navigator else {
+                    return false
+                }
+                return await self.onTap(at: event.location, in: navigator)
+            }),
+            navigator.addObserver(.key { [weak self, weak navigator] event in
+                guard let self, let navigator else {
+                    return false
+                }
+                return await self.onKey(event, in: navigator)
+            }),
+        ]
+    }
+
+    /// Unbinds the adapter from the previously bounded navigator.
+    public func unbind() {
+        if let nav = boundNavigator {
+            for token in observerTokens {
+                nav.removeObserver(token)
             }
         }
 
-        navigator.addObserver(.key { [self, weak navigator] event in
-            guard let navigator = navigator else {
-                return false
-            }
-            return await onKey(event, in: navigator)
-        })
+        observerTokens = []
+        boundNavigator = nil
     }
 
-    @MainActor
     private func onTap(at point: CGPoint, in navigator: VisualNavigator) async -> Bool {
         guard !pointerPolicy.ignoreWhileScrolling || !navigator.presentation.scroll else {
             return false
@@ -220,23 +253,23 @@ public final class DirectionalNavigationAdapter {
         }
     }
 
-    @MainActor private func goBackward(in navigator: VisualNavigator) async -> Bool {
+    private func goBackward(in navigator: VisualNavigator) async -> Bool {
         await go { await navigator.goBackward(options: $0) }
     }
 
-    @MainActor private func goForward(in navigator: VisualNavigator) async -> Bool {
+    private func goForward(in navigator: VisualNavigator) async -> Bool {
         await go { await navigator.goForward(options: $0) }
     }
 
-    @MainActor private func goLeft(in navigator: VisualNavigator) async -> Bool {
+    private func goLeft(in navigator: VisualNavigator) async -> Bool {
         await go { await navigator.goLeft(options: $0) }
     }
 
-    @MainActor private func goRight(in navigator: VisualNavigator) async -> Bool {
+    private func goRight(in navigator: VisualNavigator) async -> Bool {
         await go { await navigator.goRight(options: $0) }
     }
 
-    @MainActor private func go(_ action: (NavigatorGoOptions) async -> Bool) async -> Bool {
+    private func go(_ action: (NavigatorGoOptions) async -> Bool) async -> Bool {
         onNavigation()
         let options = NavigatorGoOptions(animated: animatedTransition)
         return await action(options)
@@ -256,6 +289,7 @@ public final class DirectionalNavigationAdapter {
         self.navigator = navigator
         pointerPolicy = PointerPolicy(
             types: [.touch, .mouse],
+            edges: tapEdges,
             ignoreWhileScrolling: !handleTapsWhileScrolling,
             minimumHorizontalEdgeSize: minimumHorizontalEdgeSize,
             horizontalEdgeThresholdPercent: horizontalEdgeThresholdPercent,
@@ -268,7 +302,6 @@ public final class DirectionalNavigationAdapter {
     }
 
     @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
-    @MainActor
     @discardableResult
     public func didTap(at point: CGPoint) async -> Bool {
         guard let navigator = navigator else {

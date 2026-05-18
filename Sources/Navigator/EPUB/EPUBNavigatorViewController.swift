@@ -11,26 +11,23 @@ import SwiftSoup
 import UIKit
 import WebKit
 
-@MainActor public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate {
-    /// Called when the viewport is updated.
-    func navigator(_ navigator: EPUBNavigatorViewController, viewportDidChange viewport: EPUBNavigatorViewController.Viewport?)
-
+@MainActor public protocol EPUBNavigatorDelegate: VisualNavigatorDelegate, SelectableNavigatorDelegate,
+    ViewportObservingNavigatorDelegate
+{
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
 }
 
 public extension EPUBNavigatorDelegate {
-    func navigator(_ navigator: EPUBNavigatorViewController, viewportDidChange viewport: EPUBNavigatorViewController.Viewport?) {}
-
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
 }
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
 
 open class EPUBNavigatorViewController: InputObservableViewController,
-    VisualNavigator, SelectableNavigator, DecorableNavigator,
-    Configurable, Loggable
+    VisualNavigator, ViewportObservingNavigator, SelectableNavigator,
+    DecorableNavigator, Configurable, Loggable
 {
     public enum EPUBError: Error {
         /// The provided publication is restricted. Check that any DRM was
@@ -43,6 +40,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         /// Failed to serve the publication or assets with the provided HTTP
         /// server.
+        @available(*, deprecated, message: "The HTTP server is no longer needed for the EPUB navigator.")
         case serverFailure(Error)
     }
 
@@ -138,7 +136,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     public weak var delegate: EPUBNavigatorDelegate?
 
     /// Information about the visible portion of the publication, when rendered.
-    public private(set) var viewport: Viewport? {
+    public private(set) var viewport: NavigatorViewport? {
         didSet {
             if oldValue != viewport {
                 delegate?.navigator(self, viewportDidChange: viewport)
@@ -146,18 +144,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         }
     }
 
-    /// Information about the visible portion of the publication.
-    public struct Viewport: Equatable {
-        /// Visible reading order resources.
-        public var readingOrder: [AnyURL]
-
-        /// Range of visible scroll progressions for each visible reading order
-        /// resource.
-        public var progressions: [AnyURL: ClosedRange<Double>]
-
-        /// Range of visible positions.
-        public var positions: ClosedRange<Int>?
-    }
+    @available(*, deprecated, renamed: "NavigatorViewport")
+    public typealias Viewport = NavigatorViewport
 
     /// Navigation state.
     private enum State: Equatable {
@@ -195,16 +183,19 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // All events are ignored when loading spreads, except for `loaded` and `load`.
             case (.loading, .loaded):
                 self = .idle
+
             case (.loading, _):
                 return false
 
             case let (.idle, .jump(locator)):
                 self = .jumping(pendingLocator: locator)
+
             case let (.idle, .move(direction)):
                 self = .moving(direction: direction)
 
             case (.jumping, .jumped):
                 self = .idle
+
             // Moving or jumping to another locator is not allowed during a pending jump.
             case (.jumping, .jump),
                  (.jumping, .move):
@@ -212,6 +203,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
             case (.moving, .moved):
                 self = .idle
+
             // Moving or jumping to another locator is not allowed during a pending move.
             case (.moving, .jump),
                  (.moving, .move):
@@ -266,9 +258,13 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private var positionsByReadingOrder: [[Locator]] = []
 
     private let viewModel: EPUBNavigatorViewModel
-    public var publication: Publication { viewModel.publication }
+    public var publication: Publication {
+        viewModel.publication
+    }
 
-    var config: Configuration { viewModel.config }
+    var config: Configuration {
+        viewModel.config
+    }
 
     /// Creates a new instance of `EPUBNavigatorViewController`.
     ///
@@ -279,14 +275,11 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     ///   - readingOrder: Custom order of resources to display. Used for example
     ///   to display a non-linear resource on its own.
     ///   - config: Additional navigator configuration.
-    ///   - httpServer: HTTP server used to serve the publication resources to
-    ///   the web views.
     public convenience init(
         publication: Publication,
         initialLocation: Locator?,
         readingOrder: [Link]? = nil,
-        config: Configuration = .init(),
-        httpServer: HTTPServer
+        config: Configuration = .init()
     ) throws {
         precondition(readingOrder.map { !$0.isEmpty } ?? true)
 
@@ -294,11 +287,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             throw EPUBError.publicationRestricted
         }
 
-        let viewModel = try EPUBNavigatorViewModel(
+        let viewModel = EPUBNavigatorViewModel(
             publication: publication,
             readingOrder: readingOrder ?? publication.readingOrder,
-            config: config,
-            httpServer: httpServer
+            config: config
         )
 
         self.init(
@@ -312,6 +304,23 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // positions list is empty, and also not compute the
             // totalProgression when calculating the current locator.
             (readingOrder != nil) ? { .success([]) } : publication.positionsByReadingOrder
+        )
+    }
+
+    /// Creates a new instance of `EPUBNavigatorViewController`.
+    @available(*, deprecated, message: "The HTTP server is no longer needed for the EPUB navigator.")
+    public convenience init(
+        publication: Publication,
+        initialLocation: Locator?,
+        readingOrder: [Link]? = nil,
+        config: Configuration = .init(),
+        httpServer: HTTPServer
+    ) throws {
+        try self.init(
+            publication: publication,
+            initialLocation: initialLocation,
+            readingOrder: readingOrder,
+            config: config
         )
     }
 
@@ -657,7 +666,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         )
     }
 
-    private func computeCurrentLocationAndViewport() async -> (Locator?, Viewport?) {
+    private func computeCurrentLocationAndViewport() async -> (Locator?, NavigatorViewport?) {
         if case .initializing = state {
             assertionFailure("Cannot update current location when initializing the navigator")
             return (nil, nil)
@@ -673,64 +682,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return (nil, nil)
         }
 
-        let visibleReadingOrder: [(index: Int, href: AnyURL)] = spreadView.spread.readingOrderIndices
-            .map { ($0, readingOrder[$0].url()) }
-
-        var viewport = Viewport(
-            readingOrder: visibleReadingOrder.map(\.href),
-            progressions: visibleReadingOrder.reduce([:]) { progressions, i in
-                var progressions = progressions
-                progressions[i.href] = spreadView.progression(in: i.index)
-                return progressions
-            },
-            positions: nil
+        let (locator, viewport) = await EPUBViewportAndLocationCalculator.compute(
+            readingOrderIndices: spreadView.spread.readingOrderIndices,
+            progression: { spreadView.progression(in: $0) },
+            readingOrder: readingOrder,
+            positionsByReadingOrder: positionsByReadingOrder,
+            tableOfContentsTitleByHref: tableOfContentsTitleByHref,
+            fallbackLocator: { [publication] in await publication.locate($0) }
         )
-
-        let firstIndex = spreadView.spread.readingOrderIndices.lowerBound
-        let lastIndex = spreadView.spread.readingOrderIndices.upperBound
-        let progressionOfFirstResource = spreadView.progression(in: firstIndex)
-        let progressionOfLastResource = spreadView.progression(in: lastIndex)
-        let firstProgressionInFirstResource = min(max(progressionOfFirstResource.lowerBound, 0.0), 1.0)
-        let lastProgressionInLastResource = min(max(progressionOfLastResource.upperBound, 0.0), 1.0)
-
-        let link = readingOrder[firstIndex]
-        let location: Locator?
-
-        if
-            // The positions are not always available, for example a Readium
-            // WebPub doesn't have any unless a Publication Positions Web
-            // Service is provided
-            let positionsOfFirstResource = positionsByReadingOrder.getOrNil(firstIndex),
-            let positionsOfLastResource = positionsByReadingOrder.getOrNil(lastIndex),
-            !positionsOfFirstResource.isEmpty,
-            !positionsOfLastResource.isEmpty
-        {
-            // Gets the current locator from the positions, and fill its missing
-            // data.
-            let firstPositionIndex = Int(ceil(firstProgressionInFirstResource * Double(positionsOfFirstResource.count - 1)))
-            let lastPositionIndex = (lastProgressionInLastResource == 1.0)
-                ? positionsOfLastResource.count - 1
-                : max(firstPositionIndex, Int(ceil(lastProgressionInLastResource * Double(positionsOfLastResource.count - 1))) - 1)
-
-            location = await positionsOfFirstResource[firstPositionIndex].copy(
-                title: tableOfContentsTitleByHref[link.url()],
-                locations: { $0.progression = firstProgressionInFirstResource }
-            )
-
-            if
-                let firstPosition = location?.locations.position,
-                let lastPosition = positionsOfLastResource[lastPositionIndex].locations.position
-            {
-                viewport.positions = firstPosition ... lastPosition
-            }
-
-        } else {
-            location = await publication.locate(link)?.copy(
-                locations: { $0.progression = firstProgressionInFirstResource }
-            )
-        }
-
-        return (location, viewport)
+        return (locator, viewport)
     }
 
     public func firstVisibleElementLocator() async -> Locator? {
@@ -836,28 +796,46 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     // MARK: - DecorableNavigator
 
-    private var decorations: [String: [DiffableDecoration]] = [:]
+    private var decorations: [DecorationGroup: [DiffableDecoration]] = [:]
 
     /// Decoration group callbacks, indexed by the group name.
-    private var decorationCallbacks: [String: [DecorableNavigator.OnActivatedCallback]] = [:]
+    private var decorationCallbacks: [DecorationGroup: [DecorableNavigator.OnActivatedCallback]] = [:]
+
+    /// Pending decoration tasks, indexed by group name. Stored to allow
+    /// cancellation when a new `apply(decorations:in:)` call supersedes a
+    /// previous one.
+    private var decorationTasks: [DecorationGroup: Task<Void, Never>] = [:]
 
     public func supports(decorationStyle style: Decoration.Style.Id) -> Bool {
         config.decorationTemplates.keys.contains(style)
     }
 
-    public func apply(decorations: [Decoration], in group: String) {
-        Task {
-            await initialized()
+    public func apply(decorations: [Decoration], in group: DecorationGroup) {
+        decorationTasks[group]?.cancel()
+        var task: Task<Void, Never>?
+        task = Task { [weak self] in
+            defer {
+                if let self, self.decorationTasks[group] == task {
+                    self.decorationTasks[group] = nil
+                }
+            }
+            guard let self else { return }
+            await self.initialized()
 
-            guard let paginationView = paginationView else {
+            guard
+                !Task.isCancelled,
+                let paginationView = self.paginationView
+            else {
                 return
             }
 
             await withTaskGroup(of: Void.self) { tasks in
+                guard !Task.isCancelled else { return }
+
                 let source = self.decorations[group] ?? []
                 let target = decorations.map {
                     var d = $0
-                    d.locator = publication.normalizeLocator(d.locator)
+                    d.locator = self.publication.normalizeLocator(d.locator)
                     return DiffableDecoration(decoration: d)
                 }
                 self.decorations[group] = target
@@ -865,6 +843,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 if decorations.isEmpty {
                     for (_, pageView) in paginationView.loadedViews {
                         tasks.addTask {
+                            guard !Task.isCancelled else { return }
                             await (pageView as? EPUBSpreadView)?.evaluateScript(
                                 // The updates command are using `requestAnimationFrame()`, so we need it for
                                 // `clear()` as well otherwise we might recreate a highlight after it has been
@@ -875,11 +854,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                     }
                 } else {
                     for (href, changes) in target.changesByHREF(from: source) {
-                        guard let script = changes.javascript(forGroup: group, styles: config.decorationTemplates) else {
+                        guard let script = changes.javascript(forGroup: group, styles: self.config.decorationTemplates) else {
                             continue
                         }
                         tasks.addTask { @MainActor [weak self] in
                             guard
+                                !Task.isCancelled,
                                 let spreadView = self?.loadedSpreadViewForHREF(href),
                                 spreadView.isSpreadLoaded
                             else {
@@ -891,9 +871,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 }
             }
         }
+        decorationTasks[group] = task
     }
 
-    public func observeDecorationInteractions(inGroup group: String, onActivated: @escaping OnActivatedCallback) {
+    public func observeDecorationInteractions(inGroup group: DecorationGroup, onActivated: @escaping OnActivatedCallback) {
         var callbacks = decorationCallbacks[group] ?? []
         callbacks.append(onActivated)
         decorationCallbacks[group] = callbacks
@@ -917,7 +898,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     // MARK: - Configurable
 
-    public var settings: EPUBSettings { viewModel.settings }
+    public var settings: EPUBSettings {
+        viewModel.settings
+    }
 
     public func submitPreferences(_ preferences: EPUBPreferences) {
         viewModel.submitPreferences(preferences)
@@ -1043,7 +1026,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         // the application's bars.
         var insets = view.window?.safeAreaInsets ?? .zero
 
-        switch publication.metadata.layout ?? .reflowable {
+        switch publication.metadata.epubLayout {
         case .fixed:
             // With iPadOS and macOS, we aim to display content edge-to-edge
             // since there are no physical notches or Dynamic Island like on the
@@ -1056,21 +1039,17 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             let configInset = config.contentInset(for: view.traitCollection.verticalSizeClass)
             insets.top = max(insets.top, configInset.top)
             insets.bottom = max(insets.bottom, configInset.bottom)
-
-        case .scrolled:
-            // Not supported with EPUB.
-            break
         }
 
         return insets
     }
 
     func spreadViewDidLoad(_ spreadView: EPUBSpreadView) async {
-        let templates = config.decorationTemplates.reduce(into: [:]) { styles, item in
-            styles[item.key.rawValue] = item.value.json
+        let templates = config.decorationTemplates.reduce(into: [String: JSONValue]()) { styles, item in
+            styles[item.key.rawValue] = .object(item.value.jsonObject)
         }
 
-        guard let stylesJSON = serializeJSONString(templates) else {
+        guard let stylesJSON = try? templates.jsonString() else {
             log(.error, "Can't serialize decoration styles to JSON")
             return
         }
@@ -1109,6 +1088,9 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         Task {
             var event = event
             event.location = view.convert(event.location, from: spreadView)
+            if let targetElement = event.targetElement {
+                event.targetElement?.frame = view.convert(targetElement.frame, from: spreadView)
+            }
             _ = await inputObservers.didReceive(event)
         }
     }
@@ -1215,7 +1197,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
     }
 
-    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?, point: CGPoint?) {
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: DecorationGroup, frame: CGRect?, point: CGPoint?) {
         guard
             let callbacks = decorationCallbacks[group].takeIf({ !$0.isEmpty }),
             let decoration: Decoration = decorations[group]?

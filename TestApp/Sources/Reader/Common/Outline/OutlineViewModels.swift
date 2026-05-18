@@ -85,7 +85,7 @@ private protocol OutlineViewModelLoaderDelegate: AnyObject {
     func setLoadedValues(_ values: [T])
 }
 
-// This loader contains a state enum which can be used for expressive UI (loading progress, error handling etc). For this, status overlay view can be used (see https://stackoverflow.com/a/61858358/2567725).
+/// This loader contains a state enum which can be used for expressive UI (loading progress, error handling etc). For this, status overlay view can be used (see https://stackoverflow.com/a/61858358/2567725).
 private final class OutlineViewModelLoader<T, Delegate: OutlineViewModelLoaderDelegate> {
     weak var delegate: Delegate!
     private var state = State.ready

@@ -15,7 +15,6 @@ struct OPDSNavigationRow: View {
         rowContent
     }
 
-    @ViewBuilder
     private var rowContent: some View {
         HStack {
             Text(link.title ?? "Untitled")

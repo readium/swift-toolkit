@@ -31,12 +31,13 @@ public struct EPUBFormatSniffer: FormatSniffer {
         return nil
     }
 
-    public func sniffContainer<C>(_ container: C, refining format: Format) async -> ReadResult<Format?> where C: Container {
+    public func sniffContainer<C: Container>(_ container: C, refining format: Format) async -> ReadResult<Format?> {
         guard let resource = container[AnyURL(path: "mimetype")!] else {
             return .success(nil)
         }
 
-        return await resource.readAsString()
+        return await resource.read()
+            .asString()
             .asyncFlatMap { mimetype in
                 if MediaType.epub.matches(MediaType(mimetype.trimmingCharacters(in: .whitespacesAndNewlines))) {
                     var format = format
@@ -66,7 +67,7 @@ public struct EPUBFormatSniffer: FormatSniffer {
         }
 
         return await resource.read()
-            .asyncMap { try? await xmlDocumentFactory.open(data: $0, namespaces: []) }
+            .asyncMap { try? xmlDocumentFactory.open(data: $0, namespaces: []) }
             .map { document in
                 guard let document = document else {
                     return format

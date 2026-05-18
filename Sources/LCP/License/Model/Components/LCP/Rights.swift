@@ -5,8 +5,9 @@
 //
 
 import Foundation
+import ReadiumShared
 
-public struct Rights {
+public struct Rights: JSONValueDecodable {
     /// Maximum number of pages that can be printed over the lifetime of the license.
     public let print: Int?
     /// Maximum number of characters that can be copied to the clipboard over the lifetime of the license.
@@ -16,14 +17,14 @@ public struct Rights {
     /// Date and time when the license ends.
     public let end: Date?
     /// Implementor-specific rights extensions. Each extension is identified by an URI.
-    public let extensions: [String: Any]
+    public let extensions: [String: JSONValue]
 
-    init(json: [String: Any]?) throws {
-        var json = json ?? [:]
-        self.print = json.removeValue(forKey: "print") as? Int
-        copy = json.removeValue(forKey: "copy") as? Int
-        start = (json.removeValue(forKey: "start") as? String)?.dateFromISO8601
-        end = (json.removeValue(forKey: "end") as? String)?.dateFromISO8601
+    public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {
+        var json = json?.jsonValue.object ?? [:]
+        self.print = json.pop("print")?.nonNegative()
+        copy = json.pop("copy")?.nonNegative()
+        start = json.pop("start")?.date
+        end = json.pop("end")?.date
         extensions = json
     }
 }

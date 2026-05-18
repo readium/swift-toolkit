@@ -27,9 +27,17 @@ public protocol LocatorService: PublicationService {
 }
 
 public extension LocatorService {
-    func locate(_ locator: Locator) async -> Locator? { nil }
-    func locate(_ link: Link) async -> Locator? { nil }
-    func locate(progression: Double) async -> Locator? { nil }
+    func locate(_ locator: Locator) async -> Locator? {
+        nil
+    }
+
+    func locate(_ link: Link) async -> Locator? {
+        nil
+    }
+
+    func locate(progression: Double) async -> Locator? {
+        nil
+    }
 }
 
 // MARK: Publication Helpers

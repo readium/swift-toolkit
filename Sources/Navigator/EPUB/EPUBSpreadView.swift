@@ -5,7 +5,6 @@
 //
 
 import ReadiumShared
-import SwiftSoup
 @preconcurrency import WebKit
 
 protocol EPUBSpreadViewDelegate: AnyObject {
@@ -22,7 +21,7 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     func spreadView(_ spreadView: EPUBSpreadView, didTapOnInternalLink href: String, clickEvent: ClickEvent?)
 
     /// Called when the user tapped on a decoration.
-    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: String, frame: CGRect?, point: CGPoint?)
+    func spreadView(_ spreadView: EPUBSpreadView, didActivateDecoration id: Decoration.Id, inGroup group: DecorationGroup, frame: CGRect?, point: CGPoint?)
 
     /// Called when the text selection changes.
     func spreadView(_ spreadView: EPUBSpreadView, selectionDidChange text: Locator.Text?, frame: CGRect)
@@ -54,7 +53,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     let webView: WebView
 
-    private var lastClick: ClickEvent? = nil
+    private var lastClick: ClickEvent?
 
     /// If YES, the content will be faded in once loaded.
     let animatedLoad: Bool
@@ -63,6 +62,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     private var activityIndicatorStopWorkItem: DispatchWorkItem?
 
     private(set) var isSpreadLoaded = false
+    private var spreadLoadTask: Task<Void, Never>?
 
     required init(
         viewModel: EPUBNavigatorViewModel,
@@ -73,7 +73,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         self.viewModel = viewModel
         self.spread = spread
         self.animatedLoad = animatedLoad
-        webView = WebView(editingActions: viewModel.editingActions)
+
+        let config = WKWebViewConfiguration()
+        config.setURLSchemeHandler(viewModel.server, forURLScheme: viewModel.server.scheme)
+        config.mediaTypesRequiringUserActionForPlayback = .all
+
+        // Disable the Apple Intelligence Writing tools in the web views.
+        // See https://github.com/readium/swift-toolkit/issues/509#issuecomment-2577780749
+        if #available(iOS 18.0, *) {
+            config.writingToolsBehavior = .none
+        }
+
+        webView = WebView(editingActions: viewModel.editingActions, configuration: config)
 
         super.init(frame: .zero)
 
@@ -104,6 +115,11 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called when the spread view is removed from the view hierarchy, to
     /// clear pending operations and retain cycles.
     func clear() {
+        webView.stopLoading()
+
+        spreadLoadTask?.cancel()
+        spreadLoadTask = nil
+
         // Disable JS messages to break WKUserContentController reference.
         disableJSMessages()
     }
@@ -164,9 +180,9 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         log(.trace, "Evaluate script: \(script)")
         return await withCheckedContinuation { continuation in
-            webView.evaluateJavaScript(script) { res, error in
+            webView.evaluateJavaScript(script) { [weak self] res, error in
                 if let error = error {
-                    self.log(.error, error)
+                    self?.log(.error, error)
                     continuation.resume(returning: .failure(error))
                 } else {
                     continuation.resume(returning: .success(res ?? ()))
@@ -226,7 +242,110 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
 
         event.location = convertPointToNavigatorSpace(event.location)
+
+        if let targetElement = targetElement(from: json["targetElement"]) {
+            event.targetElement = targetElement
+        }
+
         delegate?.spreadView(self, didReceive: event)
+    }
+
+    /// Parses the target element JSON produced by `extractTargetElement()` in
+    /// gestures.js and builds a `PointerEvent.TargetElement` with coordinates
+    /// converted to the spread view's coordinate space.
+    private func targetElement(from json: Any?) -> PointerEvent.TargetElement? {
+        guard
+            let dict = json as? [String: Any],
+            let frameDict = dict["frame"] as? [String: Any],
+            let x = frameDict["x"] as? Double,
+            let y = frameDict["y"] as? Double,
+            let width = frameDict["width"] as? Double,
+            let height = frameDict["height"] as? Double
+        else {
+            return nil
+        }
+
+        let frame = convertRectToNavigatorSpace(
+            CGRect(x: x, y: y, width: width, height: height)
+        )
+
+        // In a two-page FXL spread both resources are loaded in separate
+        // iframes, so we use `resourceHref` to identify the correct reading
+        // order resource.
+        let link = (dict["resourceHref"] as? String)
+            .flatMap { AnyURL(string: $0) }
+            .flatMap { spread.linkWithHREF($0) }
+        guard let link else { return nil }
+
+        // Build a locator pointing to the element inside the resource that
+        // contains it.
+        var locator = Locator(
+            href: link.url(),
+            mediaType: link.mediaType ?? .xhtml
+        )
+        if let cssSelector = dict["cssSelector"] as? String {
+            locator.locations.cssSelector = cssSelector
+        }
+
+        guard let content = contentElement(locator: locator, json: dict) else {
+            return nil
+        }
+        return PointerEvent.TargetElement(frame: frame, content: content)
+    }
+
+    private func contentElement(
+        locator: Locator,
+        json: [String: Any]
+    ) -> (any ContentElement)? {
+        guard let tag = json["tag"] as? String else {
+            return nil
+        }
+
+        // Relativize the src URL against the publication base URL so it
+        // becomes a publication-relative href. External URLs (http://) or
+        // already-relative URLs fall back to the raw value.
+        let src: AnyURL? = (json["src"] as? String)
+            .flatMap { AnyURL(string: $0) }
+            .flatMap { viewModel.publicationBaseURL.relativize($0)?.anyURL ?? $0 }
+
+        // Look up the Link in the publication manifest so the client gets full
+        // metadata (media type, etc.). For resources not in the manifest (e.g.
+        // external http:// images) we synthesise a plain Link.
+        let embeddedLink: Link? = src.flatMap {
+            viewModel.publication.linkWithHREF($0) ?? Link(href: $0.string)
+        }
+
+        var attributes: [ContentAttribute] = []
+        if let label = json["accessibilityLabel"] as? String, !label.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibilityLabel, value: label))
+        }
+        let caption = json["caption"] as? String
+
+        if let embeddedLink {
+            switch tag {
+            case "img", "svg":
+                return ImageContentElement(
+                    locator: locator,
+                    embeddedLink: embeddedLink,
+                    caption: caption,
+                    attributes: attributes
+                )
+            default:
+                break
+            }
+        }
+
+        // Inline SVG fallback.
+        if tag == "svg", let html = json["html"] as? String {
+            return SVGContentElement(
+                locator: locator,
+                svg: html,
+                caption: caption,
+                attributes: attributes
+            )
+        }
+
+        return nil
     }
 
     /// Converts the given JavaScript point into a point in the webview's coordinate space.
@@ -280,7 +399,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
     private func spreadDidLoad(_ body: Any) {
-        Task { @MainActor in
+        spreadLoadTask?.cancel()
+        spreadLoadTask = Task { @MainActor in
             isSpreadLoaded = true
             applySettings()
             await spreadDidLoad()
@@ -336,7 +456,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             let selection = body as? [String: Any],
             let hrefString = selection["href"] as? String,
             let href = AnyURL(string: hrefString),
-            let text = try? Locator.Text(json: selection["text"]),
+            let text = try? Locator.Text(json: JSONValue(selection["text"])),
             var frame = CGRect(json: selection["rect"])
         else {
             focusedResource = nil
@@ -364,7 +484,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         0 ... 1
     }
 
-    func go(to location: PageLocation) async {
+    func go(to location: PageLocation, animated: Bool) async {
         fatalError("go(to:) must be implemented in subclasses")
     }
 
@@ -389,9 +509,15 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         let result = await evaluateScript("readium.findFirstVisibleLocator()")
         do {
             let link = spread.first.link
-            let locator = try Locator(json: result.get())?
-                .copy(href: link.url(), mediaType: link.mediaType ?? .xhtml)
-            return locator
+
+            guard
+                let json = try JSONValue(result.get()),
+                let locator = try Locator(json: json)
+            else {
+                return nil
+            }
+            return locator.copy(href: link.url(), mediaType: link.mediaType ?? .xhtml)
+
         } catch {
             log(.error, error)
             return nil
@@ -440,7 +566,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    // Removes message handlers (preventing strong reference cycle).
+    /// Removes message handlers (preventing strong reference cycle).
     private func disableJSMessages() {
         guard JSMessagesEnabled else {
             return
@@ -529,12 +655,12 @@ extension EPUBSpreadView: WKNavigationDelegate {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url?.httpURL {
+            if let url = navigationAction.request.url {
                 // Check if url is internal or external
                 if let relativeURL = viewModel.publicationBaseURL.relativize(url) {
                     delegate?.spreadView(self, didTapOnInternalLink: relativeURL.string, clickEvent: lastClick)
                 } else {
-                    delegate?.spreadView(self, didTapOnExternalURL: url.url)
+                    delegate?.spreadView(self, didTapOnExternalURL: url)
                 }
 
                 policy = .cancel
@@ -589,14 +715,7 @@ private extension EPUBSpreadView {
         }
 
         activityIndicatorView?.removeFromSuperview()
-        let view = UIActivityIndicatorView(style: .medium)
-        view.color = color
-        view.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(view)
-        view.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
-        view.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
-        view.startAnimating()
-        activityIndicatorView = view
+        activityIndicatorView = addCenteredActivityIndicator(color: color)
     }
 
     private func setNeedsStopActivityIndicator() {
@@ -689,7 +808,6 @@ private extension PointerEvent {
             modifiers: KeyModifiers(json: json)
         )
         // FIXME:
-//        targetElement = dict["targetElement"] as? String ?? ""
 //        interactiveElement = dict["interactiveElement"] as? String
     }
 }
@@ -759,7 +877,6 @@ private extension KeyEvent {
             key = .tab
         case "Space":
             key = .space
-
         case "ArrowDown":
             key = .arrowDown
         case "ArrowLeft":
@@ -768,7 +885,6 @@ private extension KeyEvent {
             key = .arrowRight
         case "ArrowUp":
             key = .arrowUp
-
         case "End":
             key = .end
         case "Home":
@@ -777,7 +893,6 @@ private extension KeyEvent {
             key = .pageDown
         case "PageUp":
             key = .pageUp
-
         case "MetaLeft", "MetaRight":
             key = .command
         case "ControlLeft", "ControlRight":
@@ -786,12 +901,10 @@ private extension KeyEvent {
             key = .option
         case "ShiftLeft", "ShiftRight":
             key = .shift
-
         case "Backspace":
             key = .backspace
         case "Escape":
             key = .escape
-
         default:
             guard let char = dict["key"] as? String else {
                 return nil

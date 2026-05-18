@@ -6,7 +6,7 @@
 
 import Combine
 import Foundation
-import ReadiumNavigator
+@_spi(ExperimentalTargetElement) import ReadiumNavigator
 import ReadiumShared
 import SwiftUI
 import UIKit
@@ -51,6 +51,10 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         }
     }
 
+    /// You need to keep a strong reference to the adapter, otherwise the
+    /// navigator binding will be released.
+    private var directionalNavigationAdapter: DirectionalNavigationAdapter?
+
     /// Setups the user interaction (e.g. taps) with the navigator.
     private func setupUserInteraction() {
         guard let navigator = navigator as? VisualNavigator else {
@@ -76,14 +80,19 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
 //            return false
 //        })
 
-        /// This adapter will automatically turn pages when the user taps the
-        /// screen edges or press arrow keys.
-        ///
-        /// Bind it to the navigator before adding your own observers to prevent
-        /// triggering your actions when turning pages.
-        DirectionalNavigationAdapter(
-            pointerPolicy: .init(types: [.mouse, .touch])
-        ).bind(to: navigator)
+        // Present an image preview when tapping an image element.
+        navigator.addObserver(.activate { [weak self] event in
+            guard
+                let self,
+                let targetElement = event.targetElement,
+                let image = targetElement.content as? ImageContentElement
+            else {
+                return false
+            }
+
+            self.presentImagePreview(image)
+            return true
+        })
 
         // Clear the current search highlight on tap.
         navigator.addObserver(.activate { [weak self] _ in
@@ -97,6 +106,14 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             searchViewModel.selectedLocator = nil
             return true
         })
+
+        // This adapter will automatically turn pages when the user taps the
+        // screen edges or press arrow keys.
+        directionalNavigationAdapter = DirectionalNavigationAdapter(
+            pointerPolicy: .init(types: [.mouse, .touch]),
+            animatedTransition: true
+        )
+        directionalNavigationAdapter?.bind(to: navigator)
 
         // Toggle the navigation bar on tap, if nothing else took precedence.
         navigator.addObserver(.activate { [weak self] _ in
@@ -323,6 +340,19 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
             popoverController.delegate = self
             present(highlightContextMenu!, animated: true, completion: nil)
         }
+    }
+
+    // MARK: - Image Preview
+
+    private func presentImagePreview(_ image: ImageContentElement) {
+        let viewer = UIHostingController(
+            rootView: ImagePreview(
+                publication: publication,
+                image: image
+            )
+        )
+        viewer.modalPresentationStyle = .pageSheet
+        present(viewer, animated: true)
     }
 }
 

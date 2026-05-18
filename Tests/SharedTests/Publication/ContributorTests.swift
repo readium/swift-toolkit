@@ -34,7 +34,7 @@ class ContributorTests: XCTestCase {
                     ["href": "http://link1"],
                     ["href": "http://link2"],
                 ],
-            ] as [String: Any]),
+            ] as JSONValue),
             Contributor(
                 name: "Colin Greenwood",
                 identifier: "colin",
@@ -54,7 +54,7 @@ class ContributorTests: XCTestCase {
             try? Contributor(json: [
                 "name": "Thom Yorke",
                 "role": ["singer", "guitarist"],
-            ] as [String: Any]),
+            ] as JSONValue),
             Contributor(
                 name: "Thom Yorke",
                 roles: ["singer", "guitarist"]
@@ -68,77 +68,15 @@ class ContributorTests: XCTestCase {
         ]))
     }
 
-    func testParseJSONArray() {
-        XCTAssertEqual(
-            [Contributor](json: [
-                "Thom Yorke",
-                [
-                    "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    "role": "guitarist",
-                ] as [String: Any],
-            ] as [Any]),
-            [
-                Contributor(name: "Thom Yorke"),
-                Contributor(
-                    name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    roles: ["guitarist"]
-                ),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenNil() {
-        XCTAssertEqual(
-            [Contributor](json: nil),
-            []
-        )
-    }
-
-    func testParseJSONArrayIgnoresInvalidContributors() {
-        XCTAssertEqual(
-            [Contributor](json: [
-                "Thom Yorke",
-                [
-                    "role": "guitarist",
-                ],
-            ] as [Any]),
-            [
-                Contributor(name: "Thom Yorke"),
-            ]
-        )
-    }
-
-    func testParseJSONArrayWhenString() {
-        XCTAssertEqual(
-            [Contributor](json: "Thom Yorke"),
-            [Contributor(name: "Thom Yorke")]
-        )
-    }
-
-    func testParseJSONArrayWhenSingleObject() {
-        XCTAssertEqual(
-            [Contributor](json: [
-                "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                "role": "guitarist",
-            ] as [String: Any]),
-            [
-                Contributor(
-                    name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    roles: ["guitarist"]
-                ),
-            ]
-        )
-    }
-
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            Contributor(name: "Thom Yorke").json,
+        XCTAssertEqual(
+            Contributor(name: "Thom Yorke").jsonObject,
             ["name": "Thom Yorke"]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Contributor(
                 name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 identifier: "jonny",
@@ -149,7 +87,7 @@ class ContributorTests: XCTestCase {
                     Link(href: "http://link1"),
                     Link(href: "http://link2"),
                 ]
-            ).json,
+            ).jsonObject,
             [
                 "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 "identifier": "jonny",
@@ -157,31 +95,10 @@ class ContributorTests: XCTestCase {
                 "role": ["guitarist", "pianist"],
                 "position": 2.5,
                 "links": [
-                    ["href": "http://link1", "templated": false] as [String: Any],
+                    ["href": "http://link1", "templated": false] as JSONValue,
                     ["href": "http://link2", "templated": false],
                 ],
-            ] as [String: Any]
-        )
-    }
-
-    func testGetJSONArray() {
-        AssertJSONEqual(
-            [
-                Contributor(name: "Thom Yorke"),
-                Contributor(
-                    name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    roles: ["guitarist"]
-                ),
-            ].json,
-            [
-                [
-                    "name": "Thom Yorke",
-                ] as [String: Any],
-                [
-                    "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
-                    "role": ["guitarist"],
-                ],
-            ]
+            ] as [String: JSONValue]
         )
     }
 }

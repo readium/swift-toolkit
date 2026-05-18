@@ -37,16 +37,6 @@ public enum ReadingProgression: String, Codable, Hashable {
         default: return nil
         }
     }
-
-    /// Returns the starting page for the reading progression.
-    var startingPage: Properties.Page {
-        switch self {
-        case .ltr:
-            return .right
-        case .rtl:
-            return .left
-        }
-    }
 }
 
 extension ReadiumShared.ReadingProgression {
@@ -224,7 +214,7 @@ public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable,
     // Modern (serif)
     public static let athelas: FontFamily = "Athelas"
     public static let georgia: FontFamily = "Georgia"
-    // Neutral (sans)
+    /// Neutral (sans)
     public static let helveticaNeue: FontFamily = "Helvetica Neue"
     // Humanist (sans)
     public static let seravek: FontFamily = "Seravek"

@@ -23,7 +23,7 @@ class EncryptionTests: XCTestCase {
                 "originalLength": 42099,
                 "profile": "http://profile",
                 "scheme": "http://scheme",
-            ] as [String: Any]),
+            ] as JSONValue),
             Encryption(
                 algorithm: "http://algo",
                 compression: "gzip",
@@ -45,7 +45,7 @@ class EncryptionTests: XCTestCase {
     }
 
     func testParseAllowsNil() {
-        XCTAssertNil(try Encryption(json: nil))
+        XCTAssertNil(try Encryption(json: nil as JSONValue?))
     }
 
     /// `original-length` used to be the key for `originalLength`, so we parse it for backward
@@ -55,34 +55,34 @@ class EncryptionTests: XCTestCase {
             try? Encryption(json: [
                 "algorithm": "http://algo",
                 "original-length": 42099,
-            ] as [String: Any]),
+            ] as JSONValue),
             Encryption(algorithm: "http://algo", originalLength: 42099)
         )
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            Encryption(algorithm: "http://algo").json,
+        XCTAssertEqual(
+            Encryption(algorithm: "http://algo").jsonObject,
             ["algorithm": "http://algo"]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Encryption(
                 algorithm: "http://algo",
                 compression: "gzip",
                 originalLength: 42099,
                 profile: "http://profile",
                 scheme: "http://scheme"
-            ).json,
+            ).jsonObject,
             [
                 "algorithm": "http://algo",
                 "compression": "gzip",
                 "originalLength": 42099,
                 "profile": "http://profile",
                 "scheme": "http://scheme",
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 }

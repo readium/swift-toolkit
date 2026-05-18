@@ -10,7 +10,7 @@ import XCTest
 class OPDSHoldsTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? OPDSHolds(json: [:] as [String: Any]),
+            try? OPDSHolds(json: [:] as JSONValue),
             OPDSHolds(total: nil, position: nil)
         )
     }
@@ -50,15 +50,15 @@ class OPDSHoldsTests: XCTestCase {
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            OPDSHolds(total: nil, position: nil).json,
-            [:] as [String: Any]
+        XCTAssertEqual(
+            OPDSHolds(total: nil, position: nil).jsonObject,
+            [:] as [String: JSONValue]
         )
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
-            OPDSHolds(total: 5, position: 6).json,
+        XCTAssertEqual(
+            OPDSHolds(total: 5, position: 6).jsonObject,
             [
                 "total": 5,
                 "position": 6,

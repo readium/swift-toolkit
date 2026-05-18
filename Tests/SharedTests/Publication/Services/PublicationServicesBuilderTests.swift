@@ -42,7 +42,7 @@ class PublicationServicesBuilderTests: XCTestCase {
 
         let services = builder.build(context: context)
 
-        XCTAssert(services.count == 3)
+        XCTAssert(services.count == 4)
         XCTAssert(services.contains { $0 is FooServiceA })
         XCTAssert(services.contains { $0 is BarServiceA })
     }
@@ -50,8 +50,9 @@ class PublicationServicesBuilderTests: XCTestCase {
     func testBuildDefault() {
         let builder = PublicationServicesBuilder()
         let services = builder.build(context: context)
-        XCTAssertEqual(services.count, 1)
+        XCTAssertEqual(services.count, 2)
         XCTAssert(services.contains { $0 is DefaultLocatorService })
+        XCTAssert(services.contains { $0 is ResourceCoverService })
     }
 
     func testSetOverwrite() {

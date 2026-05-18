@@ -11,18 +11,18 @@ import XCTest
 class EPUBEncryptionParserTests: XCTestCase {
     let fixtures = Fixtures(path: "Encryption")
 
-    func testParseLCPEncryption() {
+    func testParseLCPEncryption() throws {
         let sut = parseEncryptions("encryption-lcp")
 
-        XCTAssertEqual(sut, [
-            RelativeURL(path: "chapter01.xhtml")!: Encryption(
+        XCTAssertEqual(sut, try [
+            XCTUnwrap(RelativeURL(path: "chapter01.xhtml")): Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "deflate",
                 originalLength: 13291,
                 profile: nil,
                 scheme: "http://readium.org/2014/01/lcp"
             ),
-            RelativeURL(path: "dir/chapter02.xhtml")!: Encryption(
+            XCTUnwrap(RelativeURL(path: "dir/chapter02.xhtml")): Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "none",
                 originalLength: 12914,
@@ -32,18 +32,18 @@ class EPUBEncryptionParserTests: XCTestCase {
         ])
     }
 
-    func testParseEncryptionWithNamespaces() {
+    func testParseEncryptionWithNamespaces() throws {
         let sut = parseEncryptions("encryption-lcp-namespaces")
 
-        XCTAssertEqual(sut, [
-            RelativeURL(path: "chapter01.xhtml")!: Encryption(
+        XCTAssertEqual(sut, try [
+            XCTUnwrap(RelativeURL(path: "chapter01.xhtml")): Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "deflate",
                 originalLength: 13291,
                 profile: nil,
                 scheme: "http://readium.org/2014/01/lcp"
             ),
-            RelativeURL(path: "dir/chapter02.xhtml")!: Encryption(
+            XCTUnwrap(RelativeURL(path: "dir/chapter02.xhtml")): Encryption(
                 algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
                 compression: "none",
                 originalLength: 12914,

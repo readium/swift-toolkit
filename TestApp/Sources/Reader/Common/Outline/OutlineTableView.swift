@@ -24,7 +24,7 @@ struct OutlineTableView: View {
     @ObservedObject private var highlightsModel: HighlightsViewModel
     @State private var selectedSection: OutlineSection = .tableOfContents
 
-    // Outlines (list of links) to display for each section.
+    /// Outlines (list of links) to display for each section.
     @State private var outlines: [OutlineSection: [(level: Int, link: ReadiumShared.Link)]] = [:]
 
     init(publication: Publication, bookId: Book.Id, bookmarkRepository: BookmarkRepository, highlightRepository: HighlightRepository) {
@@ -78,6 +78,7 @@ struct OutlineTableView: View {
                         }
                 }
                 .onAppear { bookmarksModel.loadIfNeeded() }
+
             case .highlights:
                 List(highlightsModel.highlights, id: \.self) { highlight in
                     HighlightCellView(highlight: highlight)

@@ -53,6 +53,11 @@ public struct Selection {
 }
 
 public extension SelectableNavigatorDelegate {
-    func navigator(_ navigator: SelectableNavigator, shouldShowMenuForSelection selection: Selection) -> Bool { true }
-    func navigator(_ navigator: SelectableNavigator, canPerformAction action: EditingAction, for selection: Selection) -> Bool { true }
+    func navigator(_ navigator: SelectableNavigator, shouldShowMenuForSelection selection: Selection) -> Bool {
+        true
+    }
+
+    func navigator(_ navigator: SelectableNavigator, canPerformAction action: EditingAction, for selection: Selection) -> Bool {
+        true
+    }
 }

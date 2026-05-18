@@ -29,7 +29,7 @@ import UIKit
         @IBOutlet var renewButton: UIButton!
         @IBOutlet var returnButton: UIButton!
 
-        public var viewModel: LCPViewModel!
+        var viewModel: LCPViewModel!
 
         weak var moduleDelegate: ReaderModuleDelegate?
 
@@ -56,7 +56,7 @@ import UIKit
                         )
 
                     } catch {
-                        self.moduleDelegate?.presentError(UserError(error), from: self)
+                        self.moduleDelegate?.presentError(error, from: self)
                     }
                 }
             })
@@ -87,7 +87,7 @@ import UIKit
                         )
 
                     } catch {
-                        self.moduleDelegate?.presentError(UserError(error), from: self)
+                        self.moduleDelegate?.presentError(error, from: self)
                     }
                 }
             })
@@ -99,7 +99,7 @@ import UIKit
             present(alert, animated: true)
         }
 
-        internal func reload() {
+        func reload() {
             typeLabel.text = "Readium LCP"
             stateLabel.text = viewModel.state
             providerLabel.text = viewModel.provider

@@ -66,5 +66,5 @@ final class BookmarkRepository {
     }
 }
 
-// for the default SwiftUI support
+/// for the default SwiftUI support
 extension Bookmark: Hashable {}

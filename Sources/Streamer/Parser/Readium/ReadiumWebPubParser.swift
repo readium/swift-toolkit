@@ -23,9 +23,12 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     private let httpClient: HTTPClient
     private let epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
 
-    /// - Parameter epubReflowablePositionsStrategy: Strategy used to calculate
-    ///   the number of positions in a reflowable resource of a web publication
-    ///   conforming to the EPUB profile.
+    /// - Parameters:
+    ///   - pdfFactory: Factory used to open PDF documents, if available.
+    ///   - httpClient: The HTTP client used to fetch remote resources.
+    ///   - epubReflowablePositionsStrategy: Strategy used to calculate
+    ///     the number of positions in a reflowable resource of a web publication
+    ///     conforming to the EPUB profile.
     public init(pdfFactory: PDFDocumentFactory?, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
         self.pdfFactory = pdfFactory
         self.httpClient = httpClient
@@ -53,7 +56,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             return .failure(.formatNotSupported)
         }
 
-        return await resource.readAsRWPM(warnings: warnings)
+        return await resource.read()
+            .asRWPM(warnings: warnings)
             .flatMap { manifest in
                 let baseURL = manifest.baseURL
                 if baseURL == nil {
@@ -98,7 +102,8 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
             return .failure(.reading(.decoding("Cannot find a manifest.json file in the RPF package.")))
         }
 
-        return await manifestResource.readAsRWPM(warnings: warnings)
+        return await manifestResource.read()
+            .asRWPM(warnings: warnings)
             .flatMap(checkProfileRequirements(of:))
             .map { manifest in
                 var manifest = manifest
@@ -121,21 +126,30 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
                         } else if manifest.conforms(to: .audiobook) {
                             $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
 
-                        } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory = pdfFactory {
-                            $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory(pdfFactory: pdfFactory))
-                            $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory(pdfFactory: pdfFactory))
+                        } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory {
+                            $0.setPDFDocumentServiceFactory(DefaultPDFDocumentService.makeFactory(factory: pdfFactory))
+                            $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory())
+                            $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory())
+                            $0.setContentServiceFactory(DefaultContentService.makeFactory(
+                                resourceContentIteratorFactories: [
+                                    PDFResourceContentIterator.Factory(),
+                                ]
+                            ))
+                            $0.setSearchServiceFactory(ContentSearchService.makeFactory())
                         }
 
                         // FIXME: WebPositionsService from Kotlin?
 
                         if manifest.readingOrder.allAreHTML {
-                            $0.setSearchServiceFactory(StringSearchService.makeFactory())
+                            $0.setSearchServiceFactory(ContentSearchService.makeFactory())
                             $0.setContentServiceFactory(DefaultContentService.makeFactory(
                                 resourceContentIteratorFactories: [
                                     HTMLResourceContentIterator.Factory(),
                                 ]
                             ))
                         }
+
+                        $0.setGuidedNavigationServiceFactory(ReadiumGuidedNavigationService.makeFactory())
                     })
                 )
             }
@@ -161,16 +175,20 @@ public class ReadiumWebPubParser: PublicationParser, Loggable {
     }
 }
 
-private extension Streamable {
-    /// Reads the whole content as a Readium Web Pub Manifest.
-    func readAsRWPM(warnings: WarningLogger?) async -> ReadResult<Manifest> {
-        await readAsJSON().flatMap {
-            do {
-                return try .success(Manifest(json: $0, warnings: warnings))
-            } catch {
-                return .failure(.decoding(error))
+private extension ReadResult<Data> {
+    /// Decodes the data as a Readium Web Pub Manifest.
+    func asRWPM(warnings: WarningLogger?) -> ReadResult<Manifest> {
+        asJSONObjectValue()
+            .flatMap { data in
+                do {
+                    guard let manifest = try Manifest(json: data, warnings: warnings) else {
+                        return .failure(.decoding("Failed to decode Manifest from JSON."))
+                    }
+                    return .success(manifest)
+                } catch {
+                    return .failure(.decoding(error))
+                }
             }
-        }
     }
 }
 
@@ -179,5 +197,7 @@ public struct RWPMWarning: Warning {
     public let message: String
     public let severity: WarningSeverityLevel
 
-    public var tag: String { "rwpm" }
+    public var tag: String {
+        "rwpm"
+    }
 }

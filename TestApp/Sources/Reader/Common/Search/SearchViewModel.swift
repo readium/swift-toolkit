@@ -8,21 +8,21 @@ import Foundation
 import ReadiumOPDS
 import ReadiumShared
 
-// See https://github.com/readium/r2-testapp-swift/discussions/402
+/// See https://github.com/readium/r2-testapp-swift/discussions/402
 @MainActor
 final class SearchViewModel: ObservableObject {
     enum State {
-        // Empty state / waiting for a search query
+        /// Empty state / waiting for a search query
         case empty
-        // Starting a new search, after calling `publication.search(...)`
+        /// Starting a new search, after calling `publication.search(...)`
         case starting
-        // Waiting state after receiving a SearchIterator and waiting for a next() call
+        /// Waiting state after receiving a SearchIterator and waiting for a next() call
         case idle(SearchIterator)
-        // Loading the next page of result
+        /// Loading the next page of result
         case loadingNext(SearchIterator, Task<Void, Never>)
-        // We reached the end of the search results
+        /// We reached the end of the search results
         case end
-        // An error occurred, we need to show it to the user
+        /// An error occurred, we need to show it to the user
         case failure(SearchError)
     }
 

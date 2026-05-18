@@ -9,8 +9,10 @@ import Foundation
 /// Default implementation of ``FormatSniffer`` guessing as well as possible all
 /// formats known by Readium.
 public final class DefaultFormatSniffer: CompositeFormatSniffer {
-    /// - Parameter additionalSniffers: Additional sniffers to be used to guess
-    ///   content format.
+    /// - Parameters:
+    ///   - xmlDocumentFactory: Used to parse XML content when sniffing formats that require
+    ///     XML inspection. Defaults to `DefaultXMLDocumentFactory()`.
+    ///   - additionalSniffers: Additional sniffers to be used to guess content format.
     public init(
         xmlDocumentFactory: XMLDocumentFactory = DefaultXMLDocumentFactory(),
         additionalSniffers: [FormatSniffer] = []

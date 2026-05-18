@@ -31,25 +31,25 @@ class DirectoryContainerTests: XCTestCase {
 
     func testGetNonExistingEntry() async throws {
         let container = try await DirectoryContainer(directory: fixtures.url(for: "exploded"))
-        XCTAssertNil(container[AnyURL(path: "unknown")!])
+        XCTAssertNil(try container[XCTUnwrap(AnyURL(path: "unknown"))])
     }
 
     func testEntries() async throws {
         let container = try await DirectoryContainer(directory: fixtures.url(for: "exploded"))
 
-        XCTAssertEqual(container.entries, Set([
-            AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")!,
-            AnyURL(path: "A folder/Sub.folder%/file.txt")!,
-            AnyURL(path: "A folder/wasteland-cover.jpg")!,
-            AnyURL(path: "root.txt")!,
-            AnyURL(path: "uncompressed.jpg")!,
-            AnyURL(path: "uncompressed.txt")!,
+        XCTAssertEqual(container.entries, try Set([
+            XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")),
+            XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt")),
+            XCTUnwrap(AnyURL(path: "A folder/wasteland-cover.jpg")),
+            XCTUnwrap(AnyURL(path: "root.txt")),
+            XCTUnwrap(AnyURL(path: "uncompressed.jpg")),
+            XCTUnwrap(AnyURL(path: "uncompressed.txt")),
         ]))
     }
 
     func testHiddenEntries() async throws {
         let container = try await DirectoryContainer(directory: fixtures.url(for: "exploded"), options: [])
-        XCTAssertTrue(container.entries.contains(AnyURL(path: ".hidden")!))
+        XCTAssertTrue(try container.entries.contains(XCTUnwrap(AnyURL(path: ".hidden"))))
     }
 
     func testResources() async throws {
@@ -65,12 +65,12 @@ class DirectoryContainerTests: XCTestCase {
 
     func testCantGetEntryOutsideRoot() async throws {
         let container = try await DirectoryContainer(directory: fixtures.url(for: "exploded"))
-        XCTAssertNil(container[AnyURL(path: "../test.zip")!])
+        XCTAssertNil(try container[XCTUnwrap(AnyURL(path: "../test.zip"))])
     }
 
     func testReadFullEntry() async throws {
         let container = try await DirectoryContainer(directory: fixtures.url(for: "exploded"))
-        let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file.txt")!])
+        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
         let data = try await entry.read().get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
@@ -80,7 +80,7 @@ class DirectoryContainerTests: XCTestCase {
 
     func testReadRange() async throws {
         let container = try await DirectoryContainer(directory: fixtures.url(for: "exploded"))
-        let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file.txt")!])
+        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
         let data = try await entry.read(range: 14 ..< 20).get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),

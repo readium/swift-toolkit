@@ -65,7 +65,7 @@ class LibraryViewController: UIViewController, Loggable {
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 if case let .failure(error) = completion {
-                    self.libraryDelegate?.presentError(UserError(error), from: self)
+                    self.libraryDelegate?.presentError(error, from: self)
                 }
             } receiveValue: { newBooks in
                 self.books = newBooks
@@ -199,11 +199,11 @@ extension LibraryViewController {
 // MARK: - UIDocumentPickerDelegate.
 
 extension LibraryViewController: UIDocumentPickerDelegate {
-    public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         importFiles(at: urls)
     }
 
-    public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
         importFiles(at: [url])
     }
 
@@ -212,7 +212,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
             do {
                 try await library.importPublications(from: urls, sender: self)
             } catch {
-                libraryDelegate?.presentError(UserError(error), from: self)
+                libraryDelegate?.presentError(error, from: self)
             }
         }
     }
@@ -266,7 +266,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
         return cell
     }
 
-    internal func defaultCover(layout: UICollectionViewFlowLayout?, description: String) -> UITextView {
+    func defaultCover(layout: UICollectionViewFlowLayout?, description: String) -> UITextView {
         let width = layout?.itemSize.width ?? 0
         let height = layout?.itemSize.height ?? 0
         let titleTextView = UITextView(frame: CGRect(x: 0, y: 0, width: width, height: height))
@@ -304,7 +304,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
                 }
                 libraryDelegate.libraryDidSelectPublication(pub, book: book)
             } catch {
-                libraryDelegate.presentError(UserError(error), from: self)
+                libraryDelegate.presentError(error, from: self)
             }
         }
     }
@@ -324,7 +324,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
                 do {
                     try await self.library.remove(book)
                 } catch {
-                    self.libraryDelegate?.presentError(UserError(error), from: self)
+                    self.libraryDelegate?.presentError(error, from: self)
                 }
             }
         })
@@ -347,13 +347,13 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
                 pubMetadataViewController.modalPresentationStyle = .popover
                 self.navigationController?.pushViewController(pubMetadataViewController, animated: true)
             } catch {
-                libraryDelegate?.presentError(UserError(error), from: self)
+                libraryDelegate?.presentError(error, from: self)
             }
         }
     }
 
-    // Used to reset ui of the last flipped cell, we must not have two cells
-    // flipped at the same time
+    /// Used to reset ui of the last flipped cell, we must not have two cells
+    /// flipped at the same time
     func cellFlipped(_ cell: PublicationCollectionViewCell) {
         lastFlippedCell?.flipMenu()
         lastFlippedCell = cell

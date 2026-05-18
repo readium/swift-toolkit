@@ -56,7 +56,7 @@ class MetadataTests: XCTestCase {
     }
 
     func testReadingProgressionDefaultsToAuto() {
-        XCTAssertEqual(try Metadata(json: ["title": "t"]).readingProgression, .auto)
+        XCTAssertEqual(try Metadata(json: ["title": "t"])?.readingProgression, .auto)
         XCTAssertEqual(Metadata(title: "t").readingProgression, .auto)
     }
 
@@ -112,13 +112,13 @@ class MetadataTests: XCTestCase {
                 ],
                 "other-metadata1": "value",
                 "other-metadata2": [42],
-            ] as [String: Any]),
+            ] as JSONValue),
             fullMetadata
         )
     }
 
     func testParseInvalidJSON() {
-        XCTAssertThrowsError(try Metadata(json: [] as [Any]))
+        XCTAssertThrowsError(try Metadata(json: [] as JSONValue))
     }
 
     func testParseJSONWithSingleProfile() {
@@ -153,21 +153,21 @@ class MetadataTests: XCTestCase {
 
     func testParseJSONRequiresPositiveDuration() {
         XCTAssertEqual(
-            try? Metadata(json: ["title": "t", "duration": -20] as [String: Any]),
+            try? Metadata(json: ["title": "t", "duration": -20] as JSONValue),
             Metadata(title: "t")
         )
     }
 
     func testParseJSONRequiresPositiveNumberOfPages() {
         XCTAssertEqual(
-            try? Metadata(json: ["title": "t", "numberOfPages": -20] as [String: Any]),
+            try? Metadata(json: ["title": "t", "numberOfPages": -20] as JSONValue),
             Metadata(title: "t")
         )
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(
-            Metadata(title: "Title").json,
+        XCTAssertEqual(
+            Metadata(title: "Title").jsonObject,
             [
                 "title": "Title",
                 "readingProgression": "auto",
@@ -176,8 +176,8 @@ class MetadataTests: XCTestCase {
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
-            fullMetadata.json,
+        XCTAssertEqual(
+            fullMetadata.jsonObject,
             [
                 "identifier": "1234",
                 "@type": "epub",
@@ -226,7 +226,7 @@ class MetadataTests: XCTestCase {
                 ],
                 "other-metadata1": "value",
                 "other-metadata2": [42],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 

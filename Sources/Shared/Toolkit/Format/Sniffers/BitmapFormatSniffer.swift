@@ -23,6 +23,9 @@ public class BitmapFormatSniffer: FormatSniffer {
         if hints.hasFileExtension("jpg", "jpeg", "jpe", "jif", "jfif", "jfi") || hints.hasMediaType("image/jpeg") {
             return Format(specifications: .jpeg, mediaType: .jpeg, fileExtension: "jpg")
         }
+        if hints.hasFileExtension("jxl") || hints.hasMediaType("image/jxl") {
+            return Format(specifications: .jxl, mediaType: .jxl, fileExtension: "jxl")
+        }
         if hints.hasFileExtension("png") || hints.hasMediaType("image/png") {
             return Format(specifications: .png, mediaType: .png, fileExtension: "png")
         }

@@ -42,11 +42,10 @@ public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
                 continuation.resume(returning: passphrase)
             }
 
-            let navController = UINavigationController(rootViewController: dialogViewController)
-            navController.modalPresentationStyle = modalPresentationStyle
-            navController.modalTransitionStyle = modalTransitionStyle
+            dialogViewController.modalPresentationStyle = modalPresentationStyle
+            dialogViewController.modalTransitionStyle = modalTransitionStyle
 
-            viewController.present(navController, animated: animated)
+            viewController.present(dialogViewController, animated: animated)
         }
     }
 }

@@ -8,8 +8,8 @@ import Foundation
 import ReadiumFuzi
 import ReadiumShared
 
-// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
-// the six basic values of the "title-type" property specified by EPUB 3:
+/// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type
+/// the six basic values of the "title-type" property specified by EPUB 3:
 public enum EPUBTitleType: String {
     case main
     case subtitle
@@ -17,13 +17,6 @@ public enum EPUBTitleType: String {
     case collection
     case edition
     case expanded
-}
-
-public enum OPFParserError: Error {
-    /// The Epub have no title. Title is mandatory.
-    case missingPublicationTitle
-    /// Smile resource couldn't be parsed.
-    case invalidSmilResource
 }
 
 /// EpubParser support class, able to parse the OPF package document.
@@ -34,6 +27,7 @@ final class OPFParser: Loggable {
         let id: String
         let link: Link
         let fallbackId: String?
+        let mediaOverlayId: String?
     }
 
     /// Relative path to the OPF in the EPUB container
@@ -202,21 +196,27 @@ final class OPFParser: Loggable {
 
         var properties = parseStringProperties(stringProperties)
 
-        if let encryption = encryptions[href]?.json, !encryption.isEmpty {
-            properties["encrypted"] = encryption
+        if let encryption = encryptions[href]?.jsonObject, !encryption.isEmpty {
+            properties["encrypted"] = .object(encryption)
         }
+
+        let duration = metas["duration", in: .media, refining: id]
+            .first
+            .flatMap { SMILParser.parseClockValue($0.content) }
 
         let link = Link(
             href: href.string,
             mediaType: manifestItem.attr("media-type").flatMap { MediaType($0) },
             rels: rels,
-            properties: Properties(properties)
+            properties: Properties(properties),
+            duration: duration
         )
 
         return ManifestItem(
             id: id,
             link: link,
-            fallbackId: manifestItem.attr("fallback")
+            fallbackId: manifestItem.attr("fallback"),
+            mediaOverlayId: manifestItem.attr("media-overlay")
         )
     }
 
@@ -263,6 +263,14 @@ final class OPFParser: Loggable {
                 )
             }
 
+            if
+                let mediaOverlayId = item.mediaOverlayId,
+                let mediaOverlayIndex = items.firstIndex(where: { $0.id == mediaOverlayId && $0.link.mediaType?.matches(.smil) == true })
+            {
+                let mediaOverlayItem = items.remove(at: mediaOverlayIndex)
+                spineLink.alternates.append(mediaOverlayItem.link)
+            }
+
             readingOrder.append(spineLink)
         }
 
@@ -271,7 +279,7 @@ final class OPFParser: Loggable {
     }
 
     /// Parse string properties into an `otherProperties` dictionary.
-    private func parseStringProperties(_ properties: [String]) -> [String: Any] {
+    private func parseStringProperties(_ properties: [String]) -> [String: JSONValue] {
         var contains: [String] = []
         var page: Properties.Page?
 
@@ -302,12 +310,12 @@ final class OPFParser: Loggable {
             }
         }
 
-        var otherProperties: [String: Any] = [:]
+        var otherProperties: [String: JSONValue] = [:]
         if !contains.isEmpty {
-            otherProperties["contains"] = contains
+            otherProperties["contains"] = .array(contains.map { .string($0) })
         }
-        if let page = page {
-            otherProperties["page"] = page.rawValue
+        if let jsonPage = page?.jsonValue {
+            otherProperties["page"] = jsonPage
         }
 
         return otherProperties

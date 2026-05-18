@@ -22,8 +22,7 @@ To find out which Navigator is compatible with a publication, refer to its [prof
 if publication.conforms(to: .epub) {
     let navigator = try EPUBNavigatorViewController(
         publication: publication,
-        initialLocation: lastReadLocation,
-        httpServer: GCDHTTPServer.shared
+        initialLocation: lastReadLocation
     )
 
     hostViewController.present(navigator, animated: true)
@@ -54,7 +53,7 @@ Navigators enabling users to select parts of the content implement `SelectableNa
 
 A Decorable Navigator is able to render decorations over a publication, such as highlights or margin icons.
 
-[See the corresponding proposal for more information](https://readium.org/architecture/proposals/008-decorator-api.html).
+To implement user highlights in your app, see the [Highlights guide](Highlights.md). For a deeper look at the API or to build a custom decoration style, see the [Decorations guide](Decorations.md).
 
 ## Instantiating a Navigator
 
@@ -65,15 +64,11 @@ The Visual Navigators are implemented as `UIViewController` and must be added to
 ```swift
 let navigator = try EPUBNavigatorViewController(
     publication: publication,
-    initialLocation: lastReadLocation,
-    httpServer: GCDHTTPServer.shared
+    initialLocation: lastReadLocation
 )
 
 hostViewController.present(navigator, animated: true)
 ```
-
-> [!NOTE]
-> The HTTP server is used to serve the publication resources to the Navigator. You may use your own implementation, or the recommended `GCDHTTPServer` which is part of the `ReadiumAdapterGCDWebServer` package.
 
 ### Audio Navigator
 
@@ -107,17 +102,17 @@ You can observe the current position in the publication by implementing a `Navig
 ```swift
 navigator.delegate = MyNavigatorDelegate()
 
-class MyNavigatorDelegate: NavigatorDelegate {
+@MainActor class MyNavigatorDelegate: NavigatorDelegate {
 
-    override func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
+    func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
         if let position = locator.locations.position {
-            print("At position \(position) on \(publication.positions.count)")
+            print("At position \(position)")
         }
         if let progression = locator.locations.progression {
-            return "Progression in the current resource: \(progression)%"
+            print("Progression in the current resource: \(progression.formatted(.percent))")
         }
         if let totalProgression = locator.locations.totalProgression {
-            return "Total progression in the publication: \(progression)%"
+            print("Total progression in the publication: \(totalProgression.formatted(.percent))")
         }
 
         // Save the position in your bookshelf database
@@ -129,12 +124,11 @@ class MyNavigatorDelegate: NavigatorDelegate {
 The `Locator` object may be serialized to JSON in your database, and deserialized to set the initial location when creating the navigator.
 
 ```swift
-let lastReadLocation = Locator(jsonString: dabase.lastReadLocation())
+let lastReadLocation = try? Locator(jsonString: database.lastReadLocation())
 
 let navigator = try EPUBNavigatorViewController(
     publication: publication,
-    initialLocation: lastReadLocation,
-    httpServer: GCDHTTPServer.shared
+    initialLocation: lastReadLocation
 )
 ```
 
@@ -151,8 +145,8 @@ To display a percentage-based progression slider, use the `locations.totalProgre
 Given a progression from 0 to 1, you can obtain a `Locator` object from the `Publication`. This can be used to navigate to a specific percentage within the publication.
 
 ```swift
-if let locator = publication.locate(progression: 0.5) {
-    navigator.go(to: locator)
+if let locator = await publication.locate(progression: 0.5) {
+    await navigator.go(to: locator)
 }
 ```
 
@@ -161,9 +155,7 @@ if let locator = publication.locate(progression: 0.5) {
 > [!NOTE]
 > Readium does not have the concept of pages, as they are not useful when dealing with reflowable publications across different screen sizes. Instead, we use [**positions**](https://readium.org/architecture/models/locators/positions/) which remain stable even when the user changes the font size or device.
 
-Not all Navigators provide positions, but most `VisualNavigator` implementations do. Verify if `publication.positions` is not empty to determine if it is supported.
-
-To find the total positions in the publication, use `publication.positions.count`. You can get the current position with `navigator.currentLocation?.locations.position`.
+Not all Navigators provide positions, but most `VisualNavigator` implementations do. To find the total positions in the publication, use `try await publication.positions().get().count`. You can get the current position with `navigator.currentLocation?.locations.position`.
 
 ## Navigating with edge taps and keyboard arrows
 
@@ -175,7 +167,7 @@ Bind it to your `Navigator` instance before adding your own input observers, so 
 DirectionalNavigationAdapter().bind(to: navigator)
 
 // Toggle the navigation bar when the user taps outside the edge zones.
-navigator.addObserver(.tap { [weak self] _ in
+token = navigator.addObserver(.tap { [weak self] _ in
     self?.toggleNavigationBar()
     return true
 })

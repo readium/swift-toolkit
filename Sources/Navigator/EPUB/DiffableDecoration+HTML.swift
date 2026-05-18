@@ -34,9 +34,9 @@ extension DecorationChange {
                 EPUBNavigatorViewController.log(.error, "Decoration style not registered: \(decoration.style.id)")
                 return nil
             }
-            var json = decoration.json
-            json["element"] = style.element(decoration)
-            guard let jsonString = serializeJSONString(json) else {
+            var json = decoration.jsonObject
+            json["element"] = .string(style.element(decoration))
+            guard let jsonString = try? json.jsonString() else {
                 EPUBNavigatorViewController.log(.error, "Can't serialize decoration to JSON: \(json)")
                 return nil
             }

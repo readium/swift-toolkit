@@ -1,29 +1,35 @@
-///
-///  DataCompression
-///
-///  A libcompression wrapper as an extension for the `Data` type
-///  (GZIP, ZLIB, LZFSE, LZMA, LZ4, deflate, RFC-1950, RFC-1951, RFC-1952)
-///
-///  Created by Markus Wanke, 2016/12/05
-///
+//
+//  Copyright 2026 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
 
-///
-///                Apache License, Version 2.0
-///
-///  Copyright 2016, Markus Wanke
-///
-///  Licensed under the Apache License, Version 2.0 (the "License");
-///  you may not use this file except in compliance with the License.
-///  You may obtain a copy of the License at
-///
-///  http://www.apache.org/licenses/LICENSE-2.0
-///
-///  Unless required by applicable law or agreed to in writing, software
-///  distributed under the License is distributed on an "AS IS" BASIS,
-///  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-///  See the License for the specific language governing permissions and
-///  limitations under the License.
-///
+//
+//  DataCompression
+//
+//  A libcompression wrapper as an extension for the `Data` type
+//  (GZIP, ZLIB, LZFSE, LZMA, LZ4, deflate, RFC-1950, RFC-1951, RFC-1952)
+//
+//  Created by Markus Wanke, 2016/12/05
+//
+
+//
+//                Apache License, Version 2.0
+//
+//  Copyright 2016, Markus Wanke
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//  http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
 
 import Compression
 import Foundation
@@ -210,11 +216,15 @@ public extension Data {
                 }
             }
             if has_fname {
-                while pos < limit, ptr[pos] != 0x0 { pos += 1 }
+                while pos < limit, ptr[pos] != 0x0 {
+                    pos += 1
+                }
                 pos += 1 // skip null byte as well
             }
             if has_cmmnt {
-                while pos < limit, ptr[pos] != 0x0 { pos += 1 }
+                while pos < limit, ptr[pos] != 0x0 {
+                    pos += 1
+                }
                 pos += 1 // skip null byte as well
             }
             if has_crc16 {
@@ -255,7 +265,7 @@ public struct Crc32: CustomStringConvertible {
 
     public init() {}
 
-    // C convention function pointer type matching the signature of `libz::crc32`
+    /// C convention function pointer type matching the signature of `libz::crc32`
     private typealias ZLibCrc32FuncPtr = @convention(c) (
         _ cks: UInt32,
         _ buf: UnsafePointer<UInt8>,
@@ -344,7 +354,7 @@ public struct Adler32: CustomStringConvertible {
 
     public init() {}
 
-    // C convention function pointer type matching the signature of `libz::adler32`
+    /// C convention function pointer type matching the signature of `libz::adler32`
     private typealias ZLibAdler32FuncPtr = @convention(c) (
         _ cks: UInt32,
         _ buf: UnsafePointer<UInt8>,
@@ -398,8 +408,7 @@ public struct Adler32: CustomStringConvertible {
 }
 
 private extension Data {
-    func withUnsafeBytes<ResultType, ContentType>(_ body: (UnsafePointer<ContentType>) throws -> ResultType) rethrows -> ResultType
-    {
+    func withUnsafeBytes<ResultType, ContentType>(_ body: (UnsafePointer<ContentType>) throws -> ResultType) rethrows -> ResultType {
         try withUnsafeBytes { (rawBufferPointer: UnsafeRawBufferPointer) -> ResultType in
             try body(rawBufferPointer.bindMemory(to: ContentType.self).baseAddress!)
         }
@@ -419,8 +428,7 @@ private extension Data.CompressionAlgorithm {
 
 private typealias Config = (operation: compression_stream_operation, algorithm: compression_algorithm)
 
-private func perform(_ config: Config, source: UnsafePointer<UInt8>, sourceSize: Int, preload: Data = Data()) -> Data?
-{
+private func perform(_ config: Config, source: UnsafePointer<UInt8>, sourceSize: Int, preload: Data = Data()) -> Data? {
     guard config.operation == COMPRESSION_STREAM_ENCODE || sourceSize > 0 else { return nil }
 
     let streamBase = UnsafeMutablePointer<compression_stream>.allocate(capacity: 1)

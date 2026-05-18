@@ -37,7 +37,7 @@ This is an expensive operation, proceed with caution and cache the result if you
 The individual `Content` elements can be iterated through with a regular `for` loop by converting it to a sequence:
 
 ```swift
-for (element in content.sequence()) {
+for element in content.sequence() {
     // Process element
 }
 ```

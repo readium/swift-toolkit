@@ -122,6 +122,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     ///   - additionalHeaders: A dictionary of additional headers to send with requests. For example, `User-Agent`.
     ///   - requestTimeout: The timeout interval to use when waiting for additional data.
     ///   - resourceTimeout: The maximum amount of time that a resource request should be allowed to take.
+    ///   - delegate: An optional delegate to handle common HTTP events.
     ///   - configure: Callback used to configure further the `URLSessionConfiguration` object.
     public convenience init(
         userAgent: String? = nil,
@@ -151,7 +152,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         self.init(configuration: config, userAgent: userAgent, delegate: delegate)
     }
 
-    public weak var delegate: DefaultHTTPClientDelegate? = nil
+    public weak var delegate: DefaultHTTPClientDelegate?
 
     private let tasks: HTTPTaskManager
     private let session: URLSession
@@ -160,7 +161,9 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     /// Creates a `DefaultHTTPClient` with a custom configuration.
     ///
     /// - Parameters:
+    ///   - configuration: The `URLSessionConfiguration` to use for all requests.
     ///   - userAgent: Default user agent issued with requests.
+    ///   - delegate: An optional delegate to handle common HTTP events.
     public init(
         configuration: URLSessionConfiguration,
         userAgent: String? = nil,
@@ -290,7 +293,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
 
         // MARK: - URLSessionDataDelegate
 
-        public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
             guard let task = findTask(for: dataTask) else {
                 completionHandler(.cancel)
                 return
@@ -298,11 +301,11 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             task.urlSession(session, didReceive: response, completionHandler: completionHandler)
         }
 
-        public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
             findTask(for: dataTask)?.urlSession(session, didReceive: data)
         }
 
-        public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
             findTask(for: task)?.urlSession(session, didCompleteWithError: error)
         }
 
@@ -403,9 +406,14 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 continuation.resume(returning: .success(response))
 
             case let .failure(continuation, error):
-                var errorDescription = ""
-                dump(error, to: &errorDescription)
-                log(.error, "\(request.method) \(request.url) failed with:\n\(errorDescription)")
+                if case .cancelled = error {
+                    // no-op
+                } else {
+                    var errorDescription = ""
+                    dump(error, to: &errorDescription)
+                    log(.error, "\(request.method) \(request.url) failed with:\n\(errorDescription)")
+                }
+
                 continuation.resume(returning: .failure(error))
 
             case .initializing, .finished:
@@ -486,7 +494,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 if case .failure = state {
                     // No-op, we don't want to overwrite the failure state in this case.
                 } else if let continuation = state.continuation {
-                    state = .failure(continuation: continuation, error: HTTPError(error: error))
+                    state = .failure(continuation: continuation, error: .wrap(error) ?? .other(error))
                 } else {
                     state = .finished
                 }
@@ -508,35 +516,6 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                     completion(.rejectProtectionSpace, nil)
                 }
             }
-        }
-    }
-}
-
-private extension HTTPError {
-    /// Maps a native `URLError` to `HTTPError`.
-    init(error: Error) {
-        switch error {
-        case let error as URLError:
-            switch error.code {
-            case .httpTooManyRedirects, .redirectToNonExistentLocation:
-                self = .redirection(error)
-            case .secureConnectionFailed, .clientCertificateRejected, .clientCertificateRequired, .appTransportSecurityRequiresSecureConnection, .userAuthenticationRequired:
-                self = .security(error)
-            case .badServerResponse, .zeroByteResource, .cannotDecodeContentData, .cannotDecodeRawData, .dataLengthExceedsMaximum:
-                self = .malformedResponse(error)
-            case .notConnectedToInternet, .networkConnectionLost:
-                self = .offline(error)
-            case .cannotConnectToHost, .cannotFindHost:
-                self = .unreachable(error)
-            case .timedOut:
-                self = .timeout(error)
-            case .cancelled, .userCancelledAuthentication:
-                self = .cancelled
-            default:
-                self = .other(error)
-            }
-        default:
-            self = .other(error)
         }
     }
 }

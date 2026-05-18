@@ -34,7 +34,7 @@ class ZIPFoundationContainerTests: XCTestCase {
 
     func testGetNonExistingEntry() async throws {
         let container = try await container(for: "test.zip")
-        XCTAssertNil(container[AnyURL(path: "unknown")!])
+        XCTAssertNil(try container[XCTUnwrap(AnyURL(path: "unknown"))])
     }
 
     func testEntries() async throws {
@@ -42,14 +42,14 @@ class ZIPFoundationContainerTests: XCTestCase {
 
         XCTAssertEqual(
             container.entries,
-            Set([
-                AnyURL(path: ".hidden")!,
-                AnyURL(path: "A folder/Sub.folder%/file.txt")!,
-                AnyURL(path: "A folder/wasteland-cover.jpg")!,
-                AnyURL(path: "root.txt")!,
-                AnyURL(path: "uncompressed.jpg")!,
-                AnyURL(path: "uncompressed.txt")!,
-                AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")!,
+            try Set([
+                XCTUnwrap(AnyURL(path: ".hidden")),
+                XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt")),
+                XCTUnwrap(AnyURL(path: "A folder/wasteland-cover.jpg")),
+                XCTUnwrap(AnyURL(path: "root.txt")),
+                XCTUnwrap(AnyURL(path: "uncompressed.jpg")),
+                XCTUnwrap(AnyURL(path: "uncompressed.txt")),
+                XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")),
             ])
         )
     }
@@ -68,16 +68,16 @@ class ZIPFoundationContainerTests: XCTestCase {
 
     func testReadCompressedEntry() async throws {
         let container = try await container(for: "test.zip")
-        let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")!])
+        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
         let data = try await entry.read().get()
-        let string = String(data: data, encoding: .utf8)!
+        let string = try XCTUnwrap(String(data: data, encoding: .utf8))
         XCTAssertEqual(string.count, 29609)
         XCTAssertTrue(string.hasPrefix("I'm inside\nthe ZIP."))
     }
 
     func testReadUncompressedEntry() async throws {
         let container = try await container(for: "test.zip")
-        let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file.txt")!])
+        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
         let data = try await entry.read().get()
         XCTAssertNotNil(data)
         XCTAssertEqual(
@@ -88,7 +88,7 @@ class ZIPFoundationContainerTests: XCTestCase {
 
     func testReadUncompressedRange() async throws {
         let container = try await container(for: "test.zip")
-        let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file.txt")!])
+        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
         let data = try await entry.read(range: 14 ..< 20).get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
@@ -98,7 +98,7 @@ class ZIPFoundationContainerTests: XCTestCase {
 
     func testReadCompressedRange() async throws {
         let container = try await container(for: "test.zip")
-        let entry = try XCTUnwrap(container[AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")!])
+        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
         let data = try await entry.read(range: 14 ..< 20).get()
         XCTAssertEqual(
             String(data: data, encoding: .utf8),
@@ -109,7 +109,7 @@ class ZIPFoundationContainerTests: XCTestCase {
     func testRandomCompressedRead() async throws {
         for _ in 0 ..< 100 {
             let container = try await container(for: "test.zip")
-            let entry = try XCTUnwrap(container[AnyURL(path: "A folder/wasteland-cover.jpg")!])
+            let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/wasteland-cover.jpg"))])
             let length: UInt64 = 103_477
             let lower = UInt64.random(in: 0 ..< length - 100)
             let upper = UInt64.random(in: lower ..< length)
@@ -121,7 +121,7 @@ class ZIPFoundationContainerTests: XCTestCase {
     func testRandomStoredRead() async throws {
         for _ in 0 ..< 100 {
             let container = try await container(for: "test.zip")
-            let entry = try XCTUnwrap(container[AnyURL(path: "uncompressed.jpg")!])
+            let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "uncompressed.jpg"))])
             let length: UInt64 = 279_551
             let lower = UInt64.random(in: 0 ..< length - 100)
             let upper = UInt64.random(in: lower ..< length)

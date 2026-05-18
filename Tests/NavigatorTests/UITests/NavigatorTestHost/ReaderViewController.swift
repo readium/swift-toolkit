@@ -18,7 +18,7 @@ class ReaderViewController: UIViewController {
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
-        fatalError("init?(coder: NSCoder) not implemented")
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func viewDidLoad() {
@@ -35,10 +35,6 @@ class ReaderViewController: UIViewController {
 
 struct ReaderViewControllerWrapper: UIViewControllerRepresentable {
     let navigator: VisualNavigator & UIViewController
-
-    init(navigator: VisualNavigator & UIViewController) {
-        self.navigator = navigator
-    }
 
     func makeUIViewController(context: Context) -> ReaderViewController {
         ReaderViewController(navigator: navigator)

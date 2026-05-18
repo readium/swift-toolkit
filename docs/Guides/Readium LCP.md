@@ -173,15 +173,27 @@ A file required by the LCP library needs to be downloaded from an insecure HTTP 
 </dict>
 ```
 
+### Device name for LCP registration
+
+When registering a license with an LSD server, Readium LCP identifies the device by name using `UIDevice.current.name`. Since iOS 16, this returns a generic string such as "iPhone" instead of the user-assigned device name.
+
+To obtain the actual device name, add the [`com.apple.developer.device-information.user-assigned-device-name`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name) entitlement to your app's `.entitlements` file. This entitlement requires approval from Apple.
+
+```xml
+<key>com.apple.developer.device-information.user-assigned-device-name</key>
+<true/>
+```
+
+Alternatively, you can supply your own device name when initializing `LCPService` via the `deviceName` parameter.
+
 ## Initializing the `LCPService`
 
 `ReadiumLCP` offers an `LCPService` object that exposes its API. Since the `ReadiumLCP` package is not linked with `R2LCPClient`, you need to create your own adapter when setting up the `LCPService`.
 
-The `LCPService` expects repositories to store the opened licenses and passphrases. While you can implement your own persistence layer, the `ReadiumAdapterLCPSQLite` module provides default implementations based on an SQLite database.
+The `LCPService` expects repositories to store the opened licenses and passphrases. `ReadiumLCP` provides built-in Keychain-based implementations that store data securely in the iOS/macOS Keychain. Unlike database-based storage, Keychain data persists across app reinstalls and can optionally be synchronized across the user's devices via iCloud Keychain.
 
 ```swift
 import R2LCPClient
-import ReadiumAdapterLCPSQLite
 import ReadiumLCP
 
 let httpClient = DefaultHTTPClient()
@@ -192,8 +204,8 @@ let assetRetriever = AssetRetriever(
 
 let lcpService = LCPService(
     client: LCPClientAdapter(),
-    licenseRepository: try LCPSQLiteLicenseRepository(),
-    passphraseRepository: try LCPSQLitePassphraseRepository(),
+    licenseRepository: LCPKeychainLicenseRepository(),
+    passphraseRepository: LCPKeychainPassphraseRepository(),
     assetRetriever: assetRetriever,
     httpClient: httpClient
 )
@@ -214,6 +226,10 @@ class LCPClientAdapter: ReadiumLCP.LCPClient {
 }
 ```
 
+To disable iCloud synchronization, pass `synchronizable: false` when creating the repositories.
+
+You may also implement your own persistence layer by conforming to `LCPLicenseRepository` and `LCPPassphraseRepository`.
+
 ## Acquiring a publication from a License Document (LCPL)
 
 Users need to import a License Document into your application to download the protected publication (`.epub`, `.lcpdf`, or `.lcpa`).
@@ -221,8 +237,8 @@ Users need to import a License Document into your application to download the pr
 The `LCPService` offers an API to retrieve the full publication from an LCPL on the filesystem.
 
 ```swift
-let acquisition = lcpService.acquirePublication(
-    from: lcplURL,
+let result = await lcpService.acquirePublication(
+    from: .file(lcplURL),
     onProgress: { progress in
         switch progress {
             case .indefinite:
@@ -230,21 +246,16 @@ let acquisition = lcpService.acquirePublication(
             case .percent(let percent):
                 // Display a progress bar with percent from 0 to 1.
         }
-    },
-    completion: { result in
-        switch result {
-        case let .success(publication):
-            // Import the `publication.localURL` file as any publication.
-        case let .failure(error):
-            // Display the error message
-        case .cancelled:
-            // The acquisition was cancelled before completion.
-        }
     }
 )
-```
 
-If the user wants to cancel the download, call `cancel()` on the object returned by `LCPService.acquirePublication()`.
+switch result {
+case let .success(publication):
+    // Import the `publication.localURL` file as any publication.
+case let .failure(error):
+    // Display the error message.
+}
+```
 
 After the download is completed, import the `publication.localURL` file into the bookshelf like any other publication file.
 
@@ -305,7 +316,7 @@ The `allowUserInteraction` and `sender` arguments are forwarded to the `LCPAuthe
 When importing the publication to the bookshelf, set `allowUserInteraction` to `false` as you don't need the passphrase for accessing the publication metadata and cover. If you intend to present the publication using a Navigator, set `allowUserInteraction` to `true` as decryption will be required.
 
 > [!TIP]
-> To check if a publication is protected with LCP before opening it, you can use `LCPService.isLCPProtected()`.
+> To check if an asset is protected with LCP before opening it, you can use `asset.format.conformsTo(.lcp)`.
 
 ### Using the opened `Publication`
 
@@ -367,36 +378,30 @@ An LCP License Document contains metadata such as its expiration date, the remai
 Use the `LCPService` to retrieve the `LCPLicense` instance for a publication.
 
 ```swift
-lcpService.retrieveLicense(
-    from: publicationURL,
+let result = await lcpService.retrieveLicense(
+    from: asset,
     authentication: LCPDialogAuthentication(),
     allowUserInteraction: true,
     sender: hostViewController
-) { result in
-    switch result {
-    case .success(let lcpLicense):
-        if let lcpLicense = lcpLicense {
-            if let user = lcpLicense.license.user.name {
-                print("The publication was acquired by \(user)")
-            }
-            if let endDate = lcpLicense.license.rights.end {
-                print("The loan expires on \(endDate)")
-            }
-            if let copyLeft = lcpLicense.charactersToCopyLeft {
-                print("You can copy up to \(copyLeft) characters remaining.")
-            }
-        } else {
-            // The file was not protected by LCP.
-        }
-    case .failure(let error):
-        // Display the error.
-    case .cancelled:
-        // The operation was cancelled.
+)
+
+switch result {
+case .success(let lcpLicense):
+    if let user = lcpLicense.license.user.name {
+        print("The publication was acquired by \(user)")
     }
+    if let endDate = lcpLicense.license.rights.end {
+        print("The loan expires on \(endDate)")
+    }
+    if let copyLeft = await lcpLicense.charactersToCopyLeft() {
+        print("You can copy up to \(copyLeft) characters remaining.")
+    }
+case .failure(let error):
+    // Display the error.
 }
 ```
 
-If you have already opened a `Publication` with the `Streamer`, you can directly obtain the `LCPLicense` using `publication.lcpLicense`.
+If you have already opened a `Publication` with the `PublicationOpener`, you can directly obtain the `LCPLicense` using `publication.lcpLicense`.
 
 ## Managing a loan
 
@@ -407,12 +412,12 @@ Readium LCP allows borrowing publications for a specific period. Use the `LCPLic
 Some loans can be returned before the end date. You can confirm this by using `lcpLicense.canReturnPublication`. To return the publication, execute:
 
 ```swift
-lcpLicense.returnPublication { error in
-    if let error = error {
-        // Present the error.
-    } else {
-        // The publication was returned.
-    }
+let result = await lcpLicense.returnPublication()
+switch result {
+case .success:
+    // The publication was returned.
+case .failure(let error):
+    // Present the error.
 }
 ```
 
@@ -428,17 +433,17 @@ Readium LCP supports [two types of renewal interactions](https://readium.org/lcp
 You need to support both interactions by implementing the `LCPRenewDelegate` protocol. A default implementation is available with `LCPDefaultRenewDelegate`.
 
 ```swift
-lcpLicense.renewLoan(
+let result = await lcpLicense.renewLoan(
     with: LCPDefaultRenewDelegate(
         presentingViewController: hostViewController
     )
-) { result in
-    switch result {
-    case .success, .cancelled:
-        // The publication was renewed.
-    case let .failure(error):
-        // Display the error.
-    }
+)
+
+switch result {
+case .success:
+    // The publication was renewed.
+case let .failure(error):
+    // Display the error.
 }
 ```
 
@@ -450,7 +455,7 @@ For an example, [take a look at the Test App](https://github.com/readium/swift-t
 
 ## Using the SwiftUI LCP Authentication dialog
 
-If your application is built using SwiftUI, you cannot use `LCPAuthenticationDialog` because it requires a UIKit view controller as its host. Instead, use an `LCPObservableAuthentication` combined with our SwiftUI `LCPDialog` presented as a sheet.
+If your application is built using SwiftUI, you cannot use `LCPDialogAuthentication` because it requires a UIKit view controller as its host. Instead, use an `LCPObservableAuthentication` combined with our SwiftUI `LCPDialog` presented as a sheet.
 
 ```swift
 @main

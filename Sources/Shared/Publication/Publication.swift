@@ -14,14 +14,31 @@ public class Publication: Closeable, Loggable {
     private let container: Container
     private let services: [PublicationService]
 
-    public var context: [String] { manifest.context }
-    public var metadata: Metadata { manifest.metadata }
-    public var links: [Link] { manifest.links }
+    public var context: [String] {
+        manifest.context
+    }
+
+    public var metadata: Metadata {
+        manifest.metadata
+    }
+
+    public var links: [Link] {
+        manifest.links
+    }
+
     /// Identifies a list of resources in reading order for the publication.
-    public var readingOrder: [Link] { manifest.readingOrder }
+    public var readingOrder: [Link] {
+        manifest.readingOrder
+    }
+
     /// Identifies resources that are necessary for rendering the publication.
-    public var resources: [Link] { manifest.resources }
-    public var subcollections: [String: [PublicationCollection]] { manifest.subcollections }
+    public var resources: [Link] {
+        manifest.resources
+    }
+
+    public var subcollections: [String: [PublicationCollection]] {
+        manifest.subcollections
+    }
 
     public init(
         manifest: Manifest,
@@ -49,13 +66,16 @@ public class Publication: Closeable, Loggable {
 
     /// Parses a Readium Web Publication Manifest.
     /// https://readium.org/webpub-manifest/schema/publication.schema.json
-    public convenience init(json: Any, warnings: WarningLogger? = nil) throws {
-        try self.init(manifest: Manifest(json: json, warnings: warnings))
+    public convenience init(json: JSONValue, warnings: WarningLogger? = nil) throws {
+        guard let manifest = try Manifest(json: json, warnings: warnings) else {
+            throw JSONError.parsing(Self.self)
+        }
+        self.init(manifest: manifest)
     }
 
     /// Returns the Readium Web Publication Manifest as JSON.
     public var jsonManifest: String? {
-        serializeJSONString(manifest.json)
+        try? manifest.jsonValue.jsonString()
     }
 
     /// Returns whether this publication conforms to the given Readium Web Publication Profile.
@@ -66,7 +86,9 @@ public class Publication: Closeable, Loggable {
     /// The URL where this publication is served, computed from the `Link` with `self` relation.
     ///
     /// e.g. https://provider.com/pub1293/manifest.json gives https://provider.com/pub1293/
-    public var baseURL: HTTPURL? { manifest.baseURL }
+    public var baseURL: HTTPURL? {
+        manifest.baseURL
+    }
 
     /// Finds the first Link having the given `href` in the publication's links.
     public func linkWithHREF<T: URLConvertible>(_ href: T) -> Link? {
@@ -139,7 +161,7 @@ public class Publication: Closeable, Loggable {
     ///
     /// For a list of supported profiles, see the registry:
     /// https://readium.org/webpub-manifest/profiles/
-    public struct Profile: Hashable, Sendable {
+    public struct Profile: Hashable, RawRepresentable, Sendable {
         public let uri: String
 
         public init(_ uri: String) {
@@ -154,6 +176,16 @@ public class Publication: Closeable, Loggable {
         public static let divina = Profile("https://readium.org/webpub-manifest/profiles/divina")
         /// Profile for PDF documents.
         public static let pdf = Profile("https://readium.org/webpub-manifest/profiles/pdf")
+
+        // MARK: - RawRepresentable
+
+        public var rawValue: String {
+            uri
+        }
+
+        public init(rawValue: String) {
+            self.init(rawValue)
+        }
     }
 
     /// Holds the components of a `Publication` to build it.

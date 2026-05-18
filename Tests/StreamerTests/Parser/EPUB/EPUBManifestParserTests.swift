@@ -21,7 +21,7 @@ class EPUBManifestParserTests: XCTestCase {
 
         XCTAssertEqual(
             manifest,
-            Manifest(
+            try Manifest(
                 metadata: Metadata(
                     identifier: "urn:uuid:7408D53A-5383-40AA-8078-5256C872AE41",
                     conformsTo: [.epub],
@@ -46,25 +46,25 @@ class EPUBManifestParserTests: XCTestCase {
                     description: "The book description.",
                     numberOfPages: 42,
                     otherMetadata: [
-                        "http://purl.org/dc/terms/source": [
-                            "Feedbooks",
-                            [
-                                "@value": "Web",
-                                "http://my.url/#scheme": "http",
-                            ],
-                            "Internet",
-                        ] as [Any],
-                        "http://purl.org/dc/terms/rights": "Public Domain",
-                        "http://idpf.org/epub/vocab/package/#type": "article",
-                        "http://my.url/#customProperty": [
-                            "@value": "Custom property",
-                            "http://my.url/#refine1": "Refine 1",
-                            "http://my.url/#refine2": "Refine 2",
-                        ],
-                        "http://purl.org/dc/terms/format": "application/epub+zip",
-                        "http://www.idpf.org/vocab/rendition/#flow": "scrolled-doc",
-                        "http://www.idpf.org/vocab/rendition/#orientation": "landscape",
-                        "http://www.idpf.org/vocab/rendition/#spread": "both",
+                        "http://purl.org/dc/terms/source": .array([
+                            .string("Feedbooks"),
+                            .object([
+                                "@value": .string("Web"),
+                                "http://my.url/#scheme": .string("http"),
+                            ]),
+                            .string("Internet"),
+                        ]),
+                        "http://purl.org/dc/terms/rights": .string("Public Domain"),
+                        "http://idpf.org/epub/vocab/package/#type": .string("article"),
+                        "http://my.url/#customProperty": .object([
+                            "@value": .string("Custom property"),
+                            "http://my.url/#refine1": .string("Refine 1"),
+                            "http://my.url/#refine2": .string("Refine 2"),
+                        ]),
+                        "http://purl.org/dc/terms/format": .string("application/epub+zip"),
+                        "http://www.idpf.org/vocab/rendition/#flow": .string("scrolled-doc"),
+                        "http://www.idpf.org/vocab/rendition/#orientation": .string("landscape"),
+                        "http://www.idpf.org/vocab/rendition/#spread": .string("both"),
                     ]
                 ),
                 readingOrder: [
@@ -74,7 +74,7 @@ class EPUBManifestParserTests: XCTestCase {
                     link(href: "EPUB/chapter02.xhtml", mediaType: .xhtml),
                 ],
                 resources: [
-                    link(href: "EPUB/fonts/MinionPro.otf", mediaType: MediaType("application/vnd.ms-opentype")!),
+                    link(href: "EPUB/fonts/MinionPro.otf", mediaType: XCTUnwrap(MediaType("application/vnd.ms-opentype"))),
                     link(href: "EPUB/nav.xhtml", mediaType: .xhtml, rels: [.contents]),
                     link(href: "EPUB/style.css", mediaType: .css),
                     link(href: "EPUB/images/alice01a.gif", mediaType: .gif, rels: [.cover]),

@@ -10,7 +10,7 @@ import XCTest
 class PropertiesTests: XCTestCase {
     func testParseMinimalJSON() {
         XCTAssertEqual(
-            try? Properties(json: [:] as [String: Any]),
+            try? Properties(json: [:] as JSONValue),
             Properties()
         )
     }
@@ -20,7 +20,7 @@ class PropertiesTests: XCTestCase {
             try? Properties(json: [
                 "other-property1": "value",
                 "other-property2": [42],
-            ] as [String: Any]),
+            ] as JSONValue),
             Properties([
                 "other-property1": "value",
                 "other-property2": [42],
@@ -33,23 +33,23 @@ class PropertiesTests: XCTestCase {
     }
 
     func testParseJSONAllowsNil() {
-        XCTAssertNil(try Properties(json: nil))
+        XCTAssertNil(try Properties(json: nil as JSONValue?))
     }
 
     func testGetMinimalJSON() {
-        AssertJSONEqual(Properties().json, [:] as [String: Any])
+        XCTAssertEqual(Properties().jsonObject, [:] as [String: JSONValue])
     }
 
     func testGetFullJSON() {
-        AssertJSONEqual(
+        XCTAssertEqual(
             Properties([
                 "other-property1": "value",
                 "other-property2": [42],
-            ]).json as Any,
+            ]).jsonObject as [String: JSONValue],
             [
                 "other-property1": "value",
                 "other-property2": [42],
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 
@@ -63,13 +63,13 @@ class PropertiesTests: XCTestCase {
             "other-property1": "override",
         ])
 
-        AssertJSONEqual(
-            properties.json as Any,
+        XCTAssertEqual(
+            properties.jsonObject as [String: JSONValue],
             [
                 "other-property1": "override",
                 "other-property2": [42],
                 "additional": "property",
-            ] as [String: Any]
+            ] as [String: JSONValue]
         )
     }
 
