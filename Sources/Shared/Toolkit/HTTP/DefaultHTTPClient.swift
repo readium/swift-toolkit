@@ -212,7 +212,12 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
                     }
 
                 if case let .failure(error) = result {
-                    delegate?.httpClient(self, request: request, didFailWithError: error)
+                    if case .cancelled = error {
+                        // no-op
+                    } else {
+                        log(.error, "\(request.method) \(request.url) failed with:\n\(error)")
+                        delegate?.httpClient(self, request: request, didFailWithError: error)
+                    }
                 }
 
                 return result
@@ -241,6 +246,8 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
             request.userAgent = userAgent
         }
 
+        log(.info, request)
+
         let taskDelegate = TaskDelegate(
             request: request,
             delegate: delegate,
@@ -265,19 +272,8 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
                 delegate?.httpClient(self, request: request, didReceiveResponse: httpResponse)
 
                 if !httpResponse.status.isSuccess {
-                    let capacity = min(1024 * 1024, Int(httpResponse.fullContentLength ?? 1024))
-                    var errorData = Data()
-
-                    for try await chunk in stream {
-                        if errorData.count < capacity {
-                            errorData.append(chunk)
-                        } else {
-                            task.cancel()
-                            break
-                        }
-                    }
-                    errorData = errorData.prefix(capacity)
-                    return .failure(.errorResponse(HTTPFetchResponse(response: httpResponse, body: errorData)))
+                    let body = try await collectErrorBody(from: stream, task: task, response: httpResponse)
+                    return .failure(.errorResponse(HTTPFetchResponse(response: httpResponse, body: body)))
                 }
 
                 if request.hasHeader("Range"), !httpResponse.acceptsByteRanges {
@@ -319,6 +315,27 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
             }
             return .failure(.wrap(error) ?? .other(error))
         }
+    }
+
+    private let maxErrorBodySize = 1024 * 1024
+    private let defaultErrorBodySize = 1024
+
+    private func collectErrorBody(
+        from stream: AsyncThrowingStream<Data, Error>,
+        task: URLSessionDataTask,
+        response: HTTPResponse
+    ) async throws -> Data {
+        let capacity = min(maxErrorBodySize, Int(response.fullContentLength ?? Int64(defaultErrorBodySize)))
+        var data = Data()
+        for try await chunk in stream {
+            if data.count < capacity {
+                data.append(chunk)
+            } else {
+                task.cancel()
+                break
+            }
+        }
+        return data.prefix(capacity)
     }
 
     private func makeURLRequest(_ request: HTTPRequest) -> URLRequest {
@@ -451,8 +468,10 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
                 }
                 state.withLock { $0.streamContinuation = streamContinuation }
                 responseCont.resume(returning: (stream, response))
+                completionHandler(.allow)
+            } else {
+                completionHandler(.cancel)
             }
-            completionHandler(.allow)
         }
 
         func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
