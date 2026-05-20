@@ -26,7 +26,7 @@ public enum PDFResourceContentIteratorError: Error {
 /// ``PDFDocumentService``.
 public class PDFResourceContentIterator: ContentIterator, Loggable {
     /// Factory for a `PDFResourceContentIterator`.
-    public class Factory: ResourceContentIteratorFactory {
+    public final class Factory: ResourceContentIteratorFactory {
         public init() {}
 
         public func make(

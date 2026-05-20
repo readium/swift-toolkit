@@ -227,7 +227,7 @@ extension CGPDFDocument: PDFDocument {
 
 /// Creates a `PDFDocument` using Core Graphics.
 @available(*, deprecated, renamed: "PDFKitPDFDocumentFactory", message: "The PDFKitPDFDocumentFactory is more capable")
-public class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable {
+public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable {
     public init() {}
 
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
