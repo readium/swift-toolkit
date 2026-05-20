@@ -255,7 +255,7 @@ extension License: LCPLicense {
                 .mapError { error -> RenewError in
                     switch error {
                     case let .errorResponse(response):
-                        switch response.response.status {
+                        switch response.status {
                         case .badRequest:
                             return .renewFailed
                         case .forbidden:
@@ -299,7 +299,7 @@ extension License: LCPLicense {
                 .mapError { error -> ReturnError in
                     switch error {
                     case let .errorResponse(response):
-                        switch response.response.status {
+                        switch response.status {
                         case .badRequest:
                             return .returnFailed
                         case .forbidden:

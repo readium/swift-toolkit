@@ -53,7 +53,7 @@ public actor HTTPResource: Resource {
                 .map { $0.response as HTTPResponse? }
                 .flatMapError { error in
                     switch error {
-                    case let .errorResponse(response) where response.response.status == .methodNotAllowed:
+                    case let .errorResponse(response) where response.status == .methodNotAllowed:
                         return .success(nil)
                     default:
                         return .failure(.access(.http(error)))

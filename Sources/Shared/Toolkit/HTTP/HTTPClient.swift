@@ -372,8 +372,33 @@ public struct HTTPFetchResponse: Equatable, Sendable {
     /// The raw data received in the response body.
     public let body: Data
 
+    /// Media type provided in the `Content-Type` header.
+    public var mediaType: MediaType? {
+        response.mediaType
+    }
+
+    /// HTTP status code returned by the server.
+    public var status: HTTPStatus {
+        response.status
+    }
+
     public init(response: HTTPResponse, body: Data) {
         self.response = response
         self.body = body
+    }
+
+    @available(*, unavailable, renamed: "response.request")
+    public var request: HTTPRequest {
+        response.request
+    }
+
+    @available(*, unavailable, renamed: "response.url")
+    public var url: HTTPURL {
+        response.url
+    }
+
+    @available(*, unavailable, renamed: "response.headers")
+    public var headers: [String: String] {
+        response.headers
     }
 }

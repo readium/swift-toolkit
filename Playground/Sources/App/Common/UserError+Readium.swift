@@ -72,7 +72,7 @@ extension ReadiumShared.HTTPError: UserErrorConvertible {
         case .malformedResponse:
             "Cannot load this content. There's a problem with the server. Please try again later."
         case let .errorResponse(response):
-            switch response.response.status {
+            switch response.status {
             case .unauthorized: "You need to be signed in to access this content."
             case .forbidden: "You don't have permission to access this content."
             case .notFound: "Content not found."
