@@ -25,7 +25,7 @@ struct HTTPRequestTests {
     @Test func setRangeUntilEnd() {
         var request = HTTPRequest(url: url)
 
-        request.setRange(100 ..< 100)
+        request.setRange(100...)
         #expect(request.headers["Range"] == "bytes=100-")
     }
 

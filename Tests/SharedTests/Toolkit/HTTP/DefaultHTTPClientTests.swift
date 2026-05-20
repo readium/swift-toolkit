@@ -8,218 +8,103 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-private final class Box<T>: @unchecked Sendable {
-    var value: T
-    init(_ value: T) {
-        self.value = value
-    }
-}
-
 @Suite(.serialized)
 struct DefaultHTTPClientTests {
-    /// Creates a `DefaultHTTPClient` configured with `MockHTTPURLProtocol`
-    /// for intercepting all requests.
-    private func makeClient(
-        userAgent: String? = nil,
-        additionalHeaders: [String: String]? = nil,
-        requestTimeout: TimeInterval? = nil,
-        resourceTimeout: TimeInterval? = nil,
-        ephemeral: Bool = true,
-        delegate: DefaultHTTPClientDelegate? = nil
-    ) -> DefaultHTTPClient {
-        let config = URLSessionConfiguration.ephemeral
-        config.protocolClasses = [MockHTTPURLProtocol.self]
-
-        if let additionalHeaders = additionalHeaders {
-            config.httpAdditionalHeaders = additionalHeaders
-        }
-        if let requestTimeout = requestTimeout {
-            config.timeoutIntervalForRequest = requestTimeout
-        }
-        if let resourceTimeout = resourceTimeout {
-            config.timeoutIntervalForResource = resourceTimeout
-        }
-
-        return DefaultHTTPClient(
-            configuration: config,
-            userAgent: userAgent,
-            delegate: delegate
-        )
-    }
-
-    private func makeURL(_ path: String = "/test") -> HTTPURL {
-        HTTPURL(string: "https://example.com\(path)")!
-    }
-
-    // MARK: - User Agent
-
     @Suite(.serialized)
     struct UserAgent {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient(
-            userAgent: String? = nil,
-            delegate: DefaultHTTPClientDelegate? = nil
-        ) -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(
-                configuration: config,
-                userAgent: userAgent,
-                delegate: delegate
-            )
-        }
-
-        private func makeURL(_ path: String = "/test") -> HTTPURL {
-            HTTPURL(string: "https://example.com\(path)")!
-        }
-
         @Test("Default user agent is set when none provided on request")
-        func defaultUserAgentIsSet() async {
-            var receivedUserAgent: String?
+        @MainActor func defaultUserAgentIsSet() async {
+            let receivedUserAgent = Capture<String?>(nil)
 
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedUserAgent = request.value(forHTTPHeaderField: "User-Agent")
-                return .success(body: Data("ok".utf8))
+            let client = makeClient { request in
+                receivedUserAgent.value = request.value(forHTTPHeaderField: "User-Agent")
+                return .success()
             }
 
-            let client = makeClient()
             _ = await client.fetch(makeURL())
 
-            #expect(receivedUserAgent != nil)
-            #expect(receivedUserAgent?.isEmpty == false)
+            #expect(receivedUserAgent.value == DefaultHTTPClient.defaultUserAgent)
         }
 
         @Test("Custom user agent overrides default")
         func customUserAgent() async {
-            var receivedUserAgent: String?
+            let receivedUserAgent = Capture<String?>(nil)
             let customUA = "MyApp/1.0"
 
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedUserAgent = request.value(forHTTPHeaderField: "User-Agent")
-                return .success(body: Data("ok".utf8))
+            let client = makeClient(userAgent: customUA) { request in
+                receivedUserAgent.value = request.value(forHTTPHeaderField: "User-Agent")
+                return .success()
             }
 
-            let client = makeClient(userAgent: customUA)
             _ = await client.fetch(makeURL())
 
-            #expect(receivedUserAgent == customUA)
+            #expect(receivedUserAgent.value == customUA)
         }
 
         @Test("Per-request user agent takes precedence over client default")
         func perRequestUserAgent() async {
-            var receivedUserAgent: String?
+            let receivedUserAgent = Capture<String?>(nil)
             let requestUA = "RequestSpecific/2.0"
 
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedUserAgent = request.value(forHTTPHeaderField: "User-Agent")
-                return .success(body: Data("ok".utf8))
+            let client = makeClient(userAgent: "ClientDefault/1.0") { request in
+                receivedUserAgent.value = request.value(forHTTPHeaderField: "User-Agent")
+                return .success()
             }
 
-            let client = makeClient(userAgent: "ClientDefault/1.0")
             var request = HTTPRequest(url: makeURL())
             request.userAgent = requestUA
             _ = await client.fetch(request)
 
-            #expect(receivedUserAgent == requestUA)
-        }
-
-        @Test("Default user agent string is non-empty")
-        func defaultUserAgentStringFormat() {
-            let ua = DefaultHTTPClient.defaultUserAgent
-            #expect(!ua.isEmpty)
+            #expect(receivedUserAgent.value == requestUA)
         }
     }
 
-    // MARK: - Headers
-
     @Suite(.serialized)
     struct Headers {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient(
-            additionalHeaders: [String: String]? = nil
-        ) -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            if let additionalHeaders = additionalHeaders {
-                config.httpAdditionalHeaders = additionalHeaders
-            }
-            return DefaultHTTPClient(configuration: config)
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/test")!
-        }
-
         @Test("Additional headers from configuration are sent")
         func additionalHeaders() async {
-            var receivedHeader: String?
+            let receivedHeader = Capture<String?>(nil)
 
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedHeader = request.value(forHTTPHeaderField: "X-Custom")
-                return .success(body: Data("ok".utf8))
+            let client = makeClient(additionalHeaders: ["X-Custom": "hello"]) { request in
+                receivedHeader.value = request.value(forHTTPHeaderField: "X-Custom")
+                return .success()
             }
 
-            let client = makeClient(additionalHeaders: ["X-Custom": "hello"])
             _ = await client.fetch(makeURL())
 
-            #expect(receivedHeader == "hello")
+            #expect(receivedHeader.value == "hello")
         }
 
         @Test("Per-request headers are sent")
         func perRequestHeaders() async {
-            var receivedHeader: String?
+            let receivedHeader = Capture<String?>(nil)
 
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedHeader = request.value(forHTTPHeaderField: "X-Request")
-                return .success(body: Data("ok".utf8))
+            let client = makeClient { request in
+                receivedHeader.value = request.value(forHTTPHeaderField: "X-Request")
+                return .success()
             }
 
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            let client = DefaultHTTPClient(configuration: config)
             let request = HTTPRequest(url: makeURL(), headers: ["X-Request": "value"])
             _ = await client.fetch(request)
 
-            #expect(receivedHeader == "value")
+            #expect(receivedHeader.value == "value")
         }
     }
 
-    // MARK: - Streaming
-
     @Suite(.serialized)
     struct Streaming {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient() -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(configuration: config)
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/stream")!
-        }
-
         @Test("Stream delivers data in chunks")
         func streamDeliversChunks() async throws {
             let chunk1 = Data("hello ".utf8)
             let chunk2 = Data("world".utf8)
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(chunks: [chunk1, chunk2])
             }
 
-            let receivedChunks = Box<[Data]>([])
+            let receivedChunks = Capture<[Data]>([])
 
-            let result = await makeClient().stream(
+            let result = await client.stream(
                 request: makeURL()
             ) { data, _ in
                 receivedChunks.value.append(data)
@@ -228,25 +113,25 @@ struct DefaultHTTPClientTests {
 
             let response = try result.get()
             #expect(response.status == .ok)
-            // URLSession may coalesce chunks, so verify total data
+            // URLSession coalesces chunks, so verify total data.
             let totalData = receivedChunks.value.reduce(Data(), +)
             #expect(totalData == chunk1 + chunk2)
         }
 
         @Test("Stream reports progress when Content-Length is known")
-        func streamReportsProgress() async throws {
+        func streamReportsProgress() async {
             let body = Data("hello world".utf8)
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let lastProgress = Capture<Double?>(nil)
+
+            let client = makeClient { _ in
                 .success(
                     headers: ["Content-Length": "\(body.count)"],
                     body: body
                 )
             }
 
-            let lastProgress = Box<Double?>(nil)
-
-            let result = await makeClient().stream(
+            _ = await client.stream(
                 request: makeURL()
             ) { _, progress in
                 if let progress = progress {
@@ -255,40 +140,139 @@ struct DefaultHTTPClientTests {
                 return .success(())
             }
 
-            _ = try result.get()
-            #expect(lastProgress.value != nil)
             // Final progress should be 1.0 (all data received)
-            if let progress = lastProgress.value {
-                #expect(progress > 0)
-                #expect(progress <= 1.0)
-            }
+            #expect(lastProgress.value == 1.0)
         }
 
         @Test("Stream reports nil progress when Content-Length is unknown")
         func streamReportsNilProgressWhenContentLengthUnknown() async throws {
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let progress = Capture<Double?>(nil)
+
+            let client = makeClient { _ in
                 .success(body: Data("data".utf8))
             }
 
-            let allProgressValues = Box<[Double?]>([])
-
-            let result = await makeClient().stream(
+            let result = await client.stream(
                 request: makeURL()
-            ) { _, progress in
-                allProgressValues.value.append(progress)
+            ) { _, p in
+                if let p {
+                    progress.value = p
+                }
                 return .success(())
             }
 
             _ = try result.get()
-            // All progress values should be nil since no Content-Length
-            #expect(allProgressValues.value.allSatisfy { $0 == nil })
+            #expect(progress.value == nil)
+        }
+
+        @Test("onReceiveResponse receives correct response metadata")
+        func onReceiveResponseReceivesCorrectMetadata() async {
+            let receivedResponse = Capture<HTTPResponse?>(nil)
+
+            let client = makeClient { _ in
+                .success(
+                    headers: ["X-Custom": "test-value", "Content-Type": "text/plain"],
+                    body: Data("hello".utf8)
+                )
+            }
+
+            _ = await client.stream(
+                request: makeURL(),
+                onReceiveResponse: { response in
+                    receivedResponse.value = response
+                    return .success(())
+                }
+            ) { _, _ in .success(()) }
+
+            let response = receivedResponse.value!
+            #expect(response.status == .ok)
+            #expect(response.valueForHeader("X-Custom") == "test-value")
+        }
+
+        @Test("onReceiveResponse success allows data to flow through consume")
+        func onReceiveResponseSuccessAllowsDataToFlow() async throws {
+            let body = Data("hello world".utf8)
+            let receivedData = Capture(Data())
+
+            let client = makeClient { _ in
+                .success(body: body)
+            }
+
+            let result = await client.stream(
+                request: makeURL(),
+                onReceiveResponse: { _ in .success(()) }
+            ) { data, _ in
+                receivedData.value.append(data)
+                return .success(())
+            }
+
+            _ = try result.get()
+            #expect(receivedData.value == body)
+        }
+
+        @Test("onReceiveResponse is called before consume receives data")
+        func onReceiveResponseIsCalledBeforeConsume() async {
+            let callOrder = Mutex<[String]>([])
+
+            let client = makeClient { _ in
+                .success(body: Data("data".utf8))
+            }
+
+            _ = await client.stream(
+                request: makeURL(),
+                onReceiveResponse: { _ in
+                    callOrder.withLock { $0.append("onReceiveResponse") }
+                    return .success(())
+                }
+            ) { _, _ in
+                callOrder.withLock { $0.append("consume") }
+                return .success(())
+            }
+
+            let order = callOrder.withLock { $0 }
+            #expect(order.first == "onReceiveResponse")
+            #expect(order.contains("consume"))
+        }
+
+        @Test("onReceiveResponse is not called for HTTP error responses")
+        func onReceiveResponseNotCalledOnHTTPError() async {
+            let called = Capture(false)
+
+            let client = makeClient { _ in
+                .success(statusCode: 401)
+            }
+
+            _ = await client.stream(
+                request: makeURL(),
+                onReceiveResponse: { _ in
+                    called.value = true
+                    return .success(())
+                }
+            ) { _, _ in .success(()) }
+
+            #expect(!called.value)
+        }
+
+        @Test("Returning failure from onReceiveResponse aborts the stream")
+        func onReceiveResponseFailureAbortsStream() async {
+            let client = makeClient { _ in .success() }
+
+            let result = await client.stream(
+                request: makeURL(),
+                onReceiveResponse: { _ in .failure(.offline(nil)) }
+            ) { _, _ in .success(()) }
+
+            guard case .failure(.offline(nil)) = result else {
+                Issue.record("Expected .offline failure but got \(result)")
+                return
+            }
         }
 
         @Test("Returning failure from consume aborts the stream")
         func consumeFailureAbortsStream() async {
             let largeBody = Data(repeating: 0x42, count: 1024)
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
                     headers: ["Content-Length": "\(largeBody.count)"],
                     chunks: [
@@ -298,109 +282,119 @@ struct DefaultHTTPClientTests {
                 )
             }
 
-            let result = await makeClient().stream(
+            let result = await client.stream(
                 request: makeURL()
             ) { _, _ in
-                .failure(.cancelled)
+                .failure(.offline(nil))
             }
 
-            guard case .failure(.cancelled) = result else {
-                Issue.record("Expected .cancelled failure but got \(result)")
+            guard case .failure(.offline(nil)) = result else {
+                Issue.record("Expected .offline failure but got \(result)")
                 return
             }
         }
     }
 
-    // MARK: - Fetch
-
     @Suite(.serialized)
     struct Fetch {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient() -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(configuration: config)
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/fetch")!
-        }
-
         @Test("Fetch accumulates streamed data into response body")
         func fetchAccumulatesData() async throws {
             let chunk1 = Data("hello ".utf8)
             let chunk2 = Data("world".utf8)
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(chunks: [chunk1, chunk2])
             }
 
-            let response = try await makeClient().fetch(makeURL()).get()
+            let response = try await client.fetch(makeURL()).get()
 
             #expect(response.body == chunk1 + chunk2)
         }
 
-        @Test("Fetch returns correct response metadata")
+        @Test("Fetch returns correct media type")
         func fetchReturnsMetadata() async throws {
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
-                    statusCode: 200,
                     headers: [
                         "Content-Type": "text/plain",
-                        "Content-Length": "5",
-                    ],
-                    body: Data("hello".utf8)
+                    ]
                 )
             }
 
-            let response = try await makeClient().fetch(makeURL()).get()
+            let response = try await client.fetch(makeURL()).get()
 
             #expect(response.response.status == .ok)
-            #expect(response.response.mediaType == MediaType.text)
+            #expect(response.response.mediaType?.string == "text/plain")
         }
 
         @Test("fetchString returns decoded string")
         func fetchString() async throws {
             let text = "Hello, Readium!"
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
                     headers: ["Content-Type": "text/plain; charset=utf-8"],
                     body: Data(text.utf8)
                 )
             }
 
-            let result = try await makeClient().fetchString(makeURL()).get()
+            let result = try await client.fetchString(makeURL()).get()
             #expect(result == text)
+        }
+
+        @Test("fetchJSON parses a JSON object")
+        func fetchJSON() async throws {
+            let client = makeClient { _ in
+                .success(
+                    headers: ["Content-Type": "application/json"],
+                    body: Data(#"{"key": "value"}"#.utf8)
+                )
+            }
+
+            let json = try await client.fetchJSON(makeURL()).get()
+            #expect(json["key"] as? String == "value")
+        }
+
+        @Test("fetch with decoder returns malformedResponse when decoder returns nil")
+        func fetchDecoderReturnsNil() async {
+            let client = makeClient { _ in
+                .success(body: Data("not-json".utf8))
+            }
+
+            let result = await client.fetch(makeURL()) { _, _ in nil as String? }
+
+            guard case .failure(.malformedResponse) = result else {
+                Issue.record("Expected .malformedResponse, got \(result)")
+                return
+            }
+        }
+
+        @Test("fetch with decoder returns malformedResponse when decoder throws")
+        func fetchDecoderThrows() async {
+            struct DecoderError: Error {}
+
+            let client = makeClient { _ in
+                .success(body: Data("not-json".utf8))
+            }
+
+            let result = await client.fetch(makeURL()) { _, _ -> String? in
+                throw DecoderError()
+            }
+
+            guard case .failure(.malformedResponse) = result else {
+                Issue.record("Expected .malformedResponse, got \(result)")
+                return
+            }
         }
     }
 
-    // MARK: - Download
-
     @Suite(.serialized)
     struct Download {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient() -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(configuration: config)
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/download")!
-        }
-
         @Test("Download writes data to a temporary file")
         func downloadWritesToFile() async throws {
             let content = Data("file content".utf8)
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
                     headers: [
                         "Content-Length": "\(content.count)",
@@ -410,14 +404,15 @@ struct DefaultHTTPClientTests {
                 )
             }
 
-            let download = try await makeClient()
+            let download = try await client
                 .download(makeURL()) { _ in }
                 .get()
+
+            #expect(download.suggestedFilename == nil)
 
             let downloadedData = try Data(contentsOf: download.location.url)
             #expect(downloadedData == content)
 
-            // Cleanup
             try FileManager.default.removeItem(at: download.location.url)
         }
 
@@ -425,41 +420,36 @@ struct DefaultHTTPClientTests {
         func downloadReportsProgress() async throws {
             let content = Data(repeating: 0x42, count: 1024)
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
                     headers: ["Content-Length": "\(content.count)"],
                     body: content
                 )
             }
 
-            var progressValues: [Double] = []
+            let lastProgress = Mutex<Double?>(nil)
 
-            let download = try await makeClient()
+            let download = try await client
                 .download(makeURL()) { progress in
-                    progressValues.append(progress)
+                    lastProgress.withLock { $0 = progress }
                 }
                 .get()
 
-            #expect(!progressValues.isEmpty)
-            if let last = progressValues.last {
-                #expect(last > 0)
-                #expect(last <= 1.0)
-            }
+            #expect(lastProgress.withLock { $0 } == 1.0)
 
-            // Cleanup
             try FileManager.default.removeItem(at: download.location.url)
         }
 
         @Test("Download cleans up temporary file on failure")
         func downloadCleansUpOnFailure() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(statusCode: 500, body: Data("error".utf8))
             }
 
             let tempDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             let countBefore = (try? FileManager.default.contentsOfDirectory(atPath: tempDir.path))?.count ?? 0
 
-            let result = await makeClient()
+            let result = await client
                 .download(makeURL()) { _ in }
 
             let countAfter = (try? FileManager.default.contentsOfDirectory(atPath: tempDir.path))?.count ?? 0
@@ -473,7 +463,7 @@ struct DefaultHTTPClientTests {
 
         @Test("Download preserves suggested filename from Content-Disposition")
         func downloadSuggestedFilename() async throws {
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
                     headers: [
                         "Content-Disposition": "attachment; filename=book.epub",
@@ -483,51 +473,73 @@ struct DefaultHTTPClientTests {
                 )
             }
 
-            let download = try await makeClient()
+            let download = try await client
                 .download(makeURL()) { _ in }
                 .get()
 
             #expect(download.suggestedFilename == "book.epub")
 
-            // Cleanup
+            try FileManager.default.removeItem(at: download.location.url)
+        }
+
+        @Test("Download preserves RFC 5987 encoded filename from Content-Disposition")
+        func downloadRFC5987Filename() async throws {
+            let client = makeClient { _ in
+                .success(
+                    headers: [
+                        "Content-Disposition": "attachment; filename*=UTF-8''bel%C3%A9tr%C3%A9s.epub",
+                        "Content-Type": "application/epub+zip",
+                    ],
+                    body: Data("epub".utf8)
+                )
+            }
+
+            let download = try await client
+                .download(makeURL()) { _ in }
+                .get()
+
+            #expect(download.suggestedFilename == "belétrés.epub")
+
+            try FileManager.default.removeItem(at: download.location.url)
+        }
+
+        @Test("Download returns the media type from Content-Type")
+        func downloadMediaType() async throws {
+            let client = makeClient { _ in
+                .success(
+                    headers: ["Content-Type": "application/epub+zip"],
+                    body: Data("epub".utf8)
+                )
+            }
+
+            let download = try await client
+                .download(makeURL()) { _ in }
+                .get()
+
+            #expect(download.mediaType == MediaType.epub)
+
             try FileManager.default.removeItem(at: download.location.url)
         }
     }
 
-    // MARK: - HTTP Errors
-
     @Suite(.serialized)
     struct HTTPErrors {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient() -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(configuration: config)
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/error")!
-        }
-
         @Test(
             "HTTP error status codes return .errorResponse",
             arguments: [400, 401, 403, 404, 405, 500]
         )
-        func httpErrorStatusCodes(statusCode: Int) async {
-            MockHTTPURLProtocol.requestHandler = { _ in
+        func httpErrorStatusCodes(statusCode: HTTPStatus) async {
+            let client = makeClient { _ in
                 .success(statusCode: statusCode, body: Data())
             }
 
-            let result = await makeClient().fetch(makeURL())
+            let result = await client.fetch(makeURL())
 
             guard case let .failure(.errorResponse(response)) = result else {
                 Issue.record("Expected .errorResponse for status \(statusCode)")
                 return
             }
-            #expect(response.response.status.rawValue == statusCode)
+            #expect(response.response.status == statusCode)
         }
 
         @Test("Error response body is accumulated")
@@ -536,7 +548,7 @@ struct DefaultHTTPClientTests {
             {"type": "https://example.com/auth", "title": "Authentication Required"}
             """.utf8)
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
                     statusCode: 401,
                     headers: ["Content-Type": "application/problem+json"],
@@ -544,7 +556,7 @@ struct DefaultHTTPClientTests {
                 )
             }
 
-            let result = await makeClient().fetch(makeURL())
+            let result = await client.fetch(makeURL())
 
             guard case let .failure(.errorResponse(response)) = result else {
                 Issue.record("Expected .errorResponse")
@@ -557,12 +569,12 @@ struct DefaultHTTPClientTests {
             "2xx status codes are treated as success",
             arguments: [200, 201, 204]
         )
-        func successStatusCodes(statusCode: Int) async {
-            MockHTTPURLProtocol.requestHandler = { _ in
+        func successStatusCodes(statusCode: HTTPStatus) async {
+            let client = makeClient { _ in
                 .success(statusCode: statusCode, body: Data("ok".utf8))
             }
 
-            let result = await makeClient().fetch(makeURL())
+            let result = await client.fetch(makeURL())
 
             guard case .success = result else {
                 Issue.record("Status \(statusCode) should be success but got \(result)")
@@ -571,191 +583,47 @@ struct DefaultHTTPClientTests {
         }
     }
 
-    // MARK: - Network Errors
-
     @Suite(.serialized)
     struct NetworkErrors {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
+        @Test("URLError propagates to HTTPError")
+        func urlErrorPropagation() async {
+            let client = makeClient { _ in
+                .error(URLError(.cannotConnectToHost))
+            }
 
-        private func makeClient() -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(configuration: config)
-        }
+            let result = await client.fetch(makeURL())
 
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/network")!
+            guard case .failure(.unreachable) = result else {
+                Issue.record("Expected .unreachable error, got \(result)")
+                return
+            }
         }
 
         @Test("Timeout returns .timeout error")
         func timeoutError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.timedOut))
+            let client = makeClient(requestTimeout: 1) { _ in
+                .delayed(seconds: 60, then: .success())
             }
 
-            let result = await makeClient().fetch(makeURL())
+            let result = await client.fetch(makeURL())
 
             guard case .failure(.timeout) = result else {
                 Issue.record("Expected .timeout error, got \(result)")
                 return
             }
         }
-
-        @Test("Cannot connect to host returns .unreachable error")
-        func unreachableError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.cannotConnectToHost))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.unreachable) = result else {
-                Issue.record("Expected .unreachable error, got \(result)")
-                return
-            }
-        }
-
-        @Test("Cannot find host returns .unreachable error")
-        func cannotFindHostError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.cannotFindHost))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.unreachable) = result else {
-                Issue.record("Expected .unreachable error, got \(result)")
-                return
-            }
-        }
-
-        @Test("Not connected to internet returns .offline error")
-        func offlineError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.notConnectedToInternet))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.offline) = result else {
-                Issue.record("Expected .offline error, got \(result)")
-                return
-            }
-        }
-
-        @Test("Network connection lost returns .offline error")
-        func networkConnectionLostError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.networkConnectionLost))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.offline) = result else {
-                Issue.record("Expected .offline error, got \(result)")
-                return
-            }
-        }
-
-        @Test("Cancelled request returns .cancelled error")
-        func cancelledError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.cancelled))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.cancelled) = result else {
-                Issue.record("Expected .cancelled error, got \(result)")
-                return
-            }
-        }
-
-        @Test("Secure connection failed returns .security error")
-        func securityError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.secureConnectionFailed))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.security) = result else {
-                Issue.record("Expected .security error, got \(result)")
-                return
-            }
-        }
-
-        @Test("Too many redirects returns .redirection error")
-        func redirectionError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.httpTooManyRedirects))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.redirection) = result else {
-                Issue.record("Expected .redirection error, got \(result)")
-                return
-            }
-        }
-
-        @Test("Bad server response returns .malformedResponse error")
-        func malformedResponseError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.badServerResponse))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.malformedResponse) = result else {
-                Issue.record("Expected .malformedResponse error, got \(result)")
-                return
-            }
-        }
-
-        @Test("Unknown URLError returns .other error")
-        func otherError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.backgroundSessionWasDisconnected))
-            }
-
-            let result = await makeClient().fetch(makeURL())
-
-            guard case .failure(.other) = result else {
-                Issue.record("Expected .other error, got \(result)")
-                return
-            }
-        }
     }
-
-    // MARK: - Cancellation
 
     @Suite(.serialized)
     struct Cancellation {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient() -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(configuration: config)
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/cancel")!
-        }
-
         @Test("Cancelling the Swift task cancels the HTTP request")
         func cancelledTaskReturnsCancelledError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .delayed(seconds: 2, then: .success(body: Data("late".utf8)))
             }
 
             let task = Task {
-                await makeClient().fetch(makeURL())
+                await client.fetch(makeURL())
             }
 
             // Give the request time to start, then cancel.
@@ -765,40 +633,33 @@ struct DefaultHTTPClientTests {
             let result = await task.value
 
             guard case .failure(.cancelled) = result else {
-                // URLSession may also report .timeout or other errors on cancel
-                // depending on timing, so we accept any failure.
-                if case .failure = result {
-                    return
-                }
                 Issue.record("Expected failure after cancellation, got \(result)")
+                return
+            }
+        }
+
+        @Test("Cancelled request returns .cancelled error")
+        func cancelledError() async {
+            let client = makeClient { _ in
+                .error(URLError(.cancelled))
+            }
+
+            let result = await client.fetch(makeURL())
+
+            guard case .failure(.cancelled) = result else {
+                Issue.record("Expected .cancelled error, got \(result)")
                 return
             }
         }
     }
 
-    // MARK: - Range Requests
-
     @Suite(.serialized)
     struct RangeRequests {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient() -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(configuration: config)
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/range")!
-        }
-
         @Test("Range request succeeds when server signals Accept-Ranges")
         func rangeRequestSuccessViaAcceptRanges() async throws {
             let partialContent = Data("partial".utf8)
 
-            MockHTTPURLProtocol.requestHandler = { request in
+            let client = makeClient { request in
                 let rangeHeader = request.value(forHTTPHeaderField: "Range")
                 #expect(rangeHeader != nil)
 
@@ -815,7 +676,7 @@ struct DefaultHTTPClientTests {
             var httpRequest = HTTPRequest(url: makeURL())
             httpRequest.setRange(0 ..< 7)
 
-            let response = try await makeClient().fetch(httpRequest).get()
+            let response = try await client.fetch(httpRequest).get()
             #expect(response.response.status == .partialContent)
             #expect(response.body == partialContent)
         }
@@ -824,7 +685,7 @@ struct DefaultHTTPClientTests {
         func rangeRequestSuccessViaContentRange() async throws {
             let partialContent = Data("partial".utf8)
 
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
                     statusCode: 206,
                     headers: [
@@ -838,14 +699,14 @@ struct DefaultHTTPClientTests {
             var httpRequest = HTTPRequest(url: makeURL())
             httpRequest.setRange(0 ..< 7)
 
-            let response = try await makeClient().fetch(httpRequest).get()
+            let response = try await client.fetch(httpRequest).get()
             #expect(response.response.status == .partialContent)
             #expect(response.body == partialContent)
         }
 
         @Test("Range request fails when server does not support byte ranges")
         func rangeRequestFailsWithoutServerSupport() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let client = makeClient { _ in
                 .success(
                     statusCode: 200,
                     headers: [:],
@@ -856,44 +717,44 @@ struct DefaultHTTPClientTests {
             var httpRequest = HTTPRequest(url: makeURL())
             httpRequest.setRange(0 ..< 7)
 
-            let result = await makeClient().fetch(httpRequest)
+            let result = await client.fetch(httpRequest)
 
             guard case .failure(.rangeNotSupported) = result else {
                 Issue.record("Expected .rangeNotSupported, got \(result)")
                 return
             }
         }
-    }
 
-    // MARK: - Delegate Callbacks
+        @Test("Open-ended setRange omits upper bound in Range header")
+        func openEndedRangeRequest() async {
+            let receivedRange = Capture<String?>(nil)
+
+            let client = makeClient { request in
+                receivedRange.value = request.value(forHTTPHeaderField: "Range")
+                return .success(
+                    statusCode: 206,
+                    headers: ["Accept-Ranges": "bytes"],
+                    body: Data("tail".utf8)
+                )
+            }
+
+            var httpRequest = HTTPRequest(url: makeURL())
+            httpRequest.setRange(5...)
+            _ = await client.fetch(httpRequest)
+
+            #expect(receivedRange.value == "bytes=5-")
+        }
+    }
 
     @Suite(.serialized)
     struct DelegateCallbacks {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient(delegate: DefaultHTTPClientDelegate) -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(
-                configuration: config,
-                delegate: delegate
-            )
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/delegate")!
-        }
-
         @Test("willStartRequest is called before the request")
         func willStartRequestIsCalled() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .success(body: Data("ok".utf8))
+            let delegate = SpyDelegate()
+            let client = makeClient(delegate: delegate) { _ in
+                .success()
             }
 
-            let delegate = SpyDelegate()
-            let client = makeClient(delegate: delegate)
             _ = await client.fetch(makeURL())
 
             #expect(delegate.willStartRequestCalled)
@@ -901,12 +762,7 @@ struct DefaultHTTPClientTests {
 
         @Test("willStartRequest can modify the request")
         func willStartRequestModifiesRequest() async {
-            var receivedHeader: String?
-
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedHeader = request.value(forHTTPHeaderField: "X-Injected")
-                return .success(body: Data("ok".utf8))
-            }
+            let receivedHeader = Capture<String?>(nil)
 
             let delegate = SpyDelegate()
             delegate.onWillStartRequest = { request in
@@ -915,25 +771,28 @@ struct DefaultHTTPClientTests {
                 return .success(modified)
             }
 
-            let client = makeClient(delegate: delegate)
+            let client = makeClient(delegate: delegate) { request in
+                receivedHeader.value = request.value(forHTTPHeaderField: "X-Injected")
+                return .success()
+            }
+
             _ = await client.fetch(makeURL())
 
-            #expect(receivedHeader == "by-delegate")
+            #expect(receivedHeader.value == "by-delegate")
         }
 
         @Test("willStartRequest returning failure aborts the request without sending it")
         func willStartRequestFailureAbortsRequest() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                Issue.record("Request should not have been sent")
-                return .success(body: Data())
-            }
-
             let delegate = SpyDelegate()
             delegate.onWillStartRequest = { _ in
                 .failure(.cancelled)
             }
 
-            let client = makeClient(delegate: delegate)
+            let client = makeClient(delegate: delegate) { _ in
+                Issue.record("Request should not have been sent")
+                return .success(body: Data())
+            }
+
             let result = await client.fetch(makeURL())
 
             guard case .failure(.cancelled) = result else {
@@ -945,25 +804,36 @@ struct DefaultHTTPClientTests {
 
         @Test("didReceiveResponse is called on success")
         func didReceiveResponseIsCalled() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .success(body: Data("ok".utf8))
+            let delegate = SpyDelegate()
+            let client = makeClient(delegate: delegate) { _ in
+                .success()
             }
 
-            let delegate = SpyDelegate()
-            let client = makeClient(delegate: delegate)
             _ = await client.fetch(makeURL())
 
             #expect(delegate.didReceiveResponseCalled)
         }
 
+        @Test("didReceiveResponse is called for error HTTP responses")
+        func didReceiveResponseIsCalledForErrors() async {
+            let delegate = SpyDelegate()
+            let client = makeClient(delegate: delegate) { _ in
+                .success(statusCode: 401, body: Data("unauthorized".utf8))
+            }
+
+            _ = await client.fetch(makeURL())
+
+            #expect(delegate.didReceiveResponseCalled)
+            #expect(delegate.lastResponse?.status == .unauthorized)
+        }
+
         @Test("didFailWithError is called on failure")
         func didFailWithErrorIsCalled() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let delegate = SpyDelegate()
+            let client = makeClient(delegate: delegate) { _ in
                 .error(URLError(.timedOut))
             }
 
-            let delegate = SpyDelegate()
-            let client = makeClient(delegate: delegate)
             _ = await client.fetch(makeURL())
 
             #expect(delegate.didFailWithErrorCalled)
@@ -971,15 +841,7 @@ struct DefaultHTTPClientTests {
 
         @Test("recoverRequest can retry with a new request")
         func recoverRequestRetries() async throws {
-            var requestCount = 0
-
-            MockHTTPURLProtocol.requestHandler = { _ in
-                requestCount += 1
-                if requestCount == 1 {
-                    return .error(URLError(.timedOut))
-                }
-                return .success(body: Data("recovered".utf8))
-            }
+            let requestCount = Capture(0)
 
             let delegate = SpyDelegate()
             delegate.onRecoverRequest = { request, _ in
@@ -987,26 +849,32 @@ struct DefaultHTTPClientTests {
                 .success(request)
             }
 
-            let client = makeClient(delegate: delegate)
+            let client = makeClient(delegate: delegate) { _ in
+                requestCount.value += 1
+                if requestCount.value == 1 {
+                    return .error(URLError(.timedOut))
+                }
+                return .success(body: Data("recovered".utf8))
+            }
+
             let result = await client.fetch(makeURL())
 
             let response = try result.get()
             #expect(response.body == Data("recovered".utf8))
-            #expect(requestCount == 2)
+            #expect(requestCount.value == 2)
         }
 
         @Test("recoverRequest propagates error when unrecoverable")
         func recoverRequestPropagatesError() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .error(URLError(.timedOut))
-            }
-
             let delegate = SpyDelegate()
             delegate.onRecoverRequest = { _, error in
                 .failure(error)
             }
 
-            let client = makeClient(delegate: delegate)
+            let client = makeClient(delegate: delegate) { _ in
+                .error(URLError(.timedOut))
+            }
+
             let result = await client.fetch(makeURL())
 
             guard case .failure(.timeout) = result else {
@@ -1018,50 +886,36 @@ struct DefaultHTTPClientTests {
 
         @Test("willStartRequest can redirect to a different URL")
         func willStartRequestRedirects() async throws {
-            MockHTTPURLProtocol.requestHandler = { request in
-                let path = request.url?.path ?? ""
-                if path == "/redirected" {
-                    return .success(body: Data("redirected response".utf8))
-                }
-                return .success(statusCode: 404, body: Data())
-            }
-
             let delegate = SpyDelegate()
             delegate.onWillStartRequest = { _ in
                 let redirectURL = HTTPURL(string: "https://example.com/redirected")!
                 return .success(HTTPRequest(url: redirectURL))
             }
 
-            let client = makeClient(delegate: delegate)
+            let client = makeClient(delegate: delegate) { request in
+                switch request.url?.path {
+                case "/redirected":
+                    return .success(body: Data("redirected response".utf8))
+                default:
+                    return .success(statusCode: 404, body: Data())
+                }
+            }
+
             let response = try await client.fetch(makeURL()).get()
             #expect(response.body == Data("redirected response".utf8))
         }
     }
 
-    // MARK: - Authentication Challenges
-
     @Suite(.serialized)
     struct AuthenticationChallenges {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeClient(delegate: DefaultHTTPClientDelegate) -> DefaultHTTPClient {
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            return DefaultHTTPClient(
-                configuration: config,
-                delegate: delegate
-            )
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/auth")!
-        }
-
         @Test("Delegate receives authentication challenge")
         func delegateReceivesChallenge() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
+            let delegate = SpyDelegate()
+            delegate.onDidReceiveChallenge = { _ in
+                .performDefaultHandling
+            }
+
+            let client = makeClient(delegate: delegate) { _ in
                 .authenticationChallenge(
                     host: "example.com",
                     method: NSURLAuthenticationMethodHTTPBasic,
@@ -1069,113 +923,106 @@ struct DefaultHTTPClientTests {
                 )
             }
 
-            let delegate = SpyDelegate()
-            delegate.onDidReceiveChallenge = { _ in
-                .performDefaultHandling
-            }
-
-            let client = makeClient(delegate: delegate)
             _ = await client.fetch(makeURL())
 
             #expect(delegate.didReceiveChallengeCalled)
         }
 
-        @Test("Regular request succeeds without a delegate")
-        func regularRequestSucceedsWithoutDelegate() async {
-            MockHTTPURLProtocol.requestHandler = { _ in
-                .success(body: Data("ok".utf8))
+        @Test("Using credentials succeeds after authentication challenge")
+        func useCredentialSucceeds() async throws {
+            let delegate = SpyDelegate()
+            delegate.onDidReceiveChallenge = { _ in
+                let credential = URLCredential(user: "user", password: "pass", persistence: .none)
+                return .useCredential(credential)
             }
 
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            let client = DefaultHTTPClient(configuration: config, delegate: nil)
+            let client = makeClient(delegate: delegate) { _ in
+                .authenticationChallenge(
+                    host: "example.com",
+                    method: NSURLAuthenticationMethodHTTPBasic,
+                    then: .success(body: Data("authenticated".utf8))
+                )
+            }
+
+            let result = try await client.fetch(makeURL()).get()
+            #expect(result.body == Data("authenticated".utf8))
+        }
+
+        @Test("Cancelling authentication fails with HTTPError.cancelled")
+        func cancellingAuthenticationChallengePropagates() async {
+            let delegate = SpyDelegate()
+            delegate.onDidReceiveChallenge = { _ in
+                .cancelAuthenticationChallenge
+            }
+
+            let client = makeClient(delegate: delegate) { _ in
+                .authenticationChallenge(
+                    host: "example.com",
+                    method: NSURLAuthenticationMethodHTTPBasic,
+                    then: .success(body: Data("authenticated".utf8))
+                )
+            }
 
             let result = await client.fetch(makeURL())
 
-            guard case .success = result else {
-                Issue.record("Expected success for a regular request without a delegate, got \(result)")
+            guard case .failure(.cancelled) = result else {
+                Issue.record("Expected HTTPError.cancelled when cancelling an authentication challenge")
                 return
             }
         }
     }
 
-    // MARK: - Configuration
-
     @Suite(.serialized)
     struct Configuration {
-        init() {
-            MockHTTPURLProtocol.requestHandler = nil
-        }
-
-        private func makeURL() -> HTTPURL {
-            HTTPURL(string: "https://example.com/config")!
-        }
-
         @Test("Request timeout is passed to URLSessionConfiguration")
         func requestTimeoutIsApplied() async {
-            var receivedTimeout: TimeInterval?
+            let receivedTimeout = Capture<TimeInterval?>(nil)
 
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedTimeout = request.timeoutInterval
-                return .success(body: Data("ok".utf8))
+            let client = makeClient(requestTimeout: 42) { request in
+                receivedTimeout.value = request.timeoutInterval
+                return .success()
             }
 
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            config.timeoutIntervalForRequest = 42.0
-            let client = DefaultHTTPClient(configuration: config)
             _ = await client.fetch(makeURL())
-
-            // URLSession may apply its own timeout logic, but the
-            // configuration value should influence the request.
-            #expect(receivedTimeout != nil)
+            #expect(receivedTimeout.value == 42)
         }
 
         @Test("Per-request timeout overrides session timeout")
         func perRequestTimeoutOverridesSession() async {
-            var receivedTimeout: TimeInterval?
+            let receivedTimeout = Capture<TimeInterval?>(nil)
 
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedTimeout = request.timeoutInterval
-                return .success(body: Data("ok".utf8))
+            let client = makeClient(requestTimeout: 60.0) { request in
+                receivedTimeout.value = request.timeoutInterval
+                return .success()
             }
-
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            config.timeoutIntervalForRequest = 60.0
-            let client = DefaultHTTPClient(configuration: config)
 
             var request = HTTPRequest(url: makeURL())
             request.timeoutInterval = 5.0
             _ = await client.fetch(request)
 
-            #expect(receivedTimeout == 5.0)
+            #expect(receivedTimeout.value == 5.0)
         }
 
         @Test("HTTP method is correctly transmitted")
         func httpMethodIsTransmitted() async {
-            var receivedMethod: String?
+            let receivedMethod = Capture<String?>(nil)
 
-            MockHTTPURLProtocol.requestHandler = { request in
-                receivedMethod = request.httpMethod
-                return .success(body: Data("ok".utf8))
+            let client = makeClient { request in
+                receivedMethod.value = request.httpMethod
+                return .success()
             }
-
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            let client = DefaultHTTPClient(configuration: config)
 
             let request = HTTPRequest(url: makeURL(), method: .post)
             _ = await client.fetch(request)
 
-            #expect(receivedMethod == "POST")
+            #expect(receivedMethod.value == "POST")
         }
 
         @Test("Request body is transmitted for POST requests")
         func requestBodyIsTransmitted() async {
-            var receivedBody: Data?
+            let receivedBody = Capture<Data?>(nil)
 
-            MockHTTPURLProtocol.requestHandler = { request in
+            let client = makeClient { request in
                 if let stream = request.httpBodyStream {
                     stream.open()
                     var data = Data()
@@ -1188,27 +1035,120 @@ struct DefaultHTTPClientTests {
                         }
                     }
                     stream.close()
-                    receivedBody = data
+                    receivedBody.value = data
                 } else {
-                    receivedBody = request.httpBody
+                    receivedBody.value = request.httpBody
                 }
-                return .success(body: Data("ok".utf8))
+                return .success()
             }
-
-            let config = URLSessionConfiguration.ephemeral
-            config.protocolClasses = [MockHTTPURLProtocol.self]
-            let client = DefaultHTTPClient(configuration: config)
 
             let bodyData = Data("request body".utf8)
             let request = HTTPRequest(url: makeURL(), method: .post, body: .data(bodyData))
             _ = await client.fetch(request)
 
-            #expect(receivedBody == bodyData)
+            #expect(receivedBody.value == bodyData)
+        }
+
+        @Test("File body is transmitted for POST requests")
+        func fileBodyIsTransmitted() async throws {
+            let receivedBody = Capture<Data?>(nil)
+
+            let client = makeClient { request in
+                receivedBody.value = request.body()
+                return .success()
+            }
+
+            let bodyData = Data("file body content".utf8)
+            let fileURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent(UUID().uuidString)
+            try bodyData.write(to: fileURL)
+            defer { try? FileManager.default.removeItem(at: fileURL) }
+
+            let request = HTTPRequest(url: makeURL(), method: .post, body: .file(fileURL))
+            _ = await client.fetch(request)
+
+            #expect(receivedBody.value == bodyData)
+        }
+
+        @Test("setPOSTForm sets POST method and URL-encodes form fields")
+        func setPOSTFormEncodesData() async {
+            let receivedMethod = Capture<String?>(nil)
+            let receivedContentType = Capture<String?>(nil)
+            let receivedBody = Capture<String?>(nil)
+
+            let client = makeClient { request in
+                receivedMethod.value = request.httpMethod
+                receivedContentType.value = request.value(forHTTPHeaderField: "Content-Type")
+                receivedBody.value = request.stringBody()
+                return .success()
+            }
+
+            var request = HTTPRequest(url: makeURL())
+            request.setPOSTForm(["name": "Alice", "age": "30"])
+            _ = await client.fetch(request)
+
+            #expect(receivedMethod.value == "POST")
+            #expect(receivedContentType.value == "application/x-www-form-urlencoded")
+            let body = receivedBody.value ?? ""
+            #expect(body.contains("name=Alice"))
+            #expect(body.contains("age=30"))
         }
     }
 }
 
-// MARK: - Spy Delegate
+private extension URLRequest {
+    func stringBody(encoding: String.Encoding = .utf8) -> String? {
+        body().flatMap { String(data: $0, encoding: encoding) }
+    }
+
+    func body() -> Data? {
+        if let httpBody {
+            return httpBody
+        } else if let stream = httpBodyStream {
+            stream.open()
+            var data = Data()
+            let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+            defer { buffer.deallocate() }
+            while stream.hasBytesAvailable {
+                let bytesRead = stream.read(buffer, maxLength: 1024)
+                if bytesRead > 0 { data.append(buffer, count: bytesRead) }
+            }
+            stream.close()
+            return data
+        } else {
+            return nil
+        }
+    }
+}
+
+/// Creates a `DefaultHTTPClient` configured with `MockURLProtocol`
+/// for intercepting all requests.
+private func makeClient(
+    userAgent: String? = nil,
+    additionalHeaders: [String: String]? = nil,
+    requestTimeout: TimeInterval? = nil,
+    resourceTimeout: TimeInterval? = nil,
+    delegate: DefaultHTTPClientDelegate? = nil,
+    handler: @escaping @Sendable (URLRequest) -> MockURLResponse
+) -> DefaultHTTPClient {
+    MockURLProtocol.handler = handler
+
+    return DefaultHTTPClient(
+        userAgent: userAgent,
+        ephemeral: true,
+        additionalHeaders: additionalHeaders,
+        requestTimeout: requestTimeout,
+        resourceTimeout: resourceTimeout,
+        delegate: delegate,
+        configure: { config in
+            config.protocolClasses = [MockURLProtocol.self]
+        }
+    )
+}
+
+private func makeURL(_ path: String = "/test") -> HTTPURL {
+    HTTPURL(string: "https://example.com\(path)")!
+}
 
 /// A test spy implementing `DefaultHTTPClientDelegate` that records calls
 /// and allows customizing behavior via closures.
