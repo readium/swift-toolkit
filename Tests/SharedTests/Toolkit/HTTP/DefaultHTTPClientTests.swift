@@ -638,6 +638,28 @@ struct DefaultHTTPClientTests {
             }
         }
 
+        @Test("Cancelling the Swift task during an active stream returns .cancelled")
+        func cancelledTaskDuringStreamReturnsCancelledError() async {
+            // Use a real HTTP request, the MockURLProtocol cannot be used
+            // reliably for this test.
+            let client = DefaultHTTPClient()
+
+            let task = Task {
+                await client.stream(request: HTTPURL(string: "https://httpbin.org/drip?duration=10&numbytes=102400&chunk_size=1024")!) { _, _ in .success(()) }
+            }
+
+            // Give the request time to start, then cancel before the end.
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s
+            task.cancel()
+
+            let result = await task.value
+
+            guard case .failure(.cancelled) = result else {
+                Issue.record("Expected .cancelled failure during stream, got \(result)")
+                return
+            }
+        }
+
         @Test("Cancelled request returns .cancelled error")
         func cancelledError() async {
             let client = makeClient { _ in

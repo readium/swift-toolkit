@@ -11,48 +11,61 @@ import Foundation
 
 /// An HTTP client performs HTTP requests.
 ///
-/// You may provide a custom implementation, or use the `DefaultHTTPClient` one which relies on native APIs.
+/// You may provide a custom implementation, or use the `DefaultHTTPClient` one
+/// which relies on native APIs.
 public protocol HTTPClient: Loggable {
     /// Streams a resource from the given `request`.
     ///
     /// - Parameters:
     ///   - request: Request to the streamed resource.
-    ///   - onReceiveResponse: Optional callback allowing you to intercept the response headers and cancel early.
+    ///   - onReceiveResponse: Optional callback allowing you to intercept the
+    ///     response headers and cancel early with `HTTPError.cancelled`.
     ///   - consume: Callback called for each chunk of data received. Callers
     ///     are responsible to accumulate the data if needed. Return an error
-    ///     to abort the request. Important: `consume` is always called serially. Implementations must never
-    ///     invoke it concurrently. Callers may rely on this for unsynchronized accumulation.
-    ///     The `progress` parameter represents the overall resource progress (including
-    ///     any `contentRangeOffset` for range requests), not just the progress of the current chunk.
+    ///     to abort the request. The `progress` parameter represents the
+    ///     overall resource progress (including any `contentRangeOffset` for
+    ///     range requests), not just the progress of the current chunk.
+    ///     Important: `consume` is always called serially. Implementations must
+    ///     never invoke it concurrently.
     func stream(
         request: HTTPRequestConvertible,
-        onReceiveResponse: ((HTTPResponse) async -> HTTPResult<Void>)?,
+        onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)?,
         consume: @Sendable (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse>
 }
 
-/// Safe because the `consume` closure is guaranteed by the `HTTPClient` protocol to be called serially
-/// by the `stream` implementation. Any change to the protocol contract that would allow concurrent
-/// calls to `consume` would require this box to be synchronized.
-private final class _HTTPFetchBox: @unchecked Sendable {
-    var data = Data()
-    init() {}
-}
-
 public extension HTTPClient {
+    /// Streams a resource from the given `request`.
+    ///
+    /// - Parameters:
+    ///   - request: Request to the streamed resource.
+    ///   - consume: Callback called for each chunk of data received. Callers
+    ///     are responsible to accumulate the data if needed. Return an error
+    ///     to abort the request. The `progress` parameter represents the
+    ///     overall resource progress (including any `contentRangeOffset` for
+    ///     range requests), not just the progress of the current chunk.
+    ///     Important: `consume` is always called serially. Implementations must
+    ///     never invoke it concurrently.
+    func stream(
+        request: HTTPRequestConvertible,
+        consume: @Sendable (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
+    ) async -> HTTPResult<HTTPResponse> {
+        await stream(request: request, onReceiveResponse: nil, consume: consume)
+    }
+
     /// Fetches the resource from the given `request` and returns the response alongside the accumulated data.
     func fetch(_ request: HTTPRequestConvertible) async -> HTTPResult<HTTPFetchResponse> {
-        let box = _HTTPFetchBox()
+        let accumulator = Mutex(Data())
         let responseResult = await stream(
             request: request,
             onReceiveResponse: nil,
             consume: { chunk, _ in
-                box.data.append(chunk)
+                accumulator.withLock { $0.append(chunk) }
                 return .success(())
             }
         )
 
-        return responseResult.map { HTTPFetchResponse(response: $0, body: box.data) }
+        return responseResult.map { HTTPFetchResponse(response: $0, body: accumulator.withLock { $0 }) }
     }
 
     /// Fetches the resource and attempts to decode it with the given `decoder`.
@@ -105,7 +118,7 @@ public extension HTTPClient {
     /// You are responsible for moving or deleting the downloaded file.
     func download(
         _ request: HTTPRequestConvertible,
-        onProgress: @escaping (Double) -> Void
+        onProgress: @Sendable @escaping (Double) -> Void
     ) async -> HTTPResult<HTTPDownload> {
         let location = await FileURL(
             url: URL(
@@ -161,7 +174,7 @@ public extension HTTPClient {
 }
 
 /// Status code of an HTTP response.
-public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiteral, Sendable {
+public struct HTTPStatus: Equatable, Sendable, RawRepresentable, ExpressibleByIntegerLiteral {
     public let rawValue: Int
 
     public init(rawValue: RawValue) {
@@ -207,7 +220,7 @@ public struct HTTPStatus: Equatable, RawRepresentable, ExpressibleByIntegerLiter
 }
 
 /// Represents a successful HTTP response received from a server.
-public struct HTTPResponse: Equatable {
+public struct HTTPResponse: Equatable, Sendable {
     /// Request associated with the response.
     public let request: HTTPRequest
 
@@ -333,7 +346,7 @@ public struct HTTPResponse: Equatable {
 }
 
 /// Holds the information about a successful download.
-public struct HTTPDownload: Sendable {
+public struct HTTPDownload: Equatable, Sendable {
     /// The location of a temporary file where the server's response is stored.
     /// You are responsible for moving or deleting the downloaded file.
     public let location: FileURL
@@ -352,7 +365,7 @@ public struct HTTPDownload: Sendable {
 }
 
 /// HTTP response with the whole body as a Data buffer.
-public struct HTTPFetchResponse {
+public struct HTTPFetchResponse: Equatable, Sendable {
     /// The HTTP response from the server.
     public let response: HTTPResponse
 
