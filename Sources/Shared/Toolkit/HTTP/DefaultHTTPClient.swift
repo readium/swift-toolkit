@@ -525,3 +525,34 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
         }
     }
 }
+
+private extension HTTPResponse {
+    /// The full expected content length for this resource, when known.
+    ///
+    /// This will be the total length of the resource, even for byte range requests.
+    /// Handles headers like `bytes 0-100/1000` and `bytes */1000`.
+    var fullContentLength: Int64? {
+        guard
+            let contentRange = valueForHeader("Content-Range"),
+            let totalLengthString = contentRange.split(separator: "/").last?.trimmingCharacters(in: .whitespaces),
+            let totalLength = Int64(totalLengthString)
+        else {
+            return contentLength
+        }
+        return totalLength
+    }
+
+    /// Offset of the current response in the full resource.
+    /// Handles headers like `bytes 0-100/1000`. Returns 0 if the range is unknown (e.g., `bytes */1000`).
+    var contentRangeOffset: Int64 {
+        guard
+            let contentRange = valueForHeader("Content-Range"),
+            let rangeString = contentRange.split(separator: " ", maxSplits: 1).last,
+            let rangeStartString = rangeString.split(separator: "-").first?.trimmingCharacters(in: .whitespaces),
+            let rangeStart = Int64(rangeStartString)
+        else {
+            return 0
+        }
+        return rangeStart
+    }
+}

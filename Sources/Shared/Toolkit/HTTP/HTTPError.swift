@@ -52,7 +52,7 @@ public enum HTTPError: Error, Loggable {
     public func problemDetails() throws -> HTTPProblemDetails? {
         guard
             case let .errorResponse(response) = self,
-            response.response.mediaType?.matches(.problemDetails) == true,
+            response.mediaType?.matches(.problemDetails) == true,
             !response.body.isEmpty
         else {
             return nil
