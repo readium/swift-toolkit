@@ -28,7 +28,7 @@ public protocol HTTPClient: Loggable {
     ///     Important: `consume` is always called serially. Implementations must
     ///     never invoke it concurrently.
     func stream(
-        request: HTTPRequestConvertible,
+        _ request: HTTPRequestConvertible,
         onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)?,
         consume: @Sendable (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse>
@@ -47,24 +47,29 @@ public extension HTTPClient {
     ///     Important: `consume` is always called serially. Implementations must
     ///     never invoke it concurrently.
     func stream(
-        request: HTTPRequestConvertible,
+        _ request: HTTPRequestConvertible,
         consume: @Sendable (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse> {
-        await stream(request: request, onReceiveResponse: nil, consume: consume)
+        await stream(request, onReceiveResponse: nil, consume: consume)
     }
 
-    /// Fetches the resource from the given `request` and returns the response alongside the accumulated data.
-    func fetch(_ request: HTTPRequestConvertible) async -> HTTPResult<HTTPFetchResponse> {
+    /// Fetches the resource from the given `request` and returns the
+    /// accumulated data.
+    func fetch(
+        _ request: HTTPRequestConvertible,
+        onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)? = nil
+    ) async -> HTTPResult<HTTPBody> {
         let accumulator = Mutex(Data())
         let responseResult = await stream(
-            request: request,
+            request,
+            onReceiveResponse: onReceiveResponse,
             consume: { chunk, _ in
                 accumulator.withLock { $0.append(chunk) }
                 return .success(())
             }
         )
 
-        return responseResult.map { HTTPFetchResponse(response: $0, body: accumulator.withLock { $0 }) }
+        return responseResult.map { HTTPBody(body: accumulator.withLock { $0 }, mediaType: $0.mediaType) }
     }
 
     /// Fetches the resource and attempts to decode it with the given `decoder`.
@@ -72,12 +77,13 @@ public extension HTTPClient {
     /// If the decoder fails, a `malformedResponse` HTTP error is returned.
     func fetch<T>(
         _ request: HTTPRequestConvertible,
-        decoder: @escaping (HTTPResponse, Data) throws -> T?
+        onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)? = nil,
+        decoder: @escaping (HTTPBody) throws -> T?
     ) async -> HTTPResult<T> {
-        await fetch(request)
+        await fetch(request, onReceiveResponse: onReceiveResponse)
             .flatMap { response in
                 do {
-                    guard let result = try decoder(response.response, response.body) else {
+                    guard let result = try decoder(response) else {
                         return .failure(.malformedResponse(nil))
                     }
                     return .success(result)
@@ -91,15 +97,15 @@ public extension HTTPClient {
     /// Fetches the resource as a JSON object.
     func fetchJSON(_ request: HTTPRequestConvertible) async -> HTTPResult<[String: Any]> {
         await fetch(request) {
-            try JSONSerialization.jsonObject(with: $1) as? [String: Any]
+            try JSONSerialization.jsonObject(with: $0.body) as? [String: Any]
         }
     }
 
     /// Fetches the resource as a `String`.
     func fetchString(_ request: HTTPRequestConvertible) async -> HTTPResult<String> {
-        await fetch(request) { response, body in
-            let encoding = response.mediaType?.encoding ?? .utf8
-            return String(data: body, encoding: encoding)
+        await fetch(request) {
+            let encoding = $0.mediaType?.encoding ?? .utf8
+            return String(data: $0.body, encoding: encoding)
         }
     }
 
@@ -107,7 +113,7 @@ public extension HTTPClient {
         /// Fetches the resource as an `UIImage`.
         func fetchImage(_ request: HTTPRequestConvertible) async -> HTTPResult<UIImage> {
             await fetch(request) {
-                UIImage(data: $1)
+                UIImage(data: $0.body)
             }
         }
     #endif
@@ -117,6 +123,7 @@ public extension HTTPClient {
     /// You are responsible for moving or deleting the downloaded file.
     func download(
         _ request: HTTPRequestConvertible,
+        onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)? = nil,
         onProgress: @Sendable @escaping (Double) -> Void
     ) async -> HTTPResult<HTTPDownload> {
         let location = await FileURL(
@@ -136,7 +143,8 @@ public extension HTTPClient {
         defer { try? fileHandle.close() }
 
         let result = await stream(
-            request: request,
+            request,
+            onReceiveResponse: onReceiveResponse,
             consume: { data, progression in
                 do {
                     try fileHandle.write(contentsOf: data)
@@ -218,7 +226,7 @@ public struct HTTPStatus: Equatable, Sendable, RawRepresentable, ExpressibleByIn
 }
 
 /// Represents a successful HTTP response received from a server.
-public struct HTTPResponse: Equatable, Sendable {
+public struct HTTPResponse: Equatable, Sendable, HTTPHeadersProviding {
     /// Request associated with the response.
     public let request: HTTPRequest
 
@@ -247,11 +255,56 @@ public struct HTTPResponse: Equatable, Sendable {
         self.headers = headers
         self.mediaType = mediaType
     }
+}
 
+/// Holds the information about a successful fetch.
+public struct HTTPBody: Equatable, Sendable {
+    /// The raw data received in the response body.
+    public let body: Data
+
+    /// Media type provided in the `Content-Type` header.
+    public let mediaType: MediaType?
+
+    public init(body: Data, mediaType: MediaType?) {
+        self.body = body
+        self.mediaType = mediaType
+    }
+}
+
+/// Holds the information about a successful download.
+public struct HTTPDownload: Equatable, Sendable {
+    /// The location of a temporary file where the server's response is stored.
+    /// You are responsible for moving or deleting the downloaded file.
+    public let location: FileURL
+
+    /// A suggested filename for the response data, taken from the
+    /// `Content-Disposition` header.
+    public let suggestedFilename: String?
+
+    /// Media type provided in the `Content-Type` header.
+    public let mediaType: MediaType?
+
+    public init(location: FileURL, suggestedFilename: String? = nil, mediaType: MediaType?) {
+        self.location = location
+        self.suggestedFilename = suggestedFilename
+        self.mediaType = mediaType
+    }
+}
+
+/// A protocol that provides access to HTTP headers.
+///
+/// Conforming types must provide a dictionary of HTTP headers. The protocol
+/// extension provides convenient typed accessors for common HTTP headers.
+public protocol HTTPHeadersProviding {
+    /// HTTP response headers, indexed by their name.
+    var headers: [String: String] { get }
+}
+
+public extension HTTPHeadersProviding {
     /// Finds the value of the first header matching the given name.
     ///
     /// In keeping with the HTTP RFC, HTTP header field names are case-insensitive.
-    public func valueForHeader(_ name: String) -> String? {
+    func valueForHeader(_ name: String) -> String? {
         let name = name.lowercased()
         for (n, v) in headers {
             if n.lowercased() == name {
@@ -262,7 +315,7 @@ public struct HTTPResponse: Equatable, Sendable {
     }
 
     /// Indicates whether this server supports byte range requests.
-    public var acceptsByteRanges: Bool {
+    var acceptsByteRanges: Bool {
         valueForHeader("Accept-Ranges")?.lowercased() == "bytes"
             || valueForHeader("Content-Range")?.lowercased().hasPrefix("bytes") == true
     }
@@ -271,14 +324,14 @@ public struct HTTPResponse: Equatable, Sendable {
     ///
     /// Warning: For byte range requests, this will be the length of the current chunk,
     /// not the whole resource.
-    public var contentLength: Int64? {
+    var contentLength: Int64? {
         valueForHeader("Content-Length")
             .flatMap { Int64($0) }
             .takeIf { $0 >= 0 }
     }
 
     /// The resource filename as provided by the server in the `Content-Disposition` header.
-    public var filename: String? {
+    var filename: String? {
         guard let disposition = valueForHeader("Content-Disposition") else {
             return nil
         }
@@ -313,63 +366,5 @@ public struct HTTPResponse: Equatable, Sendable {
         }
 
         return nil
-    }
-}
-
-/// Holds the information about a successful download.
-public struct HTTPDownload: Equatable, Sendable {
-    /// The location of a temporary file where the server's response is stored.
-    /// You are responsible for moving or deleting the downloaded file.
-    public let location: FileURL
-
-    /// A suggested filename for the response data, taken from the `Content-Disposition` header.
-    public let suggestedFilename: String?
-
-    /// Media type sniffed from the `Content-Type` header and response body.
-    public let mediaType: MediaType?
-
-    public init(location: FileURL, suggestedFilename: String? = nil, mediaType: MediaType?) {
-        self.location = location
-        self.suggestedFilename = suggestedFilename
-        self.mediaType = mediaType
-    }
-}
-
-/// HTTP response with the whole body as a Data buffer.
-public struct HTTPFetchResponse: Equatable, Sendable {
-    /// The HTTP response from the server.
-    public let response: HTTPResponse
-
-    /// The raw data received in the response body.
-    public let body: Data
-
-    /// Media type provided in the `Content-Type` header.
-    public var mediaType: MediaType? {
-        response.mediaType
-    }
-
-    /// HTTP status code returned by the server.
-    public var status: HTTPStatus {
-        response.status
-    }
-
-    public init(response: HTTPResponse, body: Data) {
-        self.response = response
-        self.body = body
-    }
-
-    @available(*, unavailable, renamed: "response.request")
-    public var request: HTTPRequest {
-        response.request
-    }
-
-    @available(*, unavailable, renamed: "response.url")
-    public var url: HTTPURL {
-        response.url
-    }
-
-    @available(*, unavailable, renamed: "response.headers")
-    public var headers: [String: String] {
-        response.headers
     }
 }

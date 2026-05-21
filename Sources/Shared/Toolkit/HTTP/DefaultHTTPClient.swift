@@ -106,7 +106,7 @@ public extension DefaultHTTPClientDelegate {
     }
 }
 
-/// An implementation of `HTTPClient` using native APIs.
+/// An implementation of `HTTPClient` using Apple's `URLSession`.
 public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
     /// Returns the default user agent used when issuing requests.
     ///
@@ -196,7 +196,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
     }
 
     public func stream(
-        request: any HTTPRequestConvertible,
+        _ request: any HTTPRequestConvertible,
         onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)? = nil,
         consume: @Sendable (Data, Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse> {
@@ -273,7 +273,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
 
                 if !httpResponse.status.isSuccess {
                     let body = try await collectErrorBody(from: stream, task: task, response: httpResponse)
-                    return .failure(.errorResponse(HTTPFetchResponse(response: httpResponse, body: body)))
+                    return .failure(.errorResponse(makeErrorResponse(httpResponse: httpResponse, body: body)))
                 }
 
                 if request.hasHeader("Range"), !httpResponse.acceptsByteRanges {
@@ -369,6 +369,15 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
             status: HTTPStatus(rawValue: response.statusCode),
             headers: headers,
             mediaType: response.mimeType.flatMap { MediaType($0) }
+        )
+    }
+
+    private func makeErrorResponse(httpResponse: HTTPResponse, body: Data) -> HTTPErrorResponse {
+        HTTPErrorResponse(
+            status: httpResponse.status,
+            body: body,
+            mediaType: httpResponse.mediaType,
+            headers: httpResponse.headers
         )
     }
 

@@ -104,9 +104,7 @@ struct DefaultHTTPClientTests {
 
             let receivedChunks = Capture<[Data]>([])
 
-            let result = await client.stream(
-                request: makeURL()
-            ) { data, _ in
+            let result = await client.stream(makeURL()) { data, _ in
                 receivedChunks.value.append(data)
                 return .success(())
             }
@@ -131,9 +129,7 @@ struct DefaultHTTPClientTests {
                 )
             }
 
-            _ = await client.stream(
-                request: makeURL()
-            ) { _, progress in
+            _ = await client.stream(makeURL()) { _, progress in
                 if let progress = progress {
                     lastProgress.value = progress
                 }
@@ -152,9 +148,7 @@ struct DefaultHTTPClientTests {
                 .success(body: Data("data".utf8))
             }
 
-            let result = await client.stream(
-                request: makeURL()
-            ) { _, p in
+            let result = await client.stream(makeURL()) { _, p in
                 if let p {
                     progress.value = p
                 }
@@ -177,11 +171,8 @@ struct DefaultHTTPClientTests {
             }
 
             _ = await client.stream(
-                request: makeURL(),
-                onReceiveResponse: { response in
-                    receivedResponse.value = response
-                    return .success(())
-                }
+                makeURL(),
+                onReceiveResponse: captureResponse(in: receivedResponse)
             ) { _, _ in .success(()) }
 
             let response = receivedResponse.value!
@@ -199,7 +190,7 @@ struct DefaultHTTPClientTests {
             }
 
             let result = await client.stream(
-                request: makeURL(),
+                makeURL(),
                 onReceiveResponse: { _ in .success(()) }
             ) { data, _ in
                 receivedData.value.append(data)
@@ -219,7 +210,7 @@ struct DefaultHTTPClientTests {
             }
 
             _ = await client.stream(
-                request: makeURL(),
+                makeURL(),
                 onReceiveResponse: { _ in
                     callOrder.withLock { $0.append("onReceiveResponse") }
                     return .success(())
@@ -243,7 +234,7 @@ struct DefaultHTTPClientTests {
             }
 
             _ = await client.stream(
-                request: makeURL(),
+                makeURL(),
                 onReceiveResponse: { _ in
                     called.value = true
                     return .success(())
@@ -258,7 +249,7 @@ struct DefaultHTTPClientTests {
             let client = makeClient { _ in .success() }
 
             let result = await client.stream(
-                request: makeURL(),
+                makeURL(),
                 onReceiveResponse: { _ in .failure(.offline(nil)) }
             ) { _, _ in .success(()) }
 
@@ -282,9 +273,7 @@ struct DefaultHTTPClientTests {
                 )
             }
 
-            let result = await client.stream(
-                request: makeURL()
-            ) { _, _ in
+            let result = await client.stream(makeURL()) { _, _ in
                 .failure(.offline(nil))
             }
 
@@ -323,7 +312,6 @@ struct DefaultHTTPClientTests {
 
             let response = try await client.fetch(makeURL()).get()
 
-            #expect(response.status == .ok)
             #expect(response.mediaType?.string == "text/plain")
         }
 
@@ -361,7 +349,7 @@ struct DefaultHTTPClientTests {
                 .success(body: Data("not-json".utf8))
             }
 
-            let result = await client.fetch(makeURL()) { _, _ in nil as String? }
+            let result = await client.fetch(makeURL()) { _ in nil as String? }
 
             guard case .failure(.malformedResponse) = result else {
                 Issue.record("Expected .malformedResponse, got \(result)")
@@ -377,7 +365,7 @@ struct DefaultHTTPClientTests {
                 .success(body: Data("not-json".utf8))
             }
 
-            let result = await client.fetch(makeURL()) { _, _ -> String? in
+            let result = await client.fetch(makeURL()) { _ -> String? in
                 throw DecoderError()
             }
 
@@ -596,9 +584,15 @@ struct DefaultHTTPClientTests {
                 }
             }
 
-            let response = try await client.fetch(makeURL()).get()
-            #expect(response.body == Data("final response".utf8))
-            #expect(response.response.url.isEquivalentTo(makeURL("/final")))
+            let httpResponse = Capture<HTTPResponse?>(nil)
+
+            let fetchResponse = try await client.fetch(
+                makeURL(),
+                onReceiveResponse: captureResponse(in: httpResponse)
+            ).get()
+
+            #expect(fetchResponse.body == Data("final response".utf8))
+            #expect(httpResponse.value?.url.isEquivalentTo(makeURL("/final")) == true)
         }
     }
 
@@ -664,7 +658,7 @@ struct DefaultHTTPClientTests {
             let client = DefaultHTTPClient()
 
             let task = Task {
-                await client.stream(request: HTTPURL(string: "https://httpbin.org/drip?duration=10&numbytes=102400&chunk_size=1024")!) { _, _ in .success(()) }
+                await client.stream(HTTPURL(string: "https://httpbin.org/drip?duration=10&numbytes=102400&chunk_size=1024")!) { _, _ in .success(()) }
             }
 
             // Give the request time to start, then cancel before the end.
@@ -717,9 +711,14 @@ struct DefaultHTTPClientTests {
             var httpRequest = HTTPRequest(url: makeURL())
             httpRequest.setRange(0 ..< 7)
 
-            let response = try await client.fetch(httpRequest).get()
-            #expect(response.status == .partialContent)
-            #expect(response.body == partialContent)
+            let response = Capture<HTTPResponse?>(nil)
+            let result = try await client.fetch(
+                httpRequest,
+                onReceiveResponse: captureResponse(in: response)
+            ).get()
+
+            #expect(response.value?.status == .partialContent)
+            #expect(result.body == partialContent)
         }
 
         @Test("Range request succeeds when server signals Content-Range without Accept-Ranges")
@@ -740,9 +739,14 @@ struct DefaultHTTPClientTests {
             var httpRequest = HTTPRequest(url: makeURL())
             httpRequest.setRange(0 ..< 7)
 
-            let response = try await client.fetch(httpRequest).get()
-            #expect(response.status == .partialContent)
-            #expect(response.body == partialContent)
+            let response = Capture<HTTPResponse?>(nil)
+            let result = try await client.fetch(
+                httpRequest,
+                onReceiveResponse: captureResponse(in: response)
+            ).get()
+
+            #expect(response.value?.status == .partialContent)
+            #expect(result.body == partialContent)
         }
 
         @Test("Range request fails when server does not support byte ranges")
@@ -1185,6 +1189,13 @@ private func makeClient(
             config.protocolClasses = [MockURLProtocol.self]
         }
     )
+}
+
+private func captureResponse(in response: Capture<HTTPResponse?>) -> @Sendable (HTTPResponse) -> HTTPResult<Void> {
+    { resp in
+        response.value = resp
+        return .success(())
+    }
 }
 
 private func makeURL(_ path: String = "/test") -> HTTPURL {

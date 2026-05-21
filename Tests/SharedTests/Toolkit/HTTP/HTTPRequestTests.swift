@@ -8,7 +8,6 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite("HTTPRequest")
 struct HTTPRequestTests {
     private let url = HTTPURL(string: "http://example.com")!
 

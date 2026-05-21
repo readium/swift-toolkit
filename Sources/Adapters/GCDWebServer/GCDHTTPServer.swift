@@ -175,14 +175,8 @@ public final class GCDHTTPServer: HTTPServer, Loggable {
             log(.warning, "Resource not found for request \(request)")
             dispatchCompletion(
                 HTTPServerRequest(url: url, href: nil),
-                HTTPServerResponse(error: .errorResponse(HTTPFetchResponse(
-                    response: HTTPResponse(
-                        request: HTTPRequest(url: url),
-                        url: url,
-                        status: .notFound,
-                        headers: [:],
-                        mediaType: nil
-                    ),
+                HTTPServerResponse(error: .errorResponse(HTTPErrorResponse(
+                    status: .notFound,
                     body: Data()
                 ))),
                 nil

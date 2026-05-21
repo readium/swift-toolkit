@@ -8,7 +8,6 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite("HTTPProblemDetails")
 struct HTTPProblemDetailsTests {
     /// Parses a minimal Problem Details JSON.
     @Test func parseMinimalJSON() throws {
@@ -61,18 +60,14 @@ struct HTTPProblemDetailsTests {
             {"title": "Forbidden action"}
         """.data(using: .utf8)!
 
-        let fetchResponse = try HTTPFetchResponse(
-            response: HTTPResponse(
-                request: HTTPRequest(url: #require(HTTPURL(string: "http://example.com"))),
-                url: #require(HTTPURL(string: "http://example.com")),
-                status: .forbidden,
-                headers: ["Content-Type": "application/problem+json"],
-                mediaType: .problemDetails
-            ),
-            body: json
+        let response = HTTPErrorResponse(
+            status: .forbidden,
+            body: json,
+            mediaType: .problemDetails,
+            headers: ["Content-Type": "application/problem+json"]
         )
 
-        let error = HTTPError.errorResponse(fetchResponse)
+        let error = HTTPError.errorResponse(response)
         let details = try error.problemDetails()
 
         #expect(details?.title == "Forbidden action")

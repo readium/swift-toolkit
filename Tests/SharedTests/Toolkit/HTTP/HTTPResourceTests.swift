@@ -8,16 +8,20 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-@Suite("HTTPResource")
 struct HTTPResourceTests {
     private let url = HTTPURL(string: "http://example.com/book.epub")!
 
     class MockHTTPClient: HTTPClient {
-        var fetchResults: [String: HTTPResult<HTTPFetchResponse>] = [:]
+        struct Response {
+            let response: HTTPResponse
+            let body: Data
+        }
+
+        var fetchResults: [String: HTTPResult<Response>] = [:]
         var fetchCount = 0
 
         func stream(
-            request: HTTPRequestConvertible,
+            _ request: HTTPRequestConvertible,
             onReceiveResponse: ((HTTPResponse) async -> HTTPResult<Void>)?,
             consume: (Data, Double?) -> HTTPResult<Void>
         ) async -> HTTPResult<HTTPResponse> {
@@ -27,12 +31,12 @@ struct HTTPResourceTests {
 
             if let result = fetchResults[key] {
                 switch result {
-                case let .success(fetchResponse):
+                case let .success(response):
                     if let onReceiveResponse = onReceiveResponse {
-                        let _ = await onReceiveResponse(fetchResponse.response)
+                        let _ = await onReceiveResponse(response.response)
                     }
-                    _ = consume(fetchResponse.body, 1.0)
-                    return .success(fetchResponse.response)
+                    _ = consume(response.body, 1.0)
+                    return .success(response.response)
                 case let .failure(error):
                     return .failure(error)
                 }
@@ -45,7 +49,7 @@ struct HTTPResourceTests {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)
 
-        client.fetchResults["HEAD \(url.string)"] = .success(HTTPFetchResponse(
+        client.fetchResults["GET \(url.string)"] = .success(.init(
             response: HTTPResponse(
                 request: HTTPRequest(url: url),
                 url: url,
@@ -69,17 +73,8 @@ struct HTTPResourceTests {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)
 
-        let response = HTTPFetchResponse(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .methodNotAllowed,
-                headers: [:],
-                mediaType: nil
-            ),
-            body: Data()
-        )
-        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(response))
+        let response = HTTPErrorResponse(status: .methodNotAllowed)
+        client.fetchResults["GET \(url.string)"] = .failure(.errorResponse(response))
 
         let length = await resource.estimatedLength()
         try #expect(length.get() == nil)
@@ -90,7 +85,7 @@ struct HTTPResourceTests {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)
 
-        client.fetchResults["GET \(url.string)"] = try .success(HTTPFetchResponse(
+        client.fetchResults["GET \(url.string)"] = try .success(.init(
             response: HTTPResponse(
                 request: HTTPRequest(url: url),
                 url: url,
