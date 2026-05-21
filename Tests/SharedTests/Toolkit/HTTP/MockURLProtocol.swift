@@ -24,6 +24,15 @@ final class MockURLProtocol: Foundation.URLProtocol {
 
     private static let _handler = Mutex<(@Sendable (URLRequest) -> MockURLResponse)?>(nil)
 
+    private let pendingTask = Mutex<Task<Void, Never>?>(nil)
+
+    func setPendingTask(_ task: Task<Void, Never>?) {
+        pendingTask.withLock {
+            $0?.cancel()
+            $0 = task
+        }
+    }
+
     // MARK: - URLProtocol
 
     override class func canInit(with request: URLRequest) -> Bool {
@@ -44,10 +53,7 @@ final class MockURLProtocol: Foundation.URLProtocol {
     }
 
     override func stopLoading() {
-        pendingTask.withLock { task in
-            task?.cancel()
-            task = nil
-        }
+        setPendingTask(nil)
     }
 }
 
@@ -96,18 +102,16 @@ indirect enum MockURLResponse: Sendable {
     }
 }
 
-private let pendingTask = Mutex<Task<Void, Never>?>(nil)
-
 /// Encapsulates all context needed for delivery.
 private struct DeliveryContext: @unchecked Sendable {
-    let proto: Foundation.URLProtocol
+    let proto: MockURLProtocol
     let client: URLProtocolClient
     let request: URLRequest
 }
 
 private func deliver(
     _ response: MockURLResponse,
-    proto: Foundation.URLProtocol,
+    proto: MockURLProtocol,
     to client: URLProtocolClient,
     for request: URLRequest
 ) {
@@ -130,17 +134,15 @@ private func deliver(_ response: MockURLResponse, ctx: DeliveryContext) {
         ctx.client.urlProtocol(ctx.proto, didFailWithError: urlError)
 
     case let .delayed(seconds, then):
-        pendingTask.withLock {
-            $0 = Task {
-                do {
-                    try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-                    guard !Task.isCancelled else { return }
-                    deliver(then, ctx: ctx)
-                } catch {
-                    // Cancelled by stopLoading()
-                }
+        ctx.proto.setPendingTask(Task {
+            do {
+                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                guard !Task.isCancelled else { return }
+                deliver(then, ctx: ctx)
+            } catch {
+                // Cancelled by stopLoading()
             }
-        }
+        })
 
     case let .authenticationChallenge(host, method, then):
         let challengeSender = MockAuthChallengeSender { disposition in

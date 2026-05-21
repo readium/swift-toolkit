@@ -70,7 +70,7 @@ public struct FileURL: AbsoluteURL, Hashable, Sendable {
     ///
     /// To ignore this warning, compare `FileURL.string` instead of
     /// `FileURL` itself.
-    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalentTo() instead.")
     public static func == (lhs: FileURL, rhs: FileURL) -> Bool {
         lhs.string == rhs.string
     }

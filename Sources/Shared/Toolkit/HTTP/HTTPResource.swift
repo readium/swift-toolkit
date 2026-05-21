@@ -63,7 +63,7 @@ public actor HTTPResource: Resource {
         return _headResponse!
     }
 
-    public func stream(range: Range<UInt64>?, consume: (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
         let request = {
             var request = HTTPRequest(url: url)
             if let range = range {
@@ -74,7 +74,6 @@ public actor HTTPResource: Resource {
 
         return await client.stream(
             request: request,
-            onReceiveResponse: nil,
             consume: { data, _ in
                 consume(data)
                 return .success(())

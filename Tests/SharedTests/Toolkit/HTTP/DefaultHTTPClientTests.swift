@@ -584,6 +584,25 @@ struct DefaultHTTPClientTests {
     }
 
     @Suite(.serialized)
+    struct Redirects {
+        @Test("HTTP redirects are followed automatically")
+        func redirectsAreFollowedAutomatically() async throws {
+            let client = makeClient { request in
+                switch request.url?.path {
+                case "/final":
+                    return .success(body: Data("final response".utf8))
+                default:
+                    return .redirect(to: makeURL("/final").url)
+                }
+            }
+
+            let response = try await client.fetch(makeURL()).get()
+            #expect(response.body == Data("final response".utf8))
+            #expect(response.response.url.isEquivalentTo(makeURL("/final")))
+        }
+    }
+
+    @Suite(.serialized)
     struct NetworkErrors {
         @Test("URLError propagates to HTTPError")
         func urlErrorPropagation() async {

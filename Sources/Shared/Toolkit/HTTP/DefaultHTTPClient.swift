@@ -394,6 +394,9 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
     /// bridges data callbacks into `AsyncThrowingStream`.
     private final class TaskDelegate: NSObject, URLSessionDataDelegate, Sendable {
         let request: HTTPRequest
+
+        /// Strong reference — the delegate must remain alive for the full
+        /// lifetime of the request (auth challenges, response notifications).
         let delegate: (any DefaultHTTPClientDelegate)?
 
         private struct WeakClient: Sendable {
@@ -454,7 +457,11 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
             }
         }
 
-        func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+        func urlSession(
+            _ session: URLSession,
+            dataTask: URLSessionDataTask,
+            didReceive response: URLResponse
+        ) async -> URLSession.ResponseDisposition {
             let responseCont = state.withLock { s in
                 let cont = s.responseContinuation
                 s.responseContinuation = nil
@@ -468,9 +475,9 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
                 }
                 state.withLock { $0.streamContinuation = streamContinuation }
                 responseCont.resume(returning: (stream, response))
-                completionHandler(.allow)
+                return .allow
             } else {
-                completionHandler(.cancel)
+                return .cancel
             }
         }
 
@@ -490,38 +497,37 @@ public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
                 return
             }
 
-            state.withLock { $0.authTask?.cancel() }
-
-            let newTask = Task {
-                if Task.isCancelled {
-                    completionHandler(.cancelAuthenticationChallenge, nil)
-                    return
-                }
-
-                if let delegate {
-                    let response = await delegate.httpClient(client, request: request, didReceive: challenge)
-
+            state.withLock { s in
+                s.authTask?.cancel()
+                s.authTask = Task {
                     if Task.isCancelled {
                         completionHandler(.cancelAuthenticationChallenge, nil)
                         return
                     }
 
-                    switch response {
-                    case let .useCredential(credential):
-                        completionHandler(.useCredential, credential)
-                    case .performDefaultHandling:
+                    if let delegate {
+                        let response = await delegate.httpClient(client, request: request, didReceive: challenge)
+
+                        if Task.isCancelled {
+                            completionHandler(.cancelAuthenticationChallenge, nil)
+                            return
+                        }
+
+                        switch response {
+                        case let .useCredential(credential):
+                            completionHandler(.useCredential, credential)
+                        case .performDefaultHandling:
+                            completionHandler(.performDefaultHandling, nil)
+                        case .cancelAuthenticationChallenge:
+                            completionHandler(.cancelAuthenticationChallenge, nil)
+                        case .rejectProtectionSpace:
+                            completionHandler(.rejectProtectionSpace, nil)
+                        }
+                    } else {
                         completionHandler(.performDefaultHandling, nil)
-                    case .cancelAuthenticationChallenge:
-                        completionHandler(.cancelAuthenticationChallenge, nil)
-                    case .rejectProtectionSpace:
-                        completionHandler(.rejectProtectionSpace, nil)
                     }
-                } else {
-                    completionHandler(.performDefaultHandling, nil)
                 }
             }
-
-            state.withLock { $0.authTask = newTask }
         }
     }
 }
