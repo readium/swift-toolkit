@@ -15,6 +15,7 @@ class DefaultLocatorServiceTests: XCTestCase {
             Link(href: "chap2", mediaType: .xml),
             Link(href: "chap3", mediaType: .xml),
         ])
+        _ = publication // Silence warning
         let locator = Locator(href: "chap2", mediaType: .html, text: .init(highlight: "Highlight"))
         let result = await service.locate(locator)
         XCTAssertEqual(result, locator)
@@ -22,6 +23,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testFromLocatorEmptyReadingOrder() async {
         let (publication, service) = makeService(readingOrder: [])
+        _ = publication // Silence warning
         let result = await service.locate(Locator(href: "href", mediaType: .html))
         XCTAssertNil(result)
     }
@@ -31,6 +33,7 @@ class DefaultLocatorServiceTests: XCTestCase {
             Link(href: "chap1", mediaType: .xml),
             Link(href: "chap3", mediaType: .xml),
         ])
+        _ = publication // Silence warning
         let locator = Locator(href: "chap2", mediaType: .html, text: .init(highlight: "Highlight"))
         let result = await service.locate(locator)
         XCTAssertNil(result)
@@ -38,6 +41,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testFromProgression() async {
         let (publication, service) = makeService(positions: positionsFixture)
+        _ = publication // Silence warning
 
         var result = await service.locate(progression: 0.0)
         XCTAssertEqual(result, Locator(
@@ -112,6 +116,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testFromIncorrectProgression() async {
         let (publication, service) = makeService(positions: positionsFixture)
+        _ = publication // Silence warning
 
         var result = await service.locate(progression: -0.2)
         XCTAssertNil(result)
@@ -122,6 +127,7 @@ class DefaultLocatorServiceTests: XCTestCase {
 
     func testFromProgressionEmptyPositions() async {
         let (publication, service) = makeService(positions: [])
+        _ = publication // Silence warning
         let result = await service.locate(progression: 0.5)
         XCTAssertNil(result)
     }
@@ -130,6 +136,7 @@ class DefaultLocatorServiceTests: XCTestCase {
         let (publication, service) = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
+        _ = publication // Silence warning
 
         let result = await service.locate(Link(href: "/href"))
         XCTAssertEqual(
@@ -144,6 +151,7 @@ class DefaultLocatorServiceTests: XCTestCase {
             readingOrder: [Link(href: "/href1", mediaType: .html)],
             resources: [Link(href: "/href2", mediaType: .html)]
         )
+        _ = publication // Silence warning
 
         var result = await service.locate(Link(href: "/href1"))
         XCTAssertEqual(
@@ -168,6 +176,7 @@ class DefaultLocatorServiceTests: XCTestCase {
         let (publication, service) = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
+        _ = publication // Silence warning
 
         let result = try await service.locate(Link(href: "/href#page=42", mediaType: XCTUnwrap(MediaType("text/xml")), title: "My link"))
         XCTAssertEqual(
@@ -180,6 +189,7 @@ class DefaultLocatorServiceTests: XCTestCase {
         let (publication, service) = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html),
         ])
+        _ = publication // Silence warning
 
         let result = await service.locate(Link(href: "/href", title: "My link"))
         XCTAssertEqual(
@@ -192,6 +202,7 @@ class DefaultLocatorServiceTests: XCTestCase {
         let (publication, service) = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html),
         ])
+        _ = publication // Silence warning
 
         let result = await service.locate(Link(href: "notfound"))
         XCTAssertNil(result)

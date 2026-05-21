@@ -17,7 +17,7 @@ public enum HTTPError: Error, Loggable {
     case malformedResponse(Error?)
 
     /// The server returned a response with an HTTP status error.
-    case errorResponse(HTTPResponse)
+    case errorResponse(HTTPErrorResponse)
 
     /// The client, server or gateways timed out.
     case timeout(Error?)
@@ -50,15 +50,10 @@ public enum HTTPError: Error, Loggable {
 
     /// Response body parsed as a JSON problem details.
     public func problemDetails() throws -> HTTPProblemDetails? {
-        guard
-            case let .errorResponse(response) = self,
-            response.mediaType?.matches(.problemDetails) == true,
-            let body = response.body
-        else {
+        guard case let .errorResponse(response) = self else {
             return nil
         }
-
-        return try HTTPProblemDetails(data: body)
+        return try response.problemDetails()
     }
 
     /// Wraps a native error into an `HTTPError`, if possible.
@@ -86,5 +81,44 @@ public enum HTTPError: Error, Loggable {
         default:
             .other(error)
         }
+    }
+}
+
+/// Response returned by the server with an HTTP status error.
+public struct HTTPErrorResponse: Equatable, Sendable, HTTPHeadersProviding {
+    /// HTTP status code returned by the server.
+    public let status: HTTPStatus
+
+    /// The raw data received in the response body.
+    public let body: Data
+
+    /// Media type provided in the `Content-Type` header.
+    public let mediaType: MediaType?
+
+    /// HTTP response headers, indexed by their name.
+    public let headers: [String: String]
+
+    public init(
+        status: HTTPStatus,
+        body: Data = Data(),
+        mediaType: MediaType? = nil,
+        headers: [String: String] = [:]
+    ) {
+        self.status = status
+        self.body = body
+        self.mediaType = mediaType
+        self.headers = headers
+    }
+
+    /// Response body parsed as a JSON problem details.
+    public func problemDetails() throws -> HTTPProblemDetails? {
+        guard
+            mediaType?.matches(.problemDetails) == true,
+            !body.isEmpty
+        else {
+            return nil
+        }
+
+        return try HTTPProblemDetails(data: body)
     }
 }

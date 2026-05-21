@@ -299,7 +299,7 @@ extension LicenseValidation {
                 // Short timeout to avoid blocking the License, since the LSD is optional.
                 timeoutInterval: 5
             ))
-            .map { $0.body ?? Data() }
+            .map(\.body)
             .get()
 
         try await raise(.retrievedStatusData(data))
@@ -316,7 +316,7 @@ extension LicenseValidation {
         let data = try await httpClient
             // Short timeout to avoid blocking the License, since it can be updated next time.
             .fetch(HTTPRequest(url: url, timeoutInterval: 5))
-            .map { $0.body ?? Data() }
+            .map(\.body)
             .get()
 
         try await raise(.retrievedLicenseData(data))

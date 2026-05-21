@@ -44,21 +44,36 @@ public actor HTTPResource: Resource {
     }
 
     private var _headResponse: ReadResult<HTTPResponse?>?
+    private func setHeadResponse(_ result: ReadResult<HTTPResponse?>) {
+        _headResponse = result
+    }
 
     /// Cached HEAD response to get the expected content length and other
     /// metadata.
+    ///
+    /// For compatibility reason, we start a byte range request of 2 bytes and
+    /// interrupt it right away.
     private func headResponse() async -> ReadResult<HTTPResponse?> {
         if _headResponse == nil {
-            _headResponse = await client.fetch(HTTPRequest(url: url, method: .head))
-                .map { $0 as HTTPResponse? }
-                .flatMapError { error in
-                    switch error {
-                    case let .errorResponse(response) where response.status == .methodNotAllowed:
-                        return .success(nil)
-                    default:
-                        return .failure(.access(.http(error)))
-                    }
+            var request = HTTPRequest(url: url)
+            request.setRange(0 ..< 2)
+
+            let result = await client.stream(
+                request,
+                onReceiveResponse: { response in
+                    await self.setHeadResponse(.success(response))
+                    return .failure(.cancelled)
+                },
+                consume: { _, _ in .failure(.cancelled) }
+            )
+
+            if _headResponse == nil, case let .failure(error) = result {
+                if let error: ReadError = .wrap(error) {
+                    _headResponse = .failure(error)
+                } else {
+                    _headResponse = .success(nil)
                 }
+            }
         }
         return _headResponse!
     }
@@ -73,7 +88,7 @@ public actor HTTPResource: Resource {
         }()
 
         return await client.stream(
-            request: request,
+            request,
             consume: { data, _ in
                 consume(data)
                 return .success(())

@@ -15,6 +15,7 @@ class AudioLocatorServiceTests: XCTestCase {
             Link(href: "l1"),
             Link(href: "l2"),
         ])
+        _ = publication // Silence warning
 
         let locator = Locator(href: "l1", mediaType: .mp3, locations: .init(totalProgression: 0.53))
         let result = await service.locate(locator)
@@ -26,6 +27,7 @@ class AudioLocatorServiceTests: XCTestCase {
             Link(href: "l1"),
             Link(href: "l2"),
         ])
+        _ = publication // Silence warning
 
         let locator = Locator(href: "l3", mediaType: .mp3, locations: .init(totalProgression: 0.53))
         let result = await service.locate(locator)
@@ -37,6 +39,7 @@ class AudioLocatorServiceTests: XCTestCase {
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
+        _ = publication // Silence warning
 
         var result = await service.locate(Locator(href: "wrong", mediaType: .mp3, locations: .init(totalProgression: 0.49)))
         XCTAssertEqual(
@@ -74,6 +77,7 @@ class AudioLocatorServiceTests: XCTestCase {
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
+        _ = publication // Silence warning
 
         let result = try await service.locate(
             Locator(
@@ -112,6 +116,7 @@ class AudioLocatorServiceTests: XCTestCase {
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
+        _ = publication // Silence warning
 
         var result = await service.locate(progression: 0)
         XCTAssertEqual(
@@ -169,6 +174,7 @@ class AudioLocatorServiceTests: XCTestCase {
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
+        _ = publication // Silence warning
 
         var result = await service.locate(progression: -0.5)
         XCTAssertNil(result)

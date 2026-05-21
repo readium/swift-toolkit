@@ -7,7 +7,7 @@
 import Foundation
 
 /// Holds the information about an HTTP request performed by an `HTTPClient`.
-public struct HTTPRequest: Equatable {
+public struct HTTPRequest: Equatable, Sendable {
     /// Address of the remote resource to request.
     public var url: HTTPURL
 
@@ -44,7 +44,10 @@ public struct HTTPRequest: Equatable {
     public var allowUserInteraction: Bool
 
     /// Additional context data specific to a given implementation of `HTTPClient`.
-    public var userInfo: [AnyHashable: AnyHashable]
+    @available(*, unavailable, message: "This was not used in the toolkit. Open a bug report issue if you used it.")
+    public var userInfo: [AnyHashable: AnyHashable] {
+        [:]
+    }
 
     public init(
         url: HTTPURL,
@@ -52,8 +55,7 @@ public struct HTTPRequest: Equatable {
         headers: [String: String] = [:],
         body: Body? = nil,
         timeoutInterval: TimeInterval? = nil,
-        allowUserInteraction: Bool = false,
-        userInfo: [AnyHashable: AnyHashable] = [:]
+        allowUserInteraction: Bool = false
     ) {
         self.url = url
         self.method = method
@@ -61,7 +63,6 @@ public struct HTTPRequest: Equatable {
         self.body = body
         self.timeoutInterval = timeoutInterval
         self.allowUserInteraction = allowUserInteraction
-        self.userInfo = userInfo
     }
 
     /// User agent that will be issued with this request.
@@ -78,15 +79,14 @@ public struct HTTPRequest: Equatable {
         }
     }
 
-    /// Issue a byte range request. Use -1 to download until the end.
+    /// Issue a byte range request.
     public mutating func setRange(_ range: Range<UInt64>) {
-        let start = max(0, range.lowerBound)
-        let end = range.upperBound - 1
-        var value = "\(start)-"
-        if end >= start {
-            value += "\(end)"
-        }
-        headers["Range"] = "bytes=\(value)"
+        headers["Range"] = "bytes=\(range.lowerBound)-\(range.upperBound - 1)"
+    }
+
+    /// Issue a byte range request from the given offset until the end of the resource.
+    public mutating func setRange(_ range: PartialRangeFrom<UInt64>) {
+        headers["Range"] = "bytes=\(range.lowerBound)-"
     }
 
     /// Returns whether this request has the HTTP header with the given `key`, without taking into account the case.
@@ -126,12 +126,8 @@ extension HTTPRequest: CustomStringConvertible {
 }
 
 /// Convenience protocol to pass an URL or similar objects to an `HTTPClient`.
-public protocol HTTPRequestConvertible {
+public protocol HTTPRequestConvertible: Sendable {
     func httpRequest() -> HTTPResult<HTTPRequest>
-}
-
-public enum HTTPRequestError: Error, Sendable {
-    case invalidURL(CustomStringConvertible & Sendable)
 }
 
 extension HTTPRequest: HTTPRequestConvertible {
