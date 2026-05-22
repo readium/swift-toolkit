@@ -79,14 +79,7 @@ public extension HTTPServer {
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
         func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
-            lazy var notFound = HTTPError.errorResponse(HTTPResponse(
-                request: HTTPRequest(url: request.url),
-                url: request.url,
-                status: .notFound,
-                headers: [:],
-                mediaType: nil,
-                body: nil
-            ))
+            lazy var notFound: HTTPError = .errorResponse(HTTPErrorResponse(status: .notFound))
 
             guard
                 let href = request.href,

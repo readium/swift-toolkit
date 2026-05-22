@@ -27,7 +27,7 @@ public protocol ResourceContentExtractorFactory: Sendable {
 public typealias _ResourceContentExtractorFactory = ResourceContentExtractorFactory
 
 /// Default `ResourceContentExtractorFactory` supporting HTML resources.
-public class DefaultResourceContentExtractorFactory: ResourceContentExtractorFactory, Sendable {
+public final class DefaultResourceContentExtractorFactory: ResourceContentExtractorFactory, Sendable {
     public init() {}
 
     public func makeExtractor(for resource: Resource, mediaType: MediaType) -> ResourceContentExtractor? {

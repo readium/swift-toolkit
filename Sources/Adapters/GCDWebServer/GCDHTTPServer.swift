@@ -129,7 +129,7 @@ public final class GCDHTTPServer: HTTPServer, Loggable {
         for request: ReadiumGCDWebServerRequest,
         completion: @escaping (HTTPServerRequest, HTTPServerResponse, HTTPRequestHandler.OnFailure?) -> Void
     ) {
-        let completion = { request, resource, failureHandler in
+        let dispatchCompletion = { (request: HTTPServerRequest, resource: HTTPServerResponse, failureHandler: HTTPRequestHandler.OnFailure?) in
             // Escape the queue to avoid deadlocks if something is using the
             // server in the handler.
             DispatchQueue.global().async {
@@ -168,20 +168,16 @@ public final class GCDHTTPServer: HTTPServer, Loggable {
 
                 var response = handler.onRequest(request)
                 response.resource = transform(resource: response.resource, request: request, at: endpoint)
-                completion(request, response, handler.onFailure)
+                dispatchCompletion(request, response, handler.onFailure)
                 return
             }
 
             log(.warning, "Resource not found for request \(request)")
-            completion(
+            dispatchCompletion(
                 HTTPServerRequest(url: url, href: nil),
-                HTTPServerResponse(error: .errorResponse(HTTPResponse(
-                    request: HTTPRequest(url: url),
-                    url: url,
+                HTTPServerResponse(error: .errorResponse(HTTPErrorResponse(
                     status: .notFound,
-                    headers: [:],
-                    mediaType: nil,
-                    body: nil
+                    body: Data()
                 ))),
                 nil
             )

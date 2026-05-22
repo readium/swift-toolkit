@@ -134,7 +134,7 @@ extension AnyURL: Hashable {
     ///
     /// To ignore this warning, compare `AnyURL.string` instead of
     /// `AnyURL` itself.
-    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalentTo() instead.")
     public static func == (lhs: AnyURL, rhs: AnyURL) -> Bool {
         lhs.string == rhs.string
     }
