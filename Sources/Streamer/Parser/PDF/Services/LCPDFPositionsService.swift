@@ -12,7 +12,7 @@ import ReadiumShared
 /// to get its page count.
 ///
 /// Requires the publication to have a ``PDFDocumentService``.
-final class LCPDFPositionsService: PositionsService, Loggable {
+final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
     private let readingOrder: [Link]
     private let publication: Weak<Publication>
 
@@ -95,7 +95,7 @@ final class LCPDFPositionsService: PositionsService, Loggable {
         }
     }
 
-    static func makeFactory() -> (PublicationServiceContext) -> LCPDFPositionsService? {
+    static func makeFactory() -> @Sendable (PublicationServiceContext) -> LCPDFPositionsService? {
         { context in
             LCPDFPositionsService(
                 readingOrder: context.manifest.readingOrder,

@@ -12,7 +12,7 @@ import ReadiumShared
 /// when the table of contents is missing from the `manifest.json` file.
 ///
 /// Requires the publication to have a ``PDFDocumentService``.
-final class LCPDFTableOfContentsService: TableOfContentsService, Loggable {
+final class LCPDFTableOfContentsService: TableOfContentsService, Loggable, Sendable {
     private let manifest: Manifest
     private let publication: Weak<Publication>
 
@@ -69,7 +69,7 @@ final class LCPDFTableOfContentsService: TableOfContentsService, Loggable {
 
     private let cache = Cache()
 
-    static func makeFactory() -> (PublicationServiceContext) -> LCPDFTableOfContentsService? {
+    static func makeFactory() -> @Sendable (PublicationServiceContext) -> LCPDFTableOfContentsService? {
         { context in
             LCPDFTableOfContentsService(
                 manifest: context.manifest,
