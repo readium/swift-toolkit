@@ -18,15 +18,17 @@ public final class GeneratedCoverService: CoverService, Sendable {
     }
 
     private actor Cache {
-        var cover: ReadResult<UIImage>?
+        private var task: Task<ReadResult<UIImage>, Never>?
 
-        func getOrMake(make: () async -> ReadResult<UIImage>) async -> ReadResult<UIImage> {
-            if let cover = cover {
-                return cover
+        func getOrMake(make: @escaping @Sendable () async -> ReadResult<UIImage>) -> Task<ReadResult<UIImage>, Never> {
+            if let task = task {
+                return task
             }
-            let newCover = await make()
-            cover = newCover
-            return newCover
+            let newTask = Task {
+                await make()
+            }
+            task = newTask
+            return newTask
         }
     }
 
@@ -38,7 +40,8 @@ public final class GeneratedCoverService: CoverService, Sendable {
     }
 
     public convenience init(cover: UIImage) {
-        self.init(makeCover: { .success(cover) })
+        let wrapped = SendableImage(image: cover)
+        self.init(makeCover: { [wrapped] in .success(wrapped.image) })
     }
 
     private let coverLink = Link(
@@ -48,7 +51,7 @@ public final class GeneratedCoverService: CoverService, Sendable {
     )
 
     private func cachedCover() async -> ReadResult<UIImage> {
-        await cache.getOrMake(make: makeCover)
+        await cache.getOrMake(make: makeCover).value
     }
 
     public func cover() async -> ReadResult<UIImage?> {
