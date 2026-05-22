@@ -10,14 +10,14 @@ public actor FormatSnifferBlob {
     private let source: Streamable
     private let xmlDocumentFactory: XMLDocumentFactory
 
-    // Caches. Warning: The `xml` cache holds an `XMLDocument`, which is a complex,
-    // mutable reference type (non-Sendable). It is safe here because it never leaves
-    // the actor's isolation domain. If a `reset()` or invalidation method is added in
-    // the future, take extreme care not to leak this document to non-isolated contexts.
     private var length: ReadResult<UInt64?>?
     private var bytes: ReadResult<Data?>?
     private var string: ReadResult<String?>?
     private var json: ReadResult<JSONValue?>?
+
+    /// Caches. Warning: The `xml` cache holds an `XMLDocument`, which is a complex,
+    /// mutable reference type (non-Sendable). It is safe here because it never leaves
+    /// the actor's isolation domain.
     private var xml: ReadResult<XMLDocument?>?
 
     public init(source: Streamable) {
