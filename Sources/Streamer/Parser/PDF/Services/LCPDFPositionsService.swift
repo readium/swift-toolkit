@@ -15,65 +15,45 @@ import ReadiumShared
 final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
     private let readingOrder: [Link]
     private let publication: Weak<Publication>
+    private let cache: AsyncMemoizer<ReadResult<[[Locator]]>>
 
     init(readingOrder: [Link], publication: Weak<Publication>) {
         self.readingOrder = readingOrder
         self.publication = publication
-    }
 
-    func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        await cache.getOrMakeTask(
-            readingOrder: readingOrder,
-            publication: publication
-        ).value
-    }
-
-    private actor Cache {
-        var task: Task<ReadResult<[[Locator]]>, Never>?
-
-        func getOrMakeTask(
-            readingOrder: [Link],
-            publication: Weak<Publication>
-        ) -> Task<ReadResult<[[Locator]]>, Never> {
-            if let task = task {
-                return task
+        cache = AsyncMemoizer { [readingOrder, publication] in
+            guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
+                return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFPositionsService")))
+            }
+            // Calculates the page count of each resource from the reading order.
+            let resources = await readingOrder.asyncMap { link -> (Int, Link) in
+                let href = link.url()
+                guard
+                    let document = try? await pdfDocumentService.openDocument(at: href),
+                    let pageCount = try? await document.pageCount()
+                else {
+                    return (0, link)
+                }
+                return (pageCount, link)
             }
 
-            let newTask = Task<ReadResult<[[Locator]]>, Never> {
-                guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
-                    return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFPositionsService")))
+            let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
+
+            var lastPositionOfPreviousResource = 0
+            return .success(resources.map { pageCount, link -> [Locator] in
+                guard pageCount > 0 else {
+                    return []
                 }
-                // Calculates the page count of each resource from the reading order.
-                let resources = await readingOrder.asyncMap { link -> (Int, Link) in
-                    let href = link.url()
-                    guard
-                        let document = try? await pdfDocumentService.openDocument(at: href),
-                        let pageCount = try? await document.pageCount()
-                    else {
-                        return (0, link)
-                    }
-                    return (pageCount, link)
-                }
-
-                let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
-
-                var lastPositionOfPreviousResource = 0
-                return .success(resources.map { pageCount, link -> [Locator] in
-                    guard pageCount > 0 else {
-                        return []
-                    }
-                    let positionList = LCPDFPositionsService.makePositionList(of: link, pageCount: pageCount, totalPageCount: totalPageCount, startPosition: lastPositionOfPreviousResource)
-                    lastPositionOfPreviousResource += pageCount
-                    return positionList
-                })
-            }
-
-            task = newTask
-            return newTask
+                let positionList = LCPDFPositionsService.makePositionList(of: link, pageCount: pageCount, totalPageCount: totalPageCount, startPosition: lastPositionOfPreviousResource)
+                lastPositionOfPreviousResource += pageCount
+                return positionList
+            })
         }
     }
 
-    private let cache = Cache()
+    func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
+        await cache()
+    }
 
     private static func makePositionList(of link: Link, pageCount: Int, totalPageCount: Int, startPosition: Int = 0) -> [Locator] {
         assert(pageCount > 0, "Invalid PDF page count")

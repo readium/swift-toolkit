@@ -16,58 +16,39 @@ final class LCPDFTableOfContentsService: TableOfContentsService, Loggable, Senda
     private let manifest: Manifest
     private let publication: Weak<Publication>
 
+    private let cache: AsyncMemoizer<ReadResult<[Link]>>
+
     init(
         manifest: Manifest,
         publication: Weak<Publication>
     ) {
         self.manifest = manifest
         self.publication = publication
-    }
 
-    func tableOfContents() async -> ReadResult<[Link]> {
-        await cache.getOrMakeTask(
-            manifest: manifest,
-            publication: publication
-        ).value
-    }
-
-    private actor Cache {
-        var task: Task<ReadResult<[Link]>, Never>?
-
-        func getOrMakeTask(
-            manifest: Manifest,
-            publication: Weak<Publication>
-        ) -> Task<ReadResult<[Link]>, Never> {
-            if let task = task {
-                return task
+        cache = AsyncMemoizer { [manifest, publication] in
+            guard
+                manifest.tableOfContents.isEmpty,
+                manifest.readingOrder.count == 1,
+                let url = manifest.readingOrder.first?.url()
+            else {
+                return .success(manifest.tableOfContents)
+            }
+            guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
+                return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFTableOfContentsService")))
             }
 
-            let newTask = Task<ReadResult<[Link]>, Never> {
-                guard
-                    manifest.tableOfContents.isEmpty,
-                    manifest.readingOrder.count == 1,
-                    let url = manifest.readingOrder.first?.url()
-                else {
-                    return .success(manifest.tableOfContents)
-                }
-                guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
-                    return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFTableOfContentsService")))
-                }
-
-                do {
-                    let toc = try await pdfDocumentService.openDocument(at: url).tableOfContents()
-                    return .success(toc.linksWithDocumentHREF(url))
-                } catch {
-                    return .failure(.wrap(error) ?? .decoding(error))
-                }
+            do {
+                let toc = try await pdfDocumentService.openDocument(at: url).tableOfContents()
+                return .success(toc.linksWithDocumentHREF(url))
+            } catch {
+                return .failure(.wrap(error) ?? .decoding(error))
             }
-
-            task = newTask
-            return newTask
         }
     }
 
-    private let cache = Cache()
+    func tableOfContents() async -> ReadResult<[Link]> {
+        await cache()
+    }
 
     static func makeFactory() -> @Sendable (PublicationServiceContext) -> LCPDFTableOfContentsService? {
         { context in

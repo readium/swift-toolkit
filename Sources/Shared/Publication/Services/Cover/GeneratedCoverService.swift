@@ -17,26 +17,12 @@ public final class GeneratedCoverService: CoverService, Sendable {
         case generationFailed
     }
 
-    private actor Cache {
-        private var task: Task<ReadResult<UIImage>, Never>?
-
-        func getOrMake(make: @escaping @Sendable () async -> ReadResult<UIImage>) -> Task<ReadResult<UIImage>, Never> {
-            if let task = task {
-                return task
-            }
-            let newTask = Task {
-                await make()
-            }
-            task = newTask
-            return newTask
-        }
-    }
-
-    private let cache = Cache()
+    private let cache: AsyncMemoizer<ReadResult<UIImage>>
     private let makeCover: @Sendable () async -> ReadResult<UIImage>
 
     public init(makeCover: @escaping @Sendable () async -> ReadResult<UIImage>) {
         self.makeCover = makeCover
+        cache = AsyncMemoizer(makeCover)
     }
 
     public convenience init(cover: UIImage) {
@@ -51,7 +37,7 @@ public final class GeneratedCoverService: CoverService, Sendable {
     )
 
     private func cachedCover() async -> ReadResult<UIImage> {
-        await cache.getOrMake(make: makeCover).value
+        await cache()
     }
 
     public func cover() async -> ReadResult<UIImage?> {
