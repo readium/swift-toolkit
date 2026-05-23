@@ -21,22 +21,28 @@ public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, cust
 }
 
 /// The Logger protocol.
-public protocol LoggerType {
-    func log(level: SeverityLevel, value: Any?, file: String, line: Int)
+public protocol LoggerType: Sendable {
+    func log(level: SeverityLevel, value: String?, file: String, line: Int)
 }
 
 /// Logger singleton.
-public final class Logger {
-    /// The active logger is responssible for displaying the log message
-    /// throughout the framework. There is a default implementation `StubLogger`
-    /// available. You can define your own implementation by applying the
-    /// `Loggable` protocol to your xLogger class.
-    var activeLogger: LoggerType?
+public final class Logger: Sendable {
+    struct State {
+        /// The active logger responsible for displaying the log messages
+        /// throughout the framework. There is a default implementation `LoggerStub`
+        /// available. You can define your own implementation by conforming your
+        /// custom logger class to the `LoggerType` protocol.
+        var activeLogger: LoggerType?
 
-    /// The minimum severity level for logs to be displayed.
-    var minimumSeverityLevel: SeverityLevel?
+        /// The minimum severity level for logs to be displayed.
+        var minimumSeverityLevel: SeverityLevel?
+    }
 
-    private(set) static var sharedInstance = Logger()
+    private let state = Mutex(State())
+
+    static let sharedInstance = Logger()
+
+    private init() {}
 
     // MARK: - Public methods.
 
@@ -49,8 +55,10 @@ public final class Logger {
     public func setupLogger(logger: LoggerType,
                             withMinimumSeverityLevel severityLevel: SeverityLevel? = .warning)
     {
-        activeLogger = logger
-        minimumSeverityLevel = severityLevel
+        state.withLock { currentState in
+            currentState.activeLogger = logger
+            currentState.minimumSeverityLevel = severityLevel
+        }
     }
 
     /// Allow the framework user to set the minimum severity level for the logs
@@ -58,20 +66,20 @@ public final class Logger {
     ///
     /// - Parameter severityLevel: The value from the `SeverityLevel` enum.
     public func setMinimumSeverityLevel(at severityLevel: SeverityLevel?) {
-        guard let severityLevel = severityLevel else {
-            return
+        guard let severityLevel else { return }
+        state.withLock { currentState in
+            currentState.minimumSeverityLevel = severityLevel
         }
-        minimumSeverityLevel = severityLevel
     }
 
     // MARK: - Internal methods.
 
-    func log(_ value: Any?, at level: SeverityLevel, file: String, line: Int) {
-        if let minimumSeverityLevel = minimumSeverityLevel {
-            guard level.numericValue >= minimumSeverityLevel.numericValue else {
-                return
+    func log(_ value: String?, at level: SeverityLevel, file: String, line: Int) {
+        state.withLock { currentState in
+            if let minimumSeverityLevel = currentState.minimumSeverityLevel {
+                guard level.numericValue >= minimumSeverityLevel.numericValue else { return }
             }
+            currentState.activeLogger?.log(level: level, value: value, file: file, line: line)
         }
-        activeLogger?.log(level: level, value: value, file: file, line: line)
     }
 }

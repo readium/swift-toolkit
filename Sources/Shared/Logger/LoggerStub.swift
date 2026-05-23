@@ -12,7 +12,7 @@ public final class LoggerStub: LoggerType, Sendable {
     public init() {}
 
     /// Log `message` with a severity of `level`.
-    public func log(level: SeverityLevel, value: Any?, file: String, line: Int) {
+    public func log(level: SeverityLevel, value: String?, file: String, line: Int) {
         guard let value = value else {
             return
         }
