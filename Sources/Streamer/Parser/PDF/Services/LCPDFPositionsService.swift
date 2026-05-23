@@ -32,6 +32,7 @@ final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
                     let document = try? await pdfDocumentService.openDocument(at: href),
                     let pageCount = try? await document.pageCount()
                 else {
+                    LCPDFPositionsService.log(.warning, "Can't get the number of pages from PDF document at \(link)")
                     return (0, link)
                 }
                 return (pageCount, link)
