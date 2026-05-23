@@ -10,40 +10,36 @@ import XCTest
 class DefaultLocatorServiceTests: XCTestCase {
     /// locate(Locator) checks that the href exists.
     func testFromLocator() async {
-        let (publication, service) = makeService(readingOrder: [
+        let sut = makeService(readingOrder: [
             Link(href: "chap1", mediaType: .xml),
             Link(href: "chap2", mediaType: .xml),
             Link(href: "chap3", mediaType: .xml),
         ])
-        _ = publication // Silence warning
         let locator = Locator(href: "chap2", mediaType: .html, text: .init(highlight: "Highlight"))
-        let result = await service.locate(locator)
+        let result = await sut.service.locate(locator)
         XCTAssertEqual(result, locator)
     }
 
     func testFromLocatorEmptyReadingOrder() async {
-        let (publication, service) = makeService(readingOrder: [])
-        _ = publication // Silence warning
-        let result = await service.locate(Locator(href: "href", mediaType: .html))
+        let sut = makeService(readingOrder: [])
+        let result = await sut.service.locate(Locator(href: "href", mediaType: .html))
         XCTAssertNil(result)
     }
 
     func testFromLocatorNotFound() async {
-        let (publication, service) = makeService(readingOrder: [
+        let sut = makeService(readingOrder: [
             Link(href: "chap1", mediaType: .xml),
             Link(href: "chap3", mediaType: .xml),
         ])
-        _ = publication // Silence warning
         let locator = Locator(href: "chap2", mediaType: .html, text: .init(highlight: "Highlight"))
-        let result = await service.locate(locator)
+        let result = await sut.service.locate(locator)
         XCTAssertNil(result)
     }
 
     func testFromProgression() async {
-        let (publication, service) = makeService(positions: positionsFixture)
-        _ = publication // Silence warning
+        let sut = makeService(positions: positionsFixture)
 
-        var result = await service.locate(progression: 0.0)
+        var result = await sut.service.locate(progression: 0.0)
         XCTAssertEqual(result, Locator(
             href: "chap1",
             mediaType: .html,
@@ -54,7 +50,7 @@ class DefaultLocatorServiceTests: XCTestCase {
             )
         ))
 
-        result = await service.locate(progression: 0.25)
+        result = await sut.service.locate(progression: 0.25)
         XCTAssertEqual(result, Locator(
             href: "chap3",
             mediaType: .html,
@@ -69,7 +65,7 @@ class DefaultLocatorServiceTests: XCTestCase {
         let chap5FirstTotalProg = 5.0 / 8.0
         let chap4FirstTotalProg = 3.0 / 8.0
 
-        result = await service.locate(progression: 0.4)
+        result = await sut.service.locate(progression: 0.4)
         XCTAssertEqual(result, Locator(
             href: "chap4",
             mediaType: .html,
@@ -80,7 +76,7 @@ class DefaultLocatorServiceTests: XCTestCase {
             )
         ))
 
-        result = await service.locate(progression: 0.55)
+        result = await sut.service.locate(progression: 0.55)
         XCTAssertEqual(result, Locator(
             href: "chap4",
             mediaType: .html,
@@ -91,7 +87,7 @@ class DefaultLocatorServiceTests: XCTestCase {
             )
         ))
 
-        result = await service.locate(progression: 0.9)
+        result = await sut.service.locate(progression: 0.9)
         XCTAssertEqual(result, Locator(
             href: "chap5",
             mediaType: .html,
@@ -102,7 +98,7 @@ class DefaultLocatorServiceTests: XCTestCase {
             )
         ))
 
-        result = await service.locate(progression: 1.0)
+        result = await sut.service.locate(progression: 1.0)
         XCTAssertEqual(result, Locator(
             href: "chap5",
             mediaType: .html,
@@ -115,30 +111,27 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromIncorrectProgression() async {
-        let (publication, service) = makeService(positions: positionsFixture)
-        _ = publication // Silence warning
+        let sut = makeService(positions: positionsFixture)
 
-        var result = await service.locate(progression: -0.2)
+        var result = await sut.service.locate(progression: -0.2)
         XCTAssertNil(result)
 
-        result = await service.locate(progression: 1.2)
+        result = await sut.service.locate(progression: 1.2)
         XCTAssertNil(result)
     }
 
     func testFromProgressionEmptyPositions() async {
-        let (publication, service) = makeService(positions: [])
-        _ = publication // Silence warning
-        let result = await service.locate(progression: 0.5)
+        let sut = makeService(positions: [])
+        let result = await sut.service.locate(progression: 0.5)
         XCTAssertNil(result)
     }
 
     func testFromMinimalLink() async {
-        let (publication, service) = makeService(readingOrder: [
+        let sut = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
-        _ = publication // Silence warning
 
-        let result = await service.locate(Link(href: "/href"))
+        let result = await sut.service.locate(Link(href: "/href"))
         XCTAssertEqual(
             result,
             Locator(href: "/href", mediaType: .html, title: "Resource", locations: Locator.Locations(progression: 0.0))
@@ -146,26 +139,25 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromLinkInReadingOrderResourcesOrLinks() async {
-        let (publication, service) = makeService(
+        let sut = makeService(
             links: [Link(href: "/href3", mediaType: .html)],
             readingOrder: [Link(href: "/href1", mediaType: .html)],
             resources: [Link(href: "/href2", mediaType: .html)]
         )
-        _ = publication // Silence warning
 
-        var result = await service.locate(Link(href: "/href1"))
+        var result = await sut.service.locate(Link(href: "/href1"))
         XCTAssertEqual(
             result,
             Locator(href: "/href1", mediaType: .html, locations: Locator.Locations(progression: 0.0))
         )
 
-        result = await service.locate(Link(href: "/href2"))
+        result = await sut.service.locate(Link(href: "/href2"))
         XCTAssertEqual(
             result,
             Locator(href: "/href2", mediaType: .html, locations: Locator.Locations(progression: 0.0))
         )
 
-        result = await service.locate(Link(href: "/href3"))
+        result = await sut.service.locate(Link(href: "/href3"))
         XCTAssertEqual(
             result,
             Locator(href: "/href3", mediaType: .html, locations: Locator.Locations(progression: 0.0))
@@ -173,12 +165,11 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromLinkWithFragment() async throws {
-        let (publication, service) = makeService(readingOrder: [
+        let sut = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html, title: "Resource"),
         ])
-        _ = publication // Silence warning
 
-        let result = try await service.locate(Link(href: "/href#page=42", mediaType: XCTUnwrap(MediaType("text/xml")), title: "My link"))
+        let result = try await sut.service.locate(Link(href: "/href#page=42", mediaType: XCTUnwrap(MediaType("text/xml")), title: "My link"))
         XCTAssertEqual(
             result,
             Locator(href: "/href", mediaType: .html, title: "Resource", locations: Locator.Locations(fragments: ["page=42"]))
@@ -186,12 +177,11 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testTitleFallbackFromLink() async {
-        let (publication, service) = makeService(readingOrder: [
+        let sut = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html),
         ])
-        _ = publication // Silence warning
 
-        let result = await service.locate(Link(href: "/href", title: "My link"))
+        let result = await sut.service.locate(Link(href: "/href", title: "My link"))
         XCTAssertEqual(
             result,
             Locator(href: "/href", mediaType: .html, title: "My link", locations: Locator.Locations(progression: 0.0))
@@ -199,13 +189,17 @@ class DefaultLocatorServiceTests: XCTestCase {
     }
 
     func testFromLinkNotFound() async {
-        let (publication, service) = makeService(readingOrder: [
+        let sut = makeService(readingOrder: [
             Link(href: "/href", mediaType: .html),
         ])
-        _ = publication // Silence warning
 
-        let result = await service.locate(Link(href: "notfound"))
+        let result = await sut.service.locate(Link(href: "notfound"))
         XCTAssertNil(result)
+    }
+
+    struct Context {
+        var publication: Publication
+        var service: DefaultLocatorService
     }
 
     func makeService(
@@ -213,7 +207,7 @@ class DefaultLocatorServiceTests: XCTestCase {
         readingOrder: [Link] = [],
         resources: [Link] = [],
         positions: [[Locator]] = []
-    ) -> (Publication, DefaultLocatorService) {
+    ) -> Context {
         let publication = Publication(
             manifest: Manifest(
                 metadata: Metadata(title: ""),
@@ -226,7 +220,7 @@ class DefaultLocatorServiceTests: XCTestCase {
             )
         )
         let service = DefaultLocatorService(publication: Weak(publication))
-        return (publication, service)
+        return Context(publication: publication, service: service)
     }
 }
 

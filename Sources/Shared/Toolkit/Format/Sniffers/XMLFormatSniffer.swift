@@ -26,13 +26,12 @@ public struct XMLFormatSniffer: FormatSniffer, Sendable {
             return .success(nil)
         }
 
-        return await blob.readAsXML()
-            .map {
-                guard $0 != nil else {
-                    return nil
-                }
-                return xml
+        return await blob.sniffXML {
+            guard $0 != nil else {
+                return nil
             }
+            return xml
+        }
     }
 
     private let xml = Format(

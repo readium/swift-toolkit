@@ -33,16 +33,19 @@ public struct HTMLFormatSniffer: FormatSniffer, Sendable {
             return .success(nil)
         }
 
-        return await blob.readAsXML()
-            .asyncMap { document in
-                if let format = sniffDocument(document) {
-                    return format
-                } else if let format = await sniffString(blob) {
-                    return format
-                } else {
-                    return nil
-                }
+        let documentFormat = await blob.sniffXML { document in
+            sniffDocument(document)
+        }
+
+        return await documentFormat.asyncMap { format in
+            if let format = format {
+                return format
+            } else if let format = await sniffString(blob) {
+                return format
+            } else {
+                return nil
             }
+        }
     }
 
     private func sniffDocument(_ document: XMLDocument?) -> Format? {

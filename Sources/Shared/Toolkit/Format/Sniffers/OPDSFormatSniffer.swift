@@ -33,20 +33,19 @@ public final class OPDSFormatSniffer: FormatSniffer, Sendable {
 
     public func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?> {
         if format.conformsTo(.xml) {
-            return await blob.readAsXML()
-                .map {
-                    guard let document = $0 else {
-                        return nil
-                    }
-                    let namespaces = [XMLNamespace.atom]
-                    if document.first("/atom:feed", with: namespaces) != nil {
-                        return opds1Catalog
-                    } else if document.first("/atom:entry", with: namespaces) != nil {
-                        return opds1Entry
-                    } else {
-                        return nil
-                    }
+            return await blob.sniffXML {
+                guard let document = $0 else {
+                    return nil
                 }
+                let namespaces = [XMLNamespace.atom]
+                if document.first("/atom:feed", with: namespaces) != nil {
+                    return opds1Catalog
+                } else if document.first("/atom:entry", with: namespaces) != nil {
+                    return opds1Entry
+                } else {
+                    return nil
+                }
+            }
 
         } else if format.conformsTo(.json) {
             return await blob.read()
