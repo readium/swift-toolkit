@@ -56,7 +56,7 @@ public extension ContentElement where Self: Equatable {
 }
 
 /// A type-erasing `ContentElement` object which implements `Equatable`.
-public struct AnyEquatableContentElement: Equatable, ContentElement {
+public struct AnyEquatableContentElement: Equatable, ContentElement, Sendable {
     private let element: ContentElement
 
     public init<E: ContentElement>(_ element: E) {
@@ -101,7 +101,7 @@ public protocol EmbeddedContentElement: ContentElement {
 }
 
 /// An audio clip.
-public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement, Sendable {
     public var locator: Locator
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
@@ -114,7 +114,7 @@ public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// A video clip.
-public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement, Sendable {
     public var locator: Locator
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
@@ -127,7 +127,7 @@ public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// An embedded image (bitmap or SVG).
-public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement, Sendable {
     public var locator: Locator
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
@@ -149,7 +149,7 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// An inline SVG image.
-public struct SVGContentElement: Hashable, TextualContentElement {
+public struct SVGContentElement: Hashable, TextualContentElement, Sendable {
     public var locator: Locator
     public var attributes: [ContentAttribute]
 
@@ -176,7 +176,7 @@ public struct SVGContentElement: Hashable, TextualContentElement {
 ///
 /// @param role Purpose of this element in the broader context of the document.
 /// @param segments Ranged portions of text with associated attributes.
-public struct TextContentElement: Hashable, TextualContentElement {
+public struct TextContentElement: Hashable, TextualContentElement, Sendable {
     public var locator: Locator
     public var role: Role
     public var segments: [Segment]
@@ -213,7 +213,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     /// @param locator Locator to the segment of text.
     /// @param text Text in the segment.
     /// @param attributes Attributes associated with this segment, e.g. language.
-    public struct Segment: Hashable, ContentAttributesHolder {
+    public struct Segment: Hashable, ContentAttributesHolder, Sendable {
         public var locator: Locator
         public var text: String
         public var attributes: [ContentAttribute]

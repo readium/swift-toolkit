@@ -9,7 +9,7 @@ import Foundation
 /// Builds a list of `PublicationService` from a collection of `PublicationServiceFactory`.
 ///
 /// Provides helpers to manipulate the list of services of a `Publication`.
-public struct PublicationServicesBuilder {
+public struct PublicationServicesBuilder: Sendable {
     private var factories: [String: PublicationServiceFactory] = [:]
 
     public init(

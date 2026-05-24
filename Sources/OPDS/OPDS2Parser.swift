@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public enum OPDS2ParserError: Error {
+public enum OPDS2ParserError: Error, Sendable {
     case invalidJSON
     case metadataNotFound
     case invalidLink

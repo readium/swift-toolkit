@@ -6,7 +6,7 @@
 
 import Foundation
 
-public enum PDFResourceContentIteratorError: Error {
+public enum PDFResourceContentIteratorError: Error, Sendable {
     /// The publication must have a ``PDFDocumentService`` to open the document.
     case missingPDFDocumentService
 }

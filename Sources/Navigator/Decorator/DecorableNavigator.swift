@@ -43,7 +43,7 @@ public protocol DecorableNavigator {
 public typealias DecorationGroup = String
 
 /// Holds the metadata about a decoration activation interaction.
-public struct OnDecorationActivatedEvent {
+public struct OnDecorationActivatedEvent: Sendable {
     /// Activated decoration.
     public let decoration: Decoration
     /// Name of the group the decoration belongs to.
