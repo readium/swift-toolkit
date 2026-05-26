@@ -145,9 +145,9 @@ public struct HTTPServerResponse {
 /// Callbacks handling a request.
 ///
 /// If the resource cannot be served, the `onFailure` callback is called.
-public struct HTTPRequestHandler: Sendable {
-    public typealias OnRequest = @Sendable (_ request: HTTPServerRequest) -> HTTPServerResponse
-    public typealias OnFailure = @Sendable (_ request: HTTPServerRequest, _ error: ReadError) -> Void
+public struct HTTPRequestHandler {
+    public typealias OnRequest = (_ request: HTTPServerRequest) -> HTTPServerResponse
+    public typealias OnFailure = (_ request: HTTPServerRequest, _ error: ReadError) -> Void
 
     public let onRequest: OnRequest
     public let onFailure: OnFailure?
