@@ -9,7 +9,7 @@ import ReadiumShared
 import UIKit
 
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
-public struct HTMLDecorationTemplate: JSONObjectEncodable, Sendable {
+public struct HTMLDecorationTemplate: JSONObjectEncodable {
     /// Determines the number of created HTML elements and their position relative to the matching DOM range.
     public enum Layout: String, Sendable {
         /// A single HTML element covering the smallest region containing all CSS border boxes.

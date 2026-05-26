@@ -44,7 +44,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         case serverFailure(Error)
     }
 
-    public struct Configuration: Sendable {
+    public struct Configuration {
         /// Initial set of setting preferences.
         public var preferences: EPUBPreferences
 

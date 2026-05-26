@@ -25,7 +25,7 @@ public protocol HTMLFontFamilyDeclaration {
 }
 
 /// A type-erasing `HTMLFontFamilyDeclaration` object
-public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
+public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration {
     private let _fontFamily: () -> FontFamily
     private let _alternates: () -> [FontFamily]
     private let _inject: (String, (FileURL) throws -> any AbsoluteURL) throws -> String
