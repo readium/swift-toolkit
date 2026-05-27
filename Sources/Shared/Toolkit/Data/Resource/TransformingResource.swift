@@ -27,8 +27,8 @@ public final class TransformingResource: Resource, Sendable {
         transform: @escaping @Sendable (ReadResult<Data>) async -> ReadResult<Data> = { $0 }
     ) {
         self.resource = resource
-        self.estimatedLengthClosure = estimatedLength ?? { .success(nil) }
-        self.data = AsyncMemoizer {
+        estimatedLengthClosure = estimatedLength ?? { .success(nil) }
+        data = AsyncMemoizer {
             await transform(resource.read())
         }
     }

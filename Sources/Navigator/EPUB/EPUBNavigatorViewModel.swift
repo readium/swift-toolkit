@@ -321,15 +321,15 @@ enum EPUBScriptScope {
             for file in ff.fontFiles {
                 if self.servedFonts.withLock({ $0[file] }) == nil {
                     let name = file.lastPathSegment ?? UUID().uuidString
-                    let url = self.server.serve(file: file, at: "assets/fonts/\(name)")
+                    let url = server.serve(file: file, at: "assets/fonts/\(name)")
                     self.servedFonts.withLock { $0[file] = url }
                 }
             }
         }
 
-        let css = self.css
+        let css = css
         let fontFamilyDeclarations = config.fontFamilyDeclarations
-        let servedFonts = self.servedFonts.withLock { $0 }
+        let servedFonts = servedFonts.withLock { $0 }
 
         return resource.mapAsString { content in
             do {

@@ -81,7 +81,7 @@ final class LCPDecryptor {
             self.license = license
             self.encryption = encryption
 
-            self.plainTextSizeTask = Task {
+            plainTextSizeTask = Task {
                 await resource.estimatedLength().asyncFlatMap { length in
                     guard let length = length else {
                         return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))

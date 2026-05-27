@@ -74,7 +74,7 @@ public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
     public var fontFaces: [CSSFontFace]
 
     public var fontFiles: [FileURL] {
-        fontFaces.flatMap { $0.fontFiles }
+        fontFaces.flatMap(\.fontFiles)
     }
 
     public init(fontFamily: FontFamily, alternates: [FontFamily] = [], fontFaces: [CSSFontFace] = []) {
@@ -114,7 +114,7 @@ public struct CSSFontFace: Sendable {
     private var sources: [Source]
 
     public var fontFiles: [FileURL] {
-        sources.map { $0.file }
+        sources.map(\.file)
     }
 
     public init(
