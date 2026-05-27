@@ -339,6 +339,7 @@ enum EPUBScriptScope {
                         in: content,
                         servingFile: { file in
                             guard let url = servedFonts[file] else {
+                                self.log(.warning, "Font file was not pre-served: \(file)")
                                 return file
                             }
                             return url
@@ -347,6 +348,7 @@ enum EPUBScriptScope {
                 }
                 return content
             } catch {
+                self.log(.error, error)
                 return content
             }
         }
