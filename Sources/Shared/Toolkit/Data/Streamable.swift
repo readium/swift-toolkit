@@ -121,6 +121,7 @@ package extension Streamable {
 
             guard !Task.isCancelled else {
                 error.withLock { $0 = .cancelled }
+                data.withLock { $0 = Data() }
                 return
             }
 
@@ -128,6 +129,7 @@ package extension Streamable {
             let currentCount = data.withLock { $0.count }
             guard availableMemory == 0 || currentCount + chunk.count <= availableMemory else {
                 error.withLock { $0 = .outOfMemory(nil) }
+                data.withLock { $0 = Data() }
                 return
             }
 
