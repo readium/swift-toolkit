@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public protocol HTMLFontFamilyDeclaration {
+public protocol HTMLFontFamilyDeclaration: Sendable {
     /// Name of the font family.
     ///
     /// This will be the value of the `fontFamily` EPUB preference.
@@ -17,6 +17,9 @@ public protocol HTMLFontFamilyDeclaration {
     /// symbols are missing from `fontFamily`.
     var alternates: [FontFamily] { get }
 
+    /// List of font files associated with this declaration.
+    var fontFiles: [FileURL] { get }
+
     /// Injects this font family declaration in the given `html` document.
     ///
     /// Use `servingFile` to convert a file URL into a URL accessible from the
@@ -25,10 +28,11 @@ public protocol HTMLFontFamilyDeclaration {
 }
 
 /// A type-erasing `HTMLFontFamilyDeclaration` object
-public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration {
-    private let _fontFamily: () -> FontFamily
-    private let _alternates: () -> [FontFamily]
-    private let _inject: (String, (FileURL) throws -> any AbsoluteURL) throws -> String
+public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
+    private let _fontFamily: @Sendable () -> FontFamily
+    private let _alternates: @Sendable () -> [FontFamily]
+    private let _fontFiles: @Sendable () -> [FileURL]
+    private let _inject: @Sendable (String, (FileURL) throws -> any AbsoluteURL) throws -> String
 
     public var fontFamily: FontFamily {
         _fontFamily()
@@ -38,9 +42,14 @@ public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration {
         _alternates()
     }
 
+    public var fontFiles: [FileURL] {
+        _fontFiles()
+    }
+
     public init<T: HTMLFontFamilyDeclaration>(_ declaration: T) {
         _fontFamily = { declaration.fontFamily }
         _alternates = { declaration.alternates }
+        _fontFiles = { declaration.fontFiles }
         _inject = { try declaration.inject(in: $0, servingFile: $1) }
     }
 
@@ -63,6 +72,10 @@ public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
 
     /// Declarations for the individual font files for this font family.
     public var fontFaces: [CSSFontFace]
+
+    public var fontFiles: [FileURL] {
+        fontFaces.flatMap { $0.fontFiles }
+    }
 
     public init(fontFamily: FontFamily, alternates: [FontFamily] = [], fontFaces: [CSSFontFace] = []) {
         self.fontFamily = fontFamily
@@ -99,6 +112,10 @@ public struct CSSFontFace: Sendable {
     public var style: CSSFontStyle?
     public var weight: CSSFontWeight?
     private var sources: [Source]
+
+    public var fontFiles: [FileURL] {
+        sources.map { $0.file }
+    }
 
     public init(
         file: FileURL,

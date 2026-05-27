@@ -7,7 +7,7 @@
 @testable import ReadiumShared
 import XCTest
 
-struct TestPositionsService: PositionsService {
+final class TestPositionsService: PositionsService {
     let positions: [[Locator]]
 
     init(_ positions: [[Locator]]) {

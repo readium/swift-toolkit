@@ -42,7 +42,7 @@ public actor FileResource: Resource, Loggable {
         })
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await handle().flatMap { handle in
             do {
                 if var range = range {

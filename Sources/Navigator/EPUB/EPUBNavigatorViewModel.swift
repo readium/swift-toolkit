@@ -305,7 +305,7 @@ enum EPUBScriptScope {
     // MARK: - Readium CSS
 
     private var css: ReadiumCSS
-    private var servedFonts: [FileURL: AbsoluteURL] = [:]
+    private let servedFonts = Mutex<[FileURL: AbsoluteURL]>([:])
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
@@ -316,30 +316,37 @@ enum EPUBScriptScope {
             return resource
         }
 
-        return resource.mapAsString { [weak self] content in
-            guard let self = self else {
-                return content
+        // Pre-serve all fonts on the MainActor
+        for ff in config.fontFamilyDeclarations {
+            for file in ff.fontFiles {
+                if self.servedFonts.withLock({ $0[file] }) == nil {
+                    let name = file.lastPathSegment ?? UUID().uuidString
+                    let url = self.server.serve(file: file, at: "assets/fonts/\(name)")
+                    self.servedFonts.withLock { $0[file] = url }
+                }
             }
+        }
 
+        let css = self.css
+        let fontFamilyDeclarations = config.fontFamilyDeclarations
+        let servedFonts = self.servedFonts.withLock { $0 }
+
+        return resource.mapAsString { content in
             do {
                 var content = try css.inject(in: content)
-                for ff in config.fontFamilyDeclarations {
+                for ff in fontFamilyDeclarations {
                     content = try ff.inject(
                         in: content,
-                        servingFile: { [server] file in
-                            if let url = self.servedFonts[file] {
-                                return url
+                        servingFile: { file in
+                            guard let url = servedFonts[file] else {
+                                return file
                             }
-                            let name = file.lastPathSegment ?? UUID().uuidString
-                            let url = server.serve(file: file, at: "assets/fonts/\(name)")
-                            self.servedFonts[file] = url
                             return url
                         }
                     )
                 }
                 return content
             } catch {
-                log(.error, error)
                 return content
             }
         }

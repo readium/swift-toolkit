@@ -35,7 +35,7 @@ actor TailCachingResource: Resource, Loggable {
 
     func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
         guard cacheFromOffset <= range?.lowerBound ?? 0 else {
             return await resource.stream(range: range, consume: consume)
@@ -78,10 +78,12 @@ actor TailCachingResource: Resource, Loggable {
                     return cache!
                 }
 
-                var data = Data()
-                cache = await resource.stream(range: cacheFromOffset ..< length) { chunk in
-                    data.append(chunk)
-                }.map { data }
+                let data = Mutex(Data())
+                let streamResult = await resource.stream(range: cacheFromOffset ..< length) { chunk in
+                    data.withLock { $0.append(chunk) }
+                }
+
+                cache = streamResult.map { data.withLock { $0 } }
 
                 return cache!
             }

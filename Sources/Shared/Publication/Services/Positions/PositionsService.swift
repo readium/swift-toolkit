@@ -9,7 +9,7 @@ import Foundation
 public typealias PositionsServiceFactory = (PublicationServiceContext) -> PositionsService?
 
 /// Provides a list of discrete locations in the publication, no matter what the original format is.
-public protocol PositionsService: PublicationService {
+public protocol PositionsService: PublicationService & Sendable {
     /// List of all the positions in the publication, grouped by the resource reading order index.
     func positionsByReadingOrder() async -> ReadResult<[[Locator]]>
 
@@ -30,7 +30,7 @@ private let positionsLink = Link(
     mediaType: MediaType.readiumPositions
 )
 
-public extension PositionsService {
+public extension PositionsService where Self: AnyObject {
     var links: [Link] {
         [positionsLink]
     }
@@ -39,14 +39,16 @@ public extension PositionsService {
         guard href.anyURL.isEquivalentTo(positionsLink.url()) else {
             return nil
         }
-        return PositionsResource(positions: positions)
+        return PositionsResource(positions: { [weak self] in
+            await self?.positions() ?? .failure(.decoding("Deallocated"))
+        })
     }
 }
 
-private class PositionsResource: Resource {
-    private let positions: () async -> ReadResult<[Locator]>
+private struct PositionsResource: Resource {
+    private let positions: @Sendable () async -> ReadResult<[Locator]>
 
-    init(positions: @escaping () async -> ReadResult<[Locator]>) {
+    init(positions: @escaping @Sendable () async -> ReadResult<[Locator]>) {
         self.positions = positions
     }
 
@@ -60,7 +62,7 @@ private class PositionsResource: Resource {
         .success(ResourceProperties())
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await positions().flatMap { positions in
             let response: [String: JSONValue] = .init([
                 "total": positions.count,

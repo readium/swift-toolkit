@@ -25,7 +25,7 @@ public final class FailureResource: Resource, Sendable {
         .failure(error)
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         .failure(error)
     }
 }

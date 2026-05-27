@@ -104,7 +104,7 @@ private actor ZIPFoundationResource: Resource, Loggable {
         })
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         if range != nil {}
 
         return await archive().asyncFlatMap { archive in

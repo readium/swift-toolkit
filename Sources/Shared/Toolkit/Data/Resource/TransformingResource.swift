@@ -16,42 +16,36 @@ import Foundation
 ///
 /// You can either provide a `transform` closure during construction, or extend
 /// `TransformingResource` and override `transform()`.
-open class TransformingResource: Resource {
+public final class TransformingResource: Resource, Sendable {
     private let resource: Resource
-    private let _transform: ((ReadResult<Data>) async -> ReadResult<Data>)?
-    private var data: AsyncMemoizer<ReadResult<Data>>!
+    private let data: AsyncMemoizer<ReadResult<Data>>
+    private let estimatedLengthClosure: @Sendable () async -> ReadResult<UInt64?>
 
-    public init(_ resource: Resource, transform: ((ReadResult<Data>) async -> ReadResult<Data>)? = nil) {
+    public init(
+        _ resource: Resource,
+        estimatedLength: (@Sendable () async -> ReadResult<UInt64?>)? = nil,
+        transform: @escaping @Sendable (ReadResult<Data>) async -> ReadResult<Data> = { $0 }
+    ) {
         self.resource = resource
-        _transform = transform
-
-        data = AsyncMemoizer { [weak self] in
-            guard let self else {
-                return .failure(.decoding(DebugError("TransformingResource is deallocated")))
-            }
-            return await self.transform(data: resource.read())
+        self.estimatedLengthClosure = estimatedLength ?? { .success(nil) }
+        self.data = AsyncMemoizer {
+            await transform(resource.read())
         }
-    }
-
-    open func transform(data: ReadResult<Data>) async -> ReadResult<Data> {
-        await _transform!(data)
     }
 
     /// As the resource is transformed, we can't use the original source URL
     /// as reference.
     public let sourceURL: AbsoluteURL? = nil
 
-    open func estimatedLength() async -> ReadResult<UInt64?> {
-        // As the content will be transformed, we can't rely on the estimated
-        // length from the upstream resource.
-        .success(nil)
+    public func estimatedLength() async -> ReadResult<UInt64?> {
+        await estimatedLengthClosure()
     }
 
-    open func properties() async -> ReadResult<ResourceProperties> {
+    public func properties() async -> ReadResult<ResourceProperties> {
         await resource.properties()
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await data().map { data in
             if let range = range?.clamped(to: 0 ..< UInt64(data.count)) {
                 consume(data[range])
@@ -65,16 +59,16 @@ open class TransformingResource: Resource {
 
 /// Convenient shortcuts to create a `TransformingResource`.
 public extension Resource {
-    func map(transform: @escaping (Data) async -> Data) -> Resource {
+    func map(transform: @escaping @Sendable (Data) async -> Data) -> Resource {
         TransformingResource(self, transform: { await $0.asyncMap(transform) })
     }
 
-    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping (String) async -> String) -> Resource {
-        TransformingResource(self) {
+    func mapAsString(encoding: String.Encoding = .utf8, transform: @escaping @Sendable (String) async -> String) -> Resource {
+        TransformingResource(self, transform: {
             await $0.asyncMap { data in
                 let string = String(data: data, encoding: encoding) ?? ""
                 return await transform(string).data(using: .utf8) ?? Data()
             }
-        }
+        })
     }
 }
