@@ -7,12 +7,16 @@
 import Foundation
 
 /// A type-erased wrapper for a value that is both `Hashable` and `Sendable`.
-public struct AnySendableHashable: Hashable, Sendable {
+package struct AnySendableHashable: Hashable, Sendable {
     package let base: any Hashable & Sendable
     private let equals: @Sendable (any Hashable & Sendable) -> Bool
     private let hasher: @Sendable (inout Hasher) -> Void
 
-    public init<T: Hashable & Sendable>(_ base: T) {
+    package var asAnyHashable: AnyHashable {
+        AnyHashable(base)
+    }
+
+    package init<T: Hashable & Sendable>(_ base: T) {
         if let nested = base as? AnySendableHashable {
             self.base = nested.base
             equals = nested.equals
@@ -24,16 +28,16 @@ public struct AnySendableHashable: Hashable, Sendable {
         }
     }
 
-    public static func == (lhs: Self, rhs: Self) -> Bool {
+    package static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.equals(rhs.base)
     }
 
-    public func hash(into hasher: inout Hasher) {
+    package func hash(into hasher: inout Hasher) {
         self.hasher(&hasher)
     }
 
     /// Safely unwraps the underlying value to the expected type.
-    public func unwrap<T: Hashable & Sendable>(as type: T.Type = T.self) -> T? {
+    package func unwrap<T: Hashable & Sendable>(as type: T.Type = T.self) -> T? {
         base as? T
     }
 }

@@ -70,14 +70,23 @@ public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
     /// Declares the look and feel of the decoration.
     public var style: Style
 
-    /// Additional context data specific to a reading app. Readium does not use it.
-    public var userInfo: [String: AnySendableHashable]
+    private let _userInfo: [String: AnySendableHashable]
+    public var userInfo: [String: AnyHashable] {
+        _userInfo.mapValues(\.asAnyHashable)
+    }
 
-    public init(id: Id, locator: Locator, style: Style, userInfo: [String: AnySendableHashable] = [:]) {
+    public init(id: Id, locator: Locator, style: Style, userInfo: [String: any Sendable & Hashable] = [:]) {
         self.id = id
         self.style = style
         self.locator = locator
-        self.userInfo = userInfo
+        _userInfo = userInfo.mapValues { AnySendableHashable($0) }
+    }
+
+    package init(id: Id, locator: Locator, style: Style, userInfo: [String: AnySendableHashable]) {
+        self.id = id
+        self.style = style
+        self.locator = locator
+        _userInfo = userInfo
     }
 
     /// Unique identifier for a decoration.

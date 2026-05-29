@@ -249,7 +249,7 @@ public struct ContentAttribute: Hashable, Sendable {
 
     private let _value: AnySendableHashable
     public var value: AnyHashable {
-        AnyHashable(_value.base)
+        _value.asAnyHashable
     }
 
     public init<T: Hashable & Sendable>(key: ContentAttributeKey<T>, value: T) {
@@ -257,9 +257,14 @@ public struct ContentAttribute: Hashable, Sendable {
         _value = AnySendableHashable(value)
     }
 
-    public init(key: String, value: AnySendableHashable) {
+    package init(key: String, value: AnySendableHashable) {
         self.key = key
         _value = value
+    }
+
+    public init(key: String, value: any Sendable & Hashable) {
+        self.key = key
+        _value = AnySendableHashable(value)
     }
 }
 
