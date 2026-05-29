@@ -13,14 +13,9 @@ import ReadiumShared
 ///
 /// Requires the publication to have a ``PDFDocumentService``.
 final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
-    private let readingOrder: [Link]
-    private let publication: Weak<Publication>
     private let cache: AsyncMemoizer<ReadResult<[[Locator]]>>
 
     init(readingOrder: [Link], publication: Weak<Publication>) {
-        self.readingOrder = readingOrder
-        self.publication = publication
-
         cache = AsyncMemoizer { [readingOrder, publication] in
             guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
                 return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFPositionsService")))

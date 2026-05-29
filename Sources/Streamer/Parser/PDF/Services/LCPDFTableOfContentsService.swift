@@ -13,18 +13,12 @@ import ReadiumShared
 ///
 /// Requires the publication to have a ``PDFDocumentService``.
 final class LCPDFTableOfContentsService: TableOfContentsService, Loggable, Sendable {
-    private let manifest: Manifest
-    private let publication: Weak<Publication>
-
     private let cache: AsyncMemoizer<ReadResult<[Link]>>
 
     init(
         manifest: Manifest,
         publication: Weak<Publication>
     ) {
-        self.manifest = manifest
-        self.publication = publication
-
         cache = AsyncMemoizer { [manifest, publication] in
             guard
                 manifest.tableOfContents.isEmpty,

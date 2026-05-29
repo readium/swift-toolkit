@@ -10,16 +10,19 @@ import ReadiumShared
 /// Locator service for audio publications.
 final class AudioLocatorService: DefaultLocatorService {
     static func makeFactory() -> @Sendable (PublicationServiceContext) -> AudioLocatorService {
-        { context in AudioLocatorService(publication: context.publication) }
+        { context in
+            AudioLocatorService(
+                readingOrder: context.manifest.readingOrder,
+                publication: context.publication
+            )
+        }
     }
 
     private let readingOrder: [Link]
     private let durations: [Double]
     private let totalDuration: Double?
 
-    override init(publication: Weak<Publication>) {
-        let pub = publication()
-        let readingOrder = pub?.readingOrder ?? []
+    init(readingOrder: [Link], publication: Weak<Publication>) {
         self.readingOrder = readingOrder
         let durations = readingOrder.map { $0.duration ?? 0 }
         self.durations = durations

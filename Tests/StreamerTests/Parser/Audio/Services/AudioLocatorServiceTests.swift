@@ -199,7 +199,7 @@ class AudioLocatorServiceTests: XCTestCase {
         let publication = Publication(
             manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
         )
-        let service = AudioLocatorService(publication: Weak(publication))
+        let service = AudioLocatorService(readingOrder: readingOrder, publication: Weak(publication))
         return (publication, service)
     }
 }
