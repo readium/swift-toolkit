@@ -246,16 +246,20 @@ public struct ContentAttributeKey<V>: Hashable, Sendable {
 
 public struct ContentAttribute: Hashable, Sendable {
     public let key: String
-    public let value: AnySendableHashable
+
+    private let _value: AnySendableHashable
+    public var value: AnyHashable {
+        AnyHashable(_value.base)
+    }
 
     public init<T: Hashable & Sendable>(key: ContentAttributeKey<T>, value: T) {
         self.key = key.key
-        self.value = AnySendableHashable(value)
+        _value = AnySendableHashable(value)
     }
 
     public init(key: String, value: AnySendableHashable) {
         self.key = key
-        self.value = value
+        _value = value
     }
 }
 
@@ -282,7 +286,7 @@ public extension ContentAttributesHolder {
     /// Gets the first attribute with the given `key`.
     func attribute<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> T? {
         attributes.first { attr in
-            if attr.key == key.key, let value = attr.value.unwrap(as: T.self) {
+            if attr.key == key.key, let value = attr.value as? T {
                 return value
             } else {
                 return nil
@@ -293,7 +297,7 @@ public extension ContentAttributesHolder {
     /// Gets all the attributes with the given `key`.
     func attributes<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> [T] {
         attributes.compactMap { attr in
-            if attr.key == key.key, let value = attr.value.unwrap(as: T.self) {
+            if attr.key == key.key, let value = attr.value as? T {
                 return value
             } else {
                 return nil

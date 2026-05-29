@@ -8,7 +8,7 @@ import Foundation
 
 /// A type-erased wrapper for a value that is both `Hashable` and `Sendable`.
 public struct AnySendableHashable: Hashable, Sendable {
-    public let base: any Hashable & Sendable
+    package let base: any Hashable & Sendable
     private let equals: @Sendable (any Hashable & Sendable) -> Bool
     private let hasher: @Sendable (inout Hasher) -> Void
 

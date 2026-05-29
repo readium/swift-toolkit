@@ -105,7 +105,7 @@ extension Decoration.Style.Id {
 
 #### 2. Define a config struct
 
-The config carries the data your template needs. It must be `Hashable` and `Sendable` so the diffing engine can detect changes and it can be safely passed across concurrent contexts.
+The config carries the data your template needs.
 
 ```swift
 struct PageListConfig: Hashable, Sendable {
