@@ -101,7 +101,7 @@ extension AppModule: OPDSModuleDelegate {
         _ publication: Publication?,
         at link: ReadiumShared.Link,
         sender: UIViewController,
-        progress: @escaping (Double) -> Void
+        progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book {
         guard let url = link.url(relativeTo: publication?.baseURL).httpURL else {
             throw OPDSError.invalidURL(link.href)

@@ -257,11 +257,6 @@ public struct ContentAttribute: Hashable, Sendable {
         _value = AnySendableHashable(value)
     }
 
-    package init(key: String, value: AnySendableHashable) {
-        self.key = key
-        _value = value
-    }
-
     public init(key: String, value: any Sendable & Hashable) {
         self.key = key
         _value = AnySendableHashable(value)

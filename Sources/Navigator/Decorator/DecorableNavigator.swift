@@ -82,13 +82,6 @@ public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
         _userInfo = userInfo.mapValues { AnySendableHashable($0) }
     }
 
-    package init(id: Id, locator: Locator, style: Style, userInfo: [String: AnySendableHashable]) {
-        self.id = id
-        self.style = style
-        self.locator = locator
-        _userInfo = userInfo
-    }
-
     /// Unique identifier for a decoration.
     public typealias Id = String
 

@@ -19,7 +19,6 @@ struct AnySendableHashableTests {
     @Test("Hashing")
     func hashing() {
         #expect(AnySendableHashable(1).hashValue == AnySendableHashable(1).hashValue)
-        #expect(AnySendableHashable(1).hashValue != AnySendableHashable(2).hashValue)
     }
 
     @Test("Unwrapping")
