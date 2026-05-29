@@ -787,9 +787,9 @@ private extension PointerEvent {
 
         let optionalPointer: Pointer? = switch pointerType {
         case "mouse":
-            .mouse(MousePointer(id: pointerId, buttons: MouseButtons(json: json)))
+            .mouse(MousePointer(id: .int(pointerId), buttons: MouseButtons(json: json)))
         case "touch":
-            .touch(TouchPointer(id: pointerId))
+            .touch(TouchPointer(id: .int(pointerId)))
         default:
             nil
         }
