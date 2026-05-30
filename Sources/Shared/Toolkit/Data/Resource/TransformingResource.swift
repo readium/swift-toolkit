@@ -14,8 +14,7 @@ import Foundation
 /// good idea to cache the result of the transformation in case multiple ranges
 /// will be read.
 ///
-/// You can either provide a `transform` closure during construction, or extend
-/// `TransformingResource` and override `transform()`.
+/// Customize the transformation by providing a `transform` closure during construction.
 public final class TransformingResource: Resource, Sendable {
     private let resource: Resource
     private let data: AsyncMemoizer<ReadResult<Data>>
