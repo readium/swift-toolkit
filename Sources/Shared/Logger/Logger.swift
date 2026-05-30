@@ -14,8 +14,7 @@ import Foundation
 ///   - customLogger: The Logger that will be used for printing logs.
 ///     Defaults to a `LoggerStub` which may perform no-op logging.
 public func ReadiumEnableLog(withMinimumSeverityLevel level: SeverityLevel, customLogger: LoggerType = LoggerStub()) {
-    Logger.sharedInstance.setupLogger(logger: customLogger)
-    Logger.sharedInstance.setMinimumSeverityLevel(at: level)
+    Logger.sharedInstance.setupLogger(logger: customLogger, withMinimumSeverityLevel: level)
 
     print("\(SeverityLevel.info.symbol) Readium 2 Log enabled with minimum severity level of [\(level)].")
 }
@@ -75,11 +74,12 @@ public final class Logger: Sendable {
     // MARK: - Internal methods.
 
     func log(_ value: String?, at level: SeverityLevel, file: String, line: Int) {
-        state.withLock { currentState in
+        let logger: LoggerType? = state.withLock { currentState in
             if let minimumSeverityLevel = currentState.minimumSeverityLevel {
-                guard level.numericValue >= minimumSeverityLevel.numericValue else { return }
+                guard level.numericValue >= minimumSeverityLevel.numericValue else { return nil }
             }
-            currentState.activeLogger?.log(level: level, value: value, file: file, line: line)
+            return currentState.activeLogger
         }
+        logger?.log(level: level, value: value, file: file, line: line)
     }
 }

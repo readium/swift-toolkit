@@ -17,6 +17,6 @@ public final class LoggerStub: LoggerType, Sendable {
             return
         }
         let fileName = URL(fileURLWithPath: file).lastPathComponent
-        print("\(level.symbol) \(fileName):\(line): \(String(describing: value))")
+        print("\(level.symbol) \(fileName):\(line): \(value)")
     }
 }
