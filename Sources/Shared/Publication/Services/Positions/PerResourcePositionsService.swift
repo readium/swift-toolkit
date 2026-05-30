@@ -14,29 +14,31 @@ public final class PerResourcePositionsService: PositionsService {
     /// Media type that will be used as a fallback if the `Link` doesn't specify any.
     private let fallbackMediaType: MediaType
 
+    private let pageCount: Int
+    private let positions: [[Locator]]
+
     init(readingOrder: [Link], fallbackMediaType: MediaType) {
         self.readingOrder = readingOrder
         self.fallbackMediaType = fallbackMediaType
+        let pageCount = readingOrder.count
+        self.pageCount = pageCount
+        positions = readingOrder.enumerated().map { index, link in
+            [
+                Locator(
+                    href: link.url(),
+                    mediaType: link.mediaType ?? fallbackMediaType,
+                    title: link.title,
+                    locations: Locator.Locations(
+                        totalProgression: Double(index) / Double(pageCount),
+                        position: index + 1
+                    )
+                ),
+            ]
+        }
     }
 
     public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
         .success(positions)
-    }
-
-    private lazy var pageCount: Int = readingOrder.count
-
-    private lazy var positions: [[Locator]] = readingOrder.enumerated().map { index, link in
-        [
-            Locator(
-                href: link.url(),
-                mediaType: link.mediaType ?? fallbackMediaType,
-                title: link.title,
-                locations: Locator.Locations(
-                    totalProgression: Double(index) / Double(pageCount),
-                    position: index + 1
-                )
-            ),
-        ]
     }
 
     public static func makeFactory(fallbackMediaType: MediaType) -> (PublicationServiceContext) -> PerResourcePositionsService {
