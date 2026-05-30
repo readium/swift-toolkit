@@ -126,14 +126,20 @@ package extension Streamable {
             }
 
             let availableMemory = os_proc_available_memory()
-            let currentCount = data.withLock { $0.count }
-            guard availableMemory == 0 || currentCount + chunk.count <= availableMemory else {
-                error.withLock { $0 = .outOfMemory(nil) }
-                data.withLock { $0 = Data() }
-                return
+            let success = data.withLock { buffer in
+                if availableMemory == 0 || buffer.count + chunk.count <= availableMemory {
+                    buffer.append(chunk)
+                    return true
+                } else {
+                    buffer = Data()
+                    return false
+                }
             }
 
-            data.withLock { $0.append(chunk) }
+            guard success else {
+                error.withLock { $0 = .outOfMemory(nil) }
+                return
+            }
         }
 
         if let error = error.withLock({ $0 }) {
