@@ -331,7 +331,7 @@ enum EPUBScriptScope {
         let fontFamilyDeclarations = config.fontFamilyDeclarations
         let servedFonts = servedFonts.withLock { $0 }
 
-        return resource.mapAsString { [weak self] content in
+        return resource.mapAsString { content in
             do {
                 var content = try css.inject(in: content)
                 for ff in fontFamilyDeclarations {
@@ -339,7 +339,7 @@ enum EPUBScriptScope {
                         in: content,
                         servingFile: { file in
                             guard let url = servedFonts[file] else {
-                                self?.log(.warning, "Font file was not pre-served: \(file)")
+                                EPUBNavigatorViewModel.log(.warning, "Font file was not pre-served: \(file)")
                                 return file
                             }
                             return url
@@ -348,7 +348,7 @@ enum EPUBScriptScope {
                 }
                 return content
             } catch {
-                self?.log(.error, error)
+                EPUBNavigatorViewModel.log(.error, error)
                 return content
             }
         }
