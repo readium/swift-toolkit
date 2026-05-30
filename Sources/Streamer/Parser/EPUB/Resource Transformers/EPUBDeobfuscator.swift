@@ -67,7 +67,7 @@ final class EPUBDeobfuscator {
             await resource.properties()
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             var readPosition = range?.lowerBound ?? 0
             let obfuscatedLength = algorithm.obfuscatedLength
 

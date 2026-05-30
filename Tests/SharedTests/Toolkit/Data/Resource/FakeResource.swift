@@ -32,7 +32,7 @@ actor FakeResource: Resource {
         _properties
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         consume(Data())
         return .success(())
     }

@@ -22,8 +22,8 @@ struct HTTPResourceTests {
 
         func stream(
             _ request: HTTPRequestConvertible,
-            onReceiveResponse: ((HTTPResponse) async -> HTTPResult<Void>)?,
-            consume: (Data, Double?) -> HTTPResult<Void>
+            onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)?,
+            consume: @Sendable (Data, Double?) -> HTTPResult<Void>
         ) async -> HTTPResult<HTTPResponse> {
             let req = try! request.httpRequest().get()
             let key = "\(req.method.rawValue) \(req.url.string)"
