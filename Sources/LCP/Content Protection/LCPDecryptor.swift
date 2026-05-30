@@ -72,7 +72,7 @@ final class LCPDecryptor {
         private let resource: Resource
         private let license: LCPLicense
         private let encryption: ReadiumShared.Encryption
-        private let plainTextSizeTask: Task<ReadResult<UInt64?>, Never>
+        private let plainTextSizeMemoizer: AsyncMemoizer<ReadResult<UInt64?>>
 
         init(_ resource: Resource, license: LCPLicense, encryption: ReadiumShared.Encryption) {
             assert(!encryption.isDeflated)
@@ -81,7 +81,7 @@ final class LCPDecryptor {
             self.license = license
             self.encryption = encryption
 
-            plainTextSizeTask = Task {
+            plainTextSizeMemoizer = AsyncMemoizer { [resource, license] in
                 await resource.estimatedLength().asyncFlatMap { length in
                     guard let length = length else {
                         return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))
@@ -123,7 +123,7 @@ final class LCPDecryptor {
         }
 
         private var plainTextSize: ReadResult<UInt64?> {
-            get async { await plainTextSizeTask.value }
+            get async { await plainTextSizeMemoizer() }
         }
 
         func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
