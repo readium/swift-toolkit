@@ -96,10 +96,10 @@ struct HTTPResourceTests {
             body: #require("0123456789".data(using: .utf8))
         ))
 
-        var streamedData = Data()
-        let result = await resource.stream(range: 0 ..< 10, consume: { streamedData.append($0) })
+        let streamedData = Mutex(Data())
+        let result = await resource.stream(range: 0 ..< 10, consume: { chunk in streamedData.withLock { $0.append(chunk) } })
 
         try result.get()
-        #expect(streamedData == "0123456789".data(using: .utf8))
+        #expect(streamedData.withLock { $0 } == "0123456789".data(using: .utf8))
     }
 }
