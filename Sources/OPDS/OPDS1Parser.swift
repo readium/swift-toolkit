@@ -8,14 +8,14 @@ import Foundation
 import ReadiumFuzi
 import ReadiumShared
 
-public enum OPDS1ParserError: Error {
+public enum OPDS1ParserError: Error, Sendable {
     /// The title is missing from the feed.
     case missingTitle
     /// Root is not found
     case rootNotFound
 }
 
-public enum OPDSParserOpenSearchHelperError: Error {
+public enum OPDSParserOpenSearchHelperError: Error, Sendable {
     /// Search link not found in feed
     case searchLinkNotFound
     /// OpenSearch document is invalid

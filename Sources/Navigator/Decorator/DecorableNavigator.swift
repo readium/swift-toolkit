@@ -43,7 +43,7 @@ public protocol DecorableNavigator {
 public typealias DecorationGroup = String
 
 /// Holds the metadata about a decoration activation interaction.
-public struct OnDecorationActivatedEvent {
+public struct OnDecorationActivatedEvent: Sendable {
     /// Activated decoration.
     public let decoration: Decoration
     /// Name of the group the decoration belongs to.
@@ -60,7 +60,7 @@ public struct OnDecorationActivatedEvent {
 /// a discrete `locator` in the publication.
 ///
 /// For example, decorations can be used to draw highlights, images or buttons.
-public struct Decoration: Hashable, JSONObjectEncodable {
+public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
     /// An identifier for this decoration. It must be unique in the group the decoration is applied to.
     public var id: Id
 
@@ -70,14 +70,16 @@ public struct Decoration: Hashable, JSONObjectEncodable {
     /// Declares the look and feel of the decoration.
     public var style: Style
 
-    /// Additional context data specific to a reading app. Readium does not use it.
-    public var userInfo: [AnyHashable: AnyHashable]
+    private let _userInfo: [String: AnySendableHashable]
+    public var userInfo: [String: AnyHashable] {
+        _userInfo.mapValues(\.asAnyHashable)
+    }
 
-    public init(id: Id, locator: Locator, style: Style, userInfo: [AnyHashable: AnyHashable] = [:]) {
+    public init(id: Id, locator: Locator, style: Style, userInfo: [String: any Sendable & Hashable] = [:]) {
         self.id = id
         self.style = style
         self.locator = locator
-        self.userInfo = userInfo
+        _userInfo = userInfo.mapValues { AnySendableHashable($0) }
     }
 
     /// Unique identifier for a decoration.
@@ -87,7 +89,7 @@ public struct Decoration: Hashable, JSONObjectEncodable {
     ///
     /// It is media type agnostic, meaning that each Navigator will translate the style into a set of rendering
     /// instructions which makes sense for the resource type.
-    public struct Style: Hashable {
+    public struct Style: Hashable, Sendable {
         /// Unique ID for a style.
         public struct Id: RawRepresentable, ExpressibleByStringLiteral, Hashable, JSONValueEncodable, Sendable {
             public let rawValue: String
@@ -117,7 +119,7 @@ public struct Decoration: Hashable, JSONObjectEncodable {
             .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive))
         }
 
-        public struct HighlightConfig: Hashable {
+        public struct HighlightConfig: Hashable, Sendable {
             public var tint: UIColor?
             public var isActive: Bool
             public init(tint: UIColor? = nil, isActive: Bool = false) {
@@ -127,11 +129,20 @@ public struct Decoration: Hashable, JSONObjectEncodable {
         }
 
         public let id: Id
-        public let config: AnyHashable?
 
-        public init(id: Id, config: AnyHashable? = nil) {
+        private let _config: AnySendableHashable?
+        public var config: AnyHashable? {
+            _config.map { AnyHashable($0.base) }
+        }
+
+        public init(id: Id) {
             self.id = id
-            self.config = config
+            _config = nil
+        }
+
+        public init<T: Hashable & Sendable>(id: Id, config: T) {
+            self.id = id
+            _config = AnySendableHashable(config)
         }
     }
 

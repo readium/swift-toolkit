@@ -40,7 +40,7 @@ public extension Content {
 }
 
 /// Represents a single semantic content element part of a publication.
-public protocol ContentElement: ContentAttributesHolder {
+public protocol ContentElement: ContentAttributesHolder, Sendable {
     /// Locator targeting this element in the Publication.
     var locator: Locator { get }
 
@@ -56,7 +56,7 @@ public extension ContentElement where Self: Equatable {
 }
 
 /// A type-erasing `ContentElement` object which implements `Equatable`.
-public struct AnyEquatableContentElement: Equatable, ContentElement {
+public struct AnyEquatableContentElement: Equatable, ContentElement, Sendable {
     private let element: ContentElement
 
     public init<E: ContentElement>(_ element: E) {
@@ -101,7 +101,7 @@ public protocol EmbeddedContentElement: ContentElement {
 }
 
 /// An audio clip.
-public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement, Sendable {
     public var locator: Locator
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
@@ -114,7 +114,7 @@ public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// A video clip.
-public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement, Sendable {
     public var locator: Locator
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
@@ -127,7 +127,7 @@ public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// An embedded image (bitmap or SVG).
-public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement, Sendable {
     public var locator: Locator
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
@@ -149,7 +149,7 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// An inline SVG image.
-public struct SVGContentElement: Hashable, TextualContentElement {
+public struct SVGContentElement: Hashable, TextualContentElement, Sendable {
     public var locator: Locator
     public var attributes: [ContentAttribute]
 
@@ -176,7 +176,7 @@ public struct SVGContentElement: Hashable, TextualContentElement {
 ///
 /// @param role Purpose of this element in the broader context of the document.
 /// @param segments Ranged portions of text with associated attributes.
-public struct TextContentElement: Hashable, TextualContentElement {
+public struct TextContentElement: Hashable, TextualContentElement, Sendable {
     public var locator: Locator
     public var role: Role
     public var segments: [Segment]
@@ -213,7 +213,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     /// @param locator Locator to the segment of text.
     /// @param text Text in the segment.
     /// @param attributes Attributes associated with this segment, e.g. language.
-    public struct Segment: Hashable, ContentAttributesHolder {
+    public struct Segment: Hashable, ContentAttributesHolder, Sendable {
         public var locator: Locator
         public var text: String
         public var attributes: [ContentAttribute]
@@ -244,18 +244,22 @@ public struct ContentAttributeKey<V>: Hashable, Sendable {
     }
 }
 
-public struct ContentAttribute: Hashable {
+public struct ContentAttribute: Hashable, Sendable {
     public let key: String
-    public let value: AnyHashable
 
-    public init<T: Hashable>(key: ContentAttributeKey<T>, value: T) {
-        self.key = key.key
-        self.value = value
+    private let _value: AnySendableHashable
+    public var value: AnyHashable {
+        _value.asAnyHashable
     }
 
-    public init(key: String, value: AnyHashable) {
+    public init<T: Hashable & Sendable>(key: ContentAttributeKey<T>, value: T) {
+        self.key = key.key
+        _value = AnySendableHashable(value)
+    }
+
+    public init(key: String, value: any Sendable & Hashable) {
         self.key = key
-        self.value = value
+        _value = AnySendableHashable(value)
     }
 }
 
@@ -275,12 +279,12 @@ public extension ContentAttributesHolder {
     }
 
     /// Gets the first attribute with the given `key`.
-    subscript<T>(_ key: ContentAttributeKey<T>) -> T? {
+    subscript<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> T? {
         attribute(key)
     }
 
     /// Gets the first attribute with the given `key`.
-    func attribute<T>(_ key: ContentAttributeKey<T>) -> T? {
+    func attribute<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> T? {
         attributes.first { attr in
             if attr.key == key.key, let value = attr.value as? T {
                 return value
@@ -291,7 +295,7 @@ public extension ContentAttributesHolder {
     }
 
     /// Gets all the attributes with the given `key`.
-    func attributes<T>(_ key: ContentAttributeKey<T>) -> [T] {
+    func attributes<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> [T] {
         attributes.compactMap { attr in
             if attr.key == key.key, let value = attr.value as? T {
                 return value

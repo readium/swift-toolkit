@@ -319,7 +319,7 @@ open class PDFNavigatorViewController:
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: view)
-        let pointer = Pointer.touch(TouchPointer(id: ObjectIdentifier(gesture)))
+        let pointer = Pointer.touch(TouchPointer(id: .object(ObjectIdentifier(gesture))))
         let modifiers = KeyModifiers(flags: gesture.modifierFlags)
         Task {
             _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .down, location: location, modifiers: modifiers))
@@ -331,7 +331,7 @@ open class PDFNavigatorViewController:
 
     @objc private func didClick(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: view)
-        let pointer = Pointer.mouse(MousePointer(id: ObjectIdentifier(gesture), buttons: .main))
+        let pointer = Pointer.mouse(MousePointer(id: .object(ObjectIdentifier(gesture)), buttons: .main))
         let modifiers = KeyModifiers(flags: gesture.modifierFlags)
         Task {
             _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .down, location: location, modifiers: modifiers))

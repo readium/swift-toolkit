@@ -130,7 +130,7 @@ open class InputObservableViewController: UIViewController, InputObservable {
 
 extension Pointer {
     init(touch: UITouch, event: UIEvent?) {
-        let id = AnyHashable(ObjectIdentifier(touch))
+        let id = PointerId.object(ObjectIdentifier(touch))
 
         self = switch touch.type {
         case .direct, .indirect:
