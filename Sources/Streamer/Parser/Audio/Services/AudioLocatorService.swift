@@ -9,22 +9,52 @@ import ReadiumShared
 
 /// Locator service for audio publications.
 final class AudioLocatorService: DefaultLocatorService {
-    static func makeFactory() -> (PublicationServiceContext) -> AudioLocatorService {
-        { context in AudioLocatorService(publication: context.publication) }
+    static func makeFactory() -> @Sendable (PublicationServiceContext) -> AudioLocatorService {
+        { context in
+            AudioLocatorService(
+                readingOrder: context.manifest.readingOrder,
+                publication: context.publication
+            )
+        }
     }
 
-    private lazy var readingOrder: [Link] =
-        publication()?.readingOrder ?? []
+    private let readingOrder: [Link]
 
     /// Duration per reading order index.
-    private lazy var durations: [Double] =
-        readingOrder.map { $0.duration ?? 0 }
+    private let durations: [Double]
 
     /// Total duration of the publication.
-    private lazy var totalDuration: Double? = {
-        let totalDuration = durations.reduce(0, +)
-        return (totalDuration > 0) ? totalDuration : nil
-    }()
+    private let totalDuration: Double?
+
+    init(readingOrder: [Link], publication: Weak<Publication>) {
+        self.readingOrder = readingOrder
+        let durations = readingOrder.map { $0.duration ?? 0 }
+        self.durations = durations
+        let total = durations.reduce(0, +)
+        totalDuration = (total > 0) ? total : nil
+
+        super.init(publication: publication)
+    }
+
+    /// Finds the reading order item containing the time `position` (in seconds), as well as its
+    /// start time.
+    private func readingOrderItemAtPosition(_ position: Double) -> (link: Link, startPosition: Double)? {
+        var current: Double = 0
+        for (i, duration) in durations.enumerated() {
+            let link = readingOrder[i]
+            if current ..< current + duration ~= position {
+                return (link, startPosition: current)
+            }
+
+            current += duration
+        }
+
+        if position == totalDuration, let link = readingOrder.last {
+            return (link, startPosition: current - (link.duration ?? 0))
+        }
+
+        return nil
+    }
 
     override func locate(progression: Double) async -> Locator? {
         guard let totalDuration = totalDuration else {
@@ -53,25 +83,5 @@ final class AudioLocatorService: DefaultLocatorService {
                 totalProgression: progression
             )
         )
-    }
-
-    /// Finds the reading order item containing the time `position` (in seconds), as well as its
-    /// start time.
-    private func readingOrderItemAtPosition(_ position: Double) -> (link: Link, startPosition: Double)? {
-        var current: Double = 0
-        for (i, duration) in durations.enumerated() {
-            let link = readingOrder[i]
-            if current ..< current + duration ~= position {
-                return (link, startPosition: current)
-            }
-
-            current += duration
-        }
-
-        if position == totalDuration, let link = readingOrder.last {
-            return (link, startPosition: current - (link.duration ?? 0))
-        }
-
-        return nil
     }
 }

@@ -12,32 +12,35 @@ import ReadiumShared
 /// to get its page count.
 ///
 /// Requires the publication to have a ``PDFDocumentService``.
-final class LCPDFPositionsService: PositionsService, Loggable {
-    private let readingOrder: [Link]
-    private let publication: Weak<Publication>
+final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
+    private let cache: AsyncMemoizer<ReadResult<[[Locator]]>>
 
-    init(readingOrder: [Link], publication: Weak<Publication>) {
-        self.readingOrder = readingOrder
-        self.publication = publication
+    init(publication: Weak<Publication>) {
+        cache = AsyncMemoizer { [publication] in
+            guard let publication = publication() else {
+                return .failure(.cancelled)
+            }
+
+            return await Self.makePositionList(of: publication)
+        }
     }
 
     func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        await positionsByReadingOrderTask.value
+        await cache()
     }
 
-    private lazy var positionsByReadingOrderTask: Task<ReadResult<[[Locator]]>, Never> = Task {
-        guard let pdfDocumentService = self.publication.ref?.pdfDocumentService else {
+    private static func makePositionList(of publication: Publication) async -> ReadResult<[[Locator]]> {
+        guard let pdfDocumentService = publication.pdfDocumentService else {
             return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFPositionsService")))
         }
-
         // Calculates the page count of each resource from the reading order.
-        let resources = await readingOrder.asyncMap { link -> (Int, Link) in
+        let resources = await publication.readingOrder.asyncMap { link -> (Int, Link) in
             let href = link.url()
             guard
                 let document = try? await pdfDocumentService.openDocument(at: href),
                 let pageCount = try? await document.pageCount()
             else {
-                log(.warning, "Can't get the number of pages from PDF document at \(link)")
+                LCPDFPositionsService.log(.warning, "Can't get the number of pages from PDF document at \(link)")
                 return (0, link)
             }
             return (pageCount, link)
@@ -46,6 +49,7 @@ final class LCPDFPositionsService: PositionsService, Loggable {
         let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
 
         var lastPositionOfPreviousResource = 0
+
         return .success(resources.map { pageCount, link -> [Locator] in
             guard pageCount > 0 else {
                 return []
@@ -56,7 +60,7 @@ final class LCPDFPositionsService: PositionsService, Loggable {
         })
     }
 
-    private func makePositionList(of link: Link, pageCount: Int, totalPageCount: Int, startPosition: Int = 0) -> [Locator] {
+    private static func makePositionList(of link: Link, pageCount: Int, totalPageCount: Int, startPosition: Int = 0) -> [Locator] {
         assert(pageCount > 0, "Invalid PDF page count")
         assert(totalPageCount > 0, "Invalid PDF total page count")
 
@@ -76,12 +80,9 @@ final class LCPDFPositionsService: PositionsService, Loggable {
         }
     }
 
-    static func makeFactory() -> (PublicationServiceContext) -> LCPDFPositionsService? {
+    static func makeFactory() -> @Sendable (PublicationServiceContext) -> LCPDFPositionsService? {
         { context in
-            LCPDFPositionsService(
-                readingOrder: context.manifest.readingOrder,
-                publication: context.publication
-            )
+            LCPDFPositionsService(publication: context.publication)
         }
     }
 }
