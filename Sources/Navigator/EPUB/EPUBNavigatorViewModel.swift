@@ -126,6 +126,17 @@ enum EPUBScriptScope {
         self.assetsBaseURL = assetsBaseURL
         self.formatSniffer = formatSniffer
 
+        var servedFonts: [FileURL: AbsoluteURL] = [:]
+        for ff in config.fontFamilyDeclarations {
+            for file in ff.fontFiles {
+                if servedFonts[file] == nil {
+                    let name = file.lastPathSegment ?? UUID().uuidString
+                    servedFonts[file] = server.serve(file: file, at: "assets/fonts/\(name)")
+                }
+            }
+        }
+        self.servedFonts = servedFonts
+
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)
 
@@ -305,7 +316,7 @@ enum EPUBScriptScope {
     // MARK: - Readium CSS
 
     private var css: ReadiumCSS
-    private let servedFonts = Mutex<[FileURL: AbsoluteURL]>([:])
+    private let servedFonts: [FileURL: AbsoluteURL]
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
@@ -316,35 +327,15 @@ enum EPUBScriptScope {
             return resource
         }
 
-        // Pre-serve all fonts on the MainActor
-        for ff in config.fontFamilyDeclarations {
-            for file in ff.fontFiles {
-                if self.servedFonts.withLock({ $0[file] }) == nil {
-                    let name = file.lastPathSegment ?? UUID().uuidString
-                    let url = server.serve(file: file, at: "assets/fonts/\(name)")
-                    self.servedFonts.withLock { $0[file] = url }
-                }
-            }
-        }
-
         let css = css
         let fontFamilyDeclarations = config.fontFamilyDeclarations
-        let servedFonts = servedFonts.withLock { $0 }
+        let servedFonts = servedFonts
 
         return resource.mapAsString { content in
             do {
                 var content = try css.inject(in: content)
                 for ff in fontFamilyDeclarations {
-                    content = try ff.inject(
-                        in: content,
-                        servingFile: { file in
-                            guard let url = servedFonts[file] else {
-                                EPUBNavigatorViewModel.log(.warning, "Font file was not pre-served: \(file)")
-                                return file
-                            }
-                            return url
-                        }
-                    )
+                    content = try ff.inject(in: content, servedFiles: servedFonts)
                 }
                 return content
             } catch {
