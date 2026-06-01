@@ -44,14 +44,7 @@ final class LCPDecryptor {
         }
 
         if encryption.isDeflated || !encryption.isCbcEncrypted {
-            let fullLCP = TransformingResource(
-                resource,
-                estimatedLength: { .success(encryption.originalLength.map { UInt64($0) }) },
-                transform: { data in
-                    await license.decryptFully(data: data, isDeflated: encryption.isDeflated)
-                }
-            )
-            return fullLCP.cached()
+            return FullLCPResource(resource, license: license, encryption: encryption).cached()
 
         } else {
             // We use a buffered resource because when requesting a range from
@@ -62,6 +55,34 @@ final class LCPDecryptor {
             // See https://github.com/readium/r2-shared-swift/issues/98
             // and https://github.com/readium/r2-shared-swift/pull/119
             return CBCLCPResource(resource.buffered(), license: license, encryption: encryption)
+        }
+    }
+
+    /// A LCP resource used to read content fully, which is the most common case:
+    /// resource, for example when the resource is deflated before encryption.
+    private final class FullLCPResource: Resource, Sendable {
+        private let resource: TransformingResource
+        private let originalLength: UInt64?
+
+        init(_ resource: Resource, license: LCPLicense, encryption: ReadiumShared.Encryption) {
+            originalLength = encryption.originalLength.map { UInt64($0) }
+            self.resource = TransformingResource(resource, transform: { data in
+                await license.decryptFully(data: data, isDeflated: encryption.isDeflated)
+            })
+        }
+
+        let sourceURL: AbsoluteURL? = nil
+
+        func properties() async -> ReadResult<ResourceProperties> {
+            await resource.properties()
+        }
+
+        func estimatedLength() async -> ReadResult<UInt64?> {
+            .success(originalLength)
+        }
+
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+            await resource.stream(range: range, consume: consume)
         }
     }
 

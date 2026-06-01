@@ -18,15 +18,12 @@ import Foundation
 public final class TransformingResource: Resource, Sendable {
     private let resource: Resource
     private let data: AsyncMemoizer<ReadResult<Data>>
-    private let estimatedLengthClosure: @Sendable () async -> ReadResult<UInt64?>
 
     public init(
         _ resource: Resource,
-        estimatedLength: (@Sendable () async -> ReadResult<UInt64?>)? = nil,
         transform: @escaping @Sendable (ReadResult<Data>) async -> ReadResult<Data> = { $0 }
     ) {
         self.resource = resource
-        estimatedLengthClosure = estimatedLength ?? { .success(nil) }
         data = AsyncMemoizer {
             await transform(resource.read())
         }
@@ -37,7 +34,9 @@ public final class TransformingResource: Resource, Sendable {
     public let sourceURL: AbsoluteURL? = nil
 
     public func estimatedLength() async -> ReadResult<UInt64?> {
-        await estimatedLengthClosure()
+        // As the content will be transformed, we can't rely on the estimated
+        // length from the upstream resource.
+        .success(nil)
     }
 
     public func properties() async -> ReadResult<ResourceProperties> {
