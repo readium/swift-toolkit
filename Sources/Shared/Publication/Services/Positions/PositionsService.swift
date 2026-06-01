@@ -30,7 +30,7 @@ private let positionsLink = Link(
     mediaType: MediaType.readiumPositions
 )
 
-public extension PositionsService where Self: AnyObject {
+public extension PositionsService {
     var links: [Link] {
         [positionsLink]
     }
@@ -39,8 +39,9 @@ public extension PositionsService where Self: AnyObject {
         guard href.anyURL.isEquivalentTo(positionsLink.url()) else {
             return nil
         }
-        return PositionsResource(positions: { [weak self] in
-            await self?.positions() ?? .failure(.decoding("Deallocated"))
+        let service = self
+        return PositionsResource(positions: {
+            await service.positions()
         })
     }
 }
