@@ -32,6 +32,6 @@ public final class FailureResource: Resource, Sendable {
 
 public extension Resource where Self == FailureResource {
     static func failure(_ error: ReadError, sourceURL: AbsoluteURL? = nil) -> FailureResource {
-        FailureResource(error: error)
+        FailureResource(error: error, sourceURL: sourceURL)
     }
 }

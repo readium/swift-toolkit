@@ -18,7 +18,7 @@ final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
     init(publication: Weak<Publication>) {
         cache = AsyncMemoizer { [publication] in
             guard let publication = publication() else {
-                return .failure(.cancelled)
+                return .failure(.unsupportedOperation(DebugError("The publication is deallocated")))
             }
 
             return await Self.makePositionList(of: publication)

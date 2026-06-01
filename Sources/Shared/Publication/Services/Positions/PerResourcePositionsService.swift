@@ -12,24 +12,20 @@ public final class PerResourcePositionsService: PositionsService, Sendable {
     private let positions: [[Locator]]
 
     init(readingOrder: [Link], fallbackMediaType: MediaType) {
-        guard !readingOrder.isEmpty else {
-            positions = []
-            return
-        }
-
-        positions = readingOrder.enumerated().map { index, link in
-            [
-                Locator(
-                    href: link.url(),
-                    mediaType: link.mediaType ?? fallbackMediaType,
-                    title: link.title,
-                    locations: Locator.Locations(
-                        totalProgression: Double(index) / Double(readingOrder.count),
-                        position: index + 1
-                    )
-                ),
-            ]
-        }
+        positions = readingOrder.enumerated()
+            .map { index, link in
+                [
+                    Locator(
+                        href: link.url(),
+                        mediaType: link.mediaType ?? fallbackMediaType,
+                        title: link.title,
+                        locations: Locator.Locations(
+                            totalProgression: Double(index) / Double(readingOrder.count),
+                            position: index + 1
+                        )
+                    ),
+                ]
+            }
     }
 
     public func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
