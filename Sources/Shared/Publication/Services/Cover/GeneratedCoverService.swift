@@ -13,10 +13,10 @@ public final class GeneratedCoverService: CoverService, Sendable {
         case generationFailed
     }
 
-    private let cache: AsyncMemoizer<ReadResult<UIImage>>
+    private let cachedCover: AsyncMemoizer<ReadResult<UIImage>>
 
     public init(makeCover: @escaping @Sendable () async -> ReadResult<UIImage>) {
-        cache = AsyncMemoizer(makeCover)
+        cachedCover = AsyncMemoizer(makeCover)
     }
 
     public convenience init(cover: UIImage) {
@@ -28,10 +28,6 @@ public final class GeneratedCoverService: CoverService, Sendable {
         mediaType: .png,
         rel: .cover
     )
-
-    private func cachedCover() async -> ReadResult<UIImage> {
-        await cache()
-    }
 
     public func cover() async -> ReadResult<UIImage?> {
         await cachedCover().map { $0 as UIImage? }
@@ -46,7 +42,7 @@ public final class GeneratedCoverService: CoverService, Sendable {
             return nil
         }
 
-        return CoverResource(cover: cachedCover)
+        return CoverResource { await self.cachedCover() }
     }
 
     public static func makeFactory(makeCover: @escaping @Sendable () async -> ReadResult<UIImage>) -> @Sendable (PublicationServiceContext) -> GeneratedCoverService? {

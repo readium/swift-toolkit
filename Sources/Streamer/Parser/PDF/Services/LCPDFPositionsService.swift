@@ -15,40 +15,49 @@ import ReadiumShared
 final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
     private let cache: AsyncMemoizer<ReadResult<[[Locator]]>>
 
-    init(readingOrder: [Link], publication: Weak<Publication>) {
-        cache = AsyncMemoizer { [readingOrder, publication] in
-            guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
-                return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFPositionsService")))
-            }
-            // Calculates the page count of each resource from the reading order.
-            let resources = await readingOrder.asyncMap { link -> (Int, Link) in
-                let href = link.url()
-                guard
-                    let document = try? await pdfDocumentService.openDocument(at: href),
-                    let pageCount = try? await document.pageCount()
-                else {
-                    LCPDFPositionsService.log(.warning, "Can't get the number of pages from PDF document at \(link)")
-                    return (0, link)
-                }
-                return (pageCount, link)
+    init(publication: Weak<Publication>) {
+        cache = AsyncMemoizer { [publication] in
+            guard let publication = publication() else {
+                return .failure(.cancelled)
             }
 
-            let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
-
-            var lastPositionOfPreviousResource = 0
-            return .success(resources.map { pageCount, link -> [Locator] in
-                guard pageCount > 0 else {
-                    return []
-                }
-                let positionList = LCPDFPositionsService.makePositionList(of: link, pageCount: pageCount, totalPageCount: totalPageCount, startPosition: lastPositionOfPreviousResource)
-                lastPositionOfPreviousResource += pageCount
-                return positionList
-            })
+            return await Self.makePositionList(of: publication)
         }
     }
 
     func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
         await cache()
+    }
+
+    private static func makePositionList(of publication: Publication) async -> ReadResult<[[Locator]]> {
+        guard let pdfDocumentService = publication.pdfDocumentService else {
+            return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFPositionsService")))
+        }
+        // Calculates the page count of each resource from the reading order.
+        let resources = await publication.readingOrder.asyncMap { link -> (Int, Link) in
+            let href = link.url()
+            guard
+                let document = try? await pdfDocumentService.openDocument(at: href),
+                let pageCount = try? await document.pageCount()
+            else {
+                LCPDFPositionsService.log(.warning, "Can't get the number of pages from PDF document at \(link)")
+                return (0, link)
+            }
+            return (pageCount, link)
+        }
+
+        let totalPageCount = resources.reduce(0) { count, current in count + current.0 }
+
+        var lastPositionOfPreviousResource = 0
+
+        return .success(resources.map { pageCount, link -> [Locator] in
+            guard pageCount > 0 else {
+                return []
+            }
+            let positionList = makePositionList(of: link, pageCount: pageCount, totalPageCount: totalPageCount, startPosition: lastPositionOfPreviousResource)
+            lastPositionOfPreviousResource += pageCount
+            return positionList
+        })
     }
 
     private static func makePositionList(of link: Link, pageCount: Int, totalPageCount: Int, startPosition: Int = 0) -> [Locator] {
@@ -73,10 +82,7 @@ final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
 
     static func makeFactory() -> @Sendable (PublicationServiceContext) -> LCPDFPositionsService? {
         { context in
-            LCPDFPositionsService(
-                readingOrder: context.manifest.readingOrder,
-                publication: context.publication
-            )
+            LCPDFPositionsService(publication: context.publication)
         }
     }
 }

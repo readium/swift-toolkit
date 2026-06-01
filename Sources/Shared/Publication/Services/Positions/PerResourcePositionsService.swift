@@ -12,7 +12,11 @@ public final class PerResourcePositionsService: PositionsService, Sendable {
     private let positions: [[Locator]]
 
     init(readingOrder: [Link], fallbackMediaType: MediaType) {
-        let pageCount = readingOrder.count
+        guard !readingOrder.isEmpty else {
+            positions = []
+            return
+        }
+
         positions = readingOrder.enumerated().map { index, link in
             [
                 Locator(
@@ -20,7 +24,7 @@ public final class PerResourcePositionsService: PositionsService, Sendable {
                     mediaType: link.mediaType ?? fallbackMediaType,
                     title: link.title,
                     locations: Locator.Locations(
-                        totalProgression: pageCount > 0 ? Double(index) / Double(pageCount) : 0.0,
+                        totalProgression: Double(index) / Double(readingOrder.count),
                         position: index + 1
                     )
                 ),

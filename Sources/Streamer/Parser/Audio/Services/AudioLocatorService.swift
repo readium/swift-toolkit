@@ -19,7 +19,11 @@ final class AudioLocatorService: DefaultLocatorService {
     }
 
     private let readingOrder: [Link]
+
+    /// Duration per reading order index.
     private let durations: [Double]
+
+    /// Total duration of the publication.
     private let totalDuration: Double?
 
     init(readingOrder: [Link], publication: Weak<Publication>) {
