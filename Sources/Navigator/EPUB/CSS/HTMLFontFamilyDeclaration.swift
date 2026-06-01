@@ -7,6 +7,10 @@
 import Foundation
 import ReadiumShared
 
+public enum HTMLFontFamilyError: Error {
+    case fontNotServed(FileURL)
+}
+
 public protocol HTMLFontFamilyDeclaration: Sendable {
     /// Name of the font family.
     ///
@@ -22,9 +26,9 @@ public protocol HTMLFontFamilyDeclaration: Sendable {
 
     /// Injects this font family declaration in the given `html` document.
     ///
-    /// Use `servingFile` to convert a file URL into a URL accessible from the
+    /// Use `servedFiles` to convert a file URL into a URL accessible from the
     /// web views.
-    func inject(in html: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> String
+    func inject(in html: String, servedFiles: [FileURL: any AbsoluteURL]) throws -> String
 }
 
 /// A type-erasing `HTMLFontFamilyDeclaration` object
@@ -32,7 +36,7 @@ public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable 
     private let _fontFamily: @Sendable () -> FontFamily
     private let _alternates: @Sendable () -> [FontFamily]
     private let _fontFiles: @Sendable () -> [FileURL]
-    private let _inject: @Sendable (String, (FileURL) throws -> any AbsoluteURL) throws -> String
+    private let _inject: @Sendable (String, [FileURL: any AbsoluteURL]) throws -> String
 
     public var fontFamily: FontFamily {
         _fontFamily()
@@ -50,11 +54,11 @@ public struct AnyHTMLFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable 
         _fontFamily = { declaration.fontFamily }
         _alternates = { declaration.alternates }
         _fontFiles = { declaration.fontFiles }
-        _inject = { try declaration.inject(in: $0, servingFile: $1) }
+        _inject = { try declaration.inject(in: $0, servedFiles: $1) }
     }
 
-    public func inject(in html: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> String {
-        try _inject(html, servingFile)
+    public func inject(in html: String, servedFiles: [FileURL: any AbsoluteURL]) throws -> String {
+        try _inject(html, servedFiles)
     }
 }
 
@@ -83,13 +87,13 @@ public struct CSSFontFamilyDeclaration: HTMLFontFamilyDeclaration, Sendable {
         self.fontFaces = fontFaces
     }
 
-    public func inject(in html: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> String {
+    public func inject(in html: String, servedFiles: [FileURL: any AbsoluteURL]) throws -> String {
         var injections = try fontFaces.flatMap {
-            try $0.injections(for: html, servingFile: servingFile)
+            try $0.injections(for: html, servedFiles: servedFiles)
         }
 
         let css = try fontFaces
-            .map { try $0.css(for: fontFamily.rawValue, servingFile: servingFile) }
+            .map { try $0.css(for: fontFamily.rawValue, servedFiles: servedFiles) }
             .joined(separator: "\n")
         injections.append(.style(css))
 
@@ -141,17 +145,24 @@ public struct CSSFontFace: Sendable {
         return copy
     }
 
-    func injections(for html: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> [HTMLInjection] {
+    func injections(for html: String, servedFiles: [FileURL: any AbsoluteURL]) throws -> [HTMLInjection] {
         try sources
             .filter(\.preload)
             .map { source in
-                let file = try servingFile(source.file)
+                guard let file = servedFiles[source.file] else {
+                    throw HTMLFontFamilyError.fontNotServed(source.file)
+                }
                 return .link(href: file.string, rel: "preload", as: "font", crossOrigin: "")
             }
     }
 
-    func css(for fontFamily: String, servingFile: (FileURL) throws -> any AbsoluteURL) throws -> String {
-        let urls = try sources.map { try servingFile($0.file) }
+    func css(for fontFamily: String, servedFiles: [FileURL: any AbsoluteURL]) throws -> String {
+        let urls = try sources.map { source in
+            guard let url = servedFiles[source.file] else {
+                throw HTMLFontFamilyError.fontNotServed(source.file)
+            }
+            return url
+        }
         var descriptors: [String: String] = [
             "font-family": "\"\(fontFamily)\"",
             "src": urls.map { "url(\"\($0.string)\")" }.joined(separator: ", "),
