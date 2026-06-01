@@ -15,7 +15,7 @@ public protocol AudioPublicationManifestAugmentor {
     func augment(_ baseManifest: Manifest, using container: Container) async -> AudioPublicationAugmentedManifest
 }
 
-public struct AudioPublicationAugmentedManifest {
+public struct AudioPublicationAugmentedManifest: Sendable {
     public var manifest: Manifest
     public var cover: UIImage?
 

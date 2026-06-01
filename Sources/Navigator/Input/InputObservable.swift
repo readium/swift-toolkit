@@ -23,10 +23,10 @@ import Foundation
 
 /// A token which can be used to remove an `InputObserver` from an
 /// ``InputObservable``.
-public struct InputObservableToken: Hashable, Identifiable {
-    public let id: AnyHashable
+public struct InputObservableToken: Hashable, Identifiable, Sendable {
+    public let id: UUID
 
-    public init(id: AnyHashable = UUID()) {
+    public init(id: UUID = UUID()) {
         self.id = id
     }
 

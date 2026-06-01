@@ -18,7 +18,7 @@ public final class InMemoryPositionsService: PositionsService, Sendable {
         .success(_positions)
     }
 
-    public static func makeFactory(positionsByReadingOrder: [[Locator]]) -> (PublicationServiceContext) -> InMemoryPositionsService {
+    public static func makeFactory(positionsByReadingOrder: [[Locator]]) -> @Sendable (PublicationServiceContext) -> InMemoryPositionsService {
         { _ in
             InMemoryPositionsService(positionsByReadingOrder: positionsByReadingOrder)
         }

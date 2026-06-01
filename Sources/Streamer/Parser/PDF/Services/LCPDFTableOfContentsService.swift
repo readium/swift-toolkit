@@ -12,44 +12,39 @@ import ReadiumShared
 /// when the table of contents is missing from the `manifest.json` file.
 ///
 /// Requires the publication to have a ``PDFDocumentService``.
-final class LCPDFTableOfContentsService: TableOfContentsService, Loggable {
-    private let manifest: Manifest
-    private let publication: Weak<Publication>
+final class LCPDFTableOfContentsService: TableOfContentsService, Loggable, Sendable {
+    private let cache: AsyncMemoizer<ReadResult<[Link]>>
 
     init(
         manifest: Manifest,
         publication: Weak<Publication>
     ) {
-        self.manifest = manifest
-        self.publication = publication
+        cache = AsyncMemoizer { [manifest, publication] in
+            guard
+                manifest.tableOfContents.isEmpty,
+                manifest.readingOrder.count == 1,
+                let url = manifest.readingOrder.first?.url()
+            else {
+                return .success(manifest.tableOfContents)
+            }
+            guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
+                return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFTableOfContentsService")))
+            }
+
+            do {
+                let toc = try await pdfDocumentService.openDocument(at: url).tableOfContents()
+                return .success(toc.linksWithDocumentHREF(url))
+            } catch {
+                return .failure(.wrap(error) ?? .decoding(error))
+            }
+        }
     }
 
     func tableOfContents() async -> ReadResult<[Link]> {
-        await tableOfContentsTask.value
+        await cache()
     }
 
-    private lazy var tableOfContentsTask: Task<ReadResult<[Link]>, Never> = Task {
-        guard
-            manifest.tableOfContents.isEmpty,
-            manifest.readingOrder.count == 1,
-            let url = manifest.readingOrder.first?.url()
-        else {
-            return .success(manifest.tableOfContents)
-        }
-
-        guard let pdfDocumentService = publication.ref?.pdfDocumentService else {
-            return .failure(.unsupportedOperation(DebugError("PDFDocumentService is required to use the LCPDFTableOfContentsService")))
-        }
-
-        do {
-            let toc = try await pdfDocumentService.openDocument(at: url).tableOfContents()
-            return .success(toc.linksWithDocumentHREF(url))
-        } catch {
-            return .failure(.wrap(error) ?? .decoding(error))
-        }
-    }
-
-    static func makeFactory() -> (PublicationServiceContext) -> LCPDFTableOfContentsService? {
+    static func makeFactory() -> @Sendable (PublicationServiceContext) -> LCPDFTableOfContentsService? {
         { context in
             LCPDFTableOfContentsService(
                 manifest: context.manifest,

@@ -63,11 +63,13 @@ public protocol Loggable {
 /// Default implementation
 public extension Loggable {
     func log(_ level: SeverityLevel, _ value: Any?, file: String, line: Int) {
-        Logger.sharedInstance.log(value, at: level, file: file, line: line)
+        let message = value.map { String(describing: $0) }
+        Logger.sharedInstance.log(message, at: level, file: file, line: line)
     }
 
     func log(_ level: SeverityLevel, _ value: Any?, defaultFile: String = #file, defaultLine: Int = #line) {
-        Logger.sharedInstance.log(value, at: level, file: defaultFile, line: defaultLine)
+        let message = value.map { String(describing: $0) }
+        Logger.sharedInstance.log(message, at: level, file: defaultFile, line: defaultLine)
     }
 
     @discardableResult func logAndRethrow<T>(_ block: () throws -> T) rethrows -> T {
@@ -80,11 +82,13 @@ public extension Loggable {
     }
 
     static func log(_ level: SeverityLevel, _ value: Any?, file: String, line: Int) {
-        Logger.sharedInstance.log(value, at: level, file: file, line: line)
+        let message = value.map { String(describing: $0) }
+        Logger.sharedInstance.log(message, at: level, file: file, line: line)
     }
 
     static func log(_ level: SeverityLevel, _ value: Any?, defaultFile: String = #file, defaultLine: Int = #line) {
-        Logger.sharedInstance.log(value, at: level, file: defaultFile, line: defaultLine)
+        let message = value.map { String(describing: $0) }
+        Logger.sharedInstance.log(message, at: level, file: defaultFile, line: defaultLine)
     }
 
     func warnIfMainThread(_ path: String = #file, _ function: String = #function, _ className: String = String(describing: Self.self), _ line: Int = #line) {

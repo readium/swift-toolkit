@@ -85,9 +85,9 @@ public extension InputObserving where Self == ActivatePointerObserver {
 
     private enum State {
         case idle
-        case recognizing(id: AnyHashable, lastLocation: CGPoint)
+        case recognizing(id: PointerId, lastLocation: CGPoint)
         case recognized
-        case failed(activePointers: Set<AnyHashable>)
+        case failed(activePointers: Set<PointerId>)
     }
 
     private var state: State = .idle {

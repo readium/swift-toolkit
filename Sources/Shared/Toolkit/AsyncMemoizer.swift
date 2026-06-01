@@ -15,7 +15,7 @@
 ///
 /// let result = await memoizer()
 /// ```
-package actor AsyncMemoizer<T> {
+package actor AsyncMemoizer<T: Sendable> {
     private let compute: @Sendable () async -> T
     private var task: Task<T, Never>?
 

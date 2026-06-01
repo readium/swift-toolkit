@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-final class PDFPositionsService: PositionsService {
+final class PDFPositionsService: PositionsService, Sendable {
     init(link: Link, pageCount: Int, tableOfContents: [Link]) {
         assert(pageCount > 0, "Invalid PDF page count")
         // FIXME: Use the `tableOfContents` to generate the titles
@@ -35,7 +35,7 @@ final class PDFPositionsService: PositionsService {
         .success(_positionsByReadingOrder)
     }
 
-    static func makeFactory() -> (PublicationServiceContext) -> PDFPositionsService? {
+    static func makeFactory() -> @Sendable (PublicationServiceContext) -> PDFPositionsService? {
         { context in
             guard
                 let link = context.manifest.readingOrder.first,
