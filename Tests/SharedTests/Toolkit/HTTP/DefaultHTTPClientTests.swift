@@ -658,11 +658,11 @@ struct DefaultHTTPClientTests {
             let client = DefaultHTTPClient()
 
             let task = Task {
-                await client.stream(HTTPURL(string: "https://httpbin.org/drip?duration=10&numbytes=102400&chunk_size=1024")!) { _, _ in .success(()) }
+                await client.stream(HTTPURL(string: "https://github.com/readium/swift-toolkit/archive/refs/heads/develop.zip")!) { _, _ in .success(()) }
             }
 
             // Give the request time to start, then cancel before the end.
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1s
+            try? await Task.sleep(seconds: 0.1)
             task.cancel()
 
             let result = await task.value
