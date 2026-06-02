@@ -450,7 +450,7 @@ open class PDFNavigatorViewController:
         return true
     }
 
-    private func openDocument<HREF: URLConvertible>(at href: HREF) async -> PDFKit.PDFDocument? {
+    private func openDocument<HREF: URLConvertible & Sendable>(at href: HREF) async -> PDFKit.PDFDocument? {
         let service = publication.pdfDocumentService
 
         if let cached = await service?.cachedDocument(at: href) as? PDFKitDocumentProviding {

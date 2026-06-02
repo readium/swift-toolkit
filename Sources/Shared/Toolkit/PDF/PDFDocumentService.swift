@@ -10,17 +10,17 @@ import Foundation
 ///
 /// Replaces `PDFPublicationService` and `PDFDocumentHolder`. Opens the PDF once per HREF
 /// and shares the result across the parser, navigator, and publication services.
-package protocol PDFDocumentService: PublicationService {
+package protocol PDFDocumentService: PublicationService & Sendable {
     /// Returns the cached document if `href` matches, otherwise opens through the underlying factory,
     /// caches the result, and returns it.
-    func openDocument<HREF: URLConvertible>(at href: HREF) async throws -> PDFDocument
+    func openDocument<HREF: URLConvertible & Sendable>(at href: HREF) async throws -> PDFDocument
 
     /// Returns the cached document if `href` matches, or `nil` otherwise.
-    func cachedDocument<HREF: URLConvertible>(at href: HREF) async -> PDFDocument?
+    func cachedDocument<HREF: URLConvertible & Sendable>(at href: HREF) async -> PDFDocument?
 
     /// Replaces the cached document. Use this to seed the cache (parser) or to override it with
     /// a different concrete type (navigator forcing PDFKit).
-    func setCachedDocument<HREF: URLConvertible>(_ document: PDFDocument?, at href: HREF) async
+    func setCachedDocument<HREF: URLConvertible & Sendable>(_ document: PDFDocument?, at href: HREF) async
 
     /// Clears all cached documents.
     func removeCachedDocuments() async
@@ -46,7 +46,7 @@ package actor DefaultPDFDocumentService: PDFDocumentService {
         }
     }
 
-    package func openDocument<HREF: URLConvertible>(at href: HREF) async throws -> PDFDocument {
+    package func openDocument<HREF: URLConvertible & Sendable>(at href: HREF) async throws -> PDFDocument {
         if let cached, let cachedHREF, cachedHREF.isEquivalentTo(href) {
             return cached
         }
@@ -61,14 +61,14 @@ package actor DefaultPDFDocumentService: PDFDocumentService {
         return document
     }
 
-    package func cachedDocument<HREF: URLConvertible>(at href: HREF) -> PDFDocument? {
+    package func cachedDocument<HREF: URLConvertible & Sendable>(at href: HREF) -> PDFDocument? {
         guard let cachedHREF, cachedHREF.isEquivalentTo(href) else {
             return nil
         }
         return cached
     }
 
-    package func setCachedDocument<HREF: URLConvertible>(_ document: PDFDocument?, at href: HREF) {
+    package func setCachedDocument<HREF: URLConvertible & Sendable>(_ document: PDFDocument?, at href: HREF) {
         cachedHREF = document != nil ? href.anyURL : nil
         cached = document
     }

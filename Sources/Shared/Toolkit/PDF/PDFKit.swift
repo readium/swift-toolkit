@@ -25,7 +25,11 @@ extension PDFKit.PDFDocument: PDFKitDocumentProviding {
 /// If this is an issue for you, use `CPDFDocumentFactory` instead.
 ///
 /// Use `PDFKitPDFDocumentFactory` to create a `PDFDocument` from a `Resource`.
-extension PDFKit.PDFDocument: PDFDocument {
+/// Conforming system PDFKit.PDFDocument to Sendable requires @retroactive @unchecked Sendable.
+/// Apple's PDFDocument is thread-safe for the read-only operations performed by this toolkit,
+/// but it is not yet officially annotated as Sendable. The `@retroactive` attribute is used
+/// to silence warnings about conforming an imported type to a protocol.
+extension PDFKit.PDFDocument: @retroactive @unchecked Sendable, PDFDocument {
     public func pageCount() async throws -> Int {
         pageCount
     }
@@ -81,7 +85,7 @@ public final class PDFKitPDFDocumentFactory: PDFDocumentFactory, Sendable {
         return try open(document: document, password: password)
     }
 
-    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+    public func open<HREF: URLConvertible & Sendable>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
         // Fast-path in case the resource actually references a file on the
         // disk.
         if let file = resource.sourceURL?.fileURL {

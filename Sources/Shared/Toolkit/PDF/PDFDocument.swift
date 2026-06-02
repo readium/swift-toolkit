@@ -19,7 +19,7 @@ public enum PDFDocumentError: Error, Sendable {
 /// Represents a PDF document.
 ///
 /// This is not used to render a PDF document, only to access its metadata.
-public protocol PDFDocument {
+public protocol PDFDocument: Sendable {
     /// Permanent identifier based on the contents of the file at the time it was originally
     /// created.
     func identifier() async throws -> String?
@@ -59,12 +59,12 @@ public protocol PDFDocumentTextProviding: PDFDocument {
     func pageText(at pageIndex: Int) async throws -> String?
 }
 
-public protocol PDFDocumentFactory {
+public protocol PDFDocumentFactory: Sendable {
     /// Opens a PDF from a local file path.
     func open(file: FileURL, password: String?) async throws -> PDFDocument
 
     /// Opens a PDF from a `Resource` located at the given `href`.
-    func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument
+    func open<HREF: URLConvertible & Sendable>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument
 }
 
 public final class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable {
@@ -76,14 +76,14 @@ public final class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable, Send
         try await factory.open(file: file, password: password)
     }
 
-    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+    public func open<HREF: URLConvertible & Sendable>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
         try await factory.open(resource: resource, at: href, password: password)
     }
 }
 
 /// A PDF document factory which will iterate over a list of factories until one works.
 @available(*, deprecated, message: "Not used anymore")
-public final class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
+public final class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable {
     private let factories: [PDFDocumentFactory]
 
     public init(factories: [PDFDocumentFactory]) {
@@ -94,7 +94,7 @@ public final class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
         try await eachFactory { try await $0.open(file: file, password: password) }
     }
 
-    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+    public func open<HREF: URLConvertible & Sendable>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
         try await eachFactory { try await $0.open(resource: resource, at: href, password: password) }
     }
 
