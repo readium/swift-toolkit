@@ -125,17 +125,7 @@ enum EPUBScriptScope {
         self.server = server
         self.assetsBaseURL = assetsBaseURL
         self.formatSniffer = formatSniffer
-
-        var servedFonts: [FileURL: AbsoluteURL] = [:]
-        for ff in config.fontFamilyDeclarations {
-            for file in ff.fontFiles {
-                if servedFonts[file] == nil {
-                    let name = file.lastPathSegment ?? UUID().uuidString
-                    servedFonts[file] = server.serve(file: file, at: "assets/fonts/\(name)")
-                }
-            }
-        }
-        self.servedFonts = servedFonts
+        servedFonts = server.serve(config.fontFamilyDeclarations)
 
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)

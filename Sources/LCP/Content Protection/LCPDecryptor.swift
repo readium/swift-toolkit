@@ -58,8 +58,12 @@ final class LCPDecryptor {
         }
     }
 
-    /// A LCP resource used to read content fully, which is the most common case:
-    /// resource, for example when the resource is deflated before encryption.
+    /// An LCP resource that is read, decrypted and cached fully before reading
+    /// requested ranges.
+    ///
+    /// Can be used when it's impossible to map a read range (byte range
+    /// request) to the encrypted resource, for example when the resource is
+    /// deflated before encryption.
     private final class FullLCPResource: Resource, Sendable {
         private let resource: TransformingResource
         private let originalLength: UInt64?

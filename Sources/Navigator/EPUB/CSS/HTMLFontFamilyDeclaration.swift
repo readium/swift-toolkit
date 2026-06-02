@@ -21,14 +21,24 @@ public protocol HTMLFontFamilyDeclaration: Sendable {
     /// symbols are missing from `fontFamily`.
     var alternates: [FontFamily] { get }
 
-    /// List of font files associated with this declaration.
+    /// List of local font files that must be served and made accessible to web
+    /// content before calling `inject(in:servedFiles:)`.
+    ///
+    /// This is optional and only needed when the implementation injects local
+    /// font files. Return an empty array if no local files need to be served.
     var fontFiles: [FileURL] { get }
 
     /// Injects this font family declaration in the given `html` document.
     ///
-    /// Use `servedFiles` to convert a file URL into a URL accessible from the
-    /// web views.
+    /// Use `servedFiles` to look up the web-accessible URL for a given
+    /// `fontFiles` URL.
     func inject(in html: String, servedFiles: [FileURL: any AbsoluteURL]) throws -> String
+}
+
+public extension HTMLFontFamilyDeclaration {
+    var fontFiles: [FileURL] {
+        []
+    }
 }
 
 /// A type-erasing `HTMLFontFamilyDeclaration` object
@@ -213,4 +223,24 @@ public enum CSSStandardFontWeight: Int, Codable, Sendable {
     case bold = 700
     case extraBold = 800
     case black = 900
+}
+
+extension WebViewServer {
+    /// Serves the font files for the given font family declarations and returns
+    /// a mapping from each font file URL to its web-accessible URL.
+    func serve(
+        _ fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration]
+    ) -> [FileURL: any AbsoluteURL] {
+        var servedFonts: [FileURL: AbsoluteURL] = [:]
+        for ff in fontFamilyDeclarations {
+            for file in ff.fontFiles {
+                if servedFonts[file] == nil {
+                    let name = file.lastPathSegment ?? UUID().uuidString
+                    servedFonts[file] = serve(file: file, at: "assets/fonts/\(name)")
+                }
+            }
+        }
+
+        return servedFonts
+    }
 }
