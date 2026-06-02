@@ -29,7 +29,7 @@ import Foundation
 ///          }
 ///
 ///      }
-public protocol LCPClient {
+public protocol LCPClient: Sendable {
     /// Create a context for a given license/passphrase tuple.
     func createContext(jsonLicense: String, hashedPassphrase: LCPPassphraseHash, pemCrl: String) throws -> LCPClientContext
 
@@ -40,7 +40,7 @@ public protocol LCPClient {
     func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash?
 }
 
-public typealias LCPClientContext = Any
+public typealias LCPClientContext = Any & Sendable
 
 /// Copy of the R2LCPClient.LCPClientError enum.
 ///

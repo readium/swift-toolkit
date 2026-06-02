@@ -11,11 +11,11 @@ import Foundation
 /// an HTML document, pre-process – e.g. before indexing a publication's content, etc.
 ///
 /// If the transformation doesn't apply, simply return resource unchanged.
-public typealias ResourceTransformer = (_ href: AnyURL, _ resource: Resource) -> Resource
+public typealias ResourceTransformer = @Sendable (_ href: AnyURL, _ resource: Resource) -> Resource
 
 /// Transforms the resources' content of a child fetcher using a list of `ResourceTransformer`
 /// functions.
-public final class TransformingContainer: Container {
+public final class TransformingContainer: Container, Sendable {
     private let container: Container
     private let transformers: [ResourceTransformer]
 
