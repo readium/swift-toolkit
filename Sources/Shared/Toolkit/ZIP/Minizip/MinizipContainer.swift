@@ -117,7 +117,7 @@ private actor MinizipResource: Resource, Loggable {
         })
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         let range = range ?? 0 ..< metadata.length
 
         return await zipFile().flatMap { zipFile in

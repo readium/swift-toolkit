@@ -39,14 +39,17 @@ public extension PositionsService {
         guard href.anyURL.isEquivalentTo(positionsLink.url()) else {
             return nil
         }
-        return PositionsResource(positions: positions)
+        let service = self
+        return PositionsResource(positions: {
+            await service.positions()
+        })
     }
 }
 
-private class PositionsResource: Resource {
-    private let positions: () async -> ReadResult<[Locator]>
+private struct PositionsResource: Resource {
+    private let positions: @Sendable () async -> ReadResult<[Locator]>
 
-    init(positions: @escaping () async -> ReadResult<[Locator]>) {
+    init(positions: @escaping @Sendable () async -> ReadResult<[Locator]>) {
         self.positions = positions
     }
 
@@ -60,7 +63,7 @@ private class PositionsResource: Resource {
         .success(ResourceProperties())
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await positions().flatMap { positions in
             let response: [String: JSONValue] = .init([
                 "total": positions.count,

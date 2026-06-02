@@ -53,10 +53,10 @@ public final class GeneratedCoverService: CoverService, Sendable {
         { _ in GeneratedCoverService(cover: cover) }
     }
 
-    private class CoverResource: Resource {
-        private let cover: () async -> ReadResult<UIImage>
+    private struct CoverResource: Resource {
+        private let cover: @Sendable () async -> ReadResult<UIImage>
 
-        init(cover: @escaping () async -> ReadResult<UIImage>) {
+        init(cover: @escaping @Sendable () async -> ReadResult<UIImage>) {
             self.cover = cover
         }
 
@@ -70,7 +70,7 @@ public final class GeneratedCoverService: CoverService, Sendable {
             .success(ResourceProperties())
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             await cover().flatMap {
                 guard let data = $0.pngData() else {
                     return .failure(.decoding("Failed to convert the cover bitmap to PNG data"))

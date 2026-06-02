@@ -63,7 +63,7 @@ public actor BufferingResource: Resource, Loggable {
 
     public func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
         // Reading the whole resource bypasses buffering to keep things simple.
         guard let requestedRange = range, !requestedRange.isEmpty else {
@@ -99,20 +99,22 @@ public actor BufferingResource: Resource, Loggable {
 
         // Read from the original resource using stream to avoid materializing
         // more than needed.
-        var data = prefixData
+        let data = Mutex(prefixData)
+
         let result = await resource.stream(range: fetchRange) { chunk in
-            data.append(chunk)
+            data.withLock { $0.append(chunk) }
         }
 
         guard case .success = result else {
             return result
         }
 
-        buffer.set(data, at: readRange.lowerBound)
+        let finalData = data.withLock { $0 }
+        buffer.set(finalData, at: readRange.lowerBound)
 
-        let end = min(Int(requestedRange.count), data.count)
+        let end = min(Int(requestedRange.count), finalData.count)
         if end > 0 {
-            consume(data[0 ..< end])
+            consume(finalData[0 ..< end])
         }
         return .success(())
     }

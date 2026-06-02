@@ -10,11 +10,11 @@ import Foundation
 public actor DataResource: Resource {
     public let sourceURL: AbsoluteURL?
 
-    private let makeData: () async -> ReadResult<Data>
+    private let makeData: @Sendable () async -> ReadResult<Data>
 
     /// Creates a `Resource` serving an array of bytes.
     public init(
-        data: @autoclosure @escaping () -> Data,
+        data: @autoclosure @escaping @Sendable () -> Data,
         sourceURL: AbsoluteURL? = nil
     ) {
         self.init(sourceURL: sourceURL) {
@@ -34,7 +34,7 @@ public actor DataResource: Resource {
     /// Creates a `Resource` serving an array of bytes.
     public init(
         sourceURL: AbsoluteURL? = nil,
-        makeData: @escaping () async -> ReadResult<Data>
+        makeData: @escaping @Sendable () async -> ReadResult<Data>
     ) {
         self.makeData = makeData
         self.sourceURL = sourceURL
@@ -59,7 +59,7 @@ public actor DataResource: Resource {
 
     public func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
         await data().map { data in
             let length = UInt64(data.count)

@@ -22,8 +22,8 @@ struct HTTPResourceTests {
 
         func stream(
             _ request: HTTPRequestConvertible,
-            onReceiveResponse: ((HTTPResponse) async -> HTTPResult<Void>)?,
-            consume: (Data, Double?) -> HTTPResult<Void>
+            onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)?,
+            consume: @Sendable (Data, Double?) -> HTTPResult<Void>
         ) async -> HTTPResult<HTTPResponse> {
             let req = try! request.httpRequest().get()
             let key = "\(req.method.rawValue) \(req.url.string)"
@@ -96,10 +96,10 @@ struct HTTPResourceTests {
             body: #require("0123456789".data(using: .utf8))
         ))
 
-        var streamedData = Data()
-        let result = await resource.stream(range: 0 ..< 10, consume: { streamedData.append($0) })
+        let streamedData = Capture(Data())
+        let result = await resource.stream(range: 0 ..< 10, consume: { chunk in streamedData.value.append(chunk) })
 
         try result.get()
-        #expect(streamedData == "0123456789".data(using: .utf8))
+        #expect(streamedData.value == "0123456789".data(using: .utf8))
     }
 }

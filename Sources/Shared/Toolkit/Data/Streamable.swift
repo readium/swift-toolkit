@@ -7,7 +7,7 @@
 import Foundation
 
 /// Acts as a proxy to an actual data source by handling read access.
-public protocol Streamable: Closeable {
+public protocol Streamable: Closeable, Sendable {
     /// Returns data length from metadata if available.
     ///
     /// This value must be treated as a hint, as it might not reflect the
@@ -24,7 +24,7 @@ public protocol Streamable: Closeable {
     ///     are responsible to accumulate the data if needed.
     func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void>
 }
 
@@ -35,7 +35,7 @@ public extension Streamable {
     ///   - consume: Callback called for each chunk of data received. Callers
     ///     are responsible to accumulate the data if needed.
     // FIXME: Task cancellation
-    func stream(consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    func stream(consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await stream(range: nil, consume: consume)
     }
 
@@ -49,11 +49,11 @@ public extension Streamable {
     /// When `range` is null, the whole content is returned. Out-of-range
     /// indexes are clamped to the available length automatically.
     func read(range: Range<UInt64>?) async -> ReadResult<Data> {
-        var data = Data()
-        let result = await stream(range: range) {
-            data += $0
+        let data = Mutex(Data())
+        let result = await stream(range: range) { chunk in
+            data.withLock { $0 += chunk }
         }
-        return result.map { data }
+        return result.map { data.withLock { $0 } }
     }
 
     /// Reads the whole content as a `String`.
@@ -105,43 +105,50 @@ package extension Streamable {
             throw .outOfMemory(nil)
         }
 
-        var data = Data()
+        let data = Mutex(Data())
+
         if let estimated, estimated <= UInt64(Int.max) {
-            data.reserveCapacity(Int(estimated))
+            data.withLock { $0.reserveCapacity(Int(estimated)) }
         }
 
-        var error: ReadError? = nil {
-            didSet {
-                data = Data()
-            }
-        }
+        let error = Mutex<ReadError?>(nil)
 
         let streamResult = await stream { chunk in
-            guard error == nil else {
+            let err = error.withLock { $0 }
+            guard err == nil else {
                 return
             }
 
             guard !Task.isCancelled else {
-                error = .cancelled
+                error.withLock { $0 = .cancelled }
+                data.withLock { $0 = Data() }
                 return
             }
 
             let availableMemory = os_proc_available_memory()
-            guard availableMemory == 0 || data.count + chunk.count <= availableMemory else {
-                error = .outOfMemory(nil)
-                return
+            let success = data.withLock { buffer in
+                if availableMemory == 0 || buffer.count + chunk.count <= availableMemory {
+                    buffer.append(chunk)
+                    return true
+                } else {
+                    buffer = Data()
+                    return false
+                }
             }
 
-            data.append(chunk)
+            guard success else {
+                error.withLock { $0 = .outOfMemory(nil) }
+                return
+            }
         }
 
-        if let error {
+        if let error = error.withLock({ $0 }) {
             throw error
         }
 
         switch streamResult {
         case .success:
-            return data
+            return data.withLock { $0 }
         case let .failure(error):
             throw error
         }

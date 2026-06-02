@@ -58,36 +58,46 @@ final class LCPDecryptor {
         }
     }
 
-    /// A  LCP resource that is read, decrypted and cached fully before reading requested ranges.
+    /// An LCP resource that is read, decrypted and cached fully before reading
+    /// requested ranges.
     ///
-    /// Can be used when it's impossible to map a read range (byte range request) to the encrypted
-    /// resource, for example when the resource is deflated before encryption.
-    private class FullLCPResource: TransformingResource {
-        private let license: LCPLicense
-        private let encryption: ReadiumShared.Encryption
+    /// Can be used when it's impossible to map a read range (byte range
+    /// request) to the encrypted resource, for example when the resource is
+    /// deflated before encryption.
+    private final class FullLCPResource: Resource, Sendable {
+        private let resource: TransformingResource
+        private let originalLength: UInt64?
 
         init(_ resource: Resource, license: LCPLicense, encryption: ReadiumShared.Encryption) {
-            self.license = license
-            self.encryption = encryption
-            super.init(resource)
+            originalLength = encryption.originalLength.map { UInt64($0) }
+            self.resource = TransformingResource(resource, transform: { data in
+                await license.decryptFully(data: data, isDeflated: encryption.isDeflated)
+            })
         }
 
-        override func transform(data: ReadResult<Data>) async -> ReadResult<Data> {
-            await license.decryptFully(data: data, isDeflated: encryption.isDeflated)
+        let sourceURL: AbsoluteURL? = nil
+
+        func properties() async -> ReadResult<ResourceProperties> {
+            await resource.properties()
         }
 
-        override func estimatedLength() async -> ReadResult<UInt64?> {
-            .success(encryption.originalLength.map { UInt64($0) })
+        func estimatedLength() async -> ReadResult<UInt64?> {
+            .success(originalLength)
+        }
+
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+            await resource.stream(range: range, consume: consume)
         }
     }
 
     /// A LCP resource used to read content encrypted with the CBC algorithm.
     ///
     /// Supports random access for byte range requests, but the resource MUST NOT be deflated.
-    private class CBCLCPResource: Resource {
+    private final class CBCLCPResource: Resource, Sendable {
         private let resource: Resource
         private let license: LCPLicense
         private let encryption: ReadiumShared.Encryption
+        private let plainTextSize: AsyncMemoizer<ReadResult<UInt64?>>
 
         init(_ resource: Resource, license: LCPLicense, encryption: ReadiumShared.Encryption) {
             assert(!encryption.isDeflated)
@@ -95,6 +105,10 @@ final class LCPDecryptor {
             self.resource = resource
             self.license = license
             self.encryption = encryption
+
+            plainTextSize = AsyncMemoizer { [resource, license] in
+                await license.plainTextSizeOfCBCResource(resource)
+            }
         }
 
         let sourceURL: AbsoluteURL? = nil
@@ -104,44 +118,10 @@ final class LCPDecryptor {
         }
 
         func estimatedLength() async -> ReadResult<UInt64?> {
-            await plainTextSize
+            await plainTextSize()
         }
 
-        private var plainTextSize: ReadResult<UInt64?> {
-            get async { await plainTextSizeTask.value }
-        }
-
-        private lazy var plainTextSizeTask = Task<ReadResult<UInt64?>, Never> {
-            await resource.estimatedLength().asyncFlatMap { length in
-                guard let length = length else {
-                    return failure(.requiredEstimatedLength)
-                }
-                guard length.isValidAESChunk else {
-                    return failure(.invalidCBCData)
-                }
-
-                let readPosition = length - 2 * AESBlockSize
-                return await resource.read(range: readPosition ..< length)
-                    .flatMap { encryptedData in
-                        do {
-                            guard let data = try license.decipher(encryptedData) else {
-                                return failure(.emptyDecryptedData)
-                            }
-
-                            let paddingSize = UInt64(data.last ?? 0)
-
-                            let result = length
-                                - AESBlockSize // Minus IV or previous block
-                                - paddingSize // Minus padding part
-                            return .success(result)
-                        } catch {
-                            return .failure(.decoding(error))
-                        }
-                    }
-            }
-        }
-
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             guard let range = range else {
                 return await license.decryptFully(data: resource.read(), isDeflated: encryption.isDeflated)
                     .map {
@@ -152,10 +132,10 @@ final class LCPDecryptor {
 
             return await resource.estimatedLength().asyncFlatMap { encryptedLength in
                 guard let encryptedLength = encryptedLength else {
-                    return failure(.requiredEstimatedLength)
+                    return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))
                 }
                 guard let rangeFirst = range.first, let rangeLast = range.last else {
-                    return failure(.invalidRange(range))
+                    return .failure(.decoding(LCPDecryptor.Error.invalidRange(range)))
                 }
 
                 // Encrypted data is shifted by AESBlockSize, because of IV and because the
@@ -167,14 +147,14 @@ final class LCPDecryptor {
                 )
 
                 return await resource.read(range: encryptedStart ..< encryptedEndExclusive)
-                    .combine(plainTextSize)
+                    .combine(plainTextSize())
                     .flatMap { encryptedData, plainTextSize in
                         do {
                             guard let plainTextSize = plainTextSize else {
-                                return failure(.noPlainTextSize)
+                                return .failure(.decoding(LCPDecryptor.Error.noPlainTextSize))
                             }
                             guard let bytes = try license.decipher(encryptedData) else {
-                                return failure(.emptyDecryptedData)
+                                return .failure(.decoding(LCPDecryptor.Error.emptyDecryptedData))
                             }
 
                             // Exclude the bytes added to match a multiple of AESBlockSize.
@@ -199,14 +179,62 @@ final class LCPDecryptor {
                     }
             }
         }
-
-        private func failure<T>(_ error: LCPDecryptor.Error) -> ReadResult<T> {
-            .failure(.decoding(error))
-        }
     }
 }
 
 private extension LCPLicense {
+    /// Computes the plain text size of a CBC-encrypted, non-deflated LCP
+    /// resource.
+    ///
+    /// The size of an LCP-encrypted resource doesn't match the size of its
+    /// decrypted content, because of:
+    ///   - the 16-byte IV prepended to the ciphertext, and
+    ///   - the PKCS#7 padding (1...16 bytes) appended to align the plaintext
+    ///     on a multiple of `AESBlockSize`.
+    ///
+    /// To recover the exact plain text size without decrypting the whole
+    /// resource, we read and decrypt only the last two AES blocks: the second-
+    /// to-last block serves as the IV for the last one, whose final byte
+    /// encodes the padding length per PKCS#7.
+    ///
+    /// - Important: This must only be called on a CBC-encrypted resource that
+    ///   is **not** deflated. On a deflated resource, the returned value would
+    ///   be the *compressed* size, not the actual plain text size.
+    ///
+    /// - Returns: The decrypted content length in bytes, or a failure if
+    ///   the resource is not a valid CBC chunk or cannot be deciphered.
+    func plainTextSizeOfCBCResource(_ resource: Resource) async -> ReadResult<UInt64?> {
+        await resource.estimatedLength().asyncFlatMap { length in
+            guard let length = length else {
+                return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))
+            }
+            guard length.isValidAESChunk else {
+                return .failure(.decoding(LCPDecryptor.Error.invalidCBCData))
+            }
+
+            // Read the last two AES blocks: the penultimate one is needed as
+            // the IV to decrypt the last one, which carries the PKCS#7 padding.
+            let readPosition = length - 2 * AESBlockSize
+            return await resource.read(range: readPosition ..< length)
+                .flatMap { encryptedData in
+                    do {
+                        guard let data = try self.decipher(encryptedData) else {
+                            return .failure(.decoding(LCPDecryptor.Error.emptyDecryptedData))
+                        }
+
+                        let paddingSize = UInt64(data.last ?? 0)
+                        return .success(
+                            length
+                                - AESBlockSize // IV
+                                - paddingSize // PKCS#7 padding
+                        )
+                    } catch {
+                        return .failure(.decoding(error))
+                    }
+                }
+        }
+    }
+
     func decryptFully(data: ReadResult<Data>, isDeflated: Bool) async -> ReadResult<Data> {
         data.flatMap {
             guard UInt64($0.count).isValidAESChunk else {

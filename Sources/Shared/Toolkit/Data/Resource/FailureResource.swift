@@ -25,13 +25,13 @@ public final class FailureResource: Resource, Sendable {
         .failure(error)
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         .failure(error)
     }
 }
 
 public extension Resource where Self == FailureResource {
     static func failure(_ error: ReadError, sourceURL: AbsoluteURL? = nil) -> FailureResource {
-        FailureResource(error: error)
+        FailureResource(error: error, sourceURL: sourceURL)
     }
 }
