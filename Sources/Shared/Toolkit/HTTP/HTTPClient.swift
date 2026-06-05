@@ -13,7 +13,7 @@ import Foundation
 ///
 /// You may provide a custom implementation, or use the `DefaultHTTPClient` one
 /// which relies on native APIs.
-public protocol HTTPClient: Loggable {
+public protocol HTTPClient: Loggable, Sendable {
     /// Streams a resource from the given `request`.
     ///
     /// - Parameters:

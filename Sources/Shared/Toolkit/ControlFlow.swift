@@ -33,7 +33,7 @@ public func execute(
     when condition: @escaping () -> Bool,
     pollingInterval: TimeInterval = 0,
     on queue: DispatchQueue = .main,
-    _ block: @escaping () async -> Void
+    _ block: @escaping @Sendable () async -> Void
 ) -> () -> Void {
     var polling = false
     return {

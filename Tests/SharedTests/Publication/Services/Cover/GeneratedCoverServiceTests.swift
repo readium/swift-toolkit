@@ -7,7 +7,7 @@
 @testable import ReadiumShared
 import XCTest
 
-class GeneratedCoverServiceTests: XCTestCase {
+class GeneratedCoverServiceTests: XCTestCase, @unchecked Sendable {
     let fixtures = Fixtures(path: "Publication/Services")
     var cover: UIImage!
 

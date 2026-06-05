@@ -28,7 +28,7 @@ public extension Result {
 
     /// Asynchronous variant of `map`.
     @inlinable func asyncMap<NewSuccess>(
-        _ transform: (Success) async throws -> NewSuccess
+        _ transform: @Sendable (Success) async throws -> NewSuccess
     ) async rethrows -> Result<NewSuccess, Failure> {
         switch self {
         case let .success(success):
@@ -40,7 +40,7 @@ public extension Result {
 
     /// Asynchronous variant of `flatMap`.
     @inlinable func asyncFlatMap<NewSuccess>(
-        _ transform: (Success) async throws -> Result<NewSuccess, Failure>
+        _ transform: @Sendable (Success) async throws -> Result<NewSuccess, Failure>
     ) async rethrows -> Result<NewSuccess, Failure> {
         switch self {
         case let .success(success):
@@ -51,7 +51,7 @@ public extension Result {
     }
 
     @inlinable func asyncRecover(
-        _ catching: (Failure) async throws -> Self
+        _ catching: @Sendable (Failure) async throws -> Self
     ) async rethrows -> Self {
         switch self {
         case let .success(success):

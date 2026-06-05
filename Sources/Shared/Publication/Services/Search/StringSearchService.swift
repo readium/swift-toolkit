@@ -68,8 +68,12 @@ public final class StringSearchService: SearchService, Sendable {
         ))
     }
 
-    private class Iterator: SearchIterator, Loggable {
-        private(set) var resultCount: Int? = 0
+    private actor Iterator: SearchIterator, Loggable {
+        private let _resultCount = Mutex<Int?>(0)
+
+        nonisolated var resultCount: Int? {
+            _resultCount.withLock { $0 }
+        }
 
         private let publication: Publication
         private let language: Language?
@@ -123,7 +127,7 @@ public final class StringSearchService: SearchService, Sendable {
                         continue
                     }
 
-                    resultCount = (resultCount ?? 0) + locators.count
+                    _resultCount.withLock { $0 = ($0 ?? 0) + locators.count }
                     return .success(LocatorCollection(locators: locators))
 
                 case let .failure(error):

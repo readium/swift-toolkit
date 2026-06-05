@@ -307,7 +307,7 @@ public extension ContentAttributesHolder {
 }
 
 /// Iterates through a list of `ContentElement` items.
-public protocol ContentIterator: AnyObject {
+public protocol ContentIterator: AnyObject, Sendable {
     /// Retrieves the next element, or nil if we reached the end.
     func next() async throws -> ContentElement?
 

@@ -18,7 +18,7 @@ import SwiftSoup
 ///
 /// Locators will contain a `before` context of up to `beforeMaxLength`
 /// characters.
-public final class HTMLResourceContentIterator: ContentIterator {
+public final class HTMLResourceContentIterator: ContentIterator, @unchecked Sendable {
     /// Factory for an `HTMLResourceContentIterator`.
     public final class Factory: ResourceContentIteratorFactory, Sendable {
         public init() {}
@@ -55,11 +55,11 @@ public final class HTMLResourceContentIterator: ContentIterator {
     private let resource: Resource
     private let locator: Locator
     private let beforeMaxLength: Int = 50
-    private let fetchTotalProgressionRange: () async -> ClosedRange<Double>?
+    private let fetchTotalProgressionRange: @Sendable () async -> ClosedRange<Double>?
 
     public init(
         resource: Resource,
-        totalProgressionRange: @escaping () async -> ClosedRange<Double>?,
+        totalProgressionRange: @escaping @Sendable () async -> ClosedRange<Double>?,
         locator: Locator
     ) {
         self.resource = resource

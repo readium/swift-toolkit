@@ -19,7 +19,7 @@ public enum PDFDocumentError: Error, Sendable {
 /// Represents a PDF document.
 ///
 /// This is not used to render a PDF document, only to access its metadata.
-public protocol PDFDocument {
+public protocol PDFDocument: Sendable {
     /// Permanent identifier based on the contents of the file at the time it was originally
     /// created.
     func identifier() async throws -> String?
@@ -59,7 +59,7 @@ public protocol PDFDocumentTextProviding: PDFDocument {
     func pageText(at pageIndex: Int) async throws -> String?
 }
 
-public protocol PDFDocumentFactory {
+public protocol PDFDocumentFactory: Sendable {
     /// Opens a PDF from a local file path.
     func open(file: FileURL, password: String?) async throws -> PDFDocument
 

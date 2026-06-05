@@ -238,7 +238,7 @@ public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable 
         return try open(document: document, password: password)
     }
 
-    private class DataHolder {
+    private class DataHolder: @unchecked Sendable {
         var data: Data = .init()
     }
 
@@ -333,7 +333,7 @@ public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable 
         return document
     }
 
-    private class ResourceContext {
+    private class ResourceContext: @unchecked Sendable {
         let resource: Resource
         var offset: UInt64 = 0
         let length: UInt64

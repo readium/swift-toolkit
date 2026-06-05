@@ -70,22 +70,24 @@ actor TailCachingResource: Resource, Loggable {
             return cache
         }
 
-        return await estimatedLength()
-            .asyncFlatMap { length in
-                let length = length ?? .max
-                guard cacheFromOffset < length else {
-                    cache = .success(nil)
-                    return cache!
-                }
-
-                let data = Mutex(Data())
-                let streamResult = await resource.stream(range: cacheFromOffset ..< length) { chunk in
-                    data.withLock { $0.append(chunk) }
-                }
-
-                cache = streamResult.map { data.withLock { $0 } }
-
+        let lengthResult = await estimatedLength()
+        switch lengthResult {
+        case let .failure(error):
+            return .failure(error)
+        case let .success(length):
+            let length = length ?? .max
+            guard cacheFromOffset < length else {
+                cache = .success(nil)
                 return cache!
             }
+
+            let data = Mutex(Data())
+            let streamResult = await resource.stream(range: cacheFromOffset ..< length) { chunk in
+                data.withLock { $0.append(chunk) }
+            }
+
+            cache = streamResult.map { data.withLock { $0 } }
+            return cache!
+        }
     }
 }

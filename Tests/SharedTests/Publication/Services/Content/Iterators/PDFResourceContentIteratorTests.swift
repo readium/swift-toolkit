@@ -313,7 +313,7 @@ private func makeIterator(
 
 // MARK: - Mock PDF Documents
 
-private class MockPDFDocument: PDFDocumentTextProviding {
+private final class MockPDFDocument: PDFDocumentTextProviding, @unchecked Sendable {
     private let texts: [String?]
     private(set) var requestedPageIndices: [Int] = []
 
@@ -367,7 +367,7 @@ private class MockPDFDocument: PDFDocumentTextProviding {
     }
 }
 
-private class MockNonTextPDFDocument: PDFDocument {
+private final class MockNonTextPDFDocument: PDFDocument {
     func identifier() async throws -> String? {
         nil
     }

@@ -12,6 +12,7 @@ import UIKit
 ///
 /// Simply set the `playback` and `media` properties when needed, the calls will automatically be
 /// throttled to avoid updating the Now Playing screen too frequently.
+@MainActor
 public final class NowPlayingInfo {
     public static let shared = NowPlayingInfo()
 
@@ -95,6 +96,7 @@ public final class NowPlayingInfo {
 
     /// Updates the Now Playing screen, maximum once per second.
     private lazy var update = throttle(duration: 1) { [weak self] in
+        MainActor.assumeIsolated { [weak self] in
         var info = [String: Any]()
         if let self = self, let media = self.media {
             info[MPMediaItemPropertyTitle] = media.title
@@ -123,5 +125,6 @@ public final class NowPlayingInfo {
         }
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
     }
 }

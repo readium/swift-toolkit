@@ -43,7 +43,7 @@ public final class DefaultResourceContentExtractorFactory: ResourceContentExtrac
 public typealias _DefaultResourceContentExtractorFactory = DefaultResourceContentExtractorFactory
 
 /// `ResourceContentExtractor` implementation for HTML resources.
-class HTMLResourceContentExtractor: ResourceContentExtractor {
+final class HTMLResourceContentExtractor: ResourceContentExtractor, Sendable {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
     func extractText(of resource: Resource) async -> ReadResult<String> {

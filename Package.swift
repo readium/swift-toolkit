@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 //
 //  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
@@ -47,6 +47,9 @@ let package = Package(
             resources: [
                 .process("Resources"),
             ],
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
+            ],
             linkerSettings: [
                 .linkedFramework("CoreServices"),
                 .linkedFramework("UIKit"),
@@ -61,6 +64,9 @@ let package = Package(
             path: "Tests/SharedTests",
             resources: [
                 .copy("Fixtures"),
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
             ]
         ),
 
@@ -74,6 +80,9 @@ let package = Package(
             path: "Sources/Streamer",
             resources: [
                 .copy("Assets"),
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
             ]
         ),
         .testTarget(
@@ -82,6 +91,9 @@ let package = Package(
             path: "Tests/StreamerTests",
             resources: [
                 .copy("Fixtures"),
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
             ]
         ),
 
@@ -100,6 +112,9 @@ let package = Package(
             resources: [
                 .copy("EPUB/Assets"),
                 .process("Resources"),
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
             ]
         ),
         .testTarget(
@@ -108,6 +123,9 @@ let package = Package(
             path: "Tests/NavigatorTests",
             exclude: [
                 "UITests",
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
             ]
         ),
 
@@ -117,7 +135,10 @@ let package = Package(
                 "ReadiumShared",
                 .product(name: "ReadiumFuzi", package: "Fuzi"),
             ],
-            path: "Sources/OPDS"
+            path: "Sources/OPDS",
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
+            ]
         ),
         .testTarget(
             name: "ReadiumOPDSTests",
@@ -125,6 +146,9 @@ let package = Package(
             path: "Tests/OPDSTests",
             resources: [
                 .copy("Samples"),
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
             ]
         ),
 
@@ -139,6 +163,9 @@ let package = Package(
             path: "Sources/LCP",
             resources: [
                 .process("Resources"),
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
             ]
         ),
         // These tests require a R2LCPClient.framework to run.
@@ -160,7 +187,10 @@ let package = Package(
                 .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
                 "ReadiumShared",
             ],
-            path: "Sources/Adapters/GCDWebServer"
+            path: "Sources/Adapters/GCDWebServer",
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
+            ]
         ),
 
         .target(
@@ -169,17 +199,26 @@ let package = Package(
                 .product(name: "SQLite", package: "SQLite.swift"),
                 "ReadiumLCP",
             ],
-            path: "Sources/Adapters/LCPSQLite"
+            path: "Sources/Adapters/LCPSQLite",
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
+            ]
         ),
 
         .target(
             name: "ReadiumInternal",
-            path: "Sources/Internal"
+            path: "Sources/Internal",
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
+            ]
         ),
         .testTarget(
             name: "ReadiumInternalTests",
             dependencies: ["ReadiumInternal"],
-            path: "Tests/InternalTests"
+            path: "Tests/InternalTests",
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
+            ]
         ),
 
         // Shared test publications used across multiple test targets.
@@ -188,6 +227,9 @@ let package = Package(
             path: "Tests/Publications",
             resources: [
                 .copy("Publications"),
+            ],
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
             ]
         ),
     ]

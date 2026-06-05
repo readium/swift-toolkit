@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 /// An user of the `AudioSession`, for example a media player object.
-public protocol AudioSessionUser: AnyObject {
+public protocol AudioSessionUser: AnyObject, Sendable {
     /// Audio session configuration to use for this user.
     var audioConfiguration: AudioSession.Configuration { get }
 
