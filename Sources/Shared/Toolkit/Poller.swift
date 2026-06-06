@@ -1,0 +1,71 @@
+//
+//  Copyright 2026 Readium Foundation. All rights reserved.
+//  Use of this source code is governed by the BSD-style license
+//  available in the top-level LICENSE file of the project.
+//
+
+import Foundation
+
+private final class Poller: Sendable {
+    private let condition: @Sendable @MainActor () -> Bool
+    private let pollingInterval: TimeInterval
+    private let queue: DispatchQueue
+    private let block: @Sendable @MainActor () async -> Void
+    @MainActor private var isPolling = false
+
+    init(
+        condition: @escaping @Sendable @MainActor () -> Bool,
+        pollingInterval: TimeInterval,
+        queue: DispatchQueue,
+        block: @escaping @Sendable @MainActor () async -> Void
+    ) {
+        self.condition = condition
+        self.pollingInterval = pollingInterval
+        self.queue = queue
+        self.block = block
+    }
+
+    @MainActor
+    func start() {
+        guard !isPolling else { return }
+        isPolling = true
+        poll()
+    }
+
+    @MainActor
+    private func poll() {
+        guard condition() else {
+            queue.asyncAfter(deadline: .now() + pollingInterval) { [weak self] in
+                Task { @MainActor in
+                    self?.poll()
+                }
+            }
+            return
+        }
+        Task {
+            await block()
+            isPolling = false
+        }
+    }
+}
+
+/// Executes the given `block` if `condition` is true. Otherwise, retries every `pollingInterval`
+/// seconds until `condition` gets true.
+///
+/// Additional calls are ignored while polling the condition.
+public func execute(
+    when condition: @escaping @Sendable @MainActor () -> Bool,
+    pollingInterval: TimeInterval = 0,
+    on queue: DispatchQueue = .main,
+    _ block: @escaping @Sendable @MainActor () async -> Void
+) -> @Sendable @MainActor () -> Void {
+    let poller = Poller(
+        condition: condition,
+        pollingInterval: pollingInterval,
+        queue: queue,
+        block: block
+    )
+    return {
+        poller.start()
+    }
+}

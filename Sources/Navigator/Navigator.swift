@@ -9,6 +9,7 @@ import ReadiumInternal
 import ReadiumShared
 import SafariServices
 
+@MainActor
 public protocol Navigator: AnyObject {
     /// Publication being rendered.
     var publication: Publication { get }
@@ -71,6 +72,7 @@ public struct NavigatorGoOptions: Hashable, Sendable {
     }
 }
 
+@MainActor
 public extension Navigator {
     @discardableResult
     func go(to locator: Locator, options: NavigatorGoOptions = NavigatorGoOptions()) async -> Bool {

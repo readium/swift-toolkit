@@ -7,32 +7,39 @@
 import Foundation
 
 /// A protocol indicating that an activity or action supports cancellation.
-public protocol Cancellable {
+public protocol Cancellable: Sendable {
     /// Cancel the on-going activity.
     func cancel()
 }
 
 /// A `Cancellable` object saving its cancelled state.
-public final class CancellableObject: Cancellable {
-    public private(set) var isCancelled = false
-    private let onCancel: () -> Void
+public final class CancellableObject: Cancellable, Sendable {
+    private let state: Mutex<(isCancelled: Bool, onCancel: @Sendable () -> Void)>
 
-    public init(onCancel: @escaping () -> Void = {}) {
-        self.onCancel = onCancel
+    public var isCancelled: Bool {
+        state.withLock { $0.isCancelled }
+    }
+
+    public init(onCancel: @escaping @Sendable () -> Void = {}) {
+        state = Mutex((isCancelled: false, onCancel: onCancel))
     }
 
     public func cancel() {
-        guard !isCancelled else {
-            return
+        let blockToCall = state.withLock { state -> (@Sendable () -> Void)? in
+            guard !state.isCancelled else {
+                return nil
+            }
+            state.isCancelled = true
+            let block = state.onCancel
+            state.onCancel = {}
+            return block
         }
-
-        isCancelled = true
-        onCancel()
+        blockToCall?()
     }
 }
 
 extension DispatchQueue {
-    func async(unlessCancelled cancellable: CancellableObject, execute work: @escaping () -> Void) {
+    func async(unlessCancelled cancellable: CancellableObject, execute work: @escaping @Sendable () -> Void) {
         async {
             guard !cancellable.isCancelled else {
                 return
@@ -46,27 +53,40 @@ extension DispatchQueue {
 /// with `mediate()`.
 ///
 /// In practice, this is useful when a task needs to return a single `Cancellable`, but might spawn multiple subtasks.
-public final class MediatorCancellable: Cancellable {
-    private var cancellable: Cancellable?
-    public private(set) var isCancelled = false
+public final class MediatorCancellable: Cancellable, Sendable {
+    private let state: Mutex<(cancellable: (any Cancellable)?, isCancelled: Bool)>
 
-    public init(cancellable: Cancellable? = nil) {
-        self.cancellable = cancellable
+    public var isCancelled: Bool {
+        state.withLock { $0.isCancelled }
+    }
+
+    public init(cancellable: (any Cancellable)? = nil) {
+        state = Mutex((cancellable: cancellable, isCancelled: false))
     }
 
     /// Switches the currently active cancellable which will receive the `cancel()` requests.
-    public func mediate(_ cancellable: Cancellable) {
-        if isCancelled {
+    public func mediate(_ cancellable: any Cancellable) {
+        let cancelImmediately = state.withLock { state in
+            if state.isCancelled {
+                return true
+            } else {
+                state.cancellable = cancellable
+                return false
+            }
+        }
+        if cancelImmediately {
             cancellable.cancel()
-        } else {
-            self.cancellable = cancellable
         }
     }
 
     public func cancel() {
-        isCancelled = true
-        cancellable?.cancel()
-        cancellable = nil
+        let cancellableToCancel = state.withLock { state in
+            state.isCancelled = true
+            let c = state.cancellable
+            state.cancellable = nil
+            return c
+        }
+        cancellableToCancel?.cancel()
     }
 }
 

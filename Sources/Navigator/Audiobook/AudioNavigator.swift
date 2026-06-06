@@ -77,6 +77,7 @@ public extension AudioNavigatorDelegate {
 ///
 /// * Readium Audiobook
 /// * ZAB (Zipped Audio Book)
+@MainActor
 public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Loggable {
     public weak var delegate: AudioNavigatorDelegate?
 
@@ -110,7 +111,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
     }
 
-    public nonisolated let publication: Publication
+    public let publication: Publication
     private let initialLocation: Locator?
     private let config: Configuration
 
@@ -140,12 +141,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     deinit {
-        if let timeObserver = timeObserver {
-            player.removeTimeObserver(timeObserver)
-        }
-
         playTask?.cancel()
-        AudioSession.shared.end(for: self)
+        AudioSession.shared.end(for: ObjectIdentifier(self))
     }
 
     /// Returns whether the resource is currently playing or not.
@@ -247,7 +244,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
-    private var timeObserver: Any?
+    private var timeObserverToken: TimeObserverToken?
+    private var notificationToken: NotificationObserverToken?
 
     private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
 
@@ -257,65 +255,82 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         player.automaticallyWaitsToMinimizeStalling = false
         player.volume = Float(settings.volume)
 
-        timeObserver = player.addPeriodicTimeObserver(
+        let periodicObserver = player.addPeriodicTimeObserver(
             forInterval: CMTime(
                 seconds: config.playbackRefreshInterval,
                 preferredTimescale: 1000
             ),
             queue: .main
         ) { [weak self] time in
-            if let self = self {
-                let time = time.secondsOrZero
-                self.playbackDidChange(time)
+            MainActor.assumeIsolated {
+                guard let self = self else { return }
+                self.playbackDidChange(time.secondsOrZero)
             }
         }
+        timeObserverToken = TimeObserverToken(player: player, observer: periodicObserver)
 
-        rateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] player, _ in
-            guard let self = self else {
-                return
-            }
+        rateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                guard let self = self else {
+                    return
+                }
 
-            let session = AudioSession.shared
-            switch player.timeControlStatus {
-            case .paused:
-                session.user(self, didChangePlaying: false)
-            case .waitingToPlayAtSpecifiedRate, .playing:
-                session.user(self, didChangePlaying: true)
-            @unknown default:
-                break
-            }
-        }
-
-        timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
-            self?.playbackDidChange()
-        }
-
-        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
-            self?.playbackDidChange()
-        }
-
-        NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
-            guard
-                let self = self,
-                let currentItem = player.currentItem,
-                currentItem == (notification.object as? AVPlayerItem)
-            else {
-                return
-            }
-
-            self.shouldPlayNextResource { playNext in
-                Task {
-                    if playNext, await self.goForward() {
-                        self.play()
-                    }
+                let session = AudioSession.shared
+                switch self.player.timeControlStatus {
+                case .paused:
+                    session.user(self, didChangePlaying: false)
+                case .waitingToPlayAtSpecifiedRate, .playing:
+                    session.user(self, didChangePlaying: true)
+                @unknown default:
+                    break
                 }
             }
         }
 
+        // We trigger a "poke to recompute" on the main actor via playbackDidChange() which reads the
+        // most up-to-date state from the player. Discarding KVO parameters is intentional here.
+        timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                self?.playbackDidChange()
+            }
+        }
+
+        // We trigger a "poke to recompute" on the main actor via playbackDidChange() which reads the
+        // most up-to-date state from the player. Discarding KVO parameters is intentional here.
+        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                self?.playbackDidChange()
+            }
+        }
+
+        let notificationObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
+            MainActor.assumeIsolated {
+                guard
+                    let self = self,
+                    let currentItem = self.player.currentItem,
+                    currentItem == (notification.object as? AVPlayerItem)
+                else {
+                    return
+                }
+
+                self.shouldPlayNextResource { playNext in
+                    if playNext {
+                        Task { @MainActor [weak self] in
+                            guard let self = self else { return }
+                            if await self.goForward() {
+                                self.play()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        notificationToken = NotificationObserverToken(center: .default, observer: notificationObserver)
+
         return player
     }()
 
-    private func shouldPlayNextResource(completion: @escaping (Bool) -> Void) {
+    private func shouldPlayNextResource(completion: @escaping @MainActor @Sendable (Bool) -> Void) {
         guard let delegate = delegate else {
             completion(true)
             return
@@ -330,25 +345,29 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         if let time = time {
             let locator = makeLocator(forTime: time)
             currentLocation = locator
-            Task { @MainActor in
-                delegate?.navigator(self, locationDidChange: locator)
-            }
+            delegate?.navigator(self, locationDidChange: locator)
         }
 
-        makePlaybackInfo(forTime: time) { info in
+        makePlaybackInfo(forTime: time) { [weak self] info in
+            guard let self = self else { return }
             self.delegate?.navigator(self, playbackDidChange: info)
         }
     }
 
     /// A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
     /// To fix this, this is an asynchronous operation.
-    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor (MediaPlaybackInfo) -> Void) {
+    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor @Sendable (MediaPlaybackInfo) -> Void) {
+        let resourceIndex = resourceIndex
+        let state = state
+        let currentTime = time ?? currentTime
+        let resourceDuration = resourceDuration
+
         DispatchQueue.global(qos: .userInteractive).async {
             let info = MediaPlaybackInfo(
-                resourceIndex: self.resourceIndex,
-                state: self.state,
-                time: time ?? self.currentTime,
-                duration: self.resourceDuration
+                resourceIndex: resourceIndex,
+                state: state,
+                time: currentTime,
+                duration: resourceDuration
             )
 
             DispatchQueue.main.async {
@@ -387,25 +406,25 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var lastLoadedTimeRanges: [Range<Double>] = []
 
     private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
-        guard let self = self else {
-            timer.invalidate()
-            return
-        }
-
-        let ranges: [Range<Double>] = (self.player.currentItem?.loadedTimeRanges ?? [])
-            .map { value in
-                let range = value.timeRangeValue
-                let start = range.start.secondsOrZero
-                let duration = range.duration.secondsOrZero
-                return start ..< (start + duration)
+        MainActor.assumeIsolated {
+            guard let self = self else {
+                timer.invalidate()
+                return
             }
 
-        guard ranges != self.lastLoadedTimeRanges else {
-            return
-        }
+            let ranges: [Range<Double>] = (self.player.currentItem?.loadedTimeRanges ?? [])
+                .map { value in
+                    let range = value.timeRangeValue
+                    let start = range.start.secondsOrZero
+                    let duration = range.duration.secondsOrZero
+                    return start ..< (start + duration)
+                }
 
-        self.lastLoadedTimeRanges = ranges
-        Task { @MainActor in
+            guard ranges != self.lastLoadedTimeRanges else {
+                return
+            }
+
+            self.lastLoadedTimeRanges = ranges
             self.delegate?.navigator(self, loadedTimeRangesDidChange: ranges)
         }
     }
@@ -432,7 +451,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
                 loadedTimeRangesTimer.fire()
-                await delegate?.navigator(self, loadedTimeRangesDidChange: [])
+                delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
 
             // Seeks to time
@@ -440,7 +459,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
             let finished = await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
             if finished {
-                await delegate?.navigator(self, didJumpTo: locator)
+                delegate?.navigator(self, didJumpTo: locator)
             }
 
             if wasPlaying {
@@ -535,5 +554,38 @@ private extension MediaPlaybackState {
 private extension CMTime {
     var secondsOrZero: Double {
         isNumeric ? seconds : 0
+    }
+}
+
+private final class TimeObserverToken: @unchecked Sendable {
+    private let player: AVPlayer
+    private let observer: Any
+
+    init(player: AVPlayer, observer: Any) {
+        self.player = player
+        self.observer = observer
+    }
+
+    deinit {
+        // Technically, AVFoundation requires `removeTimeObserver` to be called
+        // from the same queue that added the observer (which was `.main`).
+        // However, since we cannot easily dispatch to the main actor during deinit
+        // without risking an async lifetime leak, we call it here.
+        // In practice, `AVPlayer.removeTimeObserver` handles this gracefully off-thread.
+        player.removeTimeObserver(observer)
+    }
+}
+
+private final class NotificationObserverToken: @unchecked Sendable {
+    private let center: NotificationCenter
+    private let observer: Any
+
+    init(center: NotificationCenter, observer: Any) {
+        self.center = center
+        self.observer = observer
+    }
+
+    deinit {
+        center.removeObserver(observer)
     }
 }

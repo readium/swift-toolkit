@@ -10,49 +10,24 @@ import Foundation
 
 /// Throttles the given `block` so that it is executed in `duration` seconds, ignoring additional
 /// calls until then.
-public func throttle(duration: TimeInterval = 0, on queue: DispatchQueue = .main, _ block: @escaping () -> Void) -> () -> Void {
-    var throttling = false
+public func throttle(duration: TimeInterval = 0, on queue: DispatchQueue = .main, _ block: @escaping @Sendable () -> Void) -> @Sendable () -> Void {
+    let throttling = Mutex(false)
     return {
-        guard !throttling else {
+        let shouldExecute = throttling.withLock { isThrottling -> Bool in
+            if isThrottling {
+                return false
+            } else {
+                isThrottling = true
+                return true
+            }
+        }
+        guard shouldExecute else {
             return
         }
-        throttling = true
 
         queue.asyncAfter(deadline: .now() + duration) {
-            throttling = false
+            throttling.withLock { $0 = false }
             block()
         }
-    }
-}
-
-/// Executes the given `block` if `condition` is true. Otherwise, retries every `pollingInterval`
-/// seconds until `condition` gets true.
-///
-/// Additional calls are ignored while polling the condition.
-public func execute(
-    when condition: @escaping () -> Bool,
-    pollingInterval: TimeInterval = 0,
-    on queue: DispatchQueue = .main,
-    _ block: @escaping () async -> Void
-) -> () -> Void {
-    var polling = false
-    return {
-        guard !polling else {
-            return
-        }
-
-        func poll() {
-            guard condition() else {
-                polling = true
-                queue.asyncAfter(deadline: .now() + pollingInterval, execute: poll)
-                return
-            }
-            polling = false
-            Task {
-                await block()
-            }
-        }
-
-        poll()
     }
 }

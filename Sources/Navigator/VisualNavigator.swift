@@ -39,6 +39,7 @@ public protocol VisualNavigator: Navigator, InputObservable {
     func firstVisibleElementLocator() async -> Locator?
 }
 
+@MainActor
 public extension VisualNavigator {
     func firstVisibleElementLocator() async -> Locator? {
         currentLocation

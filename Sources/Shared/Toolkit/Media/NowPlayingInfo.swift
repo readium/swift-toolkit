@@ -12,6 +12,7 @@ import UIKit
 ///
 /// Simply set the `playback` and `media` properties when needed, the calls will automatically be
 /// throttled to avoid updating the Now Playing screen too frequently.
+@MainActor
 public final class NowPlayingInfo {
     public static let shared = NowPlayingInfo()
 
@@ -95,33 +96,36 @@ public final class NowPlayingInfo {
 
     /// Updates the Now Playing screen, maximum once per second.
     private lazy var update = throttle(duration: 1) { [weak self] in
-        var info = [String: Any]()
-        if let self = self, let media = self.media {
-            info[MPMediaItemPropertyTitle] = media.title
-            if let artist = media.artist {
-                info[MPMediaItemPropertyArtist] = artist
-            }
-            if let mpArtwork = self.mpArtwork {
-                info[MPMediaItemPropertyArtwork] = mpArtwork
-            }
-            if let chapterCount = media.chapterCount {
-                info[MPNowPlayingInfoPropertyChapterCount] = chapterCount
-            }
-            if let chapterNumber = media.chapterNumber {
-                info[MPNowPlayingInfoPropertyChapterNumber] = chapterNumber
+        MainActor.assumeIsolated {
+            guard let self = self else { return }
+            var info = [String: Any]()
+            if let media = self.media {
+                info[MPMediaItemPropertyTitle] = media.title
+                if let artist = media.artist {
+                    info[MPMediaItemPropertyArtist] = artist
+                }
+                if let mpArtwork = self.mpArtwork {
+                    info[MPMediaItemPropertyArtwork] = mpArtwork
+                }
+                if let chapterCount = media.chapterCount {
+                    info[MPNowPlayingInfoPropertyChapterCount] = chapterCount
+                }
+                if let chapterNumber = media.chapterNumber {
+                    info[MPNowPlayingInfoPropertyChapterNumber] = chapterNumber
+                }
+
+                if let duration = self.playback.duration {
+                    info[MPMediaItemPropertyPlaybackDuration] = duration
+                }
+                if let elapsedTime = self.playback.elapsedTime {
+                    info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsedTime
+                }
+                if let rate = self.playback.rate {
+                    info[MPNowPlayingInfoPropertyPlaybackRate] = rate
+                }
             }
 
-            if let duration = self.playback.duration {
-                info[MPMediaItemPropertyPlaybackDuration] = duration
-            }
-            if let elapsedTime = self.playback.elapsedTime {
-                info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsedTime
-            }
-            if let rate = self.playback.rate {
-                info[MPNowPlayingInfoPropertyPlaybackRate] = rate
-            }
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         }
-
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 }
