@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Shared
+
+* ZIP entry names stored with a leading slash (e.g. `/001.jpg`, common in CBZ comics and Internet Archive uploads) are now normalized to relative paths, as mandated by the ZIP specification (APPNOTE.TXT 4.4.17.1). Previously such entries resolved as absolute-path references against the publication server's base URL, causing every resource to 404 (notably breaking image-based / Divina publications).
 
 ## [3.9.0] - 2026-05-12
 

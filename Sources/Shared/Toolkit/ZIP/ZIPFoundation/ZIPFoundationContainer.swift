@@ -24,7 +24,7 @@ final class ZIPFoundationContainer: Container, Loggable {
             for entry in try await archive.entries() {
                 guard
                     entry.type == .file,
-                    let url = RelativeURL(path: entry.path)?.normalized,
+                    let url = RelativeURL(zipEntryPath: entry.path)?.normalized,
                     !url.path.isEmpty
                 else {
                     continue
