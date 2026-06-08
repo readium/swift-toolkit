@@ -1117,29 +1117,32 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
         link.href = href
 
-        // Check to see if this was a noteref link and give delegate the opportunity to display it.
-        if
-            let clickEvent = clickEvent,
-            let interactive = clickEvent.interactiveElement,
-            let (note, referrer) = getNoteData(anchor: interactive, href: href),
-            let delegate = delegate
-        {
-            if !delegate.navigator(
-                self,
-                shouldNavigateToNoteAt: link,
-                content: note,
-                referrer: referrer
-            ) {
+        Task {
+            // Check to see if this was a noteref link and give delegate the
+            // opportunity to display it. Reading the note resource is async
+            // (it goes through the publication's `readium://` scheme), so the
+            // whole tap-handling flow runs in this task.
+            if
+                let clickEvent = clickEvent,
+                let interactive = clickEvent.interactiveElement,
+                let (note, referrer) = await getNoteData(anchor: interactive, href: href),
+                let delegate = delegate
+            {
+                if !delegate.navigator(
+                    self,
+                    shouldNavigateToNoteAt: link,
+                    content: note,
+                    referrer: referrer
+                ) {
+                    return
+                }
+            }
+
+            // Ask if we should navigate to the link
+            if let delegate = delegate, !delegate.navigator(self, shouldNavigateToLink: link) {
                 return
             }
-        }
 
-        // Ask if we should navigate to the link
-        if let delegate = delegate, !delegate.navigator(self, shouldNavigateToLink: link) {
-            return
-        }
-
-        Task {
             await go(to: link)
         }
     }
@@ -1153,7 +1156,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     /// Uses `#id` when retrieving the body of the note, not `aside#id` because it may be a `<section>`.
     /// See https://idpf.github.io/epub-vocabs/structure/#footnotes
     /// and http://kb.daisy.org/publishing/docs/html/epub-type.html#ex
-    func getNoteData(anchor: String, href: String) -> (String, String)? {
+    func getNoteData(anchor: String, href: String) async -> (String, String)? {
         do {
             let doc = try parse(anchor)
             guard let link = try doc.select("a[epub:type=noteref]").first() else { return nil }
@@ -1172,20 +1175,28 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 withoutFragment = String(withoutFragment.dropFirst())
             }
 
+            // Read the note's resource through the publication's resource API.
+            // A synchronous `String(contentsOf:)` cannot read the `readium://`
+            // scheme the navigator serves resources on (it is handled only by
+            // the in-WebView URL scheme handler), so the legacy path threw and
+            // every footnote silently fell through to plain link navigation.
             guard
-                let url = RelativeURL(string: withoutFragment),
-                let absolute = viewModel.publicationBaseURL.resolve(url)
+                let resourceURL = AnyURL(string: withoutFragment),
+                let resourceLink = publication.linkWithHREF(resourceURL),
+                let resource = publication.get(resourceLink)
             else {
-                log(.warning, "Invalid URL: \(withoutFragment)")
+                log(.warning, "Could not open note resource: \(withoutFragment)")
                 return nil
             }
-
-            log(.debug, "Fetching note contents from \(absolute.string)")
-            let contents = try String(contentsOf: absolute.url)
+            let data = try await resource.read().get()
+            guard let contents = String(data: data, encoding: .utf8) else {
+                log(.warning, "Note resource is not valid UTF-8: \(withoutFragment)")
+                return nil
+            }
             let document = try parse(contents)
 
             guard let aside = try document.select("#\(id)").first() else {
-                log(.warning, "Could not find the element '#\(id)' in document \(absolute)")
+                log(.warning, "Could not find the element '#\(id)' in document \(withoutFragment)")
                 return nil
             }
 
