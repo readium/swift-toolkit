@@ -82,7 +82,8 @@ final class EPUBDeobfuscator {
                                 if readPos + UInt64(i) >= obfuscatedLength {
                                     break
                                 }
-                                data[i] = data[i] ^ self.key[i % self.key.count]
+                                let keyIndex = Int((readPos + UInt64(i)) % UInt64(self.key.count))
+                                data[i] = data[i] ^ self.key[keyIndex]
                             }
                         }
 
