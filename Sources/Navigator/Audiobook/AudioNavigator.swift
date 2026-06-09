@@ -370,7 +370,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 duration: resourceDuration
             )
 
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 completion(info)
             }
         }
@@ -567,12 +567,9 @@ private final class TimeObserverToken: @unchecked Sendable {
     }
 
     deinit {
-        // Technically, AVFoundation requires `removeTimeObserver` to be called
-        // from the same queue that added the observer (which was `.main`).
-        // However, since we cannot easily dispatch to the main actor during deinit
-        // without risking an async lifetime leak, we call it here.
-        // In practice, `AVPlayer.removeTimeObserver` handles this gracefully off-thread.
-        player.removeTimeObserver(observer)
+        DispatchQueue.main.async { [player, observer] in
+            player.removeTimeObserver(observer)
+        }
     }
 }
 
