@@ -165,10 +165,19 @@ final class EPUBInfiniteScrollView: UIScrollView {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 guard self.resolvedHeights[index] != newHeight else { return }
+                let oldHeight = self.resolvedHeights[index] ?? self.placeholderHeight
+                let delta = newHeight - oldHeight
                 self.resolvedHeights[index] = newHeight
                 view?.frame.size.height = newHeight
                 self.setNeedsLayout()
                 self.layoutIfNeeded()
+                // Compensate so the viewport doesn't jump when a chapter above the
+                // current reading position resolves with a different height.
+                if index < self.currentIndex && delta != 0 {
+                    var offset = self.contentOffset
+                    offset.y += delta
+                    self.contentOffset = offset
+                }
             }
         }
         heightObservations[index] = obs
