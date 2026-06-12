@@ -23,14 +23,6 @@ public extension DateFormatter {
     }()
 
     static func iso8601Formatter(for string: String) -> DateFormatter {
-        // On iOS 10 and later, this API should be treated withFullTime or withTimeZone for different cases.
-        // Otherwise it will accept bad format, for exmaple 2018-04-24XXXXXXXXX
-        // Because it will only test the part you asssigned, date, time, timezone.
-        // But we should also cover the optional cases. So there is not too much benefit.
-//            let formatter = ISO8601DateFormatter()
-//            formatter.formatOptions = [.withFullDate]
-//            return formatter
-
         // https://developer.apple.com/documentation/foundation/dateformatter
         // Doesn't support millisecond or uncompleted part for date, time, timezone offset.
         let formats = [

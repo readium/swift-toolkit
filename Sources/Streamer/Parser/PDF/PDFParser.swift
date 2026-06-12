@@ -8,23 +8,7 @@ import CoreGraphics
 import Foundation
 import ReadiumShared
 
-/// Errors thrown during the parsing of the PDF.
-public enum PDFParserError: Error, Sendable {
-    /// The file at 'path' is missing from the container.
-    case missingFile(path: String)
-    /// Failed to open the PDF
-    case openFailed
-    /// The PDF is encrypted with a password. This is not supported right now.
-    case fileEncryptedWithPassword
-    /// The LCP for PDF Package is malformed.
-    case invalidLCPDF
-}
-
 public final class PDFParser: PublicationParser, Loggable {
-    enum Error: Swift.Error {
-        case fileNotReadable
-    }
-
     private let pdfFactory: PDFDocumentFactory
 
     public init(pdfFactory: PDFDocumentFactory) {

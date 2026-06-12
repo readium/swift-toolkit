@@ -78,19 +78,6 @@ final class PaginationView: UIView, Loggable {
         loadedViews[currentIndex]
     }
 
-    /// Loaded page views in reading order.
-    private var orderedViews: [UIView & PageView] {
-        var orderedViews = loadedViews
-            .sorted { $0.key < $1.key }
-            .map(\.value)
-
-        if readingProgression == .rtl {
-            orderedViews.reverse()
-        }
-
-        return orderedViews
-    }
-
     private let scrollView = UIScrollView()
 
     /// Set while a transition animation is in progress to prevent

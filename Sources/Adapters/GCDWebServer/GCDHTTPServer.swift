@@ -294,10 +294,6 @@ public final class GCDHTTPServer: HTTPServer, Loggable {
     private func isPortFree(_ port: UInt) -> Bool {
         let port = in_port_t(port)
 
-        func getErrnoMessage() -> String {
-            String(cString: UnsafePointer(strerror(errno)))
-        }
-
         let socketDescriptor = socket(AF_INET, SOCK_STREAM, 0)
         if socketDescriptor == -1 {
             // Just in case, returns true to attempt restarting the server.

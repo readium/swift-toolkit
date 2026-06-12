@@ -27,11 +27,4 @@ public extension Optional {
         }
         return value
     }
-
-    /// Returns the wrapped value and modify the variable to be nil.
-    internal mutating func pop() -> Wrapped? {
-        let res = self
-        self = nil
-        return res
-    }
 }
