@@ -118,8 +118,27 @@ final class EPUBInfiniteScrollView: UIScrollView {
 
     private func updateWindow(movingTo location: PageLocation? = nil, animated: Bool = false) {
         guard chapterCount > 0 else { return }
-        let lo = max(0, currentIndex - preloadWindow)
-        let hi = min(chapterCount - 1, currentIndex + preloadWindow)
+
+        // Pixel-based window: chapters can be tiny (a 70px separator page) or huge
+        // (a 15000px chapter), so a fixed chapter count either wastes memory or
+        // lets the user scroll past the preloaded content and hit spinners.
+        // Extend the window until it covers `preloadDistance` px in each direction,
+        // with `preloadWindow` chapters as the minimum.
+        let preloadDistance = max(bounds.height * 3, 2000)
+
+        var lo = max(0, currentIndex - preloadWindow)
+        var acc: CGFloat = (lo ..< currentIndex).reduce(0) { $0 + height(for: $1) }
+        while lo > 0, acc < preloadDistance {
+            lo -= 1
+            acc += height(for: lo)
+        }
+
+        var hi = min(chapterCount - 1, currentIndex + preloadWindow)
+        acc = (currentIndex + 1 ... max(currentIndex + 1, hi)).reduce(0) { $0 + height(for: $1) }
+        while hi < chapterCount - 1, acc < preloadDistance {
+            hi += 1
+            acc += height(for: hi)
+        }
 
         // Evict out-of-window chapters
         for i in loadedViews.keys where !(lo ... hi ~= i) {
@@ -135,6 +154,16 @@ final class EPUBInfiniteScrollView: UIScrollView {
             loadedViews[i] = view
             addSubview(view)
             observeContentHeight(of: view, at: i)
+
+            // Body can resize after load (CSS injection, font loading) without
+            // any contentSize KVO signal — the viewport pins contentSize to the
+            // frame height. A ResizeObserver in the page reports those changes.
+            view.registerJSMessage(named: "bodyResized") { [weak self, weak view] _ in
+                DispatchQueue.main.async {
+                    guard let self, let view else { return }
+                    self.measureContentHeight(of: view, at: i)
+                }
+            }
         }
 
         setNeedsLayout()
@@ -152,23 +181,61 @@ final class EPUBInfiniteScrollView: UIScrollView {
         view.webView.scrollView.isScrollEnabled = false
         view.webView.scrollView.showsVerticalScrollIndicator = false
         view.webView.scrollView.bounces = false
+        view.webView.scrollView.contentInset = .zero
+        view.webView.scrollView.contentOffset = .zero
     }
 
     // MARK: - Height Detection
 
     private func observeContentHeight(of view: EPUBSpreadView, at index: Int) {
+        // `scrollView.contentSize` is circular in this mode: the `<html>` element
+        // always stretches to the viewport (= the frame WE set), so contentSize
+        // never reports a height smaller than the current frame. We only use the
+        // KVO as a "layout changed" signal, then measure the real content extent
+        // with JS (`document.body.scrollHeight` is independent of viewport height).
         let obs = view.webView.scrollView.observe(\.contentSize, options: .new) { [weak self, weak view] _, change in
-            let newHeight = change.newValue?.height ?? 0
+            let signal = change.newValue?.height ?? 0
             // Ignore initial zero/tiny values before content renders
-            guard newHeight > 100 else { return }
+            guard signal > 100 else { return }
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self, let view else { return }
+                self.measureContentHeight(of: view, at: index)
+            }
+        }
+        heightObservations[index] = obs
+    }
+
+    private func measureContentHeight(of view: EPUBSpreadView, at index: Int) {
+        let js = """
+        (function() {
+            var b = document.body;
+            if (!b) return 0;
+            if (!window.__rdrResizeObs__ && window.ResizeObserver) {
+                window.__rdrResizeObs__ = new ResizeObserver(function() {
+                    try { webkit.messageHandlers.bodyResized.postMessage(b.scrollHeight); } catch (e) {}
+                });
+                window.__rdrResizeObs__.observe(b);
+            }
+            var cs = getComputedStyle(b);
+            return Math.ceil(b.scrollHeight
+                + (parseFloat(cs.marginTop) || 0)
+                + (parseFloat(cs.marginBottom) || 0));
+        })()
+        """
+        view.webView.evaluateJavaScript(js) { [weak self, weak view] result, _ in
+            // Threshold only filters pre-render readings (body missing → 0).
+            // Real chapters can be tiny (e.g., a 70px separator page), so keep it low.
+            guard let height = (result as? NSNumber).map({ CGFloat(truncating: $0) }),
+                  height > 20 else { return }
 
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                guard self.resolvedHeights[index] != newHeight else { return }
+                guard self.resolvedHeights[index] != height else { return }
                 let oldHeight = self.resolvedHeights[index] ?? self.placeholderHeight
-                let delta = newHeight - oldHeight
-                self.resolvedHeights[index] = newHeight
-                view?.frame.size.height = newHeight
+                let delta = height - oldHeight
+                self.resolvedHeights[index] = height
+                view?.frame.size.height = height
                 self.setNeedsLayout()
                 self.layoutIfNeeded()
                 // Compensate so the viewport doesn't jump when a chapter above the
@@ -178,9 +245,17 @@ final class EPUBInfiniteScrollView: UIScrollView {
                     offset.y += delta
                     self.contentOffset = offset
                 }
+
+                // Verification pass: a measurement can land mid-reflow (CSS injection,
+                // font loading) and the final resize may slip past the ResizeObserver.
+                // Re-measure after the layout settles; a stable height is a no-op,
+                // so this cannot loop.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self, weak view] in
+                    guard let self, let view, self.loadedViews[index] === view else { return }
+                    self.measureContentHeight(of: view, at: index)
+                }
             }
         }
-        heightObservations[index] = obs
     }
 
     private func evictAll() {

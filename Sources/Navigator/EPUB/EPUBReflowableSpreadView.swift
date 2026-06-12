@@ -99,7 +99,15 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private func updateContentInset() {
         let contentInset = delegate?.spreadViewContentInset(self) ?? .zero
 
-        if viewModel.scroll {
+        if viewModel.infiniteScroll {
+            // The outer EPUBInfiniteScrollView owns safe-area/notch handling.
+            // An inset here shifts the document down inside the fixed-height
+            // chapter slot and clips its bottom edge.
+            topConstraint.constant = 0
+            bottomConstraint.constant = 0
+            scrollView.contentInset = .zero
+
+        } else if viewModel.scroll {
             topConstraint.constant = 0
             bottomConstraint.constant = 0
             scrollView.contentInset = contentInset
