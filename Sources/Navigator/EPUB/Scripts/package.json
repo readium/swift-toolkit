@@ -9,7 +9,8 @@
     "bundle": "webpack",
     "lint": "eslint src",
     "checkformat": "prettier --check '**/*.js'",
-    "format": "prettier --list-different --write '**/*.js'"
+    "format": "prettier --list-different --write '**/*.js'",
+    "test": "mocha --require @babel/register 'src/**/*.spec.js'"
   },
   "browserslist": [
     "iOS 13"
@@ -17,8 +18,11 @@
   "devDependencies": {
     "@babel/core": "^7.23.9",
     "@babel/preset-env": "^7.23.9",
+    "@babel/register": "^7.29.7",
     "babel-loader": "^8.3.0",
     "eslint": "^7.32.0",
+    "jsdom": "^29.1.1",
+    "mocha": "^11.7.6",
     "prettier": "2.3.1",
     "webpack": "^5.90.1",
     "webpack-cli": "^5.1.4"

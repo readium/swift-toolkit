@@ -7,6 +7,10 @@
 // Catch JS errors to log them in the app.
 
 import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
+import {
+  TextPosition,
+  TextRange,
+} from "./vendor/hypothesis/anchoring/text-range";
 import { getCurrentSelection } from "./selection";
 
 window.addEventListener(
@@ -296,6 +300,35 @@ export function rangeFromLocator(locator) {
   try {
     let locations = locator.locations;
     let text = locator.text;
+
+    // GLOSS upstream fix (closes #<PR>): honor explicit DOM positions
+    // when present in the Locator. Bypasses TextQuoteAnchor for
+    // cross-element selections whose text.highlight spans interruptions
+    // (empty inline anchors, paragraph boundaries) — those cases
+    // produce a degenerate collapsed range under text-quote scoring.
+    // Backwards-compatible: existing Locators have no locations.domStart
+    // / domEnd keys and fall through to the text-quote path below.
+    if (
+      locations &&
+      typeof locations.domStart === "number" &&
+      typeof locations.domEnd === "number"
+    ) {
+      try {
+        const start = TextPosition.fromCharOffset(
+          document.body,
+          locations.domStart
+        );
+        const end = TextPosition.fromCharOffset(
+          document.body,
+          locations.domEnd
+        );
+        const range = new TextRange(start, end).toRange();
+        if (range && !range.collapsed) return range;
+      } catch (_) {
+        /* malformed positions — fall through to text-quote path */
+      }
+    }
+
     if (text && text.highlight) {
       var root;
       if (locations && locations.cssSelector) {
