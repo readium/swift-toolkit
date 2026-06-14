@@ -133,8 +133,7 @@ class ZIPFoundationContainerTests: XCTestCase {
     /// Some archives (notably CBZ comics) carry spec-noncompliant entry names
     /// with a leading slash (e.g. `/001.jpg`). APPNOTE 4.4.17.1 mandates entry
     /// names be relative, so they must be normalized to slash-free relative
-    /// URLs — otherwise the publication server resolves the manifest href as an
-    /// absolute-path reference, wiping the base path and 404ing every page.
+    /// URLs.
     func testEntriesWithLeadingSlashAreNormalized() async throws {
         let container = try await container(for: "leading-slash.zip")
 

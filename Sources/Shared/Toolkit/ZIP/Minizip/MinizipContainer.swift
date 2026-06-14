@@ -32,8 +32,8 @@ final class MinizipContainer: Container, Loggable {
                 case let .file(path, length: length, compressedLength: compressedLength):
                     if let url = RelativeURL(zipEntryPath: path) {
                         // Key the entry under its normalized (slash-free)
-                        // relative URL, but remember the original stored name so
-                        // reads can locate it verbatim in the archive — some
+                        // relative URL, but remember the original stored name
+                        // so reads can locate it verbatim in the archive — some
                         // archives store leading-slash names (e.g. `/001.jpg`)
                         // that `unzLocateFile` only matches exactly.
                         entries[url] = MinizipEntryMetadata(path: path, length: length, compressedLength: compressedLength)

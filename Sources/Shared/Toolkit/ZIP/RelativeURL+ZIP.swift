@@ -14,17 +14,14 @@ extension RelativeURL {
     /// drive or device letter, or a leading slash" — i.e. it is a *relative*
     /// path. Some archives violate this and store absolute-looking names such
     /// as `/001.jpg` (notably CBZ comics packed by tools that don't strip the
-    /// leading slash, or Internet Archive comic uploads).
+    /// leading slash).
     ///
-    /// Left untouched, such a name is interpreted as an absolute-path reference:
-    /// when the manifest href `/001.jpg` is resolved against the publication
-    /// server's base URL, the leading slash replaces the base path entirely,
-    /// producing a request that no longer maps to the archive entry and 404ing
-    /// every page. Stripping the leading slashes keeps the entry the relative
-    /// path the format intends. This mirrors the Kotlin toolkit, which strips
-    /// the prefix for the same reason (`fromDecodedPath(href.removePrefix("/"))`),
-    /// and the wider ecosystem (e.g. Python's `ZipFile` strips leading slashes
-    /// on extraction).
+    /// Left untouched, such a name is interpreted as an absolute-path
+    /// reference: when the manifest href `/001.jpg` is resolved against the
+    /// publication server's base URL, the leading slash replaces the base path
+    /// entirely, producing a request that no longer maps to the archive entry
+    /// and 404ing every resource. Stripping the leading slashes keeps the entry
+    /// the relative path the format intends.
     init?(zipEntryPath path: String) {
         var path = Substring(path)
         while path.hasPrefix("/") {
