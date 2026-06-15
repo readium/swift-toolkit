@@ -5,8 +5,12 @@
 //
 
 import { findDecorationTarget, handleDecorationClickEvent } from "./decorator";
-import { adjustPointToViewport } from "./rect";
-import { findNearestInteractiveElement } from "./dom";
+import { adjustPointToViewport, toNativeRect } from "./rect";
+import {
+  buildImageTapTarget,
+  findNearestImageElement,
+  findNearestInteractiveElement,
+} from "./dom";
 
 let isSelecting = false;
 
@@ -74,6 +78,22 @@ function onPointerEvent(phase, event) {
   }
 
   let point = adjustPointToViewport({ x: event.clientX, y: event.clientY });
+  const interactiveElement = findNearestInteractiveElement(event.target);
+  let target = null;
+  if (interactiveElement == null) {
+    const imageElement = findNearestImageElement(event.target);
+    if (imageElement) {
+      target = buildImageTapTarget(imageElement);
+      if (target) {
+        const rectElement =
+          imageElement.nodeName.toLowerCase() === "picture"
+            ? imageElement.querySelector("img") || imageElement
+            : imageElement;
+        target.frame = toNativeRect(rectElement.getBoundingClientRect());
+      }
+    }
+  }
+
   let pointerEvent = {
     phase: phase,
     defaultPrevented: event.defaultPrevented,
@@ -83,7 +103,8 @@ function onPointerEvent(phase, event) {
     y: point.y,
     buttons: event.buttons,
     targetElement: event.target.outerHTML,
-    interactiveElement: findNearestInteractiveElement(event.target),
+    interactiveElement: interactiveElement,
+    target: target,
     option: event.altKey,
     control: event.ctrlKey,
     shift: event.shiftKey,

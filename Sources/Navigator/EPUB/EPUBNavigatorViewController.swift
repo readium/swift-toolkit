@@ -1084,6 +1084,14 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         Task {
             var event = event
             event.location = view.convert(event.location, from: spreadView)
+            if var target = event.target {
+                switch target {
+                case var .image(image):
+                    image.frame = view.convert(image.frame, from: spreadView)
+                    target = .image(image)
+                    event.target = target
+                }
+            }
             _ = await inputObservers.didReceive(event)
         }
     }

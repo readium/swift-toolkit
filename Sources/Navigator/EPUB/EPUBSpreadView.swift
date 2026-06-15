@@ -206,13 +206,26 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             !defaultPrevented,
             // Ignores events on interactive elements
             (json["interactiveElement"] as? String) == nil,
-            var event = PointerEvent(json: json)
+            var event = PointerEvent(json: json, resourceBaseURL: currentResourceBaseURL())
         else {
             return
         }
 
         event.location = convertPointToNavigatorSpace(event.location)
+        if var target = event.target {
+            switch target {
+            case var .image(image):
+                image.frame = convertRectToNavigatorSpace(image.frame)
+                target = .image(image)
+                event.target = target
+            }
+        }
         delegate?.spreadView(self, didReceive: event)
+    }
+
+    private func currentResourceBaseURL() -> AnyURL? {
+        let index = focusedResource ?? spread.leading
+        return viewModel.readingOrder.getOrNil(index)?.url()
     }
 
     /// Converts the given JavaScript point into a point in the webview's coordinate space.
@@ -644,7 +657,7 @@ struct ClickEvent {
 
 /// Produced by gestures.js
 private extension PointerEvent {
-    init?(json: [String: Any]) {
+    init?(json: [String: Any], resourceBaseURL: AnyURL?) {
         guard
             let pointerId = json["pointerId"] as? Int,
             let pointerType = json["pointerType"] as? String,
@@ -668,15 +681,16 @@ private extension PointerEvent {
             return nil
         }
 
+        let target = (json["target"] as? [String: Any])
+            .flatMap { PointerTarget(json: $0, resourceBaseURL: resourceBaseURL) }
+
         self.init(
             pointer: pointer,
             phase: phase,
             location: CGPoint(x: x, y: y),
-            modifiers: KeyModifiers(json: json)
+            modifiers: KeyModifiers(json: json),
+            target: target
         )
-        // FIXME:
-//        targetElement = dict["targetElement"] as? String ?? ""
-//        interactiveElement = dict["interactiveElement"] as? String
     }
 }
 

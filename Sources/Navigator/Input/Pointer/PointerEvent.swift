@@ -20,6 +20,23 @@ public struct PointerEvent: Equatable {
     /// Key modifiers pressed alongside the pointer.
     public var modifiers: KeyModifiers
 
+    /// Semantic element targeted by this pointer interaction, when detected.
+    public var target: PointerTarget?
+
+    public init(
+        pointer: Pointer,
+        phase: Phase,
+        location: CGPoint,
+        modifiers: KeyModifiers,
+        target: PointerTarget? = nil
+    ) {
+        self.pointer = pointer
+        self.phase = phase
+        self.location = location
+        self.modifiers = modifiers
+        self.target = target
+    }
+
     /// Phase of a pointer event.
     public enum Phase: Equatable, CustomStringConvertible {
         /// Fired when a pointer becomes active.
