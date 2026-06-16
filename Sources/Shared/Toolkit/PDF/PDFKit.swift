@@ -25,7 +25,7 @@ extension PDFKit.PDFDocument: PDFKitDocumentProviding {
 /// If this is an issue for you, use `CPDFDocumentFactory` instead.
 ///
 /// Use `PDFKitPDFDocumentFactory` to create a `PDFDocument` from a `Resource`.
-extension PDFKit.PDFDocument: PDFDocument {
+extension PDFKit.PDFDocument: @retroactive @unchecked Sendable, PDFDocument {
     public func pageCount() async throws -> Int {
         pageCount
     }
