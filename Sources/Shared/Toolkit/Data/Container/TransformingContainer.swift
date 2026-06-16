@@ -46,7 +46,7 @@ public final class TransformingContainer: Container, Sendable {
 
 /// Convenient shortcuts to create a `TransformingContainer`.
 public extension Container {
-    func map(transform: @escaping (_ href: AnyURL, _ resource: Resource) -> Resource) -> Container {
-        TransformingContainer(container: self, transformer: { transform($0, $1) })
+    func map(transform: @escaping @Sendable (_ href: AnyURL, _ resource: Resource) -> Resource) -> Container {
+        TransformingContainer(container: self, transformer: transform)
     }
 }
