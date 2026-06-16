@@ -14,15 +14,18 @@ module.exports = {
     filename: "readium-[name].js",
     path: path.resolve(__dirname, "../Assets/Static/scripts"),
   },
+  resolve: {
+    extensions: [".ts", "..."],
+  },
   module: {
     rules: [
       {
-        test: /\.m?js$/,
+        test: /\.m?[jt]s$/,
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
           options: {
-            presets: ["@babel/preset-env"],
+            presets: ["@babel/preset-env", "@babel/preset-typescript"],
           },
         },
       },

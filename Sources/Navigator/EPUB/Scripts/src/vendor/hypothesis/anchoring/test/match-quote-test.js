@@ -26,7 +26,7 @@ describe('matchQuote', () => {
     assert.equal(match.score, 1.0);
     assert.equal(
       fixtures.solitude.slice(match.start, match.end),
-      'discover ice'
+      'discover ice',
     );
   });
 
@@ -36,7 +36,7 @@ describe('matchQuote', () => {
     assert.isTrue(match.score < 1);
     assert.equal(
       fixtures.solitude.slice(match.start, match.end),
-      'Many years later'
+      'Many years later',
     );
   });
 
@@ -68,7 +68,7 @@ describe('matchQuote', () => {
 
     const quote = ', as he faced the firing squad';
     const scores = prefixes.map(
-      p => matchQuote(fixtures.solitude, quote, { prefix: p }).score
+      p => matchQuote(fixtures.solitude, quote, { prefix: p }).score,
     );
 
     for (let i = 1; i < scores.length; i++) {
@@ -88,7 +88,7 @@ describe('matchQuote', () => {
 
     const quote = 'Many years later';
     const scores = suffixes.map(
-      s => matchQuote(fixtures.solitude, quote, { suffix: s }).score
+      s => matchQuote(fixtures.solitude, quote, { suffix: s }).score,
     );
 
     for (let i = 1; i < scores.length; i++) {
@@ -194,5 +194,24 @@ describe('matchQuote', () => {
     // should be chosen.
     assert.ok(matchNoHint);
     assert.equal(matchNoHint.start, posA, 'Wrong match with no hint');
+  });
+
+  it('matches when prefix length is greater than the match start offset', () => {
+    const context = { prefix: 'It used to be many' };
+    const match = matchQuote(fixtures.solitude, 'years later', context);
+
+    assert.isAbove(context.prefix.length, match.start);
+    assert.equal(
+      fixtures.solitude.slice(match.start, match.end),
+      'years later',
+    );
+  });
+
+  it('matches when match ends at end of text and there is a non-empty suffix', () => {
+    const text = 'Some document text';
+    const match = matchQuote(text, 'text', {
+      suffix: 'missing',
+    });
+    assert.equal(text.slice(match.start, match.end), 'text');
   });
 });

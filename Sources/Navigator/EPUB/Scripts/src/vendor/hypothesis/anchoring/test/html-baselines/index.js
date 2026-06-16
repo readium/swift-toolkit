@@ -20,16 +20,20 @@
 //  3. Fetch the annotations for the web page via the Hypothesis API and save
 //     them as `<fixture name>.json` in this directory
 //  4. Add an entry to the fixture list below.
+import minimalDoc from './minimal.html';
+import minimalJSON from './minimal.json';
+import wikipediaDoc from './wikipedia-regression-testing.html';
+import wikipediaJSON from './wikipedia-regression-testing.json';
 
-export default [
+export const htmlBaselines = [
   {
     name: 'Minimal Document',
-    html: require('./minimal.html'),
-    annotations: require('./minimal.json'),
+    html: minimalDoc,
+    annotations: minimalJSON,
   },
   {
     name: 'Wikipedia - Regression Testing',
-    html: require('./wikipedia-regression-testing.html'),
-    annotations: require('./wikipedia-regression-testing.json'),
+    html: wikipediaDoc,
+    annotations: wikipediaJSON,
   },
 ];

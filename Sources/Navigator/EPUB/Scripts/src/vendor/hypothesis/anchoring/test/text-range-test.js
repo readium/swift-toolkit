@@ -1,11 +1,5 @@
-import {
-  TextPosition,
-  TextRange,
-  RESOLVE_FORWARDS,
-  RESOLVE_BACKWARDS,
-} from '../text-range';
-
-import { assertNodesEqual } from '../../../test-util/compare-dom';
+import { assertNodesEqual, textNodes } from '../../../test-util/compare-dom';
+import { TextPosition, TextRange, ResolveDirection } from '../text-range';
 
 const html = `
 <main>
@@ -17,26 +11,10 @@ const html = `
 </main>
 `;
 
-/**
- * Return all the `Text` descendants of `node`
- *
- * @param {Node} node
- * @return {Text[]}
- */
-function textNodes(node) {
-  const nodes = [];
-  const iter = document.createNodeIterator(node, NodeFilter.SHOW_TEXT);
-  let current;
-  while ((current = iter.nextNode())) {
-    nodes.push(current);
-  }
-  return nodes;
-}
-
 describe('annotator/anchoring/text-range', () => {
   describe('TextPosition', () => {
     let container;
-    before(() => {
+    beforeAll(() => {
       container = document.createElement('div');
       container.innerHTML = html;
     });
@@ -62,7 +40,7 @@ describe('annotator/anchoring/text-range', () => {
       it('resolves text position in middle of element to correct node and offset', () => {
         const pos = new TextPosition(
           container,
-          container.textContent.indexOf('is a')
+          container.textContent.indexOf('is a'),
         );
 
         const { node, offset } = pos.resolve();
@@ -98,7 +76,7 @@ describe('annotator/anchoring/text-range', () => {
       it('throws if offset exceeds current text content length', () => {
         const pos = new TextPosition(
           container,
-          container.textContent.length + 1
+          container.textContent.length + 1,
         );
 
         assert.throws(() => {
@@ -114,13 +92,15 @@ describe('annotator/anchoring/text-range', () => {
         });
       });
 
-      describe('when `direction` is `RESOLVE_FORWARDS`', () => {
+      describe('when resolve `direction` is `FORWARDS`', () => {
         it('resolves to next text node if needed', () => {
           const el = document.createElement('div');
           el.innerHTML = '<b></b>bar';
 
           const pos = new TextPosition(el.querySelector('b'), 0);
-          const resolved = pos.resolve({ direction: RESOLVE_FORWARDS });
+          const resolved = pos.resolve({
+            direction: ResolveDirection.FORWARDS,
+          });
 
           assert.equal(resolved.node, el.childNodes[1]);
           assert.equal(resolved.offset, 0);
@@ -130,18 +110,20 @@ describe('annotator/anchoring/text-range', () => {
           const el = document.createElement('div');
           const pos = new TextPosition(el, 0);
           assert.throws(() => {
-            pos.resolve({ direction: RESOLVE_FORWARDS });
+            pos.resolve({ direction: ResolveDirection.FORWARDS });
           });
         });
       });
 
-      describe('when `direction` is `RESOLVE_BACKWARDS`', () => {
+      describe('when resolve `direction` is `BACKWARDS`', () => {
         it('resolves to previous text node if needed', () => {
           const el = document.createElement('div');
           el.innerHTML = 'bar<b></b>';
 
           const pos = new TextPosition(el.querySelector('b'), 0);
-          const resolved = pos.resolve({ direction: RESOLVE_BACKWARDS });
+          const resolved = pos.resolve({
+            direction: ResolveDirection.BACKWARDS,
+          });
 
           assert.equal(resolved.node, el.childNodes[0]);
           assert.equal(resolved.offset, el.childNodes[0].data.length);
@@ -151,7 +133,7 @@ describe('annotator/anchoring/text-range', () => {
           const el = document.createElement('div');
           const pos = new TextPosition(el, 0);
           assert.throws(() => {
-            pos.resolve({ direction: RESOLVE_BACKWARDS });
+            pos.resolve({ direction: ResolveDirection.BACKWARDS });
           });
         });
       });
@@ -214,14 +196,14 @@ describe('annotator/anchoring/text-range', () => {
       it('returns TextPosition for offset in Text node', () => {
         assert.deepEqual(
           TextPosition.fromCharOffset(el.firstChild, 1),
-          TextPosition.fromPoint(el.firstChild, 1)
+          TextPosition.fromPoint(el.firstChild, 1),
         );
       });
 
       it('returns TextPosition for offset in Element node', () => {
         assert.deepEqual(
           TextPosition.fromCharOffset(el, 5),
-          new TextPosition(el, 5)
+          new TextPosition(el, 5),
         );
       });
 
@@ -307,7 +289,7 @@ describe('annotator/anchoring/text-range', () => {
 
         const textRange = new TextRange(
           new TextPosition(el, 4),
-          new TextPosition(el, 7)
+          new TextPosition(el, 7),
         );
         const range = textRange.toRange();
 
@@ -320,7 +302,7 @@ describe('annotator/anchoring/text-range', () => {
 
         const textRange = new TextRange(
           new TextPosition(el, 0),
-          new TextPosition(el, el.textContent.length)
+          new TextPosition(el, el.textContent.length),
         );
         const range = textRange.toRange();
 
@@ -333,7 +315,7 @@ describe('annotator/anchoring/text-range', () => {
 
         const textRange = new TextRange(
           new TextPosition(el, 7),
-          new TextPosition(el, 4)
+          new TextPosition(el, 4),
         );
         const range = textRange.toRange();
 
@@ -352,7 +334,7 @@ describe('annotator/anchoring/text-range', () => {
 
         const textRange = new TextRange(
           new TextPosition(firstChild, 0),
-          new TextPosition(secondChild, 3)
+          new TextPosition(secondChild, 3),
         );
         const range = textRange.toRange();
 
@@ -365,7 +347,7 @@ describe('annotator/anchoring/text-range', () => {
 
         const textRange = new TextRange(
           new TextPosition(el, 100),
-          new TextPosition(el, 5)
+          new TextPosition(el, 5),
         );
 
         assert.throws(() => {
@@ -379,7 +361,7 @@ describe('annotator/anchoring/text-range', () => {
 
         const textRange = new TextRange(
           new TextPosition(el, 5),
-          new TextPosition(el, 100)
+          new TextPosition(el, 100),
         );
 
         assert.throws(() => {
@@ -393,7 +375,7 @@ describe('annotator/anchoring/text-range', () => {
 
         const textRange = new TextRange(
           new TextPosition(el.querySelector('b'), 0),
-          new TextPosition(el.querySelector('u'), 0)
+          new TextPosition(el.querySelector('u'), 0),
         );
         const range = textRange.toRange();
 
@@ -402,7 +384,7 @@ describe('annotator/anchoring/text-range', () => {
         // Start position is not in `textRange.start.element` but the subsequent
         // text node.
         assert.isTrue(
-          range.startContainer === el.querySelector('i').firstChild
+          range.startContainer === el.querySelector('i').firstChild,
         );
         // End position is not in `textRange.end.element` but the preceding
         // text node.
@@ -421,7 +403,7 @@ describe('annotator/anchoring/text-range', () => {
 
         const textRange = new TextRange(
           new TextPosition(firstChild, 0),
-          new TextPosition(secondChild, 3)
+          new TextPosition(secondChild, 3),
         );
         const parentRange = textRange.relativeTo(parent);
 
@@ -467,6 +449,22 @@ describe('annotator/anchoring/text-range', () => {
         assert.equal(textRange.start.offset, 0);
         assert.equal(textRange.end.element, root);
         assert.equal(textRange.end.offset, 10);
+      });
+    });
+
+    describe('trimmedRange', () => {
+      it('adjusts Range start and end positions to remove whitespace', () => {
+        const el = document.createElement('div');
+        el.textContent = ' one two three ';
+
+        const range = new Range();
+        range.selectNodeContents(el);
+
+        const textRange = TextRange.fromRange(range).toRange();
+        const trimmedRange = TextRange.trimmedRange(range);
+
+        assert.equal(trimmedRange.startOffset, textRange.startOffset + 1);
+        assert.equal(trimmedRange.endOffset, textRange.endOffset - 1);
       });
     });
   });
