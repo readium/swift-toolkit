@@ -130,6 +130,33 @@ class ZIPFoundationContainerTests: XCTestCase {
         }
     }
 
+    /// Some archives (notably CBZ comics) carry spec-noncompliant entry names
+    /// with a leading slash (e.g. `/001.jpg`). APPNOTE 4.4.17.1 mandates entry
+    /// names be relative, so they must be normalized to slash-free relative
+    /// URLs.
+    func testEntriesWithLeadingSlashAreNormalized() async throws {
+        let container = try await container(for: "leading-slash.zip")
+
+        XCTAssertEqual(
+            container.entries,
+            try Set([
+                XCTUnwrap(AnyURL(path: "root.txt")),
+                XCTUnwrap(AnyURL(path: "folder/file.txt")),
+                XCTUnwrap(AnyURL(path: "normal.txt")),
+            ])
+        )
+    }
+
+    func testReadEntryWithLeadingSlash() async throws {
+        let container = try await container(for: "leading-slash.zip")
+        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "root.txt"))])
+        let data = try await entry.read().get()
+        XCTAssertEqual(
+            String(data: data, encoding: .utf8),
+            "I am at the forged root.\n"
+        )
+    }
+
     private func AssertEntry(
         path: String,
         in container: Container,

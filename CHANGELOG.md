@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Shared
+
+* ZIP entry names stored with a leading slash (e.g. `/001.jpg`, found in some CBZ comics) are now normalized to relative paths. Previously such entries resolved as absolute-path references against the base URL, causing them to fail.
+
 
 ## [3.9.0] - 2026-05-12
 

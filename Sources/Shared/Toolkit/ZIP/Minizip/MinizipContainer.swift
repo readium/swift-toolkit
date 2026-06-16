@@ -30,8 +30,13 @@ final class MinizipContainer: Container, Loggable {
             repeat {
                 switch try zipFile.entryMetadataAtCurrentOffset() {
                 case let .file(path, length: length, compressedLength: compressedLength):
-                    if let url = RelativeURL(path: path) {
-                        entries[url] = MinizipEntryMetadata(length: length, compressedLength: compressedLength)
+                    if let url = RelativeURL(zipEntryPath: path) {
+                        // Key the entry under its normalized (slash-free)
+                        // relative URL, but remember the original stored name
+                        // so reads can locate it verbatim in the archive — some
+                        // archives store leading-slash names (e.g. `/001.jpg`)
+                        // that `unzLocateFile` only matches exactly.
+                        entries[url] = MinizipEntryMetadata(path: path, length: length, compressedLength: compressedLength)
                     }
                 case .directory:
                     // Directories are ignored
@@ -68,11 +73,15 @@ final class MinizipContainer: Container, Loggable {
         else {
             return nil
         }
-        return MinizipResource(file: file, entryPath: url.path, metadata: metadata)
+        return MinizipResource(file: file, entryPath: metadata.path, metadata: metadata)
     }
 }
 
 private struct MinizipEntryMetadata {
+    /// The entry's name exactly as stored in the archive's central directory,
+    /// which may differ from its normalized lookup key (e.g. a leading slash).
+    /// Used to locate the entry verbatim when reading.
+    let path: String
     let length: UInt64
     let compressedLength: UInt64?
 }
@@ -213,7 +222,16 @@ private final class MinizipFile {
     /// Moves the offset to the entry at `path`.
     func goToEntry(at path: String) throws {
         try closeEntry()
-        try execute { unzLocateFile(file, path.removingPrefix("/"), nil) }
+        // Locate by the exact stored name first — `unzLocateFile` matches the
+        // central-directory name verbatim, so an entry stored with a leading
+        // slash (e.g. `/001.jpg`) is only found by its full name. Fall back to
+        // the slash-stripped name so a slash-prefixed query still resolves an
+        // entry that was stored slash-free.
+        do {
+            try execute { unzLocateFile(file, path, nil) }
+        } catch {
+            try execute { unzLocateFile(file, path.removingPrefix("/"), nil) }
+        }
     }
 
     /// Reads the metadata of the entry at the current offset in the archive.
