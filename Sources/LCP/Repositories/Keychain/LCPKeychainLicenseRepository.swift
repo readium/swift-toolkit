@@ -21,8 +21,7 @@ public enum LCPKeychainLicenseRepositoryError: Error {
 
 /// Keychain-based implementation of ``LCPLicenseRepository``.
 ///
-/// Stores license data securely in the iOS/macOS Keychain with optional iCloud
-/// synchronization.
+/// Stores license data securely in the iOS/macOS Keychain.
 public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
     /// Internal data structure for storing license information in the Keychain.
     private struct License: Codable {
@@ -53,13 +52,11 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
     private let decoder: JSONDecoder
 
     /// Initializes a Keychain-based license repository.
-    ///
-    /// - Parameters:
-    ///   - synchronizable: Whether items should sync via iCloud Keychain.
-    public init(synchronizable: Bool = true) {
+    public init() {
         keychain = Keychain(
             serviceName: "org.readium.lcp.licenses",
-            synchronizable: synchronizable
+            // The licenses and rights must not be synchronized across devices.
+            synchronizable: false
         )
 
         encoder = JSONEncoder()

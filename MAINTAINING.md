@@ -1,5 +1,39 @@
 # Maintaining the Readium Swift toolkit
 
+## Upgrading Third-Party Dependencies
+
+The toolkit uses several dependency managers; each must be updated independently.
+
+### SPM
+
+In `Package.swift`, bump the version for each dependency.
+
+Commit both `Package.swift` and the updated `Package.resolved`.
+
+### CocoaPods
+
+In `Support/CocoaPods/Specs.swift`, update the version for any external `.pod(...)` dependency, then regenerate:
+
+```shell
+make podspecs
+```
+
+### EPUB Navigator scripts
+
+```shell
+cd Sources/Navigator/EPUB/Scripts
+pnpm update
+make scripts
+```
+
+### Build tools
+
+In `BuildTools/Package.swift`, bump the versions, then update the lock:
+
+```shell
+swift package update --package-path BuildTools
+```
+
 ## Bumping the Minimum iOS Deployment Target
 
 To bump the minimum required iOS version, update these files:

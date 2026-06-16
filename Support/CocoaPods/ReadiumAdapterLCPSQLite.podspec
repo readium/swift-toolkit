@@ -21,6 +21,6 @@ Pod::Spec.new do |s|
   s.dependency 'ReadiumInternal', '~> 3.9.0'
   s.dependency 'ReadiumShared', '~> 3.9.0'
   s.dependency 'ReadiumLCP', '~> 3.9.0'
-  s.dependency 'SQLite.swift', '~> 0.15.0'
+  s.dependency 'SQLite.swift', '~> 0.16.0'
 
 end
