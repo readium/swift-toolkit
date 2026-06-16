@@ -95,7 +95,7 @@ public final class NowPlayingInfo {
     private var mpArtwork: MPMediaItemArtwork?
 
     /// Updates the Now Playing screen, maximum once per second.
-    private lazy var update = throttle(duration: 1) { [weak self] in
+    private lazy var update = throttle(duration: 1, on: .main) { [weak self] in
         MainActor.assumeIsolated {
             guard let self = self else { return }
             var info = [String: Any]()

@@ -270,7 +270,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         timeObserverToken = TimeObserverToken(player: player, observer: periodicObserver)
 
         rateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] _, _ in
-            Task { @MainActor [weak self] in
+            Task { @MainActor in
                 guard let self = self else {
                     return
                 }
@@ -354,26 +354,14 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
     }
 
-    /// A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
-    /// To fix this, this is an asynchronous operation.
     private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor @Sendable (MediaPlaybackInfo) -> Void) {
-        let resourceIndex = resourceIndex
-        let state = state
-        let currentTime = time ?? currentTime
-        let resourceDuration = resourceDuration
-
-        DispatchQueue.global(qos: .userInteractive).async {
-            let info = MediaPlaybackInfo(
-                resourceIndex: resourceIndex,
-                state: state,
-                time: currentTime,
-                duration: resourceDuration
-            )
-
-            Task { @MainActor in
-                completion(info)
-            }
-        }
+        let info = MediaPlaybackInfo(
+            resourceIndex: resourceIndex,
+            state: state,
+            time: time ?? currentTime,
+            duration: resourceDuration
+        )
+        completion(info)
     }
 
     private func makeLocator(forTime time: Double) -> Locator {

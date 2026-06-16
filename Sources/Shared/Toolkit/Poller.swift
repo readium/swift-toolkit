@@ -43,8 +43,8 @@ private final class Poller: Sendable {
             return
         }
         Task { @MainActor in
-            await block()
             isPolling = false
+            await block()
         }
     }
 }
