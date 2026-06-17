@@ -17,7 +17,7 @@ private let zipEOCDMaximumLength: UInt64 = 65557 + 76
 private let maximumZIPLengthToFullyCache = 5.MB
 
 /// Creates new ZIPFoundation ``Archive`` objects from a shared ``Resource``.
-final class ZIPFoundationArchiveFactory {
+final class ZIPFoundationArchiveFactory: Sendable {
     enum Source {
         case file(FileURL)
         case resource(Resource)

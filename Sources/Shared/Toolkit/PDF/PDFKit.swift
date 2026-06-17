@@ -19,58 +19,8 @@ extension PDFKit.PDFDocument: PDFKitDocumentProviding {
     }
 }
 
-/// Extends PDFKit's `PDFDocument` with our shared `PDFDocument` protocol.
-///
-/// Unfortunately, PDFKit doesn't support streams, so we need to load the full document in memory.
-/// If this is an issue for you, use `CPDFDocumentFactory` instead.
-///
-/// Use `PDFKitPDFDocumentFactory` to create a `PDFDocument` from a `Resource`.
-extension PDFKit.PDFDocument: PDFDocument {
-    public func pageCount() async throws -> Int {
-        pageCount
-    }
-
-    public func identifier() async throws -> String? {
-        try await documentRef?.identifier()
-    }
-
-    public func cover() async throws -> UIImage? {
-        try await documentRef?.cover()
-    }
-
-    public func readingProgression() async throws -> ReadingProgression? {
-        try await documentRef?.readingProgression()
-    }
-
-    public func title() async throws -> String? {
-        try await documentRef?.title()
-    }
-
-    public func author() async throws -> String? {
-        try await documentRef?.author()
-    }
-
-    public func subject() async throws -> String? {
-        try await documentRef?.subject()
-    }
-
-    public func keywords() async throws -> [String] {
-        try await documentRef?.keywords() ?? []
-    }
-
-    public func tableOfContents() async throws -> [PDFOutlineNode] {
-        try await documentRef?.tableOfContents() ?? []
-    }
-}
-
-extension PDFKit.PDFDocument: PDFDocumentTextProviding {
-    public func pageText(at pageIndex: Int) async throws -> String? {
-        page(at: pageIndex)?.string
-    }
-}
-
 /// Creates a `PDFDocument` using PDFKit.
-public final class PDFKitPDFDocumentFactory: PDFDocumentFactory, Sendable {
+public final class PDFKitPDFDocumentFactory: PDFDocumentFactory {
     public init() {}
 
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
@@ -81,7 +31,7 @@ public final class PDFKitPDFDocumentFactory: PDFDocumentFactory, Sendable {
         return try open(document: document, password: password)
     }
 
-    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+    public func open<HREF: URLConvertible & Sendable>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
         // Fast-path in case the resource actually references a file on the
         // disk.
         if let file = resource.sourceURL?.fileURL {
@@ -120,6 +70,70 @@ public final class PDFKitPDFDocumentFactory: PDFDocumentFactory, Sendable {
             }
         }
 
-        return document
+        return PDFKitPDFDocument(document)
+    }
+}
+
+/// Wraps a PDFKit `PDFDocument` to expose it through the toolkit's
+/// `PDFDocument` protocol.
+///
+/// Use `PDFKitPDFDocumentFactory` to create a `PDFKitPDFDocument` from a
+/// `Resource`.
+///
+/// ## Concurrency
+///
+/// `PDFKit.PDFDocument` is a reference type with mutable internal state and is
+/// not annotated as `Sendable` by Apple. Rather than retroactively asserting
+/// `@unchecked Sendable` on the system type – which would leak that unsound
+/// claim to *every* `PDFKit.PDFDocument` in the app – we confine the assertion
+/// to this wrapper. The toolkit only performs read-only operations on the
+/// document, and a given instance must not be mutated (e.g. by adding
+/// `PDFAnnotation`s) while it is shared across threads.
+// FIXME: Note that we share this instance with the PDF navigator through the `PDFDocumentService`. For now this is safe as we only perform read-only operations on the document. But this might change when we start adding `PDFAnnotation`, for example. We might need to revisit this implementation and have a PDFDocument dedicated to the navigator.
+private final class PDFKitPDFDocument: PDFDocument, PDFDocumentTextProviding, PDFKitDocumentProviding, @unchecked Sendable {
+    let pdfKitDocument: PDFKit.PDFDocument
+
+    init(_ document: PDFKit.PDFDocument) {
+        pdfKitDocument = document
+    }
+
+    func pageCount() async throws -> Int {
+        pdfKitDocument.pageCount
+    }
+
+    func identifier() async throws -> String? {
+        try await pdfKitDocument.documentRef?.identifier()
+    }
+
+    func cover() async throws -> UIImage? {
+        try await pdfKitDocument.documentRef?.cover()
+    }
+
+    func readingProgression() async throws -> ReadingProgression? {
+        try await pdfKitDocument.documentRef?.readingProgression()
+    }
+
+    func title() async throws -> String? {
+        try await pdfKitDocument.documentRef?.title()
+    }
+
+    func author() async throws -> String? {
+        try await pdfKitDocument.documentRef?.author()
+    }
+
+    func subject() async throws -> String? {
+        try await pdfKitDocument.documentRef?.subject()
+    }
+
+    func keywords() async throws -> [String] {
+        try await pdfKitDocument.documentRef?.keywords() ?? []
+    }
+
+    func tableOfContents() async throws -> [PDFOutlineNode] {
+        try await pdfKitDocument.documentRef?.tableOfContents() ?? []
+    }
+
+    func pageText(at pageIndex: Int) async throws -> String? {
+        pdfKitDocument.page(at: pageIndex)?.string
     }
 }

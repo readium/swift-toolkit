@@ -313,16 +313,19 @@ private func makeIterator(
 
 // MARK: - Mock PDF Documents
 
-private class MockPDFDocument: PDFDocumentTextProviding {
+private final class MockPDFDocument: PDFDocumentTextProviding {
     private let texts: [String?]
-    private(set) var requestedPageIndices: [Int] = []
+    private let _requestedPageIndices = Mutex<[Int]>([])
+    var requestedPageIndices: [Int] {
+        _requestedPageIndices.withLock { $0 }
+    }
 
     init(texts: [String?]) {
         self.texts = texts
     }
 
     func resetTracking() {
-        requestedPageIndices = []
+        _requestedPageIndices.withLock { $0 = [] }
     }
 
     func identifier() async throws -> String? {
@@ -362,12 +365,12 @@ private class MockPDFDocument: PDFDocumentTextProviding {
     }
 
     func pageText(at pageIndex: Int) async throws -> String? {
-        requestedPageIndices.append(pageIndex)
+        _requestedPageIndices.withLock { $0.append(pageIndex) }
         return texts.getOrNil(pageIndex) ?? nil
     }
 }
 
-private class MockNonTextPDFDocument: PDFDocument {
+private final class MockNonTextPDFDocument: PDFDocument {
     func identifier() async throws -> String? {
         nil
     }

@@ -7,9 +7,9 @@
 import Foundation
 import ReadiumShared
 
-final class DeviceService {
-    private let repository: LCPLicenseRepository
-    private let httpClient: HTTPClient
+final class DeviceService: Sendable {
+    private let repository: any LCPLicenseRepository
+    private let httpClient: any HTTPClient
 
     /// Returns the device's name.
     let name: String
@@ -19,8 +19,8 @@ final class DeviceService {
     init(
         deviceName: String,
         deviceId: String?,
-        repository: LCPLicenseRepository,
-        httpClient: HTTPClient
+        repository: any LCPLicenseRepository,
+        httpClient: any HTTPClient
     ) {
         name = deviceName
 

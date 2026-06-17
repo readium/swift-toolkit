@@ -68,24 +68,30 @@ final class EPUBDeobfuscator {
         }
 
         func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
-            var readPosition = range?.lowerBound ?? 0
-            let obfuscatedLength = algorithm.obfuscatedLength
+            let readPosition = Mutex(range?.lowerBound ?? 0)
+            let obfuscatedLength = UInt64(algorithm.obfuscatedLength)
 
             return await resource.stream(
                 range: range,
                 consume: { data in
-                    var data = data
+                    // The chunk may be a `Data` slice with non-zero start
+                    // indices (e.g. when streaming a sub-range), so we rebase
+                    // it to a zero-indexed buffer before mutating by position.
+                    var data = Data(data)
 
-                    if readPosition < obfuscatedLength {
-                        for i in 0 ..< data.count {
-                            if readPosition + UInt64(i) >= obfuscatedLength {
-                                break
+                    readPosition.withLock { readPos in
+                        if readPos < obfuscatedLength {
+                            for i in 0 ..< data.count {
+                                if readPos + UInt64(i) >= obfuscatedLength {
+                                    break
+                                }
+                                let keyIndex = Int((readPos + UInt64(i)) % UInt64(self.key.count))
+                                data[i] = data[i] ^ self.key[keyIndex]
                             }
-                            data[i] = data[i] ^ self.key[i % self.key.count]
                         }
-                    }
 
-                    readPosition += UInt64(data.count)
+                        readPos += UInt64(data.count)
+                    }
 
                     consume(data)
                 }

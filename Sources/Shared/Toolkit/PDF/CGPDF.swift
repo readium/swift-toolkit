@@ -227,7 +227,7 @@ extension CGPDFDocument: PDFDocument {
 
 /// Creates a `PDFDocument` using Core Graphics.
 @available(*, deprecated, renamed: "PDFKitPDFDocumentFactory", message: "The PDFKitPDFDocumentFactory is more capable")
-public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable {
+public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
     public init() {}
 
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
@@ -238,11 +238,7 @@ public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable 
         return try open(document: document, password: password)
     }
 
-    private class DataHolder {
-        var data: Data = .init()
-    }
-
-    public func open<HREF: URLConvertible>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
+    public func open<HREF: URLConvertible & Sendable>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
         if let file = resource.sourceURL?.fileURL {
             return try await open(file: file, password: password)
         }
@@ -260,12 +256,14 @@ public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable 
                     return 0
                 }
 
+                let resource = context.resource
+                let offset = context.offset
+                let resultData = Mutex<Data>(Data())
                 let semaphore = DispatchSemaphore(value: 0)
-                let holder = DataHolder()
                 Task {
-                    switch await context.resource.read(range: context.offset ..< end) {
+                    switch await resource.read(range: offset ..< end) {
                     case let .success(result):
-                        holder.data = result
+                        resultData.withLock { $0 = result }
                     case let .failure(error):
                         CGPDFDocumentFactory.log(.error, error)
                     }
@@ -274,7 +272,7 @@ public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable 
 
                 _ = semaphore.wait(timeout: .distantFuture)
 
-                let data = holder.data
+                let data = resultData.withLock { $0 }
                 if !data.isEmpty {
                     data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
                     context.offset += UInt64(data.count)

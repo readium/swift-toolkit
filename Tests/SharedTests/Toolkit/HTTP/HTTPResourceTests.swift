@@ -11,25 +11,33 @@ import Testing
 struct HTTPResourceTests {
     private let url = HTTPURL(string: "http://example.com/book.epub")!
 
-    class MockHTTPClient: HTTPClient {
-        struct Response {
+    final class MockHTTPClient: HTTPClient {
+        struct Response: Sendable {
             let response: HTTPResponse
             let body: Data
         }
 
-        var fetchResults: [String: HTTPResult<Response>] = [:]
-        var fetchCount = 0
+        private let _fetchResults = Mutex<[String: HTTPResult<Response>]>([:])
+        var fetchResults: [String: HTTPResult<Response>] {
+            get { _fetchResults.withLock { $0 } }
+            set { _fetchResults.withLock { $0 = newValue } }
+        }
+
+        private let _fetchCount = Mutex<Int>(0)
+        var fetchCount: Int {
+            _fetchCount.withLock { $0 }
+        }
 
         func stream(
-            _ request: HTTPRequestConvertible,
+            _ request: any HTTPRequestConvertible,
             onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)?,
             consume: @Sendable (Data, Double?) -> HTTPResult<Void>
         ) async -> HTTPResult<HTTPResponse> {
             let req = try! request.httpRequest().get()
             let key = "\(req.method.rawValue) \(req.url.string)"
-            fetchCount += 1
+            _fetchCount.withLock { $0 += 1 }
 
-            if let result = fetchResults[key] {
+            if let result = _fetchResults.withLock({ $0[key] }) {
                 switch result {
                 case let .success(response):
                     if let onReceiveResponse = onReceiveResponse {

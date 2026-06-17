@@ -450,7 +450,7 @@ open class PDFNavigatorViewController:
         return true
     }
 
-    private func openDocument<HREF: URLConvertible>(at href: HREF) async -> PDFKit.PDFDocument? {
+    private func openDocument<HREF: URLConvertible & Sendable>(at href: HREF) async -> PDFKit.PDFDocument? {
         let service = publication.pdfDocumentService
 
         if let cached = await service?.cachedDocument(at: href) as? PDFKitDocumentProviding {
@@ -460,14 +460,15 @@ open class PDFNavigatorViewController:
         let factory = PDFKitPDFDocumentFactory()
         guard
             let resource = publication.get(href),
-            let opened = try? await factory.open(resource: resource, at: href, password: nil) as? PDFKit.PDFDocument
+            let document = try? await factory.open(resource: resource, at: href, password: nil),
+            let pdfKitDocument = (document as? PDFKitDocumentProviding)?.pdfKitDocument
         else {
             return nil
         }
 
-        await service?.setCachedDocument(opened, at: href)
+        await service?.setCachedDocument(document, at: href)
 
-        return opened
+        return pdfKitDocument
     }
 
     /// Updates the scale factors to match the currently visible pages.
