@@ -95,37 +95,35 @@ public final class NowPlayingInfo {
     private var mpArtwork: MPMediaItemArtwork?
 
     /// Updates the Now Playing screen, maximum once per second.
-    private lazy var update = throttle(duration: 1, on: .main) { [weak self] in
-        MainActor.assumeIsolated {
-            guard let self = self else { return }
-            var info = [String: Any]()
-            if let media = self.media {
-                info[MPMediaItemPropertyTitle] = media.title
-                if let artist = media.artist {
-                    info[MPMediaItemPropertyArtist] = artist
-                }
-                if let mpArtwork = self.mpArtwork {
-                    info[MPMediaItemPropertyArtwork] = mpArtwork
-                }
-                if let chapterCount = media.chapterCount {
-                    info[MPNowPlayingInfoPropertyChapterCount] = chapterCount
-                }
-                if let chapterNumber = media.chapterNumber {
-                    info[MPNowPlayingInfoPropertyChapterNumber] = chapterNumber
-                }
-
-                if let duration = self.playback.duration {
-                    info[MPMediaItemPropertyPlaybackDuration] = duration
-                }
-                if let elapsedTime = self.playback.elapsedTime {
-                    info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsedTime
-                }
-                if let rate = self.playback.rate {
-                    info[MPNowPlayingInfoPropertyPlaybackRate] = rate
-                }
+    private lazy var update = throttle(duration: 1) { [weak self] in
+        guard let self = self else { return }
+        var info = [String: Any]()
+        if let media = self.media {
+            info[MPMediaItemPropertyTitle] = media.title
+            if let artist = media.artist {
+                info[MPMediaItemPropertyArtist] = artist
+            }
+            if let mpArtwork = self.mpArtwork {
+                info[MPMediaItemPropertyArtwork] = mpArtwork
+            }
+            if let chapterCount = media.chapterCount {
+                info[MPNowPlayingInfoPropertyChapterCount] = chapterCount
+            }
+            if let chapterNumber = media.chapterNumber {
+                info[MPNowPlayingInfoPropertyChapterNumber] = chapterNumber
             }
 
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+            if let duration = self.playback.duration {
+                info[MPMediaItemPropertyPlaybackDuration] = duration
+            }
+            if let elapsedTime = self.playback.elapsedTime {
+                info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsedTime
+            }
+            if let rate = self.playback.rate {
+                info[MPNowPlayingInfoPropertyPlaybackRate] = rate
+            }
         }
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 }

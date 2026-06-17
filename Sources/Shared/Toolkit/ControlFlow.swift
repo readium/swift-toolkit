@@ -8,25 +8,26 @@ import Foundation
 
 // A collection of tools to manage the Flow of Control.
 
+@MainActor
+private final class ThrottlerState: Sendable {
+    var isThrottling = false
+}
+
 /// Throttles the given `block` so that it is executed in `duration` seconds, ignoring additional
 /// calls until then.
-public func throttle(duration: TimeInterval = 0, on queue: DispatchQueue = .main, _ block: @escaping @Sendable () -> Void) -> @Sendable () -> Void {
-    let throttling = Mutex(false)
+@MainActor
+public func throttle(
+    duration: TimeInterval = 0,
+    _ block: @escaping @Sendable @MainActor () -> Void
+) -> @Sendable @MainActor () -> Void {
+    let state = ThrottlerState()
     return {
-        let shouldExecute = throttling.withLock { isThrottling -> Bool in
-            if isThrottling {
-                return false
-            } else {
-                isThrottling = true
-                return true
-            }
-        }
-        guard shouldExecute else {
-            return
-        }
+        guard !state.isThrottling else { return }
+        state.isThrottling = true
 
-        queue.asyncAfter(deadline: .now() + duration) {
-            throttling.withLock { $0 = false }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+            state.isThrottling = false
             block()
         }
     }
