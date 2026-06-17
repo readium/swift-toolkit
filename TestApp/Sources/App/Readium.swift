@@ -51,7 +51,7 @@ final class Readium {
         lazy var lcpAuthentication: LCPAuthenticating = LCPDialogAuthentication()
 
         /// Facade to the private R2LCPClient.framework.
-        class LCPClient: ReadiumLCP.LCPClient {
+        final class LCPClient: ReadiumLCP.LCPClient {
             func createContext(jsonLicense: String, hashedPassphrase: LCPPassphraseHash, pemCrl: String) throws -> LCPClientContext {
                 try R2LCPClient.createContext(jsonLicense: jsonLicense, hashedPassphrase: hashedPassphrase, pemCrl: pemCrl)
             }
