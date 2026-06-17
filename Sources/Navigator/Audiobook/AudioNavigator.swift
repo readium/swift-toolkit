@@ -573,8 +573,6 @@ private final class TimeObserverToken: @unchecked Sendable {
     deinit {
         let obs = observer
         let p = player
-        Task { @MainActor in
-            p.removeTimeObserver(obs)
-        }
+        p.removeTimeObserver(obs)
     }
 }
