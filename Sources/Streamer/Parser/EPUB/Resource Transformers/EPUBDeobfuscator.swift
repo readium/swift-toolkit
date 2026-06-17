@@ -74,7 +74,10 @@ final class EPUBDeobfuscator {
             return await resource.stream(
                 range: range,
                 consume: { data in
-                    var data = data
+                    // The chunk may be a `Data` slice with non-zero start
+                    // indices (e.g. when streaming a sub-range), so we rebase
+                    // it to a zero-indexed buffer before mutating by position.
+                    var data = Data(data)
 
                     readPosition.withLock { readPos in
                         if readPos < obfuscatedLength {

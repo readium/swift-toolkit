@@ -21,7 +21,11 @@ public protocol Streamable: Closeable, Sendable {
     ///   - range: When null, the whole content is returned. Out-of-range
     ///     indexes are clamped to the available length automatically.
     ///   - consume: Callback called for each chunk of data received. Callers
-    ///     are responsible to accumulate the data if needed.
+    ///     are responsible to accumulate the data if needed. A chunk may be a
+    ///     `Data` slice whose indices do not start at zero (e.g. when streaming
+    ///     a sub-range). Do not assume zero-based indexing: index relative to
+    ///     `chunk.startIndex`, or rebase with `Data(chunk)` before accessing
+    ///     bytes by position.
     func stream(
         range: Range<UInt64>?,
         consume: @escaping @Sendable (Data) -> Void

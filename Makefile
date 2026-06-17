@@ -11,6 +11,12 @@ help:
 	  update-locales\tUpdate the localization files\n\
 	"
 
+.PHONY: test
+test:
+	xcodebuild test -project "TestApp/TestApp.xcodeproj" -scheme TestApp -destination "platform=iOS Simulator,name=iPhone Air" 2> /dev/null \
+		| xcbeautify --quieter --disable-logging \
+		| grep -Ev "^Executed |Test Suite 'All tests'|Test run started\.|Test session results:"; true
+
 .SILENT:
 .PHONY: playground
 playground:
