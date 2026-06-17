@@ -291,16 +291,12 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
         }
 
-        // We trigger a "poke to recompute" on the main actor via playbackDidChange() which reads the
-        // most up-to-date state from the player. Discarding KVO parameters is intentional here.
         timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
             Task { @MainActor [weak self] in
                 self?.playbackDidChange()
             }
         }
 
-        // We trigger a "poke to recompute" on the main actor via playbackDidChange() which reads the
-        // most up-to-date state from the player. Discarding KVO parameters is intentional here.
         currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
             Task { @MainActor [weak self] in
                 self?.playbackDidChange()
