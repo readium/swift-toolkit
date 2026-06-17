@@ -9,19 +9,16 @@ import Foundation
 private final class Poller: Sendable {
     private let condition: @Sendable @MainActor () -> Bool
     private let pollingInterval: TimeInterval
-    private let queue: DispatchQueue
     private let block: @Sendable @MainActor () async -> Void
     @MainActor private var isPolling = false
 
     init(
         condition: @escaping @Sendable @MainActor () -> Bool,
         pollingInterval: TimeInterval,
-        queue: DispatchQueue,
         block: @escaping @Sendable @MainActor () async -> Void
     ) {
         self.condition = condition
         self.pollingInterval = pollingInterval
-        self.queue = queue
         self.block = block
     }
 
@@ -35,10 +32,9 @@ private final class Poller: Sendable {
     @MainActor
     private func poll() {
         guard condition() else {
-            queue.asyncAfter(deadline: .now() + pollingInterval) { [weak self] in
-                Task { @MainActor in
-                    self?.poll()
-                }
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: UInt64(pollingInterval * 1_000_000_000))
+                self.poll()
             }
             return
         }
@@ -56,13 +52,11 @@ private final class Poller: Sendable {
 public func execute(
     when condition: @escaping @Sendable @MainActor () -> Bool,
     pollingInterval: TimeInterval = 0,
-    on queue: DispatchQueue = .main,
     _ block: @escaping @Sendable @MainActor () async -> Void
 ) -> @Sendable @MainActor () -> Void {
     let poller = Poller(
         condition: condition,
         pollingInterval: pollingInterval,
-        queue: queue,
         block: block
     )
     return {
