@@ -72,7 +72,6 @@ public struct NavigatorGoOptions: Hashable, Sendable {
     }
 }
 
-@MainActor
 public extension Navigator {
     @discardableResult
     func go(to locator: Locator, options: NavigatorGoOptions = NavigatorGoOptions()) async -> Bool {
