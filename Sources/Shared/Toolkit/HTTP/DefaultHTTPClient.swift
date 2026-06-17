@@ -107,7 +107,7 @@ public extension DefaultHTTPClientDelegate {
 }
 
 /// An implementation of `HTTPClient` using Apple's `URLSession`.
-public final class DefaultHTTPClient: HTTPClient, Loggable, Sendable {
+public final class DefaultHTTPClient: HTTPClient, Loggable {
     /// Returns the default user agent used when issuing requests.
     ///
     /// For example, TestApp/1.3

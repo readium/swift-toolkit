@@ -101,7 +101,7 @@ struct TestContentProtectionService: ContentProtectionService {
     }
 }
 
-final class TestUserRights: UserRights, Sendable {
+final class TestUserRights: UserRights {
     private let _copyCount: Mutex<Int>
     private let _printCount: Mutex<Int>
 

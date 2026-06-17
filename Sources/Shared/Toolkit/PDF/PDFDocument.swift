@@ -67,7 +67,7 @@ public protocol PDFDocumentFactory: Sendable {
     func open<HREF: URLConvertible & Sendable>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument
 }
 
-public final class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable {
+public final class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable {
     private let factory = PDFKitPDFDocumentFactory()
 
     public init() {}
@@ -83,7 +83,7 @@ public final class DefaultPDFDocumentFactory: PDFDocumentFactory, Loggable, Send
 
 /// A PDF document factory which will iterate over a list of factories until one works.
 @available(*, deprecated, message: "Not used anymore")
-public final class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable, Sendable {
+public final class CompositePDFDocumentFactory: PDFDocumentFactory, Loggable {
     private let factories: [PDFDocumentFactory]
 
     public init(factories: [PDFDocumentFactory]) {

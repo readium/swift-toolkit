@@ -11,7 +11,7 @@ import Testing
 struct HTTPResourceTests {
     private let url = HTTPURL(string: "http://example.com/book.epub")!
 
-    final class MockHTTPClient: HTTPClient, Sendable {
+    final class MockHTTPClient: HTTPClient {
         struct Response: Sendable {
             let response: HTTPResponse
             let body: Data

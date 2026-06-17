@@ -7,7 +7,7 @@
 import Foundation
 
 /// Encapsulates a single ``Resource`` into a ``Container``.
-public final class SingleResourceContainer: Container, Sendable {
+public final class SingleResourceContainer: Container {
     public let entry: AnyURL
     private let resource: Resource
 

@@ -7,7 +7,7 @@
 import Foundation
 
 /// Fetches remote resources with HTTP.
-public final class HTTPContainer: Container, Sendable {
+public final class HTTPContainer: Container {
     /// HTTP client used to perform HTTP requests.
     private let client: HTTPClient
 

@@ -20,7 +20,7 @@ extension PDFKit.PDFDocument: PDFKitDocumentProviding {
 }
 
 /// Creates a `PDFDocument` using PDFKit.
-public final class PDFKitPDFDocumentFactory: PDFDocumentFactory, Sendable {
+public final class PDFKitPDFDocumentFactory: PDFDocumentFactory {
     public init() {}
 
     public func open(file: FileURL, password: String?) async throws -> PDFDocument {
