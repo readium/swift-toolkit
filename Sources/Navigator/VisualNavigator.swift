@@ -9,6 +9,7 @@ import ReadiumShared
 import UIKit
 
 /// A navigator rendering the publication visually on-screen.
+@MainActor
 public protocol VisualNavigator: Navigator, InputObservable {
     /// Viewport view.
     var view: UIView! { get }
@@ -39,7 +40,6 @@ public protocol VisualNavigator: Navigator, InputObservable {
     func firstVisibleElementLocator() async -> Locator?
 }
 
-@MainActor
 public extension VisualNavigator {
     func firstVisibleElementLocator() async -> Locator? {
         currentLocation
