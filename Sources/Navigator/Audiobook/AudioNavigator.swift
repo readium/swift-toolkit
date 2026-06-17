@@ -144,6 +144,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     deinit {
         playTask?.cancel()
+        notificationTask?.cancel()
         if let token = audioSessionToken {
             AudioSession.shared.end(with: token)
         }
@@ -249,7 +250,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
     private var timeObserverToken: TimeObserverToken?
-    private var notificationToken: NotificationObserverToken?
+    private var notificationTask: Task<Void, Never>?
 
     private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
 
@@ -303,14 +304,14 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
         }
 
-        let notificationObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
-            MainActor.assumeIsolated {
+        notificationTask = Task { @MainActor [weak self] in
+            for await notification in NotificationCenter.default.notifications(named: .AVPlayerItemDidPlayToEndTime) {
                 guard
                     let self = self,
                     let currentItem = self.player.currentItem,
                     currentItem == (notification.object as? AVPlayerItem)
                 else {
-                    return
+                    continue
                 }
 
                 self.shouldPlayNextResource { playNext in
@@ -325,7 +326,6 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 }
             }
         }
-        notificationToken = NotificationObserverToken(center: .default, observer: notificationObserver)
 
         return player
     }()
@@ -355,13 +355,29 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor @Sendable (MediaPlaybackInfo) -> Void) {
-        let info = MediaPlaybackInfo(
-            resourceIndex: resourceIndex,
-            state: state,
-            time: time ?? currentTime,
-            duration: resourceDuration
-        )
-        completion(info)
+        let resourceIndex = resourceIndex
+        let state = state
+        let currentTime = time ?? currentTime
+        let linkDuration = publication.readingOrder[resourceIndex].duration
+        let currentItem = player.currentItem
+
+        Task.detached {
+            var duration: Double? = linkDuration
+            if let itemDuration = currentItem?.duration, itemDuration.isNumeric {
+                duration = itemDuration.secondsOrZero
+            }
+
+            let info = MediaPlaybackInfo(
+                resourceIndex: resourceIndex,
+                state: state,
+                time: currentTime,
+                duration: duration
+            )
+
+            Task { @MainActor in
+                completion(info)
+            }
+        }
     }
 
     private func makeLocator(forTime time: Double) -> Locator {
@@ -555,22 +571,10 @@ private final class TimeObserverToken: @unchecked Sendable {
     }
 
     deinit {
-        DispatchQueue.main.async { [player, observer] in
-            player.removeTimeObserver(observer)
+        let obs = observer
+        let p = player
+        DispatchQueue.main.async {
+            p.removeTimeObserver(obs)
         }
-    }
-}
-
-private final class NotificationObserverToken: @unchecked Sendable {
-    private let center: NotificationCenter
-    private let observer: Any
-
-    init(center: NotificationCenter, observer: Any) {
-        self.center = center
-        self.observer = observer
-    }
-
-    deinit {
-        center.removeObserver(observer)
     }
 }
