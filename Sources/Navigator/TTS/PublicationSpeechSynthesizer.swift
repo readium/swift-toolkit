@@ -180,7 +180,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
-        AudioSession.shared.start(with: audioSessionUser, isPlaying: false)
+        audioSessionUser.token = AudioSession.shared.start(with: audioSessionUser, isPlaying: false)
 
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
@@ -415,13 +415,16 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     private final class AudioSessionUser: ReadiumShared.AudioSessionUser {
         let audioConfiguration: AudioSession.Configuration
+        var token: AudioSession.UserToken?
 
         init(config: AudioSession.Configuration) {
             audioConfiguration = config
         }
 
         deinit {
-            AudioSession.shared.end(for: ObjectIdentifier(self))
+            if let token = token {
+                AudioSession.shared.end(with: token)
+            }
         }
 
         func play() {}

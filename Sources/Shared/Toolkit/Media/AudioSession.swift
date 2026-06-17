@@ -73,11 +73,18 @@ public final class AudioSession: Loggable, Sendable {
     /// Current user of the `AudioSession`.
     private var user: User?
 
+    /// Opaque token identifying an audio session user.
+    public struct UserToken: Sendable, Equatable {
+        let id: ObjectIdentifier
+    }
+
     /// Starts a new audio session with the given `user`.
-    public func start(with user: any AudioSessionUser, isPlaying: Bool) {
+    @discardableResult
+    public func start(with user: any AudioSessionUser, isPlaying: Bool) -> UserToken {
         let id = ObjectIdentifier(user)
+        let token = UserToken(id: id)
         guard self.user?.id != id else {
-            return
+            return token
         }
 
         if let oldUser = self.user {
@@ -87,12 +94,13 @@ public final class AudioSession: Loggable, Sendable {
         self.isPlaying = false
 
         startSession(with: user.audioConfiguration)
+        return token
     }
 
     /// Ends the current audio session.
-    public nonisolated func end(for id: ObjectIdentifier) {
+    public nonisolated func end(with token: UserToken) {
         Task {
-            await end(forUserID: id)
+            await end(forUserID: token.id)
         }
     }
 

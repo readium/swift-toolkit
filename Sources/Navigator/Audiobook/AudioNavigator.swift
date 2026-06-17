@@ -140,9 +140,13 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         )
     }
 
+    private var audioSessionToken: AudioSession.UserToken?
+
     deinit {
         playTask?.cancel()
-        AudioSession.shared.end(for: ObjectIdentifier(self))
+        if let token = audioSessionToken {
+            AudioSession.shared.end(with: token)
+        }
     }
 
     /// Returns whether the resource is currently playing or not.
@@ -196,7 +200,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Resumes or start the playback.
     public func play() {
         playTask = Task { @MainActor in
-            AudioSession.shared.start(with: self, isPlaying: false)
+            audioSessionToken = AudioSession.shared.start(with: self, isPlaying: false)
 
             if player.currentItem == nil {
                 if let location = initialLocation {
