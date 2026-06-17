@@ -573,7 +573,7 @@ private final class TimeObserverToken: @unchecked Sendable {
     deinit {
         let obs = observer
         let p = player
-        DispatchQueue.main.async {
+        Task { @MainActor in
             p.removeTimeObserver(obs)
         }
     }
