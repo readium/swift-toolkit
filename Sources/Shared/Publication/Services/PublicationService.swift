@@ -7,7 +7,7 @@
 import Foundation
 
 /// Base interface to be implemented by all publication services.
-public protocol PublicationService: Closeable {
+public protocol PublicationService: Sendable, Closeable {
     /// Links which will be added to `Publication.links`.
     /// It can be used to expose a web API for the service, through `Publication.get()`.
     ///
@@ -50,7 +50,7 @@ public extension PublicationService {
 public typealias PublicationServiceFactory = (PublicationServiceContext) -> PublicationService?
 
 /// Container for the context from which a service is created.
-public struct PublicationServiceContext {
+public struct PublicationServiceContext: Sendable {
     /// Weak reference to the parent publication.
     ///
     /// Don't store directly the referenced publication, always access it through the `Weak` property.
