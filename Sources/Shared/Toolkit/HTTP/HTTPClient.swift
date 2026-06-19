@@ -23,8 +23,9 @@ public protocol HTTPClient: Loggable, Sendable {
     ///   - consume: Callback called for each chunk of data received. Callers
     ///     are responsible to accumulate the data if needed. Return an error
     ///     to abort the request. The `progress` parameter represents the
-    ///     overall resource progress (including any `contentRangeOffset` for
-    ///     range requests), not just the progress of the current chunk.
+    ///     overall resource progress (including any byte-range offset from the
+    ///     `Content-Range` header for range requests), not just the progress
+    ///     of the current chunk.
     ///     Important: `consume` is always called serially. Implementations must
     ///     never invoke it concurrently.
     func stream(
@@ -42,8 +43,9 @@ public extension HTTPClient {
     ///   - consume: Callback called for each chunk of data received. Callers
     ///     are responsible to accumulate the data if needed. Return an error
     ///     to abort the request. The `progress` parameter represents the
-    ///     overall resource progress (including any `contentRangeOffset` for
-    ///     range requests), not just the progress of the current chunk.
+    ///     overall resource progress (including any byte-range offset from the
+    ///     `Content-Range` header for range requests), not just the progress
+    ///     of the current chunk.
     ///     Important: `consume` is always called serially. Implementations must
     ///     never invoke it concurrently.
     func stream(
@@ -314,20 +316,41 @@ public extension HTTPHeadersProviding {
         return nil
     }
 
+    /// The expected content length for this response, when known.
+    ///
+    /// - Warning: For byte range requests, this will be the length of the
+    /// current chunk, not the whole resource. Use `resourceLength`
+    /// instead.
+    var contentLength: Int64? {
+        valueForHeader("Content-Length")
+            .flatMap { Int64($0) }
+            .takeIf { $0 >= 0 }
+    }
+
+    /// The length of the full resource, when known.
+    ///
+    /// For byte range requests this reads the size from the `Content-Range`
+    /// header (e.g. `bytes 0-99/1000` → 1000). Falls back to `Content-Length`
+    /// only when no `Content-Range` header is present (i.e. a full response).
+    /// Returns `nil` when the total size cannot be determined.
+    var resourceLength: Int64? {
+        if let byteRange = contentByteRange {
+            return byteRange.size
+        }
+        return contentLength
+    }
+
     /// Indicates whether this server supports byte range requests.
     var acceptsByteRanges: Bool {
         valueForHeader("Accept-Ranges")?.lowercased() == "bytes"
             || valueForHeader("Content-Range")?.lowercased().hasPrefix("bytes") == true
     }
 
-    /// The expected content length for this response, when known.
-    ///
-    /// Warning: For byte range requests, this will be the length of the current chunk,
-    /// not the whole resource.
-    var contentLength: Int64? {
-        valueForHeader("Content-Length")
-            .flatMap { Int64($0) }
-            .takeIf { $0 >= 0 }
+    /// Parsed `Content-Range` header for this response, or `nil` if the header
+    /// is absent or malformed.
+    var contentByteRange: HTTPContentByteRange? {
+        valueForHeader("Content-Range")
+            .flatMap { HTTPContentByteRange(header: $0) }
     }
 
     /// The resource filename as provided by the server in the `Content-Disposition` header.

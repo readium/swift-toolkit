@@ -57,9 +57,9 @@ struct HTTPResourceTests {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)
 
-        client.fetchResults["GET \(url.string)"] = .success(.init(
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
             response: HTTPResponse(
-                request: HTTPRequest(url: url),
+                request: HTTPRequest(url: url, method: .head),
                 url: url,
                 status: .ok,
                 headers: ["Content-Length": "1024"],
@@ -82,16 +82,88 @@ struct HTTPResourceTests {
         let resource = HTTPResource(url: url, client: client)
 
         let response = HTTPErrorResponse(status: .methodNotAllowed)
+        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(response))
         client.fetchResults["GET \(url.string)"] = .failure(.errorResponse(response))
 
         let length = await resource.estimatedLength()
         try #expect(length.get() == nil)
-        #expect(client.fetchCount == 1)
+        #expect(client.fetchCount == 2)
+    }
+
+    @Test func headResponseFallbackToRangeRequestSucceeds() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(HTTPErrorResponse(status: .methodNotAllowed)))
+        client.fetchResults["GET \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url),
+                url: url,
+                status: .partialContent,
+                headers: ["Content-Range": "bytes 0-1/512"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let length = await resource.estimatedLength()
+        try #expect(length.get() == 512)
+        #expect(client.fetchCount == 2)
+    }
+
+    @Test func propertiesMediaTypeFromHeadResponse() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: [:],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let props = try await resource.properties().get()
+        #expect(props.mediaType == .epub)
+        #expect(props.filename == "book.epub")
+    }
+
+    @Test func propertiesFilenameFromContentDisposition() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: ["Content-Disposition": "attachment; filename=\"moby-dick.epub\""],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let props = try await resource.properties().get()
+        #expect(props.filename == "moby-dick.epub")
     }
 
     @Test func streamWithRange() async throws {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: ["Content-Length": "100"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
 
         client.fetchResults["GET \(url.string)"] = try .success(.init(
             response: HTTPResponse(
@@ -109,5 +181,65 @@ struct HTTPResourceTests {
 
         try result.get()
         #expect(streamedData.value == "0123456789".data(using: .utf8))
+    }
+
+    @Test func estimatedLengthFromContentRange() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .partialContent,
+                headers: ["Content-Range": "bytes 0-1/1000"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let length = await resource.estimatedLength()
+        try #expect(length.get() == 1000)
+    }
+
+    @Test func estimatedLengthUnknownWhenContentRangeSizeIsWildcard() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .partialContent,
+                headers: [
+                    "Content-Range": "bytes 0-1/*",
+                    "Content-Length": "2",
+                ],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let length = await resource.estimatedLength()
+        try #expect(length.get() == nil)
+    }
+
+    @Test func estimatedLengthFromContentLength() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: ["Content-Length": "2048"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let length = await resource.estimatedLength()
+        try #expect(length.get() == 2048)
     }
 }

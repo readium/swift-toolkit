@@ -132,7 +132,9 @@ jobs:
     defaults:
       run:
         working-directory: TestApp
-    environment: LCP
+    environment:
+      name: LCP
+      deployment: false
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -156,7 +158,9 @@ jobs:
     defaults:
       run:
         working-directory: TestApp
-    environment: LCP
+    environment:
+      name: LCP
+      deployment: false
     steps:
       - name: Checkout
         uses: actions/checkout@v3

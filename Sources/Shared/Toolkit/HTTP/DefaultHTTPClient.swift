@@ -272,7 +272,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 delegate?.httpClient(self, request: request, didReceiveResponse: httpResponse)
 
                 if !httpResponse.status.isSuccess {
-                    let body = try await collectErrorBody(from: stream, task: task, response: httpResponse)
+                    let body = try await collectErrorBody(from: stream, task: task)
                     return .failure(.errorResponse(makeErrorResponse(httpResponse: httpResponse, body: body)))
                 }
 
@@ -290,8 +290,8 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                     }
                 }
 
-                let expectedBytes = httpResponse.fullContentLength
-                var readBytes: Int64 = httpResponse.contentRangeOffset
+                let expectedBytes = httpResponse.resourceLength
+                var readBytes: Int64 = httpResponse.contentByteRange?.range?.lowerBound ?? 0
 
                 for try await chunk in stream {
                     try Task.checkCancellation()
@@ -318,24 +318,20 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     }
 
     private let maxErrorBodySize = 1024 * 1024
-    private let defaultErrorBodySize = 1024
 
     private func collectErrorBody(
         from stream: AsyncThrowingStream<Data, Error>,
-        task: URLSessionDataTask,
-        response: HTTPResponse
+        task: URLSessionDataTask
     ) async throws -> Data {
-        let capacity = min(maxErrorBodySize, Int(response.fullContentLength ?? Int64(defaultErrorBodySize)))
         var data = Data()
         for try await chunk in stream {
-            if data.count < capacity {
-                data.append(chunk)
-            } else {
+            data.append(chunk)
+            if data.count >= maxErrorBodySize {
                 task.cancel()
                 break
             }
         }
-        return data.prefix(capacity)
+        return data.prefix(maxErrorBodySize)
     }
 
     private func makeURLRequest(_ request: HTTPRequest) -> URLRequest {
@@ -538,36 +534,5 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
                 }
             }
         }
-    }
-}
-
-private extension HTTPResponse {
-    /// The full expected content length for this resource, when known.
-    ///
-    /// This will be the total length of the resource, even for byte range requests.
-    /// Handles headers like `bytes 0-100/1000` and `bytes */1000`.
-    var fullContentLength: Int64? {
-        guard
-            let contentRange = valueForHeader("Content-Range"),
-            let totalLengthString = contentRange.split(separator: "/").last?.trimmingCharacters(in: .whitespaces),
-            let totalLength = Int64(totalLengthString)
-        else {
-            return contentLength
-        }
-        return totalLength
-    }
-
-    /// Offset of the current response in the full resource.
-    /// Handles headers like `bytes 0-100/1000`. Returns 0 if the range is unknown (e.g., `bytes */1000`).
-    var contentRangeOffset: Int64 {
-        guard
-            let contentRange = valueForHeader("Content-Range"),
-            let rangeString = contentRange.split(separator: " ", maxSplits: 1).last,
-            let rangeStartString = rangeString.split(separator: "-").first?.trimmingCharacters(in: .whitespaces),
-            let rangeStart = Int64(rangeStartString)
-        else {
-            return 0
-        }
-        return rangeStart
     }
 }
