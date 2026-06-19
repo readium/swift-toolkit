@@ -22,7 +22,7 @@ public protocol SearchService: PublicationService {
 }
 
 /// Iterates through search results.
-public protocol SearchIterator: AnyObject, Closeable {
+public protocol SearchIterator: AnyObject, Sendable, Closeable {
     /// Number of matches for this search, if known.
     ///
     /// Depending on the search algorithm, it may not be possible to know the result count until reaching the end of the
@@ -41,8 +41,8 @@ public protocol SearchIterator: AnyObject, Closeable {
 public extension SearchIterator {
     /// Iterates over all the search results, calling the given `block` for each page.
     @discardableResult
-    func forEach(_ block: @escaping (LocatorCollection) -> Void) async -> SearchResult<Void> {
-        func next() async -> SearchResult<Void> {
+    func forEach(_ block: @escaping @Sendable (LocatorCollection) -> Void) async -> SearchResult<Void> {
+        @Sendable func next() async -> SearchResult<Void> {
             await self.next().asyncFlatMap { locators in
                 if let locators = locators {
                     block(locators)

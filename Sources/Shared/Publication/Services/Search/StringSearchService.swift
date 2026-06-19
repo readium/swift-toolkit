@@ -68,8 +68,12 @@ public final class StringSearchService: SearchService, Sendable {
         ))
     }
 
-    private class Iterator: SearchIterator, Loggable {
-        private(set) var resultCount: Int? = 0
+    private final actor Iterator: SearchIterator, Loggable {
+        private let _resultCount = Mutex<Int?>(0)
+        nonisolated var resultCount: Int? {
+            get { _resultCount.withLock { $0 } }
+            set { _resultCount.withLock { $0 = newValue } }
+        }
 
         private let publication: Publication
         private let language: Language?

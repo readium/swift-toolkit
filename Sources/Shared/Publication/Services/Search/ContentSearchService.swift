@@ -24,7 +24,7 @@ import Foundation
 /// are not affected by this limitation.
 ///
 /// This service requires the publication to have a configured `ContentService`.
-public class ContentSearchService: SearchService, Loggable {
+public final class ContentSearchService: SearchService, Loggable {
     /// - Parameters:
     ///   - snippetLength: Maximum length of the `before` and `after` text
     ///     snippets in the returned locators.
@@ -102,8 +102,12 @@ private struct ElementEntry {
     var startOffset: Int
 }
 
-private final class Iterator: SearchIterator, Loggable {
-    private(set) var resultCount: Int? = 0
+private actor Iterator: SearchIterator, Loggable {
+    private let _resultCount = Mutex<Int?>(0)
+
+    nonisolated var resultCount: Int? {
+        _resultCount.withLock { $0 }
+    }
 
     private let contentIterator: ContentIterator
     private let snippetLength: Int
@@ -260,7 +264,7 @@ private final class Iterator: SearchIterator, Loggable {
         await pendingLocators.append(contentsOf: search())
         trimFront()
 
-        resultCount = (resultCount ?? 0) + batch.count
+        _resultCount.withLock { $0 = ($0 ?? 0) + batch.count }
         return .success(LocatorCollection(locators: batch))
     }
 
@@ -270,7 +274,7 @@ private final class Iterator: SearchIterator, Loggable {
         guard !pendingLocators.isEmpty else { return .success(nil) }
         let batch = pendingLocators
         pendingLocators = []
-        resultCount = (resultCount ?? 0) + batch.count
+        _resultCount.withLock { $0 = ($0 ?? 0) + batch.count }
         return .success(LocatorCollection(locators: batch))
     }
 
