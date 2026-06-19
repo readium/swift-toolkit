@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumFuzi
 
-final class FuziXMLDocument: XMLDocument, Loggable {
+final class FuziXMLDocument: XMLDocument, Loggable, @unchecked Sendable {
     enum ParseError: Error {
         case notAnXML
     }
@@ -49,7 +49,7 @@ final class FuziXMLDocument: XMLDocument, Loggable {
     }
 }
 
-final class FuziXMLElement: XMLElement, Loggable {
+final class FuziXMLElement: XMLElement, Loggable, @unchecked Sendable {
     fileprivate let document: ReadiumFuzi.XMLDocument
     fileprivate let element: ReadiumFuzi.XMLElement
 
