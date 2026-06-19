@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 //
 //  Copyright 2026 Readium Foundation. All rights reserved.
 //  Use of this source code is governed by the BSD-style license
@@ -192,3 +192,19 @@ let package = Package(
         ),
     ]
 )
+
+// FIXME: Remove this once the Swift 6 migration is done.
+let swift6EnabledTargets: Set<String> = [
+    "ReadiumShared",
+    "ReadiumSharedTests"
+]
+
+for target in package.targets {
+    var swiftSettings = target.swiftSettings ?? []
+    if swift6EnabledTargets.contains(target.name) {
+        swiftSettings.append(.swiftLanguageMode(.v6))
+    } else {
+        swiftSettings.append(.swiftLanguageMode(.v5))
+    }
+    target.swiftSettings = swiftSettings
+}
