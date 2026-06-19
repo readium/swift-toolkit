@@ -7,7 +7,7 @@
 import Foundation
 
 /// Creates a Resource that will always return the given `error`.
-public final class FailureResource: Resource, Sendable {
+public final class FailureResource: Resource {
     private let error: ReadError
 
     public let sourceURL: AbsoluteURL?

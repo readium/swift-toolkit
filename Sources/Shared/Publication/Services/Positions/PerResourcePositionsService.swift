@@ -8,7 +8,7 @@ import Foundation
 
 /// Simple `PositionsService` for a `Publication` which generates one position per `readingOrder`
 /// resource.
-public final class PerResourcePositionsService: PositionsService, Sendable {
+public final class PerResourcePositionsService: PositionsService {
     private let positions: [[Locator]]
 
     init(readingOrder: [Link], fallbackMediaType: MediaType) {

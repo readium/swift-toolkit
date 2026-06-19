@@ -15,7 +15,7 @@ import Foundation
 /// will be read.
 ///
 /// Customize the transformation by providing a `transform` closure during construction.
-public final class TransformingResource: Resource, Sendable {
+public final class TransformingResource: Resource {
     private let resource: Resource
     private let data: AsyncMemoizer<ReadResult<Data>>
 

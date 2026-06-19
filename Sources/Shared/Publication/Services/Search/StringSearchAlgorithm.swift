@@ -23,7 +23,7 @@ public protocol StringSearchAlgorithm: Sendable {
 }
 
 /// A basic `StringSearchAlgorithm` using the native `String.range(of:)` APIs.
-public final class BasicStringSearchAlgorithm: StringSearchAlgorithm, Sendable {
+public final class BasicStringSearchAlgorithm: StringSearchAlgorithm {
     public let options: SearchOptions = .init(
         caseSensitive: false,
         diacriticSensitive: false,
