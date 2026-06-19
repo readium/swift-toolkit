@@ -24,7 +24,7 @@ public enum PDFResourceContentIteratorError: Error, Sendable {
 ///
 /// This ``ContentIterator`` requires the ``Publication`` to have a
 /// ``PDFDocumentService``.
-public class PDFResourceContentIterator: ContentIterator, Loggable {
+public final actor PDFResourceContentIterator: ContentIterator, Loggable {
     /// Factory for a `PDFResourceContentIterator`.
     public final class Factory: ResourceContentIteratorFactory {
         public init() {}
@@ -93,8 +93,9 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
     /// locator.
     private var startPageIndex: Int = 0
 
-    /// Whether initialization has completed.
-    private var initialized: Bool = false
+    /// Memoized initialization, so concurrent `next()`/`previous()` calls share
+    /// one `initialize()` instead of racing to open the document twice.
+    private lazy var initializationTask = Task { try await initialize() }
 
     /// Current page index (0-based). `nil` means iteration hasn't started yet.
     private var currentPageIndex: Int?
@@ -146,22 +147,24 @@ public class PDFResourceContentIterator: ContentIterator, Loggable {
     // MARK: - Initialization
 
     private func initializeIfNeeded() async throws {
-        guard !initialized else { return }
+        try await initializationTask.value
+    }
 
+    /// Opens the document and computes the starting page and resource metadata.
+    /// Runs exactly once, driven by `initializationTask`.
+    private func initialize() async throws {
         let info = await makeResourceInfo()
         resourceInfo = info
 
         let doc = try await openDocument()
         guard let textDoc = doc as? PDFDocumentTextProviding else {
             log(.warning, "The PDF document does not support text extraction; no content elements will be produced.")
-            initialized = true
             return
         }
 
         document = textDoc
         pageCount = try await textDoc.pageCount()
         startPageIndex = computeStartPage(positionOffset: info.positionOffset)
-        initialized = true
     }
 
     /// Computes the 0-based page index to start from, derived from the locator.
