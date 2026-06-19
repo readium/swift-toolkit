@@ -182,7 +182,7 @@ public extension HTTPClient {
 }
 
 /// Status code of an HTTP response.
-public struct HTTPStatus: Equatable, Sendable, RawRepresentable, ExpressibleByIntegerLiteral {
+public struct HTTPStatus: Equatable, RawRepresentable, Sendable, ExpressibleByIntegerLiteral {
     public let rawValue: Int
 
     public init(rawValue: RawValue) {
