@@ -90,6 +90,66 @@ struct HTTPResourceTests {
         #expect(client.fetchCount == 2)
     }
 
+    @Test func headResponseFallbackToRangeRequestSucceeds() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(HTTPErrorResponse(status: .methodNotAllowed)))
+        client.fetchResults["GET \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url),
+                url: url,
+                status: .partialContent,
+                headers: ["Content-Range": "bytes 0-1/512"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let length = await resource.estimatedLength()
+        try #expect(length.get() == 512)
+        #expect(client.fetchCount == 2)
+    }
+
+    @Test func propertiesMediaTypeFromHeadResponse() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: [:],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let props = try await resource.properties().get()
+        #expect(props.mediaType == .epub)
+        #expect(props.filename == "book.epub")
+    }
+
+    @Test func propertiesFilenameFromContentDisposition() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: ["Content-Disposition": "attachment; filename=\"moby-dick.epub\""],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let props = try await resource.properties().get()
+        #expect(props.filename == "moby-dick.epub")
+    }
+
     @Test func streamWithRange() async throws {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)

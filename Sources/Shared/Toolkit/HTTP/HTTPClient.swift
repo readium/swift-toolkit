@@ -347,7 +347,7 @@ public extension HTTPHeadersProviding {
     }
 
     /// Parsed `Content-Range` header for this response, or `nil` if the header
-    /// is absent.
+    /// is absent or malformed.
     var contentByteRange: HTTPContentByteRange? {
         valueForHeader("Content-Range")
             .flatMap { HTTPContentByteRange(header: $0) }

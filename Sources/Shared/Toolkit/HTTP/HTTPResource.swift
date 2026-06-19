@@ -51,8 +51,8 @@ public actor HTTPResource: Resource {
     /// Cached HEAD response to get the expected content length and other
     /// metadata.
     ///
-    /// For compatibility reason, we start a byte range request of 2 bytes and
-    /// interrupt it right away.
+    /// To ensure compatibility with servers that do not support HEAD requests,
+    /// we fall back on a 2-byte range request and interrupt it immediately.
     private func headResponse() async -> ReadResult<HTTPResponse?> {
         if _headResponse == nil {
             let headRequest = HTTPRequest(url: url, method: .head)
