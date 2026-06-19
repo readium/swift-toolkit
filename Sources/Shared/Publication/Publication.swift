@@ -9,10 +9,15 @@ import Foundation
 import ReadiumInternal
 
 /// Shared model for a Readium Publication.
-public final class Publication: Closeable, Loggable {
-    public var manifest: Manifest
+public final class Publication: @unchecked Sendable, Closeable, Loggable {
     private let container: Container
     private let services: [PublicationService]
+
+    private let _manifest: Mutex<Manifest>
+    public var manifest: Manifest {
+        get { _manifest.withLock { $0 } }
+        set { _manifest.withLock { $0 = newValue } }
+    }
 
     public var context: [String] {
         manifest.context
@@ -57,7 +62,7 @@ public final class Publication: Closeable, Loggable {
         )
         manifest.links.append(contentsOf: services.flatMap(\.links))
 
-        self.manifest = manifest
+        self._manifest = Mutex(manifest)
         self.container = container
         self.services = services
 
