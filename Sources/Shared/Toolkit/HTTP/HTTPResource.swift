@@ -35,7 +35,7 @@ public actor HTTPResource: Resource {
 
     public func estimatedLength() async -> ReadResult<UInt64?> {
         await headResponse().flatMap {
-            if let length = $0?.contentLength {
+            if let length = $0?.fullContentLength {
                 return .success(UInt64(length))
             } else {
                 return .success(nil)
@@ -55,23 +55,35 @@ public actor HTTPResource: Resource {
     /// interrupt it right away.
     private func headResponse() async -> ReadResult<HTTPResponse?> {
         if _headResponse == nil {
-            var request = HTTPRequest(url: url)
-            request.setRange(0 ..< 2)
-
-            let result = await client.stream(
-                request,
+            let headRequest = HTTPRequest(url: url, method: .head)
+            let _ = await client.stream(
+                headRequest,
                 onReceiveResponse: { response in
                     await self.setHeadResponse(.success(response))
-                    return .failure(.cancelled)
+                    return .success(())
                 },
-                consume: { _, _ in .failure(.cancelled) }
+                consume: { _, _ in .success(()) }
             )
 
-            if _headResponse == nil, case let .failure(error) = result {
-                if let error: ReadError = .wrap(error) {
-                    _headResponse = .failure(error)
-                } else {
-                    _headResponse = .success(nil)
+            if _headResponse == nil {
+                var rangeRequest = HTTPRequest(url: url)
+                rangeRequest.setRange(0 ..< 2)
+
+                let rangeResult = await client.stream(
+                    rangeRequest,
+                    onReceiveResponse: { response in
+                        await self.setHeadResponse(.success(response))
+                        return .failure(.cancelled)
+                    },
+                    consume: { _, _ in .failure(.cancelled) }
+                )
+
+                if _headResponse == nil, case let .failure(error) = rangeResult {
+                    if let error: ReadError = .wrap(error) {
+                        _headResponse = .failure(error)
+                    } else {
+                        _headResponse = .success(nil)
+                    }
                 }
             }
         }

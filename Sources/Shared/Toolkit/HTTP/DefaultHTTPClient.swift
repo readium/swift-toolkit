@@ -541,7 +541,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
     }
 }
 
-private extension HTTPResponse {
+public extension HTTPResponse {
     /// The full expected content length for this resource, when known.
     ///
     /// This will be the total length of the resource, even for byte range requests.
