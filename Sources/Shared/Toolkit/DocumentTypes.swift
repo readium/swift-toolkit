@@ -90,7 +90,7 @@ public struct DocumentTypes: Sendable {
 }
 
 /// Metadata about a Document Type declared in `CFBundleDocumentTypes`.
-public struct DocumentType: Equatable, Loggable, Sendable {
+public struct DocumentType: Equatable, Sendable, Loggable {
     /// Abstract name for the document type, used to refer to the type.
     public let name: String
 

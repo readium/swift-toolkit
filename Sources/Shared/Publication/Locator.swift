@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// https://github.com/readium/architecture/tree/master/locators
-public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JSONValueDecodable, JSONObjectEncodable {
+public struct Locator: Hashable, Sendable, CustomStringConvertible, Loggable, JSONValueDecodable, JSONObjectEncodable {
     /// The URI of the resource that the Locator Object points to.
     public var href: AnyURL
 
@@ -134,7 +134,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
     ///
     /// Properties are mutable for convenience when making a copy, but the `locations` property
     /// is immutable in `Locator`, for safety.
-    public struct Locations: Hashable, Loggable, WarningLogger, Sendable, JSONValueDecodable, JSONObjectEncodable {
+    public struct Locations: Hashable, Sendable, Loggable, WarningLogger, JSONValueDecodable, JSONObjectEncodable {
         /// Contains one or more fragment in the resource referenced by the `Locator`.
         public var fragments: [String]
         /// Progression in the resource expressed as a percentage (between 0 and 1).
@@ -196,7 +196,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
         }
     }
 
-    public struct Text: Hashable, Loggable, Sendable, JSONValueDecodable, JSONObjectEncodable {
+    public struct Text: Hashable, Sendable, Loggable, JSONValueDecodable, JSONObjectEncodable {
         public var after: String?
         public var before: String?
         public var highlight: String?
@@ -275,7 +275,7 @@ public struct Locator: Hashable, CustomStringConvertible, Loggable, Sendable, JS
 /// Represents a sequential list of `Locator` objects.
 ///
 /// For example, a search result or a list of positions.
-public struct LocatorCollection: Sendable, Hashable, JSONValueDecodable, JSONObjectEncodable {
+public struct LocatorCollection: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public var metadata: Metadata
     public var links: [Link]
     public var locators: [Locator]
@@ -310,7 +310,7 @@ public struct LocatorCollection: Sendable, Hashable, JSONValueDecodable, JSONObj
     }
 
     /// Holds the metadata of a `LocatorCollection`.
-    public struct Metadata: Sendable, Hashable, JSONValueDecodable, JSONObjectEncodable {
+    public struct Metadata: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
         public var localizedTitle: LocalizedString?
         public var title: String? {
             localizedTitle?.string

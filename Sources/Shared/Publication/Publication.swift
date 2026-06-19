@@ -161,7 +161,7 @@ public final class Publication: Closeable, Loggable {
     ///
     /// For a list of supported profiles, see the registry:
     /// https://readium.org/webpub-manifest/profiles/
-    public struct Profile: Hashable, RawRepresentable, Sendable {
+    public struct Profile: Hashable, Sendable, RawRepresentable {
         public let uri: String
 
         public init(_ uri: String) {

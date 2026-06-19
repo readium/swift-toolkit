@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// Holds information about how the resource is stored in the archive.
-public struct ArchiveProperties: Equatable, JSONValueDecodable, JSONObjectEncodable, Sendable {
+public struct ArchiveProperties: Equatable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// The length of the entry stored in the archive. It might be a compressed
     /// length if the entry is deflated.
     public let entryLength: UInt64

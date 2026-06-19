@@ -10,7 +10,7 @@ import ReadiumInternal
 /// When presenting accessibility metadata provided by the publisher, it is
 /// suggested that the section is introduced using terms such as "claims" or
 /// "declarations" (e.g., "Accessibility Claims").
-public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
+public struct AccessibilityMetadataDisplayGuide: Equatable, Sendable {
     /// The ways of reading display field is a banner heading that groups
     /// together the following information about how the content facilitates
     /// access.
@@ -927,7 +927,7 @@ public struct AccessibilityMetadataDisplayGuide: Sendable, Equatable {
 
 /// Represents a collection of related accessibility claims which should be
 /// displayed together in a section
-public protocol AccessibilityDisplayField: Sendable, Equatable, Identifiable {
+public protocol AccessibilityDisplayField: Equatable, Sendable, Identifiable {
     /// Unique identifier for this display field.
     var id: AccessibilityDisplayString { get }
 
@@ -948,7 +948,7 @@ public protocol AccessibilityDisplayField: Sendable, Equatable, Identifiable {
 
 /// Represents a single accessibility claim, such as "Appearance can be
 /// modified".
-public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
+public struct AccessibilityDisplayStatement: Equatable, Sendable, Identifiable {
     /// Display string identifying the statement.
     /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
     public let id: AccessibilityDisplayString
@@ -997,7 +997,7 @@ public struct AccessibilityDisplayStatement: Sendable, Equatable, Identifiable {
 /// Localized display string.
 ///
 /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
-public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringLiteral, Sendable, Hashable {
+public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringLiteral, Hashable, Sendable {
     /// Special key for the provided summary, which is not localized.
     static let accessibilitySummary: Self = "readium.a11y.accessibility-summary"
 

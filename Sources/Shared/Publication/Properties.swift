@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// Link Properties
 /// https://readium.org/webpub-manifest/schema/properties.schema.json
-public struct Properties: Hashable, Loggable, WarningLogger, Sendable, JSONValueDecodable, JSONObjectEncodable {
+public struct Properties: Hashable, Sendable, Loggable, WarningLogger, JSONValueDecodable, JSONObjectEncodable {
     /// Additional properties for extensions.
     public var otherProperties: [String: JSONValue]
 

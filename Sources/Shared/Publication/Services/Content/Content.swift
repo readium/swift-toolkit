@@ -213,7 +213,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     /// @param locator Locator to the segment of text.
     /// @param text Text in the segment.
     /// @param attributes Attributes associated with this segment, e.g. language.
-    public struct Segment: Hashable, ContentAttributesHolder, Sendable {
+    public struct Segment: Hashable, Sendable, ContentAttributesHolder {
         public var locator: Locator
         public var text: String
         public var attributes: [ContentAttribute]

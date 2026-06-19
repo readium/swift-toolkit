@@ -18,7 +18,7 @@ import Foundation
 /// ```swift
 /// let value: JSONValue = ["title": "Moby Dick", "year": 1851]
 /// ```
-public enum JSONValue: Sendable, Hashable, Loggable {
+public enum JSONValue: Hashable, Sendable, Loggable {
     /// A JSON `null`.
     case null
     /// A JSON boolean.

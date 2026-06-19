@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// Indicated the availability of a given resource.
 /// https://drafts.opds.io/schema/properties.schema.json
-public struct OPDSAvailability: Equatable, JSONValueDecodable, JSONObjectEncodable, Sendable {
+public struct OPDSAvailability: Equatable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public let state: State
 
     /// Timestamp for the previous state change.

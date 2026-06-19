@@ -9,7 +9,7 @@ import ReadiumInternal
 
 /// The price of a publication in an OPDS link.
 /// https://drafts.opds.io/schema/properties.schema.json
-public struct OPDSPrice: Equatable, JSONValueDecodable, JSONObjectEncodable, Sendable {
+public struct OPDSPrice: Equatable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public var currency: String // eg. EUR
 
     /// Should only be used for display purposes, because of precision issues inherent with Double and the JSON parsing.
