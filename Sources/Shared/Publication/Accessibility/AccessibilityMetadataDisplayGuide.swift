@@ -927,7 +927,7 @@ public struct AccessibilityMetadataDisplayGuide: Equatable, Sendable {
 
 /// Represents a collection of related accessibility claims which should be
 /// displayed together in a section
-public protocol AccessibilityDisplayField: Equatable, Identifiable, Sendable {
+public protocol AccessibilityDisplayField: Equatable, Sendable, Identifiable {
     /// Unique identifier for this display field.
     var id: AccessibilityDisplayString { get }
 
@@ -948,7 +948,7 @@ public protocol AccessibilityDisplayField: Equatable, Identifiable, Sendable {
 
 /// Represents a single accessibility claim, such as "Appearance can be
 /// modified".
-public struct AccessibilityDisplayStatement: Equatable, Identifiable, Sendable {
+public struct AccessibilityDisplayStatement: Equatable, Sendable, Identifiable {
     /// Display string identifying the statement.
     /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
     public let id: AccessibilityDisplayString
