@@ -8,6 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// A `Configurable` is a component with a set of `ConfigurableSettings`.
+@MainActor
 public protocol Configurable {
     associatedtype Settings: ConfigurableSettings
     associatedtype Preferences: ConfigurablePreferences

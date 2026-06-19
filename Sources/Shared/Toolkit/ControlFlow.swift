@@ -8,51 +8,31 @@ import Foundation
 
 // A collection of tools to manage the Flow of Control.
 
-/// Throttles the given `block` so that it is executed in `duration` seconds, ignoring additional
-/// calls until then.
-public func throttle(duration: TimeInterval = 0, on queue: DispatchQueue = .main, _ block: @escaping () -> Void) -> () -> Void {
-    var throttling = false
-    return {
-        guard !throttling else {
-            return
-        }
-        throttling = true
-
-        queue.asyncAfter(deadline: .now() + duration) {
-            throttling = false
-            block()
-        }
-    }
+@MainActor
+private final class ThrottlerState: Sendable {
+    var isThrottling = false
 }
 
-/// Executes the given `block` if `condition` is true. Otherwise, retries every `pollingInterval`
-/// seconds until `condition` gets true.
-///
-/// Additional calls are ignored while polling the condition.
-public func execute(
-    when condition: @escaping () -> Bool,
-    pollingInterval: TimeInterval = 0,
-    on queue: DispatchQueue = .main,
-    _ block: @escaping () async -> Void
-) -> () -> Void {
-    var polling = false
+/// Throttles the given `block` so that it is executed in `duration` seconds, ignoring additional
+/// calls until then.
+@MainActor
+public func throttle(
+    duration: TimeInterval = 0,
+    _ block: @escaping @Sendable @MainActor () -> Void
+) -> @Sendable @MainActor () -> Void {
+    let state = ThrottlerState()
     return {
-        guard !polling else {
-            return
-        }
+        guard !state.isThrottling else { return }
+        state.isThrottling = true
 
-        func poll() {
-            guard condition() else {
-                polling = true
-                queue.asyncAfter(deadline: .now() + pollingInterval, execute: poll)
+        Task { @MainActor in
+            defer { state.isThrottling = false }
+            do {
+                try await Task.sleep(seconds: max(0, duration))
+            } catch {
                 return
             }
-            polling = false
-            Task {
-                await block()
-            }
+            block()
         }
-
-        poll()
     }
 }

@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 
 /// An user of the `AudioSession`, for example a media player object.
+@MainActor
 public protocol AudioSessionUser: AnyObject {
     /// Audio session configuration to use for this user.
     var audioConfiguration: AudioSession.Configuration { get }
@@ -61,9 +62,9 @@ public final class AudioSession: Loggable, Sendable {
 
     struct User {
         let id: ObjectIdentifier
-        private(set) weak var user: AudioSessionUser?
+        private(set) weak var user: (any AudioSessionUser)?
 
-        init(_ user: AudioSessionUser) {
+        init(_ user: any AudioSessionUser) {
             id = ObjectIdentifier(user)
             self.user = user
         }
@@ -72,33 +73,34 @@ public final class AudioSession: Loggable, Sendable {
     /// Current user of the `AudioSession`.
     private var user: User?
 
-    /// Starts a new audio session with the given `user`.
-    public nonisolated func start(with user: AudioSessionUser, isPlaying: Bool) {
-        Task {
-            await start(with: user, isPlaying: isPlaying)
-        }
+    /// Opaque token identifying an audio session user.
+    public struct UserToken: Sendable, Equatable {
+        let id: ObjectIdentifier
     }
 
-    private func start(with user: AudioSessionUser, isPlaying: Bool) async {
+    /// Starts a new audio session with the given `user`.
+    @discardableResult
+    public func start(with user: any AudioSessionUser, isPlaying: Bool) -> UserToken {
         let id = ObjectIdentifier(user)
+        let token = UserToken(id: id)
         guard self.user?.id != id else {
-            return
+            return token
         }
 
         if let oldUser = self.user {
             end(forUserID: oldUser.id)
         }
         self.user = User(user)
-        self.isPlaying = false
+        self.isPlaying = isPlaying
 
         startSession(with: user.audioConfiguration)
+        return token
     }
 
     /// Ends the current audio session.
-    public nonisolated func end(for user: AudioSessionUser) {
-        let id = ObjectIdentifier(user)
+    public nonisolated func end(with token: UserToken) {
         Task {
-            await end(forUserID: id)
+            await end(forUserID: token.id)
         }
     }
 
@@ -116,13 +118,7 @@ public final class AudioSession: Loggable, Sendable {
     /// Indicates whether the `user` is playing.
     private var isPlaying: Bool = false
 
-    public nonisolated func user(_ user: AudioSessionUser, didChangePlaying isPlaying: Bool) {
-        Task {
-            await self.user(user, didChangePlaying: isPlaying)
-        }
-    }
-
-    private func user(_ user: AudioSessionUser, didChangePlaying isPlaying: Bool) async {
+    public func user(_ user: any AudioSessionUser, didChangePlaying isPlaying: Bool) {
         let id = ObjectIdentifier(user)
         guard self.user?.id == id, self.isPlaying != isPlaying else {
             return
