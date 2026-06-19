@@ -8,7 +8,7 @@ import Foundation
 import SwiftSoup
 
 /// Extracts pure content from a marked-up (e.g. HTML) or binary (e.g. PDF) resource.
-public protocol ResourceContentExtractor {
+public protocol ResourceContentExtractor: Sendable {
     /// Extracts the text content of the given `resource`.
     func extractText(of resource: Resource) async -> ReadResult<String>
 }
@@ -43,7 +43,7 @@ public final class DefaultResourceContentExtractorFactory: ResourceContentExtrac
 public typealias _DefaultResourceContentExtractorFactory = DefaultResourceContentExtractorFactory
 
 /// `ResourceContentExtractor` implementation for HTML resources.
-class HTMLResourceContentExtractor: ResourceContentExtractor {
+final class HTMLResourceContentExtractor: ResourceContentExtractor {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
     func extractText(of resource: Resource) async -> ReadResult<String> {
