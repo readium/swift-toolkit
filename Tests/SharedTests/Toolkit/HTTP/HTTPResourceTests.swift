@@ -57,9 +57,9 @@ struct HTTPResourceTests {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)
 
-        client.fetchResults["GET \(url.string)"] = .success(.init(
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
             response: HTTPResponse(
-                request: HTTPRequest(url: url),
+                request: HTTPRequest(url: url, method: .head),
                 url: url,
                 status: .ok,
                 headers: ["Content-Length": "1024"],
@@ -82,16 +82,28 @@ struct HTTPResourceTests {
         let resource = HTTPResource(url: url, client: client)
 
         let response = HTTPErrorResponse(status: .methodNotAllowed)
+        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(response))
         client.fetchResults["GET \(url.string)"] = .failure(.errorResponse(response))
 
         let length = await resource.estimatedLength()
         try #expect(length.get() == nil)
-        #expect(client.fetchCount == 1)
+        #expect(client.fetchCount == 2)
     }
 
     @Test func streamWithRange() async throws {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: ["Content-Length": "100"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
 
         client.fetchResults["GET \(url.string)"] = try .success(.init(
             response: HTTPResponse(
