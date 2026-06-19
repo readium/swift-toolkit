@@ -27,9 +27,9 @@ public extension Result {
     }
 
     /// Asynchronous variant of `map`.
-    @inlinable func asyncMap<NewSuccess>(
+    @inlinable func asyncMap<NewSuccess: ~Copyable>(
         _ transform: @Sendable (Success) async throws -> NewSuccess
-    ) async rethrows -> Result<NewSuccess, Failure> where NewSuccess: ~Copyable {
+    ) async rethrows -> Result<NewSuccess, Failure> {
         switch self {
         case let .success(success):
             return try await .success(transform(success))
@@ -39,9 +39,9 @@ public extension Result {
     }
 
     /// Asynchronous variant of `flatMap`.
-    @inlinable func asyncFlatMap<NewSuccess>(
+    @inlinable func asyncFlatMap<NewSuccess: ~Copyable>(
         _ transform: @Sendable (Success) async throws -> Result<NewSuccess, Failure>
-    ) async rethrows -> Result<NewSuccess, Failure> where NewSuccess: ~Copyable {
+    ) async rethrows -> Result<NewSuccess, Failure> {
         switch self {
         case let .success(success):
             return try await transform(success)
@@ -69,9 +69,9 @@ public extension Result {
 }
 
 public extension Result where Failure == Error {
-    func tryMap<NewSuccess>(
+    func tryMap<NewSuccess: ~Copyable>(
         _ transform: (Success) throws -> NewSuccess
-    ) -> Result<NewSuccess, Error> where NewSuccess: ~Copyable {
+    ) -> Result<NewSuccess, Error> {
         flatMap {
             do {
                 return try .success(transform($0))

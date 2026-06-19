@@ -62,7 +62,7 @@ public final class Publication: @unchecked Sendable, Closeable, Loggable {
         )
         manifest.links.append(contentsOf: services.flatMap(\.links))
 
-        self._manifest = Mutex(manifest)
+        _manifest = Mutex(manifest)
         self.container = container
         self.services = services
 
