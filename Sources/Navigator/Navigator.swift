@@ -9,6 +9,7 @@ import ReadiumInternal
 import ReadiumShared
 import SafariServices
 
+@MainActor
 public protocol Navigator: AnyObject {
     /// Publication being rendered.
     var publication: Publication { get }
