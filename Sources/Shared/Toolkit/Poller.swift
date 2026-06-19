@@ -33,13 +33,23 @@ private final class Poller: Sendable {
     private func poll() {
         guard condition() else {
             Task { @MainActor in
-                try? await Task.sleep(nanoseconds: UInt64(pollingInterval * 1_000_000_000))
+                let interval = max(0, pollingInterval)
+                if interval > 0 {
+                    do {
+                        try await Task.sleep(seconds: interval)
+                    } catch {
+                        isPolling = false
+                        return
+                    }
+                } else {
+                    await Task.yield()
+                }
                 self.poll()
             }
             return
         }
         Task { @MainActor in
-            isPolling = false
+            defer { isPolling = false }
             await block()
         }
     }

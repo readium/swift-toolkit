@@ -89,7 +89,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     public private(set) var state: State = .stopped {
         didSet {
             if oldValue.isPlaying != state.isPlaying {
-                AudioSession.shared.user(audioSessionUser, didChangePlaying: state.isPlaying)
+                audioSessionUser.didChangePlaying(state.isPlaying)
             }
 
             delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
@@ -180,7 +180,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
-        audioSessionUser.token = AudioSession.shared.start(with: audioSessionUser, isPlaying: false)
+        audioSessionUser.start(isPlaying: false)
 
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
@@ -415,7 +415,8 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     private final class AudioSessionUser: ReadiumShared.AudioSessionUser {
         let audioConfiguration: AudioSession.Configuration
-        var token: AudioSession.UserToken?
+
+        private var token: AudioSession.UserToken?
 
         init(config: AudioSession.Configuration) {
             audioConfiguration = config
@@ -428,6 +429,14 @@ public final class PublicationSpeechSynthesizer: Loggable {
         }
 
         func play() {}
+
+        func start(isPlaying: Bool) {
+            token = AudioSession.shared.start(with: self, isPlaying: isPlaying)
+        }
+
+        func didChangePlaying(_ isPlaying: Bool) {
+            AudioSession.shared.user(self, didChangePlaying: isPlaying)
+        }
     }
 }
 

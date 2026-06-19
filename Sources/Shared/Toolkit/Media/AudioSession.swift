@@ -91,7 +91,7 @@ public final class AudioSession: Loggable, Sendable {
             end(forUserID: oldUser.id)
         }
         self.user = User(user)
-        self.isPlaying = false
+        self.isPlaying = isPlaying
 
         startSession(with: user.audioConfiguration)
         return token

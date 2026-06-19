@@ -26,8 +26,12 @@ public func throttle(
         state.isThrottling = true
 
         Task { @MainActor in
-            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
-            state.isThrottling = false
+            defer { state.isThrottling = false }
+            do {
+                try await Task.sleep(seconds: max(0, duration))
+            } catch {
+                return
+            }
             block()
         }
     }

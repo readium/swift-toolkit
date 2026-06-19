@@ -361,6 +361,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         let linkDuration = publication.readingOrder[resourceIndex].duration
         let currentItem = player.currentItem
 
+        // A deadlock can occur when loading HTTP assets and creating the
+        // playback info from the main thread. To fix this, this is an
+        // asynchronous operation.
         Task.detached {
             var duration: Double? = linkDuration
             if let itemDuration = currentItem?.duration, itemDuration.isNumeric {
@@ -561,7 +564,7 @@ private extension CMTime {
     }
 }
 
-private final class TimeObserverToken: @unchecked Sendable {
+private final class TimeObserverToken {
     private let player: AVPlayer
     private let observer: Any
 
@@ -571,8 +574,6 @@ private final class TimeObserverToken: @unchecked Sendable {
     }
 
     deinit {
-        let obs = observer
-        let p = player
-        p.removeTimeObserver(obs)
+        player.removeTimeObserver(observer)
     }
 }
