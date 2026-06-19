@@ -122,4 +122,64 @@ struct HTTPResourceTests {
         try result.get()
         #expect(streamedData.value == "0123456789".data(using: .utf8))
     }
+
+    @Test func estimatedLengthFromContentRange() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .partialContent,
+                headers: ["Content-Range": "bytes 0-1/1000"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let length = await resource.estimatedLength()
+        try #expect(length.get() == 1000)
+    }
+
+    @Test func estimatedLengthUnknownWhenContentRangeSizeIsWildcard() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .partialContent,
+                headers: [
+                    "Content-Range": "bytes 0-1/*",
+                    "Content-Length": "2",
+                ],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let length = await resource.estimatedLength()
+        try #expect(length.get() == nil)
+    }
+
+    @Test func estimatedLengthFromContentLength() async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: ["Content-Length": "2048"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
+
+        let length = await resource.estimatedLength()
+        try #expect(length.get() == 2048)
+    }
 }

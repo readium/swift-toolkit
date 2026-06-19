@@ -34,8 +34,8 @@ public actor HTTPResource: Resource {
     }
 
     public func estimatedLength() async -> ReadResult<UInt64?> {
-        await headResponse().flatMap {
-            if let length = $0?.fullContentLength {
+        await headResponse().flatMap { response in
+            if let length = response?.resourceLength {
                 return .success(UInt64(length))
             } else {
                 return .success(nil)
