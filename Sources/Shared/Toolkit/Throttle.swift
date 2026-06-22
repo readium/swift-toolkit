@@ -6,8 +6,6 @@
 
 import Foundation
 
-// A collection of tools to manage the Flow of Control.
-
 @MainActor
 private final class ThrottlerState: Sendable {
     var isThrottling = false
