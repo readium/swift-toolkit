@@ -9,7 +9,7 @@ import Foundation
 import ReadiumInternal
 
 /// Shared model for a Readium Publication.
-public final class Publication: @unchecked Sendable, Closeable, Loggable {
+public final class Publication: Sendable, Closeable, Loggable {
     private let container: Container
     private let services: [PublicationService]
 
