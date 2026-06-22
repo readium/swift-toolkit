@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * ZIP entry names stored with a leading slash (e.g. `/001.jpg`, found in some CBZ comics) are now normalized to relative paths. Previously such entries resolved as absolute-path references against the base URL, causing them to fail.
 
+#### Navigator
+
+* Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections. On iOS 16+ they are now inserted via `UIMenuBuilder` in `buildMenu(with:)`, which is consulted synchronously, instead of the asynchronously-populated `UIMenuController.shared.menuItems` (still used on iOS 15).
+
 
 ## [3.9.0] - 2026-05-12
 
