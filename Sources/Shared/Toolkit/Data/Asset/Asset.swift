@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol AssetProtocol: Closeable {
+public protocol AssetProtocol: Sendable, Closeable {
     /// Format of the asset.
     var format: Format { get }
 }
