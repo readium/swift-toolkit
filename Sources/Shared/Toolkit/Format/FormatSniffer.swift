@@ -6,12 +6,12 @@
 
 import Foundation
 
-public protocol HintsFormatSniffer {
+public protocol HintsFormatSniffer: Sendable {
     /// Tries to guess a `Format` from media type and file extension hints.
     func sniffHints(_ hints: FormatHints) -> Format?
 }
 
-public protocol ContentFormatSniffer {
+public protocol ContentFormatSniffer: Sendable {
     /// Tries to refine the given `format` by sniffing a `blob`.
     func sniffBlob(_ blob: FormatSnifferBlob, refining format: Format) async -> ReadResult<Format?>
 
