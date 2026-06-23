@@ -11,7 +11,7 @@ import ReadiumShared
 private let lcpScheme = "http://readium.org/2014/01/lcp"
 
 /// Decrypts a resource protected with LCP.
-final class LCPDecryptor {
+final class LCPDecryptor: Sendable {
     enum Error: Swift.Error {
         case emptyDecryptedData
         case invalidCBCData
