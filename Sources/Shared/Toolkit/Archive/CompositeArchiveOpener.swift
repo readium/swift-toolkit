@@ -8,7 +8,7 @@ import Foundation
 
 /// A composite ``ArchiveOpener`` which tries several factories until it finds
 /// one which supports the format.
-public class CompositeArchiveOpener: ArchiveOpener {
+public final class CompositeArchiveOpener: ArchiveOpener {
     private let archiveOpeners: [ArchiveOpener]
 
     public init(_ archiveOpeners: [ArchiveOpener]) {
