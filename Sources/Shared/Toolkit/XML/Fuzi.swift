@@ -7,7 +7,7 @@
 import Foundation
 @preconcurrency import ReadiumFuzi
 
-final class FuziXMLDocument: XMLDocument, Loggable, Sendable {
+final class FuziXMLDocument: XMLDocument, Loggable {
     enum ParseError: Error {
         case notAnXML
     }
@@ -50,7 +50,7 @@ final class FuziXMLDocument: XMLDocument, Loggable, Sendable {
     }
 }
 
-final class FuziXMLElement: XMLElement, Loggable, Sendable {
+final class FuziXMLElement: XMLElement, Loggable {
     fileprivate let document: ReadiumFuzi.XMLDocument
     fileprivate let element: ReadiumFuzi.XMLElement
 
