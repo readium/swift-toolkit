@@ -103,11 +103,7 @@ private struct ElementEntry {
 }
 
 private actor Iterator: SearchIterator, Loggable {
-    private let _resultCount = Mutex<Int?>(0)
-
-    nonisolated var resultCount: Int? {
-        _resultCount.withLock { $0 }
-    }
+    private(set) var resultCount: Int? = 0
 
     private let contentIterator: ContentIterator
     private let snippetLength: Int
@@ -264,7 +260,7 @@ private actor Iterator: SearchIterator, Loggable {
         await pendingLocators.append(contentsOf: search())
         trimFront()
 
-        _resultCount.withLock { $0 = ($0 ?? 0) + batch.count }
+        resultCount = (resultCount ?? 0) + batch.count
         return .success(LocatorCollection(locators: batch))
     }
 
@@ -274,7 +270,7 @@ private actor Iterator: SearchIterator, Loggable {
         guard !pendingLocators.isEmpty else { return .success(nil) }
         let batch = pendingLocators
         pendingLocators = []
-        _resultCount.withLock { $0 = ($0 ?? 0) + batch.count }
+        resultCount = (resultCount ?? 0) + batch.count
         return .success(LocatorCollection(locators: batch))
     }
 

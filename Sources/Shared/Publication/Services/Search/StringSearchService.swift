@@ -69,11 +69,7 @@ public final class StringSearchService: SearchService, Sendable {
     }
 
     private final actor Iterator: SearchIterator, Loggable {
-        private let _resultCount = Mutex<Int?>(0)
-        nonisolated var resultCount: Int? {
-            get { _resultCount.withLock { $0 } }
-            set { _resultCount.withLock { $0 = newValue } }
-        }
+        private(set) var resultCount: Int? = 0
 
         private let publication: Publication
         private let language: Language?

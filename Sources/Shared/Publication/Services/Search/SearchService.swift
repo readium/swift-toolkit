@@ -29,7 +29,7 @@ public protocol SearchIterator: AnyObject, Sendable, Closeable {
     /// publication.
     ///
     /// The count might be updated after each call to `next()`.
-    var resultCount: Int? { get }
+    var resultCount: Int? { get async }
 
     /// Retrieves the next page of results.
     ///
