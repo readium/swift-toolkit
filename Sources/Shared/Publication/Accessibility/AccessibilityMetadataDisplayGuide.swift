@@ -997,7 +997,7 @@ public struct AccessibilityDisplayStatement: Equatable, Sendable, Identifiable {
 /// Localized display string.
 ///
 /// See https://w3c.github.io/publ-a11y/a11y-meta-display-guide/2.0/draft/localizations/
-public struct AccessibilityDisplayString: RawRepresentable, ExpressibleByStringLiteral, Hashable, Sendable {
+public struct AccessibilityDisplayString: Hashable, Sendable, RawRepresentable, ExpressibleByStringLiteral {
     /// Special key for the provided summary, which is not localized.
     static let accessibilitySummary: Self = "readium.a11y.accessibility-summary"
 
