@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Locator service for audio publications.
-final class AudioLocatorService: DefaultLocatorService {
+final class AudioLocatorService: LocatorService {
     static func makeFactory() -> @Sendable (PublicationServiceContext) -> AudioLocatorService {
         { context in
             AudioLocatorService(
@@ -26,37 +26,48 @@ final class AudioLocatorService: DefaultLocatorService {
     /// Total duration of the publication.
     private let totalDuration: Double?
 
+    private let locatorService: DefaultLocatorService
+
     init(readingOrder: [Link], publication: Weak<Publication>) {
         self.readingOrder = readingOrder
         let durations = readingOrder.map { $0.duration ?? 0 }
         self.durations = durations
         let total = durations.reduce(0, +)
         totalDuration = (total > 0) ? total : nil
-
-        super.init(publication: publication)
+        self.locatorService = DefaultLocatorService(publication: publication)
     }
 
-    /// Finds the reading order item containing the time `position` (in seconds), as well as its
-    /// start time.
-    private func readingOrderItemAtPosition(_ position: Double) -> (link: Link, startPosition: Double)? {
-        var current: Double = 0
-        for (i, duration) in durations.enumerated() {
-            let link = readingOrder[i]
-            if current ..< current + duration ~= position {
-                return (link, startPosition: current)
-            }
-
-            current += duration
+    func locate(_ locator: Locator) async -> Locator? {
+        guard let publication = locatorService.publication() else {
+            return nil
         }
 
-        if position == totalDuration, let link = readingOrder.last {
-            return (link, startPosition: current - (link.duration ?? 0))
+        if publication.linkWithHREF(locator.href) != nil {
+            return locator
+        }
+
+        // Routes the `totalProgression` fallback through this service's audio
+        // `locate(progression:)`, which is duration-based. Delegating to
+        // `locatorService.locate(locator)` would instead use the default
+        // positions-based progression and lose the audio behavior.
+        if
+            let totalProgression = locator.locations.totalProgression,
+            let target = await locate(progression: totalProgression)
+        {
+            return target.copy(
+                title: locator.title,
+                text: { $0 = locator.text }
+            )
         }
 
         return nil
     }
 
-    override func locate(progression: Double) async -> Locator? {
+    func locate(_ link: Link) async -> Locator? {
+        await locatorService.locate(link)
+    }
+
+    func locate(progression: Double) async -> Locator? {
         guard let totalDuration = totalDuration else {
             return nil
         }
@@ -83,5 +94,25 @@ final class AudioLocatorService: DefaultLocatorService {
                 totalProgression: progression
             )
         )
+    }
+
+    /// Finds the reading order item containing the time `position` (in seconds), as well as its
+    /// start time.
+    private func readingOrderItemAtPosition(_ position: Double) -> (link: Link, startPosition: Double)? {
+        var current: Double = 0
+        for (i, duration) in durations.enumerated() {
+            let link = readingOrder[i]
+            if current ..< current + duration ~= position {
+                return (link, startPosition: current)
+            }
+
+            current += duration
+        }
+
+        if position == totalDuration, let link = readingOrder.last {
+            return (link, startPosition: current - (link.duration ?? 0))
+        }
+
+        return nil
     }
 }
