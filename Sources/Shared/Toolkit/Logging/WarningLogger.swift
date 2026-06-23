@@ -67,11 +67,15 @@ extension WarningLogger {
 /// Implementation of a `WarningLogger` which accumulates the warnings in a list, to be used as a
 /// convenience by reading apps.
 public final class ListWarningLogger: WarningLogger {
+    private let _warnings = Mutex<[Warning]>([])
+
     /// The list of accumulated `Warning`s.
-    let warnings: Mutex<[Warning]> = .init([])
+    var warnings: [Warning] {
+        _warnings.withLock { $0 }
+    }
 
     public func log(_ warning: Warning) {
-        warnings.withLock({ $0.append(warning) })
+        _warnings.withLock({ $0.append(warning) })
     }
 }
 
