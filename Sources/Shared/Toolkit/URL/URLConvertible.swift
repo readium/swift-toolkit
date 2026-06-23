@@ -7,7 +7,7 @@
 import Foundation
 
 /// A type that can be converted into an ``AnyURL``.
-public protocol URLConvertible {
+public protocol URLConvertible: Sendable {
     /// Converts the receiver to an ``AnyURL``.
     var anyURL: AnyURL { get }
 }
