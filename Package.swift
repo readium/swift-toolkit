@@ -30,7 +30,7 @@ let package = Package(
         .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/ZIPFoundation.git", from: "3.0.1"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.13.5"),
-        .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.16.0"),
+        .package(url: "https://github.com/stephencelis/SQLite.swift.git", exact: "0.16.0"),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.5.0"),
     ],
     targets: [
