@@ -68,7 +68,7 @@ public final class StringSearchService: SearchService, Sendable {
         ))
     }
 
-    private final actor Iterator: SearchIterator, Loggable {
+    private actor Iterator: SearchIterator, Loggable {
         private(set) var resultCount: Int? = 0
 
         private let publication: Publication

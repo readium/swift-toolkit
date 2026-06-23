@@ -18,7 +18,7 @@ import SwiftSoup
 ///
 /// Locators will contain a `before` context of up to `beforeMaxLength`
 /// characters.
-public final actor HTMLResourceContentIterator: ContentIterator {
+public actor HTMLResourceContentIterator: ContentIterator {
     /// Factory for an `HTMLResourceContentIterator`.
     public final class Factory: ResourceContentIteratorFactory, Sendable {
         public init() {}

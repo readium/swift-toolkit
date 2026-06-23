@@ -21,7 +21,7 @@ public protocol ResourceContentIteratorFactory: Sendable {
 
 /// A composite [Content.Iterator] which iterates through a whole [publication] and delegates the
 /// iteration inside a given resource to media type-specific iterators.
-public final actor PublicationContentIterator: ContentIterator, Loggable {
+public actor PublicationContentIterator: ContentIterator, Loggable {
     /// `ContentIterator` for a resource, associated with its index in the reading order.
     private typealias IndexedIterator = (index: Int, iterator: ContentIterator)
 

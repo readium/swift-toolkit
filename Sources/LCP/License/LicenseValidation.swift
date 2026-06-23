@@ -42,7 +42,7 @@ struct ValidatedDocuments {
 ///
 /// Use `validate` to start the validation of a Document.
 /// Use `observe` to be notified when any validation is done or if an error occurs.
-final actor LicenseValidation: Loggable {
+actor LicenseValidation: Loggable {
     // Dependencies for the State's handlers
     fileprivate let isProduction: Bool
     fileprivate let client: LCPClient

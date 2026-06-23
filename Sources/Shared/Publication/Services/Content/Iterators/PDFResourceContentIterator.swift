@@ -24,7 +24,7 @@ public enum PDFResourceContentIteratorError: Error, Sendable {
 ///
 /// This ``ContentIterator`` requires the ``Publication`` to have a
 /// ``PDFDocumentService``.
-public final actor PDFResourceContentIterator: ContentIterator, Loggable {
+public actor PDFResourceContentIterator: ContentIterator, Loggable {
     /// Factory for a `PDFResourceContentIterator`.
     public final class Factory: ResourceContentIteratorFactory {
         public init() {}
