@@ -108,7 +108,7 @@ class BufferingResourceTests: XCTestCase {
         BufferingResource(resource: resource, bufferSize: bufferSize)
     }
 
-    func testRead(_ sut: BufferingResource, range: Range<UInt64>? = nil, file: StaticString = #file, line: UInt = #line) async throws {
+    func testRead(_ sut: BufferingResource, range: Range<UInt64>? = nil, file: StaticString = #filePath, line: UInt = #line) async throws {
         let res = await sut.read(range: range)
         let expected = await resource.read(range: range)
         XCTAssertEqual(res, expected, file: file, line: line)

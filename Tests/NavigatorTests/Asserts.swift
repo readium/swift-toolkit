@@ -6,6 +6,6 @@
 
 import XCTest
 
-func AssertImageEqual(_ image1: UIImage?, _ image2: UIImage?, file: StaticString = #file, line: UInt = #line) {
+func AssertImageEqual(_ image1: UIImage?, _ image2: UIImage?, file: StaticString = #filePath, line: UInt = #line) {
     XCTAssertEqual(image1?.pngData(), image2?.pngData(), file: file, line: line)
 }
