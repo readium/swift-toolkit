@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Navigator
 
-* Fixed EPUB footnotes never being detected when tapped, which prevented `EPUBNavigatorDelegate.navigator(_:shouldNavigateToNoteAt:content:referrer:)` from being called and made footnote references navigate to the note's location instead of being handled by the host. The note resource is now read through the publication's asynchronous resource API rather than a synchronous `String(contentsOf:)`, which could not read the `readium://` scheme the navigator serves resources on.
+* Fixed EPUB footnotes never being detected when tapped, which prevented `EPUBNavigatorDelegate.navigator(_:shouldNavigateToNoteAt:content:referrer:)` from being called and made footnote references navigate to the note's location instead of being handled by the host (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/821)).
 
 
 ## [3.9.0] - 2026-05-12
