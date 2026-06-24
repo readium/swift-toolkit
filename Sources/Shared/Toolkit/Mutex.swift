@@ -25,12 +25,12 @@ import os
 /// ```
 @available(iOS, introduced: 15, deprecated: 18, message: "Use Mutex from the Synchronization module instead")
 @frozen
-public struct Mutex<Value: ~Copyable>: ~Copyable, @unchecked Sendable {
+public struct Mutex<Value: ~Copyable>: ~Copyable, Sendable {
     /// Single heap allocation holds both the lock and the value together.
     /// os_unfair_lock must never move after first use — the class guarantees a
     /// stable address for the lifetime of the Mutex.
     @usableFromInline
-    final class Storage: @unchecked Sendable {
+    final class Storage: Sendable {
         nonisolated(unsafe) var lock = os_unfair_lock()
         nonisolated(unsafe) var value: Value
 
