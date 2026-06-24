@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * ZIP entry names stored with a leading slash (e.g. `/001.jpg`, found in some CBZ comics) are now normalized to relative paths. Previously such entries resolved as absolute-path references against the base URL, causing them to fail.
 
+#### Navigator
+
+* Fixed EPUB footnotes never being detected when tapped, which prevented `EPUBNavigatorDelegate.navigator(_:shouldNavigateToNoteAt:content:referrer:)` from being called and made footnote references navigate to the note's location instead of being handled by the host (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/821)).
+
 
 ## [3.9.0] - 2026-05-12
 
