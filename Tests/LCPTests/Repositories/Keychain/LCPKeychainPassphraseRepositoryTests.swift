@@ -6,9 +6,10 @@
 
 import Foundation
 @testable import ReadiumLCP
-import ReadiumShared
+@testable import ReadiumShared
 import Testing
 
+@Suite(.serialized)
 struct LCPKeychainPassphraseRepositoryTests {
     let repository: LCPKeychainPassphraseRepository
 

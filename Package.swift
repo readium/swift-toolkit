@@ -176,6 +176,7 @@ let swift6EnabledTargets: Set<String> = [
     "ReadiumStreamer",
     "ReadiumStreamerTests",
     "ReadiumLCP",
+    "ReadiumLCPTests",
 ]
 
 for target in package.targets {
