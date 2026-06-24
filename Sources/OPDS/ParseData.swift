@@ -15,9 +15,9 @@ public enum Version: Sendable {
     case OPDS2
 }
 
-/// An intermediate structure return when the generic helper method public static
-/// func parseURL(url: URL, completion: (ParseData?, Error?) -> Void) from OPDSParser class is called.
-public struct ParseData {
+/// An intermediate structure returned by the generic helper method
+/// `OPDSParser.parseURL(url:)`.
+public struct ParseData: Sendable {
     /// The ressource URL
     public var url: URL
 
