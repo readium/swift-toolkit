@@ -18,6 +18,7 @@ final class AudioLocatorService: LocatorService {
         }
     }
 
+    private let publication: Weak<Publication>
     private let readingOrder: [Link]
 
     /// Duration per reading order index.
@@ -29,6 +30,7 @@ final class AudioLocatorService: LocatorService {
     private let locatorService: DefaultLocatorService
 
     init(readingOrder: [Link], publication: Weak<Publication>) {
+        self.publication = publication
         self.readingOrder = readingOrder
         let durations = readingOrder.map { $0.duration ?? 0 }
         self.durations = durations
@@ -38,7 +40,7 @@ final class AudioLocatorService: LocatorService {
     }
 
     func locate(_ locator: Locator) async -> Locator? {
-        guard let publication = locatorService.publication() else {
+        guard let publication = publication() else {
             return nil
         }
 
