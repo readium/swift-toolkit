@@ -17,20 +17,14 @@ let package = Package(
         .library(name: "ReadiumNavigator", targets: ["ReadiumNavigator"]),
         .library(name: "ReadiumOPDS", targets: ["ReadiumOPDS"]),
         .library(name: "ReadiumLCP", targets: ["ReadiumLCP"]),
-
-        // Adapters to third-party dependencies.
-        .library(name: "ReadiumAdapterGCDWebServer", targets: ["ReadiumAdapterGCDWebServer"]),
-        .library(name: "ReadiumAdapterLCPSQLite", targets: ["ReadiumAdapterLCPSQLite"]),
     ],
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.10.0"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2"),
         .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
         .package(url: "https://github.com/readium/Fuzi.git", from: "4.0.0"),
-        .package(url: "https://github.com/readium/GCDWebServer.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/ZIPFoundation.git", from: "3.0.1"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.13.5"),
-        .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.16.0"),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.5.0"),
     ],
     targets: [
@@ -153,24 +147,6 @@ let package = Package(
         //     ],
         //     path: "Tests/LCPTests"
         // ),
-
-        .target(
-            name: "ReadiumAdapterGCDWebServer",
-            dependencies: [
-                .product(name: "ReadiumGCDWebServer", package: "GCDWebServer"),
-                "ReadiumShared",
-            ],
-            path: "Sources/Adapters/GCDWebServer"
-        ),
-
-        .target(
-            name: "ReadiumAdapterLCPSQLite",
-            dependencies: [
-                .product(name: "SQLite", package: "SQLite.swift"),
-                "ReadiumLCP",
-            ],
-            path: "Sources/Adapters/LCPSQLite"
-        ),
 
         .target(
             name: "ReadiumInternal",

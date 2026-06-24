@@ -66,18 +66,4 @@ public struct NavigatorViewport: Equatable, Sendable {
             self.progression = progression
         }
     }
-
-    // MARK: - Deprecated
-
-    /// Visible reading order resource HREFs.
-    @available(*, deprecated, message: "Use resources instead")
-    public var readingOrder: [AnyURL] {
-        resources.map(\.href)
-    }
-
-    /// Range of visible scroll progressions for each visible reading order resource.
-    @available(*, deprecated, message: "Use resources instead")
-    public var progressions: [AnyURL: ClosedRange<Double>] {
-        Dictionary(resources.map { ($0.href, $0.progression) }, uniquingKeysWith: { $1 })
-    }
 }

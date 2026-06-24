@@ -13,9 +13,6 @@ import Foundation
 /// This takes into account the reading progression of the navigator to turn
 /// pages in the right direction.
 @MainActor public final class DirectionalNavigationAdapter {
-    @available(*, deprecated, renamed: "Edges")
-    public typealias TapEdges = Edges
-
     /// Indicates which viewport edges trigger page turns on pointer activation.
     public struct Edges: OptionSet, Sendable {
         /// The user can turn pages when tapping on the edges of both the
@@ -114,9 +111,6 @@ import Foundation
 
     private var observerTokens: Set<InputObservableToken> = []
     private weak var boundNavigator: (any VisualNavigator)?
-
-    @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
-    private weak var navigator: VisualNavigator?
 
     /// Initializes a new `DirectionalNavigationAdapter`.
     ///
@@ -273,49 +267,5 @@ import Foundation
         onNavigation()
         let options = NavigatorGoOptions(animated: animatedTransition)
         return await action(options)
-    }
-
-    @available(*, deprecated, message: "Use the new initializer without the navigator parameter and call `bind(to:)`. See the migration guide.")
-    public init(
-        navigator: VisualNavigator,
-        tapEdges: Edges = .horizontal,
-        handleTapsWhileScrolling: Bool = false,
-        minimumHorizontalEdgeSize: Double = 80.0,
-        horizontalEdgeThresholdPercent: Double? = 0.3,
-        minimumVerticalEdgeSize: Double = 80.0,
-        verticalEdgeThresholdPercent: Double? = 0.3,
-        animatedTransition: Bool = false
-    ) {
-        self.navigator = navigator
-        pointerPolicy = PointerPolicy(
-            types: [.touch, .mouse],
-            edges: tapEdges,
-            ignoreWhileScrolling: !handleTapsWhileScrolling,
-            minimumHorizontalEdgeSize: minimumHorizontalEdgeSize,
-            horizontalEdgeThresholdPercent: horizontalEdgeThresholdPercent,
-            minimumVerticalEdgeSize: minimumVerticalEdgeSize,
-            verticalEdgeThresholdPercent: verticalEdgeThresholdPercent
-        )
-        keyboardPolicy = KeyboardPolicy()
-        self.animatedTransition = animatedTransition
-        onNavigation = {}
-    }
-
-    @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
-    @discardableResult
-    public func didTap(at point: CGPoint) async -> Bool {
-        guard let navigator = navigator else {
-            return false
-        }
-        return await onTap(at: point, in: navigator)
-    }
-
-    @available(*, deprecated, message: "Use `bind(to:)` instead of notifying the event yourself. See the migration guide.")
-    @discardableResult
-    public func didPressKey(event: KeyEvent) async -> Bool {
-        guard let navigator = navigator else {
-            return false
-        }
-        return await onKey(event, in: navigator)
     }
 }

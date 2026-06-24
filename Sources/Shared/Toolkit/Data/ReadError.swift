@@ -139,15 +139,4 @@ public enum AccessError: Error, Sendable {
 
     /// For extension purposes. This is not used in the Readium toolkit.
     case other(Error)
-
-    /// Wraps a native error into an `AccessError`, if possible.
-    ///
-    /// Returns `nil` if the error cannot be mapped to a known `AccessError`.
-    @available(*, deprecated, message: "Use ReadError.wrap() instead")
-    public static func wrap(_ error: Error) -> AccessError? {
-        guard case let .access(error) = ReadError.wrap(error) else {
-            return nil
-        }
-        return error
-    }
 }

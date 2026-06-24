@@ -35,11 +35,6 @@ public actor BufferingResource: Resource, Loggable {
         buffer = Buffer(maxSize: bufferSize)
     }
 
-    @available(*, deprecated, message: "Use an Int bufferSize instead.")
-    public init(resource: Resource, bufferSize: UInt64) {
-        self.init(resource: resource, bufferSize: Int(bufferSize))
-    }
-
     public nonisolated var sourceURL: AbsoluteURL? {
         resource.sourceURL
     }
@@ -163,10 +158,5 @@ public extension Resource {
     /// performances.
     func buffered(size: Int) -> BufferingResource {
         BufferingResource(resource: self, bufferSize: size)
-    }
-
-    @available(*, deprecated, message: "Use an Int bufferSize instead.")
-    func buffered(size: UInt64) -> BufferingResource {
-        buffered(size: Int(size))
     }
 }

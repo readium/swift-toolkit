@@ -37,11 +37,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// Returned when calling evaluateJavaScript() before a resource is
         /// loaded.
         case spreadNotLoaded
-
-        /// Failed to serve the publication or assets with the provided HTTP
-        /// server.
-        @available(*, deprecated, message: "The HTTP server is no longer needed for the EPUB navigator.")
-        case serverFailure(Error)
     }
 
     public struct Configuration {
@@ -143,9 +138,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             }
         }
     }
-
-    @available(*, deprecated, renamed: "NavigatorViewport")
-    public typealias Viewport = NavigatorViewport
 
     /// Navigation state.
     private enum State: Equatable {
@@ -304,23 +296,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             // positions list is empty, and also not compute the
             // totalProgression when calculating the current locator.
             (readingOrder != nil) ? { .success([]) } : publication.positionsByReadingOrder
-        )
-    }
-
-    /// Creates a new instance of `EPUBNavigatorViewController`.
-    @available(*, deprecated, message: "The HTTP server is no longer needed for the EPUB navigator.")
-    public convenience init(
-        publication: Publication,
-        initialLocation: Locator?,
-        readingOrder: [Link]? = nil,
-        config: Configuration = .init(),
-        httpServer: HTTPServer
-    ) throws {
-        try self.init(
-            publication: publication,
-            initialLocation: initialLocation,
-            readingOrder: readingOrder,
-            config: config
         )
     }
 

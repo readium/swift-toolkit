@@ -125,27 +125,4 @@ let modules: [ModuleSpec] = [
             .pod("CryptoSwift", "~> 1.10.0"),
         ]
     ),
-    ModuleSpec(
-        name: "ReadiumAdapterGCDWebServer",
-        sourcePath: "Sources/Adapters/GCDWebServer",
-        summary: "Adapter to use GCDWebServer as an HTTP server in Readium",
-        xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
-        dependencies: [
-            .readium("ReadiumInternal"),
-            .readium("ReadiumShared"),
-            .pod("ReadiumGCDWebServer", "~> 4.0.0"),
-        ]
-    ),
-    ModuleSpec(
-        name: "ReadiumAdapterLCPSQLite",
-        sourcePath: "Sources/Adapters/LCPSQLite",
-        summary: "Adapter to use SQLite.swift for the Readium LCP repositories",
-        xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
-        dependencies: [
-            .readium("ReadiumInternal"),
-            .readium("ReadiumShared"),
-            .readium("ReadiumLCP"),
-            .pod("SQLite.swift", "~> 0.16.0"),
-        ]
-    ),
 ]

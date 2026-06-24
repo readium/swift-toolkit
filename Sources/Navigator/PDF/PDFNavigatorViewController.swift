@@ -106,17 +106,6 @@ open class PDFNavigatorViewController:
         editingActions.delegate = self
     }
 
-    @available(*, deprecated, message: "The httpServer is not needed anymore.")
-    public convenience init(
-        publication: Publication,
-        initialLocation: Locator?,
-        config: Configuration = .init(),
-        delegate: PDFNavigatorDelegate? = nil,
-        httpServer: HTTPServer?
-    ) throws {
-        try self.init(publication: publication, initialLocation: initialLocation, config: config, delegate: delegate)
-    }
-
     @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

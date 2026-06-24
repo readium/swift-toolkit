@@ -39,8 +39,7 @@ public final class PDFKitPDFDocumentFactory: PDFDocumentFactory {
         }
 
         // Unfortunately, PDFKit doesn't support streams, so we need to load the
-        // full document in memory. If this is an issue for you, use
-        // `CGPDFDocumentFactory` instead.
+        // full document in memory.
         //
         // We read chunk by chunk and monitor available memory to avoid OOM
         // crashes.

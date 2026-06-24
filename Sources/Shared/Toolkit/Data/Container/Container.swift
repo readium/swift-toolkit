@@ -7,7 +7,7 @@
 import Foundation
 
 /// A container provides access to a list of `Resource` entries.
-public protocol Container: Closeable, Sendable {
+public protocol Container: Sendable {
     /// URL locating this container, when available.
     ///
     /// This can be used to optimize access to a container's content for the

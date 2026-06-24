@@ -1050,17 +1050,3 @@ private extension Array where Element == AccessibilityDisplayStatement {
         append(AccessibilityDisplayStatement(string: string))
     }
 }
-
-// MARK: - Deprecated Aliases
-
-public extension AccessibilityDisplayString {
-    @available(*, deprecated, renamed: "richContentExtendedDescriptions")
-    static var richContentExtended: Self {
-        richContentExtendedDescriptions
-    }
-
-    @available(*, deprecated, renamed: "richContentMathAsMathml")
-    static var richContentAccessibleMathAsMathml: Self {
-        richContentMathAsMathml
-    }
-}

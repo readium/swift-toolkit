@@ -9,7 +9,7 @@ import Foundation
 import ReadiumInternal
 
 /// Shared model for a Readium Publication.
-public final class Publication: Sendable, Closeable, Loggable {
+public final class Publication: Sendable, Loggable {
     public let manifest: Manifest
     private let container: Container
     private let services: [PublicationService]

@@ -2,7 +2,7 @@
 # =============================================================================
 # release-publish-podspecs.sh [--start INDEX]
 # =============================================================================
-# Push all 8 podspecs to the Readium CocoaPods repo in dependency-safe order,
+# Push all podspecs to the Readium CocoaPods repo in dependency-safe order,
 # with interactive retry on failure.
 #
 # --start INDEX - Resume the sequence from INDEX (0-based). Useful when a
@@ -21,8 +21,6 @@ PODSPECS=(
     "ReadiumNavigator"
     "ReadiumOPDS"
     "ReadiumLCP"
-    "ReadiumAdapterGCDWebServer"
-    "ReadiumAdapterLCPSQLite"
 )
 
 # Argument parsing

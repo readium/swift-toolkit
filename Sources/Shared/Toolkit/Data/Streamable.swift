@@ -7,7 +7,7 @@
 import Foundation
 
 /// Acts as a proxy to an actual data source by handling read access.
-public protocol Streamable: Sendable, Closeable {
+public protocol Streamable: Sendable {
     /// Returns data length from metadata if available.
     ///
     /// This value must be treated as a hint, as it might not reflect the
@@ -61,7 +61,7 @@ public extension Streamable {
     }
 
     /// Reads the whole content as a `String`.
-    @available(*, deprecated, message: "Use `read().asString()` instead")
+    @available(*, unavailable, message: "Use `read().asString()` instead")
     func readAsString(encoding: String.Encoding = .utf8) async -> ReadResult<String> {
         await read().flatMap {
             guard let string = String(data: $0, encoding: encoding) else {
@@ -72,7 +72,7 @@ public extension Streamable {
     }
 
     /// Reads the whole content as a JSON value.
-    @available(*, deprecated, message: "Use `read().asJSON()` instead")
+    @available(*, unavailable, message: "Use `read().asJSON()` instead")
     func readAsJSON<T: Any>(options: JSONSerialization.ReadingOptions = []) async -> ReadResult<T> {
         await read().flatMap {
             do {
@@ -87,7 +87,7 @@ public extension Streamable {
     }
 
     /// Reads the whole content as a JSON object.
-    @available(*, deprecated, message: "Use `read().asJSONObject()` instead")
+    @available(*, unavailable, message: "Use `read().asJSONObject()` instead")
     func readAsJSONObject(options: JSONSerialization.ReadingOptions = []) async -> ReadResult<[String: Any]> {
         await readAsJSON()
     }

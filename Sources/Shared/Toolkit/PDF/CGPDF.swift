@@ -7,16 +7,8 @@
 import Foundation
 import UIKit
 
-/// Extends Core Graphics's `CGPDFDocument` to conform to `PDFDocument`.
-///
-/// Compared to using PDFKit, Core Graphics offers several advantages:
-///  - PDFKit is only available on iOS 11+
-///  - `CGPDFDocument` can use a `CGDataProvider` to read a PDF stream instead of loading the full
-///    document in memory.
-///
-/// Use `CGPDFDocumentFactory` to create a `CGPDFDocument` from a `Resource`.
-extension CGPDFDocument: PDFDocument, @retroactive @unchecked Sendable {
-    public func identifier() async throws -> String? {
+package extension CGPDFDocument {
+    func identifier() async throws -> String? {
         guard
             let identifierArray = fileIdentifier,
             CGPDFArrayGetCount(identifierArray) > 0
@@ -34,13 +26,13 @@ extension CGPDFDocument: PDFDocument, @retroactive @unchecked Sendable {
         return identifierData.reduce("") { $0 + String(format: "%02x", $1) }
     }
 
-    public func pageCount() async throws -> Int {
+    func pageCount() async throws -> Int {
         numberOfPages
     }
 
     /// The reading progression can be derived from the `Direction` Name object under the
     /// `/Catalog/ViewerPreferences` dictionary.
-    public func readingProgression() async throws -> ReadingProgression? {
+    func readingProgression() async throws -> ReadingProgression? {
         guard
             let viewerPreferences = dict(forKey: "ViewerPreferences", in: catalog),
             let direction = object(forKey: "Direction", in: viewerPreferences)
@@ -57,23 +49,23 @@ extension CGPDFDocument: PDFDocument, @retroactive @unchecked Sendable {
         }
     }
 
-    public func title() async throws -> String? {
+    func title() async throws -> String? {
         string(forKey: "Title", in: info)
     }
 
-    public func author() async throws -> String? {
+    func author() async throws -> String? {
         string(forKey: "Author", in: info)
     }
 
-    public func subject() async throws -> String? {
+    func subject() async throws -> String? {
         string(forKey: "Subject", in: info)
     }
 
-    public func keywords() async throws -> [String] {
+    func keywords() async throws -> [String] {
         stringList(forKey: "Keywords", in: info)
     }
 
-    public func cover() async throws -> UIImage? {
+    func cover() async throws -> UIImage? {
         guard let page = page(at: 1) else {
             return nil
         }
@@ -120,7 +112,7 @@ extension CGPDFDocument: PDFDocument, @retroactive @unchecked Sendable {
         return UIImage(cgImage: cgImage)
     }
 
-    public func tableOfContents() async throws -> [PDFOutlineNode] {
+    func tableOfContents() async throws -> [PDFOutlineNode] {
         guard let outline = outline as? [String: Any] else {
             return []
         }
@@ -222,133 +214,5 @@ extension CGPDFDocument: PDFDocument, @retroactive @unchecked Sendable {
             return nil
         }
         return String(cString: buffer)
-    }
-}
-
-/// Creates a `PDFDocument` using Core Graphics.
-@available(*, deprecated, renamed: "PDFKitPDFDocumentFactory", message: "The PDFKitPDFDocumentFactory is more capable")
-public final class CGPDFDocumentFactory: PDFDocumentFactory, Loggable {
-    public init() {}
-
-    public func open(file: FileURL, password: String?) async throws -> PDFDocument {
-        guard let document = CGPDFDocument(file.url as CFURL) else {
-            throw PDFDocumentError.openFailed
-        }
-
-        return try open(document: document, password: password)
-    }
-
-    public func open<HREF: URLConvertible & Sendable>(resource: Resource, at href: HREF, password: String?) async throws -> PDFDocument {
-        if let file = resource.sourceURL?.fileURL {
-            return try await open(file: file, password: password)
-        }
-
-        var callbacks = CGDataProviderSequentialCallbacks(
-            version: 0,
-
-            getBytes: { info, buffer, count -> Int in
-                guard let context = CGPDFDocumentFactory.context(from: info) else {
-                    return 0
-                }
-
-                let end = min(context.offset + UInt64(count), context.length)
-                if context.offset >= end {
-                    return 0
-                }
-
-                let resource = context.resource
-                let offset = context.offset
-                let resultData = Mutex<Data>(Data())
-                let semaphore = DispatchSemaphore(value: 0)
-                Task {
-                    switch await resource.read(range: offset ..< end) {
-                    case let .success(result):
-                        resultData.withLock { $0 = result }
-                    case let .failure(error):
-                        CGPDFDocumentFactory.log(.error, error)
-                    }
-                    semaphore.signal()
-                }
-
-                _ = semaphore.wait(timeout: .distantFuture)
-
-                let data = resultData.withLock { $0 }
-                if !data.isEmpty {
-                    data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
-                    context.offset += UInt64(data.count)
-                }
-                return data.count
-            },
-
-            skipForward: { info, count -> off_t in
-                guard let context = CGPDFDocumentFactory.context(from: info) else {
-                    return 0
-                }
-
-                let current = context.offset
-                context.offset = min(context.offset + UInt64(count), context.length)
-                return off_t(context.offset - current)
-            },
-
-            rewind: { info in
-                guard let context = CGPDFDocumentFactory.context(from: info) else {
-                    return
-                }
-                context.offset = 0
-            },
-
-            releaseInfo: { info in
-                let info = info?.assumingMemoryBound(to: ResourceContext.self)
-                info?.deinitialize(count: 1)
-                info?.deallocate()
-            }
-        )
-
-        let context = await ResourceContext(resource: resource)
-        let contextRef = UnsafeMutablePointer<ResourceContext>.allocate(capacity: 1)
-        contextRef.initialize(to: context)
-
-        guard
-            let provider = CGDataProvider(sequentialInfo: contextRef, callbacks: &callbacks),
-            let document = UIKit.CGPDFDocument(provider)
-        else {
-            throw PDFDocumentError.openFailed
-        }
-
-        return try open(document: document, password: password)
-    }
-
-    private func open(document: CGPDFDocument, password: String?) throws -> PDFDocument {
-        if document.isEncrypted, !document.isUnlocked {
-            guard
-                let password = password?.cString(using: .utf8),
-                document.unlockWithPassword(password)
-            else {
-                throw PDFDocumentError.invalidPassword
-            }
-        }
-
-        return document
-    }
-
-    private class ResourceContext {
-        let resource: Resource
-        var offset: UInt64 = 0
-        let length: UInt64
-
-        init(resource: Resource) async {
-            self.resource = resource
-            length = await (resource.estimatedLength().getOrNil() ?? 0) ?? 0
-        }
-    }
-
-    /// This can't be a nested func in `init(resource:password:)` because the C-function pointers of
-    /// CGDataProvider's callbacks can't capture context.
-    private static func context(from info: UnsafeMutableRawPointer?) -> ResourceContext? {
-        let context = info?.assumingMemoryBound(to: ResourceContext.self).pointee
-        if context == nil {
-            log(.error, "Can't get the `ResourceContext` from `CGDataProvider.info`")
-        }
-        return context
     }
 }
