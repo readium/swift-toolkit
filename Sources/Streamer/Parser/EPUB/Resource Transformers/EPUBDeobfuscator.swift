@@ -10,7 +10,7 @@ import ReadiumShared
 
 /// Deobfuscates EPUB resources.
 /// https://www.w3.org/publishing/epub3/epub-ocf.html#sec-resource-obfuscation
-final class EPUBDeobfuscator {
+final class EPUBDeobfuscator: Sendable {
     /// Supported obfuscation algorithms.
     private let algorithms: [ObfuscationAlgorithm] = [IDPFAlgorithm(), AdobeAlgorithm()]
 

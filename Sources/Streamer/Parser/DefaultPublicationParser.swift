@@ -9,18 +9,28 @@ import ReadiumShared
 
 /// Default implementation of ``PublicationParser`` handling all the
 /// publication formats supported by Readium.
-public final class DefaultPublicationParser: CompositePublicationParser {
+public final class DefaultPublicationParser: PublicationParser {
+    private let parser: CompositePublicationParser
+
     public init(
         httpClient: HTTPClient,
         assetRetriever: AssetRetriever,
         pdfFactory: PDFDocumentFactory,
         additionalParsers: [PublicationParser] = []
     ) {
-        super.init(additionalParsers + Array(ofNotNil:
+        parser = CompositePublicationParser(additionalParsers + [
             EPUBParser(),
             PDFParser(pdfFactory: pdfFactory),
             ReadiumWebPubParser(pdfFactory: pdfFactory, httpClient: httpClient),
             ImageParser(assetRetriever: assetRetriever),
-            AudioParser(assetRetriever: assetRetriever)))
+            AudioParser(assetRetriever: assetRetriever),
+        ])
+    }
+
+    public func parse(
+        asset: Asset,
+        warnings: WarningLogger?
+    ) async -> Result<Publication.Builder, PublicationParseError> {
+        await parser.parse(asset: asset, warnings: warnings)
     }
 }

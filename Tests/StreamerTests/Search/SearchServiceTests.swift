@@ -10,7 +10,7 @@ import ReadiumShared
 import Testing
 
 /// Configuration for a single `SearchService` test run.
-struct SearchServiceTestConfig: CustomTestStringConvertible {
+struct SearchServiceTestConfig: CustomTestStringConvertible, Sendable {
     /// Human-readable description of the config, used for test reporting.
     let testDescription: String
 

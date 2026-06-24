@@ -173,6 +173,8 @@ let package = Package(
 let swift6EnabledTargets: Set<String> = [
     "ReadiumShared",
     "ReadiumSharedTests",
+    "ReadiumStreamer",
+    "ReadiumStreamerTests",
 ]
 
 for target in package.targets {

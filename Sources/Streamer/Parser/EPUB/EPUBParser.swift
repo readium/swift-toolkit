@@ -28,7 +28,7 @@ extension EPUBParser: Loggable {}
 
 /// An EPUB container parser that extracts the information from the relevant
 /// files and builds a `Publication` instance out of it.
-public final class EPUBParser: PublicationParser, Sendable {
+public final class EPUBParser: PublicationParser {
     private let reflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
 
     /// - Parameter reflowablePositionsStrategy: Strategy used to calculate the number of positions in a reflowable resource.

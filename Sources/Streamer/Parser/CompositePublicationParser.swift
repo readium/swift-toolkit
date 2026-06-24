@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// A composite ``PublicationParser`` which tries several parsers until it
 /// finds one which supports the asset.
-public class CompositePublicationParser: PublicationParser {
+public final class CompositePublicationParser: PublicationParser {
     private let parsers: [PublicationParser]
 
     public init(_ parsers: [PublicationParser]) {
