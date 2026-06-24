@@ -216,6 +216,9 @@ package final class Keychain: Sendable {
             kSecAttrService as String: serviceName,
             kSecAttrAccount as String: key,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            // Explicitly use the data protection keychain so behavior is
+            // consistent across iOS and macOS.
+            kSecUseDataProtectionKeychain as String: true,
         ]
 
         if forAdding {
