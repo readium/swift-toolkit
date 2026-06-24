@@ -134,11 +134,11 @@ Add the following `pod` statements to your `Podfile` for the Readium libraries y
 source 'https://github.com/readium/podspecs'
 source 'https://cdn.cocoapods.org/'
 
-pod 'ReadiumShared', '~> 3.9.0'
-pod 'ReadiumStreamer', '~> 3.9.0'
-pod 'ReadiumNavigator', '~> 3.9.0'
-pod 'ReadiumOPDS', '~> 3.9.0'
-pod 'ReadiumLCP', '~> 3.9.0'
+pod 'ReadiumShared', '~> 3.10.0'
+pod 'ReadiumStreamer', '~> 3.10.0'
+pod 'ReadiumNavigator', '~> 3.10.0'
+pod 'ReadiumOPDS', '~> 3.10.0'
+pod 'ReadiumLCP', '~> 3.10.0'
 ```
 
 Take a look at [CocoaPods's documentation](https://guides.cocoapods.org/using/using-cocoapods.html) for more information.
