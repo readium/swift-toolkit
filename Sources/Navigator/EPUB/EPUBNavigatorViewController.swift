@@ -1119,9 +1119,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
         Task {
             // Check to see if this was a noteref link and give delegate the
-            // opportunity to display it. Reading the note resource is async
-            // (it goes through the publication's `readium://` scheme), so the
-            // whole tap-handling flow runs in this task.
+            // opportunity to display it.
             if
                 let clickEvent = clickEvent,
                 let interactive = clickEvent.interactiveElement,
@@ -1164,39 +1162,24 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             let anchorHref = try link.attr("href")
             guard href.hasSuffix(anchorHref) else { return nil }
 
-            let hashParts = href.split(separator: "#")
-            guard hashParts.count == 2 else {
+            guard
+                let url = AnyURL(string: href),
+                let id = url.fragment
+            else {
                 log(.warning, "Could not find hash in link \(href)")
                 return nil
             }
-            let id = String(hashParts[1])
-            var withoutFragment = String(hashParts[0])
-            if withoutFragment.hasPrefix("/") {
-                withoutFragment = String(withoutFragment.dropFirst())
-            }
 
             // Read the note's resource through the publication's resource API.
-            // A synchronous `String(contentsOf:)` cannot read the `readium://`
-            // scheme the navigator serves resources on (it is handled only by
-            // the in-WebView URL scheme handler), so the legacy path threw and
-            // every footnote silently fell through to plain link navigation.
-            guard
-                let resourceURL = AnyURL(string: withoutFragment),
-                let resourceLink = publication.linkWithHREF(resourceURL),
-                let resource = publication.get(resourceLink)
-            else {
-                log(.warning, "Could not open note resource: \(withoutFragment)")
+            guard let resource = publication.get(url.removingFragment()) else {
+                log(.warning, "Could not open note resource: \(href)")
                 return nil
             }
-            let data = try await resource.read().get()
-            guard let contents = String(data: data, encoding: .utf8) else {
-                log(.warning, "Note resource is not valid UTF-8: \(withoutFragment)")
-                return nil
-            }
+            let contents = try await resource.read().asString().get()
             let document = try parse(contents)
 
             guard let aside = try document.select("#\(id)").first() else {
-                log(.warning, "Could not find the element '#\(id)' in document \(withoutFragment)")
+                log(.warning, "Could not find the element '#\(id)' in document \(href)")
                 return nil
             }
 
