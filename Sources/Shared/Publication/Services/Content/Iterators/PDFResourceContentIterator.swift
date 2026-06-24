@@ -76,8 +76,8 @@ public actor PDFResourceContentIterator: ContentIterator, Loggable {
         var totalProgressionRange: ClosedRange<Double>?
     }
 
-    private let openDocument: () async throws -> PDFDocument
-    private let makeResourceInfo: () async -> ResourceInfo
+    private let openDocument: @Sendable () async throws -> PDFDocument
+    private let makeResourceInfo: @Sendable () async -> ResourceInfo
     private let locator: Locator
 
     /// The opened PDF document; retained for the lifetime of the iterator.
@@ -101,8 +101,8 @@ public actor PDFResourceContentIterator: ContentIterator, Loggable {
     private var currentPageIndex: Int?
 
     init(
-        openDocument: @escaping () async throws -> PDFDocument,
-        resourceInfo: @escaping () async -> ResourceInfo,
+        openDocument: @escaping @Sendable () async throws -> PDFDocument,
+        resourceInfo: @escaping @Sendable () async -> ResourceInfo,
         locator: Locator
     ) {
         self.openDocument = openDocument
