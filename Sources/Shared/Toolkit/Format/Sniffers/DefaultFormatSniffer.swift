@@ -19,7 +19,7 @@ public final class DefaultFormatSniffer: FormatSniffer {
         xmlDocumentFactory: XMLDocumentFactory = DefaultXMLDocumentFactory(),
         additionalSniffers: [FormatSniffer] = []
     ) {
-        self.sniffer = CompositeFormatSniffer(additionalSniffers + [
+        sniffer = CompositeFormatSniffer(additionalSniffers + [
             JSONFormatSniffer(),
             OPDSFormatSniffer(),
             RWPMFormatSniffer(),

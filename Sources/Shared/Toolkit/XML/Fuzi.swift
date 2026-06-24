@@ -13,7 +13,7 @@ final class FuziXMLDocument: XMLDocument, Loggable {
     }
 
     fileprivate let document: ReadiumFuzi.XMLDocument
-    internal let documentElement: XMLElement?
+    let documentElement: XMLElement?
 
     convenience init(data: Data, namespaces: [XMLNamespace]) throws {
         try self.init(document: ReadiumFuzi.XMLDocument(data: data), namespaces: namespaces)
@@ -30,7 +30,7 @@ final class FuziXMLDocument: XMLDocument, Loggable {
 
         document.definePrefixes(namespaces)
         self.document = document
-        self.documentElement = document.root.map {
+        documentElement = document.root.map {
             FuziXMLElement(document: document, element: $0)
         }
     }

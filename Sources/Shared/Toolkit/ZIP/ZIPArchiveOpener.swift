@@ -11,7 +11,7 @@ public final class ZIPArchiveOpener: ArchiveOpener {
     private let opener: CompositeArchiveOpener
 
     public init() {
-        self.opener = CompositeArchiveOpener([
+        opener = CompositeArchiveOpener([
             MinizipArchiveOpener(),
             ZIPFoundationArchiveOpener(),
         ])

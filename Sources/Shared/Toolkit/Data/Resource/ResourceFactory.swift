@@ -30,7 +30,7 @@ public final class DefaultResourceFactory: ResourceFactory {
         httpClient: HTTPClient,
         additionalFactories: [ResourceFactory] = []
     ) {
-        self.factory = CompositeResourceFactory(additionalFactories + [
+        factory = CompositeResourceFactory(additionalFactories + [
             FileResourceFactory(),
             HTTPResourceFactory(client: httpClient),
         ])

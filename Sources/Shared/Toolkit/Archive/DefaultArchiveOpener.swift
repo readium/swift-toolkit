@@ -12,7 +12,7 @@ public final class DefaultArchiveOpener: ArchiveOpener {
 
     /// - Parameter additionalArchiveOpeners: Additional archive openers to use.
     public init(additionalArchiveOpeners: [any ArchiveOpener] = []) {
-        self.opener = CompositeArchiveOpener(additionalArchiveOpeners + [ZIPArchiveOpener()])
+        opener = CompositeArchiveOpener(additionalArchiveOpeners + [ZIPArchiveOpener()])
     }
 
     public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {

@@ -75,7 +75,7 @@ public final class ListWarningLogger: WarningLogger {
     }
 
     public func log(_ warning: Warning) {
-        _warnings.withLock({ $0.append(warning) })
+        _warnings.withLock { $0.append(warning) }
     }
 }
 

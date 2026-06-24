@@ -36,7 +36,7 @@ final class AudioLocatorService: LocatorService {
         self.durations = durations
         let total = durations.reduce(0, +)
         totalDuration = (total > 0) ? total : nil
-        self.locatorService = DefaultLocatorService(publication: publication)
+        locatorService = DefaultLocatorService(publication: publication)
     }
 
     func locate(_ locator: Locator) async -> Locator? {
