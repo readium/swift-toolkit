@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Changed
+
+#### LCP
+
+* `LCPPassphraseRepository.addPassphrase(_:userID:provider:)` no longer takes a license ID, and `provider` is now optional. A convenience `addPassphrase(_:)` overload is available for storing a passphrase without any associated user or provider.
+
 ### Fixed
 
 #### Shared
@@ -13,6 +19,10 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * Fixed EPUB footnotes never being detected when tapped, which prevented `EPUBNavigatorDelegate.navigator(_:shouldNavigateToNoteAt:content:referrer:)` from being called and made footnote references navigate to the note's location instead of being handled by the host (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/821)).
+
+#### LCP
+
+* [#818](https://github.com/readium/swift-toolkit/issues/818) Repository failures during passphrase lookup (e.g. Keychain access errors) now fall through gracefully to the interactive authentication flow instead of propagating the error.
 
 
 ## [3.9.0] - 2026-05-12

@@ -126,7 +126,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
 
     /// Gets a passphrase from the Keychain for the given passphrase hash.
     private func getPassphrase(forHash hash: LCPPassphraseHash) throws(LCPKeychainPassphraseRepositoryError) -> Passphrase? {
-        guard let data = try getFromKeychain(key: hash) else {
+        guard let data = try getFromKeychain(hash: hash) else {
             return nil
         }
 
