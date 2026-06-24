@@ -30,15 +30,6 @@ public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
         })
     }
 
-    public func passphrase(for licenseID: LicenseDocument.ID) async throws -> LCPPassphraseHash? {
-        try logAndRethrow {
-            try db.prepare(transactions.select(passphrase)
-                .filter(self.licenseId == licenseID))
-                .compactMap { try $0.get(passphrase) }
-                .first
-        }
-    }
-
     public func passphrasesMatching(userID: User.ID?, provider: LicenseDocument.Provider) async throws -> [LCPPassphraseHash] {
         try logAndRethrow {
             try db.prepare(transactions.select(passphrase)
@@ -54,14 +45,18 @@ public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
         }
     }
 
-    public func addPassphrase(_ hash: LCPPassphraseHash, for licenseID: LicenseDocument.ID, userID: User.ID?, provider: LicenseDocument.Provider) async throws {
+    public func addPassphrase(_ hash: LCPPassphraseHash, userID: User.ID?, provider: LicenseDocument.Provider?) async throws {
         try logAndRethrow {
+            // The legacy schema requires a non-null `licenseId` and `origin`.
+            // The repository no longer tracks a license, and `licenseId` is no
+            // longer read back, so we store a synthetic identifier. The table
+            // has no unique constraint, so this appends a row like before.
             try db.run(
                 transactions.insert(
                     or: .replace,
                     self.passphrase <- hash,
-                    self.licenseId <- licenseID,
-                    self.provider <- provider,
+                    self.licenseId <- UUID().uuidString,
+                    self.provider <- (provider ?? ""),
                     self.userId <- userID
                 )
             )
@@ -90,7 +85,6 @@ public class LCPSQLitePassphraseRepository: LCPPassphraseRepository, Loggable {
             do {
                 try await target.addPassphrase(
                     passphraseData.passphrase,
-                    for: passphraseData.licenseId,
                     userID: passphraseData.userId,
                     provider: passphraseData.provider
                 )

@@ -9,35 +9,29 @@ import Foundation
 
 class InMemoryLCPPassphraseRepository: LCPPassphraseRepository {
     private struct Entry {
-        var hash: LCPPassphraseHash
         var userID: User.ID?
-        var provider: LicenseDocument.Provider
+        var provider: LicenseDocument.Provider?
     }
 
-    private var entries: [LicenseDocument.ID: Entry] = [:]
-
-    func passphrase(for licenseID: LicenseDocument.ID) async throws -> LCPPassphraseHash? {
-        entries[licenseID]?.hash
-    }
+    private var entries: [LCPPassphraseHash: Entry] = [:]
 
     func passphrasesMatching(userID: User.ID?, provider: LicenseDocument.Provider) async throws -> [LCPPassphraseHash] {
-        entries.values.compactMap { entry in
+        entries.compactMap { hash, entry in
             guard entry.provider == provider else { return nil }
-            if let userID { return entry.userID == userID ? entry.hash : nil }
-            return entry.hash
+            if let userID { return entry.userID == userID ? hash : nil }
+            return hash
         }
     }
 
     func passphrases() async throws -> [LCPPassphraseHash] {
-        entries.values.map(\.hash)
+        Array(entries.keys)
     }
 
     func addPassphrase(
         _ hash: LCPPassphraseHash,
-        for licenseID: LicenseDocument.ID,
         userID: User.ID?,
-        provider: LicenseDocument.Provider
+        provider: LicenseDocument.Provider?
     ) async throws {
-        entries[licenseID] = Entry(hash: hash, userID: userID, provider: provider)
+        entries[hash] = Entry(userID: userID, provider: provider)
     }
 }

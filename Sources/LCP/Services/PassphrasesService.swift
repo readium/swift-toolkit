@@ -30,18 +30,11 @@ final class PassphrasesService: Loggable {
         allowUserInteraction: Bool,
         sender: Any?
     ) async throws -> LCPPassphraseHash? {
-        // Look for an existing passphrase associated with this license.
+        // Look for a stored passphrase matching this license.
         //
         // Reading from the repository is best-effort: a keychain lookup failure
         // must not prevent the user from manually entering their passphrase.
-        if
-            let candidate = try? await repository.passphrase(for: license.id),
-            let passphrase = findValidPassphrase(in: [candidate], for: license)
-        {
-            return passphrase
-        }
-
-        var passphrase = await findAlternatePassphrase(for: license)
+        var passphrase = await findPassphrase(for: license)
 
         // Fallback on the provided `LCPAuthenticating` implementation.
         if passphrase == nil, let authentication = authentication {
@@ -66,12 +59,12 @@ final class PassphrasesService: Loggable {
         return passphrase
     }
 
-    /// Looks for alternate stored passphrases matching the given license.
+    /// Looks for a stored passphrase matching the given license.
     ///
     /// This is best-effort: any repository (e.g. keychain) failure is logged
     /// and treated as "no passphrase found", so that the interactive
     /// authentication fallback can still run.
-    private func findAlternatePassphrase(for license: LicenseDocument) async -> LCPPassphraseHash? {
+    private func findPassphrase(for license: LicenseDocument) async -> LCPPassphraseHash? {
         do {
             // Look for alternative candidates based on the provider and user ID.
             let candidates = try await repository.passphrasesMatching(

@@ -12,6 +12,8 @@ import Testing
 struct LCPKeychainPassphraseRepositoryTests {
     let repository: LCPKeychainPassphraseRepository
 
+    private static let serviceName = "org.readium.lcp.passphrases"
+
     init() throws {
         repository = LCPKeychainPassphraseRepository(
             synchronizable: false
@@ -22,11 +24,34 @@ struct LCPKeychainPassphraseRepositoryTests {
 
     private func cleanupAllTestData() throws {
         // Delete all test passphrases by using the Keychain directly
-        let keychain = Keychain(
-            serviceName: "org.readium.lcp.passphrases",
-            synchronizable: false
-        )
-        try keychain.deleteAll()
+        try keychain().deleteAll()
+    }
+
+    private func keychain() -> Keychain {
+        Keychain(serviceName: Self.serviceName, synchronizable: false)
+    }
+
+    /// Writes a legacy-format passphrase blob keyed by `licenseID`, mimicking
+    /// data stored by a previous version of the repository.
+    private func writeLegacyPassphrase(
+        licenseID: String,
+        hash: LCPPassphraseHash,
+        userID: String?,
+        provider: String
+    ) throws {
+        let date = ISO8601DateFormatter().string(from: Date())
+        var blob: [String: Any] = [
+            "licenseID": licenseID,
+            "passphraseHash": hash,
+            "provider": provider,
+            "created": date,
+            "updated": date,
+        ]
+        if let userID {
+            blob["userID"] = userID
+        }
+        let data = try JSONSerialization.data(withJSONObject: blob)
+        try keychain().save(data: data, forKey: licenseID)
     }
 
     // MARK: - AddPassphrase Tests
@@ -36,36 +61,44 @@ struct LCPKeychainPassphraseRepositoryTests {
 
         try await repository.addPassphrase(
             "hash123",
-            for: "license-1",
             userID: "user-1",
             provider: "https://provider.com"
         )
 
-        let retrieved = try await repository.passphrase(for: "license-1")
-        #expect(retrieved == "hash123")
+        let all = try await repository.passphrases()
+        #expect(all == ["hash123"])
     }
 
-    @Test func addPassphraseUpsert() async throws {
+    @Test func addPassphraseUpdatesMetadataInPlace() async throws {
         defer { try? cleanupAllTestData() }
 
-        // Add initial passphrase
+        // Add the same hash twice, with different metadata.
         try await repository.addPassphrase(
-            "hash-old",
-            for: "license-2",
+            "hash",
             userID: "user-1",
-            provider: "https://provider.com"
+            provider: "https://provider1.com"
+        )
+        try await repository.addPassphrase(
+            "hash",
+            userID: "user-2",
+            provider: "https://provider2.com"
         )
 
-        // Update with new passphrase
-        try await repository.addPassphrase(
-            "hash-new",
-            for: "license-2",
-            userID: "user-1",
-            provider: "https://provider.com"
-        )
+        // A single entry is kept, with the updated metadata.
+        let all = try await repository.passphrases()
+        #expect(all == ["hash"])
 
-        let retrieved = try await repository.passphrase(for: "license-2")
-        #expect(retrieved == "hash-new")
+        let oldMatches = try await repository.passphrasesMatching(
+            userID: "user-1",
+            provider: "https://provider1.com"
+        )
+        #expect(oldMatches.isEmpty)
+
+        let newMatches = try await repository.passphrasesMatching(
+            userID: "user-2",
+            provider: "https://provider2.com"
+        )
+        #expect(newMatches == ["hash"])
     }
 
     @Test func addPassphraseWithNilUserID() async throws {
@@ -73,36 +106,33 @@ struct LCPKeychainPassphraseRepositoryTests {
 
         try await repository.addPassphrase(
             "hash-no-user",
-            for: "license-3",
             userID: nil,
             provider: "https://provider.com"
         )
 
-        let retrieved = try await repository.passphrase(for: "license-3")
-        #expect(retrieved == "hash-no-user")
-    }
-
-    // MARK: - Passphrase Retrieval Tests
-
-    @Test func passphraseForLicense() async throws {
-        defer { try? cleanupAllTestData() }
-
-        try await repository.addPassphrase(
-            "hash-retrieve",
-            for: "license-retrieve",
-            userID: "user-1",
+        let matches = try await repository.passphrasesMatching(
+            userID: nil,
             provider: "https://provider.com"
         )
-
-        let passphrase = try await repository.passphrase(for: "license-retrieve")
-        #expect(passphrase == "hash-retrieve")
+        #expect(matches == ["hash-no-user"])
     }
 
-    @Test func passphraseForNonExistentLicense() async throws {
+    @Test func addPassphraseWithNilProviderAndUser() async throws {
         defer { try? cleanupAllTestData() }
 
-        let passphrase = try await repository.passphrase(for: "non-existent-license")
-        #expect(passphrase == nil)
+        // A passphrase can be stored without any license or provider.
+        try await repository.addPassphrase("loose-hash")
+
+        // It is returned by `passphrases()`...
+        let all = try await repository.passphrases()
+        #expect(all == ["loose-hash"])
+
+        // ...but not matched by a specific-provider query.
+        let matches = try await repository.passphrasesMatching(
+            userID: nil,
+            provider: "https://provider.com"
+        )
+        #expect(matches.isEmpty)
     }
 
     // MARK: - PassphrasesMatching Tests
@@ -110,33 +140,11 @@ struct LCPKeychainPassphraseRepositoryTests {
     @Test func passphrasesMatchingByProviderAndUserID() async throws {
         defer { try? cleanupAllTestData() }
 
-        // Add passphrases with different providers and user IDs
-        try await repository.addPassphrase(
-            "hash-1",
-            for: "license-1",
-            userID: "user-1",
-            provider: "https://provider1.com"
-        )
-        try await repository.addPassphrase(
-            "hash-2",
-            for: "license-2",
-            userID: "user-1",
-            provider: "https://provider1.com"
-        )
-        try await repository.addPassphrase(
-            "hash-3",
-            for: "license-3",
-            userID: "user-2",
-            provider: "https://provider1.com"
-        )
-        try await repository.addPassphrase(
-            "hash-4",
-            for: "license-4",
-            userID: "user-1",
-            provider: "https://provider2.com"
-        )
+        try await repository.addPassphrase("hash-1", userID: "user-1", provider: "https://provider1.com")
+        try await repository.addPassphrase("hash-2", userID: "user-1", provider: "https://provider1.com")
+        try await repository.addPassphrase("hash-3", userID: "user-2", provider: "https://provider1.com")
+        try await repository.addPassphrase("hash-4", userID: "user-1", provider: "https://provider2.com")
 
-        // Search for passphrases with provider1 and user-1
         let matches = try await repository.passphrasesMatching(
             userID: "user-1",
             provider: "https://provider1.com"
@@ -148,24 +156,9 @@ struct LCPKeychainPassphraseRepositoryTests {
     @Test func passphrasesMatchingByProviderOnly() async throws {
         defer { try? cleanupAllTestData() }
 
-        try await repository.addPassphrase(
-            "hash-1",
-            for: "license-1",
-            userID: "user-1",
-            provider: "https://provider.com"
-        )
-        try await repository.addPassphrase(
-            "hash-2",
-            for: "license-2",
-            userID: "user-2",
-            provider: "https://provider.com"
-        )
-        try await repository.addPassphrase(
-            "hash-3",
-            for: "license-3",
-            userID: "user-3",
-            provider: "https://other-provider.com"
-        )
+        try await repository.addPassphrase("hash-1", userID: "user-1", provider: "https://provider.com")
+        try await repository.addPassphrase("hash-2", userID: "user-2", provider: "https://provider.com")
+        try await repository.addPassphrase("hash-3", userID: "user-3", provider: "https://other-provider.com")
 
         // Search with nil userID should match all for the provider
         let matches = try await repository.passphrasesMatching(
@@ -179,12 +172,7 @@ struct LCPKeychainPassphraseRepositoryTests {
     @Test func passphrasesMatchingNoMatches() async throws {
         defer { try? cleanupAllTestData() }
 
-        try await repository.addPassphrase(
-            "hash-1",
-            for: "license-1",
-            userID: "user-1",
-            provider: "https://provider.com"
-        )
+        try await repository.addPassphrase("hash-1", userID: "user-1", provider: "https://provider.com")
 
         let matches = try await repository.passphrasesMatching(
             userID: "user-99",
@@ -207,29 +195,41 @@ struct LCPKeychainPassphraseRepositoryTests {
 
     // MARK: - Multiple Passphrases Tests
 
-    @Test func multiplePassphrasesForDifferentLicenses() async throws {
+    @Test func multiplePassphrases() async throws {
         defer { try? cleanupAllTestData() }
 
-        let passphrases = [
-            ("license-1", "hash-1"),
-            ("license-2", "hash-2"),
-            ("license-3", "hash-3"),
-        ]
+        let hashes = ["hash-1", "hash-2", "hash-3"]
 
-        for (licenseID, hash) in passphrases {
-            try await repository.addPassphrase(
-                hash,
-                for: licenseID,
-                userID: "user-1",
-                provider: "https://provider.com"
-            )
+        for hash in hashes {
+            try await repository.addPassphrase(hash, userID: "user-1", provider: "https://provider.com")
         }
 
-        // Verify each passphrase can be retrieved
-        for (licenseID, expectedHash) in passphrases {
-            let retrieved = try await repository.passphrase(for: licenseID)
-            #expect(retrieved == expectedHash)
-        }
+        let all = try await repository.passphrases()
+        #expect(Set(all) == Set(hashes))
+    }
+
+    // MARK: - Backward Compatibility Tests
+
+    @Test func readsLegacyLicenseKeyedPassphrase() async throws {
+        defer { try? cleanupAllTestData() }
+
+        // Stored by a previous version: keyed by licenseID, with a non-optional
+        // provider and an extra `licenseID` field.
+        try writeLegacyPassphrase(
+            licenseID: "license-legacy",
+            hash: "legacy-hash",
+            userID: "user-1",
+            provider: "https://provider.com"
+        )
+
+        let all = try await repository.passphrases()
+        #expect(all == ["legacy-hash"])
+
+        let matches = try await repository.passphrasesMatching(
+            userID: "user-1",
+            provider: "https://provider.com"
+        )
+        #expect(matches == ["legacy-hash"])
     }
 
     // MARK: - Concurrency Tests
@@ -237,17 +237,13 @@ struct LCPKeychainPassphraseRepositoryTests {
     @Test func concurrentAddPassphrase() async throws {
         defer { try? cleanupAllTestData() }
 
-        let passphrases = (0 ..< 10).map { index in
-            ("license-concurrent-\(index)", "hash-\(index)")
-        }
+        let hashes = (0 ..< 10).map { "hash-\($0)" }
 
-        // Add passphrases concurrently
         try await withThrowingTaskGroup(of: Void.self) { group in
-            for (licenseID, hash) in passphrases {
+            for hash in hashes {
                 group.addTask {
                     try await repository.addPassphrase(
                         hash,
-                        for: licenseID,
                         userID: "user-1",
                         provider: "https://provider.com"
                     )
@@ -256,11 +252,8 @@ struct LCPKeychainPassphraseRepositoryTests {
             try await group.waitForAll()
         }
 
-        // Verify all passphrases were added
-        for (licenseID, expectedHash) in passphrases {
-            let retrieved = try await repository.passphrase(for: licenseID)
-            #expect(retrieved == expectedHash)
-        }
+        let all = try await repository.passphrases()
+        #expect(Set(all) == Set(hashes))
     }
 
     // MARK: - Clear Tests
@@ -268,24 +261,11 @@ struct LCPKeychainPassphraseRepositoryTests {
     @Test func clearRemovesAllPassphrases() async throws {
         defer { try? cleanupAllTestData() }
 
-        try await repository.addPassphrase(
-            "hash-1",
-            for: "license-clear-1",
-            userID: "user-1",
-            provider: "https://provider.com"
-        )
-        try await repository.addPassphrase(
-            "hash-2",
-            for: "license-clear-2",
-            userID: "user-2",
-            provider: "https://provider.com"
-        )
+        try await repository.addPassphrase("hash-1", userID: "user-1", provider: "https://provider.com")
+        try await repository.addPassphrase("hash-2", userID: "user-2", provider: "https://provider.com")
 
         try await repository.clear()
 
-        // Verify all passphrases are gone
-        #expect(try await repository.passphrase(for: "license-clear-1") == nil)
-        #expect(try await repository.passphrase(for: "license-clear-2") == nil)
         let all = try await repository.passphrases()
         #expect(all.isEmpty)
     }
@@ -308,17 +288,12 @@ struct LCPKeychainPassphraseRepositoryTests {
             "hash-with-unicode-é-ñ-中",
         ]
 
-        for (index, hash) in specialHashes.enumerated() {
-            try await repository.addPassphrase(
-                hash,
-                for: "license-special-\(index)",
-                userID: "user-1",
-                provider: "https://provider.com"
-            )
-
-            let retrieved = try await repository.passphrase(for: "license-special-\(index)")
-            #expect(retrieved == hash)
+        for hash in specialHashes {
+            try await repository.addPassphrase(hash, userID: "user-1", provider: "https://provider.com")
         }
+
+        let all = try await repository.passphrases()
+        #expect(Set(all) == Set(specialHashes))
     }
 
     @Test func providerWithSpecialCharacters() async throws {
@@ -331,18 +306,9 @@ struct LCPKeychainPassphraseRepositoryTests {
         ]
 
         for (index, provider) in providers.enumerated() {
-            try await repository.addPassphrase(
-                "hash-\(index)",
-                for: "license-provider-\(index)",
-                userID: "user-1",
-                provider: provider
-            )
+            try await repository.addPassphrase("hash-\(index)", userID: "user-1", provider: provider)
 
-            let matches = try await repository.passphrasesMatching(
-                userID: "user-1",
-                provider: provider
-            )
-
+            let matches = try await repository.passphrasesMatching(userID: "user-1", provider: provider)
             #expect(matches.contains("hash-\(index)"))
         }
     }
@@ -355,15 +321,10 @@ struct LCPKeychainPassphraseRepositoryTests {
         // Test with very long hash (e.g., 512-bit hash)
         let longHash = String(repeating: "a", count: 128)
 
-        try await repository.addPassphrase(
-            longHash,
-            for: "license-long-hash",
-            userID: "user-1",
-            provider: "https://provider.com"
-        )
+        try await repository.addPassphrase(longHash, userID: "user-1", provider: "https://provider.com")
 
-        let retrieved = try await repository.passphrase(for: "license-long-hash")
-        #expect(retrieved == longHash)
+        let all = try await repository.passphrases()
+        #expect(all == [longHash])
     }
 
     @Test func longUserID() async throws {
@@ -371,18 +332,9 @@ struct LCPKeychainPassphraseRepositoryTests {
 
         let longUserID = String(repeating: "u", count: 200)
 
-        try await repository.addPassphrase(
-            "hash",
-            for: "license-long-user",
-            userID: longUserID,
-            provider: "https://provider.com"
-        )
+        try await repository.addPassphrase("hash", userID: longUserID, provider: "https://provider.com")
 
-        let matches = try await repository.passphrasesMatching(
-            userID: longUserID,
-            provider: "https://provider.com"
-        )
-
+        let matches = try await repository.passphrasesMatching(userID: longUserID, provider: "https://provider.com")
         #expect(matches == ["hash"])
     }
 
@@ -391,18 +343,9 @@ struct LCPKeychainPassphraseRepositoryTests {
 
         let longProvider = "https://provider.com/" + String(repeating: "p", count: 200)
 
-        try await repository.addPassphrase(
-            "hash",
-            for: "license-long-provider",
-            userID: "user-1",
-            provider: longProvider
-        )
+        try await repository.addPassphrase("hash", userID: "user-1", provider: longProvider)
 
-        let matches = try await repository.passphrasesMatching(
-            userID: "user-1",
-            provider: longProvider
-        )
-
+        let matches = try await repository.passphrasesMatching(userID: "user-1", provider: longProvider)
         #expect(matches == ["hash"])
     }
 }
