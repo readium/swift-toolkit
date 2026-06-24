@@ -9,11 +9,9 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 
-final class PassphrasesService: Loggable {
+final class PassphrasesService: Loggable, Sendable {
     private let client: LCPClient
     private let repository: LCPPassphraseRepository
-
-    private let sha256Predicate = NSPredicate(format: "SELF MATCHES[c] %@", "^([a-f0-9]{64})$")
 
     init(client: LCPClient, repository: LCPPassphraseRepository) {
         self.client = client
@@ -28,7 +26,7 @@ final class PassphrasesService: Loggable {
         for license: LicenseDocument,
         authentication: LCPAuthenticating?,
         allowUserInteraction: Bool,
-        sender: Any?
+        sender: UncheckedSendable<Any?>?
     ) async throws -> LCPPassphraseHash? {
         // Look for a stored passphrase matching this license.
         //
@@ -93,19 +91,20 @@ final class PassphrasesService: Loggable {
     }
 
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
+    @MainActor
     private func authenticate(
         for license: LicenseDocument,
         reason: LCPAuthenticationReason,
         using authentication: LCPAuthenticating,
         allowUserInteraction: Bool,
-        sender: Any?
+        sender: UncheckedSendable<Any?>?
     ) async throws -> LCPPassphraseHash? {
         let authenticatedLicense = LCPAuthenticatedLicense(document: license)
         guard let clearPassphrase = await authentication.retrievePassphrase(
             for: authenticatedLicense,
             reason: reason,
             allowUserInteraction: allowUserInteraction,
-            sender: sender
+            sender: sender?.value
         ) else {
             return nil
         }
@@ -114,7 +113,7 @@ final class PassphrasesService: Loggable {
         var passphrases = [hashedPassphrase]
         // Note: The C++ LCP lib crashes if we provide a passphrase that is not a valid
         // SHA-256 hash. So we check this beforehand.
-        if sha256Predicate.evaluate(with: clearPassphrase) {
+        if clearPassphrase.range(of: "^([a-f0-9]{64})$", options: [.regularExpression, .caseInsensitive]) != nil {
             passphrases.append(clearPassphrase)
         }
 

@@ -32,10 +32,10 @@ public protocol LCPLicenseRepository: Sendable {
     func userRights(for id: LicenseDocument.ID) async throws -> LCPConsumableUserRights
 
     /// Updates the consumable user rights for the license with given `id`.
-    func updateUserRights(
+    func updateUserRights<T: Sendable>(
         for id: LicenseDocument.ID,
-        with changes: (inout LCPConsumableUserRights) -> Void
-    ) async throws
+        with changes: @Sendable (inout LCPConsumableUserRights) throws -> T
+    ) async throws -> T
 }
 
 /// Holds the current state of consumable user rights for a license.

@@ -63,7 +63,7 @@ public final class LCPService: Loggable {
             licenses: licenseRepository,
             crl: CRLService(httpClient: httpClient),
             device: DeviceService(
-                deviceName: deviceName ?? UIDevice.current.name,
+                deviceName: deviceName ?? MainActor.assumeIsolated { UIDevice.current.name },
                 deviceId: deviceId,
                 repository: licenseRepository,
                 httpClient: httpClient
@@ -82,7 +82,7 @@ public final class LCPService: Loggable {
     /// Acquires a protected publication from an LCPL.
     public func acquirePublication(
         from lcpl: LicenseDocumentSource,
-        onProgress: @escaping (LCPProgress) -> Void = { _ in }
+        onProgress: @escaping @Sendable (LCPProgress) -> Void = { _ in }
     ) async -> Result<LCPAcquiredPublication, LCPError> {
         await wrap {
             try await licenses.acquirePublication(from: lcpl, onProgress: onProgress)
