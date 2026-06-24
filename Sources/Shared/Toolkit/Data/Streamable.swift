@@ -63,33 +63,19 @@ public extension Streamable {
     /// Reads the whole content as a `String`.
     @available(*, unavailable, message: "Use `read().asString()` instead")
     func readAsString(encoding: String.Encoding = .utf8) async -> ReadResult<String> {
-        await read().flatMap {
-            guard let string = String(data: $0, encoding: encoding) else {
-                return .failure(.decoding("Not a valid \(encoding) string"))
-            }
-            return .success(string)
-        }
+        .failure(.cancelled)
     }
 
     /// Reads the whole content as a JSON value.
     @available(*, unavailable, message: "Use `read().asJSON()` instead")
     func readAsJSON<T: Any>(options: JSONSerialization.ReadingOptions = []) async -> ReadResult<T> {
-        await read().flatMap {
-            do {
-                guard let json = try JSONSerialization.jsonObject(with: $0) as? T else {
-                    return .failure(.decoding(JSONError.parsing(T.self)))
-                }
-                return .success(json)
-            } catch {
-                return .failure(.decoding(error))
-            }
-        }
+        .failure(.cancelled)
     }
 
     /// Reads the whole content as a JSON object.
     @available(*, unavailable, message: "Use `read().asJSONObject()` instead")
     func readAsJSONObject(options: JSONSerialization.ReadingOptions = []) async -> ReadResult<[String: Any]> {
-        await readAsJSON()
+        .failure(.cancelled)
     }
 }
 
