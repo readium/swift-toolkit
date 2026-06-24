@@ -11,7 +11,7 @@ import UIKit
 
 /// Implements a strategy to augment a `Manifest` of an audio publication with additional metadata and
 /// cover, for example by looking into the audio files metadata.
-public protocol AudioPublicationManifestAugmentor {
+public protocol AudioPublicationManifestAugmentor: Sendable {
     func augment(_ baseManifest: Manifest, using container: Container) async -> AudioPublicationAugmentedManifest
 }
 

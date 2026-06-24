@@ -33,7 +33,7 @@ public final class ContentSearchService: SearchService, Loggable {
     public static func makeFactory(
         snippetLength: Int = 200,
         searchAlgorithm: StringSearchAlgorithm = BasicStringSearchAlgorithm()
-    ) -> (PublicationServiceContext) -> ContentSearchService? {
+    ) -> @Sendable (PublicationServiceContext) -> ContentSearchService? {
         { context in
             ContentSearchService(
                 publication: context.publication,
