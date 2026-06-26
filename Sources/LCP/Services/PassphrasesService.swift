@@ -91,7 +91,6 @@ final class PassphrasesService: Loggable, Sendable {
     }
 
     /// Called when the service can't find any valid passphrase in the repository, as a fallback.
-    @MainActor
     private func authenticate(
         for license: LicenseDocument,
         reason: LCPAuthenticationReason,
@@ -100,11 +99,12 @@ final class PassphrasesService: Loggable, Sendable {
         sender: UncheckedSendable<Any?>?
     ) async throws -> LCPPassphraseHash? {
         let authenticatedLicense = LCPAuthenticatedLicense(document: license)
-        guard let clearPassphrase = await authentication.retrievePassphrase(
+        guard let clearPassphrase = await retrievePassphrase(
+            using: authentication,
             for: authenticatedLicense,
             reason: reason,
             allowUserInteraction: allowUserInteraction,
-            sender: sender?.value
+            sender: sender
         ) else {
             return nil
         }
@@ -113,7 +113,7 @@ final class PassphrasesService: Loggable, Sendable {
         var passphrases = [hashedPassphrase]
         // Note: The C++ LCP lib crashes if we provide a passphrase that is not a valid
         // SHA-256 hash. So we check this beforehand.
-        if clearPassphrase.range(of: "^([a-f0-9]{64})$", options: [.regularExpression, .caseInsensitive]) != nil {
+        if clearPassphrase.count == 64, clearPassphrase.allSatisfy({ $0.isASCII && $0.isHexDigit }) {
             passphrases.append(clearPassphrase)
         }
 
@@ -135,5 +135,25 @@ final class PassphrasesService: Loggable, Sendable {
         }
 
         return passphrase
+    }
+
+    /// Prompts the user for a passphrase on the main actor.
+    ///
+    /// The non-`Sendable` `sender` is unwrapped here, inside the main actor, so
+    /// it never crosses an actor boundary.
+    @MainActor
+    private func retrievePassphrase(
+        using authentication: LCPAuthenticating,
+        for license: LCPAuthenticatedLicense,
+        reason: LCPAuthenticationReason,
+        allowUserInteraction: Bool,
+        sender: UncheckedSendable<Any?>?
+    ) async -> String? {
+        await authentication.retrievePassphrase(
+            for: license,
+            reason: reason,
+            allowUserInteraction: allowUserInteraction,
+            sender: sender?.value
+        )
     }
 }
