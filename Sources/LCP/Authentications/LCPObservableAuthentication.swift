@@ -24,26 +24,15 @@ public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObj
         /// Reason for this authentication request.
         public let reason: LCPAuthenticationReason
 
-        /// Sender given to the component requesting the authentication.
-        ///
-        /// For example, this is the `sender` you provided to the
-        /// `PublicationOpener.open()` API.
-        ///
-        /// Readium does not use this internally. You can pass any object to
-        /// help you determine how to present the LCP authentication dialog.
-        public let sender: Any?
-
         private var continuation: CheckedContinuation<String?, Never>?
 
         init(
             license: LCPAuthenticatedLicense,
             reason: LCPAuthenticationReason,
-            sender: Any?,
             continuation: CheckedContinuation<String?, Never>
         ) {
             self.license = license
             self.reason = reason
-            self.sender = sender
             self.continuation = continuation
         }
 
@@ -75,8 +64,7 @@ public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObj
     public func retrievePassphrase(
         for license: LCPAuthenticatedLicense,
         reason: LCPAuthenticationReason,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async -> String? {
         guard allowUserInteraction else {
             return nil
@@ -88,7 +76,6 @@ public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObj
             self.request = Request(
                 license: license,
                 reason: reason,
-                sender: sender,
                 continuation: $0
             )
         }

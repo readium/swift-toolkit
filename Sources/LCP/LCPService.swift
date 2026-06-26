@@ -13,10 +13,6 @@ import UIKit
 /// If an `LCPAuthenticating` instance is not given when expected, the request is cancelled if no
 /// passphrase is found in the local database. This can be the desired behavior when trying to
 /// import a license in the background, without prompting the user for its passphrase.
-///
-/// You can freely use the `sender` parameter to give some UI context which will be forwarded to
-/// your instance of `LCPAuthenticating`. This can be useful to provide the host `UIViewController`
-/// when presenting a dialog, for example.
 public final class LCPService: Loggable {
     private let licenses: LicensesService
     private let assetRetriever: AssetRetriever
@@ -119,20 +115,16 @@ public final class LCPService: Loggable {
     ///     `authentication`.
     ///   - allowUserInteraction: Indicates whether the user can be prompted
     ///     for their passphrase.
-    ///   - sender: Free object that can be used by reading apps to give some
-    ///     UX context when presenting dialogs with ``LCPAuthenticating``.
     public func retrieveLicense(
         from asset: Asset,
         authentication: LCPAuthenticating,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async -> Result<LCPLicense, LCPError> {
         await wrap {
             try await licenses.retrieve(
                 from: asset,
                 authentication: authentication,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
+                allowUserInteraction: allowUserInteraction
             )
         }
     }

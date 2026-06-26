@@ -19,10 +19,10 @@ public final class LCPPassphraseAuthentication: LCPAuthenticating, Sendable {
         self.fallback = fallback
     }
 
-    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?) async -> String? {
+    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool) async -> String? {
         guard reason == .passphraseNotFound else {
             if let fallback = fallback {
-                return await fallback.retrievePassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction, sender: sender)
+                return await fallback.retrievePassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction)
             } else {
                 return nil
             }

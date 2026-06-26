@@ -48,7 +48,6 @@ actor LicenseValidation: Loggable {
     fileprivate let client: LCPClient
     fileprivate let authentication: LCPAuthenticating?
     fileprivate let allowUserInteraction: Bool
-    fileprivate let sender: Any?
     fileprivate let crl: CRLService
     fileprivate let device: DeviceService
     fileprivate let httpClient: HTTPClient
@@ -69,7 +68,6 @@ actor LicenseValidation: Loggable {
     init(
         authentication: LCPAuthenticating?,
         allowUserInteraction: Bool,
-        sender: Any?,
         isProduction: Bool,
         client: LCPClient,
         crl: CRLService,
@@ -80,7 +78,6 @@ actor LicenseValidation: Loggable {
     ) {
         self.authentication = authentication
         self.allowUserInteraction = allowUserInteraction
-        self.sender = sender
         self.isProduction = isProduction
         self.client = client
         self.crl = crl
@@ -361,8 +358,7 @@ extension LicenseValidation {
         if let passphrase = try await passphrases.request(
             for: license,
             authentication: authentication,
-            allowUserInteraction: allowUserInteraction,
-            sender: sender
+            allowUserInteraction: allowUserInteraction
         ) {
             try await raise(.retrievedPassphrase(passphrase))
         } else {

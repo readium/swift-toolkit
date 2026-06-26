@@ -20,8 +20,7 @@ public protocol ContentProtection {
     func open(
         asset: Asset,
         credentials: String?,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError>
 }
 

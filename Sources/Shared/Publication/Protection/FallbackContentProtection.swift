@@ -14,8 +14,7 @@ public final class _FallbackContentProtection: ContentProtection, Sendable {
     public func open(
         asset: Asset,
         credentials: String?,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
         guard case .container = asset else {
             return .failure(.assetNotSupported(nil))

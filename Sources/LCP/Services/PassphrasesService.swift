@@ -27,8 +27,7 @@ final class PassphrasesService: Loggable {
     func request(
         for license: LicenseDocument,
         authentication: LCPAuthenticating?,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async throws -> LCPPassphraseHash? {
         // Look for a stored passphrase matching this license.
         //
@@ -42,8 +41,7 @@ final class PassphrasesService: Loggable {
                 for: license,
                 reason: .passphraseNotFound,
                 using: authentication,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
+                allowUserInteraction: allowUserInteraction
             )
         }
 
@@ -97,15 +95,13 @@ final class PassphrasesService: Loggable {
         for license: LicenseDocument,
         reason: LCPAuthenticationReason,
         using authentication: LCPAuthenticating,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async throws -> LCPPassphraseHash? {
         let authenticatedLicense = LCPAuthenticatedLicense(document: license)
         guard let clearPassphrase = await authentication.retrievePassphrase(
             for: authenticatedLicense,
             reason: reason,
-            allowUserInteraction: allowUserInteraction,
-            sender: sender
+            allowUserInteraction: allowUserInteraction
         ) else {
             return nil
         }
@@ -130,8 +126,7 @@ final class PassphrasesService: Loggable {
                 for: license,
                 reason: .invalidPassphrase,
                 using: authentication,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
+                allowUserInteraction: allowUserInteraction
             )
         }
 

@@ -36,8 +36,7 @@ import UIKit
         let asset = try await assetRetriever.retrieve(url: url).get()
         let publication = try await publicationOpener.open(
             asset: asset,
-            allowUserInteraction: false,
-            sender: nil
+            allowUserInteraction: false
         ).get()
 
         memoryTracker.track(publication)
