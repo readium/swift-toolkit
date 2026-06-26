@@ -57,8 +57,8 @@ A number of features are implemented only for some publication formats.
 | Feature                                                                                           | Status |
 |---------------------------------------------------------------------------------------------------|:------:|
 | [OPDS Catalog 1.2](https://specs.opds.io/opds-1.2)                                                |   ✅   |
-| [OPDS Catalog 2.0](https://drafts.opds.io/opds-2.0)                                               |   ✅   |
-| [Authentication for OPDS](https://drafts.opds.io/authentication-for-opds-1.0.html)                |   📆   |
+| [OPDS Catalog 2.0](https://specs.opds.io/opds-2.0)                                               |   ✅   |
+| [Authentication for OPDS](https://specs.opds.io/authentication-for-opds-1.0.html)                |   📆   |
 | [OPDS Progression](https://github.com/opds-community/drafts/pull/91)                              |   📆   |
 | [Readium LCP Automatic Key Retrieval](https://readium.org/lcp-specs/notes/lcp-key-retrieval.html) |   📆   |
 
