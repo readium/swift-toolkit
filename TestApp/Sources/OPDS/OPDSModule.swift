@@ -28,7 +28,6 @@ protocol OPDSModuleDelegate: ModuleDelegate {
     func opdsDownloadPublication(
         _ publication: Publication?,
         at link: ReadiumShared.Link,
-        sender: UIViewController,
         progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book
 }

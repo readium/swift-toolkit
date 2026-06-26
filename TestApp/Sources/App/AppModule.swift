@@ -100,7 +100,6 @@ extension AppModule: OPDSModuleDelegate {
     func opdsDownloadPublication(
         _ publication: Publication?,
         at link: ReadiumShared.Link,
-        sender: UIViewController,
         progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book {
         guard let url = link.url(relativeTo: publication?.baseURL).httpURL else {
@@ -108,6 +107,6 @@ extension AppModule: OPDSModuleDelegate {
         }
 
         let fileURL = try await readium.httpClient.download(url, onProgress: progress).get().location
-        return try await library.importPublication(from: fileURL, sender: sender, progress: progress)
+        return try await library.importPublication(from: fileURL, progress: progress)
     }
 }

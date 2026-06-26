@@ -24,7 +24,6 @@ protocol LibraryModuleAPI {
     @discardableResult
     func importPublication(
         from url: AbsoluteURL,
-        sender: UIViewController,
         progress: @escaping (Double) -> Void
     ) async throws -> Book
 }
@@ -67,9 +66,8 @@ final class LibraryModule: LibraryModuleAPI {
 
     func importPublication(
         from url: AbsoluteURL,
-        sender: UIViewController,
         progress: @escaping (Double) -> Void
     ) async throws -> Book {
-        try await library.importPublication(from: url, sender: sender, progress: progress)
+        try await library.importPublication(from: url, progress: progress)
     }
 }
