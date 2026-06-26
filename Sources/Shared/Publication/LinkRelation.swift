@@ -137,7 +137,7 @@ public struct LinkRelation: Sendable, Hashable, RawRepresentable, JSONValueEncod
     /// ranking criteria.
     public static let opdsSortPopular = LinkRelation("http://opds-spec.org/sort/popular")
 
-    // Authentication for OPDS – https://specs.opds.io/authentication-for-opds-1.0.html
+    // Authentication for OPDS – https://drafts.opds.io/authentication-for-opds-1.0.html
 
     /// Location where a client can authenticate the user with OAuth.
     public static let opdsAuthenticate = LinkRelation("authenticate")

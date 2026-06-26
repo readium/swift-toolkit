@@ -43,7 +43,7 @@ public extension Properties {
     }
 
     /// Indicates that the linked resource supports authentication with the associated Authentication Document.
-    /// See https://specs.opds.io/authentication-for-opds-1.0.html
+    /// See https://drafts.opds.io/authentication-for-opds-1.0.html
     var authenticate: Link? {
         try? otherProperties["authenticate"]?.decode(warnings: self)
     }
