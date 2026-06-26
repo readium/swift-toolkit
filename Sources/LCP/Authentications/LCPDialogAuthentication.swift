@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 import UIKit
 
-/// Delegate presenting the passphrase dialog produced by `LCPDialogAuthentication``.
+/// Delegate presenting the passphrase dialog produced by `LCPDialogAuthentication`.
 @MainActor public protocol LCPDialogAuthenticationDelegate: AnyObject, Sendable {
     /// Presents the LCP passphrase dialog view controller.
     ///

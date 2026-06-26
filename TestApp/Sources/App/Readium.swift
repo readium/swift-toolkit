@@ -60,7 +60,7 @@ final class Readium {
                 present dialogViewController: UIViewController
             ) {
                 let topViewController = getTopMostViewController()
-                topViewController?.present(dialog, animated: true)
+                topViewController?.present(dialogViewController, animated: true)
             }
 
             func getTopMostViewController() -> UIViewController? {
