@@ -63,13 +63,7 @@ public final class LCPService: Loggable {
             licenses: licenseRepository,
             crl: CRLService(httpClient: httpClient),
             device: DeviceService(
-                deviceName: deviceName ?? {
-                    if Thread.isMainThread {
-                        return MainActor.assumeIsolated { UIDevice.current.name }
-                    } else {
-                        return "iOS"
-                    }
-                }(),
+                deviceName: deviceName ?? "iOS",
                 deviceId: deviceId,
                 repository: licenseRepository,
                 httpClient: httpClient
