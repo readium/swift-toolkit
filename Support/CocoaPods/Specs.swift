@@ -5,7 +5,7 @@
 //
 
 /// Readium toolkit version — bump this when releasing a new version, then run `make podspecs`.
-let version = "3.9.0"
+let version = "3.10.0"
 
 /// Minimum iOS deployment target shared by all modules.
 let iosTarget = "15.0"
@@ -59,7 +59,8 @@ let modules: [ModuleSpec] = [
         dependencies: [
             .readium("ReadiumInternal"),
             .pod("Minizip", "~> 1.0.0"),
-            .pod("SwiftSoup", "~> 2.13.0"),
+            // SwiftSoup's podspec is stuck at 2.11.
+            .pod("SwiftSoup", "~> 2.11.0"),
             .pod("ReadiumFuzi", "~> 4.0.0"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
         ]
@@ -93,7 +94,8 @@ let modules: [ModuleSpec] = [
             .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
             .pod("DifferenceKit", "~> 1.0"),
-            .pod("SwiftSoup", "~> 2.13.0"),
+            // SwiftSoup's podspec is stuck at 2.11.
+            .pod("SwiftSoup", "~> 2.11.0"),
         ]
     ),
     ModuleSpec(

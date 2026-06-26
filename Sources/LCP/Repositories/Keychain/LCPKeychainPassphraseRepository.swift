@@ -23,17 +23,16 @@ public enum LCPKeychainPassphraseRepositoryError: Error {
 public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable {
     /// Internal data structure for storing passphrase information in the
     /// Keychain.
+    ///
+    /// Items are keyed in the Keychain by their ``passphraseHash``.
     private struct Passphrase: Codable {
-        /// Unique identifier for the license this passphrase belongs to.
-        let licenseID: LicenseDocument.ID
-
-        /// The hashed passphrase.
+        /// The hashed passphrase. Used as the Keychain account key.
         var passphraseHash: LCPPassphraseHash
 
-        /// The license provider.
-        var provider: LicenseDocument.Provider
+        /// The license provider, if known.
+        var provider: LicenseDocument.Provider?
 
-        /// The user identifier.
+        /// The user identifier, if known.
         var userID: User.ID?
 
         /// Date this passphrase was added to the Keychain.
@@ -66,10 +65,6 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
 
     // MARK: - LCPPassphraseRepository
 
-    public func passphrase(for licenseID: LicenseDocument.ID) async throws -> LCPPassphraseHash? {
-        try getPassphrase(for: licenseID)?.passphraseHash
-    }
-
     public func passphrasesMatching(
         userID: User.ID?,
         provider: LicenseDocument.Provider
@@ -88,18 +83,15 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
 
     public func addPassphrase(
         _ hash: LCPPassphraseHash,
-        for licenseID: LicenseDocument.ID,
         userID: User.ID?,
-        provider: LicenseDocument.Provider
+        provider: LicenseDocument.Provider?
     ) async throws {
-        if var passphrase = try getPassphrase(for: licenseID) {
-            passphrase.passphraseHash = hash
+        if var passphrase = try getPassphrase(forHash: hash) {
             passphrase.provider = provider
             passphrase.userID = userID
-            try updatePassphrase(passphrase, for: licenseID)
+            try updatePassphrase(passphrase, for: hash)
         } else {
             let passphrase = Passphrase(
-                licenseID: licenseID,
                 passphraseHash: hash,
                 provider: provider,
                 userID: userID,
@@ -107,7 +99,7 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
                 updated: Date()
             )
 
-            try addPassphrase(passphrase, for: licenseID)
+            try addPassphrase(passphrase, for: hash)
         }
     }
 
@@ -132,9 +124,9 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
             }
     }
 
-    /// Gets a passphrase from the Keychain for the given license ID.
-    private func getPassphrase(for licenseID: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) -> Passphrase? {
-        guard let data = try getFromKeychain(id: licenseID) else {
+    /// Gets a passphrase from the Keychain for the given passphrase hash.
+    private func getPassphrase(forHash hash: LCPPassphraseHash) throws(LCPKeychainPassphraseRepositoryError) -> Passphrase? {
+        guard let data = try getFromKeychain(hash: hash) else {
             return nil
         }
 
@@ -142,23 +134,23 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
     }
 
     /// Adds a new passphrase to the Keychain.
-    private func addPassphrase(_ passphrase: Passphrase, for id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) {
-        try addToKeychain(data: encode(passphrase), for: id)
+    private func addPassphrase(_ passphrase: Passphrase, for hash: LCPPassphraseHash) throws(LCPKeychainPassphraseRepositoryError) {
+        try addToKeychain(data: encode(passphrase), for: hash)
     }
 
     /// Updates an existing passphrase in the Keychain.
-    private func updatePassphrase(_ passphrase: Passphrase, for id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) {
+    private func updatePassphrase(_ passphrase: Passphrase, for hash: LCPPassphraseHash) throws(LCPKeychainPassphraseRepositoryError) {
         var passphrase = passphrase
         passphrase.updated = Date()
         let data = try encode(passphrase)
-        try updateKeychain(data: data, for: id)
+        try updateKeychain(data: data, for: hash)
     }
 
     // MARK: - Low-Level Helpers
 
-    private func getFromKeychain(id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) -> Data? {
+    private func getFromKeychain(hash: LCPPassphraseHash) throws(LCPKeychainPassphraseRepositoryError) -> Data? {
         do {
-            return try keychain.load(forKey: id)
+            return try keychain.load(forKey: hash)
         } catch {
             throw .keychain(error)
         }
@@ -172,17 +164,17 @@ public actor LCPKeychainPassphraseRepository: LCPPassphraseRepository, Loggable 
         }
     }
 
-    private func addToKeychain(data: Data, for id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) {
+    private func addToKeychain(data: Data, for hash: LCPPassphraseHash) throws(LCPKeychainPassphraseRepositoryError) {
         do {
-            try keychain.save(data: data, forKey: id)
+            try keychain.save(data: data, forKey: hash)
         } catch {
             throw .keychain(error)
         }
     }
 
-    private func updateKeychain(data: Data, for id: LicenseDocument.ID) throws(LCPKeychainPassphraseRepositoryError) {
+    private func updateKeychain(data: Data, for hash: LCPPassphraseHash) throws(LCPKeychainPassphraseRepositoryError) {
         do {
-            try keychain.update(data: data, forKey: id)
+            try keychain.update(data: data, forKey: hash)
         } catch {
             throw .keychain(error)
         }

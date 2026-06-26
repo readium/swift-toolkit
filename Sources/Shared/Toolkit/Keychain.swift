@@ -119,11 +119,7 @@ package final class Keychain: Sendable {
 
     /// Deletes all items for this service from the Keychain.
     package func deleteAll() throws(KeychainError) {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: serviceName,
-            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
-        ]
+        let query = serviceQuery()
         let status = SecItemDelete(query as CFDictionary)
 
         guard status == errSecSuccess || status == errSecItemNotFound else {
@@ -135,13 +131,9 @@ package final class Keychain: Sendable {
     ///
     /// - Returns: An array of account identifiers.
     package func allKeys() throws(KeychainError) -> [String] {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: serviceName,
-            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
-            kSecReturnAttributes as String: true,
-            kSecMatchLimit as String: kSecMatchLimitAll,
-        ]
+        var query = serviceQuery()
+        query[kSecReturnAttributes as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitAll
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
@@ -166,14 +158,10 @@ package final class Keychain: Sendable {
     /// - Returns: A dictionary where keys are account identifiers and values are
     ///   the stored data.
     package func allItems() throws(KeychainError) -> [String: Data] {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: serviceName,
-            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
-            kSecReturnAttributes as String: true,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitAll,
-        ]
+        var query = serviceQuery()
+        query[kSecReturnAttributes as String] = true
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitAll
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
@@ -205,26 +193,32 @@ package final class Keychain: Sendable {
     // MARK: - Private Helpers
 
     /// Creates the base query dictionary for Keychain operations.
-    ///
-    /// - Parameters:
-    ///   - key: The account identifier.
-    ///   - forAdding: If `true`, uses the boolean `synchronizable` value for adding items.
-    ///     If `false`, uses `kSecAttrSynchronizableAny` for queries/updates/deletes.
     private func baseQuery(forKey key: String, forAdding: Bool) -> [String: Any] {
-        var query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: serviceName,
-            kSecAttrAccount as String: key,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
-        ]
+        var query = serviceQuery()
+        query[kSecAttrAccount as String] = key
+        query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
 
+        // When adding, pin the item to the requested sync setting. Queries,
+        // updates and deletes keep the `kSecAttrSynchronizableAny` default so
+        // they match items regardless of sync status.
         if forAdding {
             query[kSecAttrSynchronizable as String] = synchronizable
-        } else {
-            query[kSecAttrSynchronizable as String] = kSecAttrSynchronizableAny
         }
 
         return query
+    }
+
+    /// The attributes identifying this service's items, shared by every
+    /// Keychain operation.
+    private func serviceQuery() -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
+            // Explicitly use the data protection keychain so behavior is
+            // consistent across iOS and macOS.
+            kSecUseDataProtectionKeychain as String: true,
+        ]
     }
 
     /// Maps OSStatus error codes to KeychainError cases.

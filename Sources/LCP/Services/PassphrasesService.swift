@@ -9,7 +9,7 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 
-final class PassphrasesService {
+final class PassphrasesService: Loggable {
     private let client: LCPClient
     private let repository: LCPPassphraseRepository
 
@@ -30,15 +30,11 @@ final class PassphrasesService {
         allowUserInteraction: Bool,
         sender: Any?
     ) async throws -> LCPPassphraseHash? {
-        // Look for an existing passphrase associated with this license.
-        if
-            let candidate = try await repository.passphrase(for: license.id),
-            let passphrase = findValidPassphrase(in: [candidate], for: license)
-        {
-            return passphrase
-        }
-
-        var passphrase = try await findAlternatePassphrase(for: license)
+        // Look for a stored passphrase matching this license.
+        //
+        // Reading from the repository is best-effort: a keychain lookup failure
+        // must not prevent the user from manually entering their passphrase.
+        var passphrase = await findPassphrase(for: license)
 
         // Fallback on the provided `LCPAuthenticating` implementation.
         if passphrase == nil, let authentication = authentication {
@@ -52,27 +48,41 @@ final class PassphrasesService {
         }
 
         if let passphrase = passphrase {
-            // Saves the passphrase to open the publication right away next time
-            try await repository.addPassphrase(passphrase, for: license)
+            // Saves the passphrase to open the publication right away next time.
+            do {
+                try await repository.addPassphrase(passphrase, for: license)
+            } catch {
+                log(.error, "Failed to save the LCP passphrase to the repository: \(error)")
+            }
         }
 
         return passphrase
     }
 
-    private func findAlternatePassphrase(for license: LicenseDocument) async throws -> LCPPassphraseHash? {
-        // Look for alternative candidates based on the provider and user ID.
-        let candidates = try await repository.passphrasesMatching(
-            userID: license.user.id,
-            provider: license.provider
-        )
-        if let passphrase = findValidPassphrase(in: candidates, for: license) {
-            return passphrase
-        }
+    /// Looks for a stored passphrase matching the given license.
+    ///
+    /// This is best-effort: any repository (e.g. keychain) failure is logged
+    /// and treated as "no passphrase found", so that the interactive
+    /// authentication fallback can still run.
+    private func findPassphrase(for license: LicenseDocument) async -> LCPPassphraseHash? {
+        do {
+            // Look for alternative candidates based on the provider and user ID.
+            let candidates = try await repository.passphrasesMatching(
+                userID: license.user.id,
+                provider: license.provider
+            )
+            if let passphrase = findValidPassphrase(in: candidates, for: license) {
+                return passphrase
+            }
 
-        // The legacy SQLite database did not save all the new (passphrase,
-        // userID, provider) tuples. So we need to fall back on checking all the
-        // saved passphrases for a match.
-        return try await findValidPassphrase(in: repository.passphrases(), for: license)
+            // The legacy SQLite database did not save all the new (passphrase,
+            // userID, provider) tuples. So we need to fall back on checking all
+            // the saved passphrases for a match.
+            return try await findValidPassphrase(in: repository.passphrases(), for: license)
+        } catch {
+            log(.error, "Failed to look up alternate LCP passphrases in the repository: \(error)")
+            return nil
+        }
     }
 
     private func findValidPassphrase(in hashes: [LCPPassphraseHash], for license: LicenseDocument) -> LCPPassphraseHash? {

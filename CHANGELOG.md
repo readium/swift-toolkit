@@ -6,13 +6,32 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+#### Navigator
+
+* Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/822)).
+
+
+## [3.10.0] - 2026-06-24
+
+### Changed
+
+#### LCP
+
+* `LCPPassphraseRepository.addPassphrase(_:userID:provider:)` no longer takes a license ID, and `provider` is now optional. A convenience `addPassphrase(_:)` overload is available for storing a passphrase without any associated user or provider.
+
+### Fixed
+
 #### Shared
 
 * ZIP entry names stored with a leading slash (e.g. `/001.jpg`, found in some CBZ comics) are now normalized to relative paths. Previously such entries resolved as absolute-path references against the base URL, causing them to fail.
 
 #### Navigator
 
-* Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/822)).
+* Fixed EPUB footnotes never being detected when tapped, which prevented `EPUBNavigatorDelegate.navigator(_:shouldNavigateToNoteAt:content:referrer:)` from being called and made footnote references navigate to the note's location instead of being handled by the host (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/821)).
+
+#### LCP
+
+* [#818](https://github.com/readium/swift-toolkit/issues/818) Repository failures during passphrase lookup (e.g. Keychain access errors) now fall through gracefully to the interactive authentication flow instead of propagating the error.
 
 
 ## [3.9.0] - 2026-05-12
@@ -1240,3 +1259,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.7.0]: https://github.com/readium/swift-toolkit/compare/3.6.0...3.7.0
 [3.8.0]: https://github.com/readium/swift-toolkit/compare/3.7.0...3.8.0
 [3.9.0]: https://github.com/readium/swift-toolkit/compare/3.8.0...3.9.0
+[3.10.0]: https://github.com/readium/swift-toolkit/compare/3.9.0...3.10.0

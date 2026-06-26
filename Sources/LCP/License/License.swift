@@ -80,8 +80,10 @@ extension License: LCPLicense {
         do {
             return try await licenses.userRights(for: license.id).copy
         } catch {
+            // If the rights cannot be read (e.g. repository failure), we
+            // restrict the right rather than granting unlimited copy.
             log(.error, error)
-            return nil
+            return 0
         }
     }
 
@@ -125,8 +127,10 @@ extension License: LCPLicense {
         do {
             return try await licenses.userRights(for: license.id).print
         } catch {
+            // If the rights cannot be read (e.g. repository failure), we
+            // restrict the right rather than granting unlimited printing.
             log(.error, error)
-            return nil
+            return 0
         }
     }
 

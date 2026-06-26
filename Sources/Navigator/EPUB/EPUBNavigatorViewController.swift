@@ -1117,29 +1117,30 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
         link.href = href
 
-        // Check to see if this was a noteref link and give delegate the opportunity to display it.
-        if
-            let clickEvent = clickEvent,
-            let interactive = clickEvent.interactiveElement,
-            let (note, referrer) = getNoteData(anchor: interactive, href: href),
-            let delegate = delegate
-        {
-            if !delegate.navigator(
-                self,
-                shouldNavigateToNoteAt: link,
-                content: note,
-                referrer: referrer
-            ) {
+        Task {
+            // Check to see if this was a noteref link and give delegate the
+            // opportunity to display it.
+            if
+                let clickEvent = clickEvent,
+                let interactive = clickEvent.interactiveElement,
+                let (note, referrer) = await getNoteData(anchor: interactive, href: href),
+                let delegate = delegate
+            {
+                if !delegate.navigator(
+                    self,
+                    shouldNavigateToNoteAt: link,
+                    content: note,
+                    referrer: referrer
+                ) {
+                    return
+                }
+            }
+
+            // Ask if we should navigate to the link
+            if let delegate = delegate, !delegate.navigator(self, shouldNavigateToLink: link) {
                 return
             }
-        }
 
-        // Ask if we should navigate to the link
-        if let delegate = delegate, !delegate.navigator(self, shouldNavigateToLink: link) {
-            return
-        }
-
-        Task {
             await go(to: link)
         }
     }
@@ -1153,7 +1154,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     /// Uses `#id` when retrieving the body of the note, not `aside#id` because it may be a `<section>`.
     /// See https://idpf.github.io/epub-vocabs/structure/#footnotes
     /// and http://kb.daisy.org/publishing/docs/html/epub-type.html#ex
-    func getNoteData(anchor: String, href: String) -> (String, String)? {
+    func getNoteData(anchor: String, href: String) async -> (String, String)? {
         do {
             let doc = try parse(anchor)
             guard let link = try doc.select("a[epub:type=noteref]").first() else { return nil }
@@ -1161,31 +1162,24 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             let anchorHref = try link.attr("href")
             guard href.hasSuffix(anchorHref) else { return nil }
 
-            let hashParts = href.split(separator: "#")
-            guard hashParts.count == 2 else {
+            guard
+                let url = AnyURL(string: href),
+                let id = url.fragment
+            else {
                 log(.warning, "Could not find hash in link \(href)")
                 return nil
             }
-            let id = String(hashParts[1])
-            var withoutFragment = String(hashParts[0])
-            if withoutFragment.hasPrefix("/") {
-                withoutFragment = String(withoutFragment.dropFirst())
-            }
 
-            guard
-                let url = RelativeURL(string: withoutFragment),
-                let absolute = viewModel.publicationBaseURL.resolve(url)
-            else {
-                log(.warning, "Invalid URL: \(withoutFragment)")
+            // Read the note's resource through the publication's resource API.
+            guard let resource = publication.get(url.removingFragment()) else {
+                log(.warning, "Could not open note resource: \(href)")
                 return nil
             }
-
-            log(.debug, "Fetching note contents from \(absolute.string)")
-            let contents = try String(contentsOf: absolute.url)
+            let contents = try await resource.read().asString().get()
             let document = try parse(contents)
 
             guard let aside = try document.select("#\(id)").first() else {
-                log(.warning, "Could not find the element '#\(id)' in document \(absolute)")
+                log(.warning, "Could not find the element '#\(id)' in document \(href)")
                 return nil
             }
 
