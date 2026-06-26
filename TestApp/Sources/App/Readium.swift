@@ -57,7 +57,8 @@ final class Readium {
         private final class LCPDialogPresenter: LCPDialogAuthenticationDelegate {
             func lcpDialogAuthentication(
                 _ authentication: LCPDialogAuthentication,
-                present dialogViewController: UIViewController) {
+                present dialogViewController: UIViewController
+            ) {
                 let topViewController = getTopMostViewController()
                 topViewController?.present(dialog, animated: true)
             }
@@ -65,7 +66,7 @@ final class Readium {
             func getTopMostViewController() -> UIViewController? {
                 let keyWindow = UIApplication.shared.connectedScenes
                     .compactMap { $0 as? UIWindowScene }
-                    .flatMap { $0.windows }
+                    .flatMap(\.windows)
                     .first { $0.isKeyWindow }
 
                 guard var top = keyWindow?.rootViewController else {
