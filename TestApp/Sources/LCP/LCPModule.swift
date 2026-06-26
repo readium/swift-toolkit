@@ -21,7 +21,7 @@ struct LCPPublication {
     let suggestedFilename: String
 }
 
-protocol LCPModuleAPI {
+@MainActor protocol LCPModuleAPI {
     init(readium: Readium)
     func fulfill(_ file: FileURL, progress: @escaping (Double) -> Void) async throws -> LCPPublication
 }

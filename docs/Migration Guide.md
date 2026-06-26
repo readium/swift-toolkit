@@ -2,7 +2,22 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### Required `deviceName` in `LCPService`
+
+`LCPService.init` now requires an explicit `deviceName`. We recommend passing `UIDevice.current.name`:
+
+```diff
+ let lcpService = LCPService(
+     client: LCPClient(),
++    deviceName: UIDevice.current.name,
+     ...
+ )
+```
+
+> [!NOTE]
+> Since iOS 16, `UIDevice.current.name` returns a generic name (e.g. "iPhone") unless the `com.apple.developer.device-information.user-assigned-device-name` entitlement is added to your app.
 
 ## 3.9.0
 
