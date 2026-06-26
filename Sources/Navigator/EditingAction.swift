@@ -102,9 +102,6 @@ protocol EditingActionsControllerDelegate: AnyObject {
 final class EditingActionsController {
     weak var delegate: EditingActionsControllerDelegate?
 
-    /// Called when a custom menu action built via `buildMenu` is tapped.
-    var onCustomActionTriggered: ((Selector) -> Void)?
-
     private let actions: [EditingAction]
     private let rights: UserRights
     private let canShare: Bool
@@ -212,8 +209,11 @@ final class EditingActionsController {
             .compactMap { action in
                 guard let title = action.title,
                       let selector = action.actions.first else { return nil }
-                return UIAction(title: title) { [weak self] _ in
-                    self?.onCustomActionTriggered?(selector)
+                return UIAction(title: title) { _ in
+                    // Dispatch through the responder chain (starting at the
+                    // current first responder), so the host app's selector
+                    // implementation is reached.
+                    UIApplication.shared.sendAction(selector, to: nil, from: nil, for: nil)
                 }
             }
 

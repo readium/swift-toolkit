@@ -21,10 +21,6 @@ final class WebView: WKWebView {
 
         super.init(frame: .zero, configuration: configuration)
 
-        editingActions.onCustomActionTriggered = { [weak self] selector in
-            UIApplication.shared.sendAction(selector, to: nil, from: self, for: nil)
-        }
-
         #if DEBUG && swift(>=5.8)
             if #available(macOS 13.3, iOS 16.4, *) {
                 isInspectable = true
