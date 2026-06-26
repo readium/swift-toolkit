@@ -9,11 +9,16 @@ import ReadiumShared
 import Testing
 import UIKit
 
-/// Custom editing actions must respect the same delegate gating as the native
-/// ones: the host app can suppress the whole menu through
-/// `shouldShowMenuForSelection` and disable individual actions through
-/// `canPerformAction(_:for:)`. These tests guard against the custom-action menu
-/// bypassing that gating (see PR #822).
+/// Unit tests for the `shouldShowCustomAction(_:)` gating predicate that
+/// `buildMenu(with:)` uses to decide which custom actions to insert into the
+/// iOS 16+ edit menu.
+///
+/// Scope: these tests cover the *decision* of whether a custom action should
+/// appear — its delegate gating (`shouldShowMenuForSelection`,
+/// `canPerformAction(_:for:)`) and the deliberate "show during the async
+/// selection window" behavior from PR #822. They do **not** exercise the menu
+/// construction or the action dispatch, which live in `buildMenu(with:)` and
+/// require a live `UIMenuBuilder` / responder chain.
 @MainActor
 @Suite("EditingActionsController custom action gating")
 struct EditingActionsControllerTests {
@@ -33,7 +38,7 @@ struct EditingActionsControllerTests {
         }
     }
 
-    private let highlight = EditingAction(title: "Highlight", action: Selector("highlight:"))
+    private let highlight = EditingAction(title: "Highlight", action: Selector(("highlight:")))
 
     private let selection = Selection(
         locator: Locator(href: AnyURL(string: "chapter1.html")!, mediaType: .html),
@@ -76,10 +81,10 @@ struct EditingActionsControllerTests {
         #expect(!controller.shouldShowCustomAction(highlight))
     }
 
-    // Regression guard for the #822 double-tap race: the EPUB selection is
-    // delivered asynchronously, so the edit menu can be built before `selection`
-    // is set. The custom action must still be shown in that window — otherwise
-    // it disappears on single-word (double-tap) selections.
+    /// Regression guard for the #822 double-tap race: the EPUB selection is
+    /// delivered asynchronously, so the edit menu can be built before `selection`
+    /// is set. The custom action must still be shown in that window — otherwise
+    /// it disappears on single-word (double-tap) selections.
     @Test("custom action shown during the async-selection window (no selection yet)")
     func shownDuringAsyncSelectionWindow() {
         let delegate = FakeDelegate()
@@ -90,9 +95,11 @@ struct EditingActionsControllerTests {
         #expect(controller.shouldShowCustomAction(highlight))
     }
 
-    // Native actions stay gated by the canonical path, proving the custom-action
-    // race fallback doesn't loosen native suppression.
-    @Test("native action remains gated by suppression (parity)")
+    /// Baseline check on the pre-existing native gating: `canPerformAction`
+    /// returns false when the host suppresses the menu. This does not exercise
+    /// any custom-action code — it documents the native behavior that
+    /// `shouldShowCustomAction` defers to once a selection is known.
+    @Test("native action remains gated by suppression")
     func nativeActionGated() {
         let delegate = FakeDelegate()
         delegate.showsMenu = false

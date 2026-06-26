@@ -66,6 +66,7 @@ public struct EditingAction: Hashable {
         }
     }
 
+    /// The `UIMenuItem` backing a custom action, or nil for native actions.
     var menuItem: UIMenuItem? {
         switch kind {
         case .native:
@@ -75,18 +76,8 @@ public struct EditingAction: Hashable {
         }
     }
 
-    /// Title of a custom editing action. Nil for native actions.
-    public var title: String? {
-        switch kind {
-        case .native:
-            return nil
-        case let .custom(item):
-            return item.title
-        }
-    }
-
     /// Whether this is a custom (non-native) action.
-    public var isCustom: Bool {
+    var isCustom: Bool {
         if case .custom = kind { return true }
         return false
     }
@@ -206,14 +197,13 @@ final class EditingActionsController {
 
         let customActions: [UIAction] = actions
             .filter(shouldShowCustomAction)
-            .compactMap { action in
-                guard let title = action.title,
-                      let selector = action.actions.first else { return nil }
-                return UIAction(title: title) { _ in
+            .compactMap(\.menuItem)
+            .map { item in
+                UIAction(title: item.title) { _ in
                     // Dispatch through the responder chain (starting at the
                     // current first responder), so the host app's selector
                     // implementation is reached.
-                    UIApplication.shared.sendAction(selector, to: nil, from: nil, for: nil)
+                    UIApplication.shared.sendAction(item.action, to: nil, from: nil, for: nil)
                 }
             }
 
