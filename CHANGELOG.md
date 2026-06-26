@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Navigator
 
-* Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections. On iOS 16+ they are now inserted via `UIMenuBuilder` in `buildMenu(with:)`, which is consulted synchronously, instead of the asynchronously-populated `UIMenuController.shared.menuItems` (still used on iOS 15).
+* Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/822)).
 
 
 ## [3.9.0] - 2026-05-12
