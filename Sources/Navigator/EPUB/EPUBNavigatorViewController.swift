@@ -17,10 +17,22 @@ import WebKit
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
+
+    // MARK: - Loading
+
+    /// Called when the current spread has finished loading and is about to be
+    /// revealed: once when the publication opens, and again after each page turn.
+    /// Only the visible spread triggers it, not the preloaded adjacent ones.
+    ///
+    /// A host showing its own loading cover can dismiss it here without exposing
+    /// the navigator's loading indicator.
+    func navigatorDidLoadSpread(_ navigator: EPUBNavigatorViewController)
 }
 
 public extension EPUBNavigatorDelegate {
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
+
+    func navigatorDidLoadSpread(_ navigator: EPUBNavigatorViewController) {}
 }
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
@@ -1082,6 +1094,12 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         }
 
         await spreadView.evaluateScript("(function() {\n\(script)\n})();")
+
+        // Only the visible spread, not the adjacent spreads preloaded around it,
+        // which can finish loading before this one is revealed.
+        if spreadView === paginationView?.currentView {
+            delegate?.navigatorDidLoadSpread(self)
+        }
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent) {
