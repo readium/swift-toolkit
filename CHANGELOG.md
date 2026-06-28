@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Navigator
+
+* The EPUB navigator now calls the new `EPUBNavigatorDelegate.navigatorDidLoadSpread(_:)` delegate method when the currently visible spread finishes loading, just before its content is faded in. This lets a host app dismiss its own loading cover exactly when the visible content appears. The method has a default empty implementation, so existing conformers are unaffected.
+
 
 ## [3.10.0] - 2026-06-24
 
