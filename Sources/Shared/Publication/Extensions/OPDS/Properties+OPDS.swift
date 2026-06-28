@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// OPDS Link Properties Extension
-/// https://drafts.opds.io/schema/properties.schema.json
+/// https://specs.opds.io/schema/properties.schema.json
 public extension Properties {
     /// Provides a hint about the expected number of items returned.
     var numberOfItems: Int? {
