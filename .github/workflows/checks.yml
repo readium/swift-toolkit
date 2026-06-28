@@ -146,7 +146,7 @@ jobs:
         working-directory: TestApp
         run: |
           set -eo pipefail
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
+          xcodebuild test -scheme AllTests -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
 
   int-spm:
     name: Integration (Swift Package Manager)

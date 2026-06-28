@@ -20,10 +20,14 @@ schemes:
   TestApp:
     build:
       targets:
-        TestApp: none
+        TestApp: all
+  AllTests:
+    build:
+      targets:
+        TestApp: all
     test:
       testPlans:
-        - path: TestApp.xctestplan
+        - path: AllTests.xctestplan
           defaultPlan: true
 targets:
   TestApp:

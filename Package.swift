@@ -17,6 +17,7 @@ let package = Package(
         .library(name: "ReadiumNavigator", targets: ["ReadiumNavigator"]),
         .library(name: "ReadiumOPDS", targets: ["ReadiumOPDS"]),
         .library(name: "ReadiumLCP", targets: ["ReadiumLCP"]),
+        .library(name: "TestPublications", targets: ["TestPublications"]),
     ],
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.10.0"),
@@ -132,18 +133,6 @@ let package = Package(
                 .process("Resources"),
             ]
         ),
-        // These tests require a R2LCPClient.framework to run.
-        // TODO: Find a solution to run the tests with GitHub action.
-        // .testTarget(
-        //     name: "ReadiumLCPTests",
-        //     dependencies: [
-        //         "ReadiumLCP",
-        //         "ReadiumShared",
-        //         "ReadiumStreamer",
-        //         "TestPublications",
-        //     ],
-        //     path: "Tests/LCPTests"
-        // ),
 
         // Shared test publications used across multiple test targets.
         .target(
