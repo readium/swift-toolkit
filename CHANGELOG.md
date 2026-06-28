@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Shared
+
+* `Metadata.altIdentifiers` and `Contributor.altIdentifiers` expose alternate identifiers (e.g. ISBNs) using the RWPM `altIdentifier` model. For EPUB, `Metadata.altIdentifiers` is parsed from every `dc:identifier` other than the package's unique identifier (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/837)).
+
 ### Fixed
 
 #### Navigator
