@@ -130,6 +130,45 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertEqual(sut.identifier, "urn:uuid:2")
     }
 
+    // MARK: - Alt Identifiers
+
+    /// Every `dc:identifier` other than the package's `unique-identifier` is
+    /// surfaced as an alternate identifier.
+    func testParseAltIdentifiers() throws {
+        let sut = try parseMetadata("identifier-unique")
+        XCTAssertEqual(sut.altIdentifiers, [AltIdentifier(value: "urn:uuid:1")])
+    }
+
+    /// Alternate identifier values are returned exactly as declared – the
+    /// `opf:scheme` attribute is not interpreted and separators are preserved.
+    func testParseAltIdentifierValueIsVerbatim() throws {
+        let sut = try parseMetadata("alt-identifier-epub2")
+        XCTAssertEqual(sut.identifier, "urn:uuid:7408D53A-5383-40AA-8078-5256C872AE41")
+        XCTAssertEqual(sut.altIdentifiers, [AltIdentifier(value: "978-1-4493-2586-2")])
+    }
+
+    func testParseAltIdentifierURN() throws {
+        let sut = try parseMetadata("alt-identifier-urn")
+        XCTAssertEqual(sut.altIdentifiers, [AltIdentifier(value: "urn:isbn:9781449325862")])
+    }
+
+    /// A publication may declare several alternate identifiers; all are
+    /// returned, in document order.
+    func testParseMultipleAltIdentifiers() throws {
+        let sut = try parseMetadata("alt-identifier-multiple")
+        XCTAssertEqual(sut.altIdentifiers, [
+            AltIdentifier(value: "9781449325862"),
+            AltIdentifier(value: "1449325866"),
+        ])
+    }
+
+    /// A publication whose only `dc:identifier` is the unique one has no
+    /// alternate identifiers.
+    func testParseNoAltIdentifiers() throws {
+        let sut = try parseMetadata("full-metadata")
+        XCTAssertEqual(sut.altIdentifiers, [])
+    }
+
     func testParseDateEPUB3() throws {
         let sut = try parseMetadata("dates-epub3")
         XCTAssertEqual(sut.published, "1865-07-04".dateFromISO8601)

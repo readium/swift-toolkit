@@ -10,6 +10,10 @@ import XCTest
 class MetadataTests: XCTestCase {
     let fullMetadata = Metadata(
         identifier: "1234",
+        altIdentifiers: [
+            AltIdentifier(value: "urn:isbn:9781449325862"),
+            AltIdentifier(value: "1449325866", scheme: "urn:isbn"),
+        ],
         type: "epub",
         conformsTo: [.epub, .pdf],
         title: ["en": "Title", "fr": "Titre"],
@@ -71,6 +75,10 @@ class MetadataTests: XCTestCase {
         XCTAssertEqual(
             try Metadata(json: [
                 "identifier": "1234",
+                "altIdentifier": [
+                    "urn:isbn:9781449325862",
+                    ["value": "1449325866", "scheme": "urn:isbn"],
+                ],
                 "@type": "epub",
                 "conformsTo": [
                     "https://readium.org/webpub-manifest/profiles/epub",
@@ -180,6 +188,10 @@ class MetadataTests: XCTestCase {
             fullMetadata.jsonObject,
             [
                 "identifier": "1234",
+                "altIdentifier": [
+                    "urn:isbn:9781449325862",
+                    ["value": "1449325866", "scheme": "urn:isbn"] as JSONValue,
+                ],
                 "@type": "epub",
                 "conformsTo": [
                     "https://readium.org/webpub-manifest/profiles/epub",

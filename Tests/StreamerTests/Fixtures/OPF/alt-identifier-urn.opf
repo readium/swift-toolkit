@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"
+      xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:title>Programming Scala</dc:title>
+    <dc:identifier id="pub-id">urn:uuid:7408D53A-5383-40AA-8078-5256C872AE41</dc:identifier>
+    <dc:identifier>urn:isbn:9781449325862</dc:identifier>
+  </metadata>
+  <manifest>
+    <item id="titlepage" href="titlepage.xhtml" media-type="application/xhtml+xml" />
+  </manifest>
+  <spine>
+    <itemref idref="titlepage"/>
+  </spine>
+</package>

@@ -18,6 +18,10 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
     /// An unambiguous reference to this contributor.
     public var identifier: String?
 
+    /// Alternate identifiers for this contributor, other than the primary
+    /// ``identifier``.
+    public var altIdentifiers: [AltIdentifier]
+
     /// The string used to sort the name of the contributor.
     public var sortAs: String?
 
@@ -33,6 +37,7 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
     public init(
         name: LocalizedStringConvertible,
         identifier: String? = nil,
+        altIdentifiers: [AltIdentifier] = [],
         sortAs: String? = nil,
         roles: [String] = [],
         role: String? = nil,
@@ -47,6 +52,7 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
 
         localizedName = name.localizedString
         self.identifier = identifier
+        self.altIdentifiers = altIdentifiers
         self.sortAs = sortAs
         self.roles = roles
         self.position = position
@@ -68,6 +74,7 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
             self.init(
                 name: name,
                 identifier: dict["identifier"]?.string,
+                altIdentifiers: dict["altIdentifier"]?.decode(allowingSingle: true, warnings: warnings) ?? [],
                 sortAs: dict["sortAs"]?.string,
                 roles: dict["role"]?.decode(allowingSingle: true) ?? [],
                 position: dict["position"]?.double,
@@ -83,6 +90,7 @@ public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEnc
         .init([
             "name": localizedName,
             "identifier": identifier,
+            "altIdentifier": altIdentifiers.orNullIfEmpty,
             "sortAs": sortAs,
             "role": roles.orNullIfEmpty,
             "position": position,
