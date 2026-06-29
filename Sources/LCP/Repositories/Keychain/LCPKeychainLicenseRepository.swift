@@ -124,10 +124,10 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         )
     }
 
-    public func updateUserRights(
+    public func updateUserRights<T: Sendable>(
         for id: LicenseDocument.ID,
-        with changes: (inout LCPConsumableUserRights) -> Void
-    ) async throws {
+        with changes: @Sendable (inout LCPConsumableUserRights) throws -> T
+    ) async throws -> T {
         var license = try requireLicense(for: id)
 
         // Get current rights
@@ -137,13 +137,14 @@ public actor LCPKeychainLicenseRepository: LCPLicenseRepository, Loggable {
         )
 
         // Apply changes
-        changes(&currentRights)
+        let result = try changes(&currentRights)
 
         // Update the data
         license.printsLeft = currentRights.print
         license.copiesLeft = currentRights.copy
 
         try updateLicense(license, for: id)
+        return result
     }
 
     /// Removes all licenses from the repository.

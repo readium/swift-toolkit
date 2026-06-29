@@ -23,7 +23,8 @@ import UIKit
 ///
 /// For this authentication to trigger, you must provide a ``delegate`` that
 /// presents the dialog (for example on your top-most view controller).
-public final class LCPDialogAuthentication: LCPAuthenticating, Loggable, Sendable {
+@MainActor
+public final class LCPDialogAuthentication: LCPAuthenticating, Loggable {
     /// Delegate responsible for presenting the passphrase dialog.
     private weak var delegate: LCPDialogAuthenticationDelegate?
 

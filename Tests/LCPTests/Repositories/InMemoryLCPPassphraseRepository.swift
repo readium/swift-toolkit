@@ -7,7 +7,7 @@
 import Foundation
 @testable import ReadiumLCP
 
-class InMemoryLCPPassphraseRepository: LCPPassphraseRepository {
+actor InMemoryLCPPassphraseRepository: LCPPassphraseRepository {
     private struct Entry {
         var userID: User.ID?
         var provider: LicenseDocument.Provider?

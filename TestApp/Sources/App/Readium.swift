@@ -15,7 +15,7 @@ import UIKit
     import ReadiumLCP
 #endif
 
-final class Readium {
+@MainActor final class Readium {
     lazy var httpClient: HTTPClient = DefaultHTTPClient()
 
     lazy var formatSniffer: FormatSniffer = DefaultFormatSniffer()
@@ -43,6 +43,7 @@ final class Readium {
 
         lazy var lcpService = LCPService(
             client: LCPClient(),
+            deviceName: UIDevice.current.name,
             licenseRepository: LCPKeychainLicenseRepository(),
             passphraseRepository: LCPKeychainPassphraseRepository(),
             assetRetriever: assetRetriever,

@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * OPDS models (`Feed`, `Group`, `Facet`, `OpdsMetadata`) are now structs with value semantics.
 
+#### LCP
+
+* `LCPService.init` now requires an explicit `deviceName` parameter. We recommend passing `UIDevice.current.name`. See [the migration guide](docs/Migration%20Guide.md).
+
 
 ## [3.10.0] - 2026-06-24
 

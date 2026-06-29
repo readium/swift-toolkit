@@ -11,7 +11,7 @@ import UIKit
 
 /// The ReaderModule handles the presentation of publications to be read by the user.
 /// It contains sub-modules implementing ReaderFormatModule to handle each format of publication (eg. CBZ, EPUB).
-protocol ReaderModuleAPI {
+@MainActor protocol ReaderModuleAPI {
     var delegate: ReaderModuleDelegate? { get }
 
     /// Presents the given publication to the user, inside the given navigation controller.
@@ -19,7 +19,7 @@ protocol ReaderModuleAPI {
     func presentPublication(publication: Publication, book: Book, in navigationController: UINavigationController)
 }
 
-protocol ReaderModuleDelegate: ModuleDelegate {}
+@MainActor protocol ReaderModuleDelegate: ModuleDelegate {}
 
 final class ReaderModule: ReaderModuleAPI {
     weak var delegate: ReaderModuleDelegate?
@@ -82,7 +82,7 @@ final class ReaderModule: ReaderModuleAPI {
                     highlights: highlights,
                     readium: readium
                 )
-                await present(readerViewController)
+                present(readerViewController)
             } catch {
                 delegate.presentError(error, from: navigationController)
             }

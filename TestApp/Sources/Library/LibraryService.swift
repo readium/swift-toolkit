@@ -15,7 +15,7 @@ import UIKit
 /// - Import new publications (`Book` in the database).
 /// - Remove existing publications from the bookshelf.
 /// - Open publications for presentation in a navigator.
-final class LibraryService: Loggable {
+@MainActor final class LibraryService: Loggable {
     private let books: BookRepository
     private let readium: Readium
     private let lcp: LCPModuleAPI

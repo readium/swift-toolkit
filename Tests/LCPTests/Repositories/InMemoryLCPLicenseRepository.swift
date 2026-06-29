@@ -7,7 +7,7 @@
 import Foundation
 @testable import ReadiumLCP
 
-class InMemoryLCPLicenseRepository: LCPLicenseRepository {
+actor InMemoryLCPLicenseRepository: LCPLicenseRepository {
     private var licenses: [LicenseDocument.ID: LicenseDocument] = [:]
     private var registeredDevices: Set<LicenseDocument.ID> = []
     private var rights: [LicenseDocument.ID: LCPConsumableUserRights] = [:]
@@ -38,12 +38,13 @@ class InMemoryLCPLicenseRepository: LCPLicenseRepository {
         rights[id] ?? LCPConsumableUserRights(print: nil, copy: nil)
     }
 
-    func updateUserRights(
+    func updateUserRights<T: Sendable>(
         for id: LicenseDocument.ID,
-        with changes: (inout LCPConsumableUserRights) -> Void
-    ) async throws {
+        with changes: @Sendable (inout LCPConsumableUserRights) throws -> T
+    ) async throws -> T {
         var current = rights[id] ?? LCPConsumableUserRights(print: nil, copy: nil)
-        changes(&current)
+        let result = try changes(&current)
         rights[id] = current
+        return result
     }
 }

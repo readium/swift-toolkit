@@ -26,7 +26,7 @@ private let supportedProfiles = [
 typealias Context = Result<LCPClientContext, LCPError>
 
 /// Holds the License/Status Documents and the DRM context, once validated.
-struct ValidatedDocuments {
+struct ValidatedDocuments: Sendable {
     let license: LicenseDocument
     let context: Context
     let status: StatusDocument?
@@ -56,7 +56,7 @@ actor LicenseValidation: Loggable {
     /// List of observers notified when the Documents are validated, or if an error occurred.
     fileprivate var observers: [(callback: Observer, policy: ObserverPolicy)] = []
 
-    fileprivate let onLicenseValidated: (LicenseDocument) async throws -> Void
+    fileprivate let onLicenseValidated: @Sendable (LicenseDocument) async throws -> Void
 
     /// Current state in the validation steps.
     private(set) var state: State = .start {
@@ -74,7 +74,7 @@ actor LicenseValidation: Loggable {
         device: DeviceService,
         httpClient: HTTPClient,
         passphrases: PassphrasesService,
-        onLicenseValidated: @escaping (LicenseDocument) async throws -> Void
+        onLicenseValidated: @escaping @Sendable (LicenseDocument) async throws -> Void
     ) {
         self.authentication = authentication
         self.allowUserInteraction = allowUserInteraction
@@ -421,7 +421,7 @@ extension LicenseValidation {
 
 /// Validation observers
 extension LicenseValidation {
-    typealias Observer = (Result<ValidatedDocuments, Error>) -> Void
+    typealias Observer = @Sendable (Result<ValidatedDocuments, Error>) -> Void
 
     enum ObserverPolicy {
         /// The observer is automatically removed when called.

@@ -15,7 +15,7 @@ enum OPDSError: Error {
 }
 
 /// The OPDS module handles the presentation of OPDS catalogs.
-protocol OPDSModuleAPI {
+@MainActor protocol OPDSModuleAPI {
     var delegate: OPDSModuleDelegate? { get }
 
     /// Root navigation controller containing the OPDS catalogs.
@@ -23,7 +23,7 @@ protocol OPDSModuleAPI {
     var rootViewController: UINavigationController { get }
 }
 
-protocol OPDSModuleDelegate: ModuleDelegate {
+@MainActor protocol OPDSModuleDelegate: ModuleDelegate {
     /// Called when an OPDS publication needs to be imported.
     func opdsDownloadPublication(
         _ publication: Publication?,

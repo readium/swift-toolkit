@@ -9,11 +9,9 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 
-final class PassphrasesService: Loggable {
+final class PassphrasesService: Loggable, Sendable {
     private let client: LCPClient
     private let repository: LCPPassphraseRepository
-
-    private let sha256Predicate = NSPredicate(format: "SELF MATCHES[c] %@", "^([a-f0-9]{64})$")
 
     init(client: LCPClient, repository: LCPPassphraseRepository) {
         self.client = client
@@ -98,7 +96,8 @@ final class PassphrasesService: Loggable {
         allowUserInteraction: Bool
     ) async throws -> LCPPassphraseHash? {
         let authenticatedLicense = LCPAuthenticatedLicense(document: license)
-        guard let clearPassphrase = await authentication.retrievePassphrase(
+        guard let clearPassphrase = await retrievePassphrase(
+            using: authentication,
             for: authenticatedLicense,
             reason: reason,
             allowUserInteraction: allowUserInteraction
@@ -110,7 +109,7 @@ final class PassphrasesService: Loggable {
         var passphrases = [hashedPassphrase]
         // Note: The C++ LCP lib crashes if we provide a passphrase that is not a valid
         // SHA-256 hash. So we check this beforehand.
-        if sha256Predicate.evaluate(with: clearPassphrase) {
+        if clearPassphrase.count == 64, clearPassphrase.allSatisfy({ $0.isASCII && $0.isHexDigit }) {
             passphrases.append(clearPassphrase)
         }
 
@@ -131,5 +130,20 @@ final class PassphrasesService: Loggable {
         }
 
         return passphrase
+    }
+
+    /// Prompts the user for a passphrase on the main actor.
+    @MainActor
+    private func retrievePassphrase(
+        using authentication: LCPAuthenticating,
+        for license: LCPAuthenticatedLicense,
+        reason: LCPAuthenticationReason,
+        allowUserInteraction: Bool
+    ) async -> String? {
+        await authentication.retrievePassphrase(
+            for: license,
+            reason: reason,
+            allowUserInteraction: allowUserInteraction
+        )
     }
 }

@@ -99,20 +99,17 @@ extension License: LCPLicense {
         guard !isRestricted else { return false }
 
         do {
-            var allowed = true
-            try await licenses.updateUserRights(for: license.id) { rights in
+            return try await licenses.updateUserRights(for: license.id) { rights in
                 guard let copyLeft = rights.copy else {
-                    return
+                    return true
                 }
                 guard text.count <= copyLeft else {
-                    allowed = false
-                    return
+                    return false
                 }
 
                 rights.copy = max(0, copyLeft - text.count)
+                return true
             }
-
-            return allowed
 
         } catch {
             log(.error, error)
@@ -146,20 +143,17 @@ extension License: LCPLicense {
         guard !isRestricted else { return false }
 
         do {
-            var allowed = true
-            try await licenses.updateUserRights(for: license.id) { rights in
+            return try await licenses.updateUserRights(for: license.id) { rights in
                 guard let printLeft = rights.print else {
-                    return
+                    return true
                 }
                 guard pageCount <= printLeft else {
-                    allowed = false
-                    return
+                    return false
                 }
 
                 rights.print = max(0, printLeft - pageCount)
+                return true
             }
-
-            return allowed
 
         } catch {
             log(.error, error)
