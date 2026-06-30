@@ -19,6 +19,7 @@ import UIKit
 /// when presenting a dialog, for example.
 public final class LCPService: Loggable {
     private let licenses: LicensesService
+    private let passphrases: PassphrasesService
     private let assetRetriever: AssetRetriever
 
     /// - Parameters:
@@ -57,6 +58,11 @@ public final class LCPService: Loggable {
             return client.findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
         }()
 
+        let passphrases = PassphrasesService(
+            client: client,
+            repository: passphraseRepository
+        )
+
         licenses = LicensesService(
             isProduction: isProduction,
             client: client,
@@ -70,13 +76,37 @@ public final class LCPService: Loggable {
             ),
             assetRetriever: assetRetriever,
             httpClient: httpClient,
-            passphrases: PassphrasesService(
-                client: client,
-                repository: passphraseRepository
-            )
+            passphrases: passphrases
         )
 
+        self.passphrases = passphrases
         self.assetRetriever = assetRetriever
+    }
+
+    /// Stores an LCP passphrase candidate in the repository, without
+    /// associating it with a specific license. Useful to preload a passphrase
+    /// ahead of time.
+    ///
+    /// - Parameters:
+    ///   - passphrase: The passphrase to store.
+    ///   - isHashed: Whether `passphrase` is already a SHA-256 hash. If
+    ///     `false`, it is hashed before being stored.
+    ///   - userID: The user identifier this passphrase is associated with, if
+    ///     known.
+    ///   - provider: The license provider this passphrase is associated with,
+    ///     if known.
+    public func addPassphrase(
+        _ passphrase: String,
+        isHashed: Bool,
+        userID: User.ID? = nil,
+        provider: LicenseDocument.Provider? = nil
+    ) async throws(LCPAddPassphraseError) {
+        try await passphrases.addPassphrase(
+            passphrase,
+            isHashed: isHashed,
+            userID: userID,
+            provider: provider
+        )
     }
 
     /// Acquires a protected publication from an LCPL.
