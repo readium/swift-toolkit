@@ -9,11 +9,9 @@ import Foundation
 import ReadiumInternal
 import ReadiumShared
 
-final class PassphrasesService: Loggable {
+final class PassphrasesService: Loggable, Sendable {
     private let client: LCPClient
     private let repository: LCPPassphraseRepository
-
-    private let sha256Predicate = NSPredicate(format: "SELF MATCHES[c] %@", "^([a-f0-9]{64})$")
 
     init(client: LCPClient, repository: LCPPassphraseRepository) {
         self.client = client
@@ -28,7 +26,7 @@ final class PassphrasesService: Loggable {
         for license: LicenseDocument,
         authentication: LCPAuthenticating?,
         allowUserInteraction: Bool,
-        sender: Any?
+        sender: UncheckedSendable<Any?>?
     ) async throws -> LCPPassphraseHash? {
         // Look for a stored passphrase matching this license.
         //
@@ -98,10 +96,11 @@ final class PassphrasesService: Loggable {
         reason: LCPAuthenticationReason,
         using authentication: LCPAuthenticating,
         allowUserInteraction: Bool,
-        sender: Any?
+        sender: UncheckedSendable<Any?>?
     ) async throws -> LCPPassphraseHash? {
         let authenticatedLicense = LCPAuthenticatedLicense(document: license)
-        guard let clearPassphrase = await authentication.retrievePassphrase(
+        guard let clearPassphrase = await retrievePassphrase(
+            using: authentication,
             for: authenticatedLicense,
             reason: reason,
             allowUserInteraction: allowUserInteraction,
@@ -114,7 +113,7 @@ final class PassphrasesService: Loggable {
         var passphrases = [hashedPassphrase]
         // Note: The C++ LCP lib crashes if we provide a passphrase that is not a valid
         // SHA-256 hash. So we check this beforehand.
-        if sha256Predicate.evaluate(with: clearPassphrase) {
+        if clearPassphrase.count == 64, clearPassphrase.allSatisfy({ $0.isASCII && $0.isHexDigit }) {
             passphrases.append(clearPassphrase)
         }
 
@@ -136,5 +135,25 @@ final class PassphrasesService: Loggable {
         }
 
         return passphrase
+    }
+
+    /// Prompts the user for a passphrase on the main actor.
+    ///
+    /// The non-`Sendable` `sender` is unwrapped here, inside the main actor, so
+    /// it never crosses an actor boundary.
+    @MainActor
+    private func retrievePassphrase(
+        using authentication: LCPAuthenticating,
+        for license: LCPAuthenticatedLicense,
+        reason: LCPAuthenticationReason,
+        allowUserInteraction: Bool,
+        sender: UncheckedSendable<Any?>?
+    ) async -> String? {
+        await authentication.retrievePassphrase(
+            for: license,
+            reason: reason,
+            allowUserInteraction: allowUserInteraction,
+            sender: sender?.value
+        )
     }
 }

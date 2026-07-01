@@ -21,6 +21,7 @@ struct LCPDecryptionTests {
 
         let service = LCPService(
             client: LCPTestClient(),
+            deviceName: "Test Device",
             licenseRepository: InMemoryLCPLicenseRepository(),
             passphraseRepository: InMemoryLCPPassphraseRepository(),
             assetRetriever: assetRetriever,

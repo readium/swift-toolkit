@@ -5,10 +5,10 @@
 //
 
 import Foundation
-import R2LCPClient
+@preconcurrency import R2LCPClient
 import ReadiumLCP
 
-class LCPTestClient: LCPClient {
+final class LCPTestClient: LCPClient {
     func createContext(jsonLicense: String, hashedPassphrase: String, pemCrl: String) throws -> LCPClientContext {
         try R2LCPClient.createContext(jsonLicense: jsonLicense, hashedPassphrase: hashedPassphrase, pemCrl: pemCrl)
     }

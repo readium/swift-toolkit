@@ -6,7 +6,6 @@
 
 import Foundation
 import ReadiumShared
-import UIKit
 
 /// Service used to acquire and open publications protected with LCP.
 ///
@@ -23,27 +22,26 @@ public final class LCPService: Loggable {
 
     /// - Parameters:
     ///   - client: The LCP client used for core license operations.
+    ///   - deviceName: Device name used when registering a license to an LSD
+    ///     server. We recommend using `UIDevice.current.name` and adding the
+    ///     `com.apple.developer.device-information.user-assigned-device-name`
+    ///     entitlement.
+    ///   - deviceId: Device ID used when registering a license to an LSD
+    ///     server. You must ensure the identifier is unique and stable for the
+    ///     device (persist and reuse across app launches). If not provided, the
+    ///     device ID will be generated as a random UUID.
     ///   - licenseRepository: Repository for managing stored licenses.
     ///   - passphraseRepository: Repository for managing user passphrases.
     ///   - assetRetriever: The retriever used to fetch protected assets.
     ///   - httpClient: The HTTP client used for network requests to LSD/LCP servers.
-    ///   - deviceName: Device name used when registering a license to an LSD server.
-    ///     If not provided, the device name will be `UIDevice.current.name`. Since iOS 16,
-    ///     this returns a generic name (e.g. "iPhone") unless the
-    ///     `com.apple.developer.device-information.user-assigned-device-name` entitlement
-    ///     is added to your app.
-    ///   - deviceId: Device ID used when registering a license to an LSD server.
-    ///     You must ensure the identifier is unique and stable for the device (persist and
-    ///     reuse across app launches). If not provided, the device ID will be generated as
-    ///     a random UUID.
     public init(
         client: LCPClient,
+        deviceName: String,
+        deviceId: String? = nil,
         licenseRepository: LCPLicenseRepository,
         passphraseRepository: LCPPassphraseRepository,
         assetRetriever: AssetRetriever,
-        httpClient: HTTPClient,
-        deviceName: String? = nil,
-        deviceId: String? = nil
+        httpClient: HTTPClient
     ) {
         // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
         let isProduction: Bool = {
@@ -63,7 +61,7 @@ public final class LCPService: Loggable {
             licenses: licenseRepository,
             crl: CRLService(httpClient: httpClient),
             device: DeviceService(
-                deviceName: deviceName ?? UIDevice.current.name,
+                deviceName: deviceName,
                 deviceId: deviceId,
                 repository: licenseRepository,
                 httpClient: httpClient
@@ -82,7 +80,7 @@ public final class LCPService: Loggable {
     /// Acquires a protected publication from an LCPL.
     public func acquirePublication(
         from lcpl: LicenseDocumentSource,
-        onProgress: @escaping (LCPProgress) -> Void = { _ in }
+        onProgress: @escaping @Sendable (LCPProgress) -> Void = { _ in }
     ) async -> Result<LCPAcquiredPublication, LCPError> {
         await wrap {
             try await licenses.acquirePublication(from: lcpl, onProgress: onProgress)

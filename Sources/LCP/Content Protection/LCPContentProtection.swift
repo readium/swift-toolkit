@@ -53,31 +53,40 @@ final class LCPContentProtection: ContentProtection, Loggable {
             return .failure(.assetNotSupported(DebugError("The asset does not appear to be an LCP License")))
         }
 
-        return await asset.resource.read()
+        let licenseDocumentResult = await asset.resource.read()
             .asLCPL()
-            .mapError { .reading($0) }
-            .asyncFlatMap { licenseDocument in
-                await assetRetriever.retrieve(link: licenseDocument.publicationLink)
-                    .flatMap { publicationAsset in
-                        switch publicationAsset {
-                        case .resource:
-                            return .failure(.assetNotSupported(DebugError("Cannot open the LCP-protected publication as a Container")))
-                        case let .container(container):
-                            return .success(container)
-                        }
-                    }
-                    .asyncFlatMap {
-                        await makeLCPAsset(
-                            from: $0,
-                            license: retrieveLicense(
-                                in: .resource(asset),
-                                credentials: credentials,
-                                allowUserInteraction: allowUserInteraction,
-                                sender: sender
-                            )
-                        )
-                    }
+            .mapError { ContentProtectionOpenError.reading($0) }
+
+        let licenseDocument: LicenseDocument
+        switch licenseDocumentResult {
+        case let .failure(error):
+            return .failure(error)
+        case let .success(doc):
+            licenseDocument = doc
+        }
+
+        let publicationAssetResult = await assetRetriever.retrieve(link: licenseDocument.publicationLink)
+        let container: ContainerAsset
+        switch publicationAssetResult {
+        case let .failure(error):
+            return .failure(error)
+        case let .success(publicationAsset):
+            switch publicationAsset {
+            case .resource:
+                return .failure(.assetNotSupported(DebugError("Cannot open the LCP-protected publication as a Container")))
+            case let .container(c):
+                container = c
             }
+        }
+
+        let licenseResult = await retrieveLicense(
+            in: .resource(asset),
+            credentials: credentials,
+            allowUserInteraction: allowUserInteraction,
+            sender: sender
+        )
+
+        return await makeLCPAsset(from: container, license: licenseResult)
     }
 
     func openPublication(

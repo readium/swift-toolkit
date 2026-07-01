@@ -6,16 +6,15 @@
 
 import Foundation
 @testable import ReadiumLCP
-import ReadiumShared
+@testable import ReadiumShared
 import Testing
 
+@Suite(.serialized)
 struct LCPKeychainLicenseRepositoryTests {
     let repository: LCPKeychainLicenseRepository
 
     init() throws {
-        repository = LCPKeychainLicenseRepository(
-            synchronizable: false
-        )
+        repository = LCPKeychainLicenseRepository()
         // Clean up any existing test data
         try? cleanupAllTestData()
     }

@@ -9,9 +9,7 @@ import ReadiumShared
 import ReadiumZIPFoundation
 
 /// Access to a License Document stored in a ``Container``.
-/// Meant to be subclassed to customize the pathInZIP property,
-/// eg. ``EPUBLicenseContainer``.
-class ContainerLicenseContainer: LicenseContainer {
+final class ContainerLicenseContainer: LicenseContainer {
     private let asset: ContainerAsset
     private let licensePath: RelativeURL
 

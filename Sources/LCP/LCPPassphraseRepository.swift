@@ -11,7 +11,7 @@ public typealias LCPPassphraseHash = String
 
 /// The passphrase repository stores passphrase hashes, optionally associated
 /// with a user ID and provider.
-public protocol LCPPassphraseRepository {
+public protocol LCPPassphraseRepository: Sendable {
     /// Returns a list of passphrase hashes that may match the given `userID`
     /// and `provider`.
     func passphrasesMatching(
