@@ -27,27 +27,20 @@ struct MimeTypeParameters {
     var parameters = [String: String]()
 }
 
-public class OPDS1Parser: Loggable {
+public enum OPDS1Parser: Loggable {
     /// Parse an OPDS feed or publication.
     /// Feed can only be v1 (XML).
-    /// - Parameters:
-    ///   - url: The feed URL.
-    ///   - completion: A closure called when the parsing is complete, returning the parsed data
-    ///     or an error if the operation failed.
-    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, let response = response else {
-                completion(nil, error ?? OPDSParserError.documentNotFound)
-                return
-            }
+    /// - Parameter url: The feed URL.
+    /// - Returns: The parsed `ParseData`.
+    /// - Throws: An error if the resource could not be fetched or parsed.
+    public static func parseURL(url: URL) async throws -> ParseData {
+        let (data, response) = try await URLSession.shared.data(from: url)
+        return try parse(xmlData: data, url: url, response: response)
+    }
 
-            do {
-                let parseData = try self.parse(xmlData: data, url: url, response: response)
-                completion(parseData, nil)
-            } catch {
-                completion(nil, error)
-            }
-        }.resume()
+    @available(*, unavailable, message: "Use the async variant of parseURL(url:) instead")
+    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
+        fatalError()
     }
 
     /// Parse an OPDS feed or publication.
@@ -234,66 +227,59 @@ public class OPDS1Parser: Loggable {
         return parseEntry(entry: root, feedURL: feedURL)
     }
 
-    /// Fetch an Open Search template from an OPDS feed.
-    /// - Parameters:
-    ///   - feed: The OPDS feed to search for the template.
-    ///   - completion: A closure called with the OpenSearch template as a `String` if found,
-    ///     or an `Error` if the fetch or parsing failed.
+    @available(*, unavailable, message: "Use the async variant of fetchOpenSearchTemplate(feed:) instead")
     public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
+        fatalError()
+    }
+
+    /// Fetch an Open Search template from an OPDS feed.
+    /// - Parameter feed: The OPDS feed to search for the template.
+    /// - Returns: The OpenSearch template.
+    /// - Throws: ``OPDSParserOpenSearchHelperError`` if the search link is missing or the
+    ///   OpenSearch document is invalid.
+    public static func fetchOpenSearchTemplate(feed: Feed) async throws -> String {
         guard let openSearchHref = feed.links.firstWithRel(.search)?.href,
               let openSearchURL = URL(string: openSearchHref)
         else {
-            completion(nil, OPDSParserOpenSearchHelperError.searchLinkNotFound)
-            return
+            throw OPDSParserOpenSearchHelperError.searchLinkNotFound
         }
 
-        URLSession.shared.dataTask(with: openSearchURL) { data, _, error in
-            guard let data = data else {
-                completion(nil, error ?? OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
-                return
-            }
-            guard let document = try? XMLDocument(data: data) else {
-                completion(nil, OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
-                return
-            }
-            guard let urls = document.root?.children(tag: "Url") else {
-                completion(nil, OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
-                return
-            }
-            if urls.count == 0 {
-                completion(nil, OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
-                return
-            }
-            // The OpenSearch document may contain multiple Urls, and we need to find the closest matching one.
-            // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
-            var typeAndProfileMatch: ReadiumFuzi.XMLElement? = nil
-            var typeMatch: ReadiumFuzi.XMLElement? = nil
-            if let selfMimeType = feed.links.firstWithRel(.self)?.mediaType {
-                let selfMimeParams = parseMimeType(mimeTypeString: selfMimeType.string)
-                for url in urls {
-                    guard let urlMimeType = url.attributes["type"] else {
-                        continue
+        let (data, _) = try await URLSession.shared.data(from: openSearchURL)
+
+        guard let document = try? XMLDocument(data: data) else {
+            throw OPDSParserOpenSearchHelperError.searchDocumentIsInvalid
+        }
+        guard let urls = document.root?.children(tag: "Url"), !urls.isEmpty else {
+            throw OPDSParserOpenSearchHelperError.searchDocumentIsInvalid
+        }
+        // The OpenSearch document may contain multiple Urls, and we need to find the closest matching one.
+        // We match by mimetype and profile; if that fails, by mimetype; and if that fails, the first url is returned
+        var typeAndProfileMatch: ReadiumFuzi.XMLElement? = nil
+        var typeMatch: ReadiumFuzi.XMLElement? = nil
+        if let selfMimeType = feed.links.firstWithRel(.self)?.mediaType {
+            let selfMimeParams = parseMimeType(mimeTypeString: selfMimeType.string)
+            for url in urls {
+                guard let urlMimeType = url.attributes["type"] else {
+                    continue
+                }
+                let otherMimeParams = parseMimeType(mimeTypeString: urlMimeType)
+                if selfMimeParams.type == otherMimeParams.type {
+                    if typeMatch == nil {
+                        typeMatch = url
                     }
-                    let otherMimeParams = parseMimeType(mimeTypeString: urlMimeType)
-                    if selfMimeParams.type == otherMimeParams.type {
-                        if typeMatch == nil {
-                            typeMatch = url
-                        }
-                        if selfMimeParams.parameters["profile"] == otherMimeParams.parameters["profile"] {
-                            typeAndProfileMatch = url
-                            break
-                        }
+                    if selfMimeParams.parameters["profile"] == otherMimeParams.parameters["profile"] {
+                        typeAndProfileMatch = url
+                        break
                     }
                 }
             }
-            let match = typeAndProfileMatch ?? (typeMatch ?? urls[0])
-            guard let template = match.attributes["template"] else {
-                completion(nil, OPDSParserOpenSearchHelperError.searchDocumentIsInvalid)
-                return
-            }
+        }
+        let match = typeAndProfileMatch ?? (typeMatch ?? urls[0])
+        guard let template = match.attributes["template"] else {
+            throw OPDSParserOpenSearchHelperError.searchDocumentIsInvalid
+        }
 
-            completion(template, nil)
-        }.resume()
+        return template
     }
 
     static func parseMimeType(mimeTypeString: String) -> MimeTypeParameters {

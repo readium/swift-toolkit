@@ -18,27 +18,20 @@ public enum OPDS2ParserError: Error, Sendable {
     case invalidNavigation
 }
 
-public class OPDS2Parser: Loggable {
+public enum OPDS2Parser: Loggable {
     /// Parse an OPDS feed or publication.
     /// Feed can only be v2 (JSON).
-    /// - Parameters:
-    ///   - url: The feed URL.
-    ///   - completion: A closure called when the parsing is complete, returning the
-    ///     parsed `ParseData` on success, or an `Error` if the operation failed.
-    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, let response = response else {
-                completion(nil, error ?? OPDSParserError.documentNotFound)
-                return
-            }
+    /// - Parameter url: The feed URL.
+    /// - Returns: The parsed `ParseData`.
+    /// - Throws: An error if the resource could not be fetched or parsed.
+    public static func parseURL(url: URL) async throws -> ParseData {
+        let (data, response) = try await URLSession.shared.data(from: url)
+        return try parse(jsonData: data, url: url, response: response)
+    }
 
-            do {
-                let parseData = try self.parse(jsonData: data, url: url, response: response)
-                completion(parseData, nil)
-            } catch {
-                completion(nil, error)
-            }
-        }.resume()
+    @available(*, unavailable, message: "Use the async variant of parseURL(url:) instead")
+    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
+        fatalError()
     }
 
     /// Parse an OPDS feed or publication.

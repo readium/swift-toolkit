@@ -36,20 +36,19 @@ class OPDSFeedViewModel: ObservableObject {
         error = nil
         nextPageURL = nil // Reset next page URL
 
-        OPDSParser.parseURL(url: feedURL) { [weak self] data, error in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-
-                if let data = data, let feed = data.feed {
+        Task {
+            do {
+                let data = try await OPDSParser.parseURL(url: feedURL)
+                if let feed = data.feed {
                     self.feed = feed
                     // Find and store the next page URL
                     self.nextPageURL = self.findNextPageURL(feed: feed)
-                } else if let error = error {
-                    self.error = error
-                    print("Failed to parse feed: \(error)")
                 } else {
-                    self.error = OPDSError.invalidURL(self.feedURL.absoluteString)
+                    self.error = OPDSError.invalidURL(feedURL.absoluteString)
                 }
+            } catch {
+                self.error = error
+                print("Failed to parse feed: \(error)")
             }
         }
     }
@@ -63,21 +62,20 @@ class OPDSFeedViewModel: ObservableObject {
 
         isLoadingNextPage = true
 
-        OPDSParser.parseURL(url: url) { [weak self] data, error in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-
-                if let data = data, let newFeed = data.feed {
+        Task {
+            do {
+                let data = try await OPDSParser.parseURL(url: url)
+                if let newFeed = data.feed {
                     // Append new publications to the existing feed
                     self.feed?.publications.append(contentsOf: newFeed.publications)
                     // Find the *next* next page URL
                     self.nextPageURL = self.findNextPageURL(feed: newFeed)
-                } else if let error = error {
-                    print("Failed to load next page: \(error)")
                 }
-
-                self.isLoadingNextPage = false
+            } catch {
+                print("Failed to load next page: \(error)")
             }
+
+            self.isLoadingNextPage = false
         }
     }
 
@@ -109,7 +107,7 @@ class OPDSFeedViewModel: ObservableObject {
     /// True if the feed contains only publications and no navigation or groups.
     /// The View uses this to decide whether to show a grid or a list.
     var isPublicationOnly: Bool {
-        guard let feed = feed else { return false }
+        guard let feed else { return false }
         return !feed.publications.isEmpty
             && feed.navigation.isEmpty
             && feed.groups.isEmpty
@@ -117,7 +115,7 @@ class OPDSFeedViewModel: ObservableObject {
 
     /// True if the feed contains any content at all.
     var hasContent: Bool {
-        guard let feed = feed else { return false }
+        guard let feed else { return false }
         return !feed.navigation.isEmpty
             || !feed.groups.isEmpty
             || !feed.publications.isEmpty

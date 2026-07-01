@@ -171,12 +171,14 @@ let package = Package(
 
 // FIXME: Remove this once the Swift 6 migration is done.
 let swift6EnabledTargets: Set<String> = [
+    "ReadiumLCP",
+    "ReadiumLCPTests",
+    "ReadiumOPDS",
+    "ReadiumOPDSTests",
     "ReadiumShared",
     "ReadiumSharedTests",
     "ReadiumStreamer",
     "ReadiumStreamerTests",
-    "ReadiumLCP",
-    "ReadiumLCPTests",
 ]
 
 for target in package.targets {

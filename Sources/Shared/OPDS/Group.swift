@@ -5,7 +5,7 @@
 //
 
 /// A substructure of a feed.
-public struct Group {
+public struct Group: Sendable {
     public var metadata: OpdsMetadata
     public var links = [Link]()
     public var publications = [Publication]()
