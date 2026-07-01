@@ -29,6 +29,11 @@ public enum OPDS2Parser: Loggable {
         return try parse(jsonData: data, url: url, response: response)
     }
 
+    @available(*, unavailable, message: "Use the async variant of parseURL(url:) instead")
+    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
+        fatalError()
+    }
+
     /// Parse an OPDS feed or publication.
     /// Feed can only be v2 (JSON).
     /// - parameter jsonData: The json raw data

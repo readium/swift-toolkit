@@ -38,6 +38,11 @@ public enum OPDS1Parser: Loggable {
         return try parse(xmlData: data, url: url, response: response)
     }
 
+    @available(*, unavailable, message: "Use the async variant of parseURL(url:) instead")
+    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
+        fatalError()
+    }
+
     /// Parse an OPDS feed or publication.
     /// Feed can only be v1 (XML).
     /// - parameter xmlData: The xml raw data
@@ -220,6 +225,11 @@ public enum OPDS1Parser: Loggable {
             throw OPDS1ParserError.rootNotFound
         }
         return parseEntry(entry: root, feedURL: feedURL)
+    }
+
+    @available(*, unavailable, message: "Use the async variant of fetchOpenSearchTemplate(feed:) instead")
+    public static func fetchOpenSearchTemplate(feed: Feed, completion: @escaping (String?, Error?) -> Void) {
+        fatalError()
     }
 
     /// Fetch an Open Search template from an OPDS feed.
