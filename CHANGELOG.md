@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/822)).
+* Fixed memory leak in the `AudioNavigator`.
 
 
 ## [3.10.0] - 2026-06-24

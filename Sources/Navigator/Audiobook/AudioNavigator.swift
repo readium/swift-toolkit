@@ -143,6 +143,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         if let timeObserver = timeObserver {
             player.removeTimeObserver(timeObserver)
         }
+        if let playerItemEndObserver {
+            NotificationCenter.default.removeObserver(playerItemEndObserver)
+        }
 
         playTask?.cancel()
         AudioSession.shared.end(for: self)
@@ -248,6 +251,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
     private var timeObserver: Any?
+    private var playerItemEndObserver: Any?
 
     private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
 
@@ -294,9 +298,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             self?.playbackDidChange()
         }
 
-        NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self] notification in
+        playerItemEndObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: nil, queue: .main) { [weak self, weak player] notification in
             guard
-                let self = self,
+                let self, let player,
                 let currentItem = player.currentItem,
                 currentItem == (notification.object as? AVPlayerItem)
             else {
