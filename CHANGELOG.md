@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### LCP
 
 * `LCPService.init` now requires an explicit `deviceName` parameter. We recommend passing `UIDevice.current.name`. See [the migration guide](docs/Migration%20Guide.md).
+* `LCPDialogAuthentication` no longer takes a `sender` view controller. It now presents its passphrase dialog through a new `LCPDialogAuthenticationDelegate` that you implement and retain for the lifetime of the authentication. See [the Readium LCP guide](docs/Guides/Readium%20LCP.md) and [the migration guide](docs/Migration%20Guide.md).
 
 
 ## [3.10.0] - 2026-06-24

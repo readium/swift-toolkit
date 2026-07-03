@@ -4,7 +4,9 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
-### Required `deviceName` in `LCPService`
+### Readium LCP
+
+#### Required `deviceName` in `LCPService`
 
 `LCPService.init` now requires an explicit `deviceName`. We recommend passing `UIDevice.current.name`:
 
@@ -18,6 +20,43 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 > [!NOTE]
 > Since iOS 16, `UIDevice.current.name` returns a generic name (e.g. "iPhone") unless the `com.apple.developer.device-information.user-assigned-device-name` entitlement is added to your app.
+
+#### Removal of the `sender` parameter from the LCP authentication APIs
+
+The `sender` parameter used to give UX context (e.g. the host `UIViewController`) when presenting an LCP passphrase dialog has been removed from `PublicationOpener.open(...)` and `LCPService.retrieveLicense(...)`. 
+
+If you use the SwiftUI `LCPDialog`, just remove the `sender` argument from your calls.
+
+But if you use the UIKIt `LCPDialogAuthentication`, you need to provide a `LCPDialogAuthenticationDelegate` instead:
+
+```diff
+-let authentication = LCPDialogAuthentication()
++let dialogPresenter = LCPDialogPresenter()
++let authentication = LCPDialogAuthentication(delegate: dialogPresenter)
+```
+
+```swift
+final class LCPDialogPresenter: LCPDialogAuthenticationDelegate {
+    func lcpDialogAuthentication(
+        _ authentication: LCPDialogAuthentication,
+        present dialogViewController: UIViewController
+    ) {
+        hostViewController.present(dialogViewController, animated: true)
+    }
+}
+```
+
+Then drop the `sender` argument from your calls:
+
+```diff
+ let result = await publicationOpener.open(
+     asset: asset,
+-    allowUserInteraction: true,
+-    sender: hostViewController
++    allowUserInteraction: true
+ )
+```
+
 
 ## 3.9.0
 
