@@ -46,6 +46,8 @@
 
 We are happy to announce a new update to the Swift toolkit, which focuses on strengthening the security of LCP repositories and improving the reading experience for Fixed-Layout (FXL) EPUBs.
 
+[Browse the full release on GitHub](https://github.com/readium/swift-toolkit/releases/tag/3.8.0)
+
 ### Secure LCP Repositories with Keychain
 
 This version introduces new `LCPKeychainLicenseRepository` and `LCPKeychainPassphraseRepository` implementations backed by the iOS Keychain. This move from a local database to the system Keychain offers several benefits:

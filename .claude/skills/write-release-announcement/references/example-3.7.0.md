@@ -55,6 +55,8 @@
 
 We are pleased to release the Readium Swift Toolkit 3.7.0. This update brings significant improvements to how comics are handled, improves performance for large documents, and streamlines our localization sources.
 
+[Browse the full release on GitHub](https://github.com/readium/swift-toolkit/releases/tag/3.7.0)
+
 ### Improved reading for comics and image-based publications
 
 This release focuses heavily on improving the reading experience for image-based publications. Firstly, we have added support for JXL (JPEG XL) bitmap images, allowing for high-quality images at smaller file sizes. Please note that JXL is decoded natively on iOS 17+.
