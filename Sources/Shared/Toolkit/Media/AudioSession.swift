@@ -24,9 +24,21 @@ public extension AudioSessionUser {
     }
 }
 
+/// Coordinates the app's audio session for Readium audio consumers.
+public protocol AudioSessionProtocol: AnyObject {
+    /// Starts a new audio session with the given `user`.
+    func start(with user: AudioSessionUser, isPlaying: Bool)
+
+    /// Ends the current audio session.
+    func end(for user: AudioSessionUser)
+
+    /// Indicates whether the `user` is playing.
+    func user(_ user: AudioSessionUser, didChangePlaying isPlaying: Bool)
+}
+
 /// Manages an activated `AVAudioSession`.
 @MainActor
-public final class AudioSession: Loggable {
+public final class AudioSession: AudioSessionProtocol, Loggable {
     public struct Configuration: Equatable {
         let category: AVAudioSession.Category
         let mode: AVAudioSession.Mode
