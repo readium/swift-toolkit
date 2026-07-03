@@ -59,7 +59,7 @@ public final class AudioSession: Loggable {
         NotificationCenter.default.removeObserver(self)
     }
 
-    struct User {
+    fileprivate struct User {
         let id: ObjectIdentifier
         private(set) weak var user: AudioSessionUser?
 
