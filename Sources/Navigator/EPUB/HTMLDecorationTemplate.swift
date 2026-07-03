@@ -143,9 +143,12 @@ public struct HTMLDecorationTemplate: JSONObjectEncodable {
         )
     }
 
-    private static var classNamesId = 0
+    private static let classNamesId = Mutex(0)
     private static func makeUniqueClassName(key: String) -> String {
-        classNamesId += 1
-        return "readium-\(key)-\(classNamesId)"
+        let id = classNamesId.withLock { value -> Int in
+            value += 1
+            return value
+        }
+        return "readium-\(key)-\(id)"
     }
 }

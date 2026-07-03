@@ -6,7 +6,7 @@
 
 import Foundation
 
-public class ProxyPreference<Value>: Preference {
+public class ProxyPreference<Value: Sendable>: Preference {
     private let _value: () -> Value?
     private let _effectiveValue: () -> Value
     private let _isEffective: () -> Bool
@@ -41,7 +41,7 @@ public class ProxyPreference<Value>: Preference {
     }
 }
 
-public final class ProxyEnumPreference<Value: Hashable>: ProxyPreference<Value>, EnumPreference {
+public final class ProxyEnumPreference<Value: Hashable & Sendable>: ProxyPreference<Value>, EnumPreference {
     public let supportedValues: [Value]
 
     init(
@@ -61,7 +61,7 @@ public final class ProxyEnumPreference<Value: Hashable>: ProxyPreference<Value>,
     }
 }
 
-public final class ProxyRangePreference<Value: Comparable>: ProxyPreference<Value>, RangePreference {
+public final class ProxyRangePreference<Value: Comparable & Sendable>: ProxyPreference<Value>, RangePreference {
     public var supportedRange: ClosedRange<Value>
     private let progressionStrategy: AnyProgressionStrategy<Value>
     private let valueFormatter: (Value) -> String

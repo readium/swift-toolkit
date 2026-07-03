@@ -132,16 +132,13 @@ import Foundation
         self.onNavigation = onNavigation
     }
 
-    deinit {
+    isolated deinit {
         guard let nav = boundNavigator else {
             return
         }
 
-        let tokens = observerTokens
-        Task { @MainActor [weak nav] in
-            for token in tokens {
-                nav?.removeObserver(token)
-            }
+        for token in observerTokens {
+            nav.removeObserver(token)
         }
     }
 

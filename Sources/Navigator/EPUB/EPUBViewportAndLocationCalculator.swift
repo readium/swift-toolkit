@@ -9,6 +9,7 @@ import ReadiumShared
 
 /// Computes the current `Locator` and `Viewport` from a spread's visible
 /// progressions and the publication's position list.
+@MainActor
 enum EPUBViewportAndLocationCalculator {
     /// Computes the locator and viewport for the currently visible spread.
     ///

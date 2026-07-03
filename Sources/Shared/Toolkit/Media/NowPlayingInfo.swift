@@ -66,7 +66,7 @@ public final class NowPlayingInfo {
                 return
             }
             mpArtwork = media?.artwork.map { image in
-                MPMediaItemArtwork(boundsSize: image.size, requestHandler: { _ in image })
+                Self.makeArtwork(image: image)
             }
             playback.clear()
             update()
@@ -90,6 +90,10 @@ public final class NowPlayingInfo {
         media = nil
         playback.clear()
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    }
+
+    private nonisolated static func makeArtwork(image: UIImage) -> MPMediaItemArtwork {
+        MPMediaItemArtwork(boundsSize: image.size, requestHandler: { _ in image })
     }
 
     private var mpArtwork: MPMediaItemArtwork?

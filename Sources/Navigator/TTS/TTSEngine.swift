@@ -11,6 +11,7 @@ import ReadiumShared
 ///
 /// Implement this interface to support third-party engines with
 /// ``PublicationSpeechSynthesizer``.
+@MainActor
 public protocol TTSEngine: AnyObject {
     /// List of available synthesizer voices.
     var availableVoices: [TTSVoice] { get }

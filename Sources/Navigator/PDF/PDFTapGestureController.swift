@@ -10,6 +10,7 @@ import UIKit
 
 /// Since iOS 13, the way to add a properly functioning tap gesture recognizer on a `PDFView`
 /// significantly changed. This class handles the setup depending on the current iOS version.
+@MainActor
 final class PDFTapGestureController: NSObject {
     private let pdfView: PDFView
     private let tapAction: TargetAction

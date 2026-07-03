@@ -221,14 +221,13 @@ private func escapeAttribute(_ value: String) -> String {
     value.replacingOccurrences(of: "\"", with: "&quot;")
 }
 
-private let regexCache: Cache<NSString, NSRegularExpression> = Cache()
+private let regexCache = Mutex<[String: NSRegularExpression]>([:])
 
 private func regex(for pattern: String) -> NSRegularExpression {
-    let key = pattern as NSString
-    if let cached = regexCache[key] {
+    if let cached = regexCache.withLock({ $0[pattern] }) {
         return cached
     }
     let regex = NSRegularExpression(pattern, options: [.caseInsensitive])
-    regexCache[key] = regex
+    regexCache.withLock { $0[pattern] = regex }
     return regex
 }

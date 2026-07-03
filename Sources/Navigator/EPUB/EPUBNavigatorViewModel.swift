@@ -8,6 +8,7 @@ import Foundation
 import ReadiumShared
 import UIKit
 
+@MainActor
 protocol EPUBNavigatorViewModelDelegate: AnyObject {
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope)
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel)
@@ -399,6 +400,7 @@ enum EPUBScriptScope {
 }
 
 private extension EPUBSettings {
+    @MainActor
     init(
         preferences: EPUBPreferences? = nil,
         publication: Publication,

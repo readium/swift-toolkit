@@ -9,6 +9,7 @@ import ReadiumShared
 import UIKit
 
 /// A navigator able to render arbitrary decorations over a publication.
+@MainActor
 public protocol DecorableNavigator {
     /// Declares the current state of the decorations in the given decoration `group`.
     ///

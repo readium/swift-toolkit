@@ -11,21 +11,21 @@ concurrency:
 
 env:
   platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPhone 16 Pro' }}
+  device: ${{ 'iPhone 17 Pro' }}
   commit_sha: ${{ github.sha }}
-  DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_26.4.app/Contents/Developer
 
 jobs:
   build:
     name: Build
-    runs-on: macos-15
+    runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
     env:
       scheme: ${{ 'Readium-Package' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           brew update
@@ -52,11 +52,11 @@ jobs:
 
   # navigator-ui-tests:
   #   name: Navigator UI Tests
-  #   runs-on: macos-15
+  #   runs-on: macos-26
   #   if: ${{ !github.event.pull_request.draft }}
   #   steps:
   #     - name: Checkout
-  #       uses: actions/checkout@v3
+  #       uses: actions/checkout@v6
   #     - name: Install dependencies
   #       run: |
   #         brew update
@@ -71,11 +71,11 @@ jobs:
 
   playground:
     name: Playground
-    runs-on: macos-15
+    runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           brew update
@@ -93,23 +93,23 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: macos-15
+    runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
     env:
       scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v6
         with:
           package_json_file: Sources/Navigator/EPUB/Scripts/package.json
           run_install: false
       - name: Setup cache
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: 'pnpm'
           cache-dependency-path: Sources/Navigator/EPUB/Scripts/pnpm-lock.yaml
       - name: Install dependencies
@@ -127,7 +127,7 @@ jobs:
 
   int-dev:
     name: Integration (Local)
-    runs-on: macos-15
+    runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -137,7 +137,7 @@ jobs:
       deployment: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: |
           brew update
@@ -153,7 +153,7 @@ jobs:
 
   int-spm:
     name: Integration (Swift Package Manager)
-    runs-on: macos-15
+    runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
     defaults:
       run:
@@ -163,7 +163,7 @@ jobs:
       deployment: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       # We can't use the current github.sha with pull_request event, because they will
       # reference the merge commit which cannot be fetched with SPM.
       - name: Set commit SHA
