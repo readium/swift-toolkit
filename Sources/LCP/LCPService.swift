@@ -9,9 +9,12 @@ import ReadiumShared
 
 /// Service used to acquire and open publications protected with LCP.
 ///
-/// If an `LCPAuthenticating` instance is not given when expected, the request is cancelled if no
-/// passphrase is found in the local database. This can be the desired behavior when trying to
-/// import a license in the background, without prompting the user for its passphrase.
+/// When a passphrase is not already stored in the `passphraseRepository`, it
+/// is requested from the provided `LCPAuthenticating` instance. If
+/// `allowUserInteraction` is false then the `authentication` implementation
+/// will not present any dialog the user. This can be the desired behavior when
+/// trying to import a license in the background, without prompting the user for
+/// their passphrase.
 public final class LCPService: Loggable {
     private let licenses: LicensesService
     private let assetRetriever: AssetRetriever
