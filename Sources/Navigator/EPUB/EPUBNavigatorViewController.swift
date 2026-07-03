@@ -836,7 +836,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                             continue
                         }
                         tasks.addTask { [weak self] in
-                            await self?.evaluateDecorationScript(script, forHREF: href)
+                            await self?.evaluateScript(script, inHREF: href)
                         }
                     }
                 }
@@ -870,31 +870,17 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     @MainActor
     private func clearDecorations(group: DecorationGroup, atSpreadIndex index: Int) async {
-        guard
-            !Task.isCancelled,
-            let spreadView = paginationView?.loadedViews[index] as? EPUBSpreadView
-        else { return }
         // requestAnimationFrame() is needed for clear() too, otherwise we might
         // recreate a highlight after it has been cleared.
-        _ = await spreadView.evaluateScript(
-            "requestAnimationFrame(function () { readium.getDecorations('\(group)').clear(); });"
+        await evaluateScript(
+            "requestAnimationFrame(function () { readium.getDecorations('\(group)').clear(); });",
+            atSpreadIndex: index
         )
     }
 
     @MainActor
-    private func evaluateDecorationScript(_ script: String, forHREF href: AnyURL) async {
-        guard
-            !Task.isCancelled,
-            let spreadView = loadedSpreadViewForHREF(href),
-            spreadView.isSpreadLoaded
-        else { return }
-        _ = await spreadView.evaluateScript(script, inHREF: href)
-    }
-
-    @MainActor
     private func setDecorationsActivable(group: DecorationGroup, atSpreadIndex index: Int) async {
-        guard let spreadView = paginationView?.loadedViews[index] as? EPUBSpreadView else { return }
-        _ = await spreadView.evaluateScript("readium.getDecorations('\(group)').setActivable();")
+        await evaluateScript("readium.getDecorations('\(group)').setActivable();", atSpreadIndex: index)
     }
 
     // MARK: - Configurable
@@ -934,6 +920,33 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return .failure(EPUBError.spreadNotLoaded)
         }
         return await spreadView.evaluateScript(script)
+    }
+
+    /// Evaluates the given JavaScript in the loaded resource at `href`.
+    ///
+    /// This is best-effort: if the resource's spread isn't loaded yet, the
+    /// script is skipped rather than queued.
+    @MainActor
+    private func evaluateScript(_ script: String, inHREF href: AnyURL) async {
+        guard
+            !Task.isCancelled,
+            let spreadView = loadedSpreadViewForHREF(href),
+            spreadView.isSpreadLoaded
+        else { return }
+        _ = await spreadView.evaluateScript(script, inHREF: href)
+    }
+
+    /// Evaluates the given JavaScript in the loaded spread at `index`.
+    ///
+    /// Best-effort in the same way as `evaluateScript(_:inHREF:)`.
+    @MainActor
+    private func evaluateScript(_ script: String, atSpreadIndex index: Int) async {
+        guard
+            !Task.isCancelled,
+            let spreadView = paginationView?.loadedViews[index] as? EPUBSpreadView,
+            spreadView.isSpreadLoaded
+        else { return }
+        _ = await spreadView.evaluateScript(script)
     }
 
     // MARK: - UIAccessibilityAction
