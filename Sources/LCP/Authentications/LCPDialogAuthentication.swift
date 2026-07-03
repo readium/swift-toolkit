@@ -29,7 +29,7 @@ import UIKit
 public final class LCPDialogAuthentication: LCPAuthenticating, Loggable {
     /// Delegate responsible for presenting the passphrase dialog.
     private weak var delegate: LCPDialogAuthenticationDelegate?
-    
+
     public init(delegate: LCPDialogAuthenticationDelegate) {
         self.delegate = delegate
     }

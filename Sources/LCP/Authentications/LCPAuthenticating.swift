@@ -28,6 +28,19 @@ public protocol LCPAuthenticating: Sendable {
     ) async -> String?
 }
 
+public extension LCPAuthenticating {
+    @available(*, unavailable, message: "The `sender` parameter has been removed. Present any UI from your `LCPDialogAuthenticationDelegate` implementation and use the variant without `sender`.")
+    @MainActor
+    func retrievePassphrase(
+        for license: LCPAuthenticatedLicense,
+        reason: LCPAuthenticationReason,
+        allowUserInteraction: Bool,
+        sender: Any?
+    ) async -> String? {
+        fatalError()
+    }
+}
+
 public enum LCPAuthenticationReason: Sendable {
     /// No matching passphrase was found.
     case passphraseNotFound

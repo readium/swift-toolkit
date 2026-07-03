@@ -102,6 +102,18 @@ public final class PublicationOpener {
             }
         }
     }
+
+    @available(*, unavailable, message: "The `sender` parameter has been removed. Use the variant without `sender`.")
+    public func open(
+        asset: Asset,
+        allowUserInteraction: Bool,
+        credentials: String? = nil,
+        onCreatePublication: @escaping Publication.Builder.Transform = { _, _, _ in },
+        warnings: WarningLogger? = nil,
+        sender: Any?
+    ) async -> Result<Publication, PublicationOpenError> {
+        fatalError()
+    }
 }
 
 public enum PublicationOpenError: Error, Sendable {

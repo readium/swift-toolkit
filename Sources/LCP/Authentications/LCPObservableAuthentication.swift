@@ -24,6 +24,11 @@ public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObj
         /// Reason for this authentication request.
         public let reason: LCPAuthenticationReason
 
+        @available(*, unavailable, message: "The `sender` parameter has been removed. Present any UI from your `LCPDialogAuthenticationDelegate` implementation instead.")
+        public var sender: Any? {
+            fatalError()
+        }
+
         private var continuation: CheckedContinuation<String?, Never>?
 
         init(

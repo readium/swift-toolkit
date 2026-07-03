@@ -127,6 +127,16 @@ public final class LCPService: Loggable {
         }
     }
 
+    @available(*, unavailable, message: "The `sender` parameter has been removed. Present any UI from your `LCPDialogAuthenticationDelegate` implementation and use the variant without `sender`.")
+    public func retrieveLicense(
+        from asset: Asset,
+        authentication: LCPAuthenticating,
+        allowUserInteraction: Bool,
+        sender: Any?
+    ) async -> Result<LCPLicense, LCPError> {
+        fatalError()
+    }
+
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
     /// LCP protected publications.
     ///

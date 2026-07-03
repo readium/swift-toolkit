@@ -24,6 +24,18 @@ public protocol ContentProtection {
     ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError>
 }
 
+public extension ContentProtection {
+    @available(*, unavailable, message: "The `sender` parameter has been removed. Use the variant without `sender`.")
+    func open(
+        asset: Asset,
+        credentials: String?,
+        allowUserInteraction: Bool,
+        sender: Any?
+    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
+        fatalError()
+    }
+}
+
 public enum ContentProtectionOpenError: Error, Sendable {
     /// The asset is not supported by this ``ContentProtection``
     case assetNotSupported((any Error)?)
