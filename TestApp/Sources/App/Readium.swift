@@ -50,7 +50,8 @@ import UIKit
             httpClient: httpClient
         )
 
-        lazy var lcpAuthentication: LCPAuthenticating = LCPDialogAuthentication(delegate: LCPDialogPresenter())
+        private let lcpDialogPresenter = LCPDialogPresenter()
+        lazy var lcpAuthentication: LCPAuthenticating = LCPDialogAuthentication(delegate: lcpDialogPresenter)
 
         /// Presents the LCP passphrase dialog on the app's top-most view
         /// controller, replacing the former `sender` parameter.
