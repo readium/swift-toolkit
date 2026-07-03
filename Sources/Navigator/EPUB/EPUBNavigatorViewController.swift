@@ -922,21 +922,22 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         return await spreadView.evaluateScript(script)
     }
 
-    /// Evaluates the given JavaScript in the loaded resource at `href`.
+    /// Evaluates the given JavaScript in the initialized resource at `href`.
     ///
-    /// This is best-effort: if the resource's spread isn't loaded yet, the
-    /// script is skipped rather than queued.
+    /// This is best-effort: if the resource's spread isn't fully initialized
+    /// yet (i.e. its decoration templates aren't registered), the script is
+    /// skipped rather than queued.
     @MainActor
     private func evaluateScript(_ script: String, inHREF href: AnyURL) async {
         guard
             !Task.isCancelled,
             let spreadView = loadedSpreadViewForHREF(href),
-            spreadView.isSpreadLoaded
+            spreadView.isSpreadInitialized
         else { return }
         _ = await spreadView.evaluateScript(script, inHREF: href)
     }
 
-    /// Evaluates the given JavaScript in the loaded spread at `index`.
+    /// Evaluates the given JavaScript in the initialized spread at `index`.
     ///
     /// Best-effort in the same way as `evaluateScript(_:inHREF:)`.
     @MainActor
@@ -944,7 +945,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         guard
             !Task.isCancelled,
             let spreadView = paginationView?.loadedViews[index] as? EPUBSpreadView,
-            spreadView.isSpreadLoaded
+            spreadView.isSpreadInitialized
         else { return }
         _ = await spreadView.evaluateScript(script)
     }

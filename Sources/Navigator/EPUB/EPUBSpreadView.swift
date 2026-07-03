@@ -56,7 +56,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     weak var activityIndicatorView: UIActivityIndicatorView?
     private var activityIndicatorStopWorkItem: DispatchWorkItem?
 
+    /// Set once the spread's DOM is loaded and its subclass may operate on it
+    /// (e.g. to scroll to a pending location). Note that decoration templates
+    /// and other delegate-provided setup are not yet in place at this point;
+    /// use `isSpreadInitialized` for that.
     private(set) var isSpreadLoaded = false
+
+    /// Set once the spread is fully initialized, i.e. after
+    /// `spreadViewDidLoad(_:)` has registered decoration templates and run
+    /// other delegate-provided setup. External script evaluation should gate on
+    /// this rather than `isSpreadLoaded` to avoid racing the setup.
+    private(set) var isSpreadInitialized = false
+
     private var spreadLoadTask: Task<Void, Never>?
 
     required init(
@@ -397,6 +408,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             applySettings()
             await spreadDidLoad()
             await delegate?.spreadViewDidLoad(self)
+            isSpreadInitialized = true
             onSpreadLoadedCallbacks.complete()
             showSpread()
         }
