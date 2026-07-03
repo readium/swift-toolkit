@@ -35,11 +35,11 @@ positional_args() {
 parse_flags() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --dry-run) DRY_RUN=1; shift ;;
-            --skip-git-checks) SKIP_GIT_CHECKS=1; shift ;;
+            --dry-run) DRY_RUN=1 ;;
+            --skip-git-checks) SKIP_GIT_CHECKS=1 ;;
             -*) error "Unknown argument: $1" ;;
-            *) break ;;
         esac
+        shift
     done
 }
 
