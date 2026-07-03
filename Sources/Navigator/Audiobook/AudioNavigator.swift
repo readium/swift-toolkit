@@ -367,7 +367,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             // A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
             // To fix this, we load the duration asynchronously.
             var duration = defaultDuration
-            if let currentItem = currentItem, let seconds = try? await currentItem.asset.load(.duration).seconds, !seconds.isNaN {
+            if let currentItem = currentItem, let seconds = try? await currentItem.asset.load(.duration).seconds, seconds.isFinite {
                 duration = seconds
             }
 
