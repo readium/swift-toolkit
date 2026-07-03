@@ -58,7 +58,7 @@ Omit the sub-section heading for cross-cutting changes.
 For external contributions, we want to attribute the author. Follow these instructions:
 
 1. run `gh pr view --json number,title,url,author` to get the PR for the current branch and its author's login.
-2. Check if the author is a maintainer with `gh api repos/readium/kotlin-toolkit/collaborators --jq '.[].login'`.
+2. Check if the author is a maintainer with `gh api repos/readium/swift-toolkit/collaborators --jq '.[].login'`.
 3. Only add a contribution credit if the author is **not** a maintainer, appending `(contributed by [@login](PR URL))`.
 
 ## Process
