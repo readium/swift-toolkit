@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import PDFKit
+@preconcurrency import PDFKit
 import ReadiumShared
 import UIKit
 
@@ -40,6 +40,7 @@ open class PDFNavigatorViewController:
         /// The default set of editing actions is `EditingAction.defaultActions`.
         public var editingActions: [EditingAction]
 
+        @MainActor
         public init(
             preferences: PDFPreferences = PDFPreferences(),
             defaults: PDFDefaults = PDFDefaults(),
@@ -782,7 +783,7 @@ open class PDFNavigatorViewController:
     }
 }
 
-extension PDFNavigatorViewController: PDFViewDelegate {
+extension PDFNavigatorViewController: @preconcurrency PDFViewDelegate {
     public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
         let url = url.addingSchemeWhenMissing("http")
         delegate?.navigator(self, presentExternalURL: url)

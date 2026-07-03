@@ -18,6 +18,7 @@ import Foundation
 ///     ...
 /// }
 /// ```
+@MainActor
 final class CompletionList {
     private var blocks: [() -> Void] = []
 
@@ -37,11 +38,12 @@ final class CompletionList {
 
     /// Calls all the registered completion blocks.
     func complete() {
-        DispatchQueue.main.async {
-            for block in self.blocks {
+        Task { @MainActor in
+            let currentBlocks = self.blocks
+            self.blocks.removeAll()
+            for block in currentBlocks {
                 block()
             }
-            self.blocks.removeAll()
         }
     }
 }

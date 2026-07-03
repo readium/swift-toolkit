@@ -254,7 +254,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
 
-    private lazy var player: AVPlayer = {
+    private lazy var player: AVPlayer = makePlayer()
+
+    private func makePlayer() -> AVPlayer {
         let player = AVPlayer()
         player.allowsExternalPlayback = false
         player.automaticallyWaitsToMinimizeStalling = false
@@ -328,7 +330,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
 
         return player
-    }()
+    }
 
     private func shouldPlayNextResource(completion: @escaping @MainActor @Sendable (Bool) -> Void) {
         guard let delegate = delegate else {
@@ -357,29 +359,25 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor @Sendable (MediaPlaybackInfo) -> Void) {
         let resourceIndex = resourceIndex
         let state = state
-        let currentTime = time ?? currentTime
-        let linkDuration = publication.readingOrder[resourceIndex].duration
+        let time = time ?? currentTime
+        let defaultDuration = publication.readingOrder[resourceIndex].duration
         let currentItem = player.currentItem
 
-        // A deadlock can occur when loading HTTP assets and creating the
-        // playback info from the main thread. To fix this, this is an
-        // asynchronous operation.
-        Task.detached {
-            var duration: Double? = linkDuration
-            if let itemDuration = currentItem?.duration, itemDuration.isNumeric {
-                duration = itemDuration.secondsOrZero
+        Task {
+            // A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
+            // To fix this, we load the duration asynchronously.
+            var duration = defaultDuration
+            if let currentItem = currentItem, let seconds = try? await currentItem.asset.load(.duration).seconds, seconds.isFinite {
+                duration = seconds
             }
 
             let info = MediaPlaybackInfo(
                 resourceIndex: resourceIndex,
                 state: state,
-                time: currentTime,
+                time: time,
                 duration: duration
             )
-
-            Task { @MainActor in
-                completion(info)
-            }
+            completion(info)
         }
     }
 
@@ -413,12 +411,12 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var lastLoadedTimeRanges: [Range<Double>] = []
 
     private lazy var loadedTimeRangesTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] timer in
-        MainActor.assumeIsolated {
-            guard let self = self else {
-                timer.invalidate()
-                return
-            }
+        guard let self = self else {
+            timer.invalidate()
+            return
+        }
 
+        MainActor.assumeIsolated {
             let ranges: [Range<Double>] = (self.player.currentItem?.loadedTimeRanges ?? [])
                 .map { value in
                     let range = value.timeRangeValue

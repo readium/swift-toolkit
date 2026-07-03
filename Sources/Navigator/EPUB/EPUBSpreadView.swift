@@ -7,6 +7,7 @@
 import ReadiumShared
 @preconcurrency import WebKit
 
+@MainActor
 protocol EPUBSpreadViewDelegate: AnyObject {
     /// Returns the content inset the spread view should use.
     func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets
@@ -55,7 +56,18 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     weak var activityIndicatorView: UIActivityIndicatorView?
     private var activityIndicatorStopWorkItem: DispatchWorkItem?
 
+    /// Set once the spread's DOM is loaded and its subclass may operate on it
+    /// (e.g. to scroll to a pending location). Note that decoration templates
+    /// and other delegate-provided setup are not yet in place at this point;
+    /// use `isSpreadInitialized` for that.
     private(set) var isSpreadLoaded = false
+
+    /// Set once the spread is fully initialized, i.e. after
+    /// `spreadViewDidLoad(_:)` has registered decoration templates and run
+    /// other delegate-provided setup. External script evaluation should gate on
+    /// this rather than `isSpreadLoaded` to avoid racing the setup.
+    private(set) var isSpreadInitialized = false
+
     private var spreadLoadTask: Task<Void, Never>?
 
     required init(
@@ -103,7 +115,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-        clear()
     }
 
     /// Called when the spread view is removed from the view hierarchy, to
@@ -173,15 +184,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         await spreadLoaded()
 
         log(.trace, "Evaluate script: \(script)")
-        return await withCheckedContinuation { continuation in
-            webView.evaluateJavaScript(script) { [weak self] res, error in
-                if let error = error {
-                    self?.log(.error, error)
-                    continuation.resume(returning: .failure(error))
-                } else {
-                    continuation.resume(returning: .success(res ?? ()))
-                }
-            }
+
+        do {
+            let res = try await webView.evaluateJavaScript(script)
+            return .success(res ?? ())
+        } catch {
+            log(.error, error)
+            return .failure(error)
         }
     }
 
@@ -399,6 +408,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             applySettings()
             await spreadDidLoad()
             await delegate?.spreadViewDidLoad(self)
+            isSpreadInitialized = true
             onSpreadLoadedCallbacks.complete()
             showSpread()
         }
@@ -645,7 +655,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         setNeedsStopActivityIndicator()
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {

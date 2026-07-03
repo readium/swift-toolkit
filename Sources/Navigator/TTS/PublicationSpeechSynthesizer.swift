@@ -145,7 +145,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// The default content tokenizer will split the `Content.Element` items into individual sentences.
-    public nonisolated static let defaultTokenizerFactory: TokenizerFactory = { defaultLanguage in
+    public static let defaultTokenizerFactory: TokenizerFactory = { defaultLanguage in
         makeTextContentTokenizer(
             defaultLanguage: defaultLanguage,
             contextSnippetLength: 50,

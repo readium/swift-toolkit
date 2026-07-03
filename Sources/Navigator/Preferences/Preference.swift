@@ -9,7 +9,7 @@ import Foundation
 /// A handle to edit the value of a specific preference which is able to predict
 /// which value the `Configurable` will effectively use.
 public protocol Preference {
-    associatedtype Value
+    associatedtype Value: Sendable
 
     /// The current value of the preference.
     var value: Value? { get }
