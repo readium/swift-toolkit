@@ -27,7 +27,7 @@ The `sender` parameter used to give UX context (e.g. the host `UIViewController`
 
 If you use the SwiftUI `LCPDialog`, just remove the `sender` argument from your calls.
 
-But if you use the UIKIt `LCPDialogAuthentication`, you need to provide a `LCPDialogAuthenticationDelegate` instead:
+But if you use the UIKit `LCPDialogAuthentication`, you need to provide a `LCPDialogAuthenticationDelegate` instead:
 
 ```diff
 -let authentication = LCPDialogAuthentication()
