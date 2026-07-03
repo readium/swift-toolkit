@@ -50,7 +50,11 @@ import UIKit
             httpClient: httpClient
         )
 
-        lazy var lcpAuthentication: LCPAuthenticating = LCPDialogAuthentication(delegate: LCPDialogPresenter())
+        lazy var lcpAuthentication: LCPAuthenticating = LCPDialogAuthentication(delegate: lcpDialogPresenter)
+
+        /// The dialog authentication holds its delegate weakly, so we retain
+        /// the presenter for the lifetime of the application.
+        private let lcpDialogPresenter = LCPDialogPresenter()
 
         /// Presents the LCP passphrase dialog on the app's top-most view
         /// controller, replacing the former `sender` parameter.
@@ -60,23 +64,7 @@ import UIKit
                 _ authentication: LCPDialogAuthentication,
                 present dialogViewController: UIViewController
             ) {
-                let topViewController = getTopMostViewController()
-                topViewController?.present(dialogViewController, animated: true)
-            }
-
-            func getTopMostViewController() -> UIViewController? {
-                let keyWindow = UIApplication.shared.connectedScenes
-                    .compactMap { $0 as? UIWindowScene }
-                    .flatMap(\.windows)
-                    .first { $0.isKeyWindow }
-
-                guard var top = keyWindow?.rootViewController else {
-                    return nil
-                }
-                while let presented = top.presentedViewController {
-                    top = presented
-                }
-                return top
+                UIViewController.topMost?.present(dialogViewController, animated: true)
             }
         }
 

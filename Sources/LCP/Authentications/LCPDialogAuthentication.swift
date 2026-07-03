@@ -8,11 +8,13 @@ import Foundation
 import ReadiumShared
 import UIKit
 
-/// Delegate presenting the passphrase dialog produced by `LCPDialogAuthentication`.
+/// Delegate presenting the passphrase dialog produced by
+/// `LCPDialogAuthentication`.
 @MainActor public protocol LCPDialogAuthenticationDelegate: AnyObject, Sendable {
     /// Presents the LCP passphrase dialog view controller.
     ///
-    /// The dialog dismisses itself once the user submits or cancels, so you only need to present it.
+    /// The dialog dismisses itself once the user submits or cancels, so you
+    /// only need to present it.
     func lcpDialogAuthentication(
         _ authentication: LCPDialogAuthentication,
         present dialogViewController: UIViewController
@@ -27,18 +29,9 @@ import UIKit
 public final class LCPDialogAuthentication: LCPAuthenticating, Loggable {
     /// Delegate responsible for presenting the passphrase dialog.
     private weak var delegate: LCPDialogAuthenticationDelegate?
-
-    private let modalPresentationStyle: UIModalPresentationStyle
-    private let modalTransitionStyle: UIModalTransitionStyle
-
-    public init(
-        delegate: LCPDialogAuthenticationDelegate? = nil,
-        modalPresentationStyle: UIModalPresentationStyle = .formSheet,
-        modalTransitionStyle: UIModalTransitionStyle = .coverVertical
-    ) {
+    
+    public init(delegate: LCPDialogAuthenticationDelegate) {
         self.delegate = delegate
-        self.modalPresentationStyle = modalPresentationStyle
-        self.modalTransitionStyle = modalTransitionStyle
     }
 
     public func retrievePassphrase(
@@ -46,10 +39,11 @@ public final class LCPDialogAuthentication: LCPAuthenticating, Loggable {
         reason: LCPAuthenticationReason,
         allowUserInteraction: Bool
     ) async -> String? {
-        guard allowUserInteraction, let delegate = delegate else {
-            if delegate == nil {
-                log(.error, "Tried to present the LCP dialog without providing a `delegate` to `LCPDialogAuthentication`")
-            }
+        guard allowUserInteraction else {
+            return nil
+        }
+        guard let delegate = delegate else {
+            log(.error, "The `LCPDialogAuthentication` delegate was deallocated before it could present the passphrase dialog. Make sure you retain it for the lifetime of the authentication.")
             return nil
         }
 
@@ -57,9 +51,15 @@ public final class LCPDialogAuthentication: LCPAuthenticating, Loggable {
             let dialogViewController = LCPDialogViewController(license: license, reason: reason) { passphrase in
                 continuation.resume(returning: passphrase)
             }
-            dialogViewController.modalPresentationStyle = modalPresentationStyle
-            dialogViewController.modalTransitionStyle = modalTransitionStyle
             delegate.lcpDialogAuthentication(self, present: dialogViewController)
         }
+    }
+
+    @available(*, unavailable, message: "Set the modal presentation and transition styles from your LCPDialogAuthenticationDelegate implementation")
+    public convenience init(
+        modalPresentationStyle: UIModalPresentationStyle = .formSheet,
+        modalTransitionStyle: UIModalTransitionStyle = .coverVertical
+    ) {
+        fatalError()
     }
 }
