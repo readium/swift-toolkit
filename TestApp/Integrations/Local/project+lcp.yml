@@ -23,22 +23,6 @@ schemes:
     build:
       targets:
         TestApp: all
-  AllTests:
-    build:
-      targets:
-        TestApp: all
-    test:
-      testPlans:
-        - path: AllTests.xctestplan
-          defaultPlan: true
-  ReadiumLCPTests:
-    build:
-      targets:
-        TestApp: all
-    test:
-      testPlans:
-        - path: ReadiumLCPTests.xctestplan
-          defaultPlan: true
 targets:
   TestApp:
     type: application
@@ -71,21 +55,6 @@ targets:
       SWIFT_VERSION: 6.0
       SWIFT_APPROACHABLE_CONCURRENCY: Yes
       SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
-      OTHER_SWIFT_FLAGS: -DLCP
-      DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
-
-  ReadiumLCPTests:
-    type: bundle.unit-test
-    platform: iOS
-    deploymentTarget: "18.0"
-    sources:
-      - path: ../Tests/LCPTests
-    dependencies:
-      - target: TestApp
-      - package: Readium
-        product: TestPublications
-    settings:
-      GENERATE_INFOPLIST_FILE: YES
       OTHER_SWIFT_FLAGS: -DLCP
       DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 

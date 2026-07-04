@@ -6,24 +6,26 @@
       "options" : {
 
       }
+    },
+    {
+      "id" : "3E52C740-96D1-4E51-9D6B-1B4E1F7A2C11",
+      "name" : "Thread Sanitizer",
+      "options" : {
+        "threadSanitizerEnabled" : true
+      }
     }
   ],
   "defaultOptions" : {
     "codeCoverage" : false,
+    "language" : "en",
+    "region" : "US",
     "targetForVariableExpansion" : {
-      "containerPath" : "container:TestApp.xcodeproj",
-      "identifier" : "BED194980D56484BC288A866",
-      "name" : "TestApp"
+      "containerPath" : "container:Playground.xcodeproj",
+      "identifier" : "739B1FD817D42F0264714A50",
+      "name" : "Playground"
     }
   },
   "testTargets" : [
-    {
-      "target" : {
-        "containerPath" : "container:..",
-        "identifier" : "ReadiumInternalTests",
-        "name" : "ReadiumInternalTests"
-      }
-    },
     {
       "target" : {
         "containerPath" : "container:..",
@@ -54,8 +56,8 @@
     },
     {
       "target" : {
-        "containerPath" : "container:TestApp.xcodeproj",
-        "identifier" : "ReadiumLCPTests",
+        "containerPath" : "container:Playground.xcodeproj",
+        "identifier" : "577C8AE113CE8235D663EDDB",
         "name" : "ReadiumLCPTests"
       }
     }

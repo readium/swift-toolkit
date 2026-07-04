@@ -21,14 +21,6 @@ schemes:
     build:
       targets:
         TestApp: all
-  AllTests:
-    build:
-      targets:
-        TestApp: all
-    test:
-      testPlans:
-        - path: AllTests.xctestplan
-          defaultPlan: true
 targets:
   TestApp:
     type: application

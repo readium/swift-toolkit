@@ -15,9 +15,9 @@
       location = "group:../Package.swift">
    </FileRef>
    <FileRef
-      location = "group:../TestApp/TestApp.xcodeproj">
+      location = "group:../Playground/Playground.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:../Playground/Playground.xcodeproj">
+      location = "group:../TestApp/TestApp.xcodeproj">
    </FileRef>
 </Workspace>

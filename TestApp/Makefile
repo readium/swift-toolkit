@@ -23,9 +23,6 @@ clean:
 	@rm -rf Pods
 	@rm -rf TestApp.xcodeproj
 	@rm -rf TestApp.xcworkspace
-	@rm -f TestApp.xctestplan
-	@rm -f AllTests.xctestplan
-	@rm -f ReadiumLCPTests.xctestplan
 	@rm -rf R2LCPClient
 
 spm: clean
@@ -59,12 +56,9 @@ endif
 dev: clean
 ifdef lcp
 	@cp Integrations/Local/project+lcp.yml project.yml
-	@cp Integrations/Local/AllTests+lcp.xctestplan AllTests.xctestplan
-	@cp Integrations/Local/ReadiumLCPTests.xctestplan ReadiumLCPTests.xctestplan
 	curl --create-dirs --output R2LCPClient/Package.swift "$(lcp)"
 else
 	@cp Integrations/Local/project.yml project.yml
-	@cp Integrations/Local/AllTests.xctestplan AllTests.xctestplan
 endif
 	@touch ../Package.swift
 	xcodegen generate

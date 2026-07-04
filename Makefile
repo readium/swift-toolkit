@@ -13,16 +13,21 @@ help:
 
 .PHONY: test
 test:
-	xcodebuild test -project "TestApp/TestApp.xcodeproj" -scheme AllTests -destination "platform=iOS Simulator,name=iPhone Air" 2> /dev/null \
+	xcodebuild test -scheme Readium-Package -destination "platform=iOS Simulator,name=iPhone Air" 2> /dev/null \
 		| xcbeautify --quieter --disable-logging \
 		| grep -Ev "^Executed |Test Suite 'All tests'|Test run started\.|Test session results:"; true
 
 .SILENT:
 .PHONY: playground
 playground:
-	cd Playground; \
-	find . -name ".DS_Store" -delete; \
-	xcodegen --use-cache --cache-path .xcodegen; \
+	cd Playground; find . -name ".DS_Store" -delete
+ifdef lcp
+	curl --create-dirs --output Playground/R2LCPClient/Package.swift "$(lcp)"
+	cd Playground; xcodegen -s project+lcp.yml --use-cache --cache-path .xcodegen
+else
+	rm -rf Playground/R2LCPClient
+	cd Playground; xcodegen -s project.yml --use-cache --cache-path .xcodegen
+endif
 	# The repository might be cloned to a different location than "swift-toolkit".
 	# XcodeGen will use the name of the folder in the project, which is not desirable.
 	# This will replace all occurrences of this folder by "swift-toolkit".
