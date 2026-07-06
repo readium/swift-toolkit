@@ -7,9 +7,21 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Changed
 
+#### All
+
+* The toolkit is migrated to Swift 6 with strict concurrency checking. All packages compile in the Swift 6 language mode, except `ReadiumInternal` which will follow in a future release. See [the migration guide](docs/Migration%20Guide.md).
+* The CocoaPods podspecs now declare `swift_version` 6.0.
+
 #### Shared
 
 * OPDS models (`Feed`, `Group`, `Facet`, `OpdsMetadata`) are now structs with value semantics.
+* `Publication`, `Resource`, `Container` and related types are now `Sendable`. Custom implementations of `Resource`, `Container`, `HTTPClient` or `PublicationService` must be `Sendable` too.
+* `Resource.stream()` now cooperates with task cancellation: the built-in resources fail with `ReadError.cancelled` when the surrounding task is cancelled, and custom implementations are expected to do the same.
+* `Weak` now requires the wrapped type to be `Sendable`.
+
+#### Navigator
+
+* The `Navigator` and `VisualNavigator` protocols and their delegates are now isolated to the main actor.
 
 #### LCP
 

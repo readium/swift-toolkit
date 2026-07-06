@@ -11,7 +11,7 @@ let version = "3.10.0"
 let iosTarget = "15.0"
 
 /// Swift version requirement shared by all modules.
-let swiftVersion = "5.10"
+let swiftVersion = "6.0"
 
 /// Swift package name (from Package.swift). All modules share this so that `package` access
 /// level works across module boundaries, matching the SPM build behaviour.

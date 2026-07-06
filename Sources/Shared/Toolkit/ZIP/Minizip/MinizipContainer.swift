@@ -127,6 +127,10 @@ private actor MinizipResource: Resource, Loggable {
     }
 
     func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+        guard !Task.isCancelled else {
+            return .failure(.cancelled)
+        }
+
         let range = range ?? 0 ..< metadata.length
 
         return await zipFile().flatMap { zipFile in
@@ -323,6 +327,8 @@ private final class MinizipFile {
         }
 
         while totalBytesRead < length {
+            try Task.checkCancellation()
+
             let bytesToRead = min(UInt64(bufferLength), length - totalBytesRead)
             var buffer = [CUnsignedChar](repeating: 0, count: Int(bytesToRead))
             let bytesRead = UInt64(unzReadCurrentFile(file, &buffer, UInt32(bytesToRead)))

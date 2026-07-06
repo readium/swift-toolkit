@@ -60,6 +60,10 @@ public actor BufferingResource: Resource, Loggable {
         range: Range<UInt64>?,
         consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
+        guard !Task.isCancelled else {
+            return .failure(.cancelled)
+        }
+
         // Reading the whole resource bypasses buffering to keep things simple.
         guard let requestedRange = range, !requestedRange.isEmpty else {
             return await resource.stream(range: range, consume: consume)

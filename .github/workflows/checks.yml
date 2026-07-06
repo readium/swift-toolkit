@@ -50,6 +50,29 @@ jobs:
         run: |
           jq -r '.pins[] | "\(.identity): \(.state.version)"' Package.resolved
 
+  # Runs the test suite under the Thread Sanitizer to validate the
+  # `@unchecked Sendable` and `nonisolated(unsafe)` sites at runtime.
+  # Non-blocking for now, until we confirm it is stable.
+  test-tsan:
+    name: Test (Thread Sanitizer)
+    runs-on: macos-26
+    if: ${{ !github.event.pull_request.draft }}
+    continue-on-error: true
+    env:
+      scheme: ${{ 'Readium-Package' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install dependencies
+        run: |
+          # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
+          xcrun simctl list
+      - name: Test
+        run: |
+          set -eo pipefail
+          xcodebuild test -scheme "$scheme" -destination "platform=$platform,name=$device" -enableThreadSanitizer YES | xcbeautify --renderer github-actions
+
   # navigator-ui-tests:
   #   name: Navigator UI Tests
   #   runs-on: macos-26

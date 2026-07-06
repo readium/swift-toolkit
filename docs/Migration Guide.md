@@ -4,6 +4,37 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Swift 6 and strict concurrency
+
+The toolkit is now built with the Swift 6 language mode and strict concurrency checking. Building requires Xcode 26 (Swift 6.2 toolchain) or later. Your app does not need to adopt the Swift 6 language mode itself, but some APIs changed shape.
+
+#### Navigators are isolated to the main actor
+
+The `Navigator` and `VisualNavigator` protocols – and their delegates such as `NavigatorDelegate` – are now `@MainActor`. In practice:
+
+* Call navigator APIs from the main actor (which you most likely already do, as they drive UIKit views).
+* Conformances to the delegate protocols must be main-actor-isolated. If your delegate is a `UIViewController`, nothing changes. Otherwise, annotate the type with `@MainActor`.
+
+```diff
+-final class ReaderCoordinator: NavigatorDelegate {
++@MainActor final class ReaderCoordinator: NavigatorDelegate {
+```
+
+#### Core types are `Sendable`
+
+`Publication`, `Manifest`, `Link`, `Locator`, `Resource`, `Container` and most other Shared models are now `Sendable` and can safely cross concurrency domains.
+
+If you implement custom `Resource`, `Container`, `HTTPClient` or `PublicationService` types, they must now conform to `Sendable`:
+
+* For stateless types, add the conformance – structs of `Sendable` values get it for free.
+* For types holding mutable state (file handles, caches...), we recommend converting the class to an `actor`, as the toolkit does for its own resources (e.g. `FileResource`).
+
+Custom `Resource` implementations should also cooperate with task cancellation in `stream()`: check `Task.isCancelled` between chunks – at minimum when entering the method – and fail with `ReadError.cancelled`.
+
+#### `Weak` requires a `Sendable` type
+
+The `Weak` smart pointer now requires the wrapped type to be `Sendable`. This only affects you if you used `Weak` with your own non-`Sendable` classes.
+
 ### Readium LCP
 
 #### Required `deviceName` in `LCPService`

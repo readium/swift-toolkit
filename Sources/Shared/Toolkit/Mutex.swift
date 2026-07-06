@@ -31,6 +31,12 @@ public struct Mutex<Value: ~Copyable>: ~Copyable, Sendable {
     /// stable address for the lifetime of the Mutex.
     @usableFromInline
     final class Storage: Sendable {
+        /// Known caveat: passing `&lock` to `os_unfair_lock_lock/unlock` is a
+        /// formal law-of-exclusivity violation (overlapping `inout` accesses
+        /// from different threads) that the Thread Sanitizer may flag. The
+        /// address is stable and the pattern behaves correctly on current
+        /// runtimes; it is accepted until the replacement planned in the
+        /// FIXME above.
         nonisolated(unsafe) var lock = os_unfair_lock()
         nonisolated(unsafe) var value: Value
 

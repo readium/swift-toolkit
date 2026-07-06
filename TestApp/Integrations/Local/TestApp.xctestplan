@@ -6,6 +6,13 @@
       "options" : {
 
       }
+    },
+    {
+      "id" : "3E52C740-96D1-4E51-9D6B-1B4E1F7A2C11",
+      "name" : "Thread Sanitizer",
+      "options" : {
+        "threadSanitizerEnabled" : true
+      }
     }
   ],
   "defaultOptions" : {

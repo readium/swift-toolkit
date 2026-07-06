@@ -6,27 +6,38 @@
 
 import Foundation
 
-@MainActor
-public final class CancellableTasks: Sendable {
-    private var tasks: Set<Task<Void, Never>> = []
+/// Holds a set of tasks whose lifetime is bound to this instance: any task
+/// still running when the instance is deallocated gets cancelled.
+public final class CancellableTasks: @unchecked Sendable {
+    /// Guards `tasks`. `Mutex` lives in `ReadiumShared`, which depends on
+    /// this module, hence the manual lock.
+    private let lock = NSLock()
+    private var tasks: [UUID: Task<Void, Never>] = [:]
 
-    public nonisolated init() {}
+    public init() {}
 
-    public nonisolated func add(@_implicitSelfCapture _ task: @Sendable @escaping () async -> Void) {
-        Task {
-            await add(task)
+    public func add(@_implicitSelfCapture _ operation: @Sendable @escaping () async -> Void) {
+        let id = UUID()
+        lock.lock()
+        defer { lock.unlock() }
+        // The task is registered while holding the lock, so its self-removal
+        // cannot run before the registration.
+        tasks[id] = Task { [weak self] in
+            await operation()
+            self?.remove(id)
         }
     }
 
-    public func add(@_implicitSelfCapture _ task: @Sendable @escaping () async -> Void) async {
-        let task = Task(operation: task)
-        tasks.insert(task)
-        _ = await task.value
-        tasks.remove(task)
+    private func remove(_ id: UUID) {
+        lock.lock()
+        defer { lock.unlock() }
+        tasks.removeValue(forKey: id)
     }
 
     deinit {
-        for task in tasks {
+        // No lock needed: reaching deinit means no other thread holds a
+        // strong reference anymore, and the tasks only capture self weakly.
+        for task in tasks.values {
             task.cancel()
         }
     }

@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
     ],
   }
   s.source_files  = "Sources/Navigator/**/*.{m,h,swift}"
-  s.swift_version = '5.10'
+  s.swift_version = '6.0'
   s.platform      = :ios
   s.ios.deployment_target = "15.0"
   s.pod_target_xcconfig = { 'OTHER_SWIFT_FLAGS' => '-package-name Readium' }
