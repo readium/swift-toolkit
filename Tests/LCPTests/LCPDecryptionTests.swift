@@ -10,7 +10,7 @@ import ReadiumShared
 import ReadiumStreamer
 import Testing
 #if SWIFT_PACKAGE
-import TestPublications
+    import TestPublications
 #endif
 
 struct LCPDecryptionTests {
