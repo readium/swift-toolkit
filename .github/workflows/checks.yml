@@ -129,14 +129,16 @@ jobs:
           # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
           xcrun simctl list
       - name: Check Playground project is up-to-date
+        env:
+          LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
         run: |
-          make playground
+          make playground lcp="$LCP_URL_SPM"
           git diff --exit-code Playground/.xcodegen
           if git ls-files --others --exclude-standard Playground/Playground.xcodeproj/ | grep -q .; then echo "Untracked Playground project files found. Run 'make playground' and commit the result."; exit 1; fi
-      - name: Build Playground
+      - name: Test Playground (LCP only)
         run: |
           set -eo pipefail
-          xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
+          xcodebuild test -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" -only-testing:ReadiumLCPTests | xcbeautify --renderer github-actions
       - name: Generate TestApp project
         working-directory: TestApp
         env:
@@ -146,7 +148,7 @@ jobs:
         working-directory: TestApp
         run: |
           set -eo pipefail
-          xcodebuild test -scheme AllTests -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
 
   int-spm:
     name: Integration (Swift Package Manager)

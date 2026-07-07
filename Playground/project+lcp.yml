@@ -46,10 +46,14 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: ../Tests/LCPTests
+        group: ReadiumLCPTests
+      - path: ../Tests/Publications/TestPublications.swift
+        group: ReadiumLCPTests
+      - path: ../Tests/Publications/Publications
+        type: folder
+        group: ReadiumLCPTests
     dependencies:
       - target: Playground
-      - package: Readium
-        product: TestPublications
     settings:
       GENERATE_INFOPLIST_FILE: YES
       OTHER_SWIFT_FLAGS: -DLCP

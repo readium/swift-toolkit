@@ -17,7 +17,6 @@ let package = Package(
         .library(name: "ReadiumNavigator", targets: ["ReadiumNavigator"]),
         .library(name: "ReadiumOPDS", targets: ["ReadiumOPDS"]),
         .library(name: "ReadiumLCP", targets: ["ReadiumLCP"]),
-        .library(name: "TestPublications", targets: ["TestPublications"]),
     ],
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.10.0"),
