@@ -9,7 +9,9 @@ import PDFKit
 import ReadiumShared
 import ReadiumStreamer
 import Testing
+#if SWIFT_PACKAGE
 import TestPublications
+#endif
 
 struct LCPDecryptionTests {
     let encryptedResource: Resource
