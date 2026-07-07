@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumZIPFoundation
 
 /// A ZIP ``Container`` using the ZIPFoundation library.

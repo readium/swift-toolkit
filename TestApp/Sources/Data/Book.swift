@@ -10,7 +10,7 @@ import GRDB
 import ReadiumShared
 
 struct Book: Codable {
-    struct Id: EntityId { let rawValue: Int64 }
+    nonisolated struct Id: EntityId { let rawValue: Int64 }
 
     let id: Id?
     /// Canonical identifier for the publication, extracted from its metadata.

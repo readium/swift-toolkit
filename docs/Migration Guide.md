@@ -31,6 +31,12 @@ If you implement custom `Resource`, `Container`, `HTTPClient` or `PublicationSer
 
 Custom `Resource` implementations should also cooperate with task cancellation in `stream()`: check `Task.isCancelled` between chunks – at minimum when entering the method – and fail with `ReadError.cancelled`.
 
+#### Async APIs run on the caller's actor
+
+The toolkit adopts the `NonisolatedNonsendingByDefault` upcoming feature ([SE-0461](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0461-async-function-isolation.md)), which will become the language default. Its `async` APIs now run on the calling actor instead of hopping to a background thread, except for CPU-heavy operations (decryption, parsing, search...) which are marked `@concurrent` and stay off your actor.
+
+You usually don't need to change anything. But if you implement a custom `Resource`, `HTTPClient` or search algorithm as a plain class or struct (not an actor), consider annotating CPU-heavy `async` methods with `@concurrent` so they don't block the main actor when called from UI code.
+
 #### `Weak` requires a `Sendable` type
 
 The `Weak` smart pointer now requires the wrapped type to be `Sendable`. This only affects you if you used `Weak` with your own non-`Sendable` classes.

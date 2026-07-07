@@ -6,6 +6,7 @@
 
 import CoreGraphics
 import Foundation
+import UIKit
 
 /// Helper handling directional UI events (e.g. edge taps or arrow keys) to turn
 /// the pages of a `VisualNavigator`.

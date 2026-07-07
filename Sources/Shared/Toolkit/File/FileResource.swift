@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Creates a `Resource` serving the contents of a local file.
 public actor FileResource: Resource, Loggable {

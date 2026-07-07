@@ -187,6 +187,14 @@ for target in package.targets {
     var swiftSettings = target.swiftSettings ?? []
     if swift6EnabledTargets.contains(target.name) {
         swiftSettings.append(.swiftLanguageMode(.v6))
+        // Adopt the future language defaults now, to avoid a second
+        // behavioral break for integrators after the Swift 6 release ships.
+        // In particular, `NonisolatedNonsendingByDefault` (SE-0461) runs
+        // `nonisolated async` functions on the caller's actor; CPU-heavy
+        // implementations are marked `@concurrent` to stay off-actor.
+        swiftSettings.append(.enableUpcomingFeature("NonisolatedNonsendingByDefault"))
+        swiftSettings.append(.enableUpcomingFeature("InferIsolatedConformances"))
+        swiftSettings.append(.enableUpcomingFeature("MemberImportVisibility"))
     } else {
         swiftSettings.append(.swiftLanguageMode(.v5))
     }

@@ -121,7 +121,8 @@ final class LCPDecryptor: Sendable {
             await plainTextSize()
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+        /// `@concurrent` keeps the AES decryption off the caller's actor.
+        @concurrent func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             guard let range = range else {
                 return await license.decryptFully(data: resource.read(), isDeflated: encryption.isDeflated)
                     .map {
@@ -203,7 +204,7 @@ private extension LCPLicense {
     ///
     /// - Returns: The decrypted content length in bytes, or a failure if
     ///   the resource is not a valid CBC chunk or cannot be deciphered.
-    func plainTextSizeOfCBCResource(_ resource: Resource) async -> ReadResult<UInt64?> {
+    @concurrent func plainTextSizeOfCBCResource(_ resource: Resource) async -> ReadResult<UInt64?> {
         await resource.estimatedLength().asyncFlatMap { length in
             guard let length = length else {
                 return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))
@@ -235,7 +236,7 @@ private extension LCPLicense {
         }
     }
 
-    func decryptFully(data: ReadResult<Data>, isDeflated: Bool) async -> ReadResult<Data> {
+    @concurrent func decryptFully(data: ReadResult<Data>, isDeflated: Bool) async -> ReadResult<Data> {
         data.flatMap {
             guard UInt64($0.count).isValidAESChunk else {
                 return .failure(.decoding(LCPDecryptor.Error.invalidCBCData))

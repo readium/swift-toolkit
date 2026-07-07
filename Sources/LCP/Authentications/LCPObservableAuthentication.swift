@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Combine
 import SwiftUI
 
 /// An ``LCPAuthenticating`` implementation which can be used to observe

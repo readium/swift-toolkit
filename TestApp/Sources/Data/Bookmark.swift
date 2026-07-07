@@ -10,7 +10,7 @@ import GRDB
 import ReadiumShared
 
 struct Bookmark: Codable {
-    struct Id: EntityId { let rawValue: Int64 }
+    nonisolated struct Id: EntityId { let rawValue: Int64 }
 
     let id: Id?
     /// Foreign key to the publication.

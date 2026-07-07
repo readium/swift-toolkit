@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Error while trying to retrieve an asset from a ``Resource`` or a
 /// ``Container``.

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Positions Service for an EPUB from its `readingOrder` and `fetcher`.

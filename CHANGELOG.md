@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### All
 
 * The toolkit is migrated to Swift 6 with strict concurrency checking. All packages compile in the Swift 6 language mode, except `ReadiumInternal` which will follow in a future release. See [the migration guide](docs/Migration%20Guide.md).
+* The toolkit adopts the `NonisolatedNonsendingByDefault` (SE-0461), `InferIsolatedConformances` and `MemberImportVisibility` upcoming Swift features. Async APIs now run on the caller's actor, except CPU-heavy operations (decryption, parsing, search) which are marked `@concurrent` and stay off-actor. See [the migration guide](docs/Migration%20Guide.md).
 * The CocoaPods podspecs now declare `swift_version` 6.0.
 
 #### Shared

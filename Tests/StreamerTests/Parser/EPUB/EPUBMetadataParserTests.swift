@@ -5,6 +5,7 @@
 //
 
 import ReadiumFuzi
+import ReadiumInternal
 import ReadiumShared
 @testable import ReadiumStreamer
 import XCTest

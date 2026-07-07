@@ -70,7 +70,8 @@ public final class GeneratedCoverService: CoverService, Sendable {
             .success(ResourceProperties())
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+        /// `@concurrent` keeps the PNG encoding off the caller's actor.
+        @concurrent func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             await cover().flatMap {
                 guard let data = $0.pngData() else {
                     return .failure(.decoding("Failed to convert the cover bitmap to PNG data"))

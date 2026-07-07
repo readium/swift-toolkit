@@ -6,6 +6,7 @@
 
 import CoreGraphics
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 public final class PDFParser: PublicationParser, Loggable {

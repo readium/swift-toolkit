@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public class ProxyPreference<Value: Sendable>: Preference {
     private let _value: () -> Value?

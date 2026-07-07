@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public enum PDFResourceContentIteratorError: Error, Sendable {
     /// The publication must have a ``PDFDocumentService`` to open the document.

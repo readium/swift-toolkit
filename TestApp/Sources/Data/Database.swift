@@ -60,7 +60,7 @@ final class Database {
         try migrator.migrate(writer)
     }
 
-    func read<T>(_ query: @escaping (GRDB.Database) throws -> T) async throws -> T {
+    func read<T: Sendable>(_ query: @escaping (GRDB.Database) throws -> T) async throws -> T {
         try await withCheckedThrowingContinuation { cont in
             writer.asyncRead { db in
                 do {
@@ -74,7 +74,7 @@ final class Database {
     }
 
     @discardableResult
-    func write<T>(_ updates: @escaping (GRDB.Database) throws -> T) async throws -> T {
+    func write<T: Sendable>(_ updates: @escaping (GRDB.Database) throws -> T) async throws -> T {
         try await withCheckedThrowingContinuation { cont in
             writer.asyncWrite {
                 try updates($0)
@@ -95,9 +95,9 @@ final class Database {
 ///
 /// Using this instead of regular integers makes the code safer, because we can only give ids of the
 /// right model in APIs. It also helps self-document APIs.
-protocol EntityId: Codable, Hashable, RawRepresentable, ExpressibleByIntegerLiteral, CustomStringConvertible, DatabaseValueConvertible where RawValue == Int64 {}
+nonisolated protocol EntityId: Codable, Hashable, RawRepresentable, ExpressibleByIntegerLiteral, CustomStringConvertible, DatabaseValueConvertible where RawValue == Int64 {}
 
-extension EntityId {
+nonisolated extension EntityId {
     var string: String {
         String(rawValue)
     }
@@ -110,7 +110,7 @@ extension EntityId {
     }
 }
 
-extension EntityId {
+nonisolated extension EntityId {
     // MARK: - ExpressibleByIntegerLiteral
 
     init(integerLiteral value: Int64) {

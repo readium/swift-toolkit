@@ -6,6 +6,7 @@
 
 import AVFoundation
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Represents a voice provided by the TTS engine which can speak an utterance.

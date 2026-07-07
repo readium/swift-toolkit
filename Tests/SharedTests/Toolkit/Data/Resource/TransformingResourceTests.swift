@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 @testable import ReadiumShared
 import Testing
 

@@ -201,7 +201,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         if options.animated {
             // Waits for the scroll animation to finish.
             await withCheckedContinuation { continuation in
-                let request = ScrollAnimationRequest(continuation)
+                let request = CompletionRequest(continuation)
                 pendingScrollAnimation?.resume()
                 pendingScrollAnimation = request
 
@@ -249,7 +249,17 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     private func waitGoToCompletion() async {
         await withCheckedContinuation { continuation in
-            goToContinuations.append(continuation)
+            let request = CompletionRequest(continuation)
+            goToContinuations.append(request)
+
+            // Safety net in case the spread never finishes loading (e.g. the
+            // resource fails to load) and `didCompleteGoTo()` never fires.
+            // `CompletionRequest.resume()` is idempotent, so a normal
+            // completion beats the timeout harmlessly.
+            Task { @MainActor in
+                try? await Task.sleep(seconds: 5.0)
+                request.resume()
+            }
         }
     }
 
@@ -260,13 +270,13 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         goToContinuations.removeAll()
     }
 
-    private var goToContinuations: [CheckedContinuation<Void, Never>] = []
+    private var goToContinuations: [CompletionRequest] = []
 
-    private var pendingScrollAnimation: ScrollAnimationRequest?
+    private var pendingScrollAnimation: CompletionRequest?
 
-    /// Represents an in-flight animated page turn, waiting for the scroll
-    /// animation to settle before completing.
-    private class ScrollAnimationRequest {
+    /// Represents an in-flight operation (animated page turn, pending go-to)
+    /// waiting for a completion signal before resuming its awaiter.
+    private class CompletionRequest {
         private var continuation: CheckedContinuation<Void, Never>?
 
         init(_ continuation: CheckedContinuation<Void, Never>) {
@@ -281,7 +291,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
     }
 
-    private func scrollDidEnd(for request: ScrollAnimationRequest? = nil) {
+    private func scrollDidEnd(for request: CompletionRequest? = nil) {
         guard request == nil || pendingScrollAnimation === request else {
             return
         }

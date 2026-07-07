@@ -38,7 +38,10 @@ extension AnyPublisher {
                     cancellable?.cancel()
                 } receiveValue: { value in
                     completedBeforeOutput = false
-                    continuation.resume(with: .success(value))
+                    // Safe: `first()` guarantees this closure runs at most
+                    // once, so the value's region is transferred exactly once.
+                    nonisolated(unsafe) let value = value
+                    continuation.resume(returning: value)
                 }
         }
     }

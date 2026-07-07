@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Sniffs an HTML or XHTML document.
 public struct HTMLFormatSniffer: FormatSniffer, Sendable {

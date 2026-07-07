@@ -407,7 +407,7 @@ extension Decoration.Style.Id {
     static let pageList: Decoration.Style.Id = "page_list"
 }
 
-struct PageListConfig: Hashable, Sendable {
+nonisolated struct PageListConfig: Hashable, Sendable {
     /// Page number label, taken from `publication.pageList[].title`.
     var label: String
 }

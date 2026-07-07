@@ -9,11 +9,11 @@ import ReadiumStreamer
 
 /// Generic fallback message for errors that have no meaningful user-facing
 /// description.
-let unexpected = "Something went wrong. Please try again."
+nonisolated let unexpected = "Something went wrong. Please try again."
 
 // MARK: - ReadiumShared Errors
 
-extension ReadiumShared.AssetRetrieveError: UserErrorConvertible {
+nonisolated extension ReadiumShared.AssetRetrieveError: UserErrorConvertible {
     var userErrorMessage: String? {
         switch self {
         case .formatNotSupported: "Unsupported file type. Please try a different file."
@@ -22,7 +22,7 @@ extension ReadiumShared.AssetRetrieveError: UserErrorConvertible {
     }
 }
 
-extension ReadiumShared.AssetRetrieveURLError: UserErrorConvertible {
+nonisolated extension ReadiumShared.AssetRetrieveURLError: UserErrorConvertible {
     var userErrorMessage: String? {
         switch self {
         case .schemeNotSupported, .formatNotSupported: "Unsupported file type. Please try a different file."
@@ -31,7 +31,7 @@ extension ReadiumShared.AssetRetrieveURLError: UserErrorConvertible {
     }
 }
 
-extension ReadiumShared.ReadError: UserErrorConvertible {
+nonisolated extension ReadiumShared.ReadError: UserErrorConvertible {
     var userErrorMessage: String? {
         switch self {
         case let .access(error): error.userErrorMessage
@@ -43,7 +43,7 @@ extension ReadiumShared.ReadError: UserErrorConvertible {
     }
 }
 
-extension ReadiumShared.AccessError: UserErrorConvertible {
+nonisolated extension ReadiumShared.AccessError: UserErrorConvertible {
     var userErrorMessage: String? {
         switch self {
         case let .http(error): error.userErrorMessage
@@ -53,7 +53,7 @@ extension ReadiumShared.AccessError: UserErrorConvertible {
     }
 }
 
-extension ReadiumShared.FileSystemError: UserErrorConvertible {
+nonisolated extension ReadiumShared.FileSystemError: UserErrorConvertible {
     var userErrorMessage: String? {
         switch self {
         case .fileNotFound: "Couldn't open file. The file was not found."
@@ -64,7 +64,7 @@ extension ReadiumShared.FileSystemError: UserErrorConvertible {
     }
 }
 
-extension ReadiumShared.HTTPError: UserErrorConvertible {
+nonisolated extension ReadiumShared.HTTPError: UserErrorConvertible {
     var userErrorMessage: String? {
         switch self {
         case .malformedRequest, .redirection, .cancelled, .other:
@@ -91,7 +91,7 @@ extension ReadiumShared.HTTPError: UserErrorConvertible {
 
 // MARK: - ReadiumStreamer Errors
 
-extension ReadiumStreamer.PublicationOpenError: UserErrorConvertible {
+nonisolated extension ReadiumStreamer.PublicationOpenError: UserErrorConvertible {
     var userErrorMessage: String? {
         switch self {
         case .formatNotSupported: "Unsupported file type. Please try a different file."

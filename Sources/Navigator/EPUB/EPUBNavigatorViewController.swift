@@ -1020,7 +1020,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
         didFailToLoadResourceAt href: RelativeURL,
         withError error: ReadError
     ) {
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
         }
     }

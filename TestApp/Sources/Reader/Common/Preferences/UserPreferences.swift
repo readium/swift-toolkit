@@ -38,12 +38,13 @@ final class UserPreferencesViewModel<
             .receive(on: DispatchQueue.main)
 
         preferences
-            .compactMap { prefs in
+            .sink { [weak self] prefs in
+                // The publisher delivers on the main queue.
                 MainActor.assumeIsolated {
-                    configurable.editor(of: prefs)
+                    self?.editor = configurable.editor(of: prefs)
                 }
             }
-            .assign(to: &$editor)
+            .store(in: &subscriptions)
 
         preferences
             // First one is dropped to avoid refreshing the navigator when

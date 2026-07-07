@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public enum URLAuthenticationChallengeResponse: Sendable {
     /// Use the specified credential.
@@ -195,7 +196,9 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         session.invalidateAndCancel()
     }
 
-    public func stream(
+    /// `@concurrent` keeps the chunk-consume loop off the caller's actor, so
+    /// downloads never pin the main actor.
+    @concurrent public func stream(
         _ request: any HTTPRequestConvertible,
         onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)? = nil,
         consume: @Sendable (Data, Double?) -> HTTPResult<Void>

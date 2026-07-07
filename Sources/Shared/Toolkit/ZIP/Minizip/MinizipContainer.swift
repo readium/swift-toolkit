@@ -6,6 +6,7 @@
 
 import Foundation
 import Minizip
+import ReadiumInternal
 
 /// A ZIP ``Container`` using the Minizip library.
 final class MinizipContainer: Container, Loggable {
@@ -97,6 +98,9 @@ private actor MinizipResource: Resource, Loggable {
         self.metadata = metadata
     }
 
+    /// Closing is best-effort: the underlying file is closed asynchronously,
+    /// and in any case when this resource is deallocated (see
+    /// `MinizipFile.deinit`).
     nonisolated func close() {
         Task { await doClose() }
     }

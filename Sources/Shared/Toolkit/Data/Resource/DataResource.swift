@@ -10,11 +10,11 @@ import Foundation
 public actor DataResource: Resource {
     public let sourceURL: AbsoluteURL?
 
-    private let makeData: @Sendable () async -> ReadResult<Data>
+    private let makeData: () async -> ReadResult<Data>
 
     /// Creates a `Resource` serving an array of bytes.
     public init(
-        data: @autoclosure @escaping @Sendable () -> Data,
+        data: sending @autoclosure @escaping () -> Data,
         sourceURL: AbsoluteURL? = nil
     ) {
         self.init(sourceURL: sourceURL) {
@@ -34,7 +34,7 @@ public actor DataResource: Resource {
     /// Creates a `Resource` serving an array of bytes.
     public init(
         sourceURL: AbsoluteURL? = nil,
-        makeData: @escaping @Sendable () async -> ReadResult<Data>
+        makeData: sending @escaping () async -> ReadResult<Data>
     ) {
         self.makeData = makeData
         self.sourceURL = sourceURL

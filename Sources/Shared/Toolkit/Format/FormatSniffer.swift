@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public protocol HintsFormatSniffer: Sendable {
     /// Tries to guess a `Format` from media type and file extension hints.

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public actor FormatSnifferBlob {
     private let source: Streamable
