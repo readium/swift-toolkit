@@ -133,7 +133,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: .derivedData
-          key: ${{ runner.os }}-derived-data-${{ hashFiles('Package.resolved') }}
+          key: ${{ runner.os }}-derived-data-${{ hashFiles('Package.swift') }}
           restore-keys: |
             ${{ runner.os }}-derived-data-
       - name: Check Playground project is up-to-date
