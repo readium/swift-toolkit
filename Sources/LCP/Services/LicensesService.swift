@@ -14,7 +14,6 @@ final class LicensesService: Loggable {
         .pdf: .lcpProtectedPDF,
     ]
 
-    private let isProduction: Bool
     private let client: LCPClient
     private let licenses: LCPLicenseRepository
     private let crl: CRLService
@@ -24,7 +23,6 @@ final class LicensesService: Loggable {
     private let passphrases: PassphrasesService
 
     init(
-        isProduction: Bool,
         client: LCPClient,
         licenses: LCPLicenseRepository,
         crl: CRLService,
@@ -33,7 +31,6 @@ final class LicensesService: Loggable {
         httpClient: HTTPClient,
         passphrases: PassphrasesService
     ) {
-        self.isProduction = isProduction
         self.client = client
         self.licenses = licenses
         self.crl = crl
@@ -89,7 +86,6 @@ final class LicensesService: Loggable {
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,
             sender: sender,
-            isProduction: isProduction,
             client: client,
             crl: crl,
             device: device,

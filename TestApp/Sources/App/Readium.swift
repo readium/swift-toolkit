@@ -63,6 +63,10 @@ final class Readium {
             func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash? {
                 R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
             }
+
+            func getSupportedLCPProfileURIs() -> [String] {
+                R2LCPClient.getSupportedLCPProfileURIs() ?? []
+            }
         }
     #endif
 }

@@ -20,4 +20,8 @@ class LCPTestClient: LCPClient {
     func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [String]) -> String? {
         R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
     }
+
+    func getSupportedLCPProfileURIs() -> [String] {
+        R2LCPClient.getSupportedLCPProfileURIs() ?? []
+    }
 }

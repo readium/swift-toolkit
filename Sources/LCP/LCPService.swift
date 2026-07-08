@@ -46,25 +46,12 @@ public final class LCPService: Loggable {
         deviceName: String? = nil,
         deviceId: String? = nil
     ) {
-        // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
-        let isProduction: Bool = {
-            guard
-                let prodLicenseURL = Bundle.module.url(forResource: "prod-license", withExtension: "lcpl"),
-                let prodLicense = try? String(contentsOf: prodLicenseURL, encoding: .utf8)
-            else {
-                return false
-            }
-            let passphrase = "7B7602FEF5DEDA10F768818FFACBC60B173DB223B7E66D8B2221EBE2C635EFAD" // "One passphrase"
-            return client.findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
-        }()
-
         let passphrases = PassphrasesService(
             client: client,
             repository: passphraseRepository
         )
 
         licenses = LicensesService(
-            isProduction: isProduction,
             client: client,
             licenses: licenseRepository,
             crl: CRLService(httpClient: httpClient),

@@ -25,6 +25,7 @@ struct JSONView: View {
         ScrollView {
             if let attributedText {
                 Text(attributedText)
+                    .font(.body.monospaced())
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
