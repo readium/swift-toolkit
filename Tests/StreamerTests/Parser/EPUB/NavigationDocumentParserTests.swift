@@ -71,8 +71,6 @@ struct NavigationDocumentParserTests {
     /// HREFs that are not percent-encoded (they contain spaces) but carry URI
     /// fragments and queries must keep the `#`/`?` as separators instead of
     /// encoding them into the path.
-    ///
-    /// See https://github.com/readium/swift-toolkit non-encoded HREF workaround.
     @Test func parseTOCWithUnencodedHREFs() {
         let document = parseNavDocument("nav-unencoded")
         let sut = document.links(for: .tableOfContents)
