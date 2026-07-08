@@ -137,10 +137,37 @@ public extension RelativeURL {
     ///
     /// As a workaround, we assume the HREFs are valid percent-encoded URLs,
     /// and fallback to decoded paths if we can't parse the URL.
+    ///
+    /// When falling back to a decoded path, only the path portion is
+    /// percent-encoded: any `?query` and `#fragment` are split off and
+    /// reattached verbatim. This keeps their `?`/`#` separators intact (a plain
+    /// path encoding would turn them into `%3F`/`%23`) and preserves any
+    /// existing encoding in the query or fragment instead of double-encoding it.
     init?(epubHREF: String) {
-        guard let uri = RelativeURL(string: epubHREF) ?? RelativeURL(path: epubHREF) else {
+        // A well-formed HREF is already a valid percent-encoded URL.
+        if let url = RelativeURL(string: epubHREF) {
+            self = url
+            return
+        }
+
+        // Otherwise the HREF is not a valid URL (e.g. a decoded path containing
+        // spaces). Split off the query and fragment, encode only the path, then
+        // reassemble. The fragment is split first so that a `?` occurring inside
+        // a fragment is not mistaken for a query separator.
+        var pathPart = epubHREF
+        var suffix = ""
+        if let hashIndex = pathPart.firstIndex(of: "#") {
+            suffix = String(pathPart[hashIndex...])
+            pathPart = String(pathPart[..<hashIndex])
+        }
+        if let queryIndex = pathPart.firstIndex(of: "?") {
+            suffix = pathPart[queryIndex...] + suffix
+            pathPart = String(pathPart[..<queryIndex])
+        }
+
+        guard let pathURL = RelativeURL(path: pathPart) else {
             return nil
         }
-        self = uri
+        self = RelativeURL(string: pathURL.string + suffix) ?? pathURL
     }
 }

@@ -245,4 +245,56 @@ enum RelativeURLTests {
             #expect(try base.relativize(#require(FileURL(string: "file:///foo"))) == nil)
         }
     }
+
+    struct EPUBHREF {
+        @Test("valid percent-encoded HREFs are used as-is")
+        func validHREFs() {
+            #expect(RelativeURL(epubHREF: "dir/chapter.xhtml")?.string == "dir/chapter.xhtml")
+            #expect(RelativeURL(epubHREF: "dir/chapter.xhtml#frag")?.string == "dir/chapter.xhtml#frag")
+            #expect(RelativeURL(epubHREF: "dir/chapter.xhtml?q=1#frag")?.string == "dir/chapter.xhtml?q=1#frag")
+            // Already-encoded characters are not re-encoded.
+            #expect(RelativeURL(epubHREF: "dir/chapter%20one.xhtml#frag")?.string == "dir/chapter%20one.xhtml#frag")
+        }
+
+        @Test("decoded paths without separators are percent-encoded")
+        func decodedPaths() {
+            #expect(RelativeURL(epubHREF: "dir/chapter one.xhtml")?.string == "dir/chapter%20one.xhtml")
+            #expect(RelativeURL(epubHREF: "/dir/chapter one.xhtml")?.string == "/dir/chapter%20one.xhtml")
+        }
+
+        @Test("returns nil for an empty HREF")
+        func emptyHREF() {
+            #expect(RelativeURL(epubHREF: "") == nil)
+        }
+
+        /// When an HREF's path is not percent-encoded, only the path is encoded
+        /// while the `?query` and `#fragment` — and their separators — are
+        /// preserved verbatim.
+        struct PathOnlyEncoding {
+            @Test("the fragment separator is preserved")
+            func withFragment() {
+                #expect(
+                    RelativeURL(epubHREF: "../content/Harry Potter 1.xhtml#fragment-01")?.string
+                        == "../content/Harry%20Potter%201.xhtml#fragment-01"
+                )
+                #expect(RelativeURL(epubHREF: "/dir/my file.xhtml#frag")?.string == "/dir/my%20file.xhtml#frag")
+            }
+
+            @Test("the query separator is preserved")
+            func withQuery() {
+                #expect(RelativeURL(epubHREF: "dir/my file.xhtml?q=1")?.string == "dir/my%20file.xhtml?q=1")
+                #expect(RelativeURL(epubHREF: "dir/my file.xhtml?q=1#frag")?.string == "dir/my%20file.xhtml?q=1#frag")
+            }
+
+            @Test("an already-encoded fragment is not double-encoded")
+            func encodedFragmentIsPreserved() {
+                #expect(RelativeURL(epubHREF: "hello world#properly%20encoded")?.string == "hello%20world#properly%20encoded")
+            }
+
+            @Test("a question mark inside the fragment is kept in the fragment")
+            func questionMarkInFragment() {
+                #expect(RelativeURL(epubHREF: "dir/a b.xhtml#f?x")?.string == "dir/a%20b.xhtml#f?x")
+            }
+        }
+    }
 }
