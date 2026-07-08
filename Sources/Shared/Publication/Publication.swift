@@ -196,7 +196,7 @@ public final class Publication: Sendable, Loggable {
         /// Transform which can be used to modify a `Publication`'s components
         /// before building it. For example, to add Publication Services or
         /// wrap the root Container.
-        public typealias Transform = @Sendable (
+        public typealias Transform = (
             _ manifest: inout Manifest,
             _ container: inout Container,
             _ services: inout PublicationServicesBuilder
