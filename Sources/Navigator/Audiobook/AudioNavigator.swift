@@ -171,6 +171,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Index of the current resource in the reading order.
     private var resourceIndex: Int = 0
 
+    /// Cached duration for the current player item.
+    private var exactDurationCache: Double?
+
     /// Starting time of the current resource, in the reading order.
     private var resourceStartingTime: Double? {
         durations[..<resourceIndex].reduce(0, +)
@@ -178,11 +181,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Duration in seconds in the current resource.
     private var resourceDuration: Double? {
-        if let duration = player.currentItem?.duration, duration.isNumeric {
-            return duration.secondsOrZero
-        } else {
-            return publication.readingOrder[resourceIndex].duration
-        }
+        exactDurationCache ?? publication.readingOrder[resourceIndex].duration
     }
 
     /// Total duration in the publication.
@@ -341,7 +340,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             return
         }
 
-        makePlaybackInfo { info in
+        makePlaybackInfo(loadDurationAsync: false) { info in
             completion(delegate.navigator(self, shouldPlayNextResource: info))
         }
     }
@@ -353,34 +352,51 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             delegate?.navigator(self, locationDidChange: locator)
         }
 
-        makePlaybackInfo(forTime: time) { [weak self] info in
+        makePlaybackInfo(forTime: time, loadDurationAsync: true) { [weak self] info in
             guard let self = self else { return }
             self.delegate?.navigator(self, playbackDidChange: info)
         }
     }
 
-    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor @Sendable (MediaPlaybackInfo) -> Void) {
+    private func makePlaybackInfo(
+        forTime time: Double? = nil,
+        loadDurationAsync: Bool = true,
+        completion: @escaping @MainActor @Sendable (MediaPlaybackInfo) -> Void
+    ) {
         let resourceIndex = resourceIndex
         let state = state
         let time = time ?? currentTime
-        let defaultDuration = publication.readingOrder[resourceIndex].duration
         let currentItem = player.currentItem
+        let bestAvailableDuration = resourceDuration
 
-        Task {
-            // A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
-            // To fix this, we load the duration asynchronously.
-            var duration = defaultDuration
-            if let currentItem = currentItem, let seconds = try? await currentItem.asset.load(.duration).seconds, seconds.isFinite {
-                duration = seconds
+        let info = MediaPlaybackInfo(
+            resourceIndex: resourceIndex,
+            state: state,
+            time: time,
+            duration: bestAvailableDuration
+        )
+        completion(info)
+
+        if loadDurationAsync, let currentItem = currentItem, exactDurationCache == nil {
+            Task {
+                if let seconds = try? await currentItem.asset.load(.duration).seconds, seconds.isFinite {
+                    guard resourceIndex == self.resourceIndex, currentItem == self.player.currentItem else {
+                        return
+                    }
+
+                    self.exactDurationCache = seconds
+
+                    if seconds != bestAvailableDuration {
+                        let updatedInfo = MediaPlaybackInfo(
+                            resourceIndex: resourceIndex,
+                            state: state,
+                            time: time,
+                            duration: seconds
+                        )
+                        completion(updatedInfo)
+                    }
+                }
             }
-
-            let info = MediaPlaybackInfo(
-                resourceIndex: resourceIndex,
-                state: state,
-                time: time,
-                duration: duration
-            )
-            completion(info)
         }
     }
 
@@ -458,6 +474,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 let asset = try mediaLoader.makeAsset(for: link)
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
+                exactDurationCache = nil
                 loadedTimeRangesTimer.fire()
                 delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
