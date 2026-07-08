@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/822)).
 * Fixed memory leak in the `AudioNavigator`.
+* [#802](https://github.com/readium/swift-toolkit/issues/802) Fixed fonts declared with `fontFamilyDeclarations` never loading in the EPUB navigator. Font fetches were CORS-gated by WebKit (contributed by [@atani](https://github.com/readium/swift-toolkit/pull/845)).
 
 
 ## [3.10.0] - 2026-06-24

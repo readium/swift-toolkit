@@ -151,7 +151,7 @@ import WebKit
                 guard route.baseURL.isEquivalentTo(requestURL) else {
                     continue
                 }
-                await serveFile(urlSchemeTask, at: file, requestURL: requestURL)
+                await serveFile(urlSchemeTask, at: file, requestURL: requestURL, allowCrossOrigin: true)
                 return
 
             case let .directory(directory):
@@ -162,7 +162,7 @@ import WebKit
                 else {
                     continue
                 }
-                await serveFile(urlSchemeTask, at: file, requestURL: requestURL)
+                await serveFile(urlSchemeTask, at: file, requestURL: requestURL, allowCrossOrigin: true)
                 return
 
             case let .resources(handler):
@@ -216,16 +216,22 @@ import WebKit
     }
 
     /// Reads a local file and sends it as a response.
+    ///
+    /// Local files are served for the static assets routes (Readium assets
+    /// and font files), which publication documents load cross-origin —
+    /// hence `allowCrossOrigin`.
     private func serveFile(
         _ urlSchemeTask: WKURLSchemeTask,
         at file: FileURL,
-        requestURL: URL
+        requestURL: URL,
+        allowCrossOrigin: Bool
     ) async {
         await serveResource(
             FileResource(file: file),
             with: urlSchemeTask,
             mediaType: mediaTypeFromURL(file),
-            requestURL: requestURL
+            requestURL: requestURL,
+            allowCrossOrigin: allowCrossOrigin
         )
     }
 
@@ -233,7 +239,8 @@ import WebKit
         _ resource: Resource,
         with urlSchemeTask: WKURLSchemeTask,
         mediaType: MediaType?,
-        requestURL: URL
+        requestURL: URL,
+        allowCrossOrigin: Bool = false
     ) async {
         // Try to serve a byte range if the client requested one and the
         // resource length is known.
@@ -244,7 +251,7 @@ import WebKit
             let result = await resource.read(range: range)
             switch result {
             case let .success(data):
-                await respond(urlSchemeTask, with: data, range: range, totalLength: totalLength, mediaType: mediaType, url: requestURL)
+                await respond(urlSchemeTask, with: data, range: range, totalLength: totalLength, mediaType: mediaType, url: requestURL, allowCrossOrigin: allowCrossOrigin)
             case let .failure(error):
                 log(.error, "Failed to read resource \(requestURL.path) range \(range): \(error)")
                 await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
@@ -256,7 +263,7 @@ import WebKit
         let result = await resource.read()
         switch result {
         case let .success(data):
-            await respond(urlSchemeTask, with: data, range: nil, totalLength: UInt64(data.count), mediaType: mediaType, url: requestURL)
+            await respond(urlSchemeTask, with: data, range: nil, totalLength: UInt64(data.count), mediaType: mediaType, url: requestURL, allowCrossOrigin: allowCrossOrigin)
         case let .failure(error):
             log(.error, "Failed to read resource \(requestURL.path): \(error)")
             await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
@@ -286,12 +293,24 @@ import WebKit
         range: Range<UInt64>?,
         totalLength: UInt64,
         mediaType: MediaType?,
-        url: URL
+        url: URL,
+        allowCrossOrigin: Bool
     ) async {
         var headers: [String: String] = [
             "Content-Length": "\(data.count)",
             "Accept-Ranges": "bytes",
         ]
+
+        if allowCrossOrigin {
+            // Static assets (e.g. fonts declared with
+            // `fontFamilyDeclarations`) are served under a different origin
+            // than the publication documents referencing them
+            // (readium://assets vs readium://{uuid}). Unlike stylesheets or
+            // images, font fetches are CORS-gated by WebKit, so fonts never
+            // load without this header. Mirrors `allowCors()` in the Kotlin
+            // toolkit's WebViewServer. See issue #802.
+            headers["Access-Control-Allow-Origin"] = "*"
+        }
 
         if let mediaType {
             headers["Content-Type"] = mediaType.string
