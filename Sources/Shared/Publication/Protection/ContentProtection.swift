@@ -11,7 +11,7 @@ import Foundation
 /// Its responsibilities are to:
 /// - Unlock a publication by returning a customized `Fetcher`.
 /// - Create a `ContentProtectionService` publication service.
-public protocol ContentProtection {
+public protocol ContentProtection: Sendable {
     /// Attempts to unlock a potentially protected publication asset.
     ///
     /// - Returns: An ``Asset`` in case of success or an
