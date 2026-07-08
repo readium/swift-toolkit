@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<smil xmlns="http://www.w3.org/ns/SMIL" xmlns:epub="http://www.idpf.org/2007/ops" version="3.0">
+  <body>
+    <!-- The textref and text src are NOT percent-encoded (they contain spaces)
+         yet carry a URI fragment. This reproduces Media Overlays authored by
+         Storyteller. The `#` must be kept as a fragment separator, not encoded
+         into the path. -->
+    <seq id="s1" epub:textref="../content/chapter one 1.xhtml#fragment-01" epub:type="chapter">
+      <par id="p1"><text src="../content/chapter one 1.xhtml#fragment-01"/></par>
+    </seq>
+  </body>
+</smil>

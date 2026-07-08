@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head>
+  <meta charset="utf-8" />
+</head>
+<body>
+  <!-- HREFs are NOT percent-encoded (they contain spaces) yet carry URI
+       fragments and queries. Poorly authored EPUBs like this exist in the
+       wild, so Readium must keep the `#`/`?` as separators instead of
+       encoding them into the path. -->
+  <nav epub:type="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="content/chapter one 1.xhtml#fragment-01">Chapter 1</a></li>
+      <li><a href="content/chapter two 2.xhtml?title=intro#fragment-02">Chapter 2</a></li>
+      <li><a href="../content/chapter one 1.xhtml#fragment-03">Chapter 1, again</a></li>
+    </ol>
+  </nav>
+</body>
+</html>

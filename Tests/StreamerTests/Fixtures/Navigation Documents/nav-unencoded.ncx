@@ -1,0 +1,23 @@
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/">
+  <docTitle>
+    <text>Document Title</text>
+  </docTitle>
+
+  <!-- `src` values are NOT percent-encoded (they contain spaces) yet carry
+       URI fragments and queries. Readium must keep the `#`/`?` as separators
+       instead of encoding them into the path. -->
+  <navMap>
+    <navPoint>
+      <navLabel><text>Chapter 1</text></navLabel>
+      <content src="content/chapter one 1.xhtml#fragment-01"/>
+    </navPoint>
+    <navPoint>
+      <navLabel><text>Chapter 2</text></navLabel>
+      <content src="content/chapter two 2.xhtml?title=intro#fragment-02"/>
+    </navPoint>
+    <navPoint>
+      <navLabel><text>Chapter 1, again</text></navLabel>
+      <content src="../content/chapter one 1.xhtml#fragment-03"/>
+    </navPoint>
+  </navMap>
+</ncx>

@@ -176,6 +176,17 @@ enum SMILParserTests {
             #expect(s2?.refs?.text == AnyURL(string: "OEBPS/chapter01.xhtml#sec1"))
         }
 
+        /// `textref`/`src` values that are not percent-encoded (they contain
+        /// spaces) but carry a URI fragment must keep the `#` as a fragment
+        /// separator instead of encoding it into the path.
+        @Test func seqWithUnencodedTextref() throws {
+            let doc = try SMILParserTests.parse("seq-textref-unencoded.smil")
+            let s1 = doc?.guided.first { $0.id == "s1" }
+            #expect(s1?.refs?.text == AnyURL(string: "content/chapter%20one%201.xhtml#fragment-01"))
+            let p1 = s1?.children.first
+            #expect(p1?.refs?.text == AnyURL(string: "content/chapter%20one%201.xhtml#fragment-01"))
+        }
+
         @Test func emptySeqIsSkipped() throws {
             let doc = try SMILParserTests.parse("empty-seq.smil")
             // The empty seq must be dropped; only s-valid survives.
