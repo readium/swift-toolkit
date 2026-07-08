@@ -4,7 +4,60 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
-### Readium LCP
+> [!NOTE]
+> Readium 4.0.0 introduces full support for Swift 6 strict concurrency. Apps using the toolkit no longer need to use the `@preconcurrency` attribute when importing Readium modules.
+
+### ReadiumShared
+
+#### AnyObject Constraint for PositionsService
+In `PositionsService`, default implementations for `links` and `get` are now restricted to where `Self: AnyObject`. Struct-based conformances must manually implement these properties or be converted to classes/actors.
+
+#### Final Transforming Resources
+`TransformingResource` was changed from `open class` to `public final class`. You can no longer subclass it.
+
+#### `HTMLFontFamilyDeclaration` Initializers
+The `fontFiles` property is now required, so all declaration initializers must supply it.
+
+#### HTTPClient Response and Stream Signature Updates
+`fetch(_:)` now returns `HTTPResult<HTTPBody>` instead of `HTTPResult<HTTPResponse>`. Access the body content through `HTTPBody.body` instead of the response directly:
+```diff
+-let response = try await httpClient.fetch(request).get()
+-let data = response.body
++let body = try await httpClient.fetch(request).get()
++let data = body.body
+```
+Additionally, `DefaultHTTPClient` was updated to use `URLSessionDataDelegate`.
+Additionally, `stream` signature was updated to provide progress, support cancellation via `HTTPResult`, and return the full `HTTPResponse`:
+```swift
+func stream(
+    _ request: HTTPRequestConvertible,
+    onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)?,
+    consume: @Sendable (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
+) async -> HTTPResult<HTTPResponse>
+```
+
+#### HTTPStatus `isSuccess` Definition
+`HTTPStatus.isSuccess` now returns `true` only for `2xx` status codes (200-299) and no longer includes `3xx` codes.
+
+#### HTTPError Case Payload
+The `.errorResponse` case in `HTTPError` now holds an `HTTPErrorResponse` instead of a plain `HTTPResponse`.
+
+#### FormatSnifferBlob XML Sniffing
+To isolate `XMLDocument` (non-Sendable) within the sniffer actor domain, `readAsXML()` was replaced by `sniffXML()` with a callback closure:
+```diff
+-let document = try blob.readAsXML()
+-let title = document.first("title")?.text
++let title = try await blob.sniffXML { document in
++    document.first("title")?.text
++}.get()
+```
+
+#### Removal of Atomic Utilities
+The internal `Atomic` class and `@Atomic` property wrapper have been removed from `ReadiumShared`. Replace them with standard Swift concurrency tools (actors, locks, or mutexes).
+
+---
+
+### ReadiumLCP
 
 #### Required `deviceName` in `LCPService`
 
@@ -23,7 +76,7 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 #### Removal of the `sender` parameter from the LCP authentication APIs
 
-The `sender` parameter used to give UX context (e.g. the host `UIViewController`) when presenting an LCP passphrase dialog has been removed from `PublicationOpener.open(...)` and `LCPService.retrieveLicense(...)`. 
+The `sender` parameter used to give UX context (e.g. the host `UIViewController`) when presenting an LCP passphrase dialog has been removed from `PublicationOpener.open(...)`, `LCPService.retrieveLicense(...)`, `LCPObservableAuthentication.Request`, and `LCPAuthenticating.retrievePassphrase(...)` (which is now also `@MainActor`). 
 
 If you use the SwiftUI `LCPDialog`, just remove the `sender` argument from your calls.
 
@@ -36,6 +89,7 @@ But if you use the UIKit `LCPDialogAuthentication`, you need to provide a `LCPDi
 ```
 
 ```swift
+@MainActor
 final class LCPDialogPresenter: LCPDialogAuthenticationDelegate {
     func lcpDialogAuthentication(
         _ authentication: LCPDialogAuthentication,
@@ -57,6 +111,84 @@ Then drop the `sender` argument from your calls:
  )
 ```
 
+#### `LCPLicenseRepository.updateUserRights` Signature
+The method is now asynchronous, throwing, and generic:
+```swift
+func updateUserRights<T: Sendable>(
+    for licenseId: LicenseId,
+    with changes: @Sendable (inout LCPConsumableUserRights) throws -> T
+) async throws -> T
+```
+
+---
+
+### ReadiumNavigator
+
+#### Main Actor Isolation
+`Navigator`, `VisualNavigator`, `Configurable`, `AudioSessionUser`, `PublicationSpeechSynthesizer`, `NowPlayingInfo`, `TTSEngine`, and `AVTTSEngine` are isolated to `@MainActor`. View controllers, view models, or callers interacting with these components must run on the `@MainActor`.
+
+#### Audio Session End Endpoint
+`AudioSession.end(for:)` now takes `ObjectIdentifier` instead of the user object:
+```diff
+-audioSession.end(for: self)
++audioSession.end(for: ObjectIdentifier(self))
+```
+
+#### Pointer and Input Observable Types
+Property types changed from `AnyHashable` to concrete models:
+* `Pointer.id`, `TouchPointer.id`, and `MousePointer.id` are now `PointerId`.
+* `InputObservableToken.id` is now `UUID`.
+* `Decoration.userInfo` is now `[String: AnyHashable]`.
+* Generic accessors in `ContentAttributesHolder` restrict `T` to `Hashable & Sendable`.
+
+---
+
+### ReadiumOPDS
+
+#### Async/Await Parser APIs
+OPDS parser APIs have been updated to use modern Swift concurrency (`async throws`) instead of completion handlers:
+* `OPDSParser.parseURL(url:) async throws -> ParseData`
+* `OPDS2Parser.parseURL(url:) async throws -> ParseData`
+* `OPDS1Parser.fetchOpenSearchTemplate(feed:) async throws -> String`
+
+The legacy callback-based `parseURL` and `fetchOpenSearchTemplate` overloads are now marked `unavailable`.
+
+#### Enums for Namespaces
+`OPDS2Parser` and `URLHelper` were changed from a `class` to an `enum` namespace.
+
+---
+
+### ReadiumStreamer
+
+#### EPUBPositionsService Actor
+`EPUBPositionsService` is now an `actor` instead of a class. Accesses to its properties or methods must be made using `await`.
+
+#### Final PublicationOpener
+`PublicationOpener` was changed from `open class` to `public final class`.
+
+#### PublicationOpener `open` Signature
+The `sender` parameter was removed from the `open(...)` method. An unavailable overload is provided to flag deprecations:
+```swift
+func open(
+    asset: Asset,
+    allowUserInteraction: Bool,
+    credentials: String? = nil,
+    onCreatePublication: @escaping Publication.Builder.Transform = { _, _, _ in },
+    warnings: WarningLogger? = nil
+) async -> Result<Publication, PublicationOpenError>
+```
+
+#### AudioLocatorService Init
+`AudioLocatorService.init(publication:)` now explicitly requires the `override` keyword.
+
+#### Async Properties and Let Constants
+`SearchIterator`'s `resultCount` property now requires async access. `Publication`'s `manifest` property is now a `let` constant. `EPUBPositionsService`'s `recommended` strategy property was changed to a `let` constant.
+
+#### Locator Service Hierarchy
+`DefaultLocatorService` was changed from `open class` to `public final class`. `AudioLocatorService` no longer inherits from `DefaultLocatorService`, implementing `LocatorService` directly instead.
+
+#### Component Hierarchy Flattening
+`DefaultArchiveOpener`, `ZIPArchiveOpener`, `DefaultResourceFactory`, and `DefaultFormatSniffer` no longer inherit from their composite variants. `CompositePublicationParser` was changed from `open class` to `public final class`, and `DefaultPublicationParser` no longer inherits from it.
 
 ## 3.9.0
 

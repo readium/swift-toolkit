@@ -5,16 +5,14 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased: swift6]
 
-### Changed
+> [!NOTE]
+> Readium 4.0.0 introduces full support for Swift 6 strict concurrency. Apps using the toolkit no longer need to use the `@preconcurrency` attribute when importing Readium modules.
 
-#### Shared
+Take a look at the [Migration Guide](docs/Migration%20Guide.md) for further details on upgrading to this version.
 
-* OPDS models (`Feed`, `Group`, `Facet`, `OpdsMetadata`) are now structs with value semantics.
+### Removed
 
-#### LCP
-
-* `LCPService.init` now requires an explicit `deviceName` parameter. We recommend passing `UIDevice.current.name`. See [the migration guide](docs/Migration%20Guide.md).
-* `LCPDialogAuthentication` no longer takes a `sender` view controller. It now presents its passphrase dialog through a new `LCPDialogAuthenticationDelegate` that you implement and retain for the lifetime of the authentication. See [the Readium LCP guide](docs/Guides/Readium%20LCP.md) and [the migration guide](docs/Migration%20Guide.md).
+* The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been completely removed.
 
 
 ## [Unreleased]
@@ -1255,6 +1253,7 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 * Touching interactive elements in fixed-layout EPUBs, when two-page spreads are enabled.
 
 
+[unreleased: swift6]: https://github.com/readium/swift-toolkit/compare/main...swift6
 [unreleased]: https://github.com/readium/swift-toolkit/compare/main...HEAD
 [2.3.0]: https://github.com/readium/swift-toolkit/compare/2.2.0...2.3.0
 [2.4.0]: https://github.com/readium/swift-toolkit/compare/2.3.0...2.4.0
