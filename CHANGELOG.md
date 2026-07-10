@@ -97,7 +97,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/822)).
 * Fixed memory leak in the `AudioNavigator`.
 * [#802](https://github.com/readium/swift-toolkit/issues/802) Fixed fonts declared with `fontFamilyDeclarations` never loading in the EPUB navigator. Font fetches were CORS-gated by WebKit (contributed by [@atani](https://github.com/readium/swift-toolkit/pull/845)).
-* [#579](https://github.com/readium/swift-toolkit/issues/579) The `AudioNavigator` now reports the `.loading` state while the player is stalled on an empty buffer, and forwards resource loading errors to `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` instead of swallowing them.
+* [#579](https://github.com/readium/swift-toolkit/issues/579) The `AudioNavigator` now reports the `.loading` state while the player is stalled on an empty buffer, and forwards resource loading errors to `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` instead of swallowing them. It also keeps the current resource cached across loading requests, instead of re-downloading the beginning of a track whenever the player reissues a request.
 
 #### LCP
 

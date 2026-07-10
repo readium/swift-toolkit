@@ -67,6 +67,13 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         else {
             return nil
         }
+
+        // Only the resources of other entries are evicted, as the player
+        // routinely abandons its requests to issue new ones for the same
+        // entry. Dropping the current resource would throw away its buffered
+        // data and force re-downloading the beginning of the entry.
+        resources = resources.filter { requests[$0.key] != nil }
+
         resources[href] = (link, resource)
         return (link, resource)
     }
@@ -103,8 +110,9 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         let req = reqs.remove(at: index)
         req.task.cancel()
 
+        // The resource is intentionally kept in `resources`, to reuse its
+        // buffered data with the next loading requests for the same entry.
         if reqs.isEmpty {
-            resources.removeValue(forKey: href)
             requests.removeValue(forKey: href)
         } else {
             requests[href] = reqs
