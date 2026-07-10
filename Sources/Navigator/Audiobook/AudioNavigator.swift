@@ -156,7 +156,18 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Returns whether the resource is currently playing or not.
     public var state: MediaPlaybackState {
-        MediaPlaybackState(player.timeControlStatus)
+        let state = MediaPlaybackState(player.timeControlStatus)
+        if
+            state == .playing,
+            let item = player.currentItem,
+            item.isPlaybackBufferEmpty, !item.isPlaybackLikelyToKeepUp
+        {
+            // As `automaticallyWaitsToMinimizeStalling` is disabled, the
+            // player reports `.playing` even when it is stalled on an empty
+            // buffer waiting for data.
+            return .loading
+        }
+        return state
     }
 
     /// Current playback info.
@@ -262,10 +273,23 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
+    private var itemStatusObserver: NSKeyValueObservation?
+    private var itemLikelyToKeepUpObserver: NSKeyValueObservation?
     private var timeObserverToken: TimeObserverToken?
     private var notificationTask: Task<Void, Never>?
 
-    private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
+    private lazy var mediaLoader: PublicationMediaLoader = {
+        let loader = PublicationMediaLoader(publication: publication)
+        loader.onLoadingError = { [weak self] href, error in
+            Task { @MainActor in
+                guard let self = self, let href = href.relativeURL else {
+                    return
+                }
+                self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+            }
+        }
+        return loader
+    }()
 
     private lazy var player: AVPlayer = makePlayer()
 
@@ -317,7 +341,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
         currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
             Task { @MainActor [weak self] in
-                self?.playbackDidChange()
+                guard let self = self else { return }
+                self.observe(currentItem: self.player.currentItem)
+                self.playbackDidChange()
             }
         }
 
@@ -340,6 +366,31 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
 
         return player
+    }
+
+    private func observe(currentItem item: AVPlayerItem?) {
+        itemLikelyToKeepUpObserver = item?.observe(\.isPlaybackLikelyToKeepUp) { [weak self] _, _ in
+            self?.playbackDidChange()
+        }
+
+        itemStatusObserver = item?.observe(\.status) { [weak self] item, _ in
+            guard let self = self, item.status == .failed else {
+                return
+            }
+
+            let itemError = item.error
+            log(.error, "Failed to load the player item: \(String(describing: itemError))")
+
+            let href = publication.readingOrder[resourceIndex].url().relativeURL
+            Task { @MainActor in
+                guard let href = href else {
+                    return
+                }
+                let error: ReadError = itemError.flatMap { .wrap($0) }
+                    ?? .decoding("The AVPlayerItem failed to load", cause: itemError)
+                self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+            }
+        }
     }
 
     private func shouldPlayNextResource() -> Bool {

@@ -19,6 +19,10 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
 
     private let publication: Publication
 
+    /// Called when a resource failed to be served to the player, e.g. to
+    /// forward the error to the `NavigatorDelegate`.
+    var onLoadingError: ((AnyURL, ReadError) -> Void)?
+
     private let tasks = CancellableTasks()
 
     init(publication: Publication) {
@@ -152,6 +156,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
 
             case let .failure(error):
                 log(.error, error)
+                report(error, forHREF: link.url())
                 request.finishLoading(with: error)
             }
         }
@@ -187,6 +192,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
                     request.finishLoading()
                 case let .failure(error):
                     self?.log(.info, "[#579] \(timestamp579()) dataRequest failed after \(consumeCalls) consume call(s), \(consumedBytes) bytes: \(error)")
+                    self?.report(error, forHREF: link.url())
                     request.finishLoading(with: error)
                 }
 
@@ -195,6 +201,15 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         }
 
         registerRequest(request, task: task, for: link.url())
+    }
+
+    private func report(_ error: ReadError, forHREF href: AnyURL) {
+        // Cancellation is not an error worth reporting, it occurs whenever
+        // the player abandons a data request, e.g. when seeking.
+        if case .cancelled = error {
+            return
+        }
+        onLoadingError?(href, error)
     }
 
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel loadingRequest: AVAssetResourceLoadingRequest) {
