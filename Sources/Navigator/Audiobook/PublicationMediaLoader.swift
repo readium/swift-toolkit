@@ -200,7 +200,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
     private func report(_ error: ReadError, forHREF href: AnyURL) {
         // Cancellation is not an error worth reporting, it occurs whenever
         // the player abandons a data request, e.g. when seeking.
-        if case .cancelled = error {
+        guard !error.isCancellation else {
             return
         }
         onLoadingError?(href, error)

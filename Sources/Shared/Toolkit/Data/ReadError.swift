@@ -43,6 +43,8 @@ public enum ReadError: Error, Sendable {
     /// Returns `nil` if the error cannot be mapped to a known `ReadError`.
     public static func wrap(_ error: Error) -> ReadError? {
         switch error {
+        case let error as ReadError:
+            return error
         case is CancellationError:
             return .cancelled
         case let error as CocoaError:
@@ -126,6 +128,22 @@ public enum ReadError: Error, Sendable {
             .access(.fileSystem(.io(error)))
         default:
             nil
+        }
+    }
+}
+
+public extension ReadError {
+    /// Indicates whether the error is caused by a cancelled task or HTTP
+    /// request, instead of a genuine failure.
+    var isCancellation: Bool {
+        switch self {
+        case .cancelled, .access(.http(.cancelled)):
+            return true
+        case let .decoding(error):
+            return (error as? ReadError)?.isCancellation
+                ?? (error is CancellationError)
+        default:
+            return false
         }
     }
 }
