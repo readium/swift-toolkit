@@ -90,12 +90,18 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * EPUB HREFs that are not percent-encoded but carry a fragment or query (e.g. `chapter one.xhtml#section`, with a space in the filename) now keep their `#fragment`/`?query` instead of encoding the separators into the path. This fixes table of contents and Media Overlays links failing to resolve and navigate in poorly-authored EPUBs.
+* [#579](https://github.com/readium/swift-toolkit/issues/579) Reading a range past the end of a ZIP entry now returns the clamped bytes instead of failing, per the `Streamable` contract. `BufferingResource` also no longer extends its read-ahead past the end of the resource, which HTTP servers reject with a 416 error.
 
 #### Navigator
 
 * Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/822)).
 * Fixed memory leak in the `AudioNavigator`.
 * [#802](https://github.com/readium/swift-toolkit/issues/802) Fixed fonts declared with `fontFamilyDeclarations` never loading in the EPUB navigator. Font fetches were CORS-gated by WebKit (contributed by [@atani](https://github.com/readium/swift-toolkit/pull/845)).
+* [#579](https://github.com/readium/swift-toolkit/issues/579) The `AudioNavigator` now reports the `.loading` state while the player is stalled on an empty buffer, and forwards resource loading errors to `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` instead of swallowing them.
+
+#### LCP
+
+* [#579](https://github.com/readium/swift-toolkit/issues/579) Streamed LCP audiobooks now start playing almost immediately. Resources encrypted with AES-CBC are decrypted and served in chunks, instead of being fully downloaded and decrypted upfront.
 
 
 ## [3.10.0] - 2026-06-24
