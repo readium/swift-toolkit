@@ -24,7 +24,7 @@ import UIKit
     @discardableResult
     func importPublication(
         from url: AbsoluteURL,
-        progress: @escaping (Double) -> Void
+        progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book
 }
 
@@ -66,7 +66,7 @@ final class LibraryModule: LibraryModuleAPI {
 
     func importPublication(
         from url: AbsoluteURL,
-        progress: @escaping (Double) -> Void
+        progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book {
         try await library.importPublication(from: url, progress: progress)
     }

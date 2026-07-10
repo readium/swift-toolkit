@@ -11,7 +11,7 @@ import ReadiumStreamer
 import UIKit
 
 #if LCP
-    import R2LCPClient
+    @preconcurrency import R2LCPClient
     import ReadiumLCP
 #endif
 
