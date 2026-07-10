@@ -106,6 +106,35 @@ class ZIPFoundationContainerTests: XCTestCase {
         )
     }
 
+    /// Out-of-range indexes must be clamped per the `Streamable` contract.
+    func testReadRangeOverlappingEndIsClamped() async throws {
+        let container = try await container(for: "test.zip")
+
+        let stored = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
+        var data = try await stored.read(range: 14 ..< 40).get()
+        XCTAssertEqual(
+            String(data: data, encoding: .utf8),
+            " ZIP.\n"
+        )
+
+        let compressed = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
+        data = try await compressed.read(range: 29600 ..< 29700).get()
+        XCTAssertEqual(data.count, 9)
+    }
+
+    /// Out-of-range indexes must be clamped per the `Streamable` contract.
+    func testReadRangePastEndReturnsEmptyData() async throws {
+        let container = try await container(for: "test.zip")
+
+        let stored = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
+        var data = try await stored.read(range: 100 ..< 200).get()
+        XCTAssertEqual(data, Data())
+
+        let compressed = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
+        data = try await compressed.read(range: 40000 ..< 40100).get()
+        XCTAssertEqual(data, Data())
+    }
+
     func testRandomCompressedRead() async throws {
         for _ in 0 ..< 100 {
             let container = try await container(for: "test.zip")
