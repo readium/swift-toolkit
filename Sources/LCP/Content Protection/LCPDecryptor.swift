@@ -130,73 +130,127 @@ final class LCPDecryptor: Sendable, Loggable {
             await plainTextSize()
         }
 
+        /// Number of plaintext bytes decrypted and delivered per `consume`
+        /// call when streaming.
+        private static let chunkSize: UInt64 = 256 * 1024
+
         @concurrent func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource.stream(range: \(range.map(String.init(describing:)) ?? "nil"))")
 
-            guard let range = range else {
-                log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: reading the FULL encrypted resource in memory before decrypting…")
-                let readStart = CFAbsoluteTimeGetCurrent()
+            var plainTextSize: UInt64?
+            switch await self.plainTextSize() {
+            case let .success(size):
+                plainTextSize = size
+            case let .failure(error):
+                guard range == nil else {
+                    return .failure(error)
+                }
+            }
+
+            guard let plainTextSize = plainTextSize else {
+                // Without the plaintext size, we can't compute the chunks to
+                // decrypt; fall back on reading and decrypting the whole
+                // resource in one shot.
+                guard range == nil else {
+                    return failure(.noPlainTextSize)
+                }
+                log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: no plaintext size, reading the FULL encrypted resource in memory before decrypting…")
                 return await license.decryptFully(data: resource.read(), isDeflated: encryption.isDeflated)
                     .map {
-                        log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: full read+decrypt done in \(String(format: "%.3fs", CFAbsoluteTimeGetCurrent() - readStart)), delivering \($0.count) bytes in a SINGLE consume call")
                         consume($0)
                         return ()
                     }
             }
 
-            return await resource.estimatedLength().asyncFlatMap { encryptedLength in
+            let requestedRange = range ?? 0 ..< plainTextSize
+            let clampedRange = min(requestedRange.lowerBound, plainTextSize) ..< min(requestedRange.upperBound, plainTextSize)
+            guard !clampedRange.isEmpty else {
+                return .success(())
+            }
+
+            return await resource.estimatedLength().asyncFlatMap { [self] encryptedLength in
                 guard let encryptedLength = encryptedLength else {
                     return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))
                 }
-                guard let rangeFirst = range.first, let rangeLast = range.last else {
-                    return .failure(.decoding(LCPDecryptor.Error.invalidRange(range)))
+
+                log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: streaming range \(clampedRange) in chunks of \(Self.chunkSize) bytes")
+
+                // Decrypting in chunks lets the caller process the beginning
+                // of the resource without waiting for the whole range, which
+                // matters when streaming a large track from the network.
+                var chunkStart = clampedRange.lowerBound
+                while chunkStart < clampedRange.upperBound {
+                    guard !Task.isCancelled else {
+                        return .failure(.cancelled)
+                    }
+
+                    let chunkEnd = min(chunkStart + Self.chunkSize, clampedRange.upperBound)
+                    let result = await decrypt(
+                        range: chunkStart ..< chunkEnd,
+                        encryptedLength: encryptedLength,
+                        plainTextSize: plainTextSize
+                    )
+                    switch result {
+                    case let .success(chunk):
+                        consume(chunk)
+                        chunkStart = chunkEnd
+                    case let .failure(error):
+                        return .failure(error)
+                    }
                 }
 
-                // Encrypted data is shifted by AESBlockSize, because of IV and because the
-                // previous block must be provided to perform XOR on intermediate blocks.
-                let encryptedStart = rangeFirst.floorMultiple(of: AESBlockSize)
-                let encryptedEndExclusive = min(
-                    (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize,
-                    encryptedLength
-                )
-
-                log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: buffering the WHOLE encrypted range \(encryptedStart ..< encryptedEndExclusive) (\(encryptedEndExclusive - encryptedStart) bytes) before decrypting…")
-                let readStart = CFAbsoluteTimeGetCurrent()
-
-                return await resource.read(range: encryptedStart ..< encryptedEndExclusive)
-                    .combine(plainTextSize())
-                    .flatMap { [self] encryptedData, plainTextSize in
-                        log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: range read done in \(String(format: "%.3fs", CFAbsoluteTimeGetCurrent() - readStart)), got \(encryptedData.count) bytes, decrypting in one shot")
-                        do {
-                            guard let plainTextSize = plainTextSize else {
-                                return .failure(.decoding(LCPDecryptor.Error.noPlainTextSize))
-                            }
-                            guard let bytes = try license.decipher(encryptedData) else {
-                                return .failure(.decoding(LCPDecryptor.Error.emptyDecryptedData))
-                            }
-
-                            // Exclude the bytes added to match a multiple of AESBlockSize.
-                            let sliceStart = (rangeFirst - encryptedStart)
-
-                            let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
-                            let rangeLength = isLastBlockRead
-                                // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
-                                ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
-                                // The last block won't be read, so there's no need to compute the length
-                                : rangeLast - rangeFirst + 1
-
-                            // Keep only enough bytes to fit the length-corrected request in order to never
-                            // include padding.
-                            let sliceEnd = sliceStart + rangeLength
-
-                            log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: delivering \(sliceEnd - sliceStart) decrypted bytes in a SINGLE consume call")
-                            consume(bytes[sliceStart ..< sliceEnd])
-                            return .success(())
-                        } catch {
-                            return .failure(.decoding(error))
-                        }
-                    }
+                return .success(())
             }
+        }
+
+        /// Decrypts a single chunk of plaintext located at `range`.
+        private func decrypt(
+            range: Range<UInt64>,
+            encryptedLength: UInt64,
+            plainTextSize: UInt64
+        ) async -> ReadResult<Data> {
+            guard let rangeFirst = range.first, let rangeLast = range.last else {
+                return failure(.invalidRange(range))
+            }
+
+            // Encrypted data is shifted by AESBlockSize, because of IV and because the
+            // previous block must be provided to perform XOR on intermediate blocks.
+            let encryptedStart = rangeFirst.floorMultiple(of: AESBlockSize)
+            let encryptedEndExclusive = min(
+                (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize,
+                encryptedLength
+            )
+
+            return await resource.read(range: encryptedStart ..< encryptedEndExclusive)
+                .flatMap { [self] encryptedData in
+                    do {
+                        guard let bytes = try license.decipher(encryptedData) else {
+                            return failure(.emptyDecryptedData)
+                        }
+
+                        // Exclude the bytes added to match a multiple of AESBlockSize.
+                        let sliceStart = (rangeFirst - encryptedStart)
+
+                        let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
+                        let rangeLength = isLastBlockRead
+                            // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
+                            ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
+                            // The last block won't be read, so there's no need to compute the length
+                            : rangeLast - rangeFirst + 1
+
+                        // Keep only enough bytes to fit the length-corrected request in order to never
+                        // include padding.
+                        let sliceEnd = sliceStart + rangeLength
+
+                        return .success(bytes[sliceStart ..< sliceEnd])
+                    } catch {
+                        return .failure(.decoding(error))
+                    }
+                }
+        }
+
+        private func failure<T>(_ error: LCPDecryptor.Error) -> ReadResult<T> {
+            .failure(.decoding(error))
         }
     }
 }
