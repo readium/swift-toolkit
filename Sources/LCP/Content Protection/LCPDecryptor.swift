@@ -9,15 +9,8 @@ import ReadiumShared
 
 private let lcpScheme = "http://readium.org/2014/01/lcp"
 
-/// Timestamp helper to correlate the [#579] diagnostic log events.
-func timestamp579lcp() -> String {
-    String(format: "t=%.3fs", CFAbsoluteTimeGetCurrent() - loadingStartTime579)
-}
-
-private let loadingStartTime579 = CFAbsoluteTimeGetCurrent()
-
 /// Decrypts a resource protected with LCP.
-final class LCPDecryptor: Sendable, Loggable {
+final class LCPDecryptor: Sendable {
     enum Error: Swift.Error {
         case emptyDecryptedData
         case invalidCBCData
@@ -50,11 +43,9 @@ final class LCPDecryptor: Sendable, Loggable {
         }
 
         if encryption.isDeflated || !encryption.isCbcEncrypted {
-            log(.info, "[#579] LCPDecryptor: using FullLCPResource for \(href) (isDeflated=\(encryption.isDeflated), isCbcEncrypted=\(encryption.isCbcEncrypted)) — the WHOLE resource will be read and decrypted on first access")
             return FullLCPResource(resource, license: license, encryption: encryption).cached()
 
         } else {
-            log(.info, "[#579] LCPDecryptor: using CBCLCPResource for \(href) (random access supported)")
             // We use a buffered resource because when requesting a range from
             // an LCP resource, we always read a bit more to align the data with
             // the next AES block. This means that consecutive requests are not
@@ -72,15 +63,14 @@ final class LCPDecryptor: Sendable, Loggable {
     /// Can be used when it's impossible to map a read range (byte range
     /// request) to the encrypted resource, for example when the resource is
     /// deflated before encryption.
-    private final class FullLCPResource: Resource, Sendable, Loggable {
+    private final class FullLCPResource: Resource, Sendable {
         private let resource: TransformingResource
         private let originalLength: UInt64?
 
         init(_ resource: Resource, license: LCPLicense, encryption: ReadiumShared.Encryption) {
             originalLength = encryption.originalLength.map { UInt64($0) }
             self.resource = TransformingResource(resource, transform: { data in
-                Self.log(.info, "[#579] \(timestamp579lcp()) FullLCPResource: decrypting the WHOLE resource (\((try? data.get().count) ?? -1) bytes) in one shot")
-                return await license.decryptFully(data: data, isDeflated: encryption.isDeflated)
+                await license.decryptFully(data: data, isDeflated: encryption.isDeflated)
             })
         }
 
@@ -102,7 +92,7 @@ final class LCPDecryptor: Sendable, Loggable {
     /// A LCP resource used to read content encrypted with the CBC algorithm.
     ///
     /// Supports random access for byte range requests, but the resource MUST NOT be deflated.
-    private final class CBCLCPResource: Resource, Sendable, Loggable {
+    private final class CBCLCPResource: Resource, Sendable {
         private let resource: Resource
         private let license: LCPLicense
         private let encryption: ReadiumShared.Encryption
@@ -135,8 +125,6 @@ final class LCPDecryptor: Sendable, Loggable {
         private static let chunkSize: UInt64 = 256 * 1024
 
         @concurrent func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
-            log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource.stream(range: \(range.map(String.init(describing:)) ?? "nil"))")
-
             var plainTextSize: UInt64?
             switch await self.plainTextSize() {
             case let .success(size):
@@ -154,7 +142,6 @@ final class LCPDecryptor: Sendable, Loggable {
                 guard range == nil else {
                     return failure(.noPlainTextSize)
                 }
-                log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: no plaintext size, reading the FULL encrypted resource in memory before decrypting…")
                 return await license.decryptFully(data: resource.read(), isDeflated: encryption.isDeflated)
                     .map {
                         consume($0)
@@ -172,8 +159,6 @@ final class LCPDecryptor: Sendable, Loggable {
                 guard let encryptedLength = encryptedLength else {
                     return .failure(.decoding(LCPDecryptor.Error.requiredEstimatedLength))
                 }
-
-                log(.info, "[#579] \(timestamp579lcp()) CBCLCPResource: streaming range \(clampedRange) in chunks of \(Self.chunkSize) bytes")
 
                 // Decrypting in chunks lets the caller process the beginning
                 // of the resource without waiting for the whole range, which

@@ -142,8 +142,6 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
         using resource: Resource,
         link: Link
     ) {
-        log(.info, "[#579] \(timestamp579()) contentInformationRequest for \(link.href)")
-
         tasks.add { [self] in
             infoRequest.isByteRangeAccessSupported = true
             infoRequest.contentType = link.mediaType?.uti
@@ -151,7 +149,6 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
             switch await resource.length() {
             case let .success(length):
                 infoRequest.contentLength = Int64(length)
-                log(.info, "[#579] \(timestamp579()) contentInformationRequest fulfilled: contentLength=\(length), contentType=\(infoRequest.contentType ?? "nil"), byteRangeAccessSupported=true")
                 request.finishLoading()
 
             case let .failure(error):
@@ -170,28 +167,17 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
             range = UInt64(dataRequest.currentOffset) ..< (UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
         }
 
-        log(.info, "[#579] \(timestamp579()) dataRequest for \(link.href): currentOffset=\(dataRequest.currentOffset), requestedLength=\(dataRequest.requestedLength), requestsAllDataToEndOfResource=\(dataRequest.requestsAllDataToEndOfResource) -> range=\(range.map(String.init(describing:)) ?? "nil (full resource)")")
-
         let task = Task { [self] in
-            var consumedBytes = 0
-            var consumeCalls = 0
             let result = await resource.stream(
                 range: range,
-                consume: {
-                    consumedBytes += $0.count
-                    consumeCalls += 1
-                    log(.info, "[#579] \(timestamp579()) consume #\(consumeCalls): chunk=\($0.count) bytes, total=\(consumedBytes) bytes")
-                    dataRequest.respond(with: $0)
-                }
+                consume: { dataRequest.respond(with: $0) }
             )
 
             queue.async { [weak self] in
                 switch result {
                 case .success:
-                    self?.log(.info, "[#579] \(timestamp579()) dataRequest finished: \(consumeCalls) consume call(s), \(consumedBytes) bytes total")
                     request.finishLoading()
                 case let .failure(error):
-                    self?.log(.info, "[#579] \(timestamp579()) dataRequest failed after \(consumeCalls) consume call(s), \(consumedBytes) bytes: \(error)")
                     self?.report(error, forHREF: link.url())
                     request.finishLoading(with: error)
                 }
@@ -213,17 +199,9 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
     }
 
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel loadingRequest: AVAssetResourceLoadingRequest) {
-        log(.info, "[#579] \(timestamp579()) didCancel loadingRequest: offset=\(loadingRequest.dataRequest?.currentOffset ?? -1)")
         finishRequest(loadingRequest)
     }
 }
-
-/// Timestamp helper to correlate the [#579] diagnostic log events.
-func timestamp579() -> String {
-    String(format: "t=%.3fs", CFAbsoluteTimeGetCurrent() - loadingStartTime579)
-}
-
-private let loadingStartTime579 = CFAbsoluteTimeGetCurrent()
 
 private let schemePrefix = "readium"
 
