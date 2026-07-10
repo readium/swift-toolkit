@@ -385,4 +385,44 @@ class ReadiumCSSTests: XCTestCase {
             """
         )
     }
+
+    // MARK: - Synthetic font weight
+
+    /// Resolves the `-webkit-text-stroke-width` override produced by
+    /// `update(with:)` for the given font weight and synthesis preferences.
+    private func syntheticStrokeWidth(fontWeight: Double?, synthesis: Bool?) -> String? {
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(fontWeight: fontWeight, fontWeightSynthesis: synthesis),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Fake title")
+        )
+        var css = ReadiumCSS(baseURL: baseURL)
+        css.update(with: settings)
+        return css.userProperties.overrides["-webkit-text-stroke-width"] ?? nil
+    }
+
+    func testNoSyntheticStrokeWhenSynthesisIsOff() {
+        XCTAssertEqual(syntheticStrokeWidth(fontWeight: 1.75, synthesis: nil), "")
+        XCTAssertEqual(syntheticStrokeWidth(fontWeight: 1.75, synthesis: false), "")
+    }
+
+    func testNoSyntheticStrokeWhenWeightIsNotSet() {
+        XCTAssertEqual(syntheticStrokeWidth(fontWeight: nil, synthesis: true), "")
+    }
+
+    func testNoSyntheticStrokeWhenWeightIsNormalOrLighter() {
+        XCTAssertEqual(syntheticStrokeWidth(fontWeight: 1.0, synthesis: true), "")
+        XCTAssertEqual(syntheticStrokeWidth(fontWeight: 0.5, synthesis: true), "")
+    }
+
+    func testSyntheticStrokeScalesWithWeight() {
+        XCTAssertEqual(syntheticStrokeWidth(fontWeight: 1.75, synthesis: true), "0.0175em")
+        XCTAssertEqual(syntheticStrokeWidth(fontWeight: 2.5, synthesis: true), "0.0350em")
+    }
+
+    func testSyntheticStrokeIsClampedAboveRange() {
+        // `fontWeight` is clamped to a maximum of 2.5, so an out-of-range weight
+        // produces the same stroke as the maximum weight.
+        XCTAssertEqual(syntheticStrokeWidth(fontWeight: 3.0, synthesis: true), "0.0350em")
+    }
 }

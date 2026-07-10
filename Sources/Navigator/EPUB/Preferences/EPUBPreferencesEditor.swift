@@ -124,6 +124,21 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
+    /// Synthesize a heavier weight for fonts that lack a bold face.
+    ///
+    /// Opt-in and off by default. When enabled, `fontWeight` values above 1.0
+    /// thicken glyphs using a text stroke, which is useful for single-face
+    /// custom fonts that WebKit cannot synthesize bolding for.
+    ///
+    /// Only effective with reflowable publications.
+    public lazy var fontWeightSynthesis: AnyPreference<Bool> =
+        preference(
+            preference: \.fontWeightSynthesis,
+            setting: \.fontWeightSynthesis,
+            defaultEffectiveValue: defaults.fontWeightSynthesis ?? false,
+            isEffective: { [layout] _ in layout == .reflowable }
+        )
+
     /// Enable hyphenation for latin languages.
     ///
     /// Only effective when:

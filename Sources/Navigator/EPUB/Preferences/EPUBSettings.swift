@@ -17,6 +17,7 @@ public struct EPUBSettings: ConfigurableSettings {
     public var fontFamily: FontFamily?
     public var fontSize: Double
     public var fontWeight: Double?
+    public var fontWeightSynthesis: Bool
     public var hyphens: Bool?
     public var imageFilter: ImageFilter?
     public var language: Language?
@@ -52,6 +53,7 @@ public struct EPUBSettings: ConfigurableSettings {
         fontFamily: FontFamily?,
         fontSize: Double,
         fontWeight: Double?,
+        fontWeightSynthesis: Bool,
         hyphens: Bool?,
         imageFilter: ImageFilter?,
         language: Language?,
@@ -80,6 +82,7 @@ public struct EPUBSettings: ConfigurableSettings {
         self.fontFamily = fontFamily
         self.fontSize = fontSize
         self.fontWeight = fontWeight
+        self.fontWeightSynthesis = fontWeightSynthesis
         self.hyphens = hyphens
         self.imageFilter = imageFilter
         self.language = language
@@ -154,6 +157,9 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? 1.0,
             fontWeight: preferences.fontWeight
                 ?? defaults.fontWeight,
+            fontWeightSynthesis: preferences.fontWeightSynthesis
+                ?? defaults.fontWeightSynthesis
+                ?? false,
             hyphens: preferences.hyphens
                 ?? defaults.hyphens,
             imageFilter: preferences.imageFilter
@@ -210,6 +216,7 @@ public struct EPUBDefaults {
     public var fit: Fit?
     public var fontSize: Double?
     public var fontWeight: Double?
+    public var fontWeightSynthesis: Bool?
     public var hyphens: Bool?
     public var imageFilter: ImageFilter?
     public var language: Language?
@@ -234,6 +241,7 @@ public struct EPUBDefaults {
         fit: Fit? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
+        fontWeightSynthesis: Bool? = nil,
         hyphens: Bool? = nil,
         imageFilter: ImageFilter? = nil,
         language: Language? = nil,
@@ -257,6 +265,7 @@ public struct EPUBDefaults {
         self.fit = fit
         self.fontSize = fontSize
         self.fontWeight = fontWeight
+        self.fontWeightSynthesis = fontWeightSynthesis
         self.hyphens = hyphens
         self.imageFilter = imageFilter
         self.language = language

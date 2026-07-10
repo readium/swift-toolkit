@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Navigator
+
+* [#853](https://github.com/readium/swift-toolkit/issues/853) Added an opt-in `fontWeightSynthesis` EPUB preference. When enabled, `fontWeight` values above 1.0 synthesize a heavier weight using an em-based text stroke, which restores the effect of `fontWeight` for single-face fonts (e.g. custom fonts declared with `fontFamilyDeclarations`) that WebKit cannot bolden on its own. Disabled by default, so existing apps are unaffected.
+
 #### LCP
 
 * `LCPService` has a new `addPassphrase(_:isHashed:userID:provider:)` method to store a passphrase candidate in the repository without opening a license first. Useful to preload a passphrase ahead of time (e.g. from a catalog).

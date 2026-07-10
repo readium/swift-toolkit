@@ -34,6 +34,13 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Default boldness for the text.
     public var fontWeight: Double?
 
+    /// Synthesize a heavier weight for fonts that lack a bold face.
+    ///
+    /// Opt-in. When enabled, `fontWeight` values above 1.0 thicken glyphs
+    /// using a text stroke, which is useful for single-face custom fonts that
+    /// WebKit cannot synthesize bolding for.
+    public var fontWeightSynthesis: Bool?
+
     /// Enable hyphenation.
     public var hyphens: Bool?
 
@@ -114,6 +121,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
+        fontWeightSynthesis: Bool? = nil,
         hyphens: Bool? = nil,
         imageFilter: ImageFilter? = nil,
         language: Language? = nil,
@@ -142,6 +150,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
+        self.fontWeightSynthesis = fontWeightSynthesis
         self.hyphens = hyphens
         self.imageFilter = imageFilter
         self.language = language
@@ -173,6 +182,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
+            fontWeightSynthesis: other.fontWeightSynthesis ?? fontWeightSynthesis,
             hyphens: other.hyphens ?? hyphens,
             imageFilter: other.imageFilter ?? imageFilter,
             language: other.language ?? language,

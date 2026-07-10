@@ -69,6 +69,22 @@ extension ReadiumCSS {
                 "font-weight": settings.fontWeight
                     .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
                     ?? "",
+                // Gradual synthetic bolding for fonts that lack a bold face
+                // (e.g. single-face custom fonts, which WebKit does not
+                // synthesize bolding for). Opt-in through `fontWeightSynthesis`.
+                // The stroke width is expressed in `em` so it tracks the font
+                // size, and we only thicken (weight > 1.0) because a stroke can
+                // add to glyph outlines but cannot thin them. No stroke color is
+                // emitted on purpose: `-webkit-text-stroke-color` defaults to
+                // `currentColor`, which matches the text color across all themes.
+                // An empty value clears any previously applied stroke on live
+                // settings changes, matching the "font-weight" entry above.
+                "-webkit-text-stroke-width": {
+                    guard settings.fontWeightSynthesis, let weight = settings.fontWeight, weight > 1.0 else {
+                        return ""
+                    }
+                    return String(format: "%.4fem", (min(weight, 2.5) - 1.0) / 1.5 * 0.035)
+                }(),
             ]
         )
     }
