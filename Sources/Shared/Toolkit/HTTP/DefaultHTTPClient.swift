@@ -196,8 +196,6 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         session.invalidateAndCancel()
     }
 
-    /// `@concurrent` keeps the chunk-consume loop off the caller's actor, so
-    /// downloads never pin the main actor.
     @concurrent public func stream(
         _ request: any HTTPRequestConvertible,
         onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)? = nil,

@@ -33,7 +33,6 @@ public final class BasicStringSearchAlgorithm: StringSearchAlgorithm {
 
     public init() {}
 
-    /// `@concurrent` keeps the text scanning off the caller's actor.
     @concurrent public func findRanges(
         of query: String,
         options: SearchOptions,

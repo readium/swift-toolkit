@@ -44,8 +44,6 @@ public final class TransformingResource: Resource {
         await resource.properties()
     }
 
-    /// `@concurrent` keeps the transformation and full-content slicing off the
-    /// caller's actor.
     @concurrent public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await data().map { data in
             if let range = range?.clamped(to: 0 ..< UInt64(data.count)) {

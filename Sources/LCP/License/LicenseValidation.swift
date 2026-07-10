@@ -59,8 +59,6 @@ actor LicenseValidation: Loggable {
 
     fileprivate let onLicenseValidated: @Sendable (LicenseDocument) async throws -> Void
 
-    /// Tracks the observer-registration tasks spawned from the nonisolated
-    /// `observe(_:_:)`, so they are cancelled with the validation.
     private let tasks = CancellableTasks()
 
     /// Current state in the validation steps.

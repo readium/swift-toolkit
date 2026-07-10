@@ -47,7 +47,6 @@ public typealias _DefaultResourceContentExtractorFactory = DefaultResourceConten
 final class HTMLResourceContentExtractor: ResourceContentExtractor {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
-    /// `@concurrent` keeps the HTML parsing off the caller's actor.
     @concurrent func extractText(of resource: Resource) async -> ReadResult<String> {
         await resource.read()
             .asString()

@@ -121,7 +121,6 @@ final class LCPDecryptor: Sendable {
             await plainTextSize()
         }
 
-        /// `@concurrent` keeps the AES decryption off the caller's actor.
         @concurrent func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             guard let range = range else {
                 return await license.decryptFully(data: resource.read(), isDeflated: encryption.isDeflated)
