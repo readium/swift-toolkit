@@ -23,7 +23,7 @@ struct LCPPublication {
 
 @MainActor protocol LCPModuleAPI {
     init(readium: Readium)
-    func fulfill(_ file: FileURL, progress: @escaping (Double) -> Void) async throws -> LCPPublication
+    func fulfill(_ file: FileURL, progress: @escaping @Sendable (Double) -> Void) async throws -> LCPPublication
 }
 
 extension LCPModuleAPI {
@@ -40,7 +40,7 @@ extension LCPModuleAPI {
             lcpService = readium.lcpService
         }
 
-        func fulfill(_ file: FileURL, progress: @escaping (Double) -> Void) async throws -> LCPPublication {
+        func fulfill(_ file: FileURL, progress: @escaping @Sendable (Double) -> Void) async throws -> LCPPublication {
             let pub = try await lcpService.acquirePublication(
                 from: .file(file),
                 onProgress: { p in
@@ -71,7 +71,7 @@ extension LCPModuleAPI {
     final class LCPModule: LCPModuleAPI {
         init(readium: Readium) {}
 
-        func fulfill(_ file: FileURL, progress: @escaping (Double) -> Void) async throws -> LCPPublication {
+        func fulfill(_ file: FileURL, progress: @escaping @Sendable (Double) -> Void) async throws -> LCPPublication {
             throw LCPModuleError.lcpNotEnabled
         }
     }

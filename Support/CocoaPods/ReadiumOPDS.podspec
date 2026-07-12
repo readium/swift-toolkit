@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => s.version }
   s.requires_arc  = true
   s.source_files  = "Sources/OPDS/**/*.{m,h,swift}"
-  s.swift_version = '5.10'
+  s.swift_version = '6.0'
   s.platform      = :ios
   s.ios.deployment_target = "15.0"
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }

@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
     'ReadiumShared' => ['Sources/Shared/Resources/**'],
   }
   s.source_files  = "Sources/Shared/**/*.{m,h,swift}"
-  s.swift_version = '5.10'
+  s.swift_version = '6.0'
   s.platform      = :ios
   s.ios.deployment_target = "15.0"
   s.frameworks    = "CoreServices"

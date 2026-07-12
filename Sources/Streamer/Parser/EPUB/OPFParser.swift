@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumFuzi
+import ReadiumInternal
 import ReadiumShared
 
 /// http://www.idpf.org/epub/30/spec/epub30-publications.html#title-type

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Provides an iterable list of `ContentElement`s.
 public protocol Content {
@@ -20,7 +21,11 @@ public extension Content {
 
     /// Returns all the elements as a list.
     func elements() async -> [ContentElement] {
-        await sequence().reduce(into: [ContentElement]()) { $0.append($1) }
+        var elements: [ContentElement] = []
+        for await element in sequence() {
+            elements.append(element)
+        }
+        return elements
     }
 
     /// Extracts the full raw text, or returns null if no text content can be found.

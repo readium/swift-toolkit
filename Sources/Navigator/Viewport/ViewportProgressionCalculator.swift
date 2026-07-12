@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumInternal
 import ReadiumShared
 
 /// Computes total publication progression from resource-level progressions and

@@ -55,12 +55,12 @@ struct UserError: LocalizedError {
 
 /// Convenience protocol for an object (usually an ``Error``) that can be
 /// converted into a ``UserError``.
-protocol UserErrorConvertible {
+nonisolated protocol UserErrorConvertible {
     var userErrorMessage: String? { get }
     var userErrorCause: (any Error)? { get }
 }
 
-extension UserErrorConvertible {
+nonisolated extension UserErrorConvertible {
     var userError: UserError? {
         guard let message = userErrorMessage else {
             return nil
@@ -69,13 +69,13 @@ extension UserErrorConvertible {
     }
 }
 
-extension UserErrorConvertible where Self: Error {
+nonisolated extension UserErrorConvertible where Self: Error {
     var userErrorCause: (any Error)? {
         self
     }
 }
 
-extension UserError: UserErrorConvertible {
+nonisolated extension UserError: UserErrorConvertible {
     var userErrorMessage: String? {
         message
     }
@@ -85,7 +85,7 @@ extension UserError: UserErrorConvertible {
     }
 }
 
-extension String: UserErrorConvertible {
+nonisolated extension String: UserErrorConvertible {
     var userErrorMessage: String? {
         self
     }

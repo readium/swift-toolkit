@@ -193,7 +193,7 @@ Alternatively, you can supply your own device name when initializing `LCPService
 The `LCPService` expects repositories to store the opened licenses and passphrases. `ReadiumLCP` provides built-in Keychain-based implementations that store data securely in the iOS/macOS Keychain. Unlike database-based storage, Keychain data persists across app reinstalls and can optionally be synchronized across the user's devices via iCloud Keychain.
 
 ```swift
-import R2LCPClient
+@preconcurrency import R2LCPClient
 import ReadiumLCP
 
 let httpClient = DefaultHTTPClient()
@@ -288,6 +288,7 @@ An LCP package is secured with a *user passphrase* for decrypting the content. T
 `LCPDialogAuthentication` delegates the presentation of the dialog to an `LCPDialogAuthenticationDelegate`, for example on the top-most view controller of your application. As the delegate is held weakly, you must retain it yourself for the lifetime of the authentication.
 
 ```swift
+@MainActor
 final class LCPDialogPresenter: LCPDialogAuthenticationDelegate {
     func lcpDialogAuthentication(
         _ authentication: LCPDialogAuthentication,

@@ -45,6 +45,15 @@ public final class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
     @MainActor
     public func presentWebPage(url: HTTPURL) async throws {
         await withCheckedContinuation { continuation in
+            guard presentingViewController.presentedViewController == nil else {
+                // `present(_:animated:)` would fail silently and neither
+                // delegate callback would ever fire, leaving the caller
+                // suspended forever.
+                continuation.resume(returning: ())
+                return
+            }
+
+            webPageContinuation?.resume(returning: ())
             webPageContinuation = continuation
 
             let safariVC = SFSafariViewController(url: url.url)

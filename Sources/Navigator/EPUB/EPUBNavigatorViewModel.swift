@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 import UIKit
 
@@ -162,7 +163,7 @@ enum EPUBScriptScope {
             return
         }
         needsInvalidatePagination = true
-        DispatchQueue.main.async { [self] in
+        Task { @MainActor [self] in
             needsInvalidatePagination = false
             delegate?.epubNavigatorViewModelInvalidatePaginationView(self)
         }

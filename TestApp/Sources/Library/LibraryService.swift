@@ -97,7 +97,7 @@ import UIKit
     @discardableResult
     func importPublication(
         from url: AbsoluteURL,
-        progress: @escaping (Double) -> Void
+        progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book {
         // Necessary to read URL exported from the Files app, for example.
         let shouldRelinquishAccess = url.url.startAccessingSecurityScopedResource()
@@ -134,7 +134,7 @@ import UIKit
     }
 
     /// Fulfills the given `url` if it's a DRM license file.
-    private func fulfillIfNeeded(_ url: FileURL, progress: @escaping (Double) -> Void) async throws -> FileURL {
+    private func fulfillIfNeeded(_ url: FileURL, progress: @escaping @Sendable (Double) -> Void) async throws -> FileURL {
         guard lcp.canFulfill(url) else {
             return url
         }

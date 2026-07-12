@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Acts as a proxy to an actual data source by handling read access.
 public protocol Streamable: Sendable {
@@ -26,6 +27,10 @@ public protocol Streamable: Sendable {
     ///     a sub-range). Do not assume zero-based indexing: index relative to
     ///     `chunk.startIndex`, or rebase with `Data(chunk)` before accessing
     ///     bytes by position.
+    ///
+    /// Implementations must cooperate with task cancellation: check
+    /// `Task.isCancelled` between chunks (at minimum when entering the
+    /// method) and fail with `ReadError.cancelled`.
     func stream(
         range: Range<UInt64>?,
         consume: @escaping @Sendable (Data) -> Void
@@ -38,7 +43,6 @@ public extension Streamable {
     /// - Parameters:
     ///   - consume: Callback called for each chunk of data received. Callers
     ///     are responsible to accumulate the data if needed.
-    // FIXME: Task cancellation
     func stream(consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await stream(range: nil, consume: consume)
     }

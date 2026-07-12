@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// A type that can represent an absolute URL with a scheme.
 public protocol AbsoluteURL: URLProtocol {

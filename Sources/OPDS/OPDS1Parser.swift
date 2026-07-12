@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumFuzi
+import ReadiumInternal
 import ReadiumShared
 
 public enum OPDS1ParserError: Error, Sendable {

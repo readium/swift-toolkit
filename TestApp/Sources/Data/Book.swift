@@ -9,8 +9,8 @@ import Foundation
 import GRDB
 import ReadiumShared
 
-struct Book: Codable {
-    struct Id: EntityId { let rawValue: Int64 }
+nonisolated struct Book: Codable {
+    nonisolated struct Id: EntityId { let rawValue: Int64 }
 
     let id: Id?
     /// Canonical identifier for the publication, extracted from its metadata.
@@ -85,7 +85,7 @@ struct Book: Codable {
     }
 }
 
-extension Book: TableRecord, FetchableRecord, PersistableRecord {
+nonisolated extension Book: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
         case id, identifier, title, type, url, coverPath, locator, progression, created, preferencesJSON
     }
@@ -143,12 +143,17 @@ final class BookRepository {
     }
 
     func savePreferences<Preferences: Encodable>(_ preferences: Preferences, of id: Book.Id) async throws {
+        // Encoded eagerly, as `preferences` is not `Sendable` and cannot be
+        // captured in the database closure.
+        let data = try JSONEncoder().encode(preferences)
+        let json = String(data: data, encoding: .utf8)
+
         try await db.write { db in
             guard var book = try Book.fetchOne(db, key: id) else {
                 return
             }
 
-            try book.setPreferences(preferences)
+            book.preferencesJSON = json
             try book.save(db)
         }
     }

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public typealias SearchServiceFactory = @Sendable (PublicationServiceContext) -> SearchService?
 

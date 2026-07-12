@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumInternal
 import ReadiumShared
 
 /// Computes the current `Locator` and `NavigatorViewport` from the focused and

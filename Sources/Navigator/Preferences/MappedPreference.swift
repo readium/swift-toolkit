@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public extension Preference {
     /// Creates a new `Preference` object wrapping the receiver and converting

@@ -6,6 +6,7 @@
 
 import CoreFoundation
 import Foundation
+import ReadiumInternal
 
 /// A type-safe representation of a JSON value.
 ///

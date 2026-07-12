@@ -7,11 +7,11 @@ target 'TestApp' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
 
-  pod 'ReadiumShared', '~> VERSION'
-  pod 'ReadiumStreamer', '~> VERSION'
-  pod 'ReadiumNavigator', '~> VERSION'
-  pod 'ReadiumOPDS', '~> VERSION'
-  pod 'ReadiumLCP', '~> VERSION'
+  pod 'ReadiumShared', '~> READIUM_VERSION'
+  pod 'ReadiumStreamer', '~> READIUM_VERSION'
+  pod 'ReadiumNavigator', '~> READIUM_VERSION'
+  pod 'ReadiumOPDS', '~> READIUM_VERSION'
+  pod 'ReadiumLCP', '~> READIUM_VERSION'
   pod 'R2LCPClient', podspec: 'LCP_URL'
 
   pod 'GRDB.swift', '~> 6.0'

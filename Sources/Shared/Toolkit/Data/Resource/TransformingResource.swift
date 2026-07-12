@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Transforms the bytes of `resource` on-the-fly.
 ///
@@ -43,7 +44,7 @@ public final class TransformingResource: Resource {
         await resource.properties()
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+    @concurrent public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         await data().map { data in
             if let range = range?.clamped(to: 0 ..< UInt64(data.count)) {
                 consume(data[range])

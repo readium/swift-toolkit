@@ -28,7 +28,7 @@ package actor AsyncMemoizer<T: Sendable> {
         if let task {
             return await task.value
         }
-        let newTask = Task(operation: compute)
+        let newTask = Task { await compute() }
         task = newTask
         return await newTask.value
     }

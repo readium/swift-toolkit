@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// A strategy to increment or decrement a setting.
 public protocol ProgressionStrategy: Sendable {

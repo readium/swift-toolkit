@@ -9,7 +9,10 @@
 /// Get the reference by calling `weakVar()`.
 /// Conveniently, the reference can be reset by setting the `ref` property.
 @dynamicCallable
-public final class Weak<T: AnyObject>: Sendable {
+public final class Weak<T: AnyObject & Sendable>: Sendable {
+    /// Invariant making `nonisolated(unsafe)` sound: `ref` is written exactly
+    /// once, before the `Weak` instance is shared with other isolation
+    /// domains (see `Publication.init`), and is read-only afterwards.
     public package(set) nonisolated(unsafe) weak var ref: T?
 
     public init(_ ref: T? = nil) {

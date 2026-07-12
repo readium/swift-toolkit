@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
     ],
   }
   s.source_files  = "Sources/Streamer/**/*.{m,h,swift}"
-  s.swift_version = '5.10'
+  s.swift_version = '6.0'
   s.platform      = :ios
   s.ios.deployment_target = "15.0"
   s.libraries     = 'z', 'xml2'

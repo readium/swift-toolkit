@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumZIPFoundation
 
 /// A ZIP ``Container`` using the ZIPFoundation library.
@@ -105,16 +106,20 @@ private actor ZIPFoundationResource: Resource, Loggable {
     }
 
     func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
-        if range != nil {}
+        guard !Task.isCancelled else {
+            return .failure(.cancelled)
+        }
 
         return await archive().asyncFlatMap { archive in
             do {
                 if let range = range {
                     try await archive.extractRange(range, of: entry) { data in
+                        try Task.checkCancellation()
                         consume(data)
                     }
                 } else {
                     _ = try await archive.extract(entry, skipCRC32: true) { data in
+                        try Task.checkCancellation()
                         consume(data)
                     }
                 }

@@ -53,7 +53,8 @@
       "platform" : "iOS",
       "settings" : {
         "SWIFT_APPROACHABLE_CONCURRENCY" : true,
-        "SWIFT_DEFAULT_ACTOR_ISOLATION" : "MainActor"
+        "SWIFT_DEFAULT_ACTOR_ISOLATION" : "MainActor",
+        "SWIFT_VERSION" : 6
       },
       "sources" : [
         {

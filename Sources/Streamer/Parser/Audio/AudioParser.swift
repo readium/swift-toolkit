@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Parses an audiobook Publication from an unstructured archive format containing audio files,

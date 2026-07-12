@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// A default implementation of the `LocatorService` using the `PositionsService` to locate its inputs.
 public final class DefaultLocatorService: Sendable, LocatorService, Loggable {

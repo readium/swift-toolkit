@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Represents a relative URL.
 public struct RelativeURL: URLProtocol, Hashable {

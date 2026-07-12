@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 @MainActor
 private final class ThrottlerState: Sendable {

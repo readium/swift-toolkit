@@ -169,26 +169,15 @@ let package = Package(
     ]
 )
 
-// FIXME: Remove this once the Swift 6 migration is done.
-let swift6EnabledTargets: Set<String> = [
-    "ReadiumLCP",
-    "ReadiumLCPTests",
-    "ReadiumNavigator",
-    "ReadiumNavigatorTests",
-    "ReadiumOPDS",
-    "ReadiumOPDSTests",
-    "ReadiumShared",
-    "ReadiumSharedTests",
-    "ReadiumStreamer",
-    "ReadiumStreamerTests",
-]
-
 for target in package.targets {
-    var swiftSettings = target.swiftSettings ?? []
-    if swift6EnabledTargets.contains(target.name) {
-        swiftSettings.append(.swiftLanguageMode(.v6))
-    } else {
-        swiftSettings.append(.swiftLanguageMode(.v5))
-    }
-    target.swiftSettings = swiftSettings
+    // Adopt the future language defaults now, to avoid a second
+    // behavioral break for integrators when they become the default.
+    // In particular, `NonisolatedNonsendingByDefault` (SE-0461) runs
+    // `nonisolated async` functions on the caller's actor; CPU-heavy
+    // implementations are marked `@concurrent` to stay off-actor.
+    target.swiftSettings = (target.swiftSettings ?? []) + [
+        .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+        .enableUpcomingFeature("InferIsolatedConformances"),
+        .enableUpcomingFeature("MemberImportVisibility"),
+    ]
 }

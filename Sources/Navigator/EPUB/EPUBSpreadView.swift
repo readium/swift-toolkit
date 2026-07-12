@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumInternal
 import ReadiumShared
 @preconcurrency import WebKit
 
@@ -54,7 +55,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     let animatedLoad: Bool
 
     weak var activityIndicatorView: UIActivityIndicatorView?
-    private var activityIndicatorStopWorkItem: DispatchWorkItem?
+    private var activityIndicatorStopTask: Task<Void, Never>?
 
     /// Set once the spread's DOM is loaded and its subclass may operate on it
     /// (e.g. to scroll to a pending location). Note that decoration templates
@@ -397,7 +398,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    private func spreadLoadDidStart(_ body: Any) {}
+    private func spreadLoadDidStart(_ body: Any) {
+        // The spread began loading, so we cancel the safety-net task that would
+        // otherwise stop the activity indicator after 2 seconds. The indicator
+        // is stopped once the spread is fully loaded, in `showSpread()`.
+        activityIndicatorStopTask.cancel()
+    }
 
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
@@ -442,7 +448,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     func showSpread() {
         activityIndicatorView?.stopAnimating()
-        activityIndicatorStopWorkItem?.cancel()
+        activityIndicatorStopTask.cancel()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
             self.scrollView.alpha = 1
         })
@@ -723,19 +729,24 @@ private extension EPUBSpreadView {
     }
 
     private func setNeedsStopActivityIndicator() {
-        guard activityIndicatorStopWorkItem == nil else {
+        guard activityIndicatorStopTask == nil else {
             return
         }
 
-        activityIndicatorStopWorkItem = DispatchWorkItem { [weak self] in
+        // If the spread doesn't begin loading within 2 seconds it means that
+        // we likely encountered an error. In that case the task we start
+        // below will stop the activity indicator.
+        // If the spread begins to load it will send a `spreadLoadStart` JS
+        // event which will cancel this task.
+        trace("scheduling activity indicator stop")
+        activityIndicatorStopTask = Task { [weak self] in
             defer {
-                self?.activityIndicatorStopWorkItem = nil
+                self?.activityIndicatorStopTask = nil
             }
 
             guard
-                let self = self,
-                let workItem = activityIndicatorStopWorkItem,
-                !workItem.isCancelled
+                await (try? Task.sleep(seconds: 2)) != nil,
+                let self = self
             else {
                 return
             }
@@ -743,17 +754,6 @@ private extension EPUBSpreadView {
             trace("stopping activity indicator because spread \(spread.first.link.href) did not load")
             activityIndicatorView?.stopAnimating()
         }
-
-        // If the spread doesn't begin loading within 2 seconds it means that we
-        // likely encountered an error. In that case the work item we
-        // schedule below will stop the activity indicator.
-        // If the spread begins to load it will send a `spreadLoadStart` JS
-        // event which will cancel the work item being scheduled here.
-        trace("scheduling activity indicator stop")
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + 2,
-            execute: activityIndicatorStopWorkItem!
-        )
     }
 }
 

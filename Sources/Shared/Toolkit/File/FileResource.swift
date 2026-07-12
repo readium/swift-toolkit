@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Creates a `Resource` serving the contents of a local file.
 public actor FileResource: Resource, Loggable {
@@ -43,7 +44,11 @@ public actor FileResource: Resource, Loggable {
     }
 
     public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
-        await handle().flatMap { handle in
+        guard !Task.isCancelled else {
+            return .failure(.cancelled)
+        }
+
+        return await handle().flatMap { handle in
             do {
                 if var range = range {
                     range = range.clampedToInt()

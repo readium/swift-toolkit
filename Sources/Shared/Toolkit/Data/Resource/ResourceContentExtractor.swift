@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import SwiftSoup
 
 /// Extracts pure content from a marked-up (e.g. HTML) or binary (e.g. PDF) resource.
@@ -46,7 +47,7 @@ public typealias _DefaultResourceContentExtractorFactory = DefaultResourceConten
 final class HTMLResourceContentExtractor: ResourceContentExtractor {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
-    func extractText(of resource: Resource) async -> ReadResult<String> {
+    @concurrent func extractText(of resource: Resource) async -> ReadResult<String> {
         await resource.read()
             .asString()
             .asyncFlatMap { content in

@@ -9,9 +9,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
-  platform: ${{ 'iOS Simulator' }}
-  device: ${{ 'iPhone 17 Pro' }}
+  platform: iOS Simulator
+  device: iPhone 17 Pro
   commit_sha: ${{ github.sha }}
   DEVELOPER_DIR: /Applications/Xcode_26.4.app/Contents/Developer
 
@@ -20,24 +23,18 @@ jobs:
     name: Build
     runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
+    timeout-minutes: 60
     env:
-      scheme: ${{ 'Readium-Package' }}
+      scheme: Readium-Package
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install dependencies
         run: |
-          brew update
           brew install xcodegen
           # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
           xcrun simctl list
-      - name: Check CocoaPods podspecs
-        run: |
-          # Check that the podspecs are up to date.
-          make podspecs
-          git diff --exit-code Support/CocoaPods/
-          if git ls-files --others --exclude-standard Support/CocoaPods/ | grep -q .; then echo "Untracked podspec files found. Run 'make podspecs' and commit the result."; exit 1; fi
       - name: Build
         run: |
           set -eo pipefail
@@ -50,53 +47,36 @@ jobs:
         run: |
           jq -r '.pins[] | "\(.identity): \(.state.version)"' Package.resolved
 
-  # navigator-ui-tests:
-  #   name: Navigator UI Tests
-  #   runs-on: macos-26
-  #   if: ${{ !github.event.pull_request.draft }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v6
-  #     - name: Install dependencies
-  #       run: |
-  #         brew update
-  #         brew install xcodegen
-  #         # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
-  #         xcrun simctl list
-  #     - name: Test
-  #       run: |
-  #         set -eo pipefail
-  #         make navigator-ui-tests-project
-  #         xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
-
-  playground:
-    name: Playground
+  # Runs the test suite under the Thread Sanitizer to validate the
+  # `@unchecked Sendable` and `nonisolated(unsafe)` sites at runtime.
+  # Only runs on pushes to main/develop to keep pull requests light.
+  test-tsan:
+    name: Test (Thread Sanitizer)
     runs-on: macos-26
-    if: ${{ !github.event.pull_request.draft }}
+    if: github.event_name == 'push'
+    timeout-minutes: 60
+    env:
+      scheme: Readium-Package
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install dependencies
         run: |
-          brew update
-          brew install xcodegen
           # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
           xcrun simctl list
-      - name: Check Playground project is up-to-date
-        run: |
-          make playground
-          git diff --exit-code Playground/.xcodegen
-      - name: Build
+      - name: Test
         run: |
           set -eo pipefail
-          xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
+          xcodebuild test -scheme "$scheme" -destination "platform=$platform,name=$device" -enableThreadSanitizer YES | xcbeautify --renderer github-actions
 
   lint:
     name: Lint
     runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
+    timeout-minutes: 60
     env:
-      scripts: ${{ 'Sources/Navigator/EPUB/Scripts' }}
+      scripts: Sources/Navigator/EPUB/Scripts
 
     steps:
       - name: Checkout
@@ -122,16 +102,21 @@ jobs:
         run: |
             make scripts
             git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
+            if git ls-files --others --exclude-standard Sources/Navigator/EPUB/Assets/Static/scripts/ | grep -q .; then echo "Untracked bundled scripts found. Run 'make scripts' and commit the result."; exit 1; fi
       - name: Lint Swift formatting
         run: make lint-format
+      - name: Check CocoaPods podspecs
+        run: |
+          # Check that the podspecs are up to date.
+          make podspecs
+          git diff --exit-code Support/CocoaPods/
+          if git ls-files --others --exclude-standard Support/CocoaPods/ | grep -q .; then echo "Untracked podspec files found. Run 'make podspecs' and commit the result."; exit 1; fi
 
   int-dev:
     name: Integration (Local)
     runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
-    defaults:
-      run:
-        working-directory: TestApp
+    timeout-minutes: 60
     environment:
       name: LCP
       deployment: false
@@ -140,13 +125,25 @@ jobs:
         uses: actions/checkout@v6
       - name: Install dependencies
         run: |
-          brew update
           brew install xcodegen
           # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
           xcrun simctl list
-      - name: Generate project
-        run: make dev lcp=${{ secrets.LCP_URL_SPM }}
-      - name: Build
+      - name: Check Playground project is up-to-date
+        run: |
+          make playground
+          git diff --exit-code Playground/.xcodegen
+          if git ls-files --others --exclude-standard Playground/Playground.xcodeproj/ | grep -q .; then echo "Untracked Playground project files found. Run 'make playground' and commit the result."; exit 1; fi
+      - name: Build Playground
+        run: |
+          set -eo pipefail
+          xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
+      - name: Generate TestApp project
+        working-directory: TestApp
+        env:
+          LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
+        run: make dev lcp="$LCP_URL_SPM"
+      - name: Build TestApp
+        working-directory: TestApp
         run: |
           set -eo pipefail
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
@@ -155,6 +152,7 @@ jobs:
     name: Integration (Swift Package Manager)
     runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
+    timeout-minutes: 60
     defaults:
       run:
         working-directory: TestApp
@@ -172,15 +170,14 @@ jobs:
           echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
       - name: Install dependencies
         run: |
-          brew update
           brew install xcodegen
           # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
           xcrun simctl list
       - name: Generate project
-        run: make spm lcp=${{ secrets.LCP_URL_SPM }} commit=$commit_sha
+        env:
+          LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
+        run: make spm lcp="$LCP_URL_SPM" commit="$commit_sha"
       - name: Build
         run: |
           set -eo pipefail
           xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
-
-

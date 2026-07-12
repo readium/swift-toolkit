@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import ReadiumShared
 
 /// Positions Service for an EPUB from its `readingOrder` and `fetcher`.
@@ -105,7 +106,7 @@ public actor EPUBPositionsService: PositionsService {
         }
 
         // Calculates totalProgression
-        let totalPageCount = await positions.asyncMap(\.count).reduce(0, +)
+        let totalPageCount = positions.map(\.count).reduce(0, +)
         if totalPageCount > 0 {
             positions = positions.map { locators in
                 locators.map { locator in

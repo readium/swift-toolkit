@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 #if canImport(UIKit)
     import UIKit
 #endif

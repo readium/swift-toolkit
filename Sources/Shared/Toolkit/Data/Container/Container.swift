@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// A container provides access to a list of `Resource` entries.
 public protocol Container: Sendable {

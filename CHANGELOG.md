@@ -7,14 +7,27 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Changed
 
+* The toolkit is migrated to Swift 6 with strict concurrency checking. All packages compile in the Swift 6 language mode. See [the migration guide](docs/Migration%20Guide.md).
+    * The toolkit adopts the `NonisolatedNonsendingByDefault` (SE-0461), `InferIsolatedConformances` and `MemberImportVisibility` upcoming Swift features.
+
 #### Shared
 
 * OPDS models (`Feed`, `Group`, `Facet`, `OpdsMetadata`) are now structs with value semantics.
+* `Publication`, `Resource`, `Container` and related types are now `Sendable`. Custom implementations of `Resource`, `Container`, `HTTPClient` or `PublicationService` must be `Sendable` too.
+* `Resource.stream()` now cooperates with task cancellation: the built-in resources fail with `ReadError.cancelled` when the surrounding task is cancelled, and custom implementations are expected to do the same.
+
+#### Navigator
+
+* The `Navigator` and `VisualNavigator` protocols and their delegates are now isolated to the main actor.
 
 #### LCP
 
 * `LCPService.init` now requires an explicit `deviceName` parameter. We recommend passing `UIDevice.current.name`. See [the migration guide](docs/Migration%20Guide.md).
 * `LCPDialogAuthentication` no longer takes a `sender` view controller. It now presents its passphrase dialog through a new `LCPDialogAuthenticationDelegate` that you implement and retain for the lifetime of the authentication. See [the Readium LCP guide](docs/Guides/Readium%20LCP.md) and [the migration guide](docs/Migration%20Guide.md).
+
+### Removed
+
+* The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been removed.
 
 
 ## [Unreleased]

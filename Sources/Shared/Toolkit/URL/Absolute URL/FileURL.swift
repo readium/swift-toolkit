@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// Represents an absolute URL with the special scheme `file`.
 ///

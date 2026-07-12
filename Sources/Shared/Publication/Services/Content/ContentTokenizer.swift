@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 /// A tokenizer splitting a `ContentElement` into smaller pieces.
 public typealias ContentTokenizer = Tokenizer<ContentElement, ContentElement>

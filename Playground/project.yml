@@ -30,6 +30,7 @@ targets:
       - package: Readium
         product: ReadiumOPDS
     settings:
+      SWIFT_VERSION: 6.0
       SWIFT_APPROACHABLE_CONCURRENCY: Yes
       SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
 

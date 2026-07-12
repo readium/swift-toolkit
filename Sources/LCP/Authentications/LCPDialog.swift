@@ -4,6 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumInternal
+import ReadiumShared
 import SwiftUI
 
 /// A SwiftUI dialog used to prompt the user for its LCP passphrase.
@@ -117,7 +119,8 @@ public struct LCPDialog: View, Sendable {
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
                     // Wait for the @StateFocus animation to settle before
                     // scrolling, otherwise it won't work.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    Task {
+                        try? await Task.sleep(seconds: 0.5)
                         withAnimation {
                             scrollProxy.scrollTo(openButtonId, anchor: .bottom)
                         }

@@ -9,8 +9,8 @@ import Foundation
 import GRDB
 import ReadiumShared
 
-struct Bookmark: Codable {
-    struct Id: EntityId { let rawValue: Int64 }
+nonisolated struct Bookmark: Codable {
+    nonisolated struct Id: EntityId { let rawValue: Int64 }
 
     let id: Id?
     /// Foreign key to the publication.
@@ -31,7 +31,7 @@ struct Bookmark: Codable {
     }
 }
 
-extension Bookmark: TableRecord, FetchableRecord, PersistableRecord {
+nonisolated extension Bookmark: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
         case id, bookId, locator, progression, created
     }
@@ -67,4 +67,4 @@ final class BookmarkRepository {
 }
 
 /// for the default SwiftUI support
-extension Bookmark: Hashable {}
+nonisolated extension Bookmark: Hashable {}

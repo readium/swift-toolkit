@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public final class CompositeFormatSniffer: FormatSniffer {
     private let sniffers: [FormatSniffer]

@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 
 public enum URLAuthenticationChallengeResponse: Sendable {
     /// Use the specified credential.
@@ -195,7 +196,7 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
         session.invalidateAndCancel()
     }
 
-    public func stream(
+    @concurrent public func stream(
         _ request: any HTTPRequestConvertible,
         onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)? = nil,
         consume: @Sendable (Data, Double?) -> HTTPResult<Void>

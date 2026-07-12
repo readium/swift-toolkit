@@ -16,7 +16,8 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    runs-on: macos-15
+    runs-on: macos-26
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -28,16 +29,19 @@ jobs:
         run: |
           git fetch --tags --force
           VERSION=$(git describe --tag --match "[0-9]*" --abbrev=0)
-          echo "READIUM_VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "READIUM_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           if [[ $GITHUB_REF == refs/tags/* ]]; then
              echo "folder=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           else
              echo "folder=latest" >> $GITHUB_OUTPUT
           fi
 
+      # The docs are generated twice because the version is baked into the
+      # output (DocC --hosting-base-path and the 404/redirect pages embed
+      # /swift-toolkit/<version>/ URLs), so the "latest" site cannot be a
+      # plain copy of the versioned one.
       - name: Generate Documentation
         run: |
-          chmod +x scripts/generate-docs.sh
           ./scripts/generate-docs.sh ${{ steps.versioning.outputs.READIUM_VERSION }}
           ./scripts/generate-docs.sh latest
 
