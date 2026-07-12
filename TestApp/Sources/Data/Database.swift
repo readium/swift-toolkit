@@ -9,7 +9,7 @@ import Foundation
 import GRDB
 import ReadiumShared
 
-nonisolated final class Database {
+final nonisolated class Database {
     convenience init(file: URL) throws {
         try self.init(writer: DatabaseQueue(path: file.path))
     }

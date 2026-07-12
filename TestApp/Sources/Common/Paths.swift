@@ -8,7 +8,7 @@ import Combine
 import Foundation
 import ReadiumShared
 
-nonisolated final class Paths {
+final nonisolated class Paths {
     private init() {}
 
     static let home: FileURL =
