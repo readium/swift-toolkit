@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import SwiftSoup
 
 /// Extracts pure content from a marked-up (e.g. HTML) or binary (e.g. PDF) resource.

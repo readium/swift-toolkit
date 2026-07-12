@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 private let lcpScheme = "http://readium.org/2014/01/lcp"

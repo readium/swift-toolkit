@@ -4,7 +4,6 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumInternal
 import ReadiumShared
 @testable import ReadiumStreamer
 import XCTest

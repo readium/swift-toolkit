@@ -6,7 +6,7 @@
 
 import Foundation
 
-public extension NSRegularExpression {
+package extension NSRegularExpression {
     convenience init(_ pattern: String, options: NSRegularExpression.Options = []) {
         do {
             try self.init(pattern: pattern, options: options)
@@ -25,7 +25,7 @@ public extension NSRegularExpression {
     }
 }
 
-public extension NSTextCheckingResult {
+package extension NSTextCheckingResult {
     func range(in text: String) -> Range<String.Index>? {
         range.range(in: text)
     }
@@ -40,7 +40,7 @@ public extension NSTextCheckingResult {
     }
 }
 
-public extension NSRange {
+package extension NSRange {
     func range(in text: String) -> Range<String.Index>? {
         guard location != NSNotFound else {
             return nil
@@ -49,12 +49,12 @@ public extension NSRange {
     }
 }
 
-public final class ReplacingRegularExpression: NSRegularExpression, @unchecked Sendable {
-    public typealias Replace = (NSTextCheckingResult, [String]) -> String
+package final class ReplacingRegularExpression: NSRegularExpression, @unchecked Sendable {
+    package typealias Replace = (NSTextCheckingResult, [String]) -> String
 
     private let replace: Replace
 
-    public init(_ pattern: String, replace: @escaping Replace) {
+    package init(_ pattern: String, replace: @escaping Replace) {
         do {
             self.replace = replace
             try super.init(pattern: pattern)
@@ -68,11 +68,11 @@ public final class ReplacingRegularExpression: NSRegularExpression, @unchecked S
         fatalError("init(coder:) has not been implemented")
     }
 
-    override public func replacementString(for result: NSTextCheckingResult, in string: String, offset: Int, template templ: String) -> String {
+    override package func replacementString(for result: NSTextCheckingResult, in string: String, offset: Int, template templ: String) -> String {
         replace(result, result.groups(in: string))
     }
 
-    public func stringByReplacingMatches(in string: String, options: NSRegularExpression.MatchingOptions = []) -> String {
+    package func stringByReplacingMatches(in string: String, options: NSRegularExpression.MatchingOptions = []) -> String {
         let range = NSRange(string.startIndex..., in: string)
         return stringByReplacingMatches(in: string, options: options, range: range, withTemplate: "")
     }

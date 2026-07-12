@@ -6,42 +6,13 @@
 
 import Foundation
 
-public extension String {
-    /// Returns this string after removing any character forbidden in a single path component.
-    var sanitizedPathComponent: String {
-        // See https://superuser.com/a/358861
-        let invalidCharacters = CharacterSet(charactersIn: "\\/:*?\"<>|")
-            .union(.newlines)
-            .union(.illegalCharacters)
-            .union(.controlCharacters)
-
-        return components(separatedBy: invalidCharacters)
-            .joined(separator: " ")
-    }
-
-    /// Returns a copy of the string after adding the given `prefix` if it's not already there.
-    func addingPrefix(_ prefix: String) -> String {
-        if hasPrefix(prefix) {
-            return self
-        } else {
-            return prefix + self
-        }
-    }
-
+package extension String {
     /// Returns a copy of the string after removing the given `prefix`, when present.
     func removingPrefix(_ prefix: String) -> String {
         guard hasPrefix(prefix) else {
             return self
         }
         return String(dropFirst(prefix.count))
-    }
-
-    /// Replaces the `prefix`, if present, by the given `replacement` prefix.
-    func replacingPrefix(_ prefix: String, by replacement: String) -> String {
-        guard hasPrefix(prefix) else {
-            return self
-        }
-        return removingPrefix(prefix).addingPrefix(replacement)
     }
 
     /// Returns a copy of the string after adding the given `suffix` if it's not already there.
@@ -59,15 +30,6 @@ public extension String {
             return self
         }
         return String(dropLast(suffix.count))
-    }
-
-    /// Returns a substring before the last occurrence of `delimiter`.
-    /// If the string does not contain the delimiter, returns the original string itself.
-    func substringBeforeLast(_ delimiter: String) -> String? {
-        guard let range = range(of: delimiter, options: [.backwards, .literal]) else {
-            return self
-        }
-        return String(self[..<range.lowerBound])
     }
 
     /// Replaces multiple whitespaces by a single space.

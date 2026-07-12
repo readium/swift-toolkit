@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 private final class Poller: Sendable {
     private let condition: @Sendable @MainActor () -> Bool

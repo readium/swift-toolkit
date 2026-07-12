@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// https://github.com/readium/webpub-manifest/tree/master/contexts/default#subjects
 public struct Subject: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {

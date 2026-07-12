@@ -15,7 +15,6 @@ set -euo pipefail
 
 # Podspec order (dependency-safe)
 PODSPECS=(
-    "ReadiumInternal"
     "ReadiumShared"
     "ReadiumStreamer"
     "ReadiumNavigator"

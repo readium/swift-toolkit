@@ -4,10 +4,12 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import Foundation
+package extension Numeric {
+    var kB: Self {
+        self * 1024
+    }
 
-public extension Comparable {
-    func clamped(to limits: ClosedRange<Self>) -> Self {
-        min(max(self, limits.lowerBound), limits.upperBound)
+    var MB: Self {
+        self * 1024 * 1024
     }
 }

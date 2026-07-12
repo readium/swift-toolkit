@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// The price of a publication in an OPDS link.
 /// https://specs.opds.io/schema/properties.schema.json

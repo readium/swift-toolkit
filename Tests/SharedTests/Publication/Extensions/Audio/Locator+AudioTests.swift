@@ -4,7 +4,6 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumInternal
 @testable import ReadiumShared
 import XCTest
 
@@ -31,10 +30,10 @@ class LocatorLocationsAudioTests: XCTestCase {
                 case let .begin(begin):
                     XCTAssertEqual(begin, Double(beginStr))
                 case let .end(end):
-                    XCTAssertEqual(end, Double(endStr.replacingPrefix(",", by: "")))
+                    XCTAssertEqual(end, Double(endStr.removingPrefix(",")))
                 case let .interval(begin, end):
                     XCTAssertEqual(begin, Double(beginStr))
-                    XCTAssertEqual(end, Double(endStr.replacingPrefix(",", by: "")))
+                    XCTAssertEqual(end, Double(endStr.removingPrefix(",")))
                 case nil:
                     XCTAssertNotNil(time)
                 }

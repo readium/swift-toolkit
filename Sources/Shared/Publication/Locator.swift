@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// https://github.com/readium/architecture/tree/master/locators
 public struct Locator: Hashable, Sendable, CustomStringConvertible, Loggable, JSONValueDecodable, JSONObjectEncodable {

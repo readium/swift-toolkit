@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Link relations as defined in https://readium.org/webpub-manifest/relationships.html
 public struct LinkRelation: Hashable, Sendable, RawRepresentable, JSONValueEncodable {

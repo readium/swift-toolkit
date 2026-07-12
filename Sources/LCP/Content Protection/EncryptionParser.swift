@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 func parseEncryptionData(in asset: ContainerAsset) async -> ReadResult<[AnyURL: ReadiumShared.Encryption]> {

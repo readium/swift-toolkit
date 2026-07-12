@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Holds the metadata of a Readium publication, as described in the Readium Web Publication
 /// Manifest.

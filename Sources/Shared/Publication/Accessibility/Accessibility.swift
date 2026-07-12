@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Holds the accessibility metadata of a Publication.
 ///

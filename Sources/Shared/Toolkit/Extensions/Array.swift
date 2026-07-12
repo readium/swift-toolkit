@@ -6,7 +6,7 @@
 
 import Foundation
 
-public extension Array {
+package extension Array {
     init(builder: (inout Self) -> Void) {
         self.init()
         builder(&self)
@@ -34,21 +34,15 @@ public extension Array {
             return removeFirst()
         }
     }
-
-    @inlinable func appending(_ newElement: Element) -> Self {
-        var array = self
-        array.append(newElement)
-        return array
-    }
 }
 
-public extension Array where Element: Equatable {
+package extension Array where Element: Equatable {
     @inlinable func containsAny(_ elements: Element...) -> Bool {
         contains { elements.contains($0) }
     }
 }
 
-public extension Array where Element: Hashable {
+package extension Array where Element: Hashable {
     /// Creates a new `Array` after removing all the element duplicates.
     func removingDuplicates() -> Array {
         var result = Array()

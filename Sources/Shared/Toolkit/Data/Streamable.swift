@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Acts as a proxy to an actual data source by handling read access.
 public protocol Streamable: Sendable {

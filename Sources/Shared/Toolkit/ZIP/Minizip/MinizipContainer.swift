@@ -6,7 +6,6 @@
 
 import Foundation
 import Minizip
-import ReadiumInternal
 
 /// A ZIP ``Container`` using the Minizip library.
 final class MinizipContainer: Container, Loggable {

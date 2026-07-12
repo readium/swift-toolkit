@@ -6,7 +6,6 @@
 
 import CryptoSwift
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 final class PassphrasesService: Loggable, Sendable {

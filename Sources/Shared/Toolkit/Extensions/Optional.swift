@@ -6,7 +6,7 @@
 
 import Foundation
 
-public extension Optional {
+package extension Optional {
     /// Unwraps the optional or throws the given `error`.
     func orThrow(_ error: @autoclosure () -> Error) throws -> Wrapped {
         switch self {
@@ -26,5 +26,25 @@ public extension Optional {
             return nil
         }
         return value
+    }
+    
+    /// Asynchronous variant of `map`.
+    @inlinable func asyncMap<U>(_ transform: (Wrapped) async throws -> U) async rethrows -> U? {
+        switch self {
+        case let .some(wrapped):
+            return try await .some(transform(wrapped))
+        case .none:
+            return .none
+        }
+    }
+
+    /// Asynchronous variant of `flatMap`.
+    @inlinable func asyncFlatMap<U>(_ transform: (Wrapped) async throws -> U?) async rethrows -> U? {
+        switch self {
+        case let .some(wrapped):
+            return try await transform(wrapped)
+        case .none:
+            return .none
+        }
     }
 }

@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 /// Generates positions for an LCPDF publication by opening each PDF resource

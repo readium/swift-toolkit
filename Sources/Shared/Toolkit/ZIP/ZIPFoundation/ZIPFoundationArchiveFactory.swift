@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumZIPFoundation
 
 /// The ZIP End of Central Directory Record should be at most 65557 bytes,

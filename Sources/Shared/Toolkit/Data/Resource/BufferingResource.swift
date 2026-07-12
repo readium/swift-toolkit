@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Wraps an existing `Resource` and buffers its content.
 ///

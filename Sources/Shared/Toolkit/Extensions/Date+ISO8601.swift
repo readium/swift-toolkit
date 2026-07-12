@@ -6,13 +6,13 @@
 
 import Foundation
 
-public extension Date {
+package extension Date {
     var iso8601: String {
         DateFormatter.iso8601.string(from: self)
     }
 }
 
-public extension DateFormatter {
+package extension DateFormatter {
     static let iso8601: DateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .iso8601)
@@ -46,7 +46,7 @@ public extension DateFormatter {
     }
 }
 
-public extension String {
+package extension String {
     var dateFromISO8601: Date? {
         // Removing .SSSS precision if found.
         var string = self

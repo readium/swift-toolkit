@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// OPDS Acquisition Object
 /// https://specs.opds.io/schema/acquisition-object.schema.json

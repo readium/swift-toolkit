@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 /// Setting values of the `PDFNavigatorViewController`.

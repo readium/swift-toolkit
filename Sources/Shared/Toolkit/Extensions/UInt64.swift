@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-public extension UInt64 {
+package extension UInt64 {
     func ceilMultiple(of divisor: UInt64) -> UInt64 {
         divisor * (self / divisor + ((self % divisor == 0) ? 0 : 1))
     }

@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 public enum ReadiumWebPubParserError: Error, Sendable {

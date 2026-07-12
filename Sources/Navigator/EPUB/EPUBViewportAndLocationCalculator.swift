@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 /// Computes the current `Locator` and `Viewport` from a spread's visible

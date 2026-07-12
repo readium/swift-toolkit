@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Represents a potentially localized string.
 /// Can be either:

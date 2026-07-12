@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Publications can indicate whether they allow third parties to use their
 /// content for text and data mining purposes using the [TDM Rep protocol](https://www.w3.org/community/tdmrep/),

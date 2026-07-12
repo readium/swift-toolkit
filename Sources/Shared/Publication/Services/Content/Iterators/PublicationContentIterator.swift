@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 public protocol ResourceContentIteratorFactory: Sendable {
     /// Creates a `ContentIterator` instance for the `resource`, starting from

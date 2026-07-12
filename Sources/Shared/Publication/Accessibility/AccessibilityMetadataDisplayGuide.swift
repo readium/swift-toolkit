@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// When presenting accessibility metadata provided by the publisher, it is
 /// suggested that the section is introduced using terms such as "claims" or

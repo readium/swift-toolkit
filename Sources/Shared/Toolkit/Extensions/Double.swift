@@ -6,7 +6,7 @@
 
 import Foundation
 
-public extension Double {
+package extension Double {
     var percentageString: String {
         formatPercentage()
     }

@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Represents and holds information about the document format of an asset.
 public struct Format: Hashable, Sendable {

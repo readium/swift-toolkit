@@ -6,7 +6,7 @@
 
 import Foundation
 
-public extension Sequence {
+package extension Sequence {
     /// Asynchronous variant of `map`.
     @inlinable func asyncMap<NewElement>(
         _ transform: (Element) async throws -> NewElement

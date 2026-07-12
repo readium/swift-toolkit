@@ -6,7 +6,6 @@
 
 import AVFoundation
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 /// Serves `Publication`'s `Resource`s as an `AVURLAsset`.

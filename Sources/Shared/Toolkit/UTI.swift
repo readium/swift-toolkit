@@ -8,49 +8,49 @@ import Foundation
 import UniformTypeIdentifiers
 
 /// Uniform Type Identifier.
-public struct UTI: Sendable {
+package struct UTI: Sendable {
     /// Type tag class, eg. UTTagClass.mimeType.
-    public enum TagClass: Sendable {
+    package enum TagClass: Sendable {
         case mediaType, fileExtension
     }
 
-    public let type: UTType
+    package let type: UTType
 
-    public init(type: UTType) {
+    package init(type: UTType) {
         self.type = type
     }
 
-    public init?(_ identifier: String) {
+    package init?(_ identifier: String) {
         guard let type = UTType(identifier) else {
             return nil
         }
         self.init(type: type)
     }
 
-    public init?(mediaType: String) {
+    package init?(mediaType: String) {
         guard let type = UTType(mimeType: mediaType) else {
             return nil
         }
         self.init(type: type)
     }
 
-    public init?(fileExtension: String) {
+    package init?(fileExtension: String) {
         guard let type = UTType(filenameExtension: fileExtension) else {
             return nil
         }
         self.init(type: type)
     }
 
-    public var name: String? {
+    package var name: String? {
         type.localizedDescription
     }
 
-    public var string: String {
+    package var string: String {
         type.identifier
     }
 
     /// Returns the preferred tag for this `UTI`, with the given type `tagClass`.
-    public func preferredTag(withClass tagClass: TagClass) -> String? {
+    package func preferredTag(withClass tagClass: TagClass) -> String? {
         switch tagClass {
         case .mediaType:
             return type.preferredMIMEType
@@ -60,7 +60,7 @@ public struct UTI: Sendable {
     }
 
     /// Returns all tags for this `UTI`, with the given type `tagClass`.
-    public func tags(withClass tagClass: TagClass) -> [String] {
+    package func tags(withClass tagClass: TagClass) -> [String] {
         switch tagClass {
         case .mediaType:
             return type.tags[.mimeType] ?? []
@@ -70,7 +70,7 @@ public struct UTI: Sendable {
     }
 
     /// Finds the first `UTI` recognizing any of the given `mediaTypes` or `fileExtensions`.
-    public static func findFrom(mediaTypes: [String], fileExtensions: [String]) -> UTI? {
+    package static func findFrom(mediaTypes: [String], fileExtensions: [String]) -> UTI? {
         for mediaType in mediaTypes {
             if let uti = UTI(mediaType: mediaType) {
                 return uti
@@ -85,7 +85,7 @@ public struct UTI: Sendable {
     }
 }
 
-public extension Array where Element == UTI {
+package extension Array where Element == UTI {
     /// Returns the first preferred tag found in the list of `UTI`, with the given type `tagClass`.
     func preferredTag(withClass tagClass: UTI.TagClass) -> String? {
         for uti in self {

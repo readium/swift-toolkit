@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 final class LCPContentProtection: ContentProtection, Loggable {

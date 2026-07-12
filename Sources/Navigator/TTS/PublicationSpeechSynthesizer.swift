@@ -6,7 +6,6 @@
 
 import AVFoundation
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 public protocol PublicationSpeechSynthesizerDelegate: AnyObject {

@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// A lightweight implementation of URI Template (RFC 6570).
 ///

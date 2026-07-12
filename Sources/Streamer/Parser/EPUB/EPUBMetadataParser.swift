@@ -6,7 +6,6 @@
 
 import Foundation
 import ReadiumFuzi
-import ReadiumInternal
 import ReadiumShared
 
 /// Reference: https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md

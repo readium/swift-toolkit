@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 public enum LinkError: Error, Equatable, Sendable {
     /// The link's HREF is not a valid URL.

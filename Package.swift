@@ -31,7 +31,6 @@ let package = Package(
         .target(
             name: "ReadiumShared",
             dependencies: [
-                "ReadiumInternal",
                 "SwiftSoup",
                 "Zip",
                 .product(name: "ReadiumFuzi", package: "Fuzi"),
@@ -82,7 +81,6 @@ let package = Package(
         .target(
             name: "ReadiumNavigator",
             dependencies: [
-                "ReadiumInternal",
                 "ReadiumShared",
                 "DifferenceKit",
                 "SwiftSoup",
@@ -126,7 +124,6 @@ let package = Package(
             name: "ReadiumLCP",
             dependencies: [
                 "CryptoSwift",
-                "ReadiumInternal",
                 "ReadiumShared",
                 .product(name: "ReadiumZIPFoundation", package: "ZIPFoundation"),
             ],
@@ -147,16 +144,6 @@ let package = Package(
         //     ],
         //     path: "Tests/LCPTests"
         // ),
-
-        .target(
-            name: "ReadiumInternal",
-            path: "Sources/Internal"
-        ),
-        .testTarget(
-            name: "ReadiumInternalTests",
-            dependencies: ["ReadiumInternal"],
-            path: "Tests/InternalTests"
-        ),
 
         // Shared test publications used across multiple test targets.
         .target(

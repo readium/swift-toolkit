@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// EPUB Media Overlay metadata.
 /// https://readium.org/webpub-manifest/profiles/epub#5-metadata

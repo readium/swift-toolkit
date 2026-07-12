@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Holds information about how the resource is stored in the archive.
 public struct ArchiveProperties: Equatable, Sendable, JSONValueDecodable, JSONObjectEncodable {

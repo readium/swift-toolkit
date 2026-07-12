@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Caches in memory the tail of the given `resource`, starting from
 /// `cacheFromOffset`.

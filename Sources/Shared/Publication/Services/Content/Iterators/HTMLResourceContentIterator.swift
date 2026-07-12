@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import SwiftSoup
 
 /// Iterates an HTML `resource`, starting from the given `locator`.

@@ -6,7 +6,6 @@
 
 import CoreServices
 import Foundation
-import ReadiumInternal
 
 /// Shared model for a Readium Publication.
 public final class Publication: Sendable, Loggable {

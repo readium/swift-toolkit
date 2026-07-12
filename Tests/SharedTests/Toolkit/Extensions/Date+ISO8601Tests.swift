@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-@testable import ReadiumInternal
+@testable import ReadiumShared
 import XCTest
 
 class DateISO8601Tests: XCTestCase {

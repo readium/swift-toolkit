@@ -6,7 +6,6 @@
 
 import CoreServices
 import Foundation
-import ReadiumInternal
 
 #if canImport(UniformTypeIdentifiers)
     import UniformTypeIdentifiers

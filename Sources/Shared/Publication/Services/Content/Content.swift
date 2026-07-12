@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Provides an iterable list of `ContentElement`s.
 public protocol Content {

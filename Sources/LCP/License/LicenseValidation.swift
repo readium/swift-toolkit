@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 /// To modify depending of the profiles supported by liblcp.a.

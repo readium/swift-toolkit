@@ -6,7 +6,7 @@
 
 import Foundation
 
-public extension Data {
+package extension Data {
     /// Reads a sub-range of `self` after shifting the given absolute range
     /// to be relative to `self`.
     subscript(_ range: Range<UInt64>, offsetBy dataStartOffset: UInt64) -> Data? {

@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. Take a look
 ### Removed
 
 * The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been removed.
+* The `ReadiumInternal` package has been removed. Its utilities were internal helpers and are now folded into `ReadiumShared` with `package` visibility. If you imported `ReadiumInternal` directly, remove the import.
 
 
 ## [Unreleased]

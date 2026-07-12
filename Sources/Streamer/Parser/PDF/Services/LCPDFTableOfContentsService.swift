@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 /// Loads the table of contents of the single PDF resource in an LCPDF package,

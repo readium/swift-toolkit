@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Transforms the bytes of `resource` on-the-fly.
 ///

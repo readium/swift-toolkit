@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 public enum URLAuthenticationChallengeResponse: Sendable {
     /// Use the specified credential.

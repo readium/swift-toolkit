@@ -6,20 +6,9 @@
 
 import Foundation
 
-public extension Result {
+package extension Result {
     func getOrNil() -> Success? {
         try? get()
-    }
-
-    func get(or def: Success) -> Success {
-        (try? get()) ?? def
-    }
-
-    func `catch`(_ recover: (Failure) -> Self) -> Self {
-        if case let .failure(error) = self {
-            return recover(error)
-        }
-        return self
     }
 
     func eraseToAnyError() -> Result<Success, Error> {
@@ -68,7 +57,7 @@ public extension Result {
     }
 }
 
-public extension Result where Failure == Error {
+package extension Result where Failure == Error {
     func tryMap<NewSuccess>(
         _ transform: (Success) throws -> NewSuccess
     ) -> Result<NewSuccess, Error> {
