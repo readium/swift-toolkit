@@ -254,9 +254,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
             // Safety net in case the spread never finishes loading (e.g. the
             // resource fails to load) and `didCompleteGoTo()` never fires.
-            // `CompletionRequest.resume()` is idempotent, so a normal
-            // completion beats the timeout harmlessly.
-            Task { @MainActor in
+            // `CompletionRequest.resume()` is idempotent and cancels this
+            // timeout, so a normal completion beats the timeout harmlessly.
+            request.timeoutTask = Task { @MainActor in
                 try? await Task.sleep(seconds: 5.0)
                 request.resume()
             }
@@ -279,6 +279,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private class CompletionRequest {
         private var continuation: CheckedContinuation<Void, Never>?
 
+        /// Optional safety-net timeout that resumes this request if the
+        /// expected completion signal never arrives. Cancelled on `resume()`.
+        var timeoutTask: Task<Void, Never>?
+
         init(_ continuation: CheckedContinuation<Void, Never>) {
             self.continuation = continuation
         }
@@ -288,6 +292,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         func resume() {
             continuation?.resume()
             continuation = nil
+            timeoutTask?.cancel()
+            timeoutTask = nil
         }
     }
 
