@@ -27,7 +27,7 @@ package extension Optional {
         }
         return value
     }
-    
+
     /// Asynchronous variant of `map`.
     @inlinable func asyncMap<U>(_ transform: (Wrapped) async throws -> U) async rethrows -> U? {
         switch self {

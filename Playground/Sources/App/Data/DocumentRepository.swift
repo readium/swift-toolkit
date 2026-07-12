@@ -33,7 +33,9 @@ import OSLog
     /// Returns the files at the given index offsets in the current `documents`
     /// list.
     func get(atOffsets offsets: IndexSet) -> [URL] {
-        offsets.compactMap { documents.getOrNil($0) }
+        offsets.compactMap {
+            documents.indices.contains($0) ? documents[$0] : nil
+        }
     }
 
     /// Copies `file` into the Documents directory, replacing any existing file
