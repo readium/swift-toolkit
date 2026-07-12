@@ -288,6 +288,7 @@ An LCP package is secured with a *user passphrase* for decrypting the content. T
 `LCPDialogAuthentication` delegates the presentation of the dialog to an `LCPDialogAuthenticationDelegate`, for example on the top-most view controller of your application. As the delegate is held weakly, you must retain it yourself for the lifetime of the authentication.
 
 ```swift
+@MainActor
 final class LCPDialogPresenter: LCPDialogAuthenticationDelegate {
     func lcpDialogAuthentication(
         _ authentication: LCPDialogAuthentication,
