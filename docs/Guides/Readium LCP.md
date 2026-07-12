@@ -193,7 +193,7 @@ Alternatively, you can supply your own device name when initializing `LCPService
 The `LCPService` expects repositories to store the opened licenses and passphrases. `ReadiumLCP` provides built-in Keychain-based implementations that store data securely in the iOS/macOS Keychain. Unlike database-based storage, Keychain data persists across app reinstalls and can optionally be synchronized across the user's devices via iCloud Keychain.
 
 ```swift
-import R2LCPClient
+@preconcurrency import R2LCPClient
 import ReadiumLCP
 
 let httpClient = DefaultHTTPClient()

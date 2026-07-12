@@ -398,7 +398,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    private func spreadLoadDidStart(_ body: Any) {}
+    private func spreadLoadDidStart(_ body: Any) {
+        // The spread began loading, so we cancel the safety-net task that would
+        // otherwise stop the activity indicator after 2 seconds. The indicator
+        // is stopped once the spread is fully loaded, in `showSpread()`.
+        activityIndicatorStopTask.cancel()
+    }
 
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
