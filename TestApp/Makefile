@@ -34,9 +34,9 @@ else
 	@cp Integrations/SPM/project.yml .
 endif
 ifdef commit
-	@sed -i '' -e "s>VERSION>revision: $(commit)>g" project.yml
+	@sed -i '' -e "s>READIUM_VERSION>revision: $(commit)>g" project.yml
 else
-	@sed -i '' -e "s>VERSION>from: $(version)>g" project.yml
+	@sed -i '' -e "s>READIUM_VERSION>from: $(version)>g" project.yml
 endif
 	xcodegen generate
 	@echo "\nopen TestApp.xcodeproj"
@@ -49,7 +49,7 @@ else
 	@cp Integrations/CocoaPods/project.yml .
 	@cp Integrations/CocoaPods/Podfile .
 endif
-	@sed -i '' -e "s>VERSION>$(version)>g" Podfile
+	@sed -i '' -e "s>READIUM_VERSION>$(version)>g" Podfile
 	xcodegen generate
 	pod install
 	@echo "\nopen TestApp.xcworkspace"

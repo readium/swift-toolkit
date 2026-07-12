@@ -49,12 +49,11 @@ jobs:
 
   # Runs the test suite under the Thread Sanitizer to validate the
   # `@unchecked Sendable` and `nonisolated(unsafe)` sites at runtime.
-  # Only runs on pushes to main/develop to stay under the concurrent
-  # macOS runner limit on pull requests.
+  # Only runs on pushes to main/develop to keep pull requests light.
   test-tsan:
     name: Test (Thread Sanitizer)
     runs-on: macos-26
-    # if: github.event_name == 'push'
+    if: github.event_name == 'push'
     timeout-minutes: 60
     env:
       scheme: Readium-Package
@@ -114,7 +113,7 @@ jobs:
           if git ls-files --others --exclude-standard Support/CocoaPods/ | grep -q .; then echo "Untracked podspec files found. Run 'make podspecs' and commit the result."; exit 1; fi
 
   int-dev:
-    name: Integration (Playground + TestApp)
+    name: Integration (Local)
     runs-on: macos-26
     if: ${{ !github.event.pull_request.draft }}
     timeout-minutes: 60

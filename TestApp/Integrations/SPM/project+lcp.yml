@@ -4,7 +4,7 @@ options:
 packages:
   Readium:
     url: https://github.com/readium/swift-toolkit.git
-    VERSION
+    READIUM_VERSION
   R2LCPClient:
     path: R2LCPClient
   GRDB:
