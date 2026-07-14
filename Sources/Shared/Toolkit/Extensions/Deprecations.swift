@@ -64,7 +64,7 @@ public extension String {
         guard hasPrefix(prefix) else {
             return self
         }
-        return removingPrefix(prefix).addingPrefix(replacement)
+        return replacement + dropFirst(prefix.count)
     }
 
     @available(*, unavailable, message: "This utility was an internal helper that leaked through ReadiumShared. It is no longer part of the public API. Copy it into your own codebase if you still need it.")
@@ -87,11 +87,12 @@ public extension Task<Void, Never>? {
 public extension URL {
     @available(*, unavailable, message: "This utility was an internal helper that leaked through ReadiumShared. It is no longer part of the public API. Copy it into your own codebase if you still need it.")
     mutating func removeFragment() -> String? {
-        var fragment: String?
-        guard let result = copy({
-            fragment = $0.fragment
-            $0.fragment = nil
-        }) else {
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return nil
+        }
+        let fragment = components.fragment
+        components.fragment = nil
+        guard let result = components.url else {
             return nil
         }
         self = result
@@ -100,6 +101,10 @@ public extension URL {
 
     @available(*, unavailable, message: "This utility was an internal helper that leaked through ReadiumShared. It is no longer part of the public API. Copy it into your own codebase if you still need it.")
     func removingFragment() -> URL? {
-        copy { $0.fragment = nil }
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+            return nil
+        }
+        components.fragment = nil
+        return components.url
     }
 }

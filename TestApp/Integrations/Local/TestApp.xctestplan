@@ -27,13 +27,6 @@
     {
       "target" : {
         "containerPath" : "container:..",
-        "identifier" : "ReadiumInternalTests",
-        "name" : "ReadiumInternalTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:..",
         "identifier" : "ReadiumOPDSTests",
         "name" : "ReadiumOPDSTests"
       }
