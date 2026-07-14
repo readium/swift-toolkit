@@ -24,8 +24,8 @@ public extension AudioSessionUser {
     }
 }
 
-/// Coordinates the app's audio session for Readium audio consumers.
-public protocol AudioSessionProtocol: AnyObject {
+/// Manages the app's audio session for Readium audio consumers.
+public protocol AudioSessionManaging {
     /// Starts a new audio session with the given `user`.
     func start(with user: AudioSessionUser, isPlaying: Bool)
 
@@ -38,7 +38,7 @@ public protocol AudioSessionProtocol: AnyObject {
 
 /// Manages an activated `AVAudioSession`.
 @MainActor
-public final class AudioSession: AudioSessionProtocol, Loggable {
+public final class AudioSession: AudioSessionManaging, Loggable {
     public struct Configuration: Equatable {
         let category: AVAudioSession.Category
         let mode: AVAudioSession.Mode
@@ -208,7 +208,7 @@ public final class AudioSession: AudioSessionProtocol, Loggable {
     }
 
     /// Whether the audio session is currently interrupted, e.g. by a phone call.
-    public private(set) var isInterrupted: Bool = false
+    private var isInterrupted: Bool = false
 
     /// The observer of audio session interruption notifications.
     private var interruptionObserver: Any?

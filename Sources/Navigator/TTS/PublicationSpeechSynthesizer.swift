@@ -105,7 +105,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     public weak var delegate: PublicationSpeechSynthesizerDelegate?
 
     private let publication: Publication
-    private let audioSession: AudioSessionProtocol
+    private let audioSession: AudioSessionManaging
     private let engineFactory: EngineFactory
     private let tokenizerFactory: TokenizerFactory
 
@@ -131,7 +131,7 @@ public class PublicationSpeechSynthesizer: Loggable {
             mode: .spokenAudio,
             routeSharingPolicy: .longFormAudio
         ),
-        audioSession: AudioSessionProtocol = AudioSession.shared,
+        audioSession: AudioSessionManaging = AudioSession.shared,
         engineFactory: @escaping EngineFactory = { AVTTSEngine() },
         tokenizerFactory: @escaping TokenizerFactory = defaultTokenizerFactory,
         delegate: PublicationSpeechSynthesizerDelegate? = nil

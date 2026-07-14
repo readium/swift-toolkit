@@ -113,7 +113,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public nonisolated let publication: Publication
     private let initialLocation: Locator?
     private let config: Configuration
-    private let audioSession: AudioSessionProtocol
+    private let audioSession: AudioSessionManaging
 
     public var audioConfiguration: AudioSession.Configuration {
         config.audioSession
@@ -123,7 +123,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         publication: Publication,
         initialLocation: Locator? = nil,
         config: Configuration = Configuration(),
-        audioSession: AudioSessionProtocol = AudioSession.shared
+        audioSession: AudioSessionManaging = AudioSession.shared
     ) {
         self.publication = publication
         self.initialLocation = initialLocation
