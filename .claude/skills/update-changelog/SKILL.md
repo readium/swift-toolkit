@@ -45,13 +45,21 @@ Omit the sub-section heading for cross-cutting changes.
 - Start each bullet with a past-tense verb or a noun phrase: "Added", "Fixed", "The X now…"
 - Be concise — one to three lines maximum per entry.
 - Mention the **public API surface** (type name, method name, protocol name) in backticks.
-- Do **not** explain implementation details; focus on what the developer observes or must do.
+- Do NOT explain implementation details; focus on what the developer observes or must do.
+- Do NOT document defensive validation (e.g. rejecting out-of-range values). Only document the positive behavior change that developers care about (e.g. "decimal values are now supported").
 - Link to an existing guide when the change is non-trivial to adopt:
   - Migration steps: `[the migration guide](docs/Migration%20Guide.md)` (or a specific anchor)
   - New feature guide: `[the user guide](docs/Guides/...)` if a guide exists
 - When the API is gated behind an experimental SPI, mention it.
 - Prefix Fixed entries with the GitHub issue: `- [#NNN](URL) Fixed ...`.
-- Contributions: append `(contributed by [@handle](PR URL))` when crediting external contributors.
+
+## Attributions
+
+For external contributions, we want to attribute the author. Follow these instructions:
+
+1. run `gh pr view --json number,title,url,author` to get the PR for the current branch and its author's login.
+2. Check if the author is a maintainer with `gh api repos/readium/swift-toolkit/collaborators --jq '.[].login'`.
+3. Only add a contribution credit if the author is **not** a maintainer, appending `(contributed by [@login](PR URL))`.
 
 ## Process
 

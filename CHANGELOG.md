@@ -2,7 +2,26 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### LCP
+
+* `LCPService` has a new `addPassphrase(_:isHashed:userID:provider:)` method to store a passphrase candidate in the repository without opening a license first. Useful to preload a passphrase ahead of time (e.g. from a catalog).
+
+### Fixed
+
+#### Shared
+
+* EPUB HREFs that are not percent-encoded but carry a fragment or query (e.g. `chapter one.xhtml#section`, with a space in the filename) now keep their `#fragment`/`?query` instead of encoding the separators into the path. This fixes table of contents and Media Overlays links failing to resolve and navigate in poorly-authored EPUBs.
+
+#### Navigator
+
+* Fixed custom `EditingAction`s sometimes missing from the text-selection menu for double-tap (single word) selections (contributed by [@raphi011](https://github.com/readium/swift-toolkit/pull/822)).
+* Fixed memory leak in the `AudioNavigator`.
+* [#802](https://github.com/readium/swift-toolkit/issues/802) Fixed fonts declared with `fontFamilyDeclarations` never loading in the EPUB navigator. Font fetches were CORS-gated by WebKit (contributed by [@atani](https://github.com/readium/swift-toolkit/pull/845)).
+
 
 ## [3.10.0] - 2026-06-24
 

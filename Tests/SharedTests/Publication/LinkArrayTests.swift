@@ -82,6 +82,29 @@ class LinkArrayTests: XCTestCase {
         XCTAssertNil(try links.firstIndexWithHREF(XCTUnwrap(AnyURL(string: "unknown"))))
     }
 
+    /// Falls back to ignoring the query and fragment when no exact match is
+    /// found, consistent with `Manifest.linkWithHREF`.
+    func testFirstWithHREFIgnoringQueryAndFragment() throws {
+        let links = [Link(href: "l1"), Link(href: "l2")]
+
+        XCTAssertEqual(try links.firstWithHREF(XCTUnwrap(AnyURL(string: "l2#fragment"))), Link(href: "l2"))
+        XCTAssertEqual(try links.firstWithHREF(XCTUnwrap(AnyURL(string: "l2?query=1"))), Link(href: "l2"))
+        XCTAssertEqual(try links.firstWithHREF(XCTUnwrap(AnyURL(string: "l2?query=1#fragment"))), Link(href: "l2"))
+    }
+
+    /// An exact match takes precedence over the query/fragment-stripped fallback.
+    func testFirstWithHREFPrefersExactMatch() throws {
+        let links = [Link(href: "l2"), Link(href: "l2?query=1")]
+        XCTAssertEqual(try links.firstIndexWithHREF(XCTUnwrap(AnyURL(string: "l2?query=1"))), 1)
+    }
+
+    func testFirstIndexWithHREFIgnoringQueryAndFragment() throws {
+        let links = [Link(href: "l1"), Link(href: "l2")]
+
+        XCTAssertEqual(try links.firstIndexWithHREF(XCTUnwrap(AnyURL(string: "l2#fragment"))), 1)
+        XCTAssertEqual(try links.firstIndexWithHREF(XCTUnwrap(AnyURL(string: "l2?query=1#fragment"))), 1)
+    }
+
     /// Finds the first `Link` with a `type` matching the given `mediaType`.
     func testFirstWithMediaType() {
         let links = [

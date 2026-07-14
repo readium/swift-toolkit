@@ -128,3 +128,12 @@ public enum ContainerError: Error {
     /// Can't write the file at given relative path in the Container.
     case writeFailed(path: String)
 }
+
+/// Errors thrown when preadding an LCP passphrase candidate.
+public enum LCPAddPassphraseError: Error {
+    /// The provided hashed passphrase is not a valid SHA-256 hash.
+    case invalidHash
+
+    /// An error occurred while accessing the passphrase repository.
+    case repository(Error)
+}

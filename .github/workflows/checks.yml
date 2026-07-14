@@ -41,11 +41,11 @@ jobs:
       - name: Build
         run: |
           set -eo pipefail
-          xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build-for-testing -scheme "$scheme" -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
       - name: Test
         run: |
           set -eo pipefail
-          xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild test-without-building -scheme "$scheme" -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
       - name: Print Swift package versions
         run: |
           jq -r '.pins[] | "\(.identity): \(.state.version)"' Package.resolved
@@ -67,7 +67,7 @@ jobs:
   #       run: |
   #         set -eo pipefail
   #         make navigator-ui-tests-project
-  #         xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+  #         xcodebuild test -project Tests/NavigatorTests/UITests/NavigatorUITests.xcodeproj -scheme NavigatorTestHost -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
 
   playground:
     name: Playground
@@ -89,7 +89,7 @@ jobs:
       - name: Build
         run: |
           set -eo pipefail
-          xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
 
   lint:
     name: Lint
@@ -147,7 +147,7 @@ jobs:
       - name: Build
         run: |
           set -eo pipefail
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
 
   int-spm:
     name: Integration (Swift Package Manager)
@@ -177,6 +177,6 @@ jobs:
       - name: Build
         run: |
           set -eo pipefail
-          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | if command -v xcpretty &> /dev/null; then xcpretty; else cat; fi
+          xcodebuild build -scheme TestApp -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
 
 

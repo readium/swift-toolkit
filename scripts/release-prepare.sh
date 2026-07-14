@@ -48,8 +48,9 @@ check_semver "$OLD_VERSION"
 info "Preparing release $OLD_VERSION → $VERSION"
 
 # Branch
-info "Creating branch '$VERSION'"
-git -C "$REPO_ROOT" checkout -b "$VERSION"
+BRANCH="release-$VERSION"
+info "Creating branch '$BRANCH'"
+git -C "$REPO_ROOT" checkout -b "$BRANCH"
 
 # Support/CocoaPods/Specs.swift
 info "Bumping version in Specs.swift"
@@ -90,12 +91,12 @@ else
 fi
 
 # Push + PR
-info "Pushing branch '$VERSION'"
+info "Pushing branch '$BRANCH'"
 if [[ $DRY_RUN -eq 1 ]]; then
-    dry_skip "git push -u origin $VERSION"
+    dry_skip "git push -u origin $BRANCH"
     dry_skip "gh pr create --base develop --title \"$VERSION\" --body \"\""
 else
-    git -C "$REPO_ROOT" push -u origin "$VERSION"
+    git -C "$REPO_ROOT" push -u origin "$BRANCH"
     PR_URL="$(gh pr create --base develop --title "$VERSION" --body "" | tail -1)"
     open "$PR_URL"
 fi

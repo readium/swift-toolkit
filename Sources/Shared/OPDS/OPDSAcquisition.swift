@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// OPDS Acquisition Object
-/// https://drafts.opds.io/schema/acquisition-object.schema.json
+/// https://specs.opds.io/schema/acquisition-object.schema.json
 public struct OPDSAcquisition: Equatable, JSONObjectEncodable, JSONValueDecodable {
     public var type: String
     public var children: [OPDSAcquisition] = []

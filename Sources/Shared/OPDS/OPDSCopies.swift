@@ -8,7 +8,7 @@ import Foundation
 import ReadiumInternal
 
 /// Library-specific feature that contains information about the copies that a library has acquired.
-/// https://drafts.opds.io/schema/properties.schema.json
+/// https://specs.opds.io/schema/properties.schema.json
 public struct OPDSCopies: Equatable, JSONValueDecodable, JSONObjectEncodable {
     public let total: Int?
     public let available: Int?

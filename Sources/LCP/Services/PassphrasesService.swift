@@ -20,6 +20,40 @@ final class PassphrasesService: Loggable {
         self.repository = repository
     }
 
+    /// Stores a passphrase in the repository as a candidate, without
+    /// associating it with a specific license. `isHashed` indicates whether
+    /// `passphrase` is already a SHA-256 hash, otherwise it is hashed before
+    /// storage.
+    func addPassphrase(
+        _ passphrase: String,
+        isHashed: Bool,
+        userID: User.ID?,
+        provider: LicenseDocument.Provider?
+    ) async throws(LCPAddPassphraseError) {
+        let hash: LCPPassphraseHash
+        if isHashed {
+            guard sha256Predicate.evaluate(with: passphrase) else {
+                throw .invalidHash
+            }
+            // Normalize to lowercase to match `sha256()` output, so a hashed
+            // value and the hash of the matching cleartext de-duplicate.
+            hash = passphrase.lowercased()
+        } else {
+            hash = passphrase.sha256()
+        }
+
+        do {
+            // An already-stored passphrase is not re-added, to avoid
+            // overwriting its existing provider/userID association.
+            let existing = try await repository.passphrases()
+            guard !existing.contains(hash) else { return }
+
+            try await repository.addPassphrase(hash, userID: userID, provider: provider)
+        } catch {
+            throw .repository(error)
+        }
+    }
+
     /// Finds any valid passphrase for the given license in the passphrases repository.
     /// If none is found, requests a passphrase from the request delegate (ie. user prompt) until
     /// one is valid, or the request is cancelled.

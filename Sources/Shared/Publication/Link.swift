@@ -224,15 +224,26 @@ public extension [Link] {
     }
 
     /// Finds the first link matching the given HREF.
+    ///
+    /// Falls back to ignoring the query and fragment of `href`, to stay
+    /// consistent with `Manifest.linkWithHREF`.
     func firstWithHREF<T: URLConvertible>(_ href: T) -> Link? {
-        let href = href.anyURL.normalized.string
-        return first { $0.url().normalized.string == href }
+        firstIndexWithHREF(href).map { self[$0] }
     }
 
     /// Finds the index of the first link matching the given HREF.
+    ///
+    /// Falls back to ignoring the query and fragment of `href`, to stay
+    /// consistent with `Manifest.linkWithHREF`.
     func firstIndexWithHREF<T: URLConvertible>(_ href: T) -> Int? {
-        let href = href.anyURL.normalized.string
-        return firstIndex { $0.url().normalized.string == href }
+        let href = href.anyURL.normalized
+
+        func index(matchingHREF href: String) -> Int? {
+            firstIndex { $0.url().normalized.string == href }
+        }
+
+        return index(matchingHREF: href.string)
+            ?? index(matchingHREF: href.removingQuery().removingFragment().string)
     }
 
     /// Finds the first link matching the given media type.
