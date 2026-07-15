@@ -355,7 +355,6 @@ extension LicenseValidation {
     }
 
     private func validateIntegrity(of license: LicenseDocument, with passphrase: String) async throws {
-
         // Creates the DRM context
         let pemCrl = try await crl.retrieve()
         let context = try client.createContext(jsonLicense: license.jsonString, hashedPassphrase: passphrase, pemCrl: pemCrl)
