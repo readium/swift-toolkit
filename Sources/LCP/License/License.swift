@@ -241,7 +241,9 @@ extension License: LCPLicense {
             }
 
             func makeRenewURL(from endDate: Date?) throws -> HTTPURL {
-                var params = device.asQueryParameters
+                guard var params = device.asQueryParameters else {
+                    throw LCPError.licenseInteractionNotAvailable
+                }
                 if let end = endDate {
                     params["end"] = end.iso8601
                 }
@@ -289,10 +291,11 @@ extension License: LCPLicense {
     func returnPublication() async -> Result<Void, LCPError> {
         guard
             let status = documents.status,
+            let parameters = device.asQueryParameters,
             let url = try? status.url(
                 for: .return,
                 preferredType: .lcpStatusDocument,
-                parameters: device.asQueryParameters
+                parameters: parameters
             )
         else {
             return .failure(.licenseInteractionNotAvailable)
