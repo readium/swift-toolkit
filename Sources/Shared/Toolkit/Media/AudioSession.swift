@@ -26,6 +26,12 @@ public extension AudioSessionUser {
 
 /// Manages the app's audio session for Readium audio consumers.
 public protocol AudioSessionManaging {
+    /// Whether the audio session is currently interrupted, e.g. by a phone call.
+    ///
+    /// The getter is asynchronous because implementations may isolate this state, for
+    /// example on the main actor.
+    var isInterrupted: Bool { get async }
+  
     /// Starts a new audio session with the given `user`.
     func start(with user: AudioSessionUser, isPlaying: Bool)
 
@@ -208,7 +214,7 @@ public final class AudioSession: AudioSessionManaging, Loggable {
     }
 
     /// Whether the audio session is currently interrupted, e.g. by a phone call.
-    private var isInterrupted: Bool = false
+    public private(set) var isInterrupted: Bool = false
 
     /// The observer of audio session interruption notifications.
     private var interruptionObserver: Any?
