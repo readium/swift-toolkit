@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Navigator
+
+* Added the `AudioSessionManaging` protocol, letting apps provide their own audio session manager instead of the built-in `AudioSession` (contributed by [@svenmeyers89](https://github.com/readium/swift-toolkit/pull/856)).
+
 #### LCP
 
 * `LCPService` has a new `addPassphrase(_:isHashed:userID:provider:)` method to store a passphrase candidate in the repository without opening a license first. Useful to preload a passphrase ahead of time (e.g. from a catalog).
