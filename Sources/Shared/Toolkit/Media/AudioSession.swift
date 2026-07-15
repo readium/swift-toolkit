@@ -40,10 +40,10 @@ public protocol AudioSessionManaging {
 @MainActor
 public final class AudioSession: AudioSessionManaging, Loggable {
     public struct Configuration: Equatable {
-        let category: AVAudioSession.Category
-        let mode: AVAudioSession.Mode
-        let routeSharingPolicy: AVAudioSession.RouteSharingPolicy
-        let options: AVAudioSession.CategoryOptions
+        public let category: AVAudioSession.Category
+        public let mode: AVAudioSession.Mode
+        public let routeSharingPolicy: AVAudioSession.RouteSharingPolicy
+        public let options: AVAudioSession.CategoryOptions
 
         public init(
             category: AVAudioSession.Category = .playback,
