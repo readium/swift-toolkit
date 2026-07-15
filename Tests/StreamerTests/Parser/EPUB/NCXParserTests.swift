@@ -6,16 +6,16 @@
 
 import ReadiumShared
 @testable import ReadiumStreamer
-import XCTest
+import Testing
 
-class NCXParserTests: XCTestCase {
+struct NCXParserTests {
     let fixtures = Fixtures(path: "Navigation Documents")
 
-    func testParseTOC() {
+    @Test func parseTOC() {
         let document = parseNCX("nav")
         let sut = document.links(for: .tableOfContents)
 
-        XCTAssertEqual(sut, [
+        #expect(sut == [
             Link(href: "/base/ch1.xhtml", title: "Chapter 1"),
             Link(href: "/base/ch2.xhtml", title: "Chapter 2"),
             Link(href: "#", title: "Unlinked section with nested HTML elements", children: [
@@ -28,21 +28,35 @@ class NCXParserTests: XCTestCase {
         ])
     }
 
-    func testParsePageList() {
+    @Test func parsePageList() {
         let document = parseNCX("nav")
         let sut = document.links(for: .pageList)
 
-        XCTAssertEqual(sut, [
+        #expect(sut == [
             Link(href: "/base/ch1.xhtml#page1", title: "1"),
             Link(href: "/base/ch1.xhtml#page2", title: "2"),
         ])
     }
 
-    func testParseNotFound() {
+    @Test func parseNotFound() {
         let document = parseNCX("nav-empty")
         let sut = document.links(for: .tableOfContents)
 
-        XCTAssertEqual(sut, [])
+        #expect(sut == [])
+    }
+
+    /// `src` values that are not percent-encoded (they contain spaces) but
+    /// carry URI fragments and queries must keep the `#`/`?` as separators
+    /// instead of encoding them into the path.
+    @Test func parseTOCWithUnencodedHREFs() {
+        let document = parseNCX("nav-unencoded")
+        let sut = document.links(for: .tableOfContents)
+
+        #expect(sut == [
+            Link(href: "/base/content/chapter%20one%201.xhtml#fragment-01", title: "Chapter 1"),
+            Link(href: "/base/content/chapter%20two%202.xhtml?title=intro#fragment-02", title: "Chapter 2"),
+            Link(href: "/content/chapter%20one%201.xhtml#fragment-03", title: "Chapter 1, again"),
+        ])
     }
 
     // MARK: - Toolkit
