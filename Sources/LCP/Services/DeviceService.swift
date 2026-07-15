@@ -84,8 +84,8 @@ final class DeviceService: Loggable {
         }
 
         // 2. Migrate a legacy `UserDefaults` ID, or 3. generate a new one.
-        let id = UserDefaults.standard.string(forKey: legacyDeviceIDDefaultsKey)
-            ?? UUID().uuidString
+        let legacyID = UserDefaults.standard.string(forKey: legacyDeviceIDDefaultsKey)
+        let id = legacyID ?? UUID().uuidString
 
         do {
             try keychain.save(data: Data(id.utf8), forKey: deviceIDKeychainAccount)
@@ -97,11 +97,13 @@ final class DeviceService: Loggable {
             // unreadable, report "no ID" rather than a throwaway.
             return try? loadID(from: keychain)
         } catch {
-            // Any other save failure is best-effort: keep using the in-memory
-            // ID. `SecItemAdd`'s duplicate protection guarantees a transient
-            // failure here never clobbers a previously stored ID.
             log(.error, "Failed to persist the LCP device ID in the Keychain: \(error)")
-            return id
+            // A legacy ID is still persisted in `UserDefaults`, so it stays
+            // stable across launches even without the Keychain and is safe to
+            // use. A freshly generated ID exists only in memory: using it would
+            // register a throwaway that changes next launch and burns a slot, so
+            // report "no ID" instead.
+            return legacyID
         }
     }
 
