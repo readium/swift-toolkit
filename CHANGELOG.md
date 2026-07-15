@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### LCP
 
 * `LCPService` has a new `addPassphrase(_:isHashed:userID:provider:)` method to store a passphrase candidate in the repository without opening a license first. Useful to preload a passphrase ahead of time (e.g. from a catalog).
+* `LCPClient` has a new `getSupportedLCPProfileURIs()` requirement, letting the toolkit report `LCPError.licenseProfileNotSupported` based on the profiles the embedded liblcp actually supports. Update your `LCPClient` facade to forward `R2LCPClient.getSupportedLCPProfileURIs()` (a default implementation is provided for backward compatibility).
 
 ### Fixed
 

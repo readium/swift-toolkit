@@ -28,6 +28,10 @@ import Foundation
 ///              return R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
 ///          }
 ///
+///          func getSupportedLCPProfileURIs() -> [String] {
+///              return R2LCPClient.getSupportedLCPProfileURIs() ?? []
+///          }
+///
 ///      }
 public protocol LCPClient {
     /// Create a context for a given license/passphrase tuple.
@@ -38,6 +42,29 @@ public protocol LCPClient {
 
     /// Given an array of possible password hashes, return a valid password hash for the lcpl licence.
     func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash?
+
+    /// Returns the LCP profile URIs supported by the underlying liblcp build.
+    func getSupportedLCPProfileURIs() -> [String]
+}
+
+public extension LCPClient {
+    // FIXME: This default implementation preserves source compatibility for facades that predate `getSupportedLCPProfileURIs()`. Remove it in the next breaking release and make the method a hard protocol requirement, so the supported profiles always come from liblcp instead of this stale hardcoded list.
+    func getSupportedLCPProfileURIs() -> [String] {
+        [
+            "http://readium.org/lcp/basic-profile",
+            "http://readium.org/lcp/profile-1.0",
+            "http://readium.org/lcp/profile-2.0",
+            "http://readium.org/lcp/profile-2.1",
+            "http://readium.org/lcp/profile-2.2",
+            "http://readium.org/lcp/profile-2.3",
+            "http://readium.org/lcp/profile-2.4",
+            "http://readium.org/lcp/profile-2.5",
+            "http://readium.org/lcp/profile-2.6",
+            "http://readium.org/lcp/profile-2.7",
+            "http://readium.org/lcp/profile-2.8",
+            "http://readium.org/lcp/profile-2.9",
+        ]
+    }
 }
 
 public typealias LCPClientContext = Any
