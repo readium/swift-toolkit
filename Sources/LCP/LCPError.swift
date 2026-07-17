@@ -14,6 +14,11 @@ public enum LCPError: Error, Sendable {
     /// The given file is not an LCP License Document (LCPL).
     case notALicenseDocument(LicenseDocumentSource)
 
+    /// The SHA-256 hash of the acquired publication does not match the hash
+    /// declared in the License Document, or the declared hash could not be
+    /// parsed. The downloaded file is likely corrupted or incomplete.
+    case publicationHashMismatch
+
     /// The operation can't be done right now because another License operation is running.
     case licenseIsBusy
 

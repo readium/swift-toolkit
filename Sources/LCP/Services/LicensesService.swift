@@ -111,6 +111,8 @@ final class LicensesService: Loggable {
             onProgress: { onProgress(.percent(Float($0))) }
         ).get()
 
+        try await verifyIntegrity(of: download.location, with: license)
+
         let format = try await injectLicenseAndGetFormat(
             license,
             in: download.location,
@@ -123,6 +125,28 @@ final class LicensesService: Loggable {
             suggestedFilename: format.fileExtension.appendedToFilename(license.id),
             licenseDocument: license
         )
+    }
+
+    /// Verifies the integrity of the acquired publication at `file`, when the
+    /// License Document declares the SHA-256 hash of the Protected
+    /// Publication.
+    ///
+    /// See https://readium.org/lcp-specs/releases/lcp/latest.html#acquiring-the-publication
+    private func verifyIntegrity(of file: FileURL, with license: LicenseDocument) async throws {
+        guard let hash = license.publicationLink.hash else {
+            return
+        }
+
+        guard
+            let expectedHash = Data(sha256: hash),
+            try await Data.sha256(of: file) == expectedHash
+        else {
+            // An unparseable hash fails the verification as well: silently
+            // skipping it would defeat the integrity check exactly when the
+            // metadata is suspicious.
+            try? FileManager.default.removeItem(at: file.url)
+            throw LCPError.publicationHashMismatch
+        }
     }
 
     func injectLicenseDocument(

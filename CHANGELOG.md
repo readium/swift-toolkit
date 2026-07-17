@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased: swift6]
 
+### Added
+
+#### LCP
+
+* [#28](https://github.com/readium/swift-toolkit/issues/28) The SHA-256 hash of a publication downloaded during an LCP acquisition is now verified against the `hash` declared in the License Document, when available. A corrupted download fails with the new `LCPError.publicationHashMismatch` error.
+
 ### Changed
 
 * The toolkit is migrated to Swift 6 with strict concurrency checking. All packages compile in the Swift 6 language mode. See [the migration guide](docs/Migration%20Guide.md).

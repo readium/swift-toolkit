@@ -250,6 +250,8 @@ extension ReadiumNavigator.TTSError: UserErrorConvertible {
                     return "lcp_error_missing_passphrase".localized
                 case .notALicenseDocument, .licenseIntegrity, .licenseProfileNotSupported, .parsing:
                     return "lcp_error_invalid_license".localized
+                case .publicationHashMismatch:
+                    return "lcp_error_publication_hash_mismatch".localized
                 case .licenseIsBusy, .licenseInteractionNotAvailable:
                     return "lcp_error_invalid_operation".localized
                 case .licenseContainer:

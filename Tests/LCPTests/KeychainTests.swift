@@ -5,7 +5,7 @@
 //
 
 import Foundation
-@testable import ReadiumInternal
+import ReadiumShared
 import Testing
 
 struct KeychainTests {

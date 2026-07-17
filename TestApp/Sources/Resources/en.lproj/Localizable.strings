@@ -151,6 +151,7 @@
 "lcp_error_invalid_operation" = "This action cannot be performed.";
 "lcp_error_container" = "Failed to read or write the LCP license.";
 "lcp_error_network" = "A networking error occurred.";
+"lcp_error_publication_hash_mismatch" = "The downloaded publication seems corrupted, please try again.";
 "lcp_error_status_cancelled" = "This license was cancelled on %@.";
 "lcp_error_status_returned" = "This license has been returned on %@.";
 "lcp_error_status_expired_start" = "This license starts on %@.";
