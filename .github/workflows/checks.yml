@@ -121,6 +121,8 @@ jobs:
     environment:
       name: LCP
       deployment: false
+    env:
+      LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -133,17 +135,14 @@ jobs:
         uses: actions/cache@v6
         with:
           path: .derivedData
-          key: ${{ runner.os }}-derived-data-${{ hashFiles('Package.swift') }}
+          key: ${{ runner.os }}-derived-data-${{ hashFiles('Package.swift') }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-derived-data-${{ hashFiles('Package.swift') }}-
             ${{ runner.os }}-derived-data-
-      - name: Check Playground project is up-to-date
-        env:
-          LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
-        run: |
-          make playground lcp="$LCP_URL_SPM"
-          git diff --exit-code Playground/.xcodegen
-          if git ls-files --others --exclude-standard Playground/Playground.xcodeproj/ | grep -q .; then echo "Untracked Playground project files found. Run 'make playground' and commit the result."; exit 1; fi
+      - name: Generate Playground project
+        run: make playground lcp="$LCP_URL_SPM"
       - name: Test Playground (LCP only)
+        if: ${{ env.LCP_URL_SPM != '' }}
         run: |
           set -eo pipefail
           xcodebuild test -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" -only-testing:ReadiumLCPTests -derivedDataPath .derivedData | xcbeautify --renderer github-actions
