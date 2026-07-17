@@ -370,6 +370,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var progression: ClosedRange<Double>?
     /// To check if a progression change was cancelled or not.
     private var previousProgression: ClosedRange<Double>?
+    /// Previous scroll offset while the user is dragging.
+    private var previousDragOffset: CGPoint?
 
     /// Called by the javascript code to notify that scrolling ended.
     private func progressionDidChange(_ body: Any) {
@@ -432,8 +434,48 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - UIScrollViewDelegate
 
+    override func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        super.scrollViewWillBeginDragging(scrollView)
+        previousDragOffset = scrollView.contentOffset
+    }
+
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         super.scrollViewDidScroll(scrollView)
         setNeedsNotifyPagesDidChange()
+
+        let currentOffset = scrollView.contentOffset
+        if scrollView.isDragging, let previousOffset = previousDragOffset {
+            let delta = progressionDelta(from: previousOffset, to: currentOffset)
+            if delta != 0 {
+                delegate?.spreadView(self, didDragBy: delta)
+            }
+        }
+        previousDragOffset = currentOffset
+    }
+
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        delegate?.spreadView(self, didEndDraggingWithVelocity: progressionVelocity(from: velocity))
+        previousDragOffset = nil
+    }
+
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        previousDragOffset = nil
+    }
+
+    private func progressionDelta(from previousOffset: CGPoint, to currentOffset: CGPoint) -> CGFloat {
+        if viewModel.scroll, !viewModel.verticalText {
+            return currentOffset.y - previousOffset.y
+        }
+
+        let delta = currentOffset.x - previousOffset.x
+        return viewModel.readingProgression == .rtl ? -delta : delta
+    }
+
+    private func progressionVelocity(from velocity: CGPoint) -> CGFloat {
+        if viewModel.scroll, !viewModel.verticalText {
+            return velocity.y
+        }
+
+        return viewModel.readingProgression == .rtl ? -velocity.x : velocity.x
     }
 }

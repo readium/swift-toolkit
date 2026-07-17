@@ -117,6 +117,21 @@ public struct VisualNavigatorPresentation {
     /// Return `true` to navigate to the link, or `false` if you intend to
     /// present the link yourself
     func navigator(_ navigator: VisualNavigator, shouldNavigateToLink link: Link) -> Bool
+
+    /// Called continuously while the user drags the content.
+    ///
+    /// `delta` is the distance in points along the scroll axis since the last
+    /// call. Positive values indicate forward progression through the content.
+    ///
+    /// Not called during momentum deceleration after the user lifts their
+    /// finger.
+    func navigator(_ navigator: any VisualNavigator, didDragBy delta: CGFloat)
+
+    /// Called when the user lifts their finger after dragging.
+    ///
+    /// `velocity` is in points per second along the scroll axis. Positive
+    /// values indicate forward momentum.
+    func navigator(_ navigator: any VisualNavigator, didEndDraggingWithVelocity velocity: CGFloat)
 }
 
 public extension VisualNavigatorDelegate {
@@ -142,5 +157,13 @@ public extension VisualNavigatorDelegate {
 
     func navigator(_ navigator: VisualNavigator, shouldNavigateToLink link: Link) -> Bool {
         true
+    }
+
+    func navigator(_ navigator: any VisualNavigator, didDragBy delta: CGFloat) {
+        // Optional
+    }
+
+    func navigator(_ navigator: any VisualNavigator, didEndDraggingWithVelocity velocity: CGFloat) {
+        // Optional
     }
 }

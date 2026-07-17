@@ -29,6 +29,12 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
 
+    /// Called continuously while the user drags the content.
+    func spreadView(_ spreadView: EPUBSpreadView, didDragBy delta: CGFloat)
+
+    /// Called when the user lifts their finger after dragging.
+    func spreadView(_ spreadView: EPUBSpreadView, didEndDraggingWithVelocity velocity: CGFloat)
+
     /// Called when the spread view needs to present a view controller.
     func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
 
