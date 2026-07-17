@@ -42,9 +42,9 @@
 		B77C0B458C816697C5C670E9 /* PlaygroundApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaygroundApp.swift; sourceTree = "<group>"; };
 		BDA9169E926B14087F3B1BA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CCB6D3C4C19C2038573D2B90 /* JSONView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONView.swift; sourceTree = "<group>"; };
-		D4ED8674105B331259C428CB /* swift-toolkit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift-toolkit; path = ..; sourceTree = SOURCE_ROOT; };
 		D608867E2F9CC0B751114DE9 /* A02-ReadMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "A02-ReadMetadata.swift"; sourceTree = "<group>"; };
 		E40DD68F934F5F0D2981ACA1 /* Playground.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Playground.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED646581982F3FF78FB275C8 /* swift-toolkit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift-toolkit; path = ..; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,7 +129,7 @@
 		75054112A41CDCE58ADACF92 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				D4ED8674105B331259C428CB /* swift-toolkit */,
+				ED646581982F3FF78FB275C8 /* swift-toolkit */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
