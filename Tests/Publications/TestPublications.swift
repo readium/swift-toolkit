@@ -7,7 +7,7 @@
 import Foundation
 
 #if !SWIFT_PACKAGE
-    private class Dummy {}
+    private class BundleFinder {}
 #endif
 
 /// Provides access to shared test publication files.
@@ -16,7 +16,7 @@ public enum TestPublications {
     #if SWIFT_PACKAGE
         public static let bundle = Bundle.module
     #else
-        public static let bundle = Bundle(for: Dummy.self)
+        public static let bundle = Bundle(for: BundleFinder.self)
     #endif
 
     /// Returns a URL for the specified publication file.
