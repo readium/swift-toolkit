@@ -75,6 +75,12 @@ public struct EPUBPreferences: ConfigurablePreferences {
     /// Direction of the reading progression across resources.
     public var readingProgression: ReadingProgression?
 
+    /// Renders all chapters stacked in a single continuous vertical scroll,
+    /// chapter after chapter without separators.
+    ///
+    /// When enabled, `scroll` is implicitly `true` and spreads are disabled.
+    public var infiniteScroll: Bool?
+
     /// Indicates if the overflow of resources should be handled using
     /// scrolling instead of synthetic pagination.
     public var scroll: Bool?
@@ -116,6 +122,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
         imageFilter: ImageFilter? = nil,
+        infiniteScroll: Bool? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
@@ -144,6 +151,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
         self.hyphens = hyphens
         self.imageFilter = imageFilter
+        self.infiniteScroll = infiniteScroll
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
@@ -175,6 +183,7 @@ public struct EPUBPreferences: ConfigurablePreferences {
             fontWeight: other.fontWeight ?? fontWeight,
             hyphens: other.hyphens ?? hyphens,
             imageFilter: other.imageFilter ?? imageFilter,
+            infiniteScroll: other.infiniteScroll ?? infiniteScroll,
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,

@@ -19,6 +19,7 @@ public struct EPUBSettings: ConfigurableSettings {
     public var fontWeight: Double?
     public var hyphens: Bool?
     public var imageFilter: ImageFilter?
+    public var infiniteScroll: Bool
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
@@ -54,6 +55,7 @@ public struct EPUBSettings: ConfigurableSettings {
         fontWeight: Double?,
         hyphens: Bool?,
         imageFilter: ImageFilter?,
+        infiniteScroll: Bool,
         language: Language?,
         letterSpacing: Double?,
         ligatures: Bool?,
@@ -82,6 +84,7 @@ public struct EPUBSettings: ConfigurableSettings {
         self.fontWeight = fontWeight
         self.hyphens = hyphens
         self.imageFilter = imageFilter
+        self.infiniteScroll = infiniteScroll
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
@@ -130,6 +133,10 @@ public struct EPUBSettings: ConfigurableSettings {
             ?? language?.verticalText(for: readingProgression)
             ?? false
 
+        let infiniteScroll = preferences.infiniteScroll
+            ?? defaults.infiniteScroll
+            ?? false
+
         var scroll = preferences.scroll
             ?? defaults.scroll
             ?? false
@@ -137,6 +144,12 @@ public struct EPUBSettings: ConfigurableSettings {
         // We disable pagination with vertical text, because CSS columns don't support it properly.
         // See https://github.com/readium/swift-toolkit/discussions/370
         if verticalText {
+            scroll = true
+        }
+
+        // Infinite scroll renders chapters in a continuous vertical flow;
+        // the WebView must not paginate its own content.
+        if infiniteScroll {
             scroll = true
         }
 
@@ -158,6 +171,7 @@ public struct EPUBSettings: ConfigurableSettings {
                 ?? defaults.hyphens,
             imageFilter: preferences.imageFilter
                 ?? defaults.imageFilter,
+            infiniteScroll: infiniteScroll,
             language: language,
             letterSpacing: preferences.letterSpacing
                 ?? defaults.letterSpacing,
@@ -212,6 +226,7 @@ public struct EPUBDefaults {
     public var fontWeight: Double?
     public var hyphens: Bool?
     public var imageFilter: ImageFilter?
+    public var infiniteScroll: Bool?
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
@@ -236,6 +251,7 @@ public struct EPUBDefaults {
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
         imageFilter: ImageFilter? = nil,
+        infiniteScroll: Bool? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
@@ -259,6 +275,7 @@ public struct EPUBDefaults {
         self.fontWeight = fontWeight
         self.hyphens = hyphens
         self.imageFilter = imageFilter
+        self.infiniteScroll = infiniteScroll
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures

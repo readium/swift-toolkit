@@ -225,6 +225,7 @@ enum EPUBScriptScope {
                 || oldSettings.language != newSettings.language
                 || oldSettings.verticalText != newSettings.verticalText
                 || oldSettings.scroll != newSettings.scroll
+                || oldSettings.infiniteScroll != newSettings.infiniteScroll
                 || oldSettings.spread != newSettings.spread
                 || oldSettings.fit != newSettings.fit
                 || oldSettings.offsetFirstPage != newSettings.offsetFirstPage
@@ -256,6 +257,10 @@ enum EPUBScriptScope {
 
     var scroll: Bool {
         settings.scroll
+    }
+
+    var infiniteScroll: Bool {
+        settings.infiniteScroll
     }
 
     var verticalText: Bool {

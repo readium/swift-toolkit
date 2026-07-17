@@ -246,8 +246,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             switch state {
             case .initializing, .loading, .jumping, .moving:
                 paginationView?.isUserInteractionEnabled = false
+                infiniteScrollView?.isUserInteractionEnabled = false
             case .idle:
                 paginationView?.isUserInteractionEnabled = true
+                infiniteScrollView?.isUserInteractionEnabled = true
             }
         }
     }
@@ -419,13 +421,21 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             log(.error, DebugError("Failed to load positions.", cause: error))
         }
 
-        paginationView = makePaginationView(
-            hasPositions: !positionsByReadingOrder.isEmpty
-        )
-
-        paginationView!.frame = view.bounds
-        paginationView!.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-        view.addSubview(paginationView!)
+        if viewModel.infiniteScroll {
+            let isv = EPUBInfiniteScrollView(frame: view.bounds)
+            isv.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+            isv.infiniteDelegate = self
+            isv.backgroundColor = .clear
+            view.addSubview(isv)
+            infiniteScrollView = isv
+        } else {
+            paginationView = makePaginationView(
+                hasPositions: !positionsByReadingOrder.isEmpty
+            )
+            paginationView!.frame = view.bounds
+            paginationView!.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+            view.addSubview(paginationView!)
+        }
 
         applySettings()
 
@@ -511,6 +521,16 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     /// Goes to the next or previous page in the given scroll direction.
     private func go(to direction: EPUBSpreadView.Direction, options: NavigatorGoOptions) async -> Bool {
+        // In infinite scroll mode, forward/backward means scrolling by one viewport height.
+        if let isv = infiniteScrollView {
+            let delta: CGFloat = direction == .right ? isv.bounds.height : -isv.bounds.height
+            let newY = (isv.contentOffset.y + delta)
+                .clamped(to: 0 ... max(0, isv.contentSize.height - isv.bounds.height))
+            let animated = options.animated && !UIAccessibility.isReduceMotionEnabled
+            isv.setContentOffset(CGPoint(x: 0, y: newY), animated: animated)
+            return true
+        }
+
         guard
             let paginationView = paginationView,
             on(.move(direction))
@@ -546,6 +566,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     // MARK: - Pagination and spreads
 
     private var paginationView: PaginationView?
+    private var infiniteScrollView: EPUBInfiniteScrollView?
 
     private func makePaginationView(hasPositions: Bool) -> PaginationView {
         let view = PaginationView(
@@ -560,11 +581,30 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     private func invalidatePaginationView() {
-        guard let paginationView = paginationView else {
-            return
+        if viewModel.infiniteScroll {
+            // Rebuild the infinite scroll view when settings change (e.g. switching into/out of infiniteScroll mode)
+            if infiniteScrollView == nil, let old = paginationView {
+                old.removeFromSuperview()
+                paginationView = nil
+                let isv = EPUBInfiniteScrollView(frame: view.bounds)
+                isv.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+                isv.infiniteDelegate = self
+                isv.backgroundColor = .clear
+                view.addSubview(isv)
+                infiniteScrollView = isv
+            }
+        } else {
+            if paginationView == nil, let old = infiniteScrollView {
+                old.removeFromSuperview()
+                infiniteScrollView = nil
+                paginationView = makePaginationView(hasPositions: !positionsByReadingOrder.isEmpty)
+                paginationView!.frame = view.bounds
+                paginationView!.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+                view.addSubview(paginationView!)
+            }
+            guard let paginationView = paginationView else { return }
+            paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
         }
-
-        paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
         reloadSpreads()
     }
 
@@ -572,7 +612,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     /// Index of the currently visible spread.
     private var currentSpreadIndex: Int {
-        paginationView?.currentIndex ?? 0
+        infiniteScrollView?.currentIndex ?? paginationView?.currentIndex ?? 0
     }
 
     private var needsReloadSpreadsOnActive = false
@@ -600,52 +640,61 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private func _reloadSpreads() {
         let locator = currentLocation
 
-        guard
-            let paginationView = paginationView,
-            on(.load(locator))
-        else {
-            return
-        }
+        guard on(.load(locator)) else { return }
 
+        // In infinite scroll mode each chapter is always single-page (no double spreads).
         spreads = EPUBSpread.makeSpreads(
             for: publication,
             readingOrder: readingOrder,
             readingProgression: viewModel.readingProgression,
-            spread: viewModel.spreadEnabled,
+            spread: viewModel.infiniteScroll ? false : viewModel.spreadEnabled,
             offsetFirstPage: viewModel.offsetFirstPage
         )
 
-        let initialIndex: ReadingOrder.Index = {
-            if
-                let href = locator?.href,
-                let index = readingOrder.firstIndexWithHREF(href),
-                let foundIndex = self.spreads.firstIndexWithReadingOrderIndex(index)
-            {
-                return foundIndex
-            } else {
+        if let isv = infiniteScrollView {
+            let initialIndex: Int = {
+                if
+                    let href = locator?.href,
+                    let index = readingOrder.firstIndexWithHREF(href)
+                {
+                    return index
+                }
                 return 0
-            }
-        }()
+            }()
+            isv.reload(at: initialIndex, location: PageLocation(locator), count: readingOrder.count)
 
-        paginationView.reloadAtIndex(
-            initialIndex,
-            location: PageLocation(locator),
-            pageCount: spreads.count,
-            readingProgression: viewModel.readingProgression
-        )
+        } else if let paginationView = paginationView {
+            let initialIndex: ReadingOrder.Index = {
+                if
+                    let href = locator?.href,
+                    let index = readingOrder.firstIndexWithHREF(href),
+                    let foundIndex = self.spreads.firstIndexWithReadingOrderIndex(index)
+                {
+                    return foundIndex
+                } else {
+                    return 0
+                }
+            }()
+
+            paginationView.reloadAtIndex(
+                initialIndex,
+                location: PageLocation(locator),
+                pageCount: spreads.count,
+                readingProgression: viewModel.readingProgression
+            )
+        }
 
         on(.loaded)
     }
 
     private func loadedSpreadViewForHREF<T: URLConvertible>(_ href: T) -> EPUBSpreadView? {
-        guard
-            let loadedViews = paginationView?.loadedViews,
-            let index = readingOrder.firstIndexWithHREF(href)
-        else {
-            return nil
+        guard let index = readingOrder.firstIndexWithHREF(href) else { return nil }
+
+        if let isv = infiniteScrollView {
+            return isv.loadedViews.values.first { $0.spread.contains(index: index) }
         }
 
-        return loadedViews
+        return paginationView?.loadedViews
             .compactMap { _, view in view as? EPUBSpreadView }
             .first { $0.spread.contains(index: index) }
     }
@@ -659,8 +708,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     public var presentation: VisualNavigatorPresentation {
         VisualNavigatorPresentation(
             readingProgression: settings.readingProgression,
-            scroll: settings.scroll,
-            axis: (settings.scroll && !settings.verticalText)
+            scroll: settings.scroll || settings.infiniteScroll,
+            axis: (settings.infiniteScroll || (settings.scroll && !settings.verticalText))
                 ? .vertical
                 : .horizontal
         )
@@ -676,6 +725,21 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         // while loading it.
         if let pendingLocator = state.pendingLocator {
             return (pendingLocator, nil)
+        }
+
+        if let isv = infiniteScrollView {
+            let index = isv.currentIndex
+            guard index < readingOrder.count else { return (nil, nil) }
+            let progression = isv.progressionInCurrentChapter
+            let (locator, viewport) = await EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: index ... index,
+                progression: { _ in progression ... progression },
+                readingOrder: readingOrder,
+                positionsByReadingOrder: positionsByReadingOrder,
+                tableOfContentsTitleByHref: tableOfContentsTitleByHref,
+                fallbackLocator: { [publication] in await publication.locate($0) }
+            )
+            return (locator, viewport)
         }
 
         guard let spreadView = paginationView?.currentView as? EPUBSpreadView else {
@@ -694,6 +758,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     public func firstVisibleElementLocator() async -> Locator? {
+        if let isv = infiniteScrollView {
+            return await isv.currentView?.findFirstVisibleElementLocator()
+        }
         guard let spreadView = paginationView?.currentView as? EPUBSpreadView else {
             return nil
         }
@@ -727,6 +794,17 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
         let locator = publication.normalizeLocator(locator)
+
+        if let isv = infiniteScrollView {
+            guard
+                let index = readingOrder.firstIndexWithHREF(locator.href),
+                on(.jump(locator))
+            else { return false }
+            let success = await isv.goToIndex(index, location: .locator(locator), options: options)
+            on(.jumped)
+            if success { delegate?.navigator(self, didJumpTo: locator) }
+            return success
+        }
 
         guard
             let paginationView = paginationView,
@@ -785,6 +863,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     public func clearSelection() {
+        if let isv = infiniteScrollView {
+            isv.loadedViews.values.forEach { $0.webView.clearSelection() }
+            return
+        }
         guard let paginationView = paginationView else {
             return
         }
@@ -822,12 +904,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             guard let self else { return }
             await self.initialized()
 
-            guard
-                !Task.isCancelled,
-                let paginationView = self.paginationView
-            else {
-                return
-            }
+            guard !Task.isCancelled else { return }
+
+            // Build a flat collection of all loaded spread views regardless of which layout is active.
+            let allLoadedViews: [EPUBSpreadView] = {
+                if let isv = self.infiniteScrollView {
+                    return Array(isv.loadedViews.values)
+                }
+                return self.paginationView?.loadedViews.compactMap { $0.value as? EPUBSpreadView } ?? []
+            }()
 
             await withTaskGroup(of: Void.self) { tasks in
                 guard !Task.isCancelled else { return }
@@ -841,10 +926,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
                 self.decorations[group] = target
 
                 if decorations.isEmpty {
-                    for (_, pageView) in paginationView.loadedViews {
+                    for pageView in allLoadedViews {
                         tasks.addTask {
                             guard !Task.isCancelled else { return }
-                            await (pageView as? EPUBSpreadView)?.evaluateScript(
+                            await pageView.evaluateScript(
                                 // The updates command are using `requestAnimationFrame()`, so we need it for
                                 // `clear()` as well otherwise we might recreate a highlight after it has been
                                 // cleared.
@@ -882,14 +967,17 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         Task {
             await initialized()
 
-            guard let paginationView = paginationView else {
-                return
-            }
+            let allLoadedViews: [EPUBSpreadView] = {
+                if let isv = infiniteScrollView {
+                    return Array(isv.loadedViews.values)
+                }
+                return paginationView?.loadedViews.compactMap { $0.value as? EPUBSpreadView } ?? []
+            }()
 
             await withTaskGroup(of: Void.self) { tasks in
-                for (_, view) in paginationView.loadedViews {
+                for view in allLoadedViews {
                     tasks.addTask {
-                        await (view as? EPUBSpreadView)?.evaluateScript("readium.getDecorations('\(group)').setActivable();")
+                        await view.evaluateScript("readium.getDecorations('\(group)').setActivable();")
                     }
                 }
             }
@@ -1276,5 +1364,30 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
 
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
         spreads[index].positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
+    }
+}
+
+extension EPUBNavigatorViewController: EPUBInfiniteScrollViewDelegate {
+    func infiniteScrollView(_ view: EPUBInfiniteScrollView, spreadViewAtIndex index: Int) -> EPUBSpreadView? {
+        guard let spreadIndex = spreads.firstIndexWithReadingOrderIndex(index) else { return nil }
+        let spread = spreads[spreadIndex]
+        // Infinite scroll only supports reflowable content; fixed-layout chapters
+        // are not rendered in this mode.
+        let spreadView = EPUBReflowableSpreadView(
+            viewModel: viewModel,
+            spread: spread,
+            scripts: [],
+            animatedLoad: false
+        )
+        spreadView.delegate = self
+
+        let userContentController = spreadView.webView.configuration.userContentController
+        delegate?.navigator(self, setupUserScripts: userContentController)
+
+        return spreadView
+    }
+
+    func infiniteScrollViewDidUpdateViews(_ view: EPUBInfiniteScrollView) {
+        updateCurrentLocation()
     }
 }
