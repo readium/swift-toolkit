@@ -62,5 +62,3 @@ else
 endif
 	@touch ../Package.swift
 	xcodegen generate
-
-
