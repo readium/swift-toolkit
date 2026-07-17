@@ -96,6 +96,16 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// Logs the state changes when true.
         public var debugState: Bool
 
+        /// Content rule lists to apply to every web view created by the navigator.
+        ///
+        /// Each list is added to the web view's `WKUserContentController` before the
+        /// web view is created and loads any content. This lets you, for example,
+        /// block external resource loads (tracking pixels, remote fonts) for privacy,
+        /// without racing the first resource load.
+        ///
+        /// See `WKContentRuleListStore` to compile a rule list from a JSON rule set.
+        public var contentRuleLists: [WKContentRuleList]
+
         public init(
             preferences: EPUBPreferences = .empty,
             defaults: EPUBDefaults = EPUBDefaults(),
@@ -110,7 +120,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
-            debugState: Bool = false
+            debugState: Bool = false,
+            contentRuleLists: [WKContentRuleList] = []
         ) {
             self.preferences = preferences
             self.defaults = defaults
@@ -123,6 +134,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
+            self.contentRuleLists = contentRuleLists
         }
 
         func contentInset(for sizeClass: UIUserInterfaceSizeClass) -> EPUBContentInsets {

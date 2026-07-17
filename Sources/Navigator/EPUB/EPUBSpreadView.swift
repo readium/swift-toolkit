@@ -81,6 +81,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             config.writingToolsBehavior = .none
         }
 
+        // Apply the app-provided content rule lists (e.g. a blocker for external
+        // resources) before the web view is created and starts loading any resource.
+        for ruleList in viewModel.config.contentRuleLists {
+            config.userContentController.add(ruleList)
+        }
+
         webView = WebView(editingActions: viewModel.editingActions, configuration: config)
 
         super.init(frame: .zero)

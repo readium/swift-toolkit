@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Navigator
+
+* The EPUB navigator's `Configuration` has a new `contentRuleLists` property. The provided `WKContentRuleList`s are applied to every web view before it loads any content—for example to block external resource loads (tracking pixels, remote fonts) for privacy.
 
 ## [3.11.0] - 2026-07-17
 
