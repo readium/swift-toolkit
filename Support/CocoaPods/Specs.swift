@@ -71,7 +71,6 @@ let modules: [ModuleSpec] = [
         dependencies: [
             .readium("ReadiumShared"),
             .pod("ReadiumFuzi", "~> 4.0.0"),
-            .pod("CryptoSwift", "~> 1.10.0"),
         ]
     ),
     ModuleSpec(
@@ -110,7 +109,6 @@ let modules: [ModuleSpec] = [
         dependencies: [
             .readium("ReadiumShared"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
-            .pod("CryptoSwift", "~> 1.10.0"),
         ]
     ),
 ]

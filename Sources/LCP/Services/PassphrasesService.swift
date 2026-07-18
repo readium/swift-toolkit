@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import CryptoSwift
+import CryptoKit
 import Foundation
 import ReadiumShared
 
@@ -184,5 +184,12 @@ final class PassphrasesService: Loggable, Sendable {
     /// passphrase, and not just a clear passphrase.
     private func isValidHashedPassphrase(_ passphrase: String) -> Bool {
         passphrase.count == 64 && passphrase.allSatisfy { $0.isASCII && $0.isHexDigit }
+    }
+}
+
+private extension String {
+    func sha256() -> String {
+        let digest = SHA256.hash(data: Data(utf8))
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }
