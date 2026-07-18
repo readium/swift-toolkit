@@ -30,8 +30,8 @@
 /* Begin PBXFileReference section */
 		21B9812F732ED2F093918E79 /* Logger+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+Ext.swift"; sourceTree = "<group>"; };
 		2C1CFC0B9AEB966345163620 /* PublicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationView.swift; sourceTree = "<group>"; };
-		2E399BE85546465BB3B37527 /* swift-toolkit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift-toolkit; path = ..; sourceTree = SOURCE_ROOT; };
 		3A9F2917BE7D720CB89EBC9C /* UserError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserError.swift; sourceTree = "<group>"; };
+		4168CCA0CF528F54A6DD0681 /* swift-toolkit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift-toolkit; path = ..; sourceTree = SOURCE_ROOT; };
 		4DC581D9DDE636037C5FAB4A /* HTMLText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLText.swift; sourceTree = "<group>"; };
 		59844953100C517348EF23D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5BD99839EEEAFBFAF8A2264F /* PublicationMetadataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicationMetadataView.swift; sourceTree = "<group>"; };
@@ -129,7 +129,7 @@
 		75054112A41CDCE58ADACF92 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				2E399BE85546465BB3B37527 /* swift-toolkit */,
+				4168CCA0CF528F54A6DD0681 /* swift-toolkit */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
