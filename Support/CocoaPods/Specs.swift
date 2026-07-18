@@ -84,7 +84,6 @@ let modules: [ModuleSpec] = [
         ]],
         dependencies: [
             .readium("ReadiumShared"),
-            .pod("DifferenceKit", "~> 1.0"),
             // SwiftSoup's podspec is stuck at 2.11.
             .pod("SwiftSoup", "~> 2.11.0"),
         ]

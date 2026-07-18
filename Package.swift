@@ -21,7 +21,6 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.10.0"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2"),
-        .package(url: "https://github.com/ra1028/DifferenceKit.git", from: "1.3.0"),
         .package(url: "https://github.com/readium/Fuzi.git", from: "4.0.0"),
         .package(url: "https://github.com/readium/ZIPFoundation.git", from: "3.0.1"),
         .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.13.5"),
@@ -82,7 +81,6 @@ let package = Package(
             name: "ReadiumNavigator",
             dependencies: [
                 "ReadiumShared",
-                "DifferenceKit",
                 "SwiftSoup",
             ],
             path: "Sources/Navigator",
