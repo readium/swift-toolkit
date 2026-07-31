@@ -25,8 +25,8 @@ extension Array where Element == DiffableDecoration {
             changes[locator.href, default: []].append(change)
         }
 
-        let sourceById = Dictionary(grouping: source, by: \.decoration.id).compactMapValues(\.first)
-        let targetById = Dictionary(grouping: self, by: \.decoration.id).compactMapValues(\.first)
+        let sourceById = Dictionary(source.map { ($0.decoration.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let targetById = Dictionary(map { ($0.decoration.id, $0) }, uniquingKeysWith: { first, _ in first })
 
         for sourceElement in source {
             let id = sourceElement.decoration.id

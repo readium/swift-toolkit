@@ -4,7 +4,6 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import CryptoKit
 import Foundation
 @testable import ReadiumLCP
 @testable import ReadiumShared
@@ -46,7 +45,7 @@ final class MockLCPAuthenticating: LCPAuthenticating, @unchecked Sendable {
     }
 }
 
-struct PassphrasesServiceTest {
+struct PassphrasesServiceTests {
     let client: MockLCPClient
     let repository: InMemoryLCPPassphraseRepository
     let service: PassphrasesService
@@ -148,12 +147,5 @@ struct PassphrasesServiceTest {
 
         let stored = try await repository.passphrases()
         #expect(stored.contains(validHash))
-    }
-}
-
-private extension String {
-    func sha256() -> String {
-        let digest = SHA256.hash(data: Data(utf8))
-        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }
