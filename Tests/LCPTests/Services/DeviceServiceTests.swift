@@ -6,7 +6,7 @@
 
 import Foundation
 @testable import ReadiumLCP
-import ReadiumShared
+@testable import ReadiumShared
 import Testing
 
 /// Serialized because the legacy migration path reads a process-global
