@@ -171,8 +171,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Index of the current resource in the reading order.
     private var resourceIndex: Int = 0
 
-    /// Cached duration for the current player item.
-    private var exactDurationCache: Double?
+    /// Asset-reported duration for the current player item.
+    /// Falls back to the manifest duration if not loaded.
+    private var loadedAssetDuration: Double?
     private var durationLoadTask: Task<Void, Never>? {
         willSet {
             durationLoadTask?.cancel()
@@ -185,14 +186,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     /// Duration in seconds in the current resource.
+    /// A deadlock can occur if we read `player.currentItem.duration` synchronously while it's loading.
     private var resourceDuration: Double? {
-        if let exactDuration = exactDurationCache {
-            return exactDuration
-        }
-        if let seconds = player.currentItem?.duration.seconds, seconds.isFinite {
-            return seconds
-        }
-        return publication.readingOrder[resourceIndex].duration
+        loadedAssetDuration ?? publication.readingOrder[resourceIndex].duration
     }
 
     /// Total duration in the publication.
@@ -329,14 +325,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                     continue
                 }
 
-                self.shouldPlayNextResource { playNext in
-                    if playNext {
-                        Task { @MainActor [weak self] in
-                            guard let self = self else { return }
-                            if await self.goForward() {
-                                self.play()
-                            }
-                        }
+                if self.shouldPlayNextResource() {
+                    if await self.goForward() {
+                        self.play()
                     }
                 }
             }
@@ -345,15 +336,12 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         return player
     }
 
-    private func shouldPlayNextResource(completion: @escaping @MainActor @Sendable (Bool) -> Void) {
+    private func shouldPlayNextResource() -> Bool {
         guard let delegate = delegate else {
-            completion(true)
-            return
+            return true
         }
 
-        makePlaybackInfo(loadDurationAsync: false) { info in
-            completion(delegate.navigator(self, shouldPlayNextResource: info))
-        }
+        return delegate.navigator(self, shouldPlayNextResource: playbackInfo)
     }
 
     private func playbackDidChange(_ time: Double? = nil) {
@@ -363,53 +351,34 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             delegate?.navigator(self, locationDidChange: locator)
         }
 
-        makePlaybackInfo(forTime: time, loadDurationAsync: true) { [weak self] info in
-            guard let self = self else { return }
-            self.delegate?.navigator(self, playbackDidChange: info)
-        }
-    }
-
-    private func makePlaybackInfo(
-        forTime time: Double? = nil,
-        loadDurationAsync: Bool = true,
-        completion: @escaping @MainActor @Sendable (MediaPlaybackInfo) -> Void
-    ) {
-        let resourceIndex = resourceIndex
-        let state = state
-        let time = time ?? currentTime
-        let currentItem = player.currentItem
-        let bestAvailableDuration = resourceDuration
-
-        let info = MediaPlaybackInfo(
+        let info = time == nil ? playbackInfo : MediaPlaybackInfo(
             resourceIndex: resourceIndex,
             state: state,
-            time: time,
-            duration: bestAvailableDuration
+            time: time!,
+            duration: resourceDuration
         )
-        completion(info)
+        delegate?.navigator(self, playbackDidChange: info)
 
-        if loadDurationAsync, let currentItem = currentItem, exactDurationCache == nil, durationLoadTask == nil {
-            durationLoadTask = Task {
+        if let currentItem = player.currentItem, loadedAssetDuration == nil, durationLoadTask == nil {
+            let currentResourceIndex = resourceIndex
+            durationLoadTask = Task { [weak self] in
                 let seconds = try? await currentItem.asset.load(.duration).seconds
                 guard !Task.isCancelled else { return }
 
-                guard resourceIndex == self.resourceIndex, currentItem == self.player.currentItem else {
+                guard let self = self, self.resourceIndex == currentResourceIndex, currentItem == self.player.currentItem else {
                     return
                 }
 
                 self.durationLoadTask = nil
 
                 if let seconds = seconds, seconds.isFinite {
-                    self.exactDurationCache = seconds
+                    let oldDuration = self.resourceDuration
+                    self.loadedAssetDuration = seconds
 
-                    if seconds != bestAvailableDuration {
-                        let updatedInfo = MediaPlaybackInfo(
-                            resourceIndex: resourceIndex,
-                            state: state,
-                            time: time,
-                            duration: seconds
-                        )
-                        completion(updatedInfo)
+                    if let oldDuration = oldDuration, abs(seconds - oldDuration) > 0.1 {
+                        self.playbackDidChange()
+                    } else if oldDuration == nil {
+                        self.playbackDidChange()
                     }
                 }
             }
@@ -490,7 +459,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 let asset = try mediaLoader.makeAsset(for: link)
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
-                exactDurationCache = nil
+                loadedAssetDuration = nil
                 durationLoadTask = nil
                 loadedTimeRangesTimer.fire()
                 delegate?.navigator(self, loadedTimeRangesDidChange: [])
