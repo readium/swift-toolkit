@@ -173,6 +173,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Cached duration for the current player item.
     private var exactDurationCache: Double?
+    private var durationLoadTask: Task<Void, Never>? {
+        willSet {
+            durationLoadTask?.cancel()
+        }
+    }
 
     /// Starting time of the current resource, in the reading order.
     private var resourceStartingTime: Double? {
@@ -181,7 +186,13 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Duration in seconds in the current resource.
     private var resourceDuration: Double? {
-        exactDurationCache ?? publication.readingOrder[resourceIndex].duration
+        if let exactDuration = exactDurationCache {
+            return exactDuration
+        }
+        if let seconds = player.currentItem?.duration.seconds, seconds.isFinite {
+            return seconds
+        }
+        return publication.readingOrder[resourceIndex].duration
     }
 
     /// Total duration in the publication.
@@ -377,13 +388,18 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         )
         completion(info)
 
-        if loadDurationAsync, let currentItem = currentItem, exactDurationCache == nil {
-            Task {
-                if let seconds = try? await currentItem.asset.load(.duration).seconds, seconds.isFinite {
-                    guard resourceIndex == self.resourceIndex, currentItem == self.player.currentItem else {
-                        return
-                    }
+        if loadDurationAsync, let currentItem = currentItem, exactDurationCache == nil, durationLoadTask == nil {
+            durationLoadTask = Task {
+                let seconds = try? await currentItem.asset.load(.duration).seconds
+                guard !Task.isCancelled else { return }
 
+                guard resourceIndex == self.resourceIndex, currentItem == self.player.currentItem else {
+                    return
+                }
+
+                self.durationLoadTask = nil
+
+                if let seconds = seconds, seconds.isFinite {
                     self.exactDurationCache = seconds
 
                     if seconds != bestAvailableDuration {
@@ -475,6 +491,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
                 exactDurationCache = nil
+                durationLoadTask = nil
                 loadedTimeRangesTimer.fire()
                 delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
