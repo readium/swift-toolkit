@@ -7,6 +7,8 @@ help:
 	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
 	  test\t\t\tRun unit tests\n\
+	  \t\t\tUse 'only=<target>' to run a single test target.\n\
+	  \t\t\tSet TSAN=1 to run with the Thread Sanitizer.\n\
 	  lint-format\t\tVerify formatting\n\
 	  format\t\tFormat sources\n\
 	  update-locales\tUpdate the localization files\n\
@@ -14,9 +16,7 @@ help:
 
 .PHONY: test
 test:
-	xcodebuild test -scheme Readium-Package -destination "platform=iOS Simulator,name=iPhone Air" 2> /dev/null \
-		| xcbeautify --quieter --disable-logging \
-		| grep -Ev "^Executed |Test Suite 'All tests'|Test run started\.|Test session results:"; true
+	./scripts/test.sh $(only)
 
 .SILENT:
 .PHONY: playground
