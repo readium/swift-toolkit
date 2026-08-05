@@ -41,6 +41,14 @@ protocol PaginationViewDelegate: AnyObject {
     /// Called when the page views were updated.
     func paginationViewDidUpdateViews(_ paginationView: PaginationView)
 
+    /// Called when the page view at the given index is no longer displayed,
+    /// because it fell outside of the pre-loaded range or the pagination was
+    /// reloaded.
+    ///
+    /// The delegate takes ownership of the view again and may recycle it for a
+    /// later `paginationView(_:pageViewAtIndex:)` call.
+    func paginationView(_ paginationView: PaginationView, didEndDisplayingView view: UIView & PageView, atIndex index: Int)
+
     /// Returns the number of positions (as in `Publication.positionList`) in the page view at given index.
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int
 }
@@ -161,7 +169,11 @@ final class PaginationView: UIView, Loggable {
         super.willMove(toSuperview: newSuperview)
 
         if newSuperview == nil {
-            // Remove all spread views to break retain cycles
+            // Remove all spread views to break retain cycles.
+            //
+            // Deliberately not routed through `stopDisplaying(_:at:)`: this is
+            // teardown rather than a flush, so there is nothing left for the
+            // delegate to recycle the views into.
             for (_, view) in loadedViews {
                 view.removeFromSuperview()
             }
@@ -200,11 +212,10 @@ final class PaginationView: UIView, Loggable {
         self.pageCount = pageCount
         self.readingProgression = readingProgression
 
-        for (_, view) in loadedViews {
-            view.removeFromSuperview()
+        for (i, view) in loadedViews {
+            stopDisplaying(view, at: i)
         }
         loadedViews.removeAll()
-        loadingIndexQueue.removeAll()
 
         setCurrentIndex(index, location: location)
     }
@@ -223,6 +234,11 @@ final class PaginationView: UIView, Loggable {
 
         currentIndex = index
 
+        // Pages queued for the previous position are obsolete: loading them
+        // first would delay the page the reader is actually looking at. The
+        // ones still relevant are re-scheduled right below.
+        loadingIndexQueue.removeAll()
+
         // To make sure that the views the most likely to be visible are loaded first, we first load
         // the current one, then the next ones and to finish the previous ones.
         scheduleLoadPage(at: index, location: location)
@@ -232,8 +248,8 @@ final class PaginationView: UIView, Loggable {
         for (i, view) in loadedViews {
             // Flushes the views that are not needed anymore.
             guard firstIndex ... lastIndex ~= i else {
-                view.removeFromSuperview()
                 loadedViews.removeValue(forKey: i)
+                stopDisplaying(view, at: i)
                 continue
             }
         }
@@ -241,18 +257,42 @@ final class PaginationView: UIView, Loggable {
         loadPages()
     }
 
+    /// Detaches a page view and gives it back to the delegate, which may
+    /// recycle it for a later index.
+    private func stopDisplaying(_ view: UIView & PageView, at index: Int) {
+        view.removeFromSuperview()
+        delegate?.paginationView(self, didEndDisplayingView: view, atIndex: index)
+    }
+
     private func loadPages() {
         loadPagesTask.replace { @MainActor in
-            await loadNextPage()
-            delegate?.paginationViewDidUpdateViews(self)
+            // The current page is always scheduled first. Notifying per page,
+            // instead of once the whole queue is drained, lets the current
+            // spread be displayed immediately while its neighbours keep
+            // pre-loading in the background.
+            while await loadNextPage() {
+                // A reload happened while the page above was loading: the new
+                // task owns the queue now, and this one must not report its
+                // stale progress. Doing so would publish a location for a page
+                // that is no longer the current one, and which may still be
+                // blank.
+                guard !Task.isCancelled else {
+                    return
+                }
+
+                delegate?.paginationViewDidUpdateViews(self)
+            }
         }
     }
 
     private var loadPagesTask: Task<Void, Never>?
 
-    private func loadNextPage() async {
-        guard let (index, location) = loadingIndexQueue.popFirst() else {
-            return
+    /// Loads the next page in the queue, if any.
+    ///
+    /// - Returns: Whether a page was dequeued.
+    private func loadNextPage() async -> Bool {
+        guard !Task.isCancelled, let (index, location) = loadingIndexQueue.popFirst() else {
+            return false
         }
 
         if
@@ -265,11 +305,14 @@ final class PaginationView: UIView, Loggable {
         }
 
         guard let view = loadedViews[index] else {
-            return
+            return true
         }
 
+        // Deliberately not cancellable: interrupting a page mid-navigation
+        // would leave it on a half-applied location. Cancellation is observed
+        // between pages instead.
         await view.go(to: location, animated: false)
-        await loadNextPage()
+        return true
     }
 
     /// Queue views to be loaded until reaching the given number of pre-loaded positions.

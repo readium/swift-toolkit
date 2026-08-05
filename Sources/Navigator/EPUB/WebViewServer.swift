@@ -19,10 +19,57 @@ import WebKit
     /// Format sniffer used to infer the media type of served resources.
     let formatSniffer: FormatSniffer
 
+    /// The server shared by every EPUB navigator in the process.
+    ///
+    /// A web view's URL scheme handler is bound when its configuration is
+    /// created and cannot be swapped afterwards, so a web view can only ever
+    /// be reused by navigators served by the same instance. Sharing one server
+    /// is what makes web views outlive the navigator that first used them.
+    ///
+    /// Isolation between publications open at the same time rests on the
+    /// secrecy of their route rather than on separate objects: through this
+    /// one server, every publication is reachable at `readium://{uuid}/`, so a
+    /// document that learned another publication's UUID could request its
+    /// resources. The UUID is generated per navigator and never leaves the
+    /// app, and ``publicationContentSecurityPolicy`` stops documents from
+    /// being embedded across origins, but this is a weaker boundary than one
+    /// server per publication.
+    ///
+    /// No publication is ever served another's bytes: the resource cache is
+    /// keyed by route, and routes are unregistered when their navigator goes
+    /// away.
+    static let shared = WebViewServer(scheme: "readium", formatSniffer: DefaultFormatSniffer())
+
+    /// Policy sent with publication resources.
+    ///
+    /// `frame-ancestors 'self'` keeps a publication's documents from being
+    /// embedded by a document of another origin. Same-origin framing has to
+    /// stay allowed: fixed-layout publications load their spine resources into
+    /// iframes of a wrapper page, and wrapper and resources share the
+    /// publication's origin.
+    static let publicationContentSecurityPolicy = "frame-ancestors 'self'"
+
+    /// Route serving the document used to warm web views up.
+    private static let warmupRoute = "readium-warmup"
+
+    /// URL of a minimal document served by this server.
+    ///
+    /// Navigating a web view to it pays, once per web view, the one-off cost
+    /// of the first navigation on a custom URL scheme. Warming up requires a
+    /// real navigation on the scheme: loading an HTML string does not
+    /// discharge it.
+    let warmupURL: AbsoluteURL
+
     init(scheme: String, formatSniffer: FormatSniffer) {
         self.scheme = scheme
         self.formatSniffer = formatSniffer
+        warmupURL = AnyURL(string: "\(scheme)://\(Self.warmupRoute)/index.html")!.absoluteURL!
+
         super.init()
+
+        serve(at: Self.warmupRoute) { _ in
+            (DataResource(string: "<!doctype html><html></html>"), .html)
+        }
     }
 
     // MARK: - Route registration
@@ -78,10 +125,24 @@ import WebKit
         return baseURL
     }
 
-    /// Removes the handler at the given route.
+    /// Removes the handler at the given route, along with anything it had
+    /// cached.
     func remove(at route: String) {
         let route = normalizedRoute(route)
-        routes.removeAll { $0.path.hasPrefix(route) }
+        routes.removeAll { isPath($0.path, atOrUnder: route) }
+
+        // Resources cached for a route that is gone would never be served
+        // again, and would keep the publication's data alive for as long as
+        // the server lives.
+        resourceCache.remove { key, _ in isPath(key.route, atOrUnder: route) }
+    }
+
+    /// Whether `path` is the route `route` itself, or nested under it.
+    ///
+    /// Compared on segment boundaries: a plain prefix test would make removing
+    /// `book1` take `book10/` down with it.
+    private func isPath(_ path: String, atOrUnder route: String) -> Bool {
+        path == route || path.hasPrefix(route.addingSuffix("/"))
     }
 
     private func normalizedRoute(_ route: String, isDirectory: Bool = false) -> String {
@@ -115,23 +176,43 @@ import WebKit
     /// Oldest entries are evicted when the cache exceeds its capacity.
     private var resourceCache = BoundedResourceCache()
 
-    /// Removes cached resources matching the given predicate, forcing them to
-    /// be re-served on the next request.
-    func clearResourceCache(where predicate: (RelativeURL, MediaType) -> Bool) {
-        resourceCache.remove(where: predicate)
+    /// Removes the resources cached for the given route and matching the given
+    /// predicate, forcing them to be re-served on the next request.
+    ///
+    /// Other routes are left untouched: the server may be serving several
+    /// publications, and what invalidates one does not invalidate the others.
+    func clearResourceCache(atRoute route: String, where predicate: (RelativeURL, MediaType) -> Bool) {
+        let route = normalizedRoute(route, isDirectory: true)
+        resourceCache.remove { key, mediaType in
+            key.route == route && predicate(key.relativeURL, mediaType)
+        }
     }
 
     // MARK: - WKURLSchemeHandler
 
     func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
+        start(urlSchemeTask)
+    }
+
+    func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {
+        stop(urlSchemeTask)
+    }
+
+    /// Starts serving the given task.
+    ///
+    /// Split out of ``webView(_:start:)``, which does not use its web view, so
+    /// that serving can be exercised without one.
+    func start(_ urlSchemeTask: any WKURLSchemeTask) {
         let taskID = ObjectIdentifier(urlSchemeTask)
+
         activeTasks[taskID] = Task {
             await serve(urlSchemeTask)
             _ = activeTasks.removeValue(forKey: taskID)
         }
     }
 
-    func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {
+    /// Stops serving the given task.
+    func stop(_ urlSchemeTask: any WKURLSchemeTask) {
         let taskID = ObjectIdentifier(urlSchemeTask)
         activeTasks.removeValue(forKey: taskID)?.cancel()
     }
@@ -171,9 +252,10 @@ import WebKit
                 }
                 await serveResource(
                     urlSchemeTask,
+                    cacheKey: BoundedResourceCache.Key(route: route.path, relativeURL: relativeURL),
                     relativeURL: relativeURL,
                     handler: handler,
-                    requestURL: requestURL
+                    requestURL: requestURL,
                 )
                 return
             }
@@ -185,6 +267,7 @@ import WebKit
     /// Serves a resource from a handler callback, with caching.
     private func serveResource(
         _ urlSchemeTask: WKURLSchemeTask,
+        cacheKey: BoundedResourceCache.Key,
         relativeURL: RelativeURL,
         handler: @MainActor (RelativeURL) async -> (Resource, MediaType)?,
         requestURL: URL
@@ -194,7 +277,7 @@ import WebKit
         // one.
         let resource: Resource
         let mediaType: MediaType
-        if let (cachedResource, cachedMediaType) = resourceCache[relativeURL] {
+        if let (cachedResource, cachedMediaType) = resourceCache[cacheKey] {
             resource = cachedResource
             mediaType = cachedMediaType
         } else {
@@ -204,14 +287,15 @@ import WebKit
             }
             resource = newResource.buffered(size: 256 * 1024)
             mediaType = newMediaType
-            resourceCache.set(relativeURL, resource: resource, mediaType: mediaType)
+            resourceCache.set(cacheKey, resource: resource, mediaType: mediaType)
         }
 
         await serveResource(
             resource,
             with: urlSchemeTask,
             mediaType: mediaType,
-            requestURL: requestURL
+            requestURL: requestURL,
+            contentSecurityPolicy: Self.publicationContentSecurityPolicy,
         )
     }
 
@@ -231,7 +315,7 @@ import WebKit
             with: urlSchemeTask,
             mediaType: mediaTypeFromURL(file),
             requestURL: requestURL,
-            allowCrossOrigin: allowCrossOrigin
+            allowCrossOrigin: allowCrossOrigin,
         )
     }
 
@@ -240,7 +324,8 @@ import WebKit
         with urlSchemeTask: WKURLSchemeTask,
         mediaType: MediaType?,
         requestURL: URL,
-        allowCrossOrigin: Bool = false
+        allowCrossOrigin: Bool = false,
+        contentSecurityPolicy: String? = nil
     ) async {
         // Try to serve a byte range if the client requested one and the
         // resource length is known.
@@ -251,7 +336,7 @@ import WebKit
             let result = await resource.read(range: range)
             switch result {
             case let .success(data):
-                await respond(urlSchemeTask, with: data, range: range, totalLength: totalLength, mediaType: mediaType, url: requestURL, allowCrossOrigin: allowCrossOrigin)
+                await respond(urlSchemeTask, with: data, range: range, totalLength: totalLength, mediaType: mediaType, url: requestURL, allowCrossOrigin: allowCrossOrigin, contentSecurityPolicy: contentSecurityPolicy)
             case let .failure(error):
                 log(.error, "Failed to read resource \(requestURL.path) range \(range): \(error)")
                 await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
@@ -263,7 +348,7 @@ import WebKit
         let result = await resource.read()
         switch result {
         case let .success(data):
-            await respond(urlSchemeTask, with: data, range: nil, totalLength: UInt64(data.count), mediaType: mediaType, url: requestURL, allowCrossOrigin: allowCrossOrigin)
+            await respond(urlSchemeTask, with: data, range: nil, totalLength: UInt64(data.count), mediaType: mediaType, url: requestURL, allowCrossOrigin: allowCrossOrigin, contentSecurityPolicy: contentSecurityPolicy)
         case let .failure(error):
             log(.error, "Failed to read resource \(requestURL.path): \(error)")
             await fail(urlSchemeTask, with: URLError(.resourceUnavailable))
@@ -294,7 +379,8 @@ import WebKit
         totalLength: UInt64,
         mediaType: MediaType?,
         url: URL,
-        allowCrossOrigin: Bool
+        allowCrossOrigin: Bool,
+        contentSecurityPolicy: String? = nil
     ) async {
         var headers: [String: String] = [
             "Content-Length": "\(data.count)",
@@ -310,6 +396,10 @@ import WebKit
             // load without this header. Mirrors `allowCors()` in the Kotlin
             // toolkit's WebViewServer. See issue #802.
             headers["Access-Control-Allow-Origin"] = "*"
+        }
+
+        if let contentSecurityPolicy {
+            headers["Content-Security-Policy"] = contentSecurityPolicy
         }
 
         if let mediaType {
@@ -361,15 +451,26 @@ private extension URLRequest {
 /// ``capacity``, preventing unbounded memory growth as the user navigates
 /// through chapters.
 private struct BoundedResourceCache {
-    private let capacity = 8
-    private var entries: [RelativeURL: (Resource, MediaType)] = [:]
-    private var order: [RelativeURL] = []
+    /// Identifies a cached resource.
+    ///
+    /// The route is part of the key: a relative URL is only meaningful within
+    /// the route it was resolved against, and two publications routinely serve
+    /// different resources under the same publication-relative path (say
+    /// `chapter1.xhtml`).
+    struct Key: Hashable {
+        let route: String
+        let relativeURL: RelativeURL
+    }
 
-    subscript(key: RelativeURL) -> (Resource, MediaType)? {
+    private let capacity = 8
+    private var entries: [Key: (Resource, MediaType)] = [:]
+    private var order: [Key] = []
+
+    subscript(key: Key) -> (Resource, MediaType)? {
         entries[key]
     }
 
-    mutating func set(_ key: RelativeURL, resource: Resource, mediaType: MediaType) {
+    mutating func set(_ key: Key, resource: Resource, mediaType: MediaType) {
         if entries[key] == nil {
             order.append(key)
         }
@@ -381,12 +482,12 @@ private struct BoundedResourceCache {
         }
     }
 
-    mutating func remove(where predicate: (RelativeURL, MediaType) -> Bool) {
-        let toRemove = order.filter { url in
-            entries[url].map { predicate(url, $0.1) } ?? false
+    mutating func remove(where predicate: (Key, MediaType) -> Bool) {
+        let toRemove = order.filter { key in
+            entries[key].map { predicate(key, $0.1) } ?? false
         }
-        for url in toRemove {
-            entries.removeValue(forKey: url)
+        for key in toRemove {
+            entries.removeValue(forKey: key)
         }
         order = order.filter { entries[$0] != nil }
     }

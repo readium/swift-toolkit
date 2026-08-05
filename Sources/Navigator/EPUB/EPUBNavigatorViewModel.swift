@@ -28,6 +28,13 @@ enum EPUBScriptScope {
     /// The base URL for the publication resources.
     private(set) var publicationBaseURL: AbsoluteURL!
 
+    /// Route the publication resources are registered at on the `server`, when
+    /// this view model registered them itself.
+    ///
+    /// `nil` when the publication is already reachable at its own base URL, in
+    /// which case the server only serves the static assets.
+    private(set) var publicationRoute: String?
+
     /// The base URL for Readium assets (CSS, scripts, etc.) and fonts.
     let assetsBaseURL: any AbsoluteURL
 
@@ -51,10 +58,15 @@ enum EPUBScriptScope {
         let assetsDirectory = Bundle.module.resourceURL!.fileURL!
             .appendingPath("Assets/Static", isDirectory: true)
 
-        let formatSniffer = DefaultFormatSniffer()
-        let server = WebViewServer(scheme: "readium", formatSniffer: formatSniffer)
+        // Shared by every navigator: a web view's URL scheme handler is fixed
+        // when its configuration is built, so web views can only be reused
+        // across navigators that the same server serves.
+        let server = WebViewServer.shared
+        let formatSniffer = server.formatSniffer
 
-        // Serve static assets directory.
+        // Serve the static assets directory. Registering a route twice
+        // replaces the previous entry, so this stays correct once several
+        // navigators share the server.
         let assetsBaseURL = server.serve(directory: assetsDirectory, at: "assets")
 
         self.init(
@@ -73,7 +85,9 @@ enum EPUBScriptScope {
             publicationBaseURL = url
         } else {
             // Serve publication resources.
-            publicationBaseURL = server.serve(at: UUID().uuidString) { [weak self] in
+            let route = UUID().uuidString
+            publicationRoute = route
+            publicationBaseURL = server.serve(at: route) { [weak self] in
                 await self?.serve(href: $0)
             }
         }
@@ -148,6 +162,20 @@ enum EPUBScriptScope {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+
+        // Give the publication's route back, otherwise a server outliving this
+        // view model would keep both the route and everything it cached for as
+        // long as it lives.
+        //
+        // `deinit` is not actor-isolated, so the work is hopped onto the main
+        // actor the server is bound to. Capturing `server` keeps it alive until
+        // the hop runs.
+        if let publicationRoute {
+            let server = server
+            Task { @MainActor in
+                server.remove(at: publicationRoute)
+            }
+        }
     }
 
     func url(to link: Link) -> AnyURL {
@@ -354,7 +382,12 @@ enum EPUBScriptScope {
         // (e.g. after a screen rotation) reflects the updated CSS instead of
         // the stale cached version. Non-HTML resources (images, audio, etc.)
         // are not affected by CSS changes and can remain cached.
-        server.clearResourceCache { _, mediaType in mediaType.isHTML }
+        //
+        // Scoped to this publication's route: the server may be serving others,
+        // whose resources this settings change does not affect.
+        if let publicationRoute {
+            server.clearResourceCache(atRoute: publicationRoute) { _, mediaType in mediaType.isHTML }
+        }
 
         if commitNow {
             commitCSSChange(from: previous, to: css)

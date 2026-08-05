@@ -42,10 +42,13 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     func spreadViewDidTerminate()
 }
 
-class EPUBSpreadView: UIView, Loggable, PageView {
+class EPUBSpreadView: UIView, Loggable, PageView, Recyclable {
     weak var delegate: EPUBSpreadViewDelegate?
     let viewModel: EPUBNavigatorViewModel
-    let spread: EPUBSpread
+
+    /// The spread currently rendered by this view. Changed by
+    /// ``retarget(to:)`` when the view is recycled.
+    private(set) var spread: EPUBSpread
     private(set) var focusedResource: ReadingOrder.Index?
 
     let webView: WebView
@@ -65,23 +68,30 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         viewModel: EPUBNavigatorViewModel,
         spread: EPUBSpread,
         scripts: [WKUserScript],
-        animatedLoad: Bool
+        animatedLoad: Bool,
+        webView pooledWebView: WebView? = nil
     ) {
         self.viewModel = viewModel
         self.spread = spread
         self.animatedLoad = animatedLoad
 
-        let config = WKWebViewConfiguration()
-        config.setURLSchemeHandler(viewModel.server, forURLScheme: viewModel.server.scheme)
-        config.mediaTypesRequiringUserActionForPlayback = .all
+        if let pooledWebView {
+            // Built against the shared server and already rebound to this
+            // publication's editing rights by the pool.
+            webView = pooledWebView
+        } else {
+            let config = WKWebViewConfiguration()
+            config.setURLSchemeHandler(viewModel.server, forURLScheme: viewModel.server.scheme)
+            config.mediaTypesRequiringUserActionForPlayback = .all
 
-        // Disable the Apple Intelligence Writing tools in the web views.
-        // See https://github.com/readium/swift-toolkit/issues/509#issuecomment-2577780749
-        if #available(iOS 18.0, *) {
-            config.writingToolsBehavior = .none
+            // Disable the Apple Intelligence Writing tools in the web views.
+            // See https://github.com/readium/swift-toolkit/issues/509#issuecomment-2577780749
+            if #available(iOS 18.0, *) {
+                config.writingToolsBehavior = .none
+            }
+
+            webView = WebView(editingActions: viewModel.editingActions, configuration: config)
         }
-
-        webView = WebView(editingActions: viewModel.editingActions, configuration: config)
 
         super.init(frame: .zero)
 
@@ -116,6 +126,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
         spreadLoadTask?.cancel()
         spreadLoadTask = nil
+
+        cancelActivityIndicatorStop()
 
         // Disable JS messages to break WKUserContentController reference.
         disableJSMessages()
@@ -168,6 +180,73 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     func loadSpread() {
         fatalError("loadSpread() must be implemented in subclasses")
+    }
+
+    /// Whether this view can be re-targeted to another spread, or has to be
+    /// thrown away.
+    ///
+    /// Overridden by subclasses baking settings into the web view that
+    /// ``retarget(to:)`` cannot undo.
+    var canBeRecycled: Bool { true }
+
+    /// Points this view at another spread and reloads it, instead of building
+    /// a brand new view.
+    ///
+    /// Creating an `EPUBSpreadView` spawns a web content process, which costs
+    /// orders of magnitude more than navigating an existing web view to
+    /// another resource. Recycling views keeps that cost to the first spreads
+    /// only.
+    ///
+    /// The view behaves like a freshly built one afterwards: it is not loaded,
+    /// and the location to display is applied through the usual
+    /// `go(to:animated:)` call once the document is ready.
+    ///
+    /// - Precondition: No navigation towards the previous spread may still be
+    ///   in flight. Recycling resumes such callers without having moved
+    ///   anywhere, so the caller has to be one that no longer acts on the
+    ///   result. `PaginationView` satisfies this by cancelling its loading
+    ///   task in the same synchronous turn that flushes the view.
+    func retarget(to spread: EPUBSpread) {
+        if pendingNavigationCount > 0 {
+            // Routine whenever a pre-load was interrupted: the reader swiped
+            // quickly, or jumped through the table of contents past a
+            // neighbour that had not finished loading yet. Logged only to make
+            // the hand-off visible when tracing a navigation.
+            log(.debug, "Recycling a spread view away from \(self.spread.first.link.href) with \(pendingNavigationCount) navigation(s) still awaiting it; they are resumed without having moved.")
+        }
+
+        self.spread = spread
+
+        resetForReuse()
+        updateActivityIndicator()
+        loadSpread()
+    }
+
+    /// Navigations suspended until the spread finishes loading.
+    ///
+    /// Subclasses letting `go(to:animated:)` suspend must report them, so that
+    /// recycling can flag the ones abandoned half-way.
+    var pendingNavigationCount: Int { 0 }
+
+    /// Discards the state tied to the spread this view was previously
+    /// rendering.
+    ///
+    /// Subclasses holding per-spread state must override this and call
+    /// `super`.
+    func resetForReuse() {
+        // Cancels pending operations and resumes anything awaiting the
+        // previous spread.
+        clear()
+
+        isSpreadLoaded = false
+        focusedResource = nil
+        lastClick = nil
+
+        // `clear()` disabled the JS messages to break the retain cycle while
+        // the view was off screen. They must be back on before the reloaded
+        // document starts emitting, in particular `spreadLoaded`, rather than
+        // waiting for `didMoveToSuperview`.
+        enableJSMessages()
     }
 
     /// Evaluates the given JavaScript into the resource's HTML page.
@@ -391,7 +470,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    private func spreadLoadDidStart(_ body: Any) {}
+    private func spreadLoadDidStart(_ body: Any) {
+    }
 
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
@@ -435,7 +515,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     func showSpread() {
         activityIndicatorView?.stopAnimating()
-        activityIndicatorStopWorkItem?.cancel()
+        cancelActivityIndicatorStop()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
             self.scrollView.alpha = 1
         })
@@ -640,6 +720,12 @@ extension EPUBSpreadView: WKScriptMessageHandler {
 }
 
 extension EPUBSpreadView: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+    }
+
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+    }
+
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         log(.error, error)
     }
@@ -713,6 +799,17 @@ private extension EPUBSpreadView {
 
         activityIndicatorView?.removeFromSuperview()
         activityIndicatorView = addCenteredActivityIndicator(color: color)
+    }
+
+    /// Cancels the pending activity indicator timeout, if any.
+    ///
+    /// Clearing the reference matters: a cancelled `DispatchWorkItem` never
+    /// runs its body, so it cannot nil itself out, and
+    /// ``setNeedsStopActivityIndicator()`` would then refuse to ever schedule
+    /// another one.
+    private func cancelActivityIndicatorStop() {
+        activityIndicatorStopWorkItem?.cancel()
+        activityIndicatorStopWorkItem = nil
     }
 
     private func setNeedsStopActivityIndicator() {

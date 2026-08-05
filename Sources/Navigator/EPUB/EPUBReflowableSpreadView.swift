@@ -21,7 +21,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         viewModel: EPUBNavigatorViewModel,
         spread: EPUBSpread,
         scripts: [WKUserScript],
-        animatedLoad: Bool
+        animatedLoad: Bool,
+        webView: WebView? = nil
     ) {
         super.init(
             viewModel: viewModel,
@@ -29,8 +30,23 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             scripts: [
                 WKUserScript(source: Self.reflowableScript, injectionTime: .atDocumentStart, forMainFrameOnly: false),
             ],
-            animatedLoad: animatedLoad
+            animatedLoad: animatedLoad,
+            webView: webView
         )
+    }
+
+    override var pendingNavigationCount: Int { goToContinuations.count }
+
+    override func resetForReuse() {
+        super.resetForReuse()
+
+        // A page-change notification scheduled for the previous spread would
+        // otherwise fire against the new one.
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
+
+        pendingLocation = PendingLocation(location: .start, animated: false)
+        progression = nil
+        previousProgression = nil
     }
 
     override func clear() {

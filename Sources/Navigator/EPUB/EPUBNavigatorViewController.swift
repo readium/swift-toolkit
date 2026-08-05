@@ -96,6 +96,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// Logs the state changes when true.
         public var debugState: Bool
 
+        /// Pool of web views shared with the other navigators of the
+        /// application.
+        ///
+        /// Supplying one lets a navigator reuse web views created — and warmed
+        /// up — before it existed, which is the bulk of the time it takes to
+        /// display a first spread. The pool must outlive the navigators using
+        /// it; hold it at the application level.
+        public var webViewPool: EPUBWebViewPool?
+
         public init(
             preferences: EPUBPreferences = .empty,
             defaults: EPUBDefaults = EPUBDefaults(),
@@ -110,7 +119,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
-            debugState: Bool = false
+            debugState: Bool = false,
+            webViewPool: EPUBWebViewPool? = nil
         ) {
             self.preferences = preferences
             self.defaults = defaults
@@ -123,6 +133,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
+            self.webViewPool = webViewPool
         }
 
         func contentInset(for sizeClass: UIUserInterfaceSizeClass) -> EPUBContentInsets {
@@ -377,6 +388,21 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+
+        // Hand the borrowed web views back so they outlive this navigator and
+        // spare the next publication their process launch and warm-up.
+        //
+        // `deinit` is not actor-isolated, so the work hops onto the main actor.
+        // Only locals are captured; the pool retains the web views, which is
+        // what keeps them alive once the spread views holding them are gone.
+        if let webViewPool, !borrowedWebViews.isEmpty {
+            let webViews = borrowedWebViews
+            Task { @MainActor in
+                for webView in webViews {
+                    webViewPool.giveBack(webView)
+                }
+            }
+        }
     }
 
     override open func viewDidLoad() {
@@ -546,6 +572,57 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     // MARK: - Pagination and spreads
 
     private var paginationView: PaginationView?
+
+    /// Spread views the pagination view stopped displaying, kept aside to be
+    /// re-targeted instead of rebuilt.
+    ///
+    /// Sized after the pre-load window plus the incoming spread. That is a
+    /// best-effort bound rather than an invariant: the window is expressed in
+    /// positions, and resources reporting no position let the pagination view
+    /// walk further than this. Views handed back beyond the bound are dropped.
+    private lazy var recycledSpreadViews = RecyclingPool<EPUBSpreadView>(
+        capacity: config.preloadPreviousPositionCount + config.preloadNextPositionCount + 1
+    )
+
+    /// The application-wide pool this navigator borrowed web views from.
+    ///
+    /// Captured on the first checkout rather than read from `config`, so that
+    /// `deinit` — which is not actor-isolated — reaches it without going
+    /// through the view model.
+    private var webViewPool: EPUBWebViewPool?
+
+    /// Web views borrowed from ``webViewPool``, handed back on teardown.
+    private var borrowedWebViews: [WebView] = []
+
+    /// Borrows a web view for a new spread view, if a pool is configured.
+    private func checkoutWebView() -> WebView? {
+        guard
+            let pool = config.webViewPool,
+            let webView = pool.checkout(editingActions: viewModel.editingActions)
+        else {
+            return nil
+        }
+
+        webViewPool = pool
+        borrowedWebViews.append(webView)
+        return webView
+    }
+
+    /// Hands a discarded spread view's web view back to the pool, if it came
+    /// from there.
+    ///
+    /// Web views this navigator built itself are deliberately not offered: the
+    /// pool's are created with a non-persistent data store, and mixing the two
+    /// would quietly break that guarantee.
+    private func returnBorrowedWebView(of spreadView: EPUBSpreadView) {
+        let webView = spreadView.webView
+        guard let index = borrowedWebViews.firstIndex(where: { $0 === webView }) else {
+            return
+        }
+
+        borrowedWebViews.remove(at: index)
+        webViewPool?.giveBack(webView)
+    }
 
     private func makePaginationView(hasPositions: Bool) -> PaginationView {
         let view = PaginationView(
@@ -1252,12 +1329,25 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
 extension EPUBNavigatorViewController: PaginationViewDelegate {
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)? {
         let spread = spreads[index]
+
+        // Recycling avoids spawning a web content process, which costs
+        // seconds. The user scripts already installed on the pooled view stay
+        // valid, so they are not set up again.
+        //
+        if let spreadView = recycledSpreadViews.pop() {
+            spreadView.retarget(to: spread)
+            return spreadView
+        }
+
         let spreadViewType = (publication.metadata.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
         let spreadView = spreadViewType.init(
             viewModel: viewModel,
             spread: spread,
             scripts: [],
-            animatedLoad: false
+            animatedLoad: false,
+            // A pooled web view has already paid for its process launch and
+            // for its first navigation on the Readium scheme.
+            webView: checkoutWebView()
         )
         spreadView.delegate = self
 
@@ -1265,6 +1355,19 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
         delegate?.navigator(self, setupUserScripts: userContentController)
 
         return spreadView
+    }
+
+    func paginationView(_ paginationView: PaginationView, didEndDisplayingView view: UIView & PageView, atIndex index: Int) {
+        guard let spreadView = view as? EPUBSpreadView else {
+            return
+        }
+
+        if !recycledSpreadViews.push(spreadView) {
+            // The spread view is about to be released. Anything it borrowed
+            // goes back now: held until this navigator is torn down, it would
+            // sit idle while other navigators build web views from scratch.
+            returnBorrowedWebView(of: spreadView)
+        }
     }
 
     func paginationViewDidUpdateViews(_ paginationView: PaginationView) {

@@ -16,18 +16,28 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     /// URL to load in the iframe once the wrapper page is loaded.
     private var urlToLoad: URL?
 
+    /// Value of `spreadEnabled` the wrapper page was built for. The one- and
+    /// two-page wrappers are different documents, so a view loaded with one of
+    /// them cannot be reused once the setting changed.
+    private var wrapperSpreadEnabled = false
+
+    override var canBeRecycled: Bool {
+        isWrapperLoaded && wrapperSpreadEnabled == viewModel.spreadEnabled
+    }
+
     private static let fixedScript = loadScript(named: "readium-fixed")
 
     required init(
         viewModel: EPUBNavigatorViewModel,
         spread: EPUBSpread,
         scripts: [WKUserScript],
-        animatedLoad: Bool
+        animatedLoad: Bool,
+        webView: WebView? = nil
     ) {
         var scripts = scripts
         scripts.append(WKUserScript(source: Self.fixedScript, injectionTime: .atDocumentStart, forMainFrameOnly: false))
 
-        super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad)
+        super.init(viewModel: viewModel, spread: spread, scripts: scripts, animatedLoad: animatedLoad, webView: webView)
     }
 
     override func setupWebView() {
@@ -47,6 +57,7 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         scrollView.backgroundColor = UIColor.clear
 
         // Loads the wrapper page into the web view.
+        wrapperSpreadEnabled = viewModel.spreadEnabled
         let spreadFile = "fxl-spread-\(viewModel.spreadEnabled ? "two" : "one")"
         if
             let wrapperPageURL = Bundle.module.url(forResource: spreadFile, withExtension: "html", subdirectory: "Assets"),
@@ -113,6 +124,22 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
     }
 
     override func spreadDidLoad() async {
+        resumeGoToContinuations()
+    }
+
+    override var pendingNavigationCount: Int { goToContinuations.count }
+
+    override func resetForReuse() {
+        super.resetForReuse()
+
+        // `isWrapperLoaded` is deliberately left alone: the wrapper page hosts
+        // the iframe and is reused as-is, only the resource it displays
+        // changes.
+        urlToLoad = nil
+        resumeGoToContinuations()
+    }
+
+    private func resumeGoToContinuations() {
         for continuation in goToContinuations {
             continuation.resume()
         }
