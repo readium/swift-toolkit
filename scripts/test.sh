@@ -21,10 +21,16 @@ FILTER="${1:-}"
 CONFIGURATION="Test Scheme Action"
 [ "${TSAN:-0}" = "1" ] && CONFIGURATION="Thread Sanitizer"
 
+PROJECT="$REPO_ROOT/Playground/Playground.xcodeproj"
+if [ ! -d "$PROJECT" ]; then
+    echo "Playground project not found. Run 'make playground' first, or" >&2
+    echo "'make playground lcp=<url>' to also run the LCP tests." >&2
+    exit 1
+fi
+
 ARGS=(
-    -project "$REPO_ROOT/TestApp/TestApp.xcodeproj"
-    -scheme TestApp
-    -testPlan TestApp
+    -project "$PROJECT"
+    -scheme Playground
     -only-test-configuration "$CONFIGURATION"
     -destination "$DESTINATION"
 )

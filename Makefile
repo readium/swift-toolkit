@@ -3,6 +3,7 @@ SCRIPTS_PATH := Sources/Navigator/EPUB/Scripts
 help:
 	@echo "Usage: make <target>\n\n\
 	  playground\t\tGenerate the Playground project\n\
+	  \t\t\tUse 'lcp=<url>' to enable LCP.\n\
 	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
 	  test\t\t\tRun unit tests\n\
@@ -22,10 +23,16 @@ test:
 playground:
 	cd Playground; find . -name ".DS_Store" -delete
 ifdef lcp
-	curl --create-dirs --output Playground/R2LCPClient/Package.swift "$(lcp)"
+	curl --fail -L --create-dirs --output Playground/R2LCPClient/Package.swift "$(lcp)"
 	cd Playground; xcodegen -s project+lcp.yml --use-cache --cache-path .xcodegen
 else
 	rm -rf Playground/R2LCPClient
+	# Playground.xctestplan is the source of truth and includes every test
+	# target. Without LCP, the ReadiumLCPTests target is not generated, so it
+	# is stripped from a copy of the plan used by project.yml.
+	python3 -c 'import json; p = json.load(open("Playground/Playground.xctestplan")); \
+	  p["testTargets"] = [t for t in p["testTargets"] if t["target"]["name"] != "ReadiumLCPTests"]; \
+	  json.dump(p, open("Playground/Playground+nolcp.xctestplan", "w"), indent=2)'
 	cd Playground; xcodegen -s project.yml --use-cache --cache-path .xcodegen
 endif
 	# The repository might be cloned to a different location than "swift-toolkit".

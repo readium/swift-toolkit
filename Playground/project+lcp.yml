@@ -5,11 +5,14 @@ packages:
   R2LCPClient:
     path: R2LCPClient
 
+settings:
+  OTHER_SWIFT_FLAGS: -DLCP
+
 schemes:
   Playground:
     test:
       testPlans:
-        - path: Playground+lcp.xctestplan
+        - path: Playground.xctestplan
           defaultPlan: true
 
 targets:
@@ -19,8 +22,6 @@ targets:
         product: R2LCPClient
       - package: Readium
         product: ReadiumLCP
-    settings:
-      OTHER_SWIFT_FLAGS: -DLCP
 
   ReadiumLCPTests:
     type: bundle.unit-test
@@ -38,4 +39,3 @@ targets:
       - target: Playground
     settings:
       GENERATE_INFOPLIST_FILE: YES
-      OTHER_SWIFT_FLAGS: -DLCP

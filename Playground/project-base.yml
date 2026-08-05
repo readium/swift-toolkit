@@ -1,6 +1,10 @@
 name: Playground
 options:
   bundleIdPrefix: org.readium
+settings:
+  SWIFT_VERSION: 6.0
+  SWIFT_APPROACHABLE_CONCURRENCY: Yes
+  SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
 packages:
   Readium:
     path: ..
@@ -25,7 +29,3 @@ targets:
         product: ReadiumNavigator
       - package: Readium
         product: ReadiumOPDS
-    settings:
-      SWIFT_VERSION: 6.0
-      SWIFT_APPROACHABLE_CONCURRENCY: Yes
-      SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor

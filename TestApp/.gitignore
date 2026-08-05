@@ -1,8 +1,5 @@
 /TestApp.xcodeproj
 /TestApp.xcworkspace
-/TestApp.xctestplan
-/AllTests.xctestplan
-/ReadiumLCPTests.xctestplan
 /project.yml
 # IntelliJ AppCode
 .idea
