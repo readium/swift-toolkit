@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumInternal
 import WebKit
 
 /// A pool of web views shared by the EPUB navigators of an application.
@@ -39,12 +40,26 @@ public final class EPUBWebViewPool {
     /// of its way.
     private var borrowedCount = 0
 
-    /// Web views being warmed up right now, kept so the work can be abandoned
-    /// when a reader needs the device.
-    private var warmingUp: [WebView] = []
+    /// Warm-ups started and not finished yet.
+    private var pendingWarmups = 0
 
-    /// Whether the warm-up in progress was interrupted by a reader.
-    private var didAbortWarmup = false
+    /// Checkouts waiting for one of those warm-ups, oldest first.
+    ///
+    /// Each is promised the next warm-up to finish, or `nil` if that one
+    /// failed, so no caller is left hanging.
+    private var waiters: [CheckoutWaiter] = []
+
+    /// How long a single warm-up is given before the pool stops counting on
+    /// it. Generous on purpose: a warm-up this slow is broken, not busy.
+    static let defaultWarmupTimeout: TimeInterval = 15
+
+    private let warmupTimeout: TimeInterval
+
+    /// Builds a web view and pays its one-off costs, or returns `nil` if that
+    /// failed.
+    typealias WarmupFactory = @MainActor () async -> WebView?
+
+    private let warmup: WarmupFactory
 
     /// Creates a pool holding at most `capacity` web views.
     ///
@@ -53,13 +68,34 @@ public final class EPUBWebViewPool {
     /// larger, so the spreads beyond those fall back to building web views
     /// from scratch — off the critical path, while the reader is already
     /// reading. Worth revisiting once the trade-off has been measured.
-    public init(capacity: Int = 4) {
+    public convenience init(capacity: Int = 4) {
+        self.init(capacity: capacity, warmup: { await Self.makeWarmedWebView() })
+    }
+
+    /// Creates a pool that builds its web views with the given factory.
+    ///
+    /// Exists so tests can drive warm-ups deterministically; a real warm-up
+    /// finishes whenever WebKit says so, which makes the timing of a checkout
+    /// racing one impossible to pin down.
+    init(
+        capacity: Int,
+        warmupTimeout: TimeInterval = EPUBWebViewPool.defaultWarmupTimeout,
+        warmup: @escaping WarmupFactory
+    ) {
         precondition(capacity >= 0)
         self.capacity = capacity
+        self.warmupTimeout = warmupTimeout
+        self.warmup = warmup
     }
 
     /// Number of web views ready to be handed out.
     public var count: Int { available.count }
+
+    /// Whether a warm-up is in flight that a checkout could wait for.
+    var isWarmingUp: Bool { pendingWarmups > 0 }
+
+    /// Whether a checkout is currently waiting for a warm-up to finish.
+    var hasWaitingCheckouts: Bool { !waiters.isEmpty }
 
     /// Creates web views ahead of time and pays their one-off costs, so that
     /// opening a publication does not have to.
@@ -70,17 +106,19 @@ public final class EPUBWebViewPool {
     /// discharges the expensive first navigation. The warm-ups run together
     /// rather than one after another.
     ///
-    /// ### Yielding to the reader
+    /// ### Sharing the device with the reader
     ///
-    /// Warming up competes with a publication being opened, to the point of
-    /// making the open slower than having no pool at all. The pool therefore
-    /// never works while a reader does:
+    /// A publication opened while the pool is still warming up must not have
+    /// to compete with it:
     ///
-    /// - a checkout abandons whatever is still warming up, and web views whose
-    ///   navigation was cut short are discarded rather than pooled, since they
-    ///   may not have paid the first-navigation cost;
-    /// - nothing is built again while web views are still out on loan. A
-    ///   reading session needs no new stock: the web views come back when the
+    /// - a checkout that finds the pool empty but a warm-up in flight waits
+    ///   for it instead of building its own. The warm-up started earlier, so
+    ///   its remainder is always less than a fresh build, and waiting keeps
+    ///   the two from fighting over the device. Abandoning it and starting
+    ///   over — which is what this used to do — measured worse than having no
+    ///   pool at all;
+    /// - nothing new is built while web views are out on loan. A reading
+    ///   session needs no fresh stock: the web views come back when the
     ///   navigator goes away, which restocks the pool for free;
     /// - returning the last borrowed web view tops the pool back up if it
     ///   ended up below the target.
@@ -96,7 +134,7 @@ public final class EPUBWebViewPool {
 
     /// Brings the pool up to its prewarm target, unless a reader is using it.
     private func refill() async {
-        guard borrowedCount == 0, warmingUp.isEmpty else {
+        guard borrowedCount == 0, pendingWarmups == 0 else {
             return
         }
 
@@ -105,69 +143,108 @@ public final class EPUBWebViewPool {
             return
         }
 
-        didAbortWarmup = false
-        warmingUp = (0 ..< missing).map { _ in Self.makeWebView() }
+        pendingWarmups = missing
 
         // The navigations are independent, so they run together. WebKit may
         // still serialize process spawns internally, but that is its call to
         // make, not ours.
         await withTaskGroup(of: WebView?.self) { group in
-            for webView in warmingUp {
+            for _ in 0 ..< missing {
                 group.addTask { @MainActor in
-                    await Self.warmUp(webView)
-                    // A navigation that was stopped part-way may not have paid
-                    // the first-navigation cost. Pooling such a web view would
-                    // hand that cost to the reader later, unpredictably.
-                    return self.didAbortWarmup ? nil : webView
+                    await self.boundedWarmup()
                 }
             }
 
+            // Handed over one at a time, as each finishes, so a checkout
+            // waiting for one is served the moment it is ready instead of
+            // when the whole batch is.
             for await webView in group {
-                if let webView, available.count < capacity {
-                    available.append(webView)
-                }
+                pendingWarmups -= 1
+                deliver(webView)
             }
         }
-
-        warmingUp = []
     }
 
-    /// Abandons any warm-up in flight so it stops competing with a reader.
+    /// Runs one warm-up, giving up on it after ``warmupTimeout``.
     ///
-    /// Stopping the navigation is what actually frees the device: cancelling
-    /// the task alone would not, since a warm-up sits waiting on its
-    /// navigation delegate.
-    private func abortWarmup() {
-        guard !warmingUp.isEmpty else {
-            return
+    /// A warm-up that never comes back would leave `pendingWarmups` above zero
+    /// for the rest of the process: every later refill would decline to run
+    /// and every waiter would wait forever. The web content process dying is
+    /// the realistic way that happens, and it is handled directly, but this
+    /// backstop means no unforeseen stall can wedge the pool either.
+    ///
+    /// The warm-up itself cannot be forced to return, so it is left running.
+    /// Should it finish late, its web view is still perfectly good and goes
+    /// back into circulation.
+    private func boundedWarmup() async -> WebView? {
+        await withCheckedContinuation { continuation in
+            let slot = WarmupSlot(continuation)
+
+            let timeout = Task { @MainActor in
+                try? await Task.sleep(seconds: warmupTimeout)
+                slot.resolve(nil)
+            }
+
+            Task { @MainActor in
+                let webView = await warmup()
+                timeout.cancel()
+
+                if !slot.resolve(webView), let webView {
+                    // Timed out before this landed. The web view is fine, so
+                    // it is offered rather than thrown away.
+                    deliver(webView)
+                }
+            }
+        }
+    }
+
+    /// Passes a finished warm-up to whoever is waiting for one, or shelves it.
+    ///
+    /// `nil` means the warm-up failed; the waiter is resumed with it anyway so
+    /// that it falls back to building its own rather than hanging.
+    private func deliver(_ webView: WebView?) {
+        while !waiters.isEmpty {
+            let waiter = waiters.removeFirst()
+            if waiter.resolve(webView) {
+                return
+            }
+            // That one was cancelled between being queued and now; try the
+            // next in line.
         }
 
-        didAbortWarmup = true
-        for webView in warmingUp {
-            webView.stopLoading()
+        if let webView, available.count < capacity {
+            available.append(webView)
         }
+    }
+
+    /// Drops a waiter whose checkout was cancelled, releasing it with nothing.
+    private func cancelWaiter(_ waiter: CheckoutWaiter) {
+        waiters.removeAll { $0 === waiter }
+        waiter.resolve(nil)
     }
 
     // MARK: - Checkout
 
-    /// Hands out a web view bound to the given publication's editing rights,
-    /// or `nil` if the pool is empty.
+    /// Hands out a web view bound to the given publication's editing rights.
+    ///
+    /// Returns one straight away when the pool has stock. When it does not but
+    /// a warm-up is in flight, it waits for that warm-up rather than letting
+    /// the caller build a web view alongside it: the warm-up is already part
+    /// way through, so its remainder costs less than a fresh build, and the
+    /// two would otherwise compete.
+    ///
+    /// Returns `nil` only when there is nothing to wait for, or when the
+    /// warm-up it waited for failed. The caller then builds its own.
     ///
     /// This is the only way to obtain a web view from the pool, so that one
     /// cannot reach a navigator while still carrying the previous
     /// publication's scripts, message handlers or rights.
-    func checkout(editingActions: EditingActionsController) -> WebView? {
-        // A reader is opening a publication, whether or not the pool can serve
-        // it. Warming up alongside would slow that open down more than the
-        // pool speeds it up.
-        abortWarmup()
-
-        guard !available.isEmpty else {
+    func checkout(editingActions: EditingActionsController) async -> WebView? {
+        guard let webView = await claimWebView() else {
             return nil
         }
 
         borrowedCount += 1
-        let webView = available.removeLast()
 
         // Stripped again on the way out, even though `giveBack` already did:
         // the cost is negligible and it keeps the guarantee local to the one
@@ -175,6 +252,35 @@ public final class EPUBWebViewPool {
         strip(webView)
         webView.rebind(editingActions: editingActions)
         return webView
+    }
+
+    /// Takes a web view off the shelf, or waits for one being warmed up.
+    private func claimWebView() async -> WebView? {
+        if let webView = available.popLast() {
+            return webView
+        }
+
+        // Only wait when a warm-up is in flight that nobody ahead in the queue
+        // has already been promised — otherwise this would wait for something
+        // that is never coming.
+        guard pendingWarmups > waiters.count else {
+            return nil
+        }
+
+        let waiter = CheckoutWaiter()
+        return await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                waiter.attach(continuation)
+                waiters.append(waiter)
+            }
+        } onCancel: {
+            // A cancelled load chain has no use for a web view any more, and
+            // should not sit through the rest of a warm-up to find that out.
+            // The warm-up carries on; whatever it produces is shelved.
+            Task { @MainActor in
+                cancelWaiter(waiter)
+            }
+        }
     }
 
     /// Takes a web view back once its navigator is gone.
@@ -188,13 +294,13 @@ public final class EPUBWebViewPool {
     /// released.
     func giveBack(_ webView: WebView) {
         borrowedCount = max(0, borrowedCount - 1)
-
-        guard available.count < capacity else {
-            return
-        }
-
         strip(webView)
-        available.append(webView)
+
+        // Through the same funnel as a finished warm-up: a checkout already
+        // waiting should be handed this one rather than sit through a warm-up
+        // that has not landed yet. Shelved instead when nobody is waiting, and
+        // dropped when there is no room.
+        deliver(webView)
 
         // The reading session is over. Returns usually restock the pool on
         // their own; build the difference only if they did not.
@@ -254,47 +360,130 @@ public final class EPUBWebViewPool {
         return WebView(configuration: config)
     }
 
+    /// Builds a web view and performs its first navigation on the Readium
+    /// scheme, the cost every web view pays once.
+    private static func makeWarmedWebView() async -> WebView? {
+        let webView = makeWebView()
+        return await warmUp(webView) ? webView : nil
+    }
+
     /// Performs the first navigation on the Readium scheme, which every web
     /// view pays once.
-    private static func warmUp(_ webView: WebView) async {
+    ///
+    /// - Returns: Whether the navigation succeeded. A web view whose warm-up
+    ///   failed has not paid that cost and is not worth pooling.
+    private static func warmUp(_ webView: WebView) async -> Bool {
         let delegate = WarmupNavigationDelegate()
         webView.navigationDelegate = delegate
         defer { webView.navigationDelegate = nil }
 
         webView.load(URLRequest(url: WebViewServer.shared.warmupURL.url))
-        await delegate.wait()
+        return await delegate.wait()
+    }
+}
+
+/// One pending warm-up, resolved by whichever of the warm-up itself or the
+/// timeout gets there first.
+@MainActor
+private final class WarmupSlot {
+    private var continuation: CheckedContinuation<WebView?, Never>?
+    private var isResolved = false
+
+    init(_ continuation: CheckedContinuation<WebView?, Never>) {
+        self.continuation = continuation
+    }
+
+    /// - Returns: Whether this call is the one that resolved the slot.
+    @discardableResult
+    func resolve(_ webView: WebView?) -> Bool {
+        guard !isResolved else {
+            return false
+        }
+
+        isResolved = true
+        let continuation = self.continuation
+        self.continuation = nil
+        continuation?.resume(returning: webView)
+        return true
+    }
+}
+
+/// A checkout waiting for a warm-up, resolved by whichever of the warm-up or
+/// its own cancellation gets there first.
+@MainActor
+final class CheckoutWaiter {
+    private var continuation: CheckedContinuation<WebView?, Never>?
+    private var isResolved = false
+
+    /// Hands the waiter the continuation to resume.
+    ///
+    /// Resolves straight away if the checkout was cancelled before it got this
+    /// far, which is possible for a task cancelled the moment it started.
+    func attach(_ continuation: CheckedContinuation<WebView?, Never>) {
+        guard !isResolved else {
+            continuation.resume(returning: nil)
+            return
+        }
+
+        self.continuation = continuation
+    }
+
+    /// - Returns: Whether this call is the one that resolved the waiter.
+    @discardableResult
+    func resolve(_ webView: WebView?) -> Bool {
+        guard !isResolved else {
+            return false
+        }
+
+        isResolved = true
+        let continuation = self.continuation
+        self.continuation = nil
+        continuation?.resume(returning: webView)
+        return true
     }
 }
 
 /// Awaits the end of the warm-up navigation.
 private final class WarmupNavigationDelegate: NSObject, WKNavigationDelegate {
-    private var continuation: CheckedContinuation<Void, Never>?
-    private var isDone = false
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private var result: Bool?
 
-    func wait() async {
-        guard !isDone else {
+    /// - Returns: Whether the navigation succeeded.
+    func wait() async -> Bool {
+        if let result {
+            return result
+        }
+
+        return await withCheckedContinuation { continuation = $0 }
+    }
+
+    private func finish(succeeded: Bool) {
+        guard result == nil else {
             return
         }
 
-        await withCheckedContinuation { continuation = $0 }
-    }
-
-    private func finish() {
-        isDone = true
+        result = succeeded
         let continuation = continuation
         self.continuation = nil
-        continuation?.resume()
+        continuation?.resume(returning: succeeded)
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        finish()
+        finish(succeeded: true)
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
-        finish()
+        finish(succeeded: false)
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
-        finish()
+        finish(succeeded: false)
+    }
+
+    /// The web content process died, most likely to memory pressure during
+    /// launch. No navigation callback is coming, so the warm-up is resolved
+    /// here or it would never return at all.
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        finish(succeeded: false)
     }
 }

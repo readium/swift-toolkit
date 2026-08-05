@@ -36,7 +36,13 @@ protocol PageView {
 
 protocol PaginationViewDelegate: AnyObject {
     /// Creates the page view for the page at given index.
-    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)?
+    ///
+    /// May suspend: building a page view can mean waiting on a shared and
+    /// expensive resource. The pagination view re-checks its own state once
+    /// this returns, and hands the view straight back through
+    /// ``paginationView(_:didEndDisplayingView:atIndex:)`` if it turns out it
+    /// no longer needs it.
+    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) async -> (UIView & PageView)?
 
     /// Called when the page views were updated.
     func paginationViewDidUpdateViews(_ paginationView: PaginationView)
@@ -295,10 +301,30 @@ final class PaginationView: UIView, Loggable {
             return false
         }
 
-        if
-            loadedViews[index] == nil,
-            let view = delegate?.paginationView(self, pageViewAtIndex: index)
-        {
+        if loadedViews[index] == nil {
+            guard let view = await delegate?.paginationView(self, pageViewAtIndex: index) else {
+                return true
+            }
+
+            // Building the view suspended, so this chain's assumptions may no
+            // longer hold. In either case below the view is handed straight
+            // back: the delegate owns whatever it holds, and dropping it here
+            // would strand those resources until the navigator is torn down.
+
+            // A reload cancelled this chain while it waited. It must not put a
+            // page belonging to the previous position on screen.
+            guard !Task.isCancelled else {
+                delegate?.paginationView(self, didEndDisplayingView: view, atIndex: index)
+                return false
+            }
+
+            // Another chain filled this index in the meantime. The one already
+            // installed wins; two views at one index would leak the loser.
+            guard loadedViews[index] == nil else {
+                delegate?.paginationView(self, didEndDisplayingView: view, atIndex: index)
+                return true
+            }
+
             loadedViews[index] = view
             scrollView.addSubview(view)
             setNeedsLayout()

@@ -214,6 +214,76 @@ final class PaginationViewTests: XCTestCase {
         XCTAssertEqual(reused, handedBack, "The pages now on screen are not the recycled instances")
     }
 
+    /// Building a page view suspends, so the pagination can be reloaded while
+    /// one is being made. The page that arrives late belongs to the position
+    /// the reader has left: it must neither be displayed nor dropped on the
+    /// floor — the delegate gets it back so it can recycle it.
+    func testPageViewArrivingAfterAReloadIsHandedBackInsteadOfDisplayed() async {
+        let spy = PaginationViewDelegateSpy()
+        spy.gatesPageViewCreation = true
+        let sut = makeSUT(delegate: spy)
+
+        sut.reloadAtIndex(5, location: .start, pageCount: 100, readingProgression: .ltr)
+        let isBuildingPage5 = await pump { spy.hasPendingPageViewCreation }
+        XCTAssertTrue(isBuildingPage5, "Page 5 was never requested")
+        XCTAssertEqual(spy.requestedIndices, [5])
+
+        // Jump elsewhere while page 5 is still being built. This cancels the
+        // loading chain that asked for it.
+        sut.reloadAtIndex(50, location: .start, pageCount: 100, readingProgression: .ltr)
+        let updatesBeforeRelease = spy.updates.count
+
+        spy.releasePageViewCreation()
+        await pump { spy.returnedIndices.contains(5) }
+
+        XCTAssertNil(sut.loadedViews[5], "A page from the abandoned position was put on screen")
+        XCTAssertTrue(
+            spy.returnedIndices.contains(5),
+            "The page built for the abandoned position was dropped instead of handed back"
+        )
+
+        let staleUpdates = spy.updates
+            .dropFirst(updatesBeforeRelease)
+            .filter { $0.currentIndex == 5 }
+        XCTAssertEqual(staleUpdates, [], "The cancelled chain reported progress after the reload")
+
+        spy.gatesPageViewCreation = false
+        spy.releasePageViewCreation()
+        await drain(spy)
+    }
+
+    /// Reloads that interrupt page creation must leave nothing behind: every
+    /// page view built is either on screen or has been given back, never
+    /// silently dropped along with whatever it holds.
+    func testNoPageViewIsStrandedWhenReloadsInterruptCreation() async {
+        let spy = PaginationViewDelegateSpy()
+        spy.gatesPageViewCreation = true
+        let sut = makeSUT(delegate: spy)
+
+        sut.reloadAtIndex(5, location: .start, pageCount: 100, readingProgression: .ltr)
+        await pump { spy.hasPendingPageViewCreation }
+        sut.reloadAtIndex(50, location: .start, pageCount: 100, readingProgression: .ltr)
+        await pump { spy.requestedIndices.contains(50) }
+        sut.reloadAtIndex(80, location: .start, pageCount: 100, readingProgression: .ltr)
+
+        spy.gatesPageViewCreation = false
+        for _ in 0 ..< 20 {
+            spy.releasePageViewCreation()
+            await pump { spy.hasLoadingPageViews }
+            spy.releaseAll()
+        }
+
+        let built = Set(spy.createdViews.map(ObjectIdentifier.init))
+        let onScreen = Set(sut.loadedViews.values.compactMap { ($0 as? GatedPageView).map(ObjectIdentifier.init) })
+        let handedBack = Set(spy.returnedViews.map(ObjectIdentifier.init))
+
+        XCTAssertFalse(built.isEmpty, "No page view was ever built")
+        XCTAssertEqual(
+            built.subtracting(onScreen).subtracting(handedBack), [],
+            "Page views were dropped instead of being displayed or handed back"
+        )
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(delegate: PaginationViewDelegateSpy) -> PaginationView {
@@ -337,8 +407,27 @@ private final class PaginationViewDelegateSpy: PaginationViewDelegate {
         }
     }
 
-    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)? {
+    /// When enabled, `pageViewAtIndex` suspends until `releasePageViewCreation`
+    /// is called, so a test can act while the pagination view is mid-await.
+    var gatesPageViewCreation = false
+    private var creationGates: [CheckedContinuation<Void, Never>] = []
+
+    var hasPendingPageViewCreation: Bool { !creationGates.isEmpty }
+
+    func releasePageViewCreation() {
+        let gates = creationGates
+        creationGates = []
+        for gate in gates {
+            gate.resume()
+        }
+    }
+
+    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) async -> (UIView & PageView)? {
         requestedIndices.append(index)
+
+        if gatesPageViewCreation {
+            await withCheckedContinuation { creationGates.append($0) }
+        }
 
         let view: GatedPageView
         if recyclesViews, !pool.isEmpty {

@@ -595,10 +595,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private var borrowedWebViews: [WebView] = []
 
     /// Borrows a web view for a new spread view, if a pool is configured.
-    private func checkoutWebView() -> WebView? {
+    private func checkoutWebView() async -> WebView? {
         guard
             let pool = config.webViewPool,
-            let webView = pool.checkout(editingActions: viewModel.editingActions)
+            let webView = await pool.checkout(editingActions: viewModel.editingActions)
         else {
             return nil
         }
@@ -1327,7 +1327,7 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
 }
 
 extension EPUBNavigatorViewController: PaginationViewDelegate {
-    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)? {
+    func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) async -> (UIView & PageView)? {
         let spread = spreads[index]
 
         // Recycling avoids spawning a web content process, which costs
@@ -1347,7 +1347,7 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
             animatedLoad: false,
             // A pooled web view has already paid for its process launch and
             // for its first navigation on the Readium scheme.
-            webView: checkoutWebView()
+            webView: await checkoutWebView()
         )
         spreadView.delegate = self
 
