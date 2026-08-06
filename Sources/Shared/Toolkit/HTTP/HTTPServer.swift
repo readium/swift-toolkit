@@ -47,7 +47,7 @@ public extension HTTPServer {
         contentsOf url: FileURL,
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
-        func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
+        let onRequest: HTTPRequestHandler.OnRequest = { request in
             let file = request.href.flatMap { url.resolve($0) }
                 ?? url
 
@@ -78,8 +78,8 @@ public extension HTTPServer {
         publication: Publication,
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
-        func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
-            lazy var notFound: HTTPError = .errorResponse(HTTPErrorResponse(status: .notFound))
+        let onRequest: HTTPRequestHandler.OnRequest = { request in
+            let notFound: HTTPError = .errorResponse(HTTPErrorResponse(status: .notFound))
 
             guard
                 let href = request.href,
@@ -125,7 +125,7 @@ public struct HTTPServerRequest: Sendable {
 }
 
 /// Response sent from the `HTTPServer` when receiving a request.
-public struct HTTPServerResponse {
+public struct HTTPServerResponse: Sendable {
     public var resource: Resource
     public var mediaType: MediaType?
 
@@ -145,9 +145,9 @@ public struct HTTPServerResponse {
 /// Callbacks handling a request.
 ///
 /// If the resource cannot be served, the `onFailure` callback is called.
-public struct HTTPRequestHandler {
-    public typealias OnRequest = (_ request: HTTPServerRequest) -> HTTPServerResponse
-    public typealias OnFailure = (_ request: HTTPServerRequest, _ error: ReadError) -> Void
+public struct HTTPRequestHandler: Sendable {
+    public typealias OnRequest = @Sendable (_ request: HTTPServerRequest) -> HTTPServerResponse
+    public typealias OnFailure = @Sendable (_ request: HTTPServerRequest, _ error: ReadError) -> Void
 
     public let onRequest: OnRequest
     public let onFailure: OnFailure?
