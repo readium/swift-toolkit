@@ -10,7 +10,7 @@ import Foundation
 ///
 /// This is required by some Navigators to access a local publication's
 /// resources.
-public protocol HTTPServer {
+public protocol HTTPServer: Sendable {
     /// Serves resources at the given `endpoint`.
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
