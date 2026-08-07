@@ -8,7 +8,6 @@ help:
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
 	  test\t\t\tRun unit tests\n\
 	  \t\t\tUse 'only=<target>' to run a single test target.\n\
-	  \t\t\tSet TSAN=1 to run with the Thread Sanitizer.\n\
 	  lint-format\t\tVerify formatting\n\
 	  format\t\tFormat sources\n\
 	  update-locales\tUpdate the localization files\n\
@@ -21,19 +20,18 @@ test:
 .SILENT:
 .PHONY: playground
 playground:
+	# Prevents corrupting the XcodeGen cache index with .DS_Store folders.
 	cd Playground; find . -name ".DS_Store" -delete
 ifdef lcp
-	curl --fail -L --create-dirs --output Playground/R2LCPClient/Package.swift "$(lcp)"
-	cd Playground; xcodegen -s project+lcp.yml --use-cache --cache-path .xcodegen
+	@curl --fail --silent --show-error -L --create-dirs --output Playground/R2LCPClient/Package.swift "$(lcp)"
+	cd Playground; xcodegen -s Support/project+lcp.yml --project . --project-root . --use-cache --cache-path .xcodegen
+	# The plan only declares the test targets of the package. Add the LCP tests,
+	# whose target identifier is only known once the project has been generated.
+	scripts/gen-lcp-testplan.py Playground/Support/Playground.xctestplan Playground/Playground.xctestplan Playground/Playground.xcodeproj/project.pbxproj
 else
 	rm -rf Playground/R2LCPClient
-	# Playground.xctestplan is the source of truth and includes every test
-	# target. Without LCP, the ReadiumLCPTests target is not generated, so it
-	# is stripped from a copy of the plan used by project.yml.
-	python3 -c 'import json; p = json.load(open("Playground/Playground.xctestplan")); \
-	  p["testTargets"] = [t for t in p["testTargets"] if t["target"]["name"] != "ReadiumLCPTests"]; \
-	  json.dump(p, open("Playground/Playground+nolcp.xctestplan", "w"), indent=2)'
-	cd Playground; xcodegen -s project.yml --use-cache --cache-path .xcodegen
+	cd Playground; xcodegen -s Support/project.yml --project . --project-root . --use-cache --cache-path .xcodegen
+	cp Playground/Support/Playground.xctestplan Playground/Playground.xctestplan
 endif
 	# The repository might be cloned to a different location than "swift-toolkit".
 	# XcodeGen will use the name of the folder in the project, which is not desirable.

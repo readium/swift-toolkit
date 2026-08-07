@@ -138,9 +138,7 @@ jobs:
         if: ${{ env.LCP_URL_SPM != '' }}
         run: |
           set -eo pipefail
-          # The test plan also declares a "Thread Sanitizer" configuration,
-          # which is only run by the `test-tsan` job on pushes.
-          xcodebuild test -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" -only-test-configuration "Test Scheme Action" -only-testing:ReadiumLCPTests | xcbeautify --renderer github-actions
+          xcodebuild test -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" -only-testing:ReadiumLCPTests | xcbeautify --renderer github-actions
       - name: Generate TestApp project
         working-directory: TestApp
         run: make dev lcp="$LCP_URL_SPM"

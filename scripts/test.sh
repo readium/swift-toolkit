@@ -5,21 +5,15 @@
 # Run the test suite.
 #
 # FILTER - Optional target to run (e.g. ReadiumSharedTests)
-#
-# Set TSAN=1 to run the "Thread Sanitizer" test plan configuration instead of
-# the default one.
 # =============================================================================
 
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 DEVICE_NAME="iPad (A16)"
 FILTER="${1:-}"
-
-CONFIGURATION="Test Scheme Action"
-[ "${TSAN:-0}" = "1" ] && CONFIGURATION="Thread Sanitizer"
 
 PROJECT="$REPO_ROOT/Playground/Playground.xcodeproj"
 if [ ! -d "$PROJECT" ]; then
@@ -58,7 +52,6 @@ xcrun simctl bootstatus "$UDID" -b > /dev/null
 ARGS=(
     -project "$PROJECT"
     -scheme Playground
-    -only-test-configuration "$CONFIGURATION"
     -destination "platform=iOS Simulator,id=$UDID"
     # Skip the package graph resolution, which hits the network on every run.
     # Fails loudly when Package.resolved is out of date.
@@ -67,17 +60,32 @@ ARGS=(
     -skipPackagePluginValidation
     -skipMacroValidation
 )
-[ -n "$FILTER" ] && ARGS+=(-only-testing:"$FILTER")
+if [ -n "$FILTER" ]; then
+    ARGS+=(-only-testing:"$FILTER")
+fi
 
 STDERR_LOG="$(mktemp -t readium-test)"
 trap 'rm -f "$STDERR_LOG"' EXIT
 
+# `set +e` around the pipeline only, to read xcodebuild's status from
+# PIPESTATUS instead of aborting on a test failure.
+set +e
 xcodebuild test "${ARGS[@]}" \
     2> "$STDERR_LOG" \
     | xcbeautify --quieter --disable-logging \
     | { grep -Ev "^Executed |Test Suite 'All tests'|Test run started\.|Test session results:" || true; }
+STATUSES=("${PIPESTATUS[@]}")
+set -e
 
-STATUS=${PIPESTATUS[0]}
+# Report xcodebuild's failure in priority, but don't let a broken formatting
+# stage (e.g. a missing or crashing xcbeautify) go unnoticed either.
+STATUS=0
+for status in "${STATUSES[@]}"; do
+    if [ "$status" -ne 0 ]; then
+        STATUS=$status
+        break
+    fi
+done
 
 if [ "$STATUS" -ne 0 ]; then
     cat "$STDERR_LOG" >&2
