@@ -15,7 +15,7 @@ import ReadiumShared
 /// will not present any dialog to the user. This can be the desired behavior
 /// when trying to import a license in the background, without prompting the
 /// user for their passphrase.
-public final class LCPService: Loggable {
+public final class LCPService: Loggable, Sendable {
     private let licenses: LicensesService
     private let passphrases: PassphrasesService
     private let assetRetriever: AssetRetriever

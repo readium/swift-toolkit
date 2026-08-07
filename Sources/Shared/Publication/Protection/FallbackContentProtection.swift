@@ -8,7 +8,7 @@ import Foundation
 
 /// ``ContentProtection`` implementation used as a fallback when detecting
 /// known DRMs not supported by the app.
-public final class _FallbackContentProtection: ContentProtection, Sendable {
+public final class _FallbackContentProtection: ContentProtection {
     public init() {}
 
     public func open(
