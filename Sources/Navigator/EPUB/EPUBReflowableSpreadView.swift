@@ -14,6 +14,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private var topConstraint: NSLayoutConstraint!
     private var bottomConstraint: NSLayoutConstraint!
 
+    /// Chains the safe area insets updates sent to the JavaScript layer, to
+    /// preserve their scheduling order.
+    private var sendSafeAreaInsetsTask: Task<Void, Never>?
+
     private static let reflowableScript = loadScript(named: "readium-reflowable")
 
     required init(
@@ -107,6 +111,24 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             topConstraint.constant = contentInset.top
             bottomConstraint.constant = -contentInset.bottom
             scrollView.contentInset = .zero
+        }
+
+        // The top and bottom insets are applied natively to the web view, but
+        // the web view still spans the full width of the screen. We notify the
+        // JavaScript layer of the horizontal safe area insets, to prevent
+        // decorations spanning the full width of the viewport or page from
+        // being drawn under the notch in landscape orientation.
+        // See https://github.com/readium/swift-toolkit/issues/660
+        let script = """
+            readium.setSafeAreaInsets({'top': 0, 'left': \(Int(contentInset.left)), 'bottom': 0, 'right': \(Int(contentInset.right))});
+        """
+        // The updates are chained to guarantee they reach the JavaScript
+        // layer in the order they were scheduled, so the latest insets
+        // always win. `updateContentInset()` can be called several times in
+        // a row during a rotation.
+        sendSafeAreaInsetsTask = Task { [previousTask = sendSafeAreaInsetsTask] in
+            await previousTask?.value
+            _ = await evaluateScript(script)
         }
     }
 

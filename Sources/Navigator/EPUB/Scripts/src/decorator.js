@@ -19,6 +19,58 @@ let styles = new Map();
 let groups = new Map();
 var lastGroupId = 0;
 
+// Safe area insets of the viewport, in pixels.
+//
+// They are set by the native side, as the web view spans the full screen and
+// its content can be partially obscured by the device notch or the home
+// indicator, e.g. in landscape orientation.
+let safeAreaInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+
+/**
+ * Sets the safe area insets of the viewport and relayouts the decorations
+ * to take them into account.
+ *
+ * Only the horizontal insets are currently used, as the vertical ones are
+ * already applied natively to the web view. The full insets shape is kept
+ * for symmetry with the fixed layout's `setViewport` API.
+ */
+export function setSafeAreaInsets(insets) {
+  if (
+    safeAreaInsets.top === insets.top &&
+    safeAreaInsets.right === insets.right &&
+    safeAreaInsets.bottom === insets.bottom &&
+    safeAreaInsets.left === insets.left
+  ) {
+    return;
+  }
+  safeAreaInsets = insets;
+
+  groups.forEach(function (group) {
+    group.requestLayout();
+  });
+}
+
+/**
+ * Returns the horizontal safe area insets ({ left, right }) to apply to a
+ * page starting at `pageLeft` and spanning `pageWidth`, when the viewport
+ * holds `pagesPerViewport` pages side by side.
+ *
+ * The insets only apply to the pages touching the edges of the viewport,
+ * i.e. the first and last columns.
+ */
+function horizontalInsetsForPage(pageLeft, pageWidth, pagesPerViewport) {
+  // The page index is normalized to be positive, as RTL content uses
+  // negative coordinates in WKWebView.
+  const index =
+    ((Math.round(pageLeft / pageWidth) % pagesPerViewport) + pagesPerViewport) %
+    pagesPerViewport;
+
+  return {
+    left: index === 0 ? safeAreaInsets.left : 0,
+    right: index === pagesPerViewport - 1 ? safeAreaInsets.right : 0,
+  };
+}
+
 /**
  * Returns the document body's writing mode.
  */
@@ -234,6 +286,10 @@ export function DecorationGroup(groupId, groupName) {
       const isVerticalLR = writingMode === "vertical-lr";
 
       if (isVerticalRL || isVerticalLR) {
+        // Note that the safe area insets are intentionally ignored in
+        // vertical writing modes: the axis spanned by the "viewport" and
+        // "page" widths is the physical vertical one, which is already
+        // inset natively by the web view frame.
         if (style.width === "wrap") {
           element.style.width = `${rect.width}px`;
           element.style.height = `${rect.height}px`;
@@ -290,10 +346,13 @@ export function DecorationGroup(groupId, groupName) {
           element.style.left = `${rect.left + xOffset}px`;
           element.style.top = `${rect.top + yOffset}px`;
         } else if (style.width === "viewport") {
-          element.style.width = `${viewportWidth}px`;
-          element.style.height = `${rect.height}px`;
           const left = Math.floor(rect.left / viewportWidth) * viewportWidth;
-          element.style.left = `${left + xOffset}px`;
+          const insets = horizontalInsetsForPage(left, viewportWidth, 1);
+          element.style.width = `${
+            viewportWidth - insets.left - insets.right
+          }px`;
+          element.style.height = `${rect.height}px`;
+          element.style.left = `${left + insets.left + xOffset}px`;
           element.style.top = `${rect.top + yOffset}px`;
         } else if (style.width === "bounds") {
           element.style.width = `${boundingRect.width}px`;
@@ -301,10 +360,11 @@ export function DecorationGroup(groupId, groupName) {
           element.style.left = `${boundingRect.left + xOffset}px`;
           element.style.top = `${rect.top + yOffset}px`;
         } else if (style.width === "page") {
-          element.style.width = `${pageSize}px`;
-          element.style.height = `${rect.height}px`;
           const left = Math.floor(rect.left / pageSize) * pageSize;
-          element.style.left = `${left + xOffset}px`;
+          const insets = horizontalInsetsForPage(left, pageSize, columnCount);
+          element.style.width = `${pageSize - insets.left - insets.right}px`;
+          element.style.height = `${rect.height}px`;
+          element.style.left = `${left + insets.left + xOffset}px`;
           element.style.top = `${rect.top + yOffset}px`;
         }
       }

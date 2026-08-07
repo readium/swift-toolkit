@@ -19,7 +19,11 @@ import {
   setProperty,
   setCSSProperties,
 } from "./utils";
-import { getDecorations, registerTemplates } from "./decorator";
+import {
+  getDecorations,
+  registerTemplates,
+  setSafeAreaInsets,
+} from "./decorator";
 
 // Public API used by the navigator.
 global.readium = {
@@ -36,6 +40,7 @@ global.readium = {
   // decoration
   registerDecorationTemplates: registerTemplates,
   getDecorations: getDecorations,
+  setSafeAreaInsets: setSafeAreaInsets,
 
   // DOM
   findFirstVisibleLocator: findFirstVisibleLocator,
