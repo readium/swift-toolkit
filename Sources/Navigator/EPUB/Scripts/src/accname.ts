@@ -10,8 +10,10 @@
  *
  * This is the TypeScript counterpart of the Swift implementation in
  * `Sources/Shared/Publication/Services/Content/Iterators/HTMLAccessibilityProperties.swift`
- * — both MUST implement exactly the same subset, kept in lockstep by mirrored
- * test suites.
+ * — both MUST implement exactly the same subset. What keeps them in lockstep is
+ * the shared case manifest in `scripts/accname-sample/cases.toml`: it generates
+ * the fixtures both test suites run against, so a rule is stated once and
+ * asserted twice. Add cases there.
  *
  * Implemented:
  * - Source precedence for the name: `aria-labelledby` → `aria-label` →
