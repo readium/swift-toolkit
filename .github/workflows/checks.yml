@@ -123,6 +123,9 @@ jobs:
       name: LCP
       deployment: false
     env:
+      # Empty for pull requests opened from a fork: GitHub never passes secrets
+      # to `pull_request` runs from forks. The LCP steps are skipped in that
+      # case, and the projects are generated without LCP.
       LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
     steps:
       - name: Checkout
@@ -134,7 +137,16 @@ jobs:
           xcrun simctl list
       - name: Generate Playground project
         run: make playground lcp="$LCP_URL_SPM"
+      - name: Build Playground
+        # Without the LCP secret we can't run the LCP tests, but we still check
+        # that the Playground compiles. With it, the test step below builds the
+        # Playground itself.
+        if: env.LCP_URL_SPM == ''
+        run: |
+          set -eo pipefail
+          xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
       - name: Test LCP
+        if: env.LCP_URL_SPM != ''
         run: |
           set -eo pipefail
           xcodebuild test -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" -only-testing:ReadiumLCPTests | xcbeautify --renderer github-actions
@@ -158,6 +170,10 @@ jobs:
     environment:
       name: LCP
       deployment: false
+    env:
+      # See the note in the `int-dev` job: this is empty for pull requests
+      # opened from a fork, in which case the project is generated without LCP.
+      LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
