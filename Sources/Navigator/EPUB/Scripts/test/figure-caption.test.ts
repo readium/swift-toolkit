@@ -45,6 +45,18 @@ describe("findFigureCaption", () => {
     expect(findFigureCaption(element)).toBe("Cap");
   });
 
+  test("imageInsideTheFigcaptionIsNotCaptionedByIt", () => {
+    document.body.innerHTML = `
+      <figure>
+        <img src="chart.png" alt="Revenue chart"/>
+        <figcaption>Source: <img src="logo.png" alt="ACME"/> annual report</figcaption>
+      </figure>
+    `;
+    const images = document.body.querySelectorAll("img");
+    expect(findFigureCaption(images[0])).toBe("Source: annual report");
+    expect(findFigureCaption(images[1])).toBeNull();
+  });
+
   test("elementOutsideAFigureHasNoCaption", () => {
     document.body.innerHTML = `<img src="a.jpg" alt="Alt"/>`;
     const element = document.body.querySelector("img")!;

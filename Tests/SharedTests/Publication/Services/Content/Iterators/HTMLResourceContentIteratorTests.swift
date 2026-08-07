@@ -315,6 +315,52 @@ struct HTMLResourceContentIteratorTests {
             let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
             #expect(image.caption == "Cap")
         }
+
+        @Test func imageInsideTheFigcaptionIsNotCaptionedByIt() async throws {
+            let elements = try await allElements("""
+            <figure>
+                <img src="chart.png" alt="Revenue chart"/>
+                <figcaption>Source: <img src="logo.png" alt="ACME"/> annual report</figcaption>
+            </figure>
+            """)
+
+            let images = elements.compactMap { $0 as? ImageContentElement }
+            #expect(images.count == 2)
+
+            let chart = try #require(images.first)
+            #expect(chart.caption == "Source: annual report")
+
+            let logo = try #require(images.last)
+            #expect(logo.caption == nil)
+        }
+
+        @Test func theNameStillComesFromAWrappingFigcaption() async throws {
+            // The guard above is deliberately not applied to the accessible
+            // name: HTML-AAM 4.1.10 names this image from the figcaption it
+            // lives inside, and we follow the spec there.
+            let elements = try await allElements("""
+            <figure><figcaption>Logo: <img src="logo.png"/></figcaption></figure>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.caption == nil)
+            #expect(image.accessibilityName == "Logo:")
+        }
+
+        @Test func audioAndVideoInAFigureGetTheCaption() async throws {
+            let elements = try await allElements("""
+            <figure><audio src="tone.m4a" title="Tone"></audio><figcaption>A pure tone</figcaption></figure>
+            <figure><video src="clip.mp4" title="Clip"></video><figcaption>A short clip</figcaption></figure>
+            """)
+
+            let audio = try #require(elements.compactMap { $0 as? AudioContentElement }.first)
+            #expect(audio.caption == "A pure tone")
+            #expect(audio.accessibilityName == "Tone")
+
+            let video = try #require(elements.compactMap { $0 as? VideoContentElement }.first)
+            #expect(video.caption == "A short clip")
+            #expect(video.accessibilityName == "Clip")
+        }
     }
 
     struct MediaAccessibilityAttributes {

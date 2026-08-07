@@ -110,9 +110,19 @@ public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualCont
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
 
-    public init(locator: Locator, embeddedLink: Link, attributes: [ContentAttribute] = []) {
+    /// Caption of the audio clip, from an enclosing figure's figcaption.
+    ///
+    /// This is not the clip's subtitle track: `<track kind="captions">` is not
+    /// read by the content iterator.
+    ///
+    /// May be equal to `accessibilityName`. Prefer one or the other for
+    /// display, rather than concatenating them.
+    public var caption: String?
+
+    public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
         self.embeddedLink = embeddedLink
+        self.caption = caption
         self.attributes = attributes
     }
 }
@@ -123,9 +133,19 @@ public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualCont
     public var embeddedLink: Link
     public var attributes: [ContentAttribute]
 
-    public init(locator: Locator, embeddedLink: Link, attributes: [ContentAttribute] = []) {
+    /// Caption of the video clip, from an enclosing figure's figcaption.
+    ///
+    /// This is not the clip's subtitle track: `<track kind="captions">` is not
+    /// read by the content iterator.
+    ///
+    /// May be equal to `accessibilityName`. Prefer one or the other for
+    /// display, rather than concatenating them.
+    public var caption: String?
+
+    public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
         self.embeddedLink = embeddedLink
+        self.caption = caption
         self.attributes = attributes
     }
 }
@@ -137,6 +157,10 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
     public var attributes: [ContentAttribute]
 
     /// Caption of the image, from an enclosing figure's figcaption.
+    ///
+    /// May be equal to `accessibilityName`, when the figcaption also named the
+    /// image (HTML-AAM 4.1.10). Prefer one or the other for display, rather
+    /// than concatenating them.
     public var caption: String?
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
@@ -160,6 +184,9 @@ public struct SVGContentElement: Hashable, TextualContentElement {
     public var svg: String
 
     /// Caption of the image, from an enclosing figure's figcaption.
+    ///
+    /// May be equal to `accessibilityName`. Prefer one or the other for
+    /// display, rather than concatenating them.
     public var caption: String?
 
     public init(locator: Locator, svg: String, caption: String? = nil, attributes: [ContentAttribute] = []) {

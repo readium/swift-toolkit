@@ -90,8 +90,9 @@ Here are the default available implementations:
 
 * `AudioContentElement` - audio clips
 * `VideoContentElement` - video clips
-* `ImageContentElement` - bitmap images, with the additional property:
-    * `caption: String?` - the caption from an enclosing figure's `figcaption`, when available
+* `ImageContentElement` - bitmap images
+
+All of them expose an additional `caption: String?` property - the caption from an enclosing figure's `figcaption`, when available.
 
 #### Text
 

@@ -229,10 +229,17 @@ extension SwiftSoup.Element {
 
     /// Returns the text of the enclosing `<figure>`'s direct `<figcaption>`
     /// child, if any.
+    ///
+    /// An element living inside the figcaption (a publisher logo, a footnote
+    /// marker) is not captioned by the text wrapping it, so it gets no
+    /// caption at all rather than falling back to an outer figure.
     func figureCaption() throws -> String? {
-        try enclosingFigure()?
-            .firstDirectChild(tag: "figcaption")?
-            .text()
-            .orNilIfBlank()
+        guard
+            let figcaption = enclosingFigure()?.firstDirectChild(tag: "figcaption"),
+            !parents().contains(where: { $0 === figcaption })
+        else {
+            return nil
+        }
+        return try figcaption.text().orNilIfBlank()
     }
 }

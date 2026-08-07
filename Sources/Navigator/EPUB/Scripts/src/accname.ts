@@ -204,12 +204,19 @@ function firstDirectChildText(element: Element, tag: string): string | null {
 /**
  * Returns the text of the enclosing `<figure>`'s direct `<figcaption>` child,
  * if any. Also used by gestures.js for the `caption` payload field.
+ *
+ * An element living inside the figcaption (a publisher logo, a footnote
+ * marker) is not captioned by the text wrapping it, so it gets no caption at
+ * all rather than falling back to an outer figure.
  */
 export function findFigureCaption(element: Element): string | null {
   const figcaption = element
     .closest("figure")
     ?.querySelector(":scope > figcaption");
-  return figcaption?.textContent?.replace(/\s+/g, " ").trim() || null;
+  if (!figcaption || figcaption.contains(element)) {
+    return null;
+  }
+  return figcaption.textContent?.replace(/\s+/g, " ").trim() || null;
 }
 
 /**

@@ -296,12 +296,13 @@ public actor HTMLResourceContentIterator: ContentIterator {
                     }()
 
                     if let link = link {
+                        let caption = try node.figureCaption()
                         let attributes = try node.accessibilityProperties().contentAttributes
                         switch tag {
                         case "audio":
-                            elements.append(AudioContentElement(locator: elementLocator, embeddedLink: link, attributes: attributes))
+                            elements.append(AudioContentElement(locator: elementLocator, embeddedLink: link, caption: caption, attributes: attributes))
                         case "video":
-                            elements.append(VideoContentElement(locator: elementLocator, embeddedLink: link, attributes: attributes))
+                            elements.append(VideoContentElement(locator: elementLocator, embeddedLink: link, caption: caption, attributes: attributes))
                         default:
                             break
                         }
