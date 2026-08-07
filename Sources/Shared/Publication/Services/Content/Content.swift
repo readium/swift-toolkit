@@ -311,6 +311,13 @@ public extension ContentAttributesHolder {
 }
 
 /// Iterates through a list of `ContentElement` items.
+///
+/// Implementations behave like a cursor sitting *between* elements: `next()`
+/// returns the element to the right of the cursor and moves right, while
+/// `previous()` returns the element to the left and moves left. As a
+/// consequence, after `next()` returned element N, `previous()` returns
+/// element N-1 (not N), and vice-versa. A call returning `nil` does not move
+/// the cursor.
 public protocol ContentIterator: AnyObject, Sendable {
     /// Retrieves the next element, or nil if we reached the end.
     func next() async throws -> ContentElement?

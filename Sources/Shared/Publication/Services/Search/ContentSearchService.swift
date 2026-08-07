@@ -30,16 +30,23 @@ public final class ContentSearchService: SearchService, Loggable {
     ///     snippets in the returned locators.
     ///   - searchAlgorithm: Implements the actual search algorithm in the
     ///     sanitized text.
+    ///   - ignoresPageArtifacts: When enabled (the default), elements marked
+    ///     with the `pageArtifact` attribute (page numbers, running headers
+    ///     in fixed-layout publications) are excluded from the searched text.
+    ///     This lets queries match sentences spanning a page boundary, at the
+    ///     cost of not finding the artifacts themselves.
     public static func makeFactory(
         snippetLength: Int = 200,
-        searchAlgorithm: StringSearchAlgorithm = BasicStringSearchAlgorithm()
+        searchAlgorithm: StringSearchAlgorithm = BasicStringSearchAlgorithm(),
+        ignoresPageArtifacts: Bool = true
     ) -> @Sendable (PublicationServiceContext) -> ContentSearchService? {
         { context in
             ContentSearchService(
                 publication: context.publication,
                 language: context.manifest.metadata.language,
                 snippetLength: snippetLength,
-                searchAlgorithm: searchAlgorithm
+                searchAlgorithm: searchAlgorithm,
+                ignoresPageArtifacts: ignoresPageArtifacts
             )
         }
     }
@@ -50,17 +57,20 @@ public final class ContentSearchService: SearchService, Loggable {
     private let language: Language?
     private let snippetLength: Int
     private let searchAlgorithm: StringSearchAlgorithm
+    private let ignoresPageArtifacts: Bool
 
     public init(
         publication: Weak<Publication>,
         language: Language?,
         snippetLength: Int,
-        searchAlgorithm: StringSearchAlgorithm
+        searchAlgorithm: StringSearchAlgorithm,
+        ignoresPageArtifacts: Bool = true
     ) {
         self.publication = publication
         self.language = language
         self.snippetLength = snippetLength
         self.searchAlgorithm = searchAlgorithm
+        self.ignoresPageArtifacts = ignoresPageArtifacts
 
         var options = searchAlgorithm.options
         options.language = language ?? Language.current
@@ -78,7 +88,8 @@ public final class ContentSearchService: SearchService, Loggable {
             snippetLength: snippetLength,
             searchAlgorithm: searchAlgorithm,
             query: query,
-            options: options
+            options: options,
+            ignoresPageArtifacts: ignoresPageArtifacts
         ))
     }
 }
@@ -111,6 +122,7 @@ private actor Iterator: SearchIterator, Loggable {
     private let query: String
     private let options: SearchOptions
     private let currentLanguage: Language?
+    private let ignoresPageArtifacts: Bool
 
     /// Danger-zone capacity used for regex queries (heuristic).
     private static let regexTailCapacity = 256
@@ -180,7 +192,8 @@ private actor Iterator: SearchIterator, Loggable {
         snippetLength: Int,
         searchAlgorithm: StringSearchAlgorithm,
         query: String,
-        options: SearchOptions?
+        options: SearchOptions?,
+        ignoresPageArtifacts: Bool
     ) {
         let options = options ?? SearchOptions()
 
@@ -189,6 +202,7 @@ private actor Iterator: SearchIterator, Loggable {
         self.searchAlgorithm = searchAlgorithm
         self.query = query
         self.options = options
+        self.ignoresPageArtifacts = ignoresPageArtifacts
         currentLanguage = options.language ?? language
         tailCapacity = (options.regularExpression ?? false)
             ? Iterator.regexTailCapacity
@@ -205,7 +219,8 @@ private actor Iterator: SearchIterator, Loggable {
 
             guard
                 let textElement = element as? TextContentElement,
-                !textElement.segments.isEmpty
+                !textElement.segments.isEmpty,
+                isSearchable(textElement)
             else {
                 continue
             }
@@ -284,6 +299,16 @@ private actor Iterator: SearchIterator, Loggable {
         return await rawNextElement()
     }
 
+    /// Returns whether the element contributes to the searched text.
+    ///
+    /// Page artifacts (page numbers, running headers in fixed-layout
+    /// publications) are excluded by default: keeping them in the sliding
+    /// window would break queries spanning a page boundary, since they sit
+    /// between the two halves of a cross-page sentence.
+    private func isSearchable(_ element: ContentElement) -> Bool {
+        !ignoresPageArtifacts || element.attribute(.pageArtifact) == nil
+    }
+
     /// Advances the ContentIterator, returning `nil` only on exhaustion.
     /// On error, logs the warning and retries so that a single failing element
     /// does not truncate the rest of the search results.
@@ -353,7 +378,7 @@ private actor Iterator: SearchIterator, Loggable {
         // beyond searchCeiling and same-resource text in lookaheadBuffer.
         var textCount = max(0, windowTextCount - searchCeiling)
         for el in lookaheadBuffer {
-            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else { continue }
+            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty, isSearchable(textEl) else { continue }
             guard textEl.locator.href == currentHREF else { break }
             textCount += textEl.text?.count ?? 0
         }
@@ -364,19 +389,20 @@ private actor Iterator: SearchIterator, Loggable {
             guard !Task.isCancelled else { break }
             guard let el = await rawNextElement() else { break }
             lookaheadBuffer.append(el)
-            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else { continue }
+            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty, isSearchable(textEl) else { continue }
             guard textEl.locator.href == currentHREF else { break }
             textCount += textEl.text?.count ?? 0
         }
 
         // Append same-resource lookahead elements to the window (they become
         // the lookahead slice — beyond searchCeiling, not searched yet).
-        // Non-text elements and stale old-resource elements are skipped in-place
-        // so they remain in the buffer for nextElement() to return in order.
+        // Non-text elements, page artifacts and stale old-resource elements
+        // are skipped in-place so they remain in the buffer for nextElement()
+        // to return in order.
         var i = lookaheadBuffer.startIndex
         while i < lookaheadBuffer.endIndex {
             let el = lookaheadBuffer[i]
-            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else {
+            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty, isSearchable(textEl) else {
                 i += 1
                 continue
             }
@@ -619,7 +645,7 @@ private actor Iterator: SearchIterator, Loggable {
         // Trim trailing whitespace if we're at resource end (no more same-
         // resource elements in the lookahead buffer).
         let hasMoreSameResource = lookaheadBuffer.contains { el in
-            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty else { return false }
+            guard let textEl = el as? TextContentElement, !textEl.segments.isEmpty, isSearchable(textEl) else { return false }
             return textEl.locator.href == currentHREF
         }
 

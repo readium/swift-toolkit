@@ -55,12 +55,82 @@ public final class PublicationSpeechSynthesizer: Loggable {
     /// An utterance is an arbitrary text (e.g. sentence) extracted from the publication, that can be synthesized by
     /// the TTS engine.
     public struct Utterance: Equatable, Sendable {
+        /// A portion of the utterance with its own locator.
+        ///
+        /// A fixed-layout sentence has one part per printed line or block
+        /// element it touches; a regular utterance has a single part.
+        public struct Part: Equatable, Sendable {
+            /// Text spoken for this part.
+            public let text: String
+            /// Locator to this part in the publication.
+            public let locator: Locator
+        }
+
         /// Text to be spoken.
         public let text: String
         /// Locator to the utterance in the publication.
         public let locator: Locator
         /// Language of this utterance, if it dffers from the default publication language.
         public let language: Language?
+        /// Ordered portions of the utterance, each with a locator targeting
+        /// its own page. Contains a single part for regular utterances.
+        public let parts: [Part]
+
+        init(parts: [Part], language: Language?) {
+            precondition(!parts.isEmpty)
+            self.parts = parts
+            text = parts.map(\.text).joined()
+            locator = parts[0].locator
+            self.language = language
+        }
+
+        /// Returns a locator to the given range of the spoken `text`,
+        /// narrowed inside the part containing it.
+        ///
+        /// This can be used to render the word being spoken, or to turn the
+        /// page when the speech crosses a fixed-layout page boundary.
+        public func locator(forSpokenRange range: Range<String.Index>) -> Locator {
+            let textCount = text.utf16.count
+            let lower = min(max(0, range.lowerBound.utf16Offset(in: text)), textCount)
+            let upper = min(max(lower, range.upperBound.utf16Offset(in: text)), textCount)
+
+            var partStart = 0
+            for (index, part) in parts.enumerated() {
+                let partCount = part.text.utf16.count
+                let partEnd = partStart + partCount
+                guard lower < partEnd || index == parts.count - 1 else {
+                    partStart = partEnd
+                    continue
+                }
+
+                guard let highlight = part.locator.text.highlight else {
+                    return part.locator
+                }
+
+                // The spoken text and the on-page highlight may differ
+                // slightly at a page seam (joining space, dropped hyphen), so
+                // we shift by the joining whitespace and clamp instead of
+                // assuming a one-to-one mapping.
+                let spokenLeading = part.text.prefix(while: \.isWhitespace).utf16.count
+                let highlightLeading = highlight.prefix(while: \.isWhitespace).utf16.count
+                let shift = max(0, spokenLeading - highlightLeading)
+                let highlightCount = highlight.utf16.count
+                let start = min(max(0, lower - partStart - shift), highlightCount)
+                let end = min(max(start, upper - partStart - shift), highlightCount)
+
+                let utf16 = highlight.utf16
+                guard
+                    let startIndex = utf16.index(utf16.startIndex, offsetBy: start).samePosition(in: highlight),
+                    let endIndex = utf16.index(utf16.startIndex, offsetBy: end).samePosition(in: highlight)
+                else {
+                    return part.locator
+                }
+
+                return part.locator.copy(text: { $0 = $0[startIndex ..< endIndex] })
+            }
+
+            return locator
+        }
     }
 
     /// Represents a state of the `PublicationSpeechSynthesizer`.
@@ -281,19 +351,12 @@ public final class PublicationSpeechSynthesizer: Loggable {
                     return
                 }
 
+                // The locator is narrowed inside the part containing the
+                // spoken range, so that the navigator turns the page when the
+                // speech crosses a fixed-layout page boundary.
                 self.state = .playing(
                     utterance,
-                    range: utterance.locator.copy(
-                        text: { text in
-                            guard
-                                let highlight = text.highlight,
-                                highlight.startIndex <= range.lowerBound, highlight.endIndex >= range.upperBound
-                            else {
-                                return
-                            }
-                            text = text[range]
-                        }
-                    )
+                    range: utterance.locator(forSpokenRange: range)
                 )
             }
         )
@@ -379,14 +442,19 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Splits a publication `ContentElement` item into the utterances to be spoken.
     private func utterances(for element: ContentElement) -> [Utterance] {
-        func utterance(text: String, locator: Locator, language: Language? = nil) -> Utterance? {
-            guard text.contains(where: { $0.isLetter || $0.isNumber }) else {
+        // Page artifacts (e.g. a standalone page number in a fixed-layout
+        // publication) are not spoken.
+        guard element.attribute(.pageArtifact) == nil else {
+            return []
+        }
+
+        func utterance(parts: [Utterance.Part], language: Language? = nil) -> Utterance? {
+            guard parts.contains(where: { $0.text.contains(where: { $0.isLetter || $0.isNumber }) }) else {
                 return nil
             }
 
             return Utterance(
-                text: text,
-                locator: locator,
+                parts: parts,
                 language: language
                     // If the language is the same as the one declared globally in the publication,
                     // we omit it. This way, the app can customize the default language used in the
@@ -397,16 +465,46 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
         switch element {
         case let element as TextContentElement:
-            return element.segments
-                .compactMap { segment in
-                    utterance(text: segment.text, locator: segment.locator, language: segment.language)
+            var utterances: [Utterance] = []
+            var parts: [Utterance.Part] = []
+            var language: Language?
+
+            func flush() {
+                if let utterance = utterance(parts: parts, language: language) {
+                    utterances.append(utterance)
                 }
+                parts = []
+                language = nil
+            }
+
+            for segment in element.segments {
+                guard segment.attribute(.pageArtifact) == nil else {
+                    continue
+                }
+
+                if let joiner = segment.attribute(.continued), !parts.isEmpty {
+                    // The segment carries the cross-page continuation of the
+                    // sentence started in the previous segment: absorb it
+                    // into the current utterance as an additional part.
+                    var text = String(segment.text.drop(while: \.isWhitespace))
+                    if joiner == .space {
+                        text = " " + text
+                    }
+                    parts.append(Utterance.Part(text: text, locator: segment.locator))
+                } else {
+                    flush()
+                    parts = [Utterance.Part(text: segment.text, locator: segment.locator)]
+                    language = segment.language
+                }
+            }
+            flush()
+            return utterances
 
         case let element as TextualContentElement:
             guard let text = element.text.takeIf({ !$0.isEmpty }) else {
                 return []
             }
-            return Array(ofNotNil: utterance(text: text, locator: element.locator))
+            return Array(ofNotNil: utterance(parts: [Utterance.Part(text: text, locator: element.locator)]))
 
         default:
             return []

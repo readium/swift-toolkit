@@ -137,6 +137,68 @@ If you are not interested in the segment attributes, you can also use `element.t
 
 All types of `ContentElement` can have associated attributes. Custom `ContentService` implementations can use this as an extensibility point.
 
+## Fixed-layout sentence re-segmentation
+
+Fixed-layout publications (PDF, EPUB FXL) are paginated by construction: a sentence is cut by printed line breaks, by block element boundaries and by page boundaries, and stray page text (page numbers, running headers) sits in the middle of the reading flow. For these publications, the default `ContentService` automatically re-segments the content so that **each `TextContentElement` holds exactly one sentence**.
+
+### Sentence elements
+
+A sentence element has one segment per fragment the sentence touches — a printed line of a PDF page, or a block element of an FXL page. Segments after the first are marked with the `continued` attribute, and each keeps a locator targeting its own page and element, so every part stays renderable where it appears.
+
+```swift
+TextContentElement(
+    role: .body,
+    segments: [
+        TextContentElement.Segment(text: "There is a particu"),  // page 1
+        TextContentElement.Segment(
+            text: "larly comfortable hotel.",  // page 2
+            attributes: [ContentAttribute(key: .continued, value: ContentContinuationJoiner.direct)]
+        ),
+    ],
+    attributes: [ContentAttribute(key: .sentenceAligned, value: true)]
+)
+```
+
+The `continued` value indicates how the segment joins the previous one: `.space` for a regular word boundary (the segment `text` carries the joining space), or `.direct` when a word was hyphenated at the break (the hyphen is dropped from the segment `text`, but kept in the locator's `highlight`).
+
+The segment `text` values always concatenate to the sentence's normalized *logical* text — what TTS speaks and search matches — while each segment locator's `highlight` keeps the on-page form. Locators produced from this content (TTS ranges, search results) therefore carry the logical text, which may be de-hyphenated relative to the page; navigation relies on the `page=` fragment and the per-segment locators.
+
+Sentence elements carry the `sentenceAligned` attribute and pass through `makeTextContentTokenizer` untouched.
+
+### Page artifacts
+
+Page-boundary noise – page numbers, running headers and footers – is detected and emitted as standalone elements marked with the `pageArtifact` attribute. Marked elements are skipped by TTS and, by default, by `ContentSearchService` (see its `ignoresPageArtifacts` parameter).
+
+```swift
+if let kind = element.attribute(.pageArtifact) {
+    // kind is .pageNumber or .runningHeader
+}
+```
+
+### Hard breaks
+
+Standalone display text – a part heading such as "P A R T O N E" or "Chapter 1", a title page line – is emitted as its own element too. Unlike a page artifact it is spoken by TTS and searchable, but sentences are never merged across it.
+
+Both detections are extensible: implement `PageArtifactDetector` or `HardBreakDetector` and pass your detectors when creating the service, in your parser configuration.
+
+```swift
+DefaultContentService.makeFactory(
+    resourceContentIteratorFactories: [...],
+    pageArtifactDetectors: [
+        PageNumberArtifactDetector(),
+        RunningHeaderArtifactDetector(),
+        MyCustomDetector(),
+    ],
+    hardBreakDetectors: [
+        SpacedCapsHardBreakDetector(),
+        HeadingHardBreakDetector(),
+        StandalonePageHardBreakDetector(),
+    ]
+)
+```
+
+Known limitations: a sentence spanning more than 4 pages is cut at the cap, and the re-segmentation is enabled from the publication-wide layout hint, so per-resource layout overrides in mixed EPUBs are ignored.
+
 ## Use cases
 
 ### An index of all images embedded in the publication

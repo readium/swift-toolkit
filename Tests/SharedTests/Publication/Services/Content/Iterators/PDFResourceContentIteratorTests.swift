@@ -50,14 +50,13 @@ enum PDFResourceContentIteratorTests {
 
         @Test func iterateFullyBackwardFromEnd() async throws {
             let iter = makeIterator(start: makeLocator(progression: 1.0))
-            _ = try await iter.next() // Position at last element
 
             var backwardElements: [AnyEquatableContentElement] = []
             while let element = try await iter.previous() {
                 backwardElements.append(element.equatable())
             }
 
-            #expect(backwardElements == sampleElements.dropLast().reversed())
+            #expect(backwardElements == sampleElements.reversed())
         }
     }
 
@@ -80,11 +79,12 @@ enum PDFResourceContentIteratorTests {
         }
 
         @Test func startingFromEndProgression() async throws {
+            // A progression of 1.0 starts *past* the last page: nothing comes
+            // after, and backward iteration begins on the last page.
             let iter = makeIterator(start: makeLocator(progression: 1.0))
-            let first = try await iter.next()
-            #expect(first?.equatable() == makeElement(pageNumber: 9, text: p9Text))
-            let second = try await iter.next()
-            #expect(second == nil)
+            #expect(try await iter.next() == nil)
+            let last = try await iter.previous()
+            #expect(last?.equatable() == makeElement(pageNumber: 9, text: p9Text))
         }
     }
 

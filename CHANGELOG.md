@@ -31,7 +31,32 @@ All notable changes to this project will be documented in this file. Take a look
 * The `ReadiumInternal` package has been removed. Its utilities were internal helpers and are now folded into `ReadiumShared` with `package` visibility. If you imported `ReadiumInternal` directly, remove the import.
 
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Shared
+
+* The content of fixed-layout publications (PDF, EPUB FXL) is now re-segmented into sentences: each `TextContentElement` holds exactly one sentence, merged across printed lines, block elements and page boundaries (up to 4 pages), with de-hyphenated word cuts. Parts of a sentence found on the next line or page become extra segments marked with the new `continued` content attribute, each keeping a locator targeting its own page. Emitted elements carry the new `sentenceAligned` attribute and pass through `makeTextContentTokenizer` untouched. See the [Content guide](docs/Guides/Content.md).
+* Page-boundary noise (page numbers, running headers and footers) is now detected in fixed-layout publications and emitted as standalone elements marked with the new `pageArtifact` content attribute. You can customize the detection with your own `PageArtifactDetector` implementations, passed to `DefaultContentService.makeFactory()`.
+* Standalone display text in fixed-layout publications (part headings such as "P A R T O N E", "Chapter 1" lines, title pages) is now detected as a *hard break*: it forms its own element and is never merged into a surrounding sentence. Customize with your own `HardBreakDetector` implementations, passed to `DefaultContentService.makeFactory()`.
+* `ContentSearchService` now skips elements marked `pageArtifact` by default, so a query spanning a fixed-layout page boundary matches even when a page number sits between the two halves of the sentence. Restore artifact searchability with the new `ignoresPageArtifacts: false` parameter of `ContentSearchService.makeFactory()`. Note that search-result locators carry the normalized *logical* text (e.g. de-hyphenated), which may differ from the on-page form.
+
+#### Navigator
+
+* `PublicationSpeechSynthesizer` now speaks each fixed-layout sentence as a single utterance — across printed lines, block elements and page boundaries — and skips page numbers and running headers. See the [TTS guide](docs/Guides/TTS.md).
+
+### Changed
+
+#### Navigator
+
+* `PublicationSpeechSynthesizer.Utterance` gains an ordered `parts` list with per-part locators, used to render a cross-page sentence on each of its pages and to turn the page when the speech crosses the boundary (via `utterance.locator(forSpokenRange:)`). The existing `text` and `locator` properties are unchanged for single-part utterances.
+
+### Fixed
+
+#### Shared
+
+* `PDFResourceContentIterator` now starts *past* the last page when given a locator with a progression of 1.0, consistently with `HTMLResourceContentIterator`. Backward iteration across the resources of a multi-PDF publication no longer skips the last page of the previous resource.
 
 ## [3.11.0] - 2026-07-17
 

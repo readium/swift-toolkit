@@ -19,8 +19,10 @@ public enum PDFResourceContentIteratorError: Error, Sendable {
 /// If you want to start mid-resource, the `locator` must contain a `page=`
 /// fragment, `position`, or a `progression` value.
 ///
-/// If you want to start from the end of the resource, the `locator` must have
-/// a `progression` of 1.0.
+/// If you want to start from the end of the resource (e.g. for backward
+/// iteration), the `locator` must have a `progression` of 1.0. The iteration
+/// then starts *past* the last page: `next()` returns nil and `previous()`
+/// returns the last page, consistently with `HTMLResourceContentIterator`.
 ///
 /// This ``ContentIterator`` requires the ``Publication`` to have a
 /// ``PDFDocumentService``.
@@ -176,7 +178,9 @@ public actor PDFResourceContentIterator: ContentIterator, Loggable {
         } else if let position = locator.locations.position {
             return clampPageIndex(position - positionOffset - 1)
         } else if locator.locations.progression == 1.0 {
-            return pageCount - 1
+            // Past the last page, so that a backward iteration starts on the
+            // last page instead of skipping it.
+            return pageCount
         } else if let progression = locator.locations.progression, progression > 0 {
             return clampPageIndex(Int(progression * Double(pageCount)))
         } else {

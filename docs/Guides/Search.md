@@ -110,6 +110,8 @@ struct SearchResultRow: View {
 
 In a real UI you will typically want to truncate `before` and `after` so the UI stays compact.
 
+With fixed-layout publications (PDF, EPUB FXL), the snippet text is the *normalized logical* form of the content: word cuts are de-hyphenated and page-boundary noise (page numbers, running headers) is skipped, so it may differ slightly from the text printed on the page. Navigating to the result still lands on the right page, via the locator's `page=` fragment. To make page numbers and running headers searchable again — at the cost of queries spanning a page boundary — pass `ignoresPageArtifacts: false` to `ContentSearchService.makeFactory()`.
+
 ## Search options
 
 Pass a **`SearchOptions`** value to `search(query:options:)` to override the defaults. Any option you leave as `nil` falls back to the default behavior.

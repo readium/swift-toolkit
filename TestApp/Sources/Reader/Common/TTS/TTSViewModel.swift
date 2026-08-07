@@ -47,7 +47,7 @@ final class TTSViewModel: ObservableObject, Loggable {
     private let navigator: Navigator
     private let synthesizer: PublicationSpeechSynthesizer
 
-    @Published private var playingUtterance: Locator?
+    @Published private var playingUtteranceParts: [PublicationSpeechSynthesizer.Utterance.Part]?
     private let playingWordRangeSubject = PassthroughSubject<Locator, Never>()
 
     private var isMoving = false
@@ -65,19 +65,21 @@ final class TTSViewModel: ObservableObject, Loggable {
 
         synthesizer.delegate = self
 
-        // Highlight the currently spoken utterance.
+        // Highlight the currently spoken utterance, with one decoration per
+        // part: a fixed-layout sentence spanning several lines or pages keeps
+        // a highlight on each of them.
         if let navigator = navigator as? DecorableNavigator {
-            $playingUtterance
+            $playingUtteranceParts
                 .removeDuplicates()
-                .sink { locator in
-                    var decorations: [Decoration] = []
-                    if let locator = locator {
-                        decorations.append(Decoration(
-                            id: "tts-utterance",
-                            locator: locator,
-                            style: .highlight(tint: .red)
-                        ))
-                    }
+                .sink { parts in
+                    let decorations: [Decoration] = (parts ?? []).enumerated()
+                        .map { index, part in
+                            Decoration(
+                                id: "tts-utterance-\(index)",
+                                locator: part.locator,
+                                style: .highlight(tint: .red)
+                            )
+                        }
                     navigator.apply(decorations: decorations, in: "tts")
                 }
                 .store(in: &subscriptions)
@@ -181,13 +183,13 @@ extension TTSViewModel: PublicationSpeechSynthesizerDelegate {
         case .stopped:
             state.showControls = false
             state.isPlaying = false
-            playingUtterance = nil
+            playingUtteranceParts = nil
             clearNowPlaying()
 
         case let .playing(utterance, range: wordRange):
             state.showControls = true
             state.isPlaying = true
-            playingUtterance = utterance.locator
+            playingUtteranceParts = utterance.parts
             if let wordRange = wordRange {
                 playingWordRangeSubject.send(wordRange)
             }
@@ -195,7 +197,7 @@ extension TTSViewModel: PublicationSpeechSynthesizerDelegate {
         case let .paused(utterance):
             state.showControls = true
             state.isPlaying = false
-            playingUtterance = utterance.locator
+            playingUtteranceParts = utterance.parts
         }
     }
 

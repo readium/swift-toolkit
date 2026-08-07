@@ -40,6 +40,13 @@ public func makeTextContentTokenizer(
     }
 
     func tokenize(_ content: ContentElement) throws -> [ContentElement] {
+        // Elements produced by the `SentenceContentIterator` are already
+        // aligned on sentence boundaries; re-tokenizing them would replace
+        // the on-page `highlight` of their locators (e.g. "particu-") with
+        // the normalized spoken text, breaking on-page decorations.
+        if content.attribute(.sentenceAligned) == true {
+            return [content]
+        }
         if var content = content as? TextContentElement {
             content.segments = try content.segments.flatMap(tokenize(segment:))
             return [content]
