@@ -8,6 +8,7 @@
 
 import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
 import { getCurrentSelection } from "./selection";
+import { findFirstVisibleElement } from "./dom";
 
 window.addEventListener(
   "error",
@@ -305,12 +306,17 @@ export function rangeFromLocator(locator) {
         root = document.body;
       }
 
-      let anchor = new TextQuoteAnchor(root, text.highlight, {
-        prefix: text.before,
-        suffix: text.after,
-      });
+      try {
+        let anchor = new TextQuoteAnchor(root, text.highlight, {
+          prefix: text.before,
+          suffix: text.after,
+        });
 
-      return anchor.toRange();
+        return anchor.toRange();
+      } catch (e) {
+        // When the text quote cannot be resolved, fall through to the
+        // location-based anchors below (e.g. CSS selector or fragments).
+      }
     }
 
     if (locations) {
@@ -346,8 +352,118 @@ export function rangeFromLocator(locator) {
 /// User Settings.
 
 export function setCSSProperties(properties) {
+  const anchor = captureReadingPositionAnchor();
+
   for (const name in properties) {
     setProperty(name, properties[name]);
+  }
+
+  restoreReadingPositionAnchor(anchor);
+}
+
+// Captures a live DOM Range anchored to the content currently visible at the
+// top (leading) edge of the viewport, alongside its current bounding rect.
+//
+// As DOM Ranges automatically track their nodes across layout changes, the
+// captured range can be used to restore the reading position after the content
+// reflowed (e.g. following a font size change). This is much more reliable
+// than percent-based progressions, which drift when the pagination changes.
+// See https://github.com/readium/swift-toolkit/issues/645
+//
+// This handles in-place reflows only, where the document survives and a live
+// Range can be reused. The counterpart for preference changes reloading the
+// resources — where an anchor must be serialized as a CSS selector and text
+// snippet instead — is `Locator.anchored(to:)` in the native
+// `EPUBExtensions.swift`. Keep both strategies in sync.
+function captureReadingPositionAnchor() {
+  if (readium.isFixedLayout) {
+    return null;
+  }
+
+  try {
+    // Probes a few points down the leading edge of the viewport to find the
+    // first visible text position, skipping over margins and non-text
+    // content.
+    if (document.caretRangeFromPoint) {
+      const x = isRTL() ? window.innerWidth - 2 : 2;
+      const step = Math.max(window.innerHeight / 10, 1);
+      for (let y = 2; y < window.innerHeight; y += step) {
+        const range = document.caretRangeFromPoint(x, y);
+        if (range && isRangeVisible(range)) {
+          return { range: range, rect: range.getBoundingClientRect() };
+        }
+      }
+    }
+
+    // Falls back on the first visible block element.
+    const element = findFirstVisibleElement();
+    if (element && element !== document.body) {
+      const range = document.createRange();
+      range.setStartBefore(element);
+      range.setEndAfter(element);
+      return { range: range, rect: range.getBoundingClientRect() };
+    }
+  } catch (e) {
+    logError(e);
+  }
+
+  return null;
+}
+
+// Restores the reading position captured with
+// `captureReadingPositionAnchor()`, after the layout was invalidated.
+function restoreReadingPositionAnchor(anchor) {
+  if (!anchor) {
+    return;
+  }
+
+  // Waits for the next animation frame, so the layout is reflowed with the
+  // new properties before measuring the anchor's new position.
+  requestAnimationFrame(function () {
+    try {
+      const rect = anchor.range.getBoundingClientRect();
+      if (isRectDetached(rect)) {
+        return;
+      }
+
+      // If the anchor did not move, the change did not trigger any reflow
+      // (e.g. a color change) and we should not adjust the scroll position.
+      if (
+        Math.abs(rect.left - anchor.rect.left) < 1 &&
+        Math.abs(rect.top - anchor.rect.top) < 1
+      ) {
+        return;
+      }
+
+      scrollToRect(rect, false);
+    } catch (e) {
+      logError(e);
+    }
+  });
+}
+
+// Returns whether the given bounding rect indicates a DOM Range detached
+// from the layout: an empty rect at the origin.
+function isRectDetached(rect) {
+  return (
+    rect.width === 0 && rect.height === 0 && rect.left === 0 && rect.top === 0
+  );
+}
+
+// Returns whether the given DOM Range is attached to the layout and visible
+// in the viewport.
+function isRangeVisible(range) {
+  const rect = range.getBoundingClientRect();
+  return !isRectDetached(rect) && isRectVisible(rect);
+}
+
+// Returns whether the given bounding rect intersects the viewport, on the
+// axis matching the current layout mode.
+export function isRectVisible(rect) {
+  if (isScrollModeEnabled()) {
+    return rect.bottom > 0 && rect.top < window.innerHeight;
+  } else {
+    return rect.right > 0 && rect.left < window.innerWidth;
   }
 }
 

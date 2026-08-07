@@ -25,6 +25,12 @@ All notable changes to this project will be documented in this file. Take a look
 * `LCPService.init` now requires an explicit `deviceName` parameter. We recommend passing `UIDevice.current.name`. See [the migration guide](docs/Migration%20Guide.md).
 * `LCPDialogAuthentication` no longer takes a `sender` view controller. It now presents its passphrase dialog through a new `LCPDialogAuthenticationDelegate` that you implement and retain for the lifetime of the authentication. See [the Readium LCP guide](docs/Guides/Readium%20LCP.md) and [the migration guide](docs/Migration%20Guide.md).
 
+### Fixed
+
+#### Navigator
+
+* [#645](https://github.com/readium/swift-toolkit/issues/645) The EPUB navigator now restores the reading position much more accurately after a preference change reflows the content (e.g. changing the font size). Instead of relying on progression percentages, which drift when the pagination changes, the navigator re-anchors to the content visible at the top of the viewport.
+
 ### Removed
 
 * The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been removed.

@@ -540,13 +540,40 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         return view
     }
 
-    private func invalidatePaginationView() {
+    private func invalidatePaginationView() async {
         guard let paginationView = paginationView else {
             return
         }
 
         paginationView.isScrollEnabled = isPaginationViewScrollingEnabled
+
+        // Anchors the current location to the first visible element, so that
+        // the position is restored by re-anchoring to the actual content
+        // instead of a progression percentage, which drifts when the content
+        // is reflowed (e.g. after changing the font size).
+        // See https://github.com/readium/swift-toolkit/issues/645
+        if
+            let location = currentLocation,
+            let anchor = await firstVisibleElementAnchor()
+        {
+            currentLocation = location.anchored(to: anchor)
+        }
+
         reloadSpreads()
+    }
+
+    /// Locator anchored to the first element visible in the current spread,
+    /// used to restore the reading position after the content is reflowed.
+    private func firstVisibleElementAnchor() async -> Locator? {
+        guard
+            state == .idle,
+            publication.metadata.epubLayout == .reflowable,
+            let spreadView = paginationView?.currentView as? EPUBSpreadView,
+            spreadView.isSpreadLoaded
+        else {
+            return nil
+        }
+        return await spreadView.findFirstVisibleElementLocator()
     }
 
     private var spreads: [EPUBSpread] = []
@@ -557,6 +584,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     private var needsReloadSpreadsOnActive = false
+
+    /// Latest pagination invalidation task, used to serialize invalidations
+    /// requested in quick succession.
+    private var invalidatePaginationViewTask: Task<Void, Never>?
 
     private func reloadSpreads() {
         guard
@@ -978,7 +1009,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
 extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel) {
-        invalidatePaginationView()
+        // Serializes the invalidations, as `invalidatePaginationView()`
+        // suspends while capturing the reading position anchor and two
+        // interleaved invalidations could capture an anchor from a spread
+        // being torn down, or reload the spreads out of order.
+        let previousTask = invalidatePaginationViewTask
+        invalidatePaginationViewTask = Task {
+            await previousTask?.value
+            await invalidatePaginationView()
+        }
     }
 
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope) {

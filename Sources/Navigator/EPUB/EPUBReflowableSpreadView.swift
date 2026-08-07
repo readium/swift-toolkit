@@ -316,15 +316,28 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             }
         }
 
-        if locator.text.highlight != nil {
-            return await scroll(toLocator: locator, animated: animated)
-            // TODO: find the first fragment matching a tag ID (need a regex)
-        } else if let id = locator.locations.fragments.first, !id.isEmpty {
-            return await scroll(toTagID: id, animated: animated)
-        } else {
-            let progression = locator.locations.progression ?? 0
-            return await scroll(toProgression: progression, animated: animated)
+        // Try to anchor to the actual content (text snippet or CSS selector)
+        // first, as it is much more reliable than a progression percentage
+        // when the content was reflowed since the locator was created (e.g.
+        // after changing the font size).
+        // See https://github.com/readium/swift-toolkit/issues/645
+        if
+            locator.text.highlight != nil || locator.locations.cssSelector != nil,
+            await scroll(toLocator: locator, animated: animated)
+        {
+            return true
         }
+
+        // TODO: find the first fragment matching a tag ID (need a regex)
+        if
+            let id = locator.locations.fragments.first, !id.isEmpty,
+            await scroll(toTagID: id, animated: animated)
+        {
+            return true
+        }
+
+        let progression = locator.locations.progression ?? 0
+        return await scroll(toProgression: progression, animated: animated)
     }
 
     /// Scrolls at given progression (from 0.0 to 1.0)

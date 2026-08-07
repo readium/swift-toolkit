@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import { isScrollModeEnabled } from "./utils";
+import { isRectVisible } from "./utils";
 import { getCssSelector } from "css-selector-generator";
 
 // Returns `element` or its first parent that is considered "user interactive".
@@ -50,10 +50,15 @@ export function findNearestInteractiveElement(element) {
   return null;
 }
 
+/// Returns the first block element that is visible on the screen.
+export function findFirstVisibleElement() {
+  return findElement(document.body);
+}
+
 /// Returns the `Locator` object to the first block element that is visible on
 /// the screen.
 export function findFirstVisibleLocator() {
-  const element = findElement(document.body);
+  const element = findFirstVisibleElement();
   return {
     href: "#",
     type: "application/xhtml+xml",
@@ -86,12 +91,7 @@ function isElementVisible(element) {
     return false;
   }
 
-  const rect = element.getBoundingClientRect();
-  if (isScrollModeEnabled()) {
-    return rect.bottom > 0 && rect.top < window.innerHeight;
-  } else {
-    return rect.right > 0 && rect.left < window.innerWidth;
-  }
+  return isRectVisible(element.getBoundingClientRect());
 }
 
 function shouldIgnoreElement(element) {
