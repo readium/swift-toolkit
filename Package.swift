@@ -127,18 +127,6 @@ let package = Package(
                 .process("Resources"),
             ]
         ),
-        // These tests require a R2LCPClient.framework to run.
-        // TODO: Find a solution to run the tests with GitHub action.
-        // .testTarget(
-        //     name: "ReadiumLCPTests",
-        //     dependencies: [
-        //         "ReadiumLCP",
-        //         "ReadiumShared",
-        //         "ReadiumStreamer",
-        //         "TestPublications",
-        //     ],
-        //     path: "Tests/LCPTests"
-        // ),
 
         // Shared test publications used across multiple test targets.
         .target(
