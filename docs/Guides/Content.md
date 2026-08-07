@@ -191,7 +191,7 @@ struct ImageIndex: View {
 
                     return Item(
                         locator: element.locator,
-                        text: element.caption ?? element.accessibilityName,
+                        text: element.caption ?? element.accessibleName,
                         image: image
                     )
                 }

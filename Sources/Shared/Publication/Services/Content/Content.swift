@@ -94,7 +94,7 @@ public protocol TextualContentElement: ContentElement {
 
 public extension TextualContentElement {
     var text: String? {
-        accessibilityName
+        accessibleName
     }
 }
 
@@ -115,7 +115,7 @@ public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualCont
     /// This is not the clip's subtitle track: `<track kind="captions">` is not
     /// read by the content iterator.
     ///
-    /// May be equal to `accessibilityName`. Prefer one or the other for
+    /// May be equal to `accessibleName`. Prefer one or the other for
     /// display, rather than concatenating them.
     public var caption: String?
 
@@ -138,7 +138,7 @@ public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualCont
     /// This is not the clip's subtitle track: `<track kind="captions">` is not
     /// read by the content iterator.
     ///
-    /// May be equal to `accessibilityName`. Prefer one or the other for
+    /// May be equal to `accessibleName`. Prefer one or the other for
     /// display, rather than concatenating them.
     public var caption: String?
 
@@ -158,7 +158,7 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
 
     /// Caption of the image, from an enclosing figure's figcaption.
     ///
-    /// May be equal to `accessibilityName`, when the figcaption also named the
+    /// May be equal to `accessibleName`, when the figcaption also named the
     /// image (HTML-AAM 4.1.10). Prefer one or the other for display, rather
     /// than concatenating them.
     public var caption: String?
@@ -185,7 +185,7 @@ public struct SVGContentElement: Hashable, TextualContentElement {
 
     /// Caption of the image, from an enclosing figure's figcaption.
     ///
-    /// May be equal to `accessibilityName`. Prefer one or the other for
+    /// May be equal to `accessibleName`. Prefer one or the other for
     /// display, rather than concatenating them.
     public var caption: String?
 
@@ -255,21 +255,21 @@ public struct TextContentElement: Hashable, TextualContentElement {
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
 public struct ContentAttributeKey<V>: Hashable, Sendable {
-    @available(*, deprecated, renamed: "accessibilityName")
+    @available(*, deprecated, renamed: "accessibleName")
     public static var accessibilityLabel: ContentAttributeKey<String> {
         .init("accessibilityLabel")
     }
 
     /// Accessible name of the element, computed following a subset of
     /// https://www.w3.org/TR/accname-1.2
-    public static var accessibilityName: ContentAttributeKey<String> {
-        .init("accessibilityName")
+    public static var accessibleName: ContentAttributeKey<String> {
+        .init("accessibleName")
     }
 
     /// Accessible description of the element, computed following a subset of
     /// https://www.w3.org/TR/accname-1.2
-    public static var accessibilityDescription: ContentAttributeKey<String> {
-        .init("accessibilityDescription")
+    public static var accessibleDescription: ContentAttributeKey<String> {
+        .init("accessibleDescription")
     }
 
     public static var language: ContentAttributeKey<Language> {
@@ -312,17 +312,17 @@ public extension ContentAttributesHolder {
         self[.language]
     }
 
-    @available(*, deprecated, renamed: "accessibilityName")
+    @available(*, deprecated, renamed: "accessibleName")
     var accessibilityLabel: String? {
-        self[.accessibilityName]
+        self[.accessibleName]
     }
 
-    var accessibilityName: String? {
-        self[.accessibilityName]
+    var accessibleName: String? {
+        self[.accessibleName]
     }
 
-    var accessibilityDescription: String? {
-        self[.accessibilityDescription]
+    var accessibleDescription: String? {
+        self[.accessibleDescription]
     }
 
     /// Gets the first attribute with the given `key`.

@@ -168,8 +168,8 @@ function extractTargetElement(element) {
       width: rect.width,
       height: rect.height,
     },
-    accessibilityName: accessibility.name,
-    accessibilityDescription: accessibility.description,
+    accessibleName: accessibility.name,
+    accessibleDescription: accessibility.description,
     caption: findFigureCaption(imageElement),
     cssSelector: getCssSelector(imageElement),
   };

@@ -135,8 +135,8 @@ enum AccnameSample {
                     continue
                 }
                 properties[String(selector.dropFirst("#case-".count))] = Properties(
-                    name: element.accessibilityName,
-                    description: element.accessibilityDescription
+                    name: element.accessibleName,
+                    description: element.accessibleDescription
                 )
             }
         }

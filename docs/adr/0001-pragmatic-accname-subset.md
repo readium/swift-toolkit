@@ -1,6 +1,6 @@
 # Pragmatic subset of the W3C accessible name computation
 
-The `accessibilityName` and `accessibilityDescription` of `ContentElement`s are
+The `accessibleName` and `accessibleDescription` of `ContentElement`s are
 computed by a deliberately partial implementation of [accname-1.2] and
 [HTML-AAM], duplicated in Swift (`HTMLAccessibilityProperties.swift`, over
 SwiftSoup) and TypeScript (`accname.ts`, over the live DOM). We implement the
@@ -34,7 +34,7 @@ book content essentially never exercises them.
   than exceeding it, so the two never drift apart.
 - **Attributes only (no ID resolution)**: rejected — `aria-describedby` is
   the standard mechanism for extended image descriptions in accessible EPUB,
-  and dropping it would leave `accessibilityDescription` empty in practice.
+  and dropping it would leave `accessibleDescription` empty in practice.
 
 ## Consequences
 

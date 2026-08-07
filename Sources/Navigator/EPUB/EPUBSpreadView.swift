@@ -319,11 +319,11 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
 
         var attributes: [ContentAttribute] = []
-        if let name = json["accessibilityName"] as? String, !name.isEmpty {
-            attributes.append(ContentAttribute(key: .accessibilityName, value: name))
+        if let name = json["accessibleName"] as? String, !name.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibleName, value: name))
         }
-        if let description = json["accessibilityDescription"] as? String, !description.isEmpty {
-            attributes.append(ContentAttribute(key: .accessibilityDescription, value: description))
+        if let description = json["accessibleDescription"] as? String, !description.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibleDescription, value: description))
         }
         let caption = json["caption"] as? String
 

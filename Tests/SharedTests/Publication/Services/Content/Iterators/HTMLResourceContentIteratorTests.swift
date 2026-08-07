@@ -175,7 +175,7 @@ struct HTMLResourceContentIteratorTests {
                 locator: makeLocator(progression: 0.5, selector: "html > body > img:nth-child(2)"),
                 embeddedLink: Link(href: "cover.jpg"),
                 caption: nil,
-                attributes: [ContentAttribute(key: .accessibilityName, value: "Accessibility description")]
+                attributes: [ContentAttribute(key: .accessibleName, value: "Accessibility description")]
             ).equatable(),
         ]
 
@@ -277,7 +277,7 @@ struct HTMLResourceContentIteratorTests {
             #expect(elements.count == 2)
             let image = try #require(elements[0] as? ImageContentElement)
             #expect(image.caption == "The caption")
-            #expect(image.accessibilityName == "Alt text")
+            #expect(image.accessibleName == "Alt text")
             #expect(image.text == "Alt text")
 
             // The figcaption is still emitted as a regular text element.
@@ -344,7 +344,7 @@ struct HTMLResourceContentIteratorTests {
 
             let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
             #expect(image.caption == nil)
-            #expect(image.accessibilityName == "Logo:")
+            #expect(image.accessibleName == "Logo:")
         }
 
         @Test func audioAndVideoInAFigureGetTheCaption() async throws {
@@ -355,11 +355,11 @@ struct HTMLResourceContentIteratorTests {
 
             let audio = try #require(elements.compactMap { $0 as? AudioContentElement }.first)
             #expect(audio.caption == "A pure tone")
-            #expect(audio.accessibilityName == "Tone")
+            #expect(audio.accessibleName == "Tone")
 
             let video = try #require(elements.compactMap { $0 as? VideoContentElement }.first)
             #expect(video.caption == "A short clip")
-            #expect(video.accessibilityName == "Clip")
+            #expect(video.accessibleName == "Clip")
         }
     }
 
@@ -370,7 +370,7 @@ struct HTMLResourceContentIteratorTests {
             """)
 
             let audio = try #require(elements.first as? AudioContentElement)
-            #expect(audio.accessibilityName == "Podcast")
+            #expect(audio.accessibleName == "Podcast")
         }
 
         @Test func videoElementExposesAccessibilityAttributes() async throws {
@@ -379,7 +379,7 @@ struct HTMLResourceContentIteratorTests {
             """)
 
             let video = try #require(elements.first as? VideoContentElement)
-            #expect(video.accessibilityName == "Movie")
+            #expect(video.accessibleName == "Movie")
         }
     }
 
@@ -397,8 +397,8 @@ struct HTMLResourceContentIteratorTests {
 
             let svg = try #require(elements[1] as? SVGContentElement)
             #expect(svg.svg.contains("circle"))
-            #expect(svg.accessibilityName == "Chart title")
-            #expect(svg.accessibilityDescription == "Chart description")
+            #expect(svg.accessibleName == "Chart title")
+            #expect(svg.accessibleDescription == "Chart description")
             #expect(svg.locator.locations.progression != nil)
 
             // The SVG title and description must not leak as text elements.
@@ -431,7 +431,7 @@ struct HTMLResourceContentIteratorTests {
             """)
 
             let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
-            #expect(image.accessibilityName == "Label in svg")
+            #expect(image.accessibleName == "Label in svg")
         }
     }
 

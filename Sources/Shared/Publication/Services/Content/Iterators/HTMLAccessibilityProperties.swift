@@ -72,10 +72,10 @@ struct HTMLAccessibilityProperties {
     var contentAttributes: [ContentAttribute] {
         var attributes: [ContentAttribute] = []
         if let name = name {
-            attributes.append(ContentAttribute(key: .accessibilityName, value: name))
+            attributes.append(ContentAttribute(key: .accessibleName, value: name))
         }
         if let description = description {
-            attributes.append(ContentAttribute(key: .accessibilityDescription, value: description))
+            attributes.append(ContentAttribute(key: .accessibleDescription, value: description))
         }
         return attributes
     }

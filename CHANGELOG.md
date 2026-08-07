@@ -9,19 +9,19 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
-* Content elements now expose `accessibilityName` and `accessibilityDescription` attributes, computed following a pragmatic subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2) (see `docs/adr/0001-pragmatic-accname-subset.md`). The `accessibilityLabel` attribute is deprecated and forwards to `accessibilityName`; content attributes constructed manually with the old `accessibilityLabel` key are no longer read.
+* Content elements now expose `accessibleName` and `accessibleDescription` attributes, computed following a pragmatic subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2) (see `docs/adr/0001-pragmatic-accname-subset.md`). The `accessibilityLabel` attribute is deprecated and forwards to `accessibleName`; content attributes constructed manually with the old `accessibilityLabel` key are no longer read.
 * The HTML content iterator now emits inline `<svg>` elements as `SVGContentElement`, with a caption from the enclosing figure's `figcaption`.
 * `AudioContentElement` and `VideoContentElement` now expose a `caption` property, filled from the enclosing figure's `figcaption` like images and SVGs already were. This is not the clip's subtitle track (`<track kind="captions">`), which the content iterator does not read.
 
 #### Navigator
 
-* The target-element payload of pointer events now carries `accessibilityName` and `accessibilityDescription` attributes. The `alt` attribute no longer surfaces as the `caption`, which is now strictly the enclosing figure's `figcaption`.
+* The target-element payload of pointer events now carries `accessibleName` and `accessibleDescription` attributes. The `alt` attribute no longer surfaces as the `caption`, which is now strictly the enclosing figure's `figcaption`.
 
 ### Changed
 
 #### Shared
 
-* `ImageContentElement.caption` and `SVGContentElement.caption` are now strictly the text of the enclosing figure's `figcaption`; other sources (such as `alt`) contribute to `accessibilityName` instead.
+* `ImageContentElement.caption` and `SVGContentElement.caption` are now strictly the text of the enclosing figure's `figcaption`; other sources (such as `alt`) contribute to `accessibleName` instead.
 * An element nested inside a `figcaption` (such as a publisher logo) no longer takes that `figcaption` as its own caption. Its accessible name is unaffected, as HTML-AAM 4.1.10 does name such an image from the `figcaption`.
 * `ImageContentElement.text` and `SVGContentElement.text` now return the accessible name only, and no longer include the caption. The `figcaption` is still emitted as its own text element in the iteration stream, so the text-to-speech does not read it twice.
 * The inner content of an inline `<svg>` (including SVG `<text>`) is no longer emitted as text elements by the HTML content iterator, so it is not visible to text-to-speech or search anymore.
