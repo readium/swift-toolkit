@@ -134,8 +134,7 @@ jobs:
           xcrun simctl list
       - name: Generate Playground project
         run: make playground lcp="$LCP_URL_SPM"
-      - name: Test Playground
-        if: ${{ env.LCP_URL_SPM != '' }}
+      - name: Test LCP
         run: |
           set -eo pipefail
           xcodebuild test -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" -only-testing:ReadiumLCPTests | xcbeautify --renderer github-actions

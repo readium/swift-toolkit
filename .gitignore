@@ -59,6 +59,6 @@ out/
 # DocC generation
 .build-docs
 docs-site
-WorkspaceSettings.xcsettings
 
+/Support/Readium.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
 /Support/R2LCPClient/
