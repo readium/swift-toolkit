@@ -5,7 +5,9 @@ packages:
   Readium:
     path: ..
   R2LCPClient:
-    path: R2LCPClient
+    # The repository's Support folder, shared with the Playground project. See
+    # TestApp/Makefile.
+    path: ../Support/R2LCPClient
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     from: 6.9.23

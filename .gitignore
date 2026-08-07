@@ -60,3 +60,5 @@ out/
 .build-docs
 docs-site
 WorkspaceSettings.xcsettings
+
+/Support/R2LCPClient/

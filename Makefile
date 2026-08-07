@@ -24,13 +24,15 @@ test:
 playground:
 	cp Playground/Support/Playground.xctestplan Playground/Playground.xctestplan
 ifdef lcp
-	@curl --fail --silent --show-error -L --create-dirs --output Playground/R2LCPClient/Package.swift "$(lcp)"
+	# The liblcp package is downloaded in Support, so that the Playground and the
+	# TestApp share it. Two local packages named `R2LCPClient` in the same Xcode
+	# workspace conflict.
+	@curl --fail --silent --show-error -L --create-dirs --output Support/R2LCPClient/Package.swift "$(lcp)"
 	cd Playground; xcodegen -s Support/project+lcp.yml --project . --project-root .
 	# The plan only declares the test targets of the package. Add the LCP tests,
 	# whose target identifier is only known once the project has been generated.
 	scripts/gen-lcp-testplan.py Playground/Playground.xctestplan Playground/Playground.xcodeproj/project.pbxproj
 else
-	rm -rf Playground/R2LCPClient
 	cd Playground; xcodegen -s Support/project.yml --project . --project-root .
 endif
 	# The repository might be cloned to a different location than "swift-toolkit".

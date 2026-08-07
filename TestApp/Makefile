@@ -56,7 +56,10 @@ endif
 dev: clean
 ifdef lcp
 	@cp Integrations/Local/project+lcp.yml project.yml
-	@curl --fail --silent --show-error -L --create-dirs --output R2LCPClient/Package.swift "$(lcp)"
+	# The liblcp package is shared with the Playground, in the repository's
+	# Support folder. Two local packages named `R2LCPClient` in the same Xcode
+	# workspace conflict.
+	@curl --fail --silent --show-error -L --create-dirs --output ../Support/R2LCPClient/Package.swift "$(lcp)"
 else
 	@cp Integrations/Local/project.yml project.yml
 endif

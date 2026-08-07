@@ -7,7 +7,9 @@ include:
 
 packages:
   R2LCPClient:
-    path: R2LCPClient
+    # The repository's Support folder, shared with the TestApp project. See the
+    # root Makefile.
+    path: ../Support/R2LCPClient
 
 settings:
   OTHER_SWIFT_FLAGS: -DLCP
