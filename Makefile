@@ -4,6 +4,8 @@ help:
 	@echo "Usage: make <target>\n\n\
 	  playground\t\tGenerate the Playground project\n\
 	  \t\t\tUse 'lcp=<url>' to enable LCP.\n\
+	  dev\t\t\tGenerate both the Playground and TestApp projects for development\n\
+	  \t\t\tUse 'lcp=<url>' to enable LCP.\n\
 	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
 	  test\t\t\tRun unit tests\n\
@@ -20,23 +22,26 @@ test:
 .SILENT:
 .PHONY: playground
 playground:
-	# Prevents corrupting the XcodeGen cache index with .DS_Store folders.
-	cd Playground; find . -name ".DS_Store" -delete
+	cp Playground/Support/Playground.xctestplan Playground/Playground.xctestplan
 ifdef lcp
 	@curl --fail --silent --show-error -L --create-dirs --output Playground/R2LCPClient/Package.swift "$(lcp)"
-	cd Playground; xcodegen -s Support/project+lcp.yml --project . --project-root . --use-cache --cache-path .xcodegen
+	cd Playground; xcodegen -s Support/project+lcp.yml --project . --project-root .
 	# The plan only declares the test targets of the package. Add the LCP tests,
 	# whose target identifier is only known once the project has been generated.
-	scripts/gen-lcp-testplan.py Playground/Support/Playground.xctestplan Playground/Playground.xctestplan Playground/Playground.xcodeproj/project.pbxproj
+	scripts/gen-lcp-testplan.py Playground/Playground.xctestplan Playground/Playground.xcodeproj/project.pbxproj
 else
 	rm -rf Playground/R2LCPClient
-	cd Playground; xcodegen -s Support/project.yml --project . --project-root . --use-cache --cache-path .xcodegen
-	cp Playground/Support/Playground.xctestplan Playground/Playground.xctestplan
+	cd Playground; xcodegen -s Support/project.yml --project . --project-root .
 endif
 	# The repository might be cloned to a different location than "swift-toolkit".
 	# XcodeGen will use the name of the folder in the project, which is not desirable.
 	# This will replace all occurrences of this folder by "swift-toolkit".
-	perl -i -0777 -pe 'if (/name = "?([^"]+)"?; path = \.\.; /) { my $$n = $$1; s/name = "?\Q$$n\E"?; path = \.\./name = swift-toolkit; path = ../; s|/\* \Q$$n\E \*/|/* swift-toolkit */|g; }' Playground/Playground.xcodeproj/project.pbxproj
+	perl -i -0777 -pe 'if (/name = "?([^";\n]+)"?; path = \.\.; /) { my $$n = $$1; s/name = "?\Q$$n\E"?; path = \.\.;/name = swift-toolkit; path = ..;/; s|/\* \Q$$n\E \*/|/* swift-toolkit */|g; }' Playground/Playground.xcodeproj/project.pbxproj
+
+.PHONY: dev
+dev: playground
+	$(MAKE) -C TestApp dev lcp=$(lcp)
+	@echo "\n☝️  Open Support/Readium.xcworkspace"
 
 .PHONY: podspecs
 podspecs:

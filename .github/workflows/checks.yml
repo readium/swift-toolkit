@@ -134,7 +134,7 @@ jobs:
           xcrun simctl list
       - name: Generate Playground project
         run: make playground lcp="$LCP_URL_SPM"
-      - name: Test Playground (LCP only)
+      - name: Test Playground
         if: ${{ env.LCP_URL_SPM != '' }}
         run: |
           set -eo pipefail
