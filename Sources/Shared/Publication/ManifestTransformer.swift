@@ -7,13 +7,13 @@
 import Foundation
 
 /// Transforms a ``Manifest``'s components.
-public protocol ManifestTransformer {
+public protocol ManifestTransformer: Sendable {
     func transform(manifest: inout Manifest) throws
     func transform(metadata: inout Metadata) throws
     func transform(link: inout Link) throws
 }
 
-public protocol ManifestTransformable {
+public protocol ManifestTransformable: Sendable {
     mutating func transform(_ transformer: ManifestTransformer) throws
 }
 

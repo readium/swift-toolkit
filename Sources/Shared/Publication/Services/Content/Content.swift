@@ -7,7 +7,7 @@
 import Foundation
 
 /// Provides an iterable list of `ContentElement`s.
-public protocol Content {
+public protocol Content: Sendable {
     /// Creates a new fallible bidirectional iterator for this content.
     func iterator() -> ContentIterator
 }
@@ -275,7 +275,7 @@ public struct ContentAttribute: Hashable, Sendable {
 }
 
 /// Object associated with a list of attributes.
-public protocol ContentAttributesHolder {
+public protocol ContentAttributesHolder: Sendable {
     /// Associated list of attributes.
     var attributes: [ContentAttribute] { get }
 }
@@ -336,7 +336,7 @@ public protocol ContentIterator: AnyObject, Sendable {
 }
 
 /// Helper class to treat a `Content` as a `Sequence`.
-public final class ContentSequence: AsyncSequence {
+public final class ContentSequence: AsyncSequence, Sendable {
     public typealias Element = ContentElement
 
     private let content: Content

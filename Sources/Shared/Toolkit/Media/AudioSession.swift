@@ -27,7 +27,7 @@ public extension AudioSessionUser {
 
 /// Manages the app's audio session for Readium audio consumers.
 @MainActor
-public protocol AudioSessionManaging {
+public protocol AudioSessionManaging: Sendable {
     /// Starts a new audio session with the given `user`.
     ///
     /// The returned opaque token can be used to end the session for the same
