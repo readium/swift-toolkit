@@ -177,10 +177,6 @@ public struct SVGContentElement: Hashable, TextualContentElement {
     public var attributes: [ContentAttribute]
 
     /// Raw SVG contents.
-    ///
-    /// When produced by the HTML content iterator, the markup may be
-    /// normalized (lowercased tag and attribute names, reflowed whitespace)
-    /// and is not guaranteed to be render-faithful.
     public var svg: String
 
     /// Caption of the image, from an enclosing figure's figcaption.
@@ -255,9 +251,9 @@ public struct TextContentElement: Hashable, TextualContentElement {
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
 public struct ContentAttributeKey<V>: Hashable, Sendable {
-    @available(*, deprecated, renamed: "accessibleName")
+    @available(*, unavailable, renamed: "accessibleName")
     public static var accessibilityLabel: ContentAttributeKey<String> {
-        .init("accessibilityLabel")
+        fatalError()
     }
 
     /// Accessible name of the element, computed following a subset of
@@ -312,9 +308,9 @@ public extension ContentAttributesHolder {
         self[.language]
     }
 
-    @available(*, deprecated, renamed: "accessibleName")
+    @available(*, unavailable, renamed: "accessibleName")
     var accessibilityLabel: String? {
-        self[.accessibleName]
+        fatalError()
     }
 
     var accessibleName: String? {

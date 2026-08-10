@@ -12,41 +12,54 @@ import SwiftSoup
 ///
 /// This is the Swift counterpart of the TypeScript implementation in
 /// `Sources/Navigator/EPUB/Scripts/src/accname.ts` — both MUST implement
-/// exactly the same subset. What keeps them in lockstep is the shared case
+/// exactly the same subset. What keeps them in sync is the shared case
 /// manifest in `scripts/accname-sample/cases.toml`: it generates the fixtures
 /// both test suites run against, so a rule is stated once and asserted twice.
 /// Add cases there.
 ///
 /// Implemented:
 /// - Source precedence for the name: `aria-labelledby` → `aria-label` →
-///   host-language sources → `title`.
-/// - Element-level suppression: `aria-hidden="true"`, or a presentational
-///   `role` not cancelled by a global ARIA attribute, yields no name and no
-///   description.
+///   host-language sources → `title`, matching the accname computation steps
+///   "LabelledBy", "AriaLabel", "Host Language Label" and "Tooltip":
+///   https://www.w3.org/TR/accname-1.2/#computation-steps
+/// - Element-level suppression: `aria-hidden="true"` (accname "Hidden Not
+///   Referenced" step: https://www.w3.org/TR/accname-1.2/#comp_hidden_not_referenced),
+///   or a presentational `role` not cancelled by a global ARIA attribute
+///   (WAI-ARIA "Presentational Roles Conflict Resolution":
+///   https://www.w3.org/TR/wai-aria-1.2/#conflict_resolution_presentation_none),
+///   yields no name and no description.
 /// - The description cascade (`aria-describedby` → `aria-description` →
 ///   host-language sources → unused `title`) stops at the first PRESENT
-///   markup, even if it resolves to an empty description.
-/// - HTML-AAM 4.1.10 rules for `img`: an empty `alt` attribute marks a
-///   decorative image and blocks the `title` fallback (HTML-AAM overriding
-///   literal accname-1.2, whose step 2.9 would still name the image from the
-///   tooltip; browsers follow HTML-AAM); a figcaption names an image which has
-///   no `alt`/`title` attribute and no sibling content.
+///   markup, even if it resolves to an empty description:
+///   https://www.w3.org/TR/accname-1.2/#mapping_additional_nd_description
+/// - HTML-AAM 4.1.10 rules for `img`
+///   (https://www.w3.org/TR/html-aam-1.0/#img-element-accessible-name-computation):
+///   an empty `alt` attribute marks a decorative image and blocks the `title`
+///   fallback (HTML-AAM overriding literal accname-1.2, whose "Tooltip" step,
+///   https://www.w3.org/TR/accname-1.2/#comp_tooltip, would still name the
+///   image from the tooltip; browsers follow HTML-AAM); a figcaption names an
+///   image which has no `alt`/`title` attribute and no sibling content.
 ///
 /// Deliberately skipped / divergences:
-/// - Full recursive traversal of `aria-labelledby`/`aria-describedby` targets;
-///   we approximate one level: each target contributes its own `aria-label`
-///   when present, else its text content. Nested images' `alt`, chained
-///   labelledby and embedded form-control values do not contribute.
+/// - Full recursive traversal of `aria-labelledby`/`aria-describedby` targets
+///   (https://www.w3.org/TR/accname-1.2/#comp_labelledby); we approximate one
+///   level: each target contributes its own `aria-label` when present, else
+///   its text content. Nested images' `alt`, chained labelledby and embedded
+///   form-control values
+///   (https://www.w3.org/TR/accname-1.2/#comp_embedded_control) do not
+///   contribute.
 /// - Hidden-element rules beyond the element itself: hidden ancestors, and
 ///   the exclusion of hidden nodes inside referenced targets (requires CSS
 ///   knowledge SwiftSoup doesn't have; kept out of the DOM side too, for
 ///   parity).
-/// - Roles that prohibit naming other than `presentation`/`none`; the
+/// - Roles that prohibit naming other than `presentation`/`none`
+///   (https://www.w3.org/TR/wai-aria-1.2/#namefromprohibited); the
 ///   presentational-role conflict rule is narrowed to the four ARIA
 ///   attributes this helper reads (spec: any global ARIA attribute or
 ///   focusable element); unknown role tokens are not validated (the first
 ///   token wins).
-/// - CSS generated content (`::before`/`::after`) and name-from-content.
+/// - CSS generated content (`::before`/`::after`) and name-from-content
+///   (https://www.w3.org/TR/accname-1.2/#comp_name_from_content).
 /// - An `aria-describedby` whose IDREFs all dangle still counts as "the first
 ///   relevant markup found" and stops the description cascade (attribute
 ///   presence = found). The spec doesn't spell this out and browsers vary;
@@ -87,7 +100,9 @@ extension SwiftSoup.Element {
         let tag = tagNameNormal()
         let title = try attr("title").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfBlank()
 
-        // Step 0: element-level suppression (accname steps 1 and 2A).
+        // Step 0: element-level suppression (accname "Initialization" and
+        // "Hidden Not Referenced" steps:
+        // https://www.w3.org/TR/accname-1.2/#computation-steps).
         // `aria-hidden`, or a presentational role not cancelled by a global
         // ARIA attribute, prohibit both name and description. ARIA token
         // comparisons are case-insensitive; `role` is a token list with
@@ -111,7 +126,7 @@ extension SwiftSoup.Element {
 
         // 2. aria-label
         if name == nil {
-            name = try attr("aria-label").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfBlank()
+            name = try attr("aria-label").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfEmpty()
         }
 
         // 3. Host-language source
@@ -119,7 +134,7 @@ extension SwiftSoup.Element {
             switch tag {
             case "img":
                 if hasAttr("alt") {
-                    name = try attr("alt").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfBlank()
+                    name = try attr("alt").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfEmpty()
                     if name == nil {
                         // `alt=""` marks a decorative image: no fallback on
                         // `title`, per HTML-AAM 4.1.10.
@@ -142,6 +157,7 @@ extension SwiftSoup.Element {
 
         // 5. HTML-AAM 4.1.10 step 4: an img with no alt or title attribute,
         // alone in a captioned figure, takes its name from the figcaption.
+        // https://www.w3.org/TR/html-aam-1.0/#img-element-accessible-name-computation
         if name == nil, tag == "img", !hasAttr("alt"), !hasAttr("title") {
             name = try figureCaptionAsName()
         }
@@ -155,7 +171,7 @@ extension SwiftSoup.Element {
             description = try resolveIDReferences(attr("aria-describedby"))
         } else if hasAttr("aria-description") {
             // 2. aria-description
-            description = try attr("aria-description").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfBlank()
+            description = try attr("aria-description").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfEmpty()
         } else if tag == "svg", let desc = firstDirectChild(tag: "desc") {
             // 3. Host-language source
             description = try desc.text().orNilIfBlank()
@@ -189,7 +205,7 @@ extension SwiftSoup.Element {
     /// The receiver's contribution when referenced by `aria-labelledby` or
     /// `aria-describedby`: its `aria-label` when present, else its text content.
     private func textAlternative() throws -> String? {
-        try attr("aria-label").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfBlank()
+        try attr("aria-label").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfEmpty()
             ?? text().orNilIfBlank()
     }
 
@@ -201,6 +217,7 @@ extension SwiftSoup.Element {
     /// only when the figure holds no other non-whitespace flow content —
     /// checked as "the figure's normalized text equals the figcaption's, and
     /// the figure contains no other embedded content".
+    /// https://www.w3.org/TR/html-aam-1.0/#img-element-accessible-name-computation
     private func figureCaptionAsName() throws -> String? {
         guard
             let figure = enclosingFigure(),
