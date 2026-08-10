@@ -44,7 +44,7 @@ To bump the minimum required iOS version, update these files:
 
 ## Creating a New Package
 
-A new package is a separately distributable SPM library product. It requires updates to four places.
+A new package is a separately distributable SPM library product. It requires updates to a few places.
 
 ### 1. `Package.swift`
 
@@ -70,6 +70,20 @@ Add a new product and its source/test targets:
 ### 2. `Support/CocoaPods/Readium<ModuleName>.podspec`
 
 Add an entry to `Support/CocoaPods/Specs.swift` and run `make podspecs` to generate the podspec file.
+
+### 3. `Playground/Support/Playground.xctestplan`
+
+Add the new test target to the test plan, otherwise it will not be run by `make test`. `make playground` copies this file to `Playground/Playground.xctestplan`, which is the one referenced by the scheme, hence the `container:..` paths relative to the `Playground` folder:
+
+```json
+{
+  "target" : {
+    "containerPath" : "container:..",
+    "identifier" : "Readium<ModuleName>Tests",
+    "name" : "Readium<ModuleName>Tests"
+  }
+}
+```
 
 ## Releasing a New Version
 

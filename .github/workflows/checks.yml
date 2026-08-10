@@ -4,6 +4,8 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -120,6 +122,11 @@ jobs:
     environment:
       name: LCP
       deployment: false
+    env:
+      # Empty for pull requests opened from a fork: GitHub never passes secrets
+      # to `pull_request` runs from forks. The LCP steps are skipped in that
+      # case, and the projects are generated without LCP.
+      LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -128,19 +135,23 @@ jobs:
           brew install xcodegen
           # Preload the list of simulator for xcodebuild. The workflow is flaky without it.
           xcrun simctl list
-      - name: Check Playground project is up-to-date
-        run: |
-          make playground
-          git diff --exit-code Playground/.xcodegen
-          if git ls-files --others --exclude-standard Playground/Playground.xcodeproj/ | grep -q .; then echo "Untracked Playground project files found. Run 'make playground' and commit the result."; exit 1; fi
+      - name: Generate Playground project
+        run: make playground lcp="$LCP_URL_SPM"
       - name: Build Playground
+        # Without the LCP secret we can't run the LCP tests, but we still check
+        # that the Playground compiles. With it, the test step below builds the
+        # Playground itself.
+        if: env.LCP_URL_SPM == ''
         run: |
           set -eo pipefail
           xcodebuild build -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" | xcbeautify --renderer github-actions
+      - name: Test LCP
+        if: env.LCP_URL_SPM != ''
+        run: |
+          set -eo pipefail
+          xcodebuild test -scheme Playground -project Playground/Playground.xcodeproj -destination "platform=$platform,name=$device" -only-testing:ReadiumLCPTests | xcbeautify --renderer github-actions
       - name: Generate TestApp project
         working-directory: TestApp
-        env:
-          LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
         run: make dev lcp="$LCP_URL_SPM"
       - name: Build TestApp
         working-directory: TestApp
@@ -159,6 +170,10 @@ jobs:
     environment:
       name: LCP
       deployment: false
+    env:
+      # See the note in the `int-dev` job: this is empty for pull requests
+      # opened from a fork, in which case the project is generated without LCP.
+      LCP_URL_SPM: ${{ secrets.LCP_URL_SPM }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
