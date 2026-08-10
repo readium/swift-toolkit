@@ -57,12 +57,14 @@ navigator-ui-tests-project:
 scripts:
 	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
 
-	cd $(SCRIPTS_PATH); \
-	rm -rf "node_modules"; \
-	corepack install; \
-	pnpm install --frozen-lockfile; \
-	pnpm run format; \
-	pnpm run lint; \
+	cd $(SCRIPTS_PATH) && \
+	rm -rf "node_modules" && \
+	corepack install && \
+	pnpm install --frozen-lockfile && \
+	pnpm run format && \
+	pnpm run lint && \
+	pnpm run typecheck && \
+	pnpm run test && \
 	pnpm run bundle
 
 .PHONY: update-scripts

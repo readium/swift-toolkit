@@ -5,10 +5,23 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased: swift6]
 
+### Added
+
+#### Shared
+
+* Content elements now expose `accessibleName` and `accessibleDescription` attributes, computed following a subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2).
+* The HTML content iterator now emits inline `<svg>` elements as `SVGContentElement`, with a caption from the enclosing figure's `figcaption`.
+* `AudioContentElement` and `VideoContentElement` now expose a `caption` property, filled from the enclosing figure's `figcaption` like images and SVGs already were.
+
 ### Changed
 
 * The toolkit is migrated to Swift 6 with strict concurrency checking. All packages compile in the Swift 6 language mode. See [the migration guide](docs/Migration%20Guide.md).
     * The toolkit adopts the `NonisolatedNonsendingByDefault` (SE-0461), `InferIsolatedConformances` and `MemberImportVisibility` upcoming Swift features.
+
+#### Shared
+
+* `ImageContentElement.caption` and `SVGContentElement.caption` are now strictly the text of the enclosing figure's `figcaption`. Other sources (such as `alt`) contribute to `accessibleName` instead.
+* Audio and video content elements now expose accessibility attributes, so the text-to-speech may start speaking their labels.
 
 #### Shared
 

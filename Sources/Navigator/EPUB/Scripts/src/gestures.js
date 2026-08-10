@@ -8,6 +8,7 @@ import { findDecorationTarget, handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
 import { getCssSelector } from "css-selector-generator";
+import { computeAccessibilityProperties, findFigureCaption } from "./accname";
 
 let isSelecting = false;
 
@@ -121,8 +122,9 @@ function onPointerEvent(phase, event) {
  *
  * Returns an object with the element's bounding rectangle, tag name, source
  * URL, a CSS selector, the href of the document that contains the element,
- * an accessibility label, and a caption. This information is used on the
- * Swift side to build the appropriate `ContentElement`.
+ * the accessible name and description, and the caption from an enclosing
+ * figure's figcaption. This information is used on the Swift side to build
+ * the appropriate `ContentElement`.
  */
 function extractTargetElement(element) {
   if (!element || !element.getBoundingClientRect) {
@@ -153,6 +155,8 @@ function extractTargetElement(element) {
   // `html` is only needed for inline SVGs that have no resolvable `src`.
   let html = src ? null : imageElement.outerHTML;
 
+  let accessibility = computeAccessibilityProperties(imageElement);
+
   return {
     tag: imageElement.tagName.toLowerCase(),
     html: html,
@@ -164,49 +168,11 @@ function extractTargetElement(element) {
       width: rect.width,
       height: rect.height,
     },
-    accessibilityLabel: imageElement.getAttribute("aria-label")?.trim() || null,
-    caption: extractCaption(imageElement),
+    accessibleName: accessibility.name,
+    accessibleDescription: accessibility.description,
+    caption: findFigureCaption(imageElement),
     cssSelector: getCssSelector(imageElement),
   };
-}
-
-/**
- * Returns a human-readable caption for an image element by checking, in
- * order: the `alt` attribute, the `title` attribute, the text content of the
- * first SVG `<title>` child, the text content of the first SVG `<desc>`
- * child, and the text content of a `<figcaption>` inside a parent `<figure>`.
- * Returns `null` when none of these are present.
- *
- * When `alt` is present — even as an empty string (decorative image) — no
- * other source is consulted, so that an explicit `alt=""` suppresses fallback
- * captions rather than incorrectly propagating them.
- */
-function extractCaption(imageElement) {
-  if (imageElement.hasAttribute("alt")) {
-    const alt = imageElement.getAttribute("alt").trim();
-    return alt || null;
-  }
-
-  const title = imageElement.getAttribute("title")?.trim();
-  if (title) return title;
-
-  const svgTitle = imageElement
-    .querySelector(":scope > title")
-    ?.textContent.trim();
-  if (svgTitle) return svgTitle;
-
-  const svgDesc = imageElement
-    .querySelector(":scope > desc")
-    ?.textContent.trim();
-  if (svgDesc) return svgDesc;
-
-  const figure = imageElement.closest("figure");
-  if (figure) {
-    const figcaption = figure.querySelector("figcaption")?.textContent.trim();
-    if (figcaption) return figcaption;
-  }
-
-  return null;
 }
 
 /**

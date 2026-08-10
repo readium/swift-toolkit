@@ -258,23 +258,18 @@ public actor HTMLResourceContentIterator: ContentIterator {
                 if tag == "br" {
                     flushText()
 
-                } else if tag == "img" {
+                } else if tag == "img", !isInsideSkippedElement {
                     flushText()
                     try node.srcRelativeToHREF(baseHREF).map { href in
-                        var attributes: [ContentAttribute] = []
-                        if let alt = try node.attr("alt").orNilIfBlank() {
-                            attributes.append(ContentAttribute(key: .accessibilityLabel, value: alt))
-                        }
-
-                        elements.append(ImageContentElement(
+                        try elements.append(ImageContentElement(
                             locator: elementLocator,
                             embeddedLink: Link(href: href.string),
-                            caption: nil, // TODO: Get the caption from figcaption
-                            attributes: attributes
+                            caption: node.figureCaption(),
+                            attributes: node.accessibilityProperties().contentAttributes
                         ))
                     }
 
-                } else if tag == "audio" || tag == "video" {
+                } else if tag == "audio" || tag == "video", !isInsideSkippedElement {
                     flushText()
                     skippedAncestors.append(node)
 
@@ -301,15 +296,28 @@ public actor HTMLResourceContentIterator: ContentIterator {
                     }()
 
                     if let link = link {
+                        let caption = try node.figureCaption()
+                        let attributes = try node.accessibilityProperties().contentAttributes
                         switch tag {
                         case "audio":
-                            elements.append(AudioContentElement(locator: elementLocator, embeddedLink: link))
+                            elements.append(AudioContentElement(locator: elementLocator, embeddedLink: link, caption: caption, attributes: attributes))
                         case "video":
-                            elements.append(VideoContentElement(locator: elementLocator, embeddedLink: link))
+                            elements.append(VideoContentElement(locator: elementLocator, embeddedLink: link, caption: caption, attributes: attributes))
                         default:
                             break
                         }
                     }
+
+                } else if tag == "svg", !isInsideSkippedElement {
+                    flushText()
+                    skippedAncestors.append(node)
+
+                    try elements.append(SVGContentElement(
+                        locator: elementLocator,
+                        svg: node.outerHtml(),
+                        caption: node.figureCaption(),
+                        attributes: node.accessibilityProperties().contentAttributes
+                    ))
 
                 } else if node.isBlock() {
                     flushText()
@@ -596,6 +604,10 @@ private extension ContentElement {
             return e
 
         case var e as ImageContentElement:
+            e.locator = update(e.locator)
+            return e
+
+        case var e as SVGContentElement:
             e.locator = update(e.locator)
             return e
 
