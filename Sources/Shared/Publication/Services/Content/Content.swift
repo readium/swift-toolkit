@@ -104,20 +104,24 @@ public protocol EmbeddedContentElement: ContentElement {
     var embeddedLink: Link { get }
 }
 
+/// An element which may carry a caption.
+public protocol CaptionedContentElement: ContentElement {
+    /// Caption of the element, meant to be displayed alongside it.
+    ///
+    /// `nil` when the element has no caption, or when the caption is blank.
+    ///
+    /// May be equal to `accessibleName`, which is announced rather than
+    /// displayed. Prefer one or the other for display, rather than
+    /// concatenating them.
+    var caption: String? { get }
+}
+
 /// An audio clip.
-public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
     public var locator: Locator
     public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    /// Caption of the audio clip, from an enclosing figure's figcaption.
-    ///
-    /// This is not the clip's subtitle track: `<track kind="captions">` is not
-    /// read by the content iterator.
-    ///
-    /// May be equal to `accessibleName`. Prefer one or the other for
-    /// display, rather than concatenating them.
     public var caption: String?
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -128,19 +132,11 @@ public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// A video clip.
-public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
     public var locator: Locator
     public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    /// Caption of the video clip, from an enclosing figure's figcaption.
-    ///
-    /// This is not the clip's subtitle track: `<track kind="captions">` is not
-    /// read by the content iterator.
-    ///
-    /// May be equal to `accessibleName`. Prefer one or the other for
-    /// display, rather than concatenating them.
     public var caption: String?
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -151,17 +147,11 @@ public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// An embedded image (bitmap or SVG).
-public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
     public var locator: Locator
     public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    /// Caption of the image, from an enclosing figure's figcaption.
-    ///
-    /// May be equal to `accessibleName`, when the figcaption also named the
-    /// image (HTML-AAM 4.1.10). Prefer one or the other for display, rather
-    /// than concatenating them.
     public var caption: String?
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -172,18 +162,13 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
 }
 
 /// An inline SVG image.
-public struct SVGContentElement: Hashable, TextualContentElement {
+public struct SVGContentElement: Hashable, TextualContentElement, CaptionedContentElement {
     public var locator: Locator
+    public var caption: String?
     public var attributes: [ContentAttribute]
 
     /// Raw SVG contents.
     public var svg: String
-
-    /// Caption of the image, from an enclosing figure's figcaption.
-    ///
-    /// May be equal to `accessibleName`. Prefer one or the other for
-    /// display, rather than concatenating them.
-    public var caption: String?
 
     public init(locator: Locator, svg: String, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
