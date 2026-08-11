@@ -48,6 +48,7 @@ let package = Package(
             dependencies: [
                 "ReadiumShared",
                 "TestPublications",
+                "SwiftSoup",
             ],
             path: "Tests/SharedTests",
             resources: [

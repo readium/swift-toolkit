@@ -86,7 +86,7 @@ public struct AnyEquatableContentElement: Equatable, ContentElement {
 
 /// An element which can be represented as human-readable text.
 ///
-/// The default implementation returns the first accessibility label associated to the element.
+/// The default implementation returns the accessible name of the element.
 public protocol TextualContentElement: ContentElement {
     /// Human-readable text representation for this element.
     var text: String? { get }
@@ -94,7 +94,7 @@ public protocol TextualContentElement: ContentElement {
 
 public extension TextualContentElement {
     var text: String? {
-        accessibilityLabel
+        accessibleName
     }
 }
 
@@ -104,40 +104,24 @@ public protocol EmbeddedContentElement: ContentElement {
     var embeddedLink: Link { get }
 }
 
+/// An element which may carry a caption.
+public protocol CaptionedContentElement: ContentElement {
+    /// Caption of the element, meant to be displayed alongside it.
+    ///
+    /// `nil` when the element has no caption, or when the caption is blank.
+    ///
+    /// May be equal to `accessibleName`, which is announced rather than
+    /// displayed. Prefer one or the other for display, rather than
+    /// concatenating them.
+    var caption: String? { get }
+}
+
 /// An audio clip.
-public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
     public var locator: Locator
     public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    public init(locator: Locator, embeddedLink: Link, attributes: [ContentAttribute] = []) {
-        self.locator = locator
-        self.embeddedLink = embeddedLink
-        self.attributes = attributes
-    }
-}
-
-/// A video clip.
-public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
-    public var locator: Locator
-    public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    public init(locator: Locator, embeddedLink: Link, attributes: [ContentAttribute] = []) {
-        self.locator = locator
-        self.embeddedLink = embeddedLink
-        self.attributes = attributes
-    }
-}
-
-/// An embedded image (bitmap or SVG).
-public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
-    public var locator: Locator
-    public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    /// Short piece of text associated with the image.
     public var caption: String?
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -145,34 +129,52 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
         self.caption = caption
         self.attributes = attributes
     }
+}
 
-    public var text: String? {
-        // The caption might be a better text description than the accessibility label, when available.
-        caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
+/// A video clip.
+public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
+    public var locator: Locator
+    public var embeddedLink: Link
+    public var caption: String?
+    public var attributes: [ContentAttribute]
+
+    public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
+        self.locator = locator
+        self.embeddedLink = embeddedLink
+        self.caption = caption
+        self.attributes = attributes
+    }
+}
+
+/// An embedded image (bitmap or SVG).
+public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
+    public var locator: Locator
+    public var embeddedLink: Link
+    public var caption: String?
+    public var attributes: [ContentAttribute]
+
+    public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
+        self.locator = locator
+        self.embeddedLink = embeddedLink
+        self.caption = caption
+        self.attributes = attributes
     }
 }
 
 /// An inline SVG image.
-public struct SVGContentElement: Hashable, TextualContentElement {
+public struct SVGContentElement: Hashable, TextualContentElement, CaptionedContentElement {
     public var locator: Locator
+    public var caption: String?
     public var attributes: [ContentAttribute]
 
     /// Raw SVG contents.
     public var svg: String
-
-    /// Optional human-readable description of the image (e.g. from `<title>`,
-    ///  `<desc>`, `alt` or `title`).
-    public var caption: String?
 
     public init(locator: Locator, svg: String, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
         self.svg = svg
         self.caption = caption
         self.attributes = attributes
-    }
-
-    public var text: String? {
-        caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
     }
 }
 
@@ -234,8 +236,21 @@ public struct TextContentElement: Hashable, TextualContentElement {
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
 public struct ContentAttributeKey<V>: Hashable, Sendable {
+    @available(*, unavailable, renamed: "accessibleName")
     public static var accessibilityLabel: ContentAttributeKey<String> {
-        .init("accessibilityLabel")
+        fatalError()
+    }
+
+    /// Accessible name of the element, computed following a subset of
+    /// https://www.w3.org/TR/accname-1.2
+    public static var accessibleName: ContentAttributeKey<String> {
+        .init("accessibleName")
+    }
+
+    /// Accessible description of the element, computed following a subset of
+    /// https://www.w3.org/TR/accname-1.2
+    public static var accessibleDescription: ContentAttributeKey<String> {
+        .init("accessibleDescription")
     }
 
     public static var language: ContentAttributeKey<Language> {
@@ -278,8 +293,17 @@ public extension ContentAttributesHolder {
         self[.language]
     }
 
+    @available(*, unavailable, renamed: "accessibleName")
     var accessibilityLabel: String? {
-        self[.accessibilityLabel]
+        fatalError()
+    }
+
+    var accessibleName: String? {
+        self[.accessibleName]
+    }
+
+    var accessibleDescription: String? {
+        self[.accessibleDescription]
     }
 
     /// Gets the first attribute with the given `key`.

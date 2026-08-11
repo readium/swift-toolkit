@@ -1,0 +1,676 @@
+# Source of truth for the accessible name & description sample publication.
+#
+# Run `python3 generate.py` after editing this file: it regenerates the XHTML
+# fixtures for the Swift and jest suites, and the readable `accname.epub` next
+# to this manifest.
+#
+# Per-case keys:
+#   id           unique across the whole manifest; becomes `id="case-<id>"`
+#   title        section heading; backticks become <code>
+#   name         expected accessible name; absent means "expected none"
+#   description  expected accessible description; absent means "expected none"
+#   note         extra prose explaining the rule
+#   divergence   what a browser would compute instead, when we knowingly differ
+#   skipped      excluded from both test harnesses (rule not implemented yet)
+#   markup       verbatim XHTML; exactly one element carries `data-subject=""`
+
+[[resource]]
+id = "image"
+title = "Images"
+intro = """
+The accessible name of an `img` is looked up in this order: `aria-labelledby`,
+`aria-label`, the `alt` attribute, the `title` attribute, and finally a
+`figcaption`. The description follows its own cascade and stops at the first
+attribute that is present, even when that attribute resolves to nothing.
+"""
+
+# --- Name cascade ---------------------------------------------------------
+
+[[resource.case]]
+id = "labelledby-resolves-multiple-ids"
+title = "`aria-labelledby` joins its targets and skips dangling ids"
+name = "Hello World"
+markup = '''
+<p id="lb-hello">Hello</p>
+<p id="lb-world">World</p>
+<img data-subject="" src="assets/apple.png" alt="Ignored" aria-labelledby="lb-hello lb-missing lb-world"/>
+'''
+
+[[resource.case]]
+id = "labelledby-all-dangling-falls-through"
+title = "`aria-labelledby` with only dangling ids falls through to `aria-label`"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-nowhere" aria-label="Red apple"/>
+'''
+
+[[resource.case]]
+id = "labelledby-target-with-aria-label"
+title = "A referenced element contributes its own `aria-label`"
+name = "Red apple"
+note = "The target's text content is only used when it carries no `aria-label` of its own."
+markup = '''
+<span id="lb-labelled" aria-label="Red apple">ignore me</span>
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-labelled"/>
+'''
+
+[[resource.case]]
+id = "labelledby-text-is-whitespace-normalised"
+title = "Referenced text is whitespace-normalised"
+name = "Hello beautiful world"
+markup = '''
+<p id="lb-multiline">Hello
+    beautiful   world</p>
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-multiline"/>
+'''
+
+[[resource.case]]
+id = "aria-label-beats-alt"
+title = "`aria-label` beats `alt`"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" aria-label="Red apple" alt="Ignored"/>
+'''
+
+[[resource.case]]
+id = "name-from-alt"
+title = "Name from `alt`"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple"/>
+'''
+
+[[resource.case]]
+id = "whitespace-only-alt-is-decorative"
+title = "A whitespace-only `alt` is decorative too"
+description = "A tooltip"
+note = "`alt` is trimmed before it is used, so `alt=\" \"` behaves exactly like `alt=\"\"`."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="   " title="A tooltip"/>
+'''
+
+[[resource.case]]
+id = "decorative-alt-blocks-title"
+title = "Empty `alt` blocks the `title` fallback"
+description = "A tooltip"
+note = "HTML-AAM 4.1.10 overrides accname 2.9, whose step 2.9 would name the image from the tooltip; browsers agree with us here. The tooltip still becomes the description."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="" title="A tooltip"/>
+'''
+
+[[resource.case]]
+id = "decorative-alt-rescued-by-aria-label"
+title = "Empty `alt` rescued by `aria-label`"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="" aria-label="Red apple"/>
+'''
+
+[[resource.case]]
+id = "name-from-title"
+title = "`title` names the image when nothing else does"
+name = "A tooltip"
+note = "The `title` is consumed by the name, so it does not also become the description."
+markup = '''
+<img data-subject="" src="assets/apple.png" title="A tooltip"/>
+'''
+
+[[resource.case]]
+id = "no-name-source"
+title = "No source at all yields no name"
+markup = '''
+<img data-subject="" src="assets/apple.png"/>
+'''
+
+# --- Description cascade --------------------------------------------------
+
+[[resource.case]]
+id = "description-from-describedby"
+title = "Description from `aria-describedby`"
+name = "Red apple"
+description = "A ripe apple on a white background."
+markup = '''
+<p id="db-apple">A ripe apple on a white background.</p>
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-describedby="db-apple"/>
+'''
+
+[[resource.case]]
+id = "dangling-describedby-stops-the-cascade"
+title = "A dangling `aria-describedby` still stops the cascade"
+name = "Red apple"
+note = "The attribute is present, so it counts as the first relevant markup found: the `title` is never consulted. The spec does not spell this out and browsers vary; this is a declared choice."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-describedby="db-nowhere" title="A tooltip"/>
+'''
+
+[[resource.case]]
+id = "description-from-aria-description"
+title = "Description from `aria-description`"
+name = "Red apple"
+description = "A ripe apple on a white background."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-description="A ripe apple on a white background."/>
+'''
+
+[[resource.case]]
+id = "describedby-beats-aria-description"
+title = "`aria-describedby` beats `aria-description`"
+name = "Red apple"
+description = "From aria-describedby."
+markup = '''
+<p id="db-winner">From aria-describedby.</p>
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-describedby="db-winner" aria-description="From aria-description."/>
+'''
+
+[[resource.case]]
+id = "title-describes-when-alt-names"
+title = "`title` describes when the name came from `alt`"
+name = "Red apple"
+description = "A tooltip"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" title="A tooltip"/>
+'''
+
+# --- Suppression ----------------------------------------------------------
+
+[[resource.case]]
+id = "aria-hidden-suppresses"
+title = "`aria-hidden=\"true\"` suppresses both"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" title="A tooltip" aria-hidden="true"/>
+'''
+
+[[resource.case]]
+id = "aria-hidden-is-case-insensitive"
+title = "`aria-hidden` is compared case-insensitively"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-hidden="TRUE"/>
+'''
+
+[[resource.case]]
+id = "aria-hidden-false-does-not-suppress"
+title = "`aria-hidden=\"false\"` does not suppress"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-hidden="false"/>
+'''
+
+[[resource.case]]
+id = "role-presentation-suppresses"
+title = "`role=\"presentation\"` suppresses both"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="presentation"/>
+'''
+
+[[resource.case]]
+id = "role-none-suppresses"
+title = "`role=\"none\"` suppresses both"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="none"/>
+'''
+
+[[resource.case]]
+id = "role-is-case-insensitive"
+title = "`role` is compared case-insensitively"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="PRESENTATION"/>
+'''
+
+[[resource.case]]
+id = "aria-label-cancels-presentational-role"
+title = "`aria-label` cancels the presentational role"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" role="presentation" aria-label="Red apple"/>
+'''
+
+[[resource.case]]
+id = "labelledby-cancels-presentational-role"
+title = "`aria-labelledby` cancels the presentational role"
+name = "Red apple"
+markup = '''
+<p id="pr-labelledby">Red apple</p>
+<img data-subject="" src="assets/apple.png" role="none" aria-labelledby="pr-labelledby"/>
+'''
+
+[[resource.case]]
+id = "describedby-cancels-presentational-role"
+title = "`aria-describedby` cancels the presentational role"
+name = "Red apple"
+description = "A ripe apple."
+markup = '''
+<p id="pr-describedby">A ripe apple.</p>
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="presentation" aria-describedby="pr-describedby"/>
+'''
+
+[[resource.case]]
+id = "aria-description-cancels-presentational-role"
+title = "`aria-description` cancels the presentational role"
+name = "Red apple"
+description = "A ripe apple."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="none" aria-description="A ripe apple."/>
+'''
+
+[[resource.case]]
+id = "role-token-list-first-token-wins"
+title = "`role` is a token list and the first token wins"
+note = "`presentation` comes first, so the image is suppressed."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="presentation img"/>
+'''
+
+[[resource.case]]
+id = "role-token-list-first-token-wins-the-other-way"
+title = "…and the same rule keeps a later `presentation` from applying"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="img presentation"/>
+'''
+
+# --- figcaption as name (HTML-AAM 4.1.10 step 4) --------------------------
+
+[[resource.case]]
+id = "figcaption-names-a-lone-image"
+title = "`figcaption` names a lone image"
+name = "A red apple"
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png"/>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-blocked-by-sibling-flow-content"
+title = "`figcaption` is blocked by sibling flow content"
+note = "The figure holds prose beyond the caption, so the caption is about more than the image."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png"/>
+  <p>Some prose sitting next to the image.</p>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-blocked-by-a-second-image"
+title = "`figcaption` is blocked by a second image"
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png"/>
+  <img src="assets/apple.png" alt="Another apple"/>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-blocked-by-alt"
+title = "`figcaption` is blocked by an `alt` attribute"
+note = "The rule only applies when the image has no `alt` attribute at all, not even an empty one."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt=""/>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-blocked-by-title"
+title = "`figcaption` is blocked by a `title` attribute"
+name = "A tooltip"
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" title="A tooltip"/>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+# --- Divergences ----------------------------------------------------------
+
+[[resource.case]]
+id = "nested-img-alt-in-labelledby-target"
+title = "A nested image's `alt` does not reach the label"
+divergence = "A browser recurses into the referenced element and computes “Yellow star”."
+name = "Red apple"
+note = "The referenced span has no text of its own, so it contributes nothing and the cascade continues to `alt`."
+markup = '''
+<span id="lb-nested"><img src="assets/star.svg" alt="Yellow star"/></span>
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-nested" alt="Red apple"/>
+'''
+
+[[resource.case]]
+id = "chained-labelledby"
+title = "Chained `aria-labelledby` is not followed"
+divergence = "A browser resolves the second hop and computes “Yellow star”."
+name = "ignore me"
+markup = '''
+<span id="chain-a" aria-labelledby="chain-b">ignore me</span>
+<span id="chain-b">Yellow star</span>
+<img data-subject="" src="assets/apple.png" aria-labelledby="chain-a"/>
+'''
+
+[[resource.case]]
+id = "hidden-node-inside-labelledby-target"
+title = "Hidden nodes inside a referenced target still contribute"
+divergence = "A browser excludes the hidden span and computes “Visible”."
+name = "Visible hidden"
+note = "Excluding them needs CSS knowledge SwiftSoup does not have, so the DOM side matches the Swift side on purpose."
+markup = '''
+<p id="lb-with-hidden">Visible <span aria-hidden="true">hidden</span></p>
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-with-hidden"/>
+'''
+
+[[resource.case]]
+id = "unvalidated-role-token"
+title = "Unknown `role` tokens are not skipped"
+divergence = "A browser discards the invalid token and honours `presentation`, computing no name."
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="graphics-symbol presentation"/>
+'''
+
+[[resource]]
+id = "svg"
+title = "Inline SVG"
+intro = """
+An inline `svg` takes its name from a direct `title` child and its description
+from a direct `desc` child. ARIA attributes still win over both, and an SVG
+referenced through an `img` element is an image like any other.
+"""
+
+[[resource.case]]
+id = "svg-title-names"
+title = "A direct `title` child names the SVG"
+name = "Blue circle"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-desc-describes"
+title = "A direct `desc` child describes the SVG"
+name = "Blue circle"
+description = "A filled blue disc."
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><title>Blue circle</title><desc>A filled blue disc.</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-desc-without-title"
+title = "`desc` without `title` describes but does not name"
+description = "A filled blue disc."
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><desc>A filled blue disc.</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-nested-title-is-ignored"
+title = "A `title` nested in a `g` does not count"
+note = "Only direct children of the `svg` element are host-language sources."
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><g><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></g></svg>
+'''
+
+[[resource.case]]
+id = "svg-nested-desc-is-ignored"
+title = "A `desc` nested in a `g` does not count either"
+name = "Blue circle"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><title>Blue circle</title><g><desc>Ignored</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></g></svg>
+'''
+
+[[resource.case]]
+id = "aria-label-beats-svg-title"
+title = "`aria-label` beats the `title` child"
+name = "Red apple"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" aria-label="Red apple"><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "describedby-beats-svg-desc"
+title = "`aria-describedby` beats the `desc` child"
+name = "Blue circle"
+description = "From aria-describedby."
+markup = '''
+<p id="svg-db">From aria-describedby.</p>
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" aria-describedby="svg-db"><title>Blue circle</title><desc>Ignored</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-title-child-beats-title-attribute"
+title = "The `title` child names, the `title` attribute describes"
+name = "Blue circle"
+description = "A tooltip"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" title="A tooltip"><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-title-attribute-names-without-a-title-child"
+title = "The `title` attribute names an SVG with no `title` child"
+name = "A tooltip"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" title="A tooltip"><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "aria-hidden-suppresses-svg"
+title = "`aria-hidden=\"true\"` suppresses the SVG"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" aria-hidden="true"><title>Blue circle</title><desc>A filled blue disc.</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "role-presentation-suppresses-svg"
+title = "`role=\"presentation\"` suppresses the SVG"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="presentation"><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-referenced-by-img-is-an-image"
+title = "An SVG behind an `img` is an image"
+name = "Yellow star"
+note = "The `title` and `desc` inside the SVG file are invisible to the host document; only the `img` attributes are read."
+markup = '''
+<img data-subject="" src="assets/star.svg" alt="Yellow star"/>
+'''
+
+[[resource]]
+id = "media"
+title = "Audio and video"
+intro = """
+`audio` and `video` have no host-language name source, so only ARIA attributes
+and `title` can name them. Their fallback content is never read.
+"""
+
+[[resource.case]]
+id = "audio-named-by-aria-label"
+title = "`aria-label` names an `audio`"
+name = "One second of silence"
+markup = '''
+<audio data-subject="" src="assets/tone.m4a" controls="controls" aria-label="One second of silence"></audio>
+'''
+
+[[resource.case]]
+id = "audio-named-by-title"
+title = "`title` names an `audio`"
+name = "One second of silence"
+markup = '''
+<audio data-subject="" src="assets/tone.m4a" controls="controls" title="One second of silence"></audio>
+'''
+
+[[resource.case]]
+id = "audio-has-no-host-language-source"
+title = "Fallback content never names an `audio`"
+note = "The children of a media element are fallback content for readers without playback support, not a text alternative."
+markup = '''
+<audio data-subject="" src="assets/tone.m4a" controls="controls">Your reading system cannot play audio.</audio>
+'''
+
+[[resource.case]]
+id = "audio-described-by-describedby"
+title = "`aria-describedby` describes an `audio`"
+name = "Silent tone"
+description = "One second of digital silence."
+markup = '''
+<p id="au-db">One second of digital silence.</p>
+<audio data-subject="" src="assets/tone.m4a" controls="controls" aria-label="Silent tone" aria-describedby="au-db"></audio>
+'''
+
+[[resource.case]]
+id = "audio-with-source-children"
+title = "`source` children do not change the name"
+name = "Silent tone"
+markup = '''
+<audio data-subject="" controls="controls" aria-label="Silent tone"><source src="assets/tone.m4a" type="audio/mp4"/></audio>
+'''
+
+[[resource.case]]
+id = "aria-hidden-suppresses-audio"
+title = "`aria-hidden=\"true\"` suppresses an `audio`"
+note = "`role=\"presentation\"` is not valid on a media element, so `aria-hidden` is the only way to suppress one."
+markup = '''
+<audio data-subject="" src="assets/tone.m4a" controls="controls" title="One second of silence" aria-hidden="true"></audio>
+'''
+
+[[resource.case]]
+id = "video-named-by-aria-label"
+title = "`aria-label` names a `video`"
+name = "A blue rectangle"
+markup = '''
+<video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle"></video>
+'''
+
+[[resource.case]]
+id = "video-title-describes-when-aria-label-names"
+title = "`title` describes a `video` named by `aria-label`"
+name = "A blue rectangle"
+description = "A tooltip"
+markup = '''
+<video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle" title="A tooltip"></video>
+'''
+
+[[resource.case]]
+id = "aria-hidden-suppresses-video"
+title = "`aria-hidden=\"true\"` suppresses a `video`"
+markup = '''
+<video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle" title="A tooltip" aria-hidden="true"></video>
+'''
+
+[[resource]]
+id = "table"
+title = "Tables (not implemented)"
+intro = """
+Nothing in this section is implemented: `table` is not one of the elements the
+content iterator emits, and the accname helper has no host-language source for
+it. The cases below are written as if it were, and every one of them is flagged
+as skipped so neither test harness asserts it. Removing those flags is the
+acceptance test for a future implementation.
+"""
+
+[[resource.case]]
+id = "caption-names-the-table"
+title = "`caption` names the table"
+skipped = true
+name = "Quarterly revenue"
+markup = '''
+<table data-subject="">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "aria-label-beats-caption"
+title = "`aria-label` beats the `caption`"
+skipped = true
+name = "Revenue by quarter"
+markup = '''
+<table data-subject="" aria-label="Revenue by quarter">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "labelledby-beats-caption"
+title = "`aria-labelledby` beats the `caption`"
+skipped = true
+name = "Revenue by quarter"
+markup = '''
+<p id="tb-lb">Revenue by quarter</p>
+<table data-subject="" aria-labelledby="tb-lb">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "title-describes-a-captioned-table"
+title = "`title` describes a table named by its `caption`"
+skipped = true
+name = "Quarterly revenue"
+description = "A tooltip"
+markup = '''
+<table data-subject="" title="A tooltip">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "describedby-describes-the-table"
+title = "`aria-describedby` describes the table"
+skipped = true
+name = "Quarterly revenue"
+description = "Revenue in thousands of euros."
+markup = '''
+<p id="tb-db">Revenue in thousands of euros.</p>
+<table data-subject="" aria-describedby="tb-db">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "aria-hidden-suppresses-the-table"
+title = "`aria-hidden=\"true\"` suppresses the table"
+skipped = true
+markup = '''
+<table data-subject="" aria-hidden="true">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "role-presentation-suppresses-the-table"
+title = "`role=\"presentation\"` suppresses the table"
+skipped = true
+markup = '''
+<table data-subject="" role="presentation">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "table-without-caption-has-no-name"
+title = "A table without a `caption` has no name"
+skipped = true
+markup = '''
+<table data-subject="">
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''

@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Foundation
 @testable import ReadiumShared
 import Testing
 
@@ -174,7 +175,7 @@ struct HTMLResourceContentIteratorTests {
                 locator: makeLocator(progression: 0.5, selector: "html > body > img:nth-child(2)"),
                 embeddedLink: Link(href: "cover.jpg"),
                 caption: nil,
-                attributes: [ContentAttribute(key: .accessibilityLabel, value: "Accessibility description")]
+                attributes: [ContentAttribute(key: .accessibleName, value: "Accessibility description")]
             ).equatable(),
         ]
 
@@ -265,6 +266,184 @@ struct HTMLResourceContentIteratorTests {
         }
         let result = try await iter.next()
         #expect(result == nil)
+    }
+
+    struct Figures {
+        @Test func imageInFigureGetsCaptionFromFigcaption() async throws {
+            let elements = try await allElements("""
+            <figure><img src="a.jpg" alt="Alt text"/><figcaption>The caption</figcaption></figure>
+            """)
+
+            #expect(elements.count == 2)
+            let image = try #require(elements[0] as? ImageContentElement)
+            #expect(image.caption == "The caption")
+            #expect(image.accessibleName == "Alt text")
+            #expect(image.text == "Alt text")
+
+            // The figcaption is still emitted as a regular text element.
+            let text = try #require(elements[1] as? TextContentElement)
+            #expect(text.text == "The caption")
+        }
+
+        @Test func nestedFigureUsesTheNearestFigcaption() async throws {
+            let elements = try await allElements("""
+            <figure>
+                <figure><img src="a.jpg" alt="Alt"/><figcaption>Inner</figcaption></figure>
+                <figcaption>Outer</figcaption>
+            </figure>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.caption == "Inner")
+        }
+
+        @Test func twoImagesInOneFigureShareTheCaption() async throws {
+            let elements = try await allElements("""
+            <figure><img src="a.jpg" alt="A"/><img src="b.jpg" alt="B"/><figcaption>Shared</figcaption></figure>
+            """)
+
+            let images = elements.compactMap { $0 as? ImageContentElement }
+            #expect(images.count == 2)
+            #expect(images.allSatisfy { $0.caption == "Shared" })
+        }
+
+        @Test func figcaptionNotFirstChildStillProvidesTheCaption() async throws {
+            let elements = try await allElements("""
+            <figure><p>intro</p><img src="a.jpg" alt="Alt"/><figcaption>Cap</figcaption></figure>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.caption == "Cap")
+        }
+
+        @Test func imageInsideTheFigcaptionIsNotCaptionedByIt() async throws {
+            let elements = try await allElements("""
+            <figure>
+                <img src="chart.png" alt="Revenue chart"/>
+                <figcaption>Source: <img src="logo.png" alt="ACME"/> annual report</figcaption>
+            </figure>
+            """)
+
+            let images = elements.compactMap { $0 as? ImageContentElement }
+            #expect(images.count == 2)
+
+            let chart = try #require(images.first)
+            #expect(chart.caption == "Source: annual report")
+
+            let logo = try #require(images.last)
+            #expect(logo.caption == nil)
+        }
+
+        @Test func theNameStillComesFromAWrappingFigcaption() async throws {
+            // The guard above is deliberately not applied to the accessible
+            // name: HTML-AAM 4.1.10 names this image from the figcaption it
+            // lives inside, and we follow the spec there.
+            let elements = try await allElements("""
+            <figure><figcaption>Logo: <img src="logo.png"/></figcaption></figure>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.caption == nil)
+            #expect(image.accessibleName == "Logo:")
+        }
+
+        @Test func audioAndVideoInAFigureGetTheCaption() async throws {
+            let elements = try await allElements("""
+            <figure><audio src="tone.m4a" title="Tone"></audio><figcaption>A pure tone</figcaption></figure>
+            <figure><video src="clip.mp4" title="Clip"></video><figcaption>A short clip</figcaption></figure>
+            """)
+
+            let audio = try #require(elements.compactMap { $0 as? AudioContentElement }.first)
+            #expect(audio.caption == "A pure tone")
+            #expect(audio.accessibleName == "Tone")
+
+            let video = try #require(elements.compactMap { $0 as? VideoContentElement }.first)
+            #expect(video.caption == "A short clip")
+            #expect(video.accessibleName == "Clip")
+        }
+    }
+
+    struct MediaAccessibilityAttributes {
+        @Test func audioElementExposesAccessibilityAttributes() async throws {
+            let elements = try await allElements("""
+            <audio src="a.mp3" aria-label="Podcast"/>
+            """)
+
+            let audio = try #require(elements.first as? AudioContentElement)
+            #expect(audio.accessibleName == "Podcast")
+        }
+
+        @Test func videoElementExposesAccessibilityAttributes() async throws {
+            let elements = try await allElements("""
+            <video src="v.mp4" aria-label="Movie"/>
+            """)
+
+            let video = try #require(elements.first as? VideoContentElement)
+            #expect(video.accessibleName == "Movie")
+        }
+    }
+
+    struct SVGElements {
+        @Test func inlineSVGIsEmittedAsAnSVGElementAndItsSubtreeIsSkipped() async throws {
+            let elements = try await allElements("""
+            <p>Before</p>
+            <svg><title>Chart title</title><desc>Chart description</desc><circle/></svg>
+            <p>After</p>
+            """)
+
+            #expect(elements.count == 3)
+            #expect((elements[0] as? TextContentElement)?.text == "Before")
+            #expect((elements[2] as? TextContentElement)?.text == "After")
+
+            let svg = try #require(elements[1] as? SVGContentElement)
+            #expect(svg.svg.contains("circle"))
+            #expect(svg.accessibleName == "Chart title")
+            #expect(svg.accessibleDescription == "Chart description")
+            #expect(svg.locator.locations.progression != nil)
+
+            // The SVG title and description must not leak as text elements.
+            let texts = elements.compactMap { ($0 as? TextContentElement)?.text }
+            #expect(!texts.contains { $0.contains("Chart title") || $0.contains("Chart description") })
+        }
+
+        @Test func svgInFigureGetsCaptionFromFigcaption() async throws {
+            let elements = try await allElements("""
+            <figure><svg><circle/></svg><figcaption>Fig</figcaption></figure>
+            """)
+
+            let svg = try #require(elements.compactMap { $0 as? SVGContentElement }.first)
+            #expect(svg.caption == "Fig")
+        }
+
+        @Test func nestedMediaInsideSVGIsNotEmitted() async throws {
+            let elements = try await allElements("""
+            <svg><foreignObject><img src="b.jpg" alt="Nested"/></foreignObject></svg>
+            """)
+
+            #expect(elements.count == 1)
+            #expect(elements[0] is SVGContentElement)
+        }
+
+        @Test func ariaLabelledbyResolvesIntoASkippedSubtree() async throws {
+            let elements = try await allElements("""
+            <svg><text id="t1">Label in svg</text></svg>
+            <img src="a.jpg" aria-labelledby="t1"/>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.accessibleName == "Label in svg")
+        }
+    }
+
+    struct ImageFallbackContent {
+        @Test func imageInVideoFallbackContentIsNotEmitted() async throws {
+            let elements = try await allElements("""
+            <video src="v.mp4"><img src="poster.jpg" alt="Poster"/></video>
+            """)
+
+            #expect(elements.count == 1)
+            #expect(elements[0] is VideoContentElement)
+        }
     }
 
     @Test func iteratingOverElementContainingBothATextNodeAndChildElements() async throws {
@@ -760,4 +939,23 @@ private func makeIterator(
         totalProgressionRange: { totalProgressionRange },
         locator: startLocator ?? makeLocator()
     )
+}
+
+/// Iterates all the elements of an HTML `body` fragment.
+private func allElements(_ body: String) async throws -> [ContentElement] {
+    let html = """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+    \(body)
+    </body>
+    </html>
+    """
+
+    let iter = makeIterator(html)
+    var elements: [ContentElement] = []
+    while let element = try await iter.next() {
+        elements.append(element)
+    }
+    return elements
 }
