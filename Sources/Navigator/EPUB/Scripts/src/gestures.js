@@ -8,7 +8,10 @@ import { findDecorationTarget, handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
 import { getCssSelector } from "css-selector-generator";
-import { computeAccessibilityProperties, findFigureCaption } from "./accname";
+import {
+  computeAccessibilityProperties,
+  findFigureCaption,
+} from "./accessibility-properties";
 
 let isSelecting = false;
 

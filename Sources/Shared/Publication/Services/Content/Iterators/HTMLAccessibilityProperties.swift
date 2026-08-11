@@ -15,10 +15,12 @@ import SwiftSoup
 /// https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html
 ///
 /// This is the Swift counterpart of the TypeScript implementation in
-/// `Sources/Navigator/EPUB/Scripts/src/accname.ts` — both MUST implement
-/// exactly the same subset. What keeps them in sync is the shared case
-/// manifest in `scripts/accname-sample/cases.toml`: it generates the fixtures
-/// both test suites run against, so a rule is stated once and asserted twice.
+/// `Sources/Navigator/EPUB/Scripts/src/accessibility-properties.ts` — both
+/// MUST implement exactly the same subset. What keeps them in sync is the
+/// shared case manifest in
+/// `Tests/Samples/accessibility-properties/cases.toml`: it generates the
+/// fixtures both test suites run against, so a rule is stated once and
+/// asserted twice.
 /// Add cases there, including caption cases; the `Figures` suite in
 /// `HTMLResourceContentIteratorTests` keeps only iterator-structure
 /// assertions.
@@ -97,9 +99,10 @@ import SwiftSoup
 /// - SwiftSoup's `text()` inserts a space before a block element when the
 ///   accumulated text does not already end in whitespace, while the DOM's
 ///   `textContent` does not, so `<figcaption>Cap<details>…` flattens to
-///   `Cap More Body` here and to `CapMoreBody` in `accname.ts`. Real markup
-///   has whitespace between block elements; the shared cases are authored that
-///   way. Making the two agree is a follow-up.
+///   `Cap More Body` here and to `CapMoreBody` in
+///   `accessibility-properties.ts`. Real markup has whitespace between block
+///   elements; the shared cases are authored that way. Making the two agree is
+///   a follow-up.
 ///
 /// Reusability caveat: the ARIA-attribute sources apply to any element, but
 /// host-language sources are implemented only for `img` and `svg`, and

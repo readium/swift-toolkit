@@ -1,13 +1,18 @@
-# Accessible name & description sample
+# Accessibility properties sample
 
-A small EPUB that doubles as a readable specification for the pragmatic [accname-1.2](https://www.w3.org/TR/accname-1.2) subset and the [`aria-details` extended descriptions](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html) implemented in this repository:
+This directory makes sure Readium computes the same accessibility properties in Swift and in TypeScript.
 
-- `HTMLAccessibilityProperties.swift` (SwiftSoup, feeds `ContentElement` attributes)
-- `accname.ts` (DOM, feeds `PointerEvent.targetElement`)
+Content elements have four accessibility properties: an accessible name, a description, a caption and extended descriptions. Readium computes them twice, once in Swift (`HTMLAccessibilityProperties.swift`, in `ReadiumShared`) and once in TypeScript (`accessibility-properties.ts`, in the EPUB navigator). Both must give the same answer for the same HTML.
 
-Both must implement exactly the same subset. This sample is what keeps them
-correct end to end: one section per case, stating the expected name and
-description in prose, followed by the markup under test.
+`cases.toml` is where those answers are written down: each case pairs a piece of HTML markup with the properties it must produce. `python3 generate.py` reads the file and writes:
+
+- XHTML fixtures for the Swift test suite
+- the same XHTML for the jest test suite
+- `accessibility-properties.epub`, which you can open in a reader to check the same cases by hand
+
+Both test suites come from the same file, so the two implementations stay in sync.
+
+The two implementations follow a pragmatic subset of [accname-1.2](https://www.w3.org/TR/accname-1.2) and the [`aria-details` extended descriptions](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html) best practices. [ADR 0001](../../../docs/adr/0001-pragmatic-accname-subset.md) records what the subset leaves out.
 
 ## Regenerating
 
@@ -17,11 +22,11 @@ python3 generate.py
 
 It writes:
 
-| Path                                                                | Contents                         |
-|---------------------------------------------------------------------|----------------------------------|
-| `/Tests/SharedTests/Fixtures/Publication/Services/Content/accname/` | XHTML, for the Swift suite       |
-| `/Sources/Navigator/EPUB/Scripts/test/fixtures/accname/`            | XHTML, for the jest suite        |
-| `./accname.epub`                                                    | the sample, openable in a reader |
+| Path                                                                                 | Contents                         |
+|--------------------------------------------------------------------------------------|----------------------------------|
+| `/Tests/SharedTests/Fixtures/Publication/Services/Content/accessibility-properties/` | XHTML, for the Swift suite       |
+| `/Sources/Navigator/EPUB/Scripts/test/fixtures/accessibility-properties/`            | XHTML, for the jest suite        |
+| `./accessibility-properties.epub`                                                    | the sample, openable in a reader |
 
 The XHTML is written twice so that neither package reaches into the other's tree. Both copies come from `cases.toml`, so they cannot drift. Never edit the generated files: edit `cases.toml` and regenerate.
 
@@ -47,7 +52,7 @@ The baseline keeps the check meaningful: any message that is not already account
 
 ## Unit tests
 
-- `/Tests/SharedTests/Publication/Services/Content/Iterators/AccnameSampleTests.swift` runs each document through `HTMLResourceContentIterator` and matches every emitted element to its case through the `#case-<id>` CSS selector.
-- `/Sources/Navigator/EPUB/Scripts/test/accname-sample.test.ts` loads the fixtures into jsdom and runs `computeAccessibilityProperties` and `findFigureCaption` over every `[data-case]` element.
+- `/Tests/SharedTests/Publication/Services/Content/Iterators/AccessibilityPropertiesSampleTests.swift` runs each document through `HTMLResourceContentIterator` and matches every emitted element to its case through the `#case-<id>` CSS selector.
+- `/Sources/Navigator/EPUB/Scripts/test/accessibility-properties-sample.test.ts` loads the fixtures into jsdom and runs `computeAccessibilityProperties` and `findFigureCaption` over every `[data-case]` element.
 
 Both skip cases flagged `skipped = true`, which describe rules that are not implemented yet (all of `table.xhtml`). Removing those flags is the acceptance test for a future implementation.

@@ -269,9 +269,10 @@ struct HTMLResourceContentIteratorTests {
     }
 
     /// What the caption rules themselves compute is asserted by
-    /// `AccnameSampleTests`, from the shared case manifest in
-    /// `scripts/accname-sample/cases.toml`. Only what the manifest cannot
-    /// express — the structure the iterator emits around a figure — lives here.
+    /// `AccessibilityPropertiesSampleTests`, from the shared case manifest in
+    /// `Tests/Samples/accessibility-properties/cases.toml`. Only what the
+    /// manifest cannot express — the structure the iterator emits around a
+    /// figure — lives here.
     struct Figures {
         @Test func theFigcaptionIsAlsoEmittedAsATextElement() async throws {
             let elements = try await allElements("""

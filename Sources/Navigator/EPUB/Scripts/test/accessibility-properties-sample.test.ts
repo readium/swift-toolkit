@@ -5,11 +5,11 @@
 //
 
 /**
- * Parity test for the accname sample publication.
+ * Parity test for the accessibility properties sample publication.
  *
- * The fixtures under `test/fixtures/accname/` are generated from
- * `/scripts/accname-sample/cases.toml`, which also drives the Swift end-to-end
- * suite.
+ * The fixtures under `test/fixtures/accessibility-properties/` are generated
+ * from `/Tests/Samples/accessibility-properties/cases.toml`, which also drives
+ * the Swift end-to-end suite.
  *
  * Every subject element carries the expected name, description, caption and
  * extended descriptions as `data-expected-*` attributes, so both harnesses
@@ -21,9 +21,9 @@ import * as path from "path";
 import {
   computeAccessibilityProperties,
   findFigureCaption,
-} from "../src/accname";
+} from "../src/accessibility-properties";
 
-const FIXTURES_DIR = path.join(__dirname, "fixtures/accname");
+const FIXTURES_DIR = path.join(__dirname, "fixtures/accessibility-properties");
 
 /**
  * Fake base URI the extended description hrefs are resolved against: the
@@ -92,7 +92,7 @@ function loadCases(): Case[] {
 
 const CASES = loadCases();
 
-describe("accname sample publication", () => {
+describe("accessibility properties sample publication", () => {
   test("the fixtures hold cases", () => {
     expect(CASES.length).toBeGreaterThan(0);
   });

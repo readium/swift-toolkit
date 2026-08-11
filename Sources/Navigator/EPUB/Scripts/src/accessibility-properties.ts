@@ -15,8 +15,9 @@
  * This is the TypeScript counterpart of the Swift implementation in
  * `Sources/Shared/Publication/Services/Content/Iterators/HTMLAccessibilityProperties.swift`
  * — both MUST implement exactly the same subset. What keeps them in sync is
- * the shared case manifest in `scripts/accname-sample/cases.toml`: it generates
- * the fixtures both test suites run against, so a rule is stated once and
+ * the shared case manifest in
+ * `Tests/Samples/accessibility-properties/cases.toml`: it generates the
+ * fixtures both test suites run against, so a rule is stated once and
  * asserted twice. Add cases there, including caption cases; the `Figures` suite
  * in the Swift `HTMLResourceContentIteratorTests` keeps only
  * iterator-structure assertions.

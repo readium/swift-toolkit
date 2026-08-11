@@ -326,8 +326,8 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             attributes.append(ContentAttribute(key: .accessibleDescription, value: description))
         }
         // Extended description links, resolved from `aria-details` by
-        // accname.ts. Their hrefs are absolute URLs which we relativize
-        // against the publication base URL, the same way as `src`.
+        // accessibility-properties.ts. Their hrefs are absolute URLs which we
+        // relativize against the publication base URL, the same way as `src`.
         for description in json["extendedDescriptions"] as? [[String: Any]] ?? [] {
             guard
                 let rawHREF = description["href"] as? String,

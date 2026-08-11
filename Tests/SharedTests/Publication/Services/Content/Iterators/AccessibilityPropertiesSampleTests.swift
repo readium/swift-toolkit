@@ -13,20 +13,21 @@ import Testing
 /// description computation (`HTMLAccessibilityProperties`), through the HTML
 /// content iterator.
 ///
-/// The cases are read from the `accname` sample, generated from
-/// `/scripts/accname-sample/cases.toml`. That manifest also drives the jest
-/// parity suite in
-/// `/Sources/Navigator/EPUB/Scripts/test/accname-sample.test.ts`, so the two
-/// implementations are asserted against a single source of truth.
+/// The cases are read from the accessibility properties sample, generated from
+/// `/Tests/Samples/accessibility-properties/cases.toml`. That manifest also
+/// drives the jest parity suite in
+/// `/Sources/Navigator/EPUB/Scripts/test/accessibility-properties-sample.test.ts`,
+/// so the two implementations are asserted against a single source of truth.
 ///
 /// Each case states its expected values in prose *and* as `data-expected-*`
 /// attributes on the element under test.
-/// `python3 scripts/accname-sample/generate.py` regenerates these fixtures,
-/// along with an EPUB you can open in a reader to check the same cases by hand.
-struct AccnameSampleTests {
-    @Test(arguments: AccnameSample.cases)
-    func computesTheExpectedProperties(testCase: AccnameSample.Case) async throws {
-        let computed = try await AccnameSample.computedProperties()
+/// `python3 Tests/Samples/accessibility-properties/generate.py` regenerates
+/// these fixtures, along with an EPUB you can open in a reader to check the
+/// same cases by hand.
+struct AccessibilityPropertiesSampleTests {
+    @Test(arguments: AccessibilityPropertiesSample.cases)
+    func computesTheExpectedProperties(testCase: AccessibilityPropertiesSample.Case) async throws {
+        let computed = try await AccessibilityPropertiesSample.computedProperties()
         let actual = try #require(
             computed[testCase.id],
             "the content iterator did not emit an element for this case"
@@ -40,8 +41,8 @@ struct AccnameSampleTests {
     /// Catches subject elements the iterator silently drops, which would
     /// otherwise make the per-case tests vacuous.
     @Test func everyCaseIsReachedByTheIterator() async throws {
-        let computed = try await AccnameSample.computedProperties()
-        let missing = AccnameSample.cases
+        let computed = try await AccessibilityPropertiesSample.computedProperties()
+        let missing = AccessibilityPropertiesSample.cases
             .map(\.id)
             .filter { computed[$0] == nil }
         #expect(missing.isEmpty, "cases missing from the iterator output: \(missing)")
@@ -50,10 +51,10 @@ struct AccnameSampleTests {
 
 // MARK: - Sample
 
-/// Reads the `accname` sample once and exposes both the expected values (parsed
-/// out of the generated markup) and the computed ones (collected from the
-/// content iterator).
-enum AccnameSample {
+/// Reads the accessibility properties sample once and exposes both the expected
+/// values (parsed out of the generated markup) and the computed ones (collected
+/// from the content iterator).
+enum AccessibilityPropertiesSample {
     /// A single case of the sample, matched to an iterator element by id.
     struct Case: Sendable, CustomStringConvertible {
         /// Name of the generated document holding the case.
@@ -87,14 +88,14 @@ enum AccnameSample {
     private static var documents: [String] {
         get throws {
             try FileManager.default
-                .contentsOfDirectory(atPath: fixtures.url(for: "accname").path)
+                .contentsOfDirectory(atPath: fixtures.url(for: "accessibility-properties").path)
                 .filter { $0.hasSuffix(".xhtml") }
                 .sorted()
         }
     }
 
     private static func markup(of document: String) throws -> String {
-        try String(contentsOf: fixtures.url(for: "accname/\(document)").url, encoding: .utf8)
+        try String(contentsOf: fixtures.url(for: "accessibility-properties/\(document)").url, encoding: .utf8)
     }
 
     /// Every case the harness must assert, parsed out of the generated markup.
@@ -124,7 +125,7 @@ enum AccnameSample {
                     }
             }
         } catch {
-            fatalError("Could not read the accname sample cases: \(error)")
+            fatalError("Could not read the accessibility properties sample cases: \(error)")
         }
     }()
 
