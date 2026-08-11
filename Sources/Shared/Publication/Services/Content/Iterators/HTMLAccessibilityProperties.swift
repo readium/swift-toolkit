@@ -19,7 +19,9 @@ import SwiftSoup
 /// exactly the same subset. What keeps them in sync is the shared case
 /// manifest in `scripts/accname-sample/cases.toml`: it generates the fixtures
 /// both test suites run against, so a rule is stated once and asserted twice.
-/// Add cases there.
+/// Add cases there, including caption cases; the `Figures` suite in
+/// `HTMLResourceContentIteratorTests` keeps only iterator-structure
+/// assertions.
 ///
 /// Implemented:
 /// - Source precedence for the name: `aria-labelledby` → `aria-label` →
@@ -92,6 +94,12 @@ import SwiftSoup
 ///   text nodes and `img[alt]` values with a single space, so a word split
 ///   across adjacent inline elements gains a space that a browser's
 ///   `innerText` would not add.
+/// - SwiftSoup's `text()` inserts a space before a block element when the
+///   accumulated text does not already end in whitespace, while the DOM's
+///   `textContent` does not, so `<figcaption>Cap<details>…` flattens to
+///   `Cap More Body` here and to `CapMoreBody` in `accname.ts`. Real markup
+///   has whitespace between block elements; the shared cases are authored that
+///   way. Making the two agree is a follow-up.
 ///
 /// Reusability caveat: the ARIA-attribute sources apply to any element, but
 /// host-language sources are implemented only for `img` and `svg`, and
@@ -413,6 +421,17 @@ extension SwiftSoup.Element {
     /// An element living inside the figcaption (a publisher logo, a footnote
     /// marker) is not captioned by the text wrapping it, so it gets no
     /// caption at all rather than falling back to an outer figure.
+    ///
+    /// An extended description wrapped by the figcaption is excluded from the
+    /// caption: any `<details>` subtree, and any subtree rooted at an element
+    /// the receiver points at with `aria-details` or `aria-describedby`.
+    /// Publishers do put the description inside the caption, and a reading app
+    /// displaying the caption would otherwise print the whole long description
+    /// — including one hidden by CSS, which a sighted reader never sees.
+    ///
+    /// The exclusion deliberately does NOT apply to the accessible name
+    /// computed by `figureCaptionAsName()`: HTML-AAM 4.1.10 names the image
+    /// from the whole figcaption.
     func figureCaption() throws -> String? {
         guard
             let figcaption = enclosingFigure()?.firstDirectChild(tag: "figcaption"),
@@ -420,6 +439,40 @@ extension SwiftSoup.Element {
         else {
             return nil
         }
-        return try figcaption.text().orNilIfBlank()
+
+        let excludedIDs = try (attr("aria-details") + " " + attr("aria-describedby"))
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+
+        // The figcaption *is* the description: there is nothing left to
+        // display. Checked explicitly because stripping cannot remove the root
+        // of the subtree being stripped.
+        guard try !excludedIDs.contains(figcaption.attr("id")) else {
+            return nil
+        }
+
+        // A caption wrapping a description is the exception, and this runs for
+        // every element of every resource, so look for something to strip
+        // before paying for the deep copy below.
+        let hasDetails = try !figcaption.getElementsByTag("details").isEmpty()
+        let hasExcludedID = try excludedIDs.contains {
+            try !figcaption.getElementsByAttributeValue("id", $0).isEmpty()
+        }
+        guard hasDetails || hasExcludedID else {
+            return try figcaption.text().orNilIfBlank()
+        }
+
+        // Strip on a deep copy, to keep `text()`'s block-boundary spacing,
+        // which a hand-rolled text walk would lose.
+        guard let clone = figcaption.copy() as? Element else {
+            return try figcaption.text().orNilIfBlank()
+        }
+        try clone.getElementsByTag("details").remove()
+        for id in excludedIDs {
+            // Matched by attribute value rather than with a `#id` selector, to
+            // avoid CSS escaping.
+            try clone.getElementsByAttributeValue("id", id).remove()
+        }
+        return try clone.text().orNilIfBlank()
     }
 }

@@ -11,14 +11,17 @@
  * `/scripts/accname-sample/cases.toml`, which also drives the Swift end-to-end
  * suite.
  *
- * Every subject element carries the expected name and description as
- * `data-expected-*` attributes, so both harnesses assert against a single
- * source of truth.
+ * Every subject element carries the expected name, description, caption and
+ * extended descriptions as `data-expected-*` attributes, so both harnesses
+ * assert against a single source of truth.
  */
 
 import * as fs from "fs";
 import * as path from "path";
-import { computeAccessibilityProperties } from "../src/accname";
+import {
+  computeAccessibilityProperties,
+  findFigureCaption,
+} from "../src/accname";
 
 const FIXTURES_DIR = path.join(__dirname, "fixtures/accname");
 
@@ -36,6 +39,7 @@ interface Case {
   element: Element;
   expectedName: string | null;
   expectedDescription: string | null;
+  expectedCaption: string | null;
   expectedExtendedDescriptions: { href: string; title: string | null }[];
 }
 
@@ -78,6 +82,7 @@ function loadCases(): Case[] {
         element,
         expectedName: element.getAttribute("data-expected-name"),
         expectedDescription: element.getAttribute("data-expected-description"),
+        expectedCaption: element.getAttribute("data-expected-caption"),
         expectedExtendedDescriptions,
       });
     }
@@ -103,6 +108,9 @@ describe("accname sample publication", () => {
       expect(result.description).toBe(testCase.expectedDescription);
       expect(result.extendedDescriptions).toEqual(
         testCase.expectedExtendedDescriptions
+      );
+      expect(findFigureCaption(testCase.element)).toBe(
+        testCase.expectedCaption
       );
     }
   );

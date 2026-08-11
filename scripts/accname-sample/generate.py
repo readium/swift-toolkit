@@ -60,6 +60,7 @@ class Case:
     markup: str
     name: str | None = None
     description: str | None = None
+    caption: str | None = None
     # Expected extended description links, as a list of {"href", "title"}
     # tables. Absent means "expected none"; hrefs are relative to the document.
     extended_descriptions: list | None = None
@@ -86,6 +87,7 @@ CASE_KEYS = {
     "markup",
     "name",
     "description",
+    "caption",
     "extended_descriptions",
     "note",
     "divergence",
@@ -165,6 +167,8 @@ def subject_attributes(case: Case) -> str:
         attributes.append(
             f'data-expected-description="{escape_attr(case.description)}"'
         )
+    if case.caption is not None:
+        attributes.append(f'data-expected-caption="{escape_attr(case.caption)}"')
     if case.extended_descriptions is not None:
         attributes.append(
             "data-expected-extended-descriptions="
@@ -211,6 +215,10 @@ def render_case(case: Case) -> str:
         '  <dl class="expect">',
         f"    <dt>Name</dt>{render_expectation(case.name)}",
         f"    <dt>Description</dt>{render_expectation(case.description)}",
+        # Rendered unconditionally: absent means "expected none", so a
+        # proofreader must be able to tell that from "captions are not part of
+        # this case".
+        f"    <dt>Caption</dt>{render_expectation(case.caption)}",
     ]
     if case.extended_descriptions is not None:
         lines.append(
@@ -468,15 +476,21 @@ def validate(documents: dict[str, str], resources: list[Resource], files: set[st
 
             for attribute in ("src", "href"):
                 link = element.get(attribute)
-                if link is None or link == "" or link.startswith("#"):
-                    # Empty and fragment-only links stay inside the document;
-                    # some cases use them deliberately.
+                if link is None:
                     continue
                 if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", link):
                     # Any absolute URL: http(s), but also the mailto: links
                     # some cases use to pin the scheme filtering down.
                     continue
-                if link not in files:
+                # Resolve the same way a reading system would: drop the
+                # fragment, then the `./` prefix some cases use to pin down
+                # href normalization.
+                target = link.split("#", 1)[0].removeprefix("./")
+                if target == "":
+                    # Empty and fragment-only links stay inside the document;
+                    # some cases use them deliberately.
+                    continue
+                if target not in files:
                     raise ValidationError(
                         f"{filename}: {attribute}=\"{link}\" does not resolve "
                         "to a packaged file"

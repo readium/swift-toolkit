@@ -362,12 +362,24 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     /// e.g. an extended description of the image.
     private func dismissImagePreviewAndGo(to link: ReadiumShared.Link) {
         Task {
-            guard let locator = await publication.locate(link) else {
-                return
-            }
+            // `locate` runs first: the href is only inspected once it comes
+            // back nil, so a remote publication whose in-publication links are
+            // themselves absolute is not misrouted to the browser.
+            if let locator = await publication.locate(link) {
+                dismiss(animated: true)
+                await navigator.go(to: locator)
 
-            dismiss(animated: true)
-            await navigator.go(to: locator)
+            } else if let url = link.httpURL {
+                // The description lives outside the publication, e.g. an
+                // `aria-details` anchor pointing at a full http(s) URL.
+                dismiss(animated: true) { [weak self] in
+                    self?.presentExternalURL(url.url)
+                }
+
+            } else {
+                log(.error, "Cannot locate the extended description at \(link.href)")
+                dismiss(animated: true)
+            }
         }
     }
 }

@@ -9,8 +9,9 @@ import Foundation
 import SwiftSoup
 import Testing
 
-/// Tests for the accessible name and description computation
-/// (`HTMLAccessibilityProperties`), through the HTML content iterator.
+/// Tests for the accessible name, description, caption and extended
+/// description computation (`HTMLAccessibilityProperties`), through the HTML
+/// content iterator.
 ///
 /// The cases are read from the `accname` sample, generated from
 /// `/scripts/accname-sample/cases.toml`. That manifest also drives the jest
@@ -33,6 +34,7 @@ struct AccnameSampleTests {
         #expect(actual.name == testCase.expectedName)
         #expect(actual.description == testCase.expectedDescription)
         #expect(actual.extendedDescriptions == testCase.expectedExtendedDescriptions)
+        #expect(actual.caption == testCase.expectedCaption)
     }
 
     /// Catches subject elements the iterator silently drops, which would
@@ -61,6 +63,7 @@ enum AccnameSample {
         let id: String
         let expectedName: String?
         let expectedDescription: String?
+        let expectedCaption: String?
         /// Expected extended description links, with hrefs already resolved
         /// against the document.
         let expectedExtendedDescriptions: [Link]
@@ -73,6 +76,7 @@ enum AccnameSample {
     struct Properties: Sendable {
         let name: String?
         let description: String?
+        let caption: String?
         let extendedDescriptions: [Link]
     }
 
@@ -110,6 +114,8 @@ enum AccnameSample {
                                 ? element.attr("data-expected-name") : nil,
                             expectedDescription: element.hasAttr("data-expected-description")
                                 ? element.attr("data-expected-description") : nil,
+                            expectedCaption: element.hasAttr("data-expected-caption")
+                                ? element.attr("data-expected-caption") : nil,
                             expectedExtendedDescriptions: expectedExtendedDescriptions(
                                 json: element.attr("data-expected-extended-descriptions"),
                                 document: document
@@ -173,6 +179,7 @@ enum AccnameSample {
                 properties[String(selector.dropFirst("#case-".count))] = Properties(
                     name: element.accessibleName,
                     description: element.accessibleDescription,
+                    caption: (element as? CaptionedContentElement)?.caption,
                     extendedDescriptions: element.extendedDescriptions
                 )
             }

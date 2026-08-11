@@ -16,6 +16,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>One second of silence</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <div class="subject">
     <audio id="case-audio-named-by-aria-label" data-case="audio-named-by-aria-label" data-expected-name="One second of silence" src="assets/tone.m4a" controls="controls" aria-label="One second of silence"></audio>
@@ -27,6 +28,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>One second of silence</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <div class="subject">
     <audio id="case-audio-named-by-title" data-case="audio-named-by-title" data-expected-name="One second of silence" src="assets/tone.m4a" controls="controls" title="One second of silence"></audio>
@@ -38,6 +40,7 @@
   <dl class="expect">
     <dt>Name</dt><dd class="none">none</dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <p class="note">The children of a media element are fallback content for readers without playback support, not a text alternative.</p>
   <div class="subject">
@@ -50,6 +53,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Silent tone</code></dd>
     <dt>Description</dt><dd><code>One second of digital silence.</code></dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <div class="subject">
     <p id="au-db">One second of digital silence.</p>
@@ -62,6 +66,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Silent tone</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <div class="subject">
     <audio id="case-audio-with-source-children" data-case="audio-with-source-children" data-expected-name="Silent tone" controls="controls" aria-label="Silent tone"><source src="assets/tone.m4a" type="audio/mp4"/></audio>
@@ -73,6 +78,7 @@
   <dl class="expect">
     <dt>Name</dt><dd class="none">none</dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <p class="note"><code>role="presentation"</code> is not valid on a media element, so <code>aria-hidden</code> is the only way to suppress one.</p>
   <div class="subject">
@@ -85,6 +91,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>A blue rectangle</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <div class="subject">
     <video id="case-video-named-by-aria-label" data-case="video-named-by-aria-label" data-expected-name="A blue rectangle" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle"></video>
@@ -96,9 +103,40 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>A blue rectangle</code></dd>
     <dt>Description</dt><dd><code>A tooltip</code></dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <div class="subject">
     <video id="case-video-title-describes-when-aria-label-names" data-case="video-title-describes-when-aria-label-names" data-expected-name="A blue rectangle" data-expected-description="A tooltip" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle" title="A tooltip"></video>
+  </div>
+</section>
+
+<section class="case" id="section-audio-in-a-figure-gets-the-caption">
+  <h2>An <code>audio</code> in a figure gets the caption</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Tone</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd><code>A pure tone</code></dd>
+  </dl>
+  <div class="subject">
+    <figure>
+      <audio id="case-audio-in-a-figure-gets-the-caption" data-case="audio-in-a-figure-gets-the-caption" data-expected-name="Tone" data-expected-caption="A pure tone" src="assets/tone.m4a" controls="controls" title="Tone"></audio>
+      <figcaption>A pure tone</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-video-in-a-figure-gets-the-caption">
+  <h2>A <code>video</code> in a figure gets the caption</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Clip</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd><code>A short clip</code></dd>
+  </dl>
+  <div class="subject">
+    <figure>
+      <video id="case-video-in-a-figure-gets-the-caption" data-case="video-in-a-figure-gets-the-caption" data-expected-name="Clip" data-expected-caption="A short clip" src="assets/clip.mp4" controls="controls" width="160" height="120" title="Clip"></video>
+      <figcaption>A short clip</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -107,6 +145,7 @@
   <dl class="expect">
     <dt>Name</dt><dd class="none">none</dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
   </dl>
   <div class="subject">
     <video id="case-aria-hidden-suppresses-video" data-case="aria-hidden-suppresses-video" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle" title="A tooltip" aria-hidden="true"></video>

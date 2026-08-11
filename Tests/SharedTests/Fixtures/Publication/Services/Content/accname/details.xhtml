@@ -16,6 +16,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-aside-target</code></dd>
   </dl>
   <div class="subject">
@@ -29,6 +30,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#d%C3%A9tails</code></dd>
   </dl>
   <p class="note">The link to an inline container is built with the URL API rather than by concatenation, so an id holding non-ASCII characters (legal in XHTML) reaches the reading app as a valid URL.</p>
@@ -43,6 +45,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-labelled-target</code>, titled “Chart description”</dd>
   </dl>
   <p class="note">The target's text content is never synthesized into a title; only its <code>aria-label</code> is used.</p>
@@ -57,6 +60,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>image.xhtml</code>, titled “Extended description”</dd>
   </dl>
   <div class="subject">
@@ -70,6 +74,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>image.xhtml</code>, titled “Full description”</dd>
   </dl>
   <div class="subject">
@@ -83,6 +88,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>image.xhtml</code>, titled “See the detailed description”</dd>
   </dl>
   <p class="divergence">Divergence: The contributions are joined with a single space, so a word split across adjacent inline elements gains a space that a browser's <code>innerText</code> would not add.</p>
@@ -98,6 +104,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-frag-dest</code>, titled “Description below”</dd>
   </dl>
   <div class="subject">
@@ -112,6 +119,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>https://example.com/description.html</code>, titled “Description online”</dd>
   </dl>
   <div class="subject">
@@ -125,6 +133,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-mailto-link</code></dd>
   </dl>
   <p class="note">The anchor is treated as an inline container: no <code>mailto:</code>, <code>javascript:</code> or other unsafe scheme ever reaches the reading app.</p>
@@ -139,6 +148,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-multi-second</code></dd><dd><code>#details-multi-first</code></dd>
   </dl>
   <p class="note"><code>aria-details</code> is a single ID reference in ARIA 1.2 and an ID reference list since ARIA 1.3; the list handling is kept for forward compatibility. EPUB validates against ARIA 1.2, so this markup is deliberately invalid: epubcheck rejects the space-separated list, and the error is in the baseline.</p>
@@ -154,6 +164,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-dup-target</code></dd>
   </dl>
   <p class="note">An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline.</p>
@@ -168,6 +179,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-real-target</code></dd>
   </dl>
   <p class="note">A link into the enclosing figure would re-render the image it describes. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline.</p>
@@ -184,6 +196,7 @@
   <dl class="expect">
     <dt>Name</dt><dd class="none">none</dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd class="none">none</dd>
   </dl>
   <p class="note">A suppressed element is out of the accessibility tree, relations included.</p>
@@ -198,6 +211,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-presentation-target</code></dd>
   </dl>
   <p class="note"><code>aria-details</code> is a global ARIA attribute, so it wins the presentational-role conflict and the image keeps its name and extended descriptions.</p>
@@ -212,15 +226,229 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Bar chart</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd><code>A captioned chart</code></dd>
     <dt>Extended descriptions</dt><dd class="none">none</dd>
   </dl>
   <p class="note">Only the image's own <code>aria-details</code> is honored.</p>
   <div class="subject">
     <figure aria-details="details-figure-target">
-      <img id="case-details-figure-level-ignored" data-case="details-figure-level-ignored" data-expected-name="Bar chart" data-expected-extended-descriptions="[]" src="assets/apple.png" alt="Bar chart"/>
+      <img id="case-details-figure-level-ignored" data-case="details-figure-level-ignored" data-expected-name="Bar chart" data-expected-caption="A captioned chart" data-expected-extended-descriptions="[]" src="assets/apple.png" alt="Bar chart"/>
       <figcaption>A captioned chart</figcaption>
     </figure>
     <aside id="details-figure-target"><p>Details.</p></aside>
+  </div>
+</section>
+
+<section class="case" id="section-details-target-in-figcaption">
+  <h2>A <code>details</code> target inside the <code>figcaption</code> is excluded from the caption</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart showing monthly and total visitors</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd><code>Example.com Site visitors Jan to March 2014</code></dd>
+    <dt>Extended descriptions</dt><dd><code>#details-in-figcaption-target</code></dd>
+  </dl>
+  <p class="note">Publishers do put the description inside the caption. Without the exclusion, a reading app displaying the caption would print the whole long description.</p>
+  <div class="subject">
+    <figure>
+      <img id="case-details-target-in-figcaption" data-case="details-target-in-figcaption" data-expected-name="Bar chart showing monthly and total visitors" data-expected-caption="Example.com Site visitors Jan to March 2014" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-in-figcaption-target&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart showing monthly and total visitors" aria-details="details-in-figcaption-target"/>
+      <figcaption>Example.com Site visitors Jan to March 2014
+        <details id="details-in-figcaption-target">
+          <summary>Expand / collapse description</summary>
+          <p>The chart shows the website hits for the first quarter of 2014.</p>
+        </details>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-details-in-figcaption-not-referenced">
+  <h2>A <code>details</code> in the <code>figcaption</code> is excluded even when nothing references it</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd><code>Example.com Site visitors Jan to March 2014</code></dd>
+  </dl>
+  <p class="note">A disclosure widget is a description the reader expands on demand, never caption text.</p>
+  <div class="subject">
+    <figure>
+      <img id="case-details-in-figcaption-not-referenced" data-case="details-in-figcaption-not-referenced" data-expected-name="Bar chart" data-expected-caption="Example.com Site visitors Jan to March 2014" src="assets/apple.png" alt="Bar chart"/>
+      <figcaption>Example.com Site visitors Jan to March 2014
+        <details>
+          <summary>Expand / collapse description</summary>
+          <p>The chart shows the website hits for the first quarter of 2014.</p>
+        </details>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-describedby-target-in-figcaption">
+  <h2>An <code>aria-describedby</code> target inside the <code>figcaption</code> is excluded from the caption</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd><code>Overview The chart shows the website hits for the first quarter of 2014.</code></dd>
+    <dt>Caption</dt><dd><code>Example.com Site visitors Jan to March 2014</code></dd>
+  </dl>
+  <p class="note">The aside is often hidden by CSS, so a sighted reader sees only the caption while a screen reader gets the whole description.</p>
+  <p class="divergence">Divergence: A browser recursing into the target would name it from its own <code>aria-labelledby</code> and stop there, computing “Overview”.</p>
+  <div class="subject">
+    <figure>
+      <img id="case-describedby-target-in-figcaption" data-case="describedby-target-in-figcaption" data-expected-name="Bar chart" data-expected-description="Overview The chart shows the website hits for the first quarter of 2014." data-expected-caption="Example.com Site visitors Jan to March 2014" src="assets/apple.png" alt="Bar chart" aria-describedby="details-aside-in-figcaption"/>
+      <figcaption>Example.com Site visitors Jan to March 2014
+        <aside id="details-aside-in-figcaption" aria-labelledby="details-aside-heading">
+          <p id="details-aside-heading">Overview</p>
+          <p>The chart shows the website hits for the first quarter of 2014.</p>
+        </aside>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-caption-keeps-another-images-description">
+  <h2>The exclusion is scoped to the element being captioned</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd><code>Two charts The pie chart splits the visitors by country.</code></dd>
+  </dl>
+  <p class="note">The aside describes the *other* image in the figure, so it stays part of this image's caption.</p>
+  <div class="subject">
+    <figure>
+      <img id="case-caption-keeps-another-images-description" data-case="caption-keeps-another-images-description" data-expected-name="Bar chart" data-expected-caption="Two charts The pie chart splits the visitors by country." src="assets/apple.png" alt="Bar chart"/>
+      <img src="assets/star.svg" alt="Pie chart" aria-describedby="details-other-image-desc"/>
+      <figcaption>Two charts
+        <aside id="details-other-image-desc"><p>The pie chart splits the visitors by country.</p></aside>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-figcaption-is-itself-the-description">
+  <h2>A <code>figcaption</code> which is itself the description yields no caption</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd><code>The chart shows the website hits for the first quarter of 2014.</code></dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+  </dl>
+  <p class="note">Nothing is left to display once the description is taken out, and the whole caption would otherwise be repeated as one.</p>
+  <div class="subject">
+    <figure>
+      <img id="case-figcaption-is-itself-the-description" data-case="figcaption-is-itself-the-description" data-expected-name="Bar chart" data-expected-description="The chart shows the website hits for the first quarter of 2014." src="assets/apple.png" alt="Bar chart" aria-describedby="details-figcaption-is-desc"/>
+      <figcaption id="details-figcaption-is-desc">The chart shows the website hits for the first quarter of 2014.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-figcaption-holds-only-the-description">
+  <h2>A <code>figcaption</code> holding only the description yields no caption</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-only-child-target</code></dd>
+  </dl>
+  <p class="note">The stripped caption is blank, which is no caption at all rather than an empty string.</p>
+  <div class="subject">
+    <figure>
+      <img id="case-figcaption-holds-only-the-description" data-case="figcaption-holds-only-the-description" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-only-child-target&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-only-child-target"/>
+      <figcaption>
+        <details id="details-only-child-target">
+          <summary>Expand / collapse description</summary>
+          <p>The chart shows the website hits for the first quarter of 2014.</p>
+        </details>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-exclusion-does-not-reach-the-name">
+  <h2>The exclusion does not reach the accessible name</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Cap More Body</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd><code>Cap</code></dd>
+    <dt>Extended descriptions</dt><dd><code>#details-name-target</code></dd>
+  </dl>
+  <p class="note">HTML-AAM 4.1.10 names the image from the *whole* figcaption, description included; only the displayed caption is stripped.</p>
+  <div class="subject">
+    <figure>
+      <img id="case-exclusion-does-not-reach-the-name" data-case="exclusion-does-not-reach-the-name" data-expected-name="Cap More Body" data-expected-caption="Cap" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-name-target&quot;, &quot;title&quot;: null}]" src="assets/apple.png" aria-details="details-name-target"/>
+      <figcaption>Cap
+        <details id="details-name-target">
+          <summary>More</summary>
+          <p>Body</p>
+        </details>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-details-target-sibling-of-image">
+  <h2>A <code>details</code> sibling of the image, with no figure around them</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart showing monthly and total visitors</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-sibling-target</code></dd>
+  </dl>
+  <div class="subject">
+    <img id="case-details-target-sibling-of-image" data-case="details-target-sibling-of-image" data-expected-name="Bar chart showing monthly and total visitors" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-sibling-target&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart showing monthly and total visitors" aria-details="details-sibling-target"/>
+    <details id="details-sibling-target">
+      <summary>Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
+  </div>
+</section>
+
+<section class="case" id="section-details-target-in-figure-outside-figcaption">
+  <h2>A <code>details</code> in the figure but outside the <code>figcaption</code> keeps the caption whole</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd><code>Example.com Site visitors Jan to March 2014</code></dd>
+    <dt>Extended descriptions</dt><dd><code>#details-in-figure-target</code></dd>
+  </dl>
+  <div class="subject">
+    <figure>
+      <img id="case-details-target-in-figure-outside-figcaption" data-case="details-target-in-figure-outside-figcaption" data-expected-name="Bar chart" data-expected-caption="Example.com Site visitors Jan to March 2014" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-in-figure-target&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-in-figure-target"/>
+      <details id="details-in-figure-target">
+        <summary>Expand / collapse description</summary>
+        <p>The chart shows the website hits for the first quarter of 2014.</p>
+      </details>
+      <figcaption>Example.com Site visitors Jan to March 2014</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="case" id="section-details-end-of-chapter-container">
+  <h2>A plain container further down the chapter</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-end-of-chapter</code></dd>
+  </dl>
+  <div class="subject">
+    <img id="case-details-end-of-chapter-container" data-case="details-end-of-chapter-container" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-end-of-chapter&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-end-of-chapter"/>
+    <div id="details-end-of-chapter">
+      <p>Description of Bar Chart</p>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </div>
+  </div>
+</section>
+
+<section class="case" id="section-details-anchor-to-another-resource">
+  <h2>A hyperlink to a description in another resource</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>image.xhtml#case-name-from-alt</code>, titled “Follow for extended description”</dd>
+  </dl>
+  <p class="note">The <code>./</code> prefix is normalized away when the href is resolved against the resource, so the reading app receives a locatable link.</p>
+  <div class="subject">
+    <img id="case-details-anchor-to-another-resource" data-case="details-anchor-to-another-resource" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;image.xhtml#case-name-from-alt&quot;, &quot;title&quot;: &quot;Follow for extended description&quot;}]" src="assets/apple.png" alt="Bar chart" aria-details="details-other-resource-link"/>
+    <p><a id="details-other-resource-link" href="./image.xhtml#case-name-from-alt">Follow for extended description</a></p>
   </div>
 </section>
 
@@ -229,6 +457,7 @@
   <dl class="expect">
     <dt>Name</dt><dd><code>Blue square</code></dd>
     <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
     <dt>Extended descriptions</dt><dd><code>#details-svg-target</code></dd>
   </dl>
   <div class="subject">

@@ -55,10 +55,13 @@ When the publication attaches [extended descriptions](https://daisy.github.io/tr
 A good place to surface them is the image preview itself, as a "view extended description" action per link. To display one, navigate to it:
 
 ```swift
-if
-    let link = image.extendedDescriptions.first,
-    let locator = await publication.locate(link)
-{
-    await navigator.go(to: locator)
+if let link = image.extendedDescriptions.first {
+    if let locator = await publication.locate(link) {
+        await navigator.go(to: locator)
+
+    } else if let url = link.httpURL {
+        // The description lives outside the publication.
+        UIApplication.shared.open(url.url)
+    }
 }
 ```

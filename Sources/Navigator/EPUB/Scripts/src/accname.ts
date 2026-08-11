@@ -17,7 +17,9 @@
  * — both MUST implement exactly the same subset. What keeps them in sync is
  * the shared case manifest in `scripts/accname-sample/cases.toml`: it generates
  * the fixtures both test suites run against, so a rule is stated once and
- * asserted twice. Add cases there.
+ * asserted twice. Add cases there, including caption cases; the `Figures` suite
+ * in the Swift `HTMLResourceContentIteratorTests` keeps only
+ * iterator-structure assertions.
  *
  * Implemented:
  * - Source precedence for the name: `aria-labelledby` → `aria-label` →
@@ -88,6 +90,11 @@
  *   text nodes and `img[alt]` values with a single space, so a word split
  *   across adjacent inline elements gains a space that a browser's
  *   `innerText` would not add.
+ * - `textContent` runs block elements together, while SwiftSoup's `text()`
+ *   inserts a space before them, so `<figcaption>Cap<details>…` flattens to
+ *   `CapMoreBody` here and to `Cap More Body` on the Swift side. Real markup
+ *   has whitespace between block elements; the shared cases are authored that
+ *   way. Making the two agree is a follow-up.
  *
  * Reusability caveat: the ARIA-attribute sources apply to any element, but
  * host-language sources are implemented only for `img` and `svg`, and
@@ -385,6 +392,17 @@ function firstDirectChildText(element: Element, tag: string): string | null {
  * An element living inside the figcaption (a publisher logo, a footnote
  * marker) is not captioned by the text wrapping it, so it gets no caption at
  * all rather than falling back to an outer figure.
+ *
+ * An extended description wrapped by the figcaption is excluded from the
+ * caption: any `<details>` subtree, and any subtree rooted at an element the
+ * element points at with `aria-details` or `aria-describedby`. Publishers do
+ * put the description inside the caption, and a reading app displaying the
+ * caption would otherwise print the whole long description — including one
+ * hidden by CSS, which a sighted reader never sees.
+ *
+ * The exclusion deliberately does NOT apply to the accessible name computed by
+ * `figureCaptionAsName()`: HTML-AAM 4.1.10 names the image from the whole
+ * figcaption.
  */
 export function findFigureCaption(element: Element): string | null {
   const figcaption = element
@@ -393,7 +411,34 @@ export function findFigureCaption(element: Element): string | null {
   if (!figcaption || figcaption.contains(element)) {
     return null;
   }
-  return figcaption.textContent?.replace(/\s+/g, " ").trim() || null;
+
+  const excludedIDs = (
+    (element.getAttribute("aria-details") ?? "") +
+    " " +
+    (element.getAttribute("aria-describedby") ?? "")
+  )
+    .split(/\s+/)
+    .filter((id) => id.length > 0);
+
+  // `getAttribute("id")` rather than `.id`, because this helper also runs on
+  // SVG elements.
+  if (excludedIDs.includes(figcaption.getAttribute("id") ?? "")) {
+    // The figcaption *is* the description: there is nothing left to display.
+    return null;
+  }
+
+  const isExcluded = (candidate: Element) =>
+    candidate.tagName.toLowerCase() === "details" ||
+    excludedIDs.includes(candidate.getAttribute("id") ?? "");
+
+  const clone = figcaption.cloneNode(true) as Element;
+  const descendants = clone.querySelectorAll("*");
+  for (let i = 0; i < descendants.length; i++) {
+    if (isExcluded(descendants[i])) {
+      descendants[i].remove();
+    }
+  }
+  return clone.textContent?.replace(/\s+/g, " ").trim() || null;
 }
 
 /**

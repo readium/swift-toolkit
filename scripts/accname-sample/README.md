@@ -27,9 +27,13 @@ The XHTML is written twice so that neither package reaches into the other's tree
 
 ## Adding a case
 
-Append a `[[resource.case]]` block to `cases.toml`. Absent `name` or `description` means "expected none". The element under test is flagged with `data-subject=""`; the generator replaces that marker with `id`, `data-case` and the `data-expected-*` attributes, and leaves the rest of the markup verbatim.
+Append a `[[resource.case]]` block to `cases.toml`. Absent `name`, `description` or `caption` means "expected none". The element under test is flagged with `data-subject=""`; the generator replaces that marker with `id`, `data-case` and the `data-expected-*` attributes, and leaves the rest of the markup verbatim.
 
-Keys: `id`, `title`, `name`, `description`, `extended_descriptions`, `note`, `divergence`, `skipped`, `markup`. Backticks in prose become `<code>`.
+Keys: `id`, `title`, `name`, `description`, `caption`, `extended_descriptions`, `note`, `divergence`, `skipped`, `markup`. Backticks in prose become `<code>`.
+
+`caption` is the text displayed alongside the element, taken from the enclosing figure's `figcaption`. It is not part of accname, but it is computed by the same two files, so it is asserted here too.
+
+Keep whitespace between block elements in the markup: SwiftSoup's `text()` inserts a space before a block element, while the DOM's `textContent` does not, so `<figcaption>Cap<details>…` diverges between the two implementations while `<figcaption>Cap\n  <details>…` does not.
 
 `extended_descriptions` is an array of `{ href, title }` tables, with hrefs relative to the document; it is emitted as a JSON array in the `data-expected-extended-descriptions` attribute (JSON survives attribute escaping, unlike separator formats which break on real titles). An absent key means "expected none", so every case also asserts that no extended descriptions leak in.
 
@@ -44,6 +48,6 @@ The baseline keeps the check meaningful: any message that is not already account
 ## Unit tests
 
 - `/Tests/SharedTests/Publication/Services/Content/Iterators/AccnameSampleTests.swift` runs each document through `HTMLResourceContentIterator` and matches every emitted element to its case through the `#case-<id>` CSS selector.
-- `/Sources/Navigator/EPUB/Scripts/test/accname-sample.test.ts` loads the fixtures into jsdom and runs `computeAccessibilityProperties` over every `[data-case]` element.
+- `/Sources/Navigator/EPUB/Scripts/test/accname-sample.test.ts` loads the fixtures into jsdom and runs `computeAccessibilityProperties` and `findFigureCaption` over every `[data-case]` element.
 
 Both skip cases flagged `skipped = true`, which describe rules that are not implemented yet (all of `table.xhtml`). Removing those flags is the acceptance test for a future implementation.

@@ -112,6 +112,11 @@ class ReaderViewController<N: Navigator>: UIViewController,
     }
 
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
+        presentExternalURL(url)
+    }
+
+    /// Opens a URL outside the publication in an in-app browser.
+    func presentExternalURL(_ url: URL) {
         // SFSafariViewController crashes when given an URL without an HTTP scheme.
         guard ["http", "https"].contains(url.scheme?.lowercased() ?? "") else {
             return

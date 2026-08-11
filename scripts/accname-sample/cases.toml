@@ -9,6 +9,8 @@
 #   title        section heading; backticks become <code>
 #   name         expected accessible name; absent means "expected none"
 #   description  expected accessible description; absent means "expected none"
+#   caption      expected caption, displayed alongside the element; absent
+#                means "expected none"
 #   extended_descriptions
 #                expected extended description links, an array of tables with
 #                an `href` (relative to the document) and an optional `title`;
@@ -278,6 +280,7 @@ markup = '''
 id = "figcaption-names-a-lone-image"
 title = "`figcaption` names a lone image"
 name = "A red apple"
+caption = "A red apple"
 markup = '''
 <figure>
   <img data-subject="" src="assets/apple.png"/>
@@ -288,6 +291,7 @@ markup = '''
 [[resource.case]]
 id = "figcaption-blocked-by-sibling-flow-content"
 title = "`figcaption` is blocked by sibling flow content"
+caption = "A red apple"
 note = "The figure holds prose beyond the caption, so the caption is about more than the image."
 markup = '''
 <figure>
@@ -300,6 +304,7 @@ markup = '''
 [[resource.case]]
 id = "figcaption-blocked-by-a-second-image"
 title = "`figcaption` is blocked by a second image"
+caption = "A red apple"
 markup = '''
 <figure>
   <img data-subject="" src="assets/apple.png"/>
@@ -311,6 +316,7 @@ markup = '''
 [[resource.case]]
 id = "figcaption-blocked-by-alt"
 title = "`figcaption` is blocked by an `alt` attribute"
+caption = "A red apple"
 note = "The rule only applies when the image has no `alt` attribute at all, not even an empty one."
 markup = '''
 <figure>
@@ -323,10 +329,116 @@ markup = '''
 id = "figcaption-blocked-by-title"
 title = "`figcaption` is blocked by a `title` attribute"
 name = "A tooltip"
+caption = "A red apple"
 markup = '''
 <figure>
   <img data-subject="" src="assets/apple.png" title="A tooltip"/>
   <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+# --- figcaption as caption -------------------------------------------------
+
+[[resource.case]]
+id = "figcaption-captions-a-named-image"
+title = "A `figcaption` captions an image which already has a name"
+name = "Alt text"
+caption = "The caption"
+note = "The caption is displayed alongside the image, the name is announced; the two are computed independently."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Alt text"/>
+  <figcaption>The caption</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "nested-figure-uses-the-nearest-figcaption"
+title = "A nested figure uses the nearest `figcaption`"
+name = "Alt"
+caption = "Inner"
+markup = '''
+<figure>
+  <figure>
+    <img data-subject="" src="assets/apple.png" alt="Alt"/>
+    <figcaption>Inner</figcaption>
+  </figure>
+  <figcaption>Outer</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-not-first-child-still-captions"
+title = "A `figcaption` preceded by other content still captions"
+name = "Alt"
+caption = "Cap"
+markup = '''
+<figure>
+  <p>intro</p>
+  <img data-subject="" src="assets/apple.png" alt="Alt"/>
+  <figcaption>Cap</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-holding-an-image-still-captions"
+title = "A `figcaption` holding an image still captions the figure's image"
+name = "Revenue chart"
+caption = "Source: annual report"
+note = "The logo inside the caption contributes no text of its own."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Revenue chart"/>
+  <figcaption>Source: <img src="assets/star.svg" alt="ACME"/> annual report</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "image-inside-the-figcaption-has-no-caption"
+title = "An image inside the `figcaption` is not captioned by it"
+name = "ACME"
+note = "A publisher logo or a footnote marker is not captioned by the text wrapping it, so it gets no caption at all rather than falling back to an outer figure."
+markup = '''
+<figure>
+  <img src="assets/apple.png" alt="Revenue chart"/>
+  <figcaption>Source: <img data-subject="" src="assets/star.svg" alt="ACME"/> annual report</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "two-images-share-the-caption-first"
+title = "Two images in one figure share the caption (first image)"
+name = "A"
+caption = "Shared"
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="A"/>
+  <img src="assets/star.svg" alt="B"/>
+  <figcaption>Shared</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "two-images-share-the-caption-second"
+title = "…and so does the second"
+name = "B"
+caption = "Shared"
+markup = '''
+<figure>
+  <img src="assets/apple.png" alt="A"/>
+  <img data-subject="" src="assets/star.svg" alt="B"/>
+  <figcaption>Shared</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "wrapping-figcaption-names-but-does-not-caption"
+title = "A wrapping `figcaption` names the image without captioning it"
+name = "Logo:"
+note = "HTML-AAM 4.1.10 names this image from the figcaption it lives inside, and we follow the spec there; the caption rule is deliberately stricter."
+markup = '''
+<figure>
+  <figcaption>Logo: <img data-subject="" src="assets/star.svg"/></figcaption>
 </figure>
 '''
 
@@ -558,6 +670,30 @@ markup = '''
 '''
 
 [[resource.case]]
+id = "audio-in-a-figure-gets-the-caption"
+title = "An `audio` in a figure gets the caption"
+name = "Tone"
+caption = "A pure tone"
+markup = '''
+<figure>
+  <audio data-subject="" src="assets/tone.m4a" controls="controls" title="Tone"></audio>
+  <figcaption>A pure tone</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "video-in-a-figure-gets-the-caption"
+title = "A `video` in a figure gets the caption"
+name = "Clip"
+caption = "A short clip"
+markup = '''
+<figure>
+  <video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" title="Clip"></video>
+  <figcaption>A short clip</figcaption>
+</figure>
+'''
+
+[[resource.case]]
 id = "aria-hidden-suppresses-video"
 title = "`aria-hidden=\"true\"` suppresses a `video`"
 markup = '''
@@ -744,6 +880,7 @@ markup = '''
 id = "details-figure-level-ignored"
 title = "`aria-details` on the enclosing figure is ignored"
 name = "Bar chart"
+caption = "A captioned chart"
 extended_descriptions = []
 note = "Only the image's own `aria-details` is honored."
 markup = '''
@@ -752,6 +889,189 @@ markup = '''
   <figcaption>A captioned chart</figcaption>
 </figure>
 <aside id="details-figure-target"><p>Details.</p></aside>
+'''
+
+# --- A description wrapped by the caption ----------------------------------
+
+[[resource.case]]
+id = "details-target-in-figcaption"
+title = "A `details` target inside the `figcaption` is excluded from the caption"
+name = "Bar chart showing monthly and total visitors"
+caption = "Example.com Site visitors Jan to March 2014"
+extended_descriptions = [{ href = "#details-in-figcaption-target" }]
+note = "Publishers do put the description inside the caption. Without the exclusion, a reading app displaying the caption would print the whole long description."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart showing monthly and total visitors" aria-details="details-in-figcaption-target"/>
+  <figcaption>Example.com Site visitors Jan to March 2014
+    <details id="details-in-figcaption-target">
+      <summary>Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "details-in-figcaption-not-referenced"
+title = "A `details` in the `figcaption` is excluded even when nothing references it"
+name = "Bar chart"
+caption = "Example.com Site visitors Jan to March 2014"
+note = "A disclosure widget is a description the reader expands on demand, never caption text."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart"/>
+  <figcaption>Example.com Site visitors Jan to March 2014
+    <details>
+      <summary>Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "describedby-target-in-figcaption"
+title = "An `aria-describedby` target inside the `figcaption` is excluded from the caption"
+name = "Bar chart"
+description = "Overview The chart shows the website hits for the first quarter of 2014."
+caption = "Example.com Site visitors Jan to March 2014"
+divergence = "A browser recursing into the target would name it from its own `aria-labelledby` and stop there, computing “Overview”."
+note = "The aside is often hidden by CSS, so a sighted reader sees only the caption while a screen reader gets the whole description."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-describedby="details-aside-in-figcaption"/>
+  <figcaption>Example.com Site visitors Jan to March 2014
+    <aside id="details-aside-in-figcaption" aria-labelledby="details-aside-heading">
+      <p id="details-aside-heading">Overview</p>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </aside>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "caption-keeps-another-images-description"
+title = "The exclusion is scoped to the element being captioned"
+name = "Bar chart"
+caption = "Two charts The pie chart splits the visitors by country."
+note = "The aside describes the *other* image in the figure, so it stays part of this image's caption."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart"/>
+  <img src="assets/star.svg" alt="Pie chart" aria-describedby="details-other-image-desc"/>
+  <figcaption>Two charts
+    <aside id="details-other-image-desc"><p>The pie chart splits the visitors by country.</p></aside>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-is-itself-the-description"
+title = "A `figcaption` which is itself the description yields no caption"
+name = "Bar chart"
+description = "The chart shows the website hits for the first quarter of 2014."
+note = "Nothing is left to display once the description is taken out, and the whole caption would otherwise be repeated as one."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-describedby="details-figcaption-is-desc"/>
+  <figcaption id="details-figcaption-is-desc">The chart shows the website hits for the first quarter of 2014.</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-holds-only-the-description"
+title = "A `figcaption` holding only the description yields no caption"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-only-child-target" }]
+note = "The stripped caption is blank, which is no caption at all rather than an empty string."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-only-child-target"/>
+  <figcaption>
+    <details id="details-only-child-target">
+      <summary>Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "exclusion-does-not-reach-the-name"
+title = "The exclusion does not reach the accessible name"
+name = "Cap More Body"
+caption = "Cap"
+extended_descriptions = [{ href = "#details-name-target" }]
+note = "HTML-AAM 4.1.10 names the image from the *whole* figcaption, description included; only the displayed caption is stripped."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" aria-details="details-name-target"/>
+  <figcaption>Cap
+    <details id="details-name-target">
+      <summary>More</summary>
+      <p>Body</p>
+    </details>
+  </figcaption>
+</figure>
+'''
+
+# --- Shapes from the DAISY extended description tests ----------------------
+
+[[resource.case]]
+id = "details-target-sibling-of-image"
+title = "A `details` sibling of the image, with no figure around them"
+name = "Bar chart showing monthly and total visitors"
+extended_descriptions = [{ href = "#details-sibling-target" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart showing monthly and total visitors" aria-details="details-sibling-target"/>
+<details id="details-sibling-target">
+  <summary>Expand / collapse description</summary>
+  <p>The chart shows the website hits for the first quarter of 2014.</p>
+</details>
+'''
+
+[[resource.case]]
+id = "details-target-in-figure-outside-figcaption"
+title = "A `details` in the figure but outside the `figcaption` keeps the caption whole"
+name = "Bar chart"
+caption = "Example.com Site visitors Jan to March 2014"
+extended_descriptions = [{ href = "#details-in-figure-target" }]
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-in-figure-target"/>
+  <details id="details-in-figure-target">
+    <summary>Expand / collapse description</summary>
+    <p>The chart shows the website hits for the first quarter of 2014.</p>
+  </details>
+  <figcaption>Example.com Site visitors Jan to March 2014</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "details-end-of-chapter-container"
+title = "A plain container further down the chapter"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-end-of-chapter" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-end-of-chapter"/>
+<div id="details-end-of-chapter">
+  <p>Description of Bar Chart</p>
+  <p>The chart shows the website hits for the first quarter of 2014.</p>
+</div>
+'''
+
+[[resource.case]]
+id = "details-anchor-to-another-resource"
+title = "A hyperlink to a description in another resource"
+name = "Bar chart"
+extended_descriptions = [
+    { href = "image.xhtml#case-name-from-alt", title = "Follow for extended description" },
+]
+note = "The `./` prefix is normalized away when the href is resolved against the resource, so the reading app receives a locatable link."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-other-resource-link"/>
+<p><a id="details-other-resource-link" href="./image.xhtml#case-name-from-alt">Follow for extended description</a></p>
 '''
 
 [[resource.case]]
