@@ -7,8 +7,12 @@
 import Foundation
 import SwiftSoup
 
-/// Accessible name and description of an HTML element, computed following a
-/// pragmatic subset of https://www.w3.org/TR/accname-1.2
+/// Accessible name, description and extended descriptions of an HTML element.
+///
+/// The name and description are computed following a pragmatic subset of
+/// https://www.w3.org/TR/accname-1.2. The extended descriptions are the
+/// targets of the element's `aria-details` attribute, per the DAISY guidance:
+/// https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html
 ///
 /// This is the Swift counterpart of the TypeScript implementation in
 /// `Sources/Navigator/EPUB/Scripts/src/accname.ts` — both MUST implement
@@ -39,6 +43,19 @@ import SwiftSoup
 ///   https://www.w3.org/TR/accname-1.2/#comp_tooltip, would still name the
 ///   image from the tooltip; browsers follow HTML-AAM); a figcaption names an
 ///   image which has no `alt`/`title` attribute and no sibling content.
+/// - Extended descriptions from `aria-details` on the element itself
+///   (figure-level `aria-details` is ignored): each resolvable IDREF becomes a
+///   `Link`, in attribute order. Dangling IDREFs are skipped; two IDREFs
+///   resolving to the same node collapse to one (first wins); a target that is
+///   the element itself or one of its ancestors is skipped. An `<a>` target
+///   with a usable `href` (fragment, relative, or absolute http(s)) links to
+///   its destination, titled by its `aria-label` or its text content; any
+///   other target — a plain container, an `<a>` without `href`, with an empty
+///   or bare-`#` `href`, or with a non-http(s) scheme (`mailto:`,
+///   `javascript:`, …) — links to the target itself
+///   (`<resource href>#<target id>`), titled only by its `aria-label`.
+///   `aria-details` also counts as a global ARIA attribute in the
+///   presentational-role conflict rule.
 ///
 /// Deliberately skipped / divergences:
 /// - Full recursive traversal of `aria-labelledby`/`aria-describedby` targets
@@ -68,6 +85,13 @@ import SwiftSoup
 ///   non-whitespace flow content descendants" condition: the figure's
 ///   normalized text must equal the figcaption's, and the figure must contain
 ///   no other embedded content.
+/// - SVG `<a xlink:href>` targets of `aria-details`: only `href` is read, so
+///   an SVG anchor carrying only `xlink:href` falls into the inline-container
+///   branch.
+/// - The text-content title of an `<a>` extended-description target joins its
+///   text nodes and `img[alt]` values with a single space, so a word split
+///   across adjacent inline elements gains a space that a browser's
+///   `innerText` would not add.
 ///
 /// Reusability caveat: the ARIA-attribute sources apply to any element, but
 /// host-language sources are implemented only for `img` and `svg`, and
@@ -79,9 +103,10 @@ import SwiftSoup
 struct HTMLAccessibilityProperties {
     var name: String?
     var description: String?
+    var extendedDescriptions: [Link] = []
 
-    /// The computed name/description as `ContentAttribute`s, ready to attach
-    /// to a `ContentElement`.
+    /// The computed properties as `ContentAttribute`s, ready to attach to a
+    /// `ContentElement`.
     var contentAttributes: [ContentAttribute] {
         var attributes: [ContentAttribute] = []
         if let name = name {
@@ -90,13 +115,20 @@ struct HTMLAccessibilityProperties {
         if let description = description {
             attributes.append(ContentAttribute(key: .accessibleDescription, value: description))
         }
+        for link in extendedDescriptions {
+            attributes.append(ContentAttribute(key: .extendedDescription, value: link))
+        }
         return attributes
     }
 }
 
 extension SwiftSoup.Element {
-    /// Computes the accessible name and description of the receiver.
-    func accessibilityProperties() throws -> HTMLAccessibilityProperties {
+    /// Computes the accessible name, description and extended descriptions of
+    /// the receiver.
+    ///
+    /// - Parameter baseHREF: HREF of the resource holding the element, used
+    ///   to resolve the extended description links.
+    func accessibilityProperties(baseHREF: AnyURL?) throws -> HTMLAccessibilityProperties {
         let tag = tagNameNormal()
         let title = try attr("title").trimmingCharacters(in: .whitespacesAndNewlines).orNilIfBlank()
 
@@ -112,6 +144,7 @@ extension SwiftSoup.Element {
             .first { !$0.isEmpty }
         let hasGlobalARIAAttribute = hasAttr("aria-label") || hasAttr("aria-labelledby")
             || hasAttr("aria-describedby") || hasAttr("aria-description")
+            || hasAttr("aria-details")
         if try attr("aria-hidden").lowercased() == "true"
             || ((firstRole == "presentation" || firstRole == "none") && !hasGlobalARIAAttribute)
         {
@@ -180,7 +213,131 @@ extension SwiftSoup.Element {
             description = title
         }
 
-        return HTMLAccessibilityProperties(name: name, description: description)
+        return try HTMLAccessibilityProperties(
+            name: name,
+            description: description,
+            extendedDescriptions: extendedDescriptionLinks(baseHREF: baseHREF)
+        )
+    }
+
+    /// Resolves the element's `aria-details` IDREFs into extended description
+    /// `Link`s, in attribute order.
+    ///
+    /// `aria-details` is a single ID reference in ARIA 1.2 and became an ID
+    /// reference list in ARIA 1.3; the list handling is kept for forward
+    /// compatibility and leniency with real content.
+    private func extendedDescriptionLinks(baseHREF: AnyURL?) throws -> [Link] {
+        guard hasAttr("aria-details"), let document = ownerDocument() else {
+            return []
+        }
+
+        var links: [Link] = []
+        var seenTargets: Set<ObjectIdentifier> = []
+        for id in try attr("aria-details").components(separatedBy: .whitespacesAndNewlines) {
+            guard
+                !id.isEmpty,
+                let target = try document.getElementById(id),
+                // Two IDREFs resolving to the same node collapse (first wins).
+                !seenTargets.contains(ObjectIdentifier(target)),
+                // A target which is the element itself or one of its ancestors
+                // would re-render the element it describes.
+                !target.isSelfOrAncestor(of: self)
+            else {
+                continue
+            }
+            seenTargets.insert(ObjectIdentifier(target))
+            try links.append(extendedDescriptionLink(target: target, id: id, baseHREF: baseHREF))
+        }
+        return links
+    }
+
+    /// Builds the `Link` for a single `aria-details` target.
+    ///
+    /// An `<a>` target with a usable `href` links to its destination; any
+    /// other target is treated as an inline container and linked to in place.
+    private func extendedDescriptionLink(target: Element, id: String, baseHREF: AnyURL?) throws -> Link {
+        let ariaLabel = try target.attr("aria-label")
+            .trimmingCharacters(in: .whitespacesAndNewlines).orNilIfEmpty()
+
+        if
+            target.tagNameNormal() == "a",
+            let href = try target.anchorHREF(relativeTo: baseHREF)
+        {
+            return try Link(
+                href: href,
+                title: ariaLabel ?? target.extendedDescriptionTitle()
+            )
+        }
+
+        // Inline container (or unusable anchor): link to the target itself.
+        return Link(
+            href: fragmentHREF(id: id, baseHREF: baseHREF),
+            title: ariaLabel
+        )
+    }
+
+    /// HREF of a link pointing to `id` inside the resource: the id
+    /// percent-encoded as a fragment, resolved against the resource HREF.
+    private func fragmentHREF(id: String, baseHREF: AnyURL?) -> String {
+        let encodedID = id.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed) ?? id
+        guard let fragment = RelativeURL(string: "#" + encodedID) else {
+            return (baseHREF?.string ?? "") + "#" + encodedID
+        }
+        return (baseHREF?.resolve(fragment) ?? fragment.anyURL).string
+    }
+
+    /// Resolves the receiver's `href` attribute against the resource's base
+    /// HREF, or returns `nil` when the anchor cannot be used as a link target:
+    /// no `href`, an empty one, a bare `#`, one that is not a valid
+    /// percent-encoded URL (documented divergence), or a scheme other than
+    /// `http(s)` (`mailto:`, `javascript:`, …).
+    ///
+    /// Only `attr("href")` is read: an SVG `<a>` carrying only `xlink:href` is
+    /// treated as an inline container (documented divergence).
+    private func anchorHREF(relativeTo baseHREF: AnyURL?) throws -> String? {
+        let href = try attr("href")
+        guard !href.isEmpty, href != "#", let url = AnyURL(string: href) else {
+            return nil
+        }
+        switch url {
+        case let .absolute(url):
+            // Reject unsafe or non-navigable schemes.
+            guard url.scheme == .http || url.scheme == .https else {
+                return nil
+            }
+            return url.string
+        case .relative:
+            // Also covers fragment-only hrefs, which resolve to
+            // `<resource href>#<fragment>`.
+            return (baseHREF?.resolve(url) ?? url).string
+        }
+    }
+
+    /// Text-content title of an `<a>` extended description target: text nodes
+    /// contribute their raw text, `img` elements their `alt` attribute, joined
+    /// with a single space and whitespace-normalized.
+    private func extendedDescriptionTitle() throws -> String? {
+        var parts: [String] = []
+        func visit(_ node: Node) throws {
+            if let text = node as? TextNode {
+                try parts.append(Parser.unescapeEntities(text.getWholeText(), false))
+            } else if let element = node as? Element {
+                if element.tagNameNormal() == "img" {
+                    try parts.append(element.attr("alt"))
+                } else {
+                    for child in element.getChildNodes() {
+                        try visit(child)
+                    }
+                }
+            }
+        }
+        for child in getChildNodes() {
+            try visit(child)
+        }
+        return parts.joined(separator: " ")
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .orNilIfEmpty()
     }
 
     /// Resolves a space-separated list of element IDs against the document and
@@ -211,6 +368,12 @@ extension SwiftSoup.Element {
 
     func firstDirectChild(tag: String) -> Element? {
         children().first { $0.tagNameNormal() == tag }
+    }
+
+    /// Whether the receiver is `element` itself or one of its ancestors,
+    /// mirroring the DOM's `Node.contains`, which includes the node itself.
+    private func isSelfOrAncestor(of element: Element) -> Bool {
+        self === element || element.parents().contains { $0 === self }
     }
 
     /// HTML-AAM 4.1.10 step 4, approximated: the figcaption names the image

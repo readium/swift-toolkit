@@ -22,12 +22,21 @@ import { computeAccessibilityProperties } from "../src/accname";
 
 const FIXTURES_DIR = path.join(__dirname, "fixtures/accname");
 
+/**
+ * Fake base URI the extended description hrefs are resolved against: the
+ * expectations are stored relative to the document, while
+ * `computeAccessibilityProperties` returns absolute URLs (in production they
+ * are relativized on the Swift side, like the payload's `src`).
+ */
+const BASE_URI = "https://readium.test/";
+
 interface Case {
   document: string;
   id: string;
   element: Element;
   expectedName: string | null;
   expectedDescription: string | null;
+  expectedExtendedDescriptions: { href: string; title: string | null }[];
 }
 
 /** Loads every non-skipped case of every generated fixture. */
@@ -52,12 +61,24 @@ function loadCases(): Case[] {
     for (const element of Array.from(
       doc.querySelectorAll("[data-case]:not([data-test-skipped])")
     )) {
+      const expectedExtendedDescriptions = (
+        JSON.parse(
+          element.getAttribute("data-expected-extended-descriptions") ?? "[]"
+        ) as { href: string; title: string | null }[]
+      ).map(({ href, title }) => ({
+        // Resolve the document-relative expectation the same way the
+        // implementation resolves the markup's hrefs.
+        href: new URL(href, BASE_URI + filename).href,
+        title,
+      }));
+
       cases.push({
         document: filename,
         id: element.getAttribute("data-case")!,
         element,
         expectedName: element.getAttribute("data-expected-name"),
         expectedDescription: element.getAttribute("data-expected-description"),
+        expectedExtendedDescriptions,
       });
     }
   }
@@ -74,9 +95,15 @@ describe("accname sample publication", () => {
   test.each(CASES.map((c) => [`${c.document} · ${c.id}`, c] as const))(
     "%s",
     (_label, testCase) => {
-      const result = computeAccessibilityProperties(testCase.element);
+      const result = computeAccessibilityProperties(
+        testCase.element,
+        BASE_URI + testCase.document
+      );
       expect(result.name).toBe(testCase.expectedName);
       expect(result.description).toBe(testCase.expectedDescription);
+      expect(result.extendedDescriptions).toEqual(
+        testCase.expectedExtendedDescriptions
+      );
     }
   );
 });

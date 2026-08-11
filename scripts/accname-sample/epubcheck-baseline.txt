@@ -1,5 +1,8 @@
 # Expected epubcheck messages, one per deliberately invalid case.
 # Refresh with `python3 generate.py --update-epubcheck-baseline`.
+ERROR(RSC-005) details.xhtml: Error while parsing file: value of attribute "aria-details" is invalid; must be a string matching the regular expression "[^\s]+"
+ERROR(RSC-005) details.xhtml: Error while parsing file: value of attribute "aria-details" is invalid; must be a string matching the regular expression "[^\s]+"
+ERROR(RSC-005) details.xhtml: Error while parsing file: value of attribute "aria-details" is invalid; must be a string matching the regular expression "[^\s]+"
 ERROR(RSC-005) image.xhtml: Error while parsing file: The aria-describedby attribute must refer to elements in the same document (target ID missing)
 ERROR(RSC-005) image.xhtml: Error while parsing file: The aria-labelledby attribute must refer to elements in the same document (target ID missing)
 ERROR(RSC-005) image.xhtml: Error while parsing file: The aria-labelledby attribute must refer to elements in the same document (target ID missing)

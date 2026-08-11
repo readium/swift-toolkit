@@ -348,11 +348,27 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         let viewer = UIHostingController(
             rootView: ImagePreview(
                 publication: publication,
-                image: image
+                image: image,
+                onSelectLink: { [weak self] link in
+                    self?.dismissImagePreviewAndGo(to: link)
+                }
             )
         )
         viewer.modalPresentationStyle = .pageSheet
         present(viewer, animated: true)
+    }
+
+    /// Closes the image preview and navigates the reader to the given link,
+    /// e.g. an extended description of the image.
+    private func dismissImagePreviewAndGo(to link: ReadiumShared.Link) {
+        Task {
+            guard let locator = await publication.locate(link) else {
+                return
+            }
+
+            dismiss(animated: true)
+            await navigator.go(to: locator)
+        }
     }
 }
 

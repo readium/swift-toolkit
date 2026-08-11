@@ -9,6 +9,10 @@
 #   title        section heading; backticks become <code>
 #   name         expected accessible name; absent means "expected none"
 #   description  expected accessible description; absent means "expected none"
+#   extended_descriptions
+#                expected extended description links, an array of tables with
+#                an `href` (relative to the document) and an optional `title`;
+#                absent means "expected none"
 #   note         extra prose explaining the rule
 #   divergence   what a browser would compute instead, when we knowingly differ
 #   skipped      excluded from both test harnesses (rule not implemented yet)
@@ -558,6 +562,206 @@ id = "aria-hidden-suppresses-video"
 title = "`aria-hidden=\"true\"` suppresses a `video`"
 markup = '''
 <video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle" title="A tooltip" aria-hidden="true"></video>
+'''
+
+[[resource]]
+id = "details"
+title = "Extended descriptions"
+intro = """
+`aria-details` on an image links it to one or more extended descriptions,
+surfaced as links. A target that is a hyperlink with a usable `href` links to
+its destination, titled by its `aria-label` or its text content; any other
+target is linked to in place, titled only by its `aria-label`. The attribute is
+honored on the image itself only, and a suppressed image gets no extended
+descriptions.
+"""
+
+# --- Target kinds ----------------------------------------------------------
+
+[[resource.case]]
+id = "details-inline-aside"
+title = "An inline container target links to the target itself"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-aside-target" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-aside-target"/>
+<aside id="details-aside-target"><p>A long description of the chart.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-non-ascii-target-id"
+title = "A non-ASCII target id is percent-encoded"
+name = "Bar chart"
+extended_descriptions = [{ href = "#d%C3%A9tails" }]
+note = "The link to an inline container is built with the URL API rather than by concatenation, so an id holding non-ASCII characters (legal in XHTML) reaches the reading app as a valid URL."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="détails"/>
+<aside id="détails"><p>Une description longue.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-inline-aside-aria-label"
+title = "An inline container target is titled by its `aria-label`"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-labelled-target", title = "Chart description" }]
+note = "The target's text content is never synthesized into a title; only its `aria-label` is used."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-labelled-target"/>
+<aside id="details-labelled-target" aria-label="Chart description"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-anchor-relative"
+title = "A hyperlink target links to its destination, titled by its text"
+name = "Bar chart"
+extended_descriptions = [{ href = "image.xhtml", title = "Extended description" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-rel-link"/>
+<p><a id="details-rel-link" href="image.xhtml">Extended description</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-aria-label"
+title = "A hyperlink target is titled by its `aria-label` over its text"
+name = "Bar chart"
+extended_descriptions = [{ href = "image.xhtml", title = "Full description" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-labelled-link"/>
+<p><a id="details-labelled-link" href="image.xhtml" aria-label="Full description">ignored</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-title-with-img-alt"
+title = "A hyperlink title joins text nodes and `img` alt values"
+name = "Bar chart"
+extended_descriptions = [{ href = "image.xhtml", title = "See the detailed description" }]
+divergence = "The contributions are joined with a single space, so a word split across adjacent inline elements gains a space that a browser's `innerText` would not add."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-img-alt-link"/>
+<p><a id="details-img-alt-link" href="image.xhtml">See
+  the <img src="assets/apple.png" alt="detailed"/> <span>description</span></a></p>
+'''
+
+# --- href forms ------------------------------------------------------------
+
+[[resource.case]]
+id = "details-anchor-fragment"
+title = "A fragment-only `href` resolves against the document"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-frag-dest", title = "Description below" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-frag-link"/>
+<p><a id="details-frag-link" href="#details-frag-dest">Description below</a></p>
+<aside id="details-frag-dest"><p>The description itself.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-anchor-absolute-http"
+title = "An absolute `http(s)` `href` passes through unchanged"
+name = "Bar chart"
+extended_descriptions = [{ href = "https://example.com/description.html", title = "Description online" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-http-link"/>
+<p><a id="details-http-link" href="https://example.com/description.html">Description online</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-mailto"
+title = "A non-`http(s)` scheme falls back to the inline container branch"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-mailto-link" }]
+note = "The anchor is treated as an inline container: no `mailto:`, `javascript:` or other unsafe scheme ever reaches the reading app."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-mailto-link"/>
+<p><a id="details-mailto-link" href="mailto:author@example.com">Ask the author</a></p>
+'''
+
+# --- IDREF list ------------------------------------------------------------
+
+[[resource.case]]
+id = "details-multiple-and-dangling"
+title = "Multiple targets keep the IDREF order; dangling ids are skipped"
+name = "Bar chart"
+extended_descriptions = [
+    { href = "#details-multi-second" },
+    { href = "#details-multi-first" },
+]
+note = "`aria-details` is a single ID reference in ARIA 1.2 and an ID reference list since ARIA 1.3; the list handling is kept for forward compatibility. EPUB validates against ARIA 1.2, so this markup is deliberately invalid: epubcheck rejects the space-separated list, and the error is in the baseline."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-multi-second details-multi-missing details-multi-first"/>
+<aside id="details-multi-first"><p>First.</p></aside>
+<aside id="details-multi-second"><p>Second.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-duplicate-idrefs"
+title = "Two IDREFs to the same node collapse to one"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-dup-target" }]
+note = "An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-dup-target details-dup-target"/>
+<aside id="details-dup-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-self-and-ancestor-skipped"
+title = "Targets that are the image itself or an ancestor are skipped"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-real-target" }]
+note = "A link into the enclosing figure would re-render the image it describes. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline."
+markup = '''
+<figure id="details-ancestor-figure">
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="case-details-self-and-ancestor-skipped details-ancestor-figure details-real-target"/>
+</figure>
+<aside id="details-real-target"><p>Details.</p></aside>
+'''
+
+# --- Suppression and scope -------------------------------------------------
+
+[[resource.case]]
+id = "details-aria-hidden-suppressed"
+title = "`aria-hidden=\"true\"` suppresses extended descriptions too"
+extended_descriptions = []
+note = "A suppressed element is out of the accessibility tree, relations included."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-hidden="true" aria-details="details-hidden-target"/>
+<aside id="details-hidden-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-cancels-presentational-role"
+title = "`aria-details` cancels a presentational `role`"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-presentation-target" }]
+note = "`aria-details` is a global ARIA attribute, so it wins the presentational-role conflict and the image keeps its name and extended descriptions."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" role="presentation" aria-details="details-presentation-target"/>
+<aside id="details-presentation-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-figure-level-ignored"
+title = "`aria-details` on the enclosing figure is ignored"
+name = "Bar chart"
+extended_descriptions = []
+note = "Only the image's own `aria-details` is honored."
+markup = '''
+<figure aria-details="details-figure-target">
+  <img data-subject="" src="assets/apple.png" alt="Bar chart"/>
+  <figcaption>A captioned chart</figcaption>
+</figure>
+<aside id="details-figure-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-inline-svg"
+title = "An inline SVG can carry `aria-details` too"
+name = "Blue square"
+extended_descriptions = [{ href = "#details-svg-target" }]
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" aria-details="details-svg-target"><title>Blue square</title><rect x="8" y="8" width="64" height="64" fill="#1565C0"/></svg>
+<aside id="details-svg-target"><p>A long description of the square.</p></aside>
 '''
 
 [[resource]]

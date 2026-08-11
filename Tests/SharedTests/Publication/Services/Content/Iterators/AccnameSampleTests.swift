@@ -32,6 +32,7 @@ struct AccnameSampleTests {
         )
         #expect(actual.name == testCase.expectedName)
         #expect(actual.description == testCase.expectedDescription)
+        #expect(actual.extendedDescriptions == testCase.expectedExtendedDescriptions)
     }
 
     /// Catches subject elements the iterator silently drops, which would
@@ -60,6 +61,9 @@ enum AccnameSample {
         let id: String
         let expectedName: String?
         let expectedDescription: String?
+        /// Expected extended description links, with hrefs already resolved
+        /// against the document.
+        let expectedExtendedDescriptions: [Link]
 
         var description: String {
             "\(document) · \(id)"
@@ -69,6 +73,7 @@ enum AccnameSample {
     struct Properties: Sendable {
         let name: String?
         let description: String?
+        let extendedDescriptions: [Link]
     }
 
     private static let fixtures = Fixtures(path: "Publication/Services/Content")
@@ -104,7 +109,11 @@ enum AccnameSample {
                             expectedName: element.hasAttr("data-expected-name")
                                 ? element.attr("data-expected-name") : nil,
                             expectedDescription: element.hasAttr("data-expected-description")
-                                ? element.attr("data-expected-description") : nil
+                                ? element.attr("data-expected-description") : nil,
+                            expectedExtendedDescriptions: expectedExtendedDescriptions(
+                                json: element.attr("data-expected-extended-descriptions"),
+                                document: document
+                            )
                         )
                     }
             }
@@ -112,6 +121,33 @@ enum AccnameSample {
             fatalError("Could not read the accname sample cases: \(error)")
         }
     }()
+
+    /// Parses the `data-expected-extended-descriptions` JSON array and
+    /// resolves its document-relative hrefs against the document, matching
+    /// what the iterator computes.
+    private static func expectedExtendedDescriptions(json: String, document: String) throws -> [Link] {
+        guard !json.isEmpty else {
+            return []
+        }
+        guard
+            let entries = try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [[String: Any]],
+            let base = AnyURL(string: document)
+        else {
+            fatalError("Malformed data-expected-extended-descriptions in \(document): \(json)")
+        }
+        return entries.map { entry in
+            guard
+                let href = entry["href"] as? String,
+                let url = AnyURL(string: href)
+            else {
+                fatalError("Malformed data-expected-extended-descriptions in \(document): \(json)")
+            }
+            return Link(
+                href: (base.resolve(url) ?? url).string,
+                title: entry["title"] as? String
+            )
+        }
+    }
 
     /// Iterates every document once and keys the computed properties by case id.
     ///
@@ -136,7 +172,8 @@ enum AccnameSample {
                 }
                 properties[String(selector.dropFirst("#case-".count))] = Properties(
                     name: element.accessibleName,
-                    description: element.accessibleDescription
+                    description: element.accessibleDescription,
+                    extendedDescriptions: element.extendedDescriptions
                 )
             }
         }

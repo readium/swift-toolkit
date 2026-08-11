@@ -253,6 +253,17 @@ public struct ContentAttributeKey<V>: Hashable, Sendable {
         .init("accessibleDescription")
     }
 
+    /// Link to an extended description of the element, declared with
+    /// `aria-details` per the DAISY guidance on extended descriptions:
+    /// https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html
+    ///
+    /// Repeated when the element declares several targets; use the plural
+    /// `attributes(.extendedDescription)` accessor or the
+    /// `extendedDescriptions` convenience property to retrieve them all.
+    public static var extendedDescription: ContentAttributeKey<Link> {
+        .init("extendedDescription")
+    }
+
     public static var language: ContentAttributeKey<Language> {
         .init("language")
     }
@@ -304,6 +315,13 @@ public extension ContentAttributesHolder {
 
     var accessibleDescription: String? {
         self[.accessibleDescription]
+    }
+
+    /// Links to the extended descriptions of the element, declared with
+    /// `aria-details` per the DAISY guidance on extended descriptions:
+    /// https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html
+    var extendedDescriptions: [Link] {
+        attributes(.extendedDescription)
     }
 
     /// Gets the first attribute with the given `key`.

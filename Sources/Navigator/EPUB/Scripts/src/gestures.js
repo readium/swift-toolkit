@@ -122,9 +122,9 @@ function onPointerEvent(phase, event) {
  *
  * Returns an object with the element's bounding rectangle, tag name, source
  * URL, a CSS selector, the href of the document that contains the element,
- * the accessible name and description, and the caption from an enclosing
- * figure's figcaption. This information is used on the Swift side to build
- * the appropriate `ContentElement`.
+ * the accessible name and description, the extended description links, and
+ * the caption from an enclosing figure's figcaption. This information is used
+ * on the Swift side to build the appropriate `ContentElement`.
  */
 function extractTargetElement(element) {
   if (!element || !element.getBoundingClientRect) {
@@ -170,6 +170,7 @@ function extractTargetElement(element) {
     },
     accessibleName: accessibility.name,
     accessibleDescription: accessibility.description,
+    extendedDescriptions: accessibility.extendedDescriptions,
     caption: findFigureCaption(imageElement),
     cssSelector: getCssSelector(imageElement),
   };

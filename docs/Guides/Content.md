@@ -140,6 +140,11 @@ If you are not interested in the segment attributes, you can also use `element.t
 
 All types of `ContentElement` can have associated attributes. Custom `ContentService` implementations can use this as an extensibility point.
 
+The HTML content iterator fills in accessibility attributes for media elements:
+
+* `accessibleName` and `accessibleDescription` - flat strings computed following a subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2).
+* `extendedDescription` - a `Link` to an extended description declared with [`aria-details`](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html), repeated when the element declares several targets.
+
 ## Use cases
 
 ### An index of all images embedded in the publication

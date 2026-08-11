@@ -13,6 +13,7 @@ Standard library only: run it with `python3 generate.py`.
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import subprocess
@@ -59,6 +60,9 @@ class Case:
     markup: str
     name: str | None = None
     description: str | None = None
+    # Expected extended description links, as a list of {"href", "title"}
+    # tables. Absent means "expected none"; hrefs are relative to the document.
+    extended_descriptions: list | None = None
     note: str | None = None
     divergence: str | None = None
     skipped: bool = False
@@ -82,6 +86,7 @@ CASE_KEYS = {
     "markup",
     "name",
     "description",
+    "extended_descriptions",
     "note",
     "divergence",
     "skipped",
@@ -136,6 +141,22 @@ def prose(text: str) -> str:
     )
 
 
+def expected_extended_descriptions_json(case: Case) -> str:
+    """Serializes the expected extended descriptions as a JSON array of
+    `{"href", "title"}` objects. JSON survives attribute escaping, unlike
+    separator formats which break on real titles."""
+    links = []
+    for link in case.extended_descriptions or []:
+        unknown = set(link) - {"href", "title"}
+        if unknown or "href" not in link:
+            raise ValidationError(
+                f"case '{case.id}': extended description entries need an "
+                f"'href' and an optional 'title', got {sorted(link)}"
+            )
+        links.append({"href": link["href"], "title": link.get("title")})
+    return json.dumps(links, ensure_ascii=False)
+
+
 def subject_attributes(case: Case) -> str:
     attributes = [f'id="case-{case.id}"', f'data-case="{case.id}"']
     if case.name is not None:
@@ -143,6 +164,11 @@ def subject_attributes(case: Case) -> str:
     if case.description is not None:
         attributes.append(
             f'data-expected-description="{escape_attr(case.description)}"'
+        )
+    if case.extended_descriptions is not None:
+        attributes.append(
+            "data-expected-extended-descriptions="
+            f'"{escape_attr(expected_extended_descriptions_json(case))}"'
         )
     if case.skipped:
         attributes.append('data-test-skipped=""')
@@ -167,6 +193,17 @@ def render_expectation(value: str | None) -> str:
     return f"<dd><code>{escape_text(value)}</code></dd>"
 
 
+def render_extended_descriptions(case: Case) -> str:
+    if not case.extended_descriptions:
+        return '<dd class="none">none</dd>'
+    return "".join(
+        f'<dd><code>{escape_text(link["href"])}</code>'
+        + (f', titled “{escape_text(link["title"])}”' if link.get("title") else "")
+        + "</dd>"
+        for link in case.extended_descriptions
+    )
+
+
 def render_case(case: Case) -> str:
     lines = [
         f'<section class="case" id="section-{case.id}">',
@@ -174,8 +211,13 @@ def render_case(case: Case) -> str:
         '  <dl class="expect">',
         f"    <dt>Name</dt>{render_expectation(case.name)}",
         f"    <dt>Description</dt>{render_expectation(case.description)}",
-        "  </dl>",
     ]
+    if case.extended_descriptions is not None:
+        lines.append(
+            "    <dt>Extended descriptions</dt>"
+            + render_extended_descriptions(case)
+        )
+    lines.append("  </dl>")
     if case.skipped:
         lines.append(
             '  <p class="skipped">Not implemented yet: neither test harness '
@@ -426,7 +468,13 @@ def validate(documents: dict[str, str], resources: list[Resource], files: set[st
 
             for attribute in ("src", "href"):
                 link = element.get(attribute)
-                if link is None or link.startswith(("#", "http:", "https:", "data:")):
+                if link is None or link == "" or link.startswith("#"):
+                    # Empty and fragment-only links stay inside the document;
+                    # some cases use them deliberately.
+                    continue
+                if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", link):
+                    # Any absolute URL: http(s), but also the mailto: links
+                    # some cases use to pin the scheme filtering down.
                     continue
                 if link not in files:
                     raise ValidationError(
