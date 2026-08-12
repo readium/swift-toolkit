@@ -331,7 +331,7 @@ extension SwiftSoup.Element {
         var parts: [String] = []
         func visit(_ node: Node) throws {
             if let text = node as? TextNode {
-                try parts.append(Parser.unescapeEntities(text.getWholeText(), false))
+                parts.append(text.getWholeText())
             } else if let element = node as? Element {
                 if element.tagNameNormal() == "img" {
                     try parts.append(element.attr("alt"))

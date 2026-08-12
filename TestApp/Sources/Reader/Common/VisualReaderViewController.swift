@@ -350,7 +350,7 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
                 publication: publication,
                 image: image,
                 onSelectLink: { [weak self] link in
-                    self?.dismissImagePreviewAndGo(to: link)
+                    self?.openFromImagePreview(link)
                 }
             )
         )
@@ -358,27 +358,33 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         present(viewer, animated: true)
     }
 
-    /// Closes the image preview and navigates the reader to the given link,
-    /// e.g. an extended description of the image.
-    private func dismissImagePreviewAndGo(to link: ReadiumShared.Link) {
+    /// Opens a link selected in the image preview, e.g. an extended
+    /// description of the image.
+    private func openFromImagePreview(_ link: ReadiumShared.Link) {
         Task {
             // `locate` runs first: the href is only inspected once it comes
             // back nil, so a remote publication whose in-publication links are
             // themselves absolute is not misrouted to the browser.
-            if let locator = await publication.locate(link) {
-                dismiss(animated: true)
-                await navigator.go(to: locator)
-
-            } else if let url = link.httpURL {
-                // The description lives outside the publication, e.g. an
-                // `aria-details` anchor pointing at a full http(s) URL.
-                dismiss(animated: true) { [weak self] in
-                    self?.presentExternalURL(url.url)
-                }
-
-            } else {
+            let locator = await publication.locate(link)
+            let externalURL = (locator == nil) ? link.httpURL : nil
+            if locator == nil, externalURL == nil {
                 log(.error, "Cannot locate the extended description at \(link.href)")
-                dismiss(animated: true)
+            }
+
+            await dismissPresentedViewController()
+
+            if let locator = locator {
+                await navigator.go(to: locator)
+            } else if let externalURL = externalURL {
+                presentExternalURL(externalURL.url)
+            }
+        }
+    }
+
+    private func dismissPresentedViewController() async {
+        await withCheckedContinuation { continuation in
+            dismiss(animated: true) {
+                continuation.resume()
             }
         }
     }

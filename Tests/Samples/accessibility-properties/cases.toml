@@ -778,6 +778,32 @@ markup = '''
   the <img src="assets/apple.png" alt="detailed"/> <span>description</span></a></p>
 '''
 
+[[resource.case]]
+id = "details-container-labelledby-does-not-title"
+title = "`aria-labelledby` on the target does not title the link"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-labelledby-target" }]
+note = "Only the target's own `aria-label` is read. Resolving its `aria-labelledby` would need the one-level name computation, which the link title deliberately does not run."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-labelledby-target"/>
+<p id="details-target-heading">Description of the bar chart</p>
+<aside id="details-labelledby-target" aria-labelledby="details-target-heading"><p>The chart shows the website hits for the first quarter of 2014.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-summary-aria-label-does-not-title"
+title = "A `summary`'s `aria-label` does not title the link either"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-summary-labelled" }]
+note = "A `details` target is an inline container: its `summary` would be the natural title, but only the target's own `aria-label` is read today. Titling a disclosure from its `summary` is a follow-up."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-summary-labelled"/>
+<details id="details-summary-labelled">
+  <summary aria-label="Chart description">Expand / collapse description</summary>
+  <p>The chart shows the website hits for the first quarter of 2014.</p>
+</details>
+'''
+
 # --- href forms ------------------------------------------------------------
 
 [[resource.case]]
@@ -810,6 +836,59 @@ note = "The anchor is treated as an inline container: no `mailto:`, `javascript:
 markup = '''
 <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-mailto-link"/>
 <p><a id="details-mailto-link" href="mailto:author@example.com">Ask the author</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-javascript"
+title = "A `javascript:` `href` falls back to the inline container branch too"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-js-link" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-js-link"/>
+<p><a id="details-js-link" href="javascript:alert(1)">Reveal the description</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-without-href"
+title = "An `a` with no `href` is an inline container"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-no-href" }]
+note = "An anchor with nothing to navigate to is linked to in place, like any other container, and loses its text as a title."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-no-href"/>
+<p><a id="details-no-href">No destination</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-empty-href"
+title = "An empty `href` is an inline container"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-empty-href" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-empty-href"/>
+<p><a id="details-empty-href" href="">Empty destination</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-bare-hash-href"
+title = "A bare `#` `href` is an inline container"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-bare-hash" }]
+note = "`href=\"#\"` points at the top of the resource, not at a description."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-bare-hash"/>
+<p><a id="details-bare-hash" href="#">Top of the page</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-title-keeps-escaped-entities"
+title = "A hyperlink title keeps an escaped entity escaped"
+name = "Bar chart"
+extended_descriptions = [{ href = "image.xhtml", title = "Sites A &amp; B" }]
+note = "The source writes `&amp;amp;`, so the text of the anchor is the six characters `&amp;`. It must not be decoded a second time into a bare ampersand."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-entity-link"/>
+<p><a id="details-entity-link" href="image.xhtml">Sites A &amp;amp; B</a></p>
 '''
 
 # --- IDREF list ------------------------------------------------------------
@@ -853,6 +932,31 @@ markup = '''
 <aside id="details-real-target"><p>Details.</p></aside>
 '''
 
+[[resource.case]]
+id = "details-two-anchors-to-the-same-destination"
+title = "Two anchors to the same destination both survive"
+name = "Bar chart"
+extended_descriptions = [
+    { href = "image.xhtml", title = "Summary" },
+    { href = "image.xhtml", title = "Full data table" },
+]
+note = "Only IDREFs resolving to the same *node* collapse. Two distinct anchors are two offers to the reader, even when they land in the same place. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-dest-a details-dest-b"/>
+<p><a id="details-dest-a" href="image.xhtml">Summary</a></p>
+<p><a id="details-dest-b" href="image.xhtml">Full data table</a></p>
+'''
+
+[[resource.case]]
+id = "details-all-targets-invalid"
+title = "An `aria-details` whose targets are all invalid yields nothing"
+name = "Bar chart"
+extended_descriptions = []
+note = "One dangling id and one pointing at the image itself: the attribute is present but contributes no link. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-nowhere case-details-all-targets-invalid"/>
+'''
+
 # --- Suppression and scope -------------------------------------------------
 
 [[resource.case]]
@@ -889,6 +993,32 @@ markup = '''
   <figcaption>A captioned chart</figcaption>
 </figure>
 <aside id="details-figure-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-plain-link-is-not-an-extended-description"
+title = "A plain link next to an image is not an extended description"
+name = "Bar chart"
+extended_descriptions = []
+note = "`aria-details` is the only thing that ties a description to an image. A link the publisher merely placed nearby, with no attribute pointing at it, is prose like any other."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart"/>
+<p><a href="image.xhtml">Description of the bar chart</a></p>
+'''
+
+[[resource.case]]
+id = "describedby-flattens-a-details-target"
+title = "`aria-describedby` flattens a `details` target into the description"
+name = "Bar chart"
+description = "Expand / collapse description The chart shows the website hits for the first quarter of 2014."
+extended_descriptions = []
+note = "`aria-describedby` is the accessible description, whatever the target looks like: a disclosure widget referenced that way is flattened into one string, summary included, and is NOT promoted to an extended description. Only `aria-details` produces those."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-describedby="details-db-disclosure"/>
+<details id="details-db-disclosure">
+  <summary>Expand / collapse description</summary>
+  <p>The chart shows the website hits for the first quarter of 2014.</p>
+</details>
 '''
 
 # --- A description wrapped by the caption ----------------------------------

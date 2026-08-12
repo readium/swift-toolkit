@@ -99,6 +99,40 @@
   </div>
 </section>
 
+<section class="case" id="section-details-container-labelledby-does-not-title">
+  <h2><code>aria-labelledby</code> on the target does not title the link</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-labelledby-target</code></dd>
+  </dl>
+  <p class="note">Only the target's own <code>aria-label</code> is read. Resolving its <code>aria-labelledby</code> would need the one-level name computation, which the link title deliberately does not run.</p>
+  <div class="subject">
+    <img id="case-details-container-labelledby-does-not-title" data-case="details-container-labelledby-does-not-title" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-labelledby-target&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-labelledby-target"/>
+    <p id="details-target-heading">Description of the bar chart</p>
+    <aside id="details-labelledby-target" aria-labelledby="details-target-heading"><p>The chart shows the website hits for the first quarter of 2014.</p></aside>
+  </div>
+</section>
+
+<section class="case" id="section-details-summary-aria-label-does-not-title">
+  <h2>A <code>summary</code>'s <code>aria-label</code> does not title the link either</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-summary-labelled</code></dd>
+  </dl>
+  <p class="note">A <code>details</code> target is an inline container: its <code>summary</code> would be the natural title, but only the target's own <code>aria-label</code> is read today. Titling a disclosure from its <code>summary</code> is a follow-up.</p>
+  <div class="subject">
+    <img id="case-details-summary-aria-label-does-not-title" data-case="details-summary-aria-label-does-not-title" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-summary-labelled&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-summary-labelled"/>
+    <details id="details-summary-labelled">
+      <summary aria-label="Chart description">Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
+  </div>
+</section>
+
 <section class="case" id="section-details-anchor-fragment">
   <h2>A fragment-only <code>href</code> resolves against the document</h2>
   <dl class="expect">
@@ -140,6 +174,79 @@
   <div class="subject">
     <img id="case-details-anchor-mailto" data-case="details-anchor-mailto" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-mailto-link&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-mailto-link"/>
     <p><a id="details-mailto-link" href="mailto:author@example.com">Ask the author</a></p>
+  </div>
+</section>
+
+<section class="case" id="section-details-anchor-javascript">
+  <h2>A <code>javascript:</code> <code>href</code> falls back to the inline container branch too</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-js-link</code></dd>
+  </dl>
+  <div class="subject">
+    <img id="case-details-anchor-javascript" data-case="details-anchor-javascript" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-js-link&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-js-link"/>
+    <p><a id="details-js-link" href="javascript:alert(1)">Reveal the description</a></p>
+  </div>
+</section>
+
+<section class="case" id="section-details-anchor-without-href">
+  <h2>An <code>a</code> with no <code>href</code> is an inline container</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-no-href</code></dd>
+  </dl>
+  <p class="note">An anchor with nothing to navigate to is linked to in place, like any other container, and loses its text as a title.</p>
+  <div class="subject">
+    <img id="case-details-anchor-without-href" data-case="details-anchor-without-href" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-no-href&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-no-href"/>
+    <p><a id="details-no-href">No destination</a></p>
+  </div>
+</section>
+
+<section class="case" id="section-details-anchor-empty-href">
+  <h2>An empty <code>href</code> is an inline container</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-empty-href</code></dd>
+  </dl>
+  <div class="subject">
+    <img id="case-details-anchor-empty-href" data-case="details-anchor-empty-href" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-empty-href&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-empty-href"/>
+    <p><a id="details-empty-href" href="">Empty destination</a></p>
+  </div>
+</section>
+
+<section class="case" id="section-details-anchor-bare-hash-href">
+  <h2>A bare <code>#</code> <code>href</code> is an inline container</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>#details-bare-hash</code></dd>
+  </dl>
+  <p class="note"><code>href="#"</code> points at the top of the resource, not at a description.</p>
+  <div class="subject">
+    <img id="case-details-anchor-bare-hash-href" data-case="details-anchor-bare-hash-href" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;#details-bare-hash&quot;, &quot;title&quot;: null}]" src="assets/apple.png" alt="Bar chart" aria-details="details-bare-hash"/>
+    <p><a id="details-bare-hash" href="#">Top of the page</a></p>
+  </div>
+</section>
+
+<section class="case" id="section-details-anchor-title-keeps-escaped-entities">
+  <h2>A hyperlink title keeps an escaped entity escaped</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>image.xhtml</code>, titled “Sites A &amp;amp; B”</dd>
+  </dl>
+  <p class="note">The source writes <code>&amp;amp;amp;</code>, so the text of the anchor is the six characters <code>&amp;amp;</code>. It must not be decoded a second time into a bare ampersand.</p>
+  <div class="subject">
+    <img id="case-details-anchor-title-keeps-escaped-entities" data-case="details-anchor-title-keeps-escaped-entities" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;image.xhtml&quot;, &quot;title&quot;: &quot;Sites A &amp;amp; B&quot;}]" src="assets/apple.png" alt="Bar chart" aria-details="details-entity-link"/>
+    <p><a id="details-entity-link" href="image.xhtml">Sites A &amp;amp; B</a></p>
   </div>
 </section>
 
@@ -191,6 +298,36 @@
   </div>
 </section>
 
+<section class="case" id="section-details-two-anchors-to-the-same-destination">
+  <h2>Two anchors to the same destination both survive</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd><code>image.xhtml</code>, titled “Summary”</dd><dd><code>image.xhtml</code>, titled “Full data table”</dd>
+  </dl>
+  <p class="note">Only IDREFs resolving to the same *node* collapse. Two distinct anchors are two offers to the reader, even when they land in the same place. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline.</p>
+  <div class="subject">
+    <img id="case-details-two-anchors-to-the-same-destination" data-case="details-two-anchors-to-the-same-destination" data-expected-name="Bar chart" data-expected-extended-descriptions="[{&quot;href&quot;: &quot;image.xhtml&quot;, &quot;title&quot;: &quot;Summary&quot;}, {&quot;href&quot;: &quot;image.xhtml&quot;, &quot;title&quot;: &quot;Full data table&quot;}]" src="assets/apple.png" alt="Bar chart" aria-details="details-dest-a details-dest-b"/>
+    <p><a id="details-dest-a" href="image.xhtml">Summary</a></p>
+    <p><a id="details-dest-b" href="image.xhtml">Full data table</a></p>
+  </div>
+</section>
+
+<section class="case" id="section-details-all-targets-invalid">
+  <h2>An <code>aria-details</code> whose targets are all invalid yields nothing</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd class="none">none</dd>
+  </dl>
+  <p class="note">One dangling id and one pointing at the image itself: the attribute is present but contributes no link. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline.</p>
+  <div class="subject">
+    <img id="case-details-all-targets-invalid" data-case="details-all-targets-invalid" data-expected-name="Bar chart" data-expected-extended-descriptions="[]" src="assets/apple.png" alt="Bar chart" aria-details="details-nowhere case-details-all-targets-invalid"/>
+  </div>
+</section>
+
 <section class="case" id="section-details-aria-hidden-suppressed">
   <h2><code>aria-hidden="true"</code> suppresses extended descriptions too</h2>
   <dl class="expect">
@@ -236,6 +373,39 @@
       <figcaption>A captioned chart</figcaption>
     </figure>
     <aside id="details-figure-target"><p>Details.</p></aside>
+  </div>
+</section>
+
+<section class="case" id="section-details-plain-link-is-not-an-extended-description">
+  <h2>A plain link next to an image is not an extended description</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd class="none">none</dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd class="none">none</dd>
+  </dl>
+  <p class="note"><code>aria-details</code> is the only thing that ties a description to an image. A link the publisher merely placed nearby, with no attribute pointing at it, is prose like any other.</p>
+  <div class="subject">
+    <img id="case-details-plain-link-is-not-an-extended-description" data-case="details-plain-link-is-not-an-extended-description" data-expected-name="Bar chart" data-expected-extended-descriptions="[]" src="assets/apple.png" alt="Bar chart"/>
+    <p><a href="image.xhtml">Description of the bar chart</a></p>
+  </div>
+</section>
+
+<section class="case" id="section-describedby-flattens-a-details-target">
+  <h2><code>aria-describedby</code> flattens a <code>details</code> target into the description</h2>
+  <dl class="expect">
+    <dt>Name</dt><dd><code>Bar chart</code></dd>
+    <dt>Description</dt><dd><code>Expand / collapse description The chart shows the website hits for the first quarter of 2014.</code></dd>
+    <dt>Caption</dt><dd class="none">none</dd>
+    <dt>Extended descriptions</dt><dd class="none">none</dd>
+  </dl>
+  <p class="note"><code>aria-describedby</code> is the accessible description, whatever the target looks like: a disclosure widget referenced that way is flattened into one string, summary included, and is NOT promoted to an extended description. Only <code>aria-details</code> produces those.</p>
+  <div class="subject">
+    <img id="case-describedby-flattens-a-details-target" data-case="describedby-flattens-a-details-target" data-expected-name="Bar chart" data-expected-description="Expand / collapse description The chart shows the website hits for the first quarter of 2014." data-expected-extended-descriptions="[]" src="assets/apple.png" alt="Bar chart" aria-describedby="details-db-disclosure"/>
+    <details id="details-db-disclosure">
+      <summary>Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
   </div>
 </section>
 
