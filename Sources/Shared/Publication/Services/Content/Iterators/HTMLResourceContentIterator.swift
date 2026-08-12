@@ -265,7 +265,7 @@ public actor HTMLResourceContentIterator: ContentIterator {
                             locator: elementLocator,
                             embeddedLink: Link(href: href.string),
                             caption: node.figureCaption(),
-                            attributes: node.accessibilityProperties().contentAttributes
+                            attributes: node.accessibilityProperties(baseHREF: baseHREF).contentAttributes
                         ))
                     }
 
@@ -297,7 +297,7 @@ public actor HTMLResourceContentIterator: ContentIterator {
 
                     if let link = link {
                         let caption = try node.figureCaption()
-                        let attributes = try node.accessibilityProperties().contentAttributes
+                        let attributes = try node.accessibilityProperties(baseHREF: baseHREF).contentAttributes
                         switch tag {
                         case "audio":
                             elements.append(AudioContentElement(locator: elementLocator, embeddedLink: link, caption: caption, attributes: attributes))
@@ -316,7 +316,7 @@ public actor HTMLResourceContentIterator: ContentIterator {
                         locator: elementLocator,
                         svg: node.outerHtml(),
                         caption: node.figureCaption(),
-                        attributes: node.accessibilityProperties().contentAttributes
+                        attributes: node.accessibilityProperties(baseHREF: baseHREF).contentAttributes
                     ))
 
                 } else if node.isBlock() {

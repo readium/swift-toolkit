@@ -268,8 +268,13 @@ struct HTMLResourceContentIteratorTests {
         #expect(result == nil)
     }
 
+    /// What the caption rules themselves compute is asserted by
+    /// `AccessibilityPropertiesSampleTests`, from the shared case manifest in
+    /// `Tests/Samples/accessibility-properties/cases.toml`. Only what the
+    /// manifest cannot express — the structure the iterator emits around a
+    /// figure — lives here.
     struct Figures {
-        @Test func imageInFigureGetsCaptionFromFigcaption() async throws {
+        @Test func theFigcaptionIsAlsoEmittedAsATextElement() async throws {
             let elements = try await allElements("""
             <figure><img src="a.jpg" alt="Alt text"/><figcaption>The caption</figcaption></figure>
             """)
@@ -277,46 +282,13 @@ struct HTMLResourceContentIteratorTests {
             #expect(elements.count == 2)
             let image = try #require(elements[0] as? ImageContentElement)
             #expect(image.caption == "The caption")
-            #expect(image.accessibleName == "Alt text")
             #expect(image.text == "Alt text")
 
-            // The figcaption is still emitted as a regular text element.
             let text = try #require(elements[1] as? TextContentElement)
             #expect(text.text == "The caption")
         }
 
-        @Test func nestedFigureUsesTheNearestFigcaption() async throws {
-            let elements = try await allElements("""
-            <figure>
-                <figure><img src="a.jpg" alt="Alt"/><figcaption>Inner</figcaption></figure>
-                <figcaption>Outer</figcaption>
-            </figure>
-            """)
-
-            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
-            #expect(image.caption == "Inner")
-        }
-
-        @Test func twoImagesInOneFigureShareTheCaption() async throws {
-            let elements = try await allElements("""
-            <figure><img src="a.jpg" alt="A"/><img src="b.jpg" alt="B"/><figcaption>Shared</figcaption></figure>
-            """)
-
-            let images = elements.compactMap { $0 as? ImageContentElement }
-            #expect(images.count == 2)
-            #expect(images.allSatisfy { $0.caption == "Shared" })
-        }
-
-        @Test func figcaptionNotFirstChildStillProvidesTheCaption() async throws {
-            let elements = try await allElements("""
-            <figure><p>intro</p><img src="a.jpg" alt="Alt"/><figcaption>Cap</figcaption></figure>
-            """)
-
-            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
-            #expect(image.caption == "Cap")
-        }
-
-        @Test func imageInsideTheFigcaptionIsNotCaptionedByIt() async throws {
+        @Test func everyImageOfAFigureIsEmitted() async throws {
             let elements = try await allElements("""
             <figure>
                 <img src="chart.png" alt="Revenue chart"/>
@@ -324,42 +296,10 @@ struct HTMLResourceContentIteratorTests {
             </figure>
             """)
 
+            // The logo wrapped by the figcaption is an element of its own,
+            // emitted alongside the chart and the caption's text.
             let images = elements.compactMap { $0 as? ImageContentElement }
             #expect(images.count == 2)
-
-            let chart = try #require(images.first)
-            #expect(chart.caption == "Source: annual report")
-
-            let logo = try #require(images.last)
-            #expect(logo.caption == nil)
-        }
-
-        @Test func theNameStillComesFromAWrappingFigcaption() async throws {
-            // The guard above is deliberately not applied to the accessible
-            // name: HTML-AAM 4.1.10 names this image from the figcaption it
-            // lives inside, and we follow the spec there.
-            let elements = try await allElements("""
-            <figure><figcaption>Logo: <img src="logo.png"/></figcaption></figure>
-            """)
-
-            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
-            #expect(image.caption == nil)
-            #expect(image.accessibleName == "Logo:")
-        }
-
-        @Test func audioAndVideoInAFigureGetTheCaption() async throws {
-            let elements = try await allElements("""
-            <figure><audio src="tone.m4a" title="Tone"></audio><figcaption>A pure tone</figcaption></figure>
-            <figure><video src="clip.mp4" title="Clip"></video><figcaption>A short clip</figcaption></figure>
-            """)
-
-            let audio = try #require(elements.compactMap { $0 as? AudioContentElement }.first)
-            #expect(audio.caption == "A pure tone")
-            #expect(audio.accessibleName == "Tone")
-
-            let video = try #require(elements.compactMap { $0 as? VideoContentElement }.first)
-            #expect(video.caption == "A short clip")
-            #expect(video.accessibleName == "Clip")
         }
     }
 
@@ -380,6 +320,30 @@ struct HTMLResourceContentIteratorTests {
 
             let video = try #require(elements.first as? VideoContentElement)
             #expect(video.accessibleName == "Movie")
+        }
+    }
+
+    struct ExtendedDescriptions {
+        @Test func figureLevelAriaDetailsIsIgnored() async throws {
+            let elements = try await allElements("""
+            <figure aria-details="chart-desc">
+                <img src="a.jpg" alt="Chart"/>
+            </figure>
+            <aside id="chart-desc"><p>Details.</p></aside>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.extendedDescriptions.isEmpty)
+        }
+
+        @Test func inlineTargetIsStillEmittedInTheContentStream() async throws {
+            let elements = try await allElements("""
+            <img src="a.jpg" alt="Chart" aria-details="chart-desc"/>
+            <aside id="chart-desc"><p>A long description.</p></aside>
+            """)
+
+            let texts = elements.compactMap { $0 as? TextContentElement }
+            #expect(texts.map(\.text) == ["A long description."])
         }
     }
 

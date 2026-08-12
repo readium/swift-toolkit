@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
-* Content elements now expose `accessibleName` and `accessibleDescription` attributes, computed following a subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2).
+* Content elements now expose `accessibleName`, `accessibleDescription` and `extendedDescription` attributes, computed following a subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2) and [Best Practices for Implementing Extended Descriptions in EPUB](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html). 
 * The HTML content iterator now emits inline `<svg>` elements as `SVGContentElement`, with a caption from the enclosing figure's `figcaption`.
 * `AudioContentElement` and `VideoContentElement` now expose a `caption` property, filled from the enclosing figure's `figcaption` like images and SVGs already were.
 
