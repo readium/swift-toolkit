@@ -5,15 +5,22 @@
 //
 
 /**
- * Accessible name and description of an HTML element, computed following a
- * pragmatic subset of https://www.w3.org/TR/accname-1.2
+ * Accessible name, description and extended descriptions of an HTML element.
+ *
+ * The name and description are computed following a pragmatic subset of
+ * https://www.w3.org/TR/accname-1.2. The extended descriptions are the
+ * targets of the element's `aria-details` attribute, per the DAISY guidance:
+ * https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html
  *
  * This is the TypeScript counterpart of the Swift implementation in
  * `Sources/Shared/Publication/Services/Content/Iterators/HTMLAccessibilityProperties.swift`
  * — both MUST implement exactly the same subset. What keeps them in sync is
- * the shared case manifest in `scripts/accname-sample/cases.toml`: it generates
- * the fixtures both test suites run against, so a rule is stated once and
- * asserted twice. Add cases there.
+ * the shared case manifest in
+ * `Tests/Samples/accessibility-properties/cases.toml`: it generates the
+ * fixtures both test suites run against, so a rule is stated once and
+ * asserted twice. Add cases there, including caption cases; the `Figures` suite
+ * in the Swift `HTMLResourceContentIteratorTests` keeps only
+ * iterator-structure assertions.
  *
  * Implemented:
  * - Source precedence for the name: `aria-labelledby` → `aria-label` →
@@ -37,6 +44,18 @@
  *   https://www.w3.org/TR/accname-1.2/#comp_tooltip, would still name the
  *   image from the tooltip; browsers follow HTML-AAM); a figcaption names an
  *   image which has no `alt`/`title` attribute and no sibling content.
+ * - Extended descriptions from `aria-details` on the element itself
+ *   (figure-level `aria-details` is ignored): each resolvable IDREF becomes a
+ *   link, in attribute order. Dangling IDREFs are skipped; two IDREFs
+ *   resolving to the same node collapse to one (first wins); a target that is
+ *   the element itself or one of its ancestors is skipped. An `<a>` target
+ *   with a usable `href` (fragment, relative, or absolute http(s)) links to
+ *   its destination, titled by its `aria-label` or its text content; any
+ *   other target — a plain container, an `<a>` without `href`, with an empty
+ *   or bare-`#` `href`, or with a non-http(s) scheme (`mailto:`,
+ *   `javascript:`, …) — links to the target itself (`<base URI>#<target id>`),
+ *   titled only by its `aria-label`. `aria-details` also counts as a global
+ *   ARIA attribute in the presentational-role conflict rule.
  *
  * Deliberately skipped / divergences:
  * - Full recursive traversal of `aria-labelledby`/`aria-describedby` targets
@@ -65,6 +84,18 @@
  *   non-whitespace flow content descendants" condition: the figure's
  *   normalized text must equal the figcaption's, and the figure must contain
  *   no other embedded content.
+ * - SVG `<a xlink:href>` targets of `aria-details`: only `href` is read, so
+ *   an SVG anchor carrying only `xlink:href` falls into the inline-container
+ *   branch.
+ * - The text-content title of an `<a>` extended-description target joins its
+ *   text nodes and `img[alt]` values with a single space, so a word split
+ *   across adjacent inline elements gains a space that a browser's
+ *   `innerText` would not add.
+ * - `textContent` runs block elements together, while SwiftSoup's `text()`
+ *   inserts a space before them, so `<figcaption>Cap<details>…` flattens to
+ *   `CapMoreBody` here and to `Cap More Body` on the Swift side. Real markup
+ *   has whitespace between block elements; the shared cases are authored that
+ *   way. Making the two agree is a follow-up.
  *
  * Reusability caveat: the ARIA-attribute sources apply to any element, but
  * host-language sources are implemented only for `img` and `svg`, and
@@ -78,14 +109,26 @@
 export interface AccessibilityProperties {
   name: string | null;
   description: string | null;
+  extendedDescriptions: ExtendedDescription[];
+}
+
+/** A link to an extended description, resolved from `aria-details`. */
+export interface ExtendedDescription {
+  /** Absolute URL of the description, resolved against the base URI. */
+  href: string;
+  title: string | null;
 }
 
 /**
- * Computes the accessible name and description of an element, following a
- * pragmatic subset of https://www.w3.org/TR/accname-1.2
+ * Computes the accessible name, description and extended descriptions of an
+ * element, following a pragmatic subset of https://www.w3.org/TR/accname-1.2
+ *
+ * `baseURI` is the URI extended description links are resolved against; it
+ * defaults to the element's document base URI.
  */
 export function computeAccessibilityProperties(
-  element: Element
+  element: Element,
+  baseURI: string = element.ownerDocument.baseURI
 ): AccessibilityProperties {
   const tag = element.tagName.toLowerCase();
   const title = element.getAttribute("title")?.trim() || null;
@@ -104,13 +147,16 @@ export function computeAccessibilityProperties(
     element.hasAttribute("aria-label") ||
     element.hasAttribute("aria-labelledby") ||
     element.hasAttribute("aria-describedby") ||
-    element.hasAttribute("aria-description");
+    element.hasAttribute("aria-description") ||
+    element.hasAttribute("aria-details");
   if (
     element.getAttribute("aria-hidden")?.toLowerCase() === "true" ||
     ((firstRole === "presentation" || firstRole === "none") &&
       !hasGlobalARIAAttribute)
   ) {
-    return { name: null, description: null };
+    // A suppressed element is out of the accessibility tree, relations
+    // included, so it gets no extended descriptions either.
+    return { name: null, description: null, extendedDescriptions: [] };
   }
 
   let name: string | null = null;
@@ -177,7 +223,131 @@ export function computeAccessibilityProperties(
     description = title;
   }
 
-  return { name, description };
+  return {
+    name,
+    description,
+    extendedDescriptions: computeExtendedDescriptions(element, baseURI),
+  };
+}
+
+/**
+ * Resolves the element's `aria-details` IDREFs into extended description
+ * links, in attribute order.
+ *
+ * `aria-details` is a single ID reference in ARIA 1.2 and became an ID
+ * reference list in ARIA 1.3; the list handling is kept for forward
+ * compatibility and leniency with real content.
+ */
+function computeExtendedDescriptions(
+  element: Element,
+  baseURI: string
+): ExtendedDescription[] {
+  const ids = element.getAttribute("aria-details");
+  if (!ids) {
+    return [];
+  }
+
+  const links: ExtendedDescription[] = [];
+  const seenTargets = new Set<Element>();
+  for (const id of ids.split(/\s+/)) {
+    if (id.length === 0) {
+      continue;
+    }
+    const target = element.ownerDocument.getElementById(id);
+    if (
+      !target ||
+      // Two IDREFs resolving to the same node collapse (first wins).
+      seenTargets.has(target) ||
+      // A target which is the element itself or one of its ancestors would
+      // re-render the element it describes. `contains` includes the element
+      // itself.
+      target.contains(element)
+    ) {
+      continue;
+    }
+    seenTargets.add(target);
+    links.push(extendedDescriptionLink(target, id, baseURI));
+  }
+  return links;
+}
+
+/**
+ * Builds the link for a single `aria-details` target.
+ *
+ * An `<a>` target with a usable `href` links to its destination; any other
+ * target is treated as an inline container and linked to in place.
+ */
+function extendedDescriptionLink(
+  target: Element,
+  id: string,
+  baseURI: string
+): ExtendedDescription {
+  const ariaLabel = target.getAttribute("aria-label")?.trim() || null;
+
+  if (target.tagName.toLowerCase() === "a") {
+    const href = anchorHREF(target, baseURI);
+    if (href) {
+      return { href, title: ariaLabel ?? extendedDescriptionTitle(target) };
+    }
+  }
+
+  // Inline container (or unusable anchor): link to the target itself.
+  return { href: resolveURL("#" + id, baseURI), title: ariaLabel };
+}
+
+/**
+ * Resolves the anchor's `href` attribute against the base URI, or returns
+ * null when the anchor cannot be used as a link target: no `href`, an empty
+ * one, a bare `#`, or a scheme other than `http(s)` (`mailto:`,
+ * `javascript:`, …).
+ *
+ * Only the `href` attribute is read: an SVG `<a>` carrying only `xlink:href`
+ * is treated as an inline container (documented divergence).
+ */
+function anchorHREF(target: Element, baseURI: string): string | null {
+  const href = target.getAttribute("href");
+  if (!href || href === "#") {
+    return null;
+  }
+  // The scheme filter applies to the raw attribute value: a relative href
+  // resolved against the base URI keeps whatever scheme the base has.
+  const scheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.exec(href)?.[0];
+  if (scheme) {
+    return scheme === "http:" || scheme === "https:" ? href : null;
+  }
+  return resolveURL(href, baseURI);
+}
+
+/** Resolves `href` against `baseURI`, falling back to the raw value. */
+function resolveURL(href: string, baseURI: string): string {
+  try {
+    return new URL(href, baseURI).href;
+  } catch {
+    return href;
+  }
+}
+
+/**
+ * Text-content title of an `<a>` extended description target: text nodes
+ * contribute their raw text, `img` elements their `alt` attribute, joined
+ * with a single space and whitespace-normalized.
+ */
+function extendedDescriptionTitle(target: Element): string | null {
+  const parts: string[] = [];
+  const visit = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      parts.push(node.nodeValue ?? "");
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as Element;
+      if (element.tagName.toLowerCase() === "img") {
+        parts.push(element.getAttribute("alt") ?? "");
+      } else {
+        element.childNodes.forEach(visit);
+      }
+    }
+  };
+  target.childNodes.forEach(visit);
+  return parts.join(" ").replace(/\s+/g, " ").trim() || null;
 }
 
 /**
@@ -223,6 +393,17 @@ function firstDirectChildText(element: Element, tag: string): string | null {
  * An element living inside the figcaption (a publisher logo, a footnote
  * marker) is not captioned by the text wrapping it, so it gets no caption at
  * all rather than falling back to an outer figure.
+ *
+ * An extended description wrapped by the figcaption is excluded from the
+ * caption: any `<details>` subtree, and any subtree rooted at an element the
+ * element points at with `aria-details` or `aria-describedby`. Publishers do
+ * put the description inside the caption, and a reading app displaying the
+ * caption would otherwise print the whole long description — including one
+ * hidden by CSS, which a sighted reader never sees.
+ *
+ * The exclusion deliberately does NOT apply to the accessible name computed by
+ * `figureCaptionAsName()`: HTML-AAM 4.1.10 names the image from the whole
+ * figcaption.
  */
 export function findFigureCaption(element: Element): string | null {
   const figcaption = element
@@ -231,7 +412,34 @@ export function findFigureCaption(element: Element): string | null {
   if (!figcaption || figcaption.contains(element)) {
     return null;
   }
-  return figcaption.textContent?.replace(/\s+/g, " ").trim() || null;
+
+  const excludedIDs = (
+    (element.getAttribute("aria-details") ?? "") +
+    " " +
+    (element.getAttribute("aria-describedby") ?? "")
+  )
+    .split(/\s+/)
+    .filter((id) => id.length > 0);
+
+  // `getAttribute("id")` rather than `.id`, because this helper also runs on
+  // SVG elements.
+  if (excludedIDs.includes(figcaption.getAttribute("id") ?? "")) {
+    // The figcaption *is* the description: there is nothing left to display.
+    return null;
+  }
+
+  const isExcluded = (candidate: Element) =>
+    candidate.tagName.toLowerCase() === "details" ||
+    excludedIDs.includes(candidate.getAttribute("id") ?? "");
+
+  const clone = figcaption.cloneNode(true) as Element;
+  const descendants = clone.querySelectorAll("*");
+  for (let i = 0; i < descendants.length; i++) {
+    if (isExcluded(descendants[i])) {
+      descendants[i].remove();
+    }
+  }
+  return clone.textContent?.replace(/\s+/g, " ").trim() || null;
 }
 
 /**
