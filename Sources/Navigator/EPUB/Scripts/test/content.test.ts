@@ -133,6 +133,22 @@ describe("findWrappedImage", () => {
     }
   );
 
+  it.each(["transform", "clip-path", "mask", "filter", "opacity"])(
+    "returns null for a wrapper drawn through %s",
+    (attribute) => {
+      expect(
+        findWrappedImage(
+          parse(`
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+               ${attribute}="whatever">
+            <image href="cover.jpg"/>
+          </svg>
+        `)
+        )
+      ).toBeNull();
+    }
+  );
+
   it("returns null for an empty SVG", () => {
     expect(
       findWrappedImage(
@@ -220,10 +236,12 @@ describe("findImageHref", () => {
 describe("extractTargetElement", () => {
   beforeAll(() => {
     // jsdom doesn't implement `CSS.escape`, which the CSS selector generator
-    // calls. The generated selectors are not under test here.
-    (globalThis as { CSS?: unknown }).CSS ??= {
-      escape: (value: string) => value,
-    };
+    // calls. The generated selectors are not under test here, so patch the
+    // one function rather than the whole namespace, which jsdom may provide
+    // in part.
+    const global = globalThis as { CSS?: { escape?: unknown } };
+    global.CSS ??= {};
+    global.CSS.escape ??= (value: string) => value;
   });
 
   afterEach(() => {

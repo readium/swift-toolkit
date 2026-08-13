@@ -146,8 +146,8 @@ const XLINK_NAMESPACE = "http://www.w3.org/1999/xlink";
 const NON_RENDERING_TAGS = ["title", "desc", "metadata", "defs", "style"];
 
 /**
- * Attributes changing the way an `<image>` is drawn, which the bitmap on its
- * own cannot reproduce.
+ * Attributes changing the way an `<svg>` wrapper or the `<image>` inside it is
+ * drawn, which the bitmap on its own cannot reproduce.
  */
 const RENDERING_ATTRIBUTES = [
   "transform",
@@ -156,6 +156,14 @@ const RENDERING_ATTRIBUTES = [
   "filter",
   "opacity",
 ];
+
+/**
+ * Indicates whether the element is drawn through an effect the bitmap it wraps
+ * or is cannot reproduce on its own.
+ */
+function hasRenderingAttributes(element: Element): boolean {
+  return RENDERING_ATTRIBUTES.some((name) => element.hasAttribute(name));
+}
 
 /**
  * Returns the single `<image>` drawn by an `<svg>` wrapping a bitmap, as
@@ -174,6 +182,9 @@ export function findWrappedImage(element: Element): Element | null {
   if (element.tagName.toLowerCase() !== "svg") {
     return null;
   }
+  if (hasRenderingAttributes(element)) {
+    return null;
+  }
 
   let found: Element | null = null;
   for (const child of Array.from(element.children)) {
@@ -190,11 +201,7 @@ export function findWrappedImage(element: Element): Element | null {
     return null;
   }
 
-  const image = found;
-  if (RENDERING_ATTRIBUTES.some((name) => image.hasAttribute(name))) {
-    return null;
-  }
-  return image;
+  return hasRenderingAttributes(found) ? null : found;
 }
 
 /**

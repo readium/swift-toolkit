@@ -480,6 +480,13 @@ struct HTMLResourceContentIteratorTests {
             "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" mask=\"url(#m)\"/></svg>",
             "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" filter=\"blur(2px)\"/></svg>",
             "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" opacity=\"0.5\"/></svg>",
+            // A wrapper drawn through a rendering attribute, which the bitmap
+            // on its own cannot reproduce either.
+            "<svg viewBox=\"0 0 100 100\" transform=\"rotate(45)\"><image href=\"cover.jpg\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\" clip-path=\"circle()\"><image href=\"cover.jpg\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\" mask=\"url(#m)\"><image href=\"cover.jpg\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\" filter=\"blur(2px)\"><image href=\"cover.jpg\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\" opacity=\"0.5\"><image href=\"cover.jpg\"/></svg>",
         ])
         func svgWhichIsNotAWrapperIsEmittedAsAnSVGElement(html: String) async throws {
             let elements = try await allElements(html)

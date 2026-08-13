@@ -582,8 +582,8 @@ private struct CSSSelectorGenerator {
 /// don't prevent an `<svg>` from being a wrapper around a single bitmap.
 private let nonRenderingSVGTags: Set<String> = ["title", "desc", "metadata", "defs", "style"]
 
-/// Attributes changing the way an `<image>` inside an `<svg>` wrapper is drawn,
-/// which the bitmap on its own cannot reproduce.
+/// Attributes changing the way an `<svg>` wrapper or the `<image>` inside it is
+/// drawn, which the bitmap on its own cannot reproduce.
 private let renderingSVGAttributes: Set<String> = ["transform", "clip-path", "mask", "filter", "opacity"]
 
 /// Resolves an `href` found in the document against the HREF of the resource
@@ -610,6 +610,10 @@ private extension Node {
     /// the same wrappers, so that a cover tapped in the EPUB navigator and the
     /// same cover reached through this iterator yield the same element.
     func wrappedImageHREFRelativeToHREF(_ baseHREF: AnyURL?) throws -> AnyURL? {
+        guard !hasRenderingSVGAttributes() else {
+            return nil
+        }
+
         var image: Element?
         for child in getChildNodes().compactMap({ $0 as? Element }) {
             let tag = child.tagNameNormal()
@@ -623,13 +627,19 @@ private extension Node {
         }
         guard
             let image = image,
-            image.getAttributes()?.contains(where: { renderingSVGAttributes.contains($0.getKey()) }) != true
+            !image.hasRenderingSVGAttributes()
         else {
             return nil
         }
 
         return try image.hrefOrXLinkHREF()
             .flatMap { url($0, relativeTo: baseHREF) }
+    }
+
+    /// Indicates whether the element is drawn through an effect the bitmap it
+    /// wraps or is cannot reproduce on its own.
+    func hasRenderingSVGAttributes() -> Bool {
+        getAttributes()?.contains { renderingSVGAttributes.contains($0.getKey()) } == true
     }
 
     /// Returns the `href` of an SVG element, from either the SVG 2 attribute
