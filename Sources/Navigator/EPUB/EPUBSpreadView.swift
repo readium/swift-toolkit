@@ -254,7 +254,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Parses the target element JSON produced by `extractTargetElement()` in
-    /// gestures.js and builds a `PointerEvent.TargetElement` with coordinates
+    /// content.ts and builds a `PointerEvent.TargetElement` with coordinates
     /// converted to the spread view's coordinate space.
     private func targetElement(from json: Any?) -> PointerEvent.TargetElement? {
         guard

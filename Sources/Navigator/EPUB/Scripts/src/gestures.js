@@ -7,11 +7,7 @@
 import { findDecorationTarget, handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
-import { getCssSelector } from "css-selector-generator";
-import {
-  computeAccessibilityProperties,
-  findFigureCaption,
-} from "./accessibility-properties";
+import { extractTargetElement } from "./content";
 
 let isSelecting = false;
 
@@ -86,7 +82,9 @@ function onPointerEvent(phase, event) {
   var targetElement;
   if (phase != "move") {
     interactiveElement = findNearestInteractiveElement(event.target);
-    targetElement = extractTargetElement(event.target);
+    targetElement = adjustTargetElementToViewport(
+      extractTargetElement(event.target)
+    );
   }
 
   let point = adjustPointToViewport({ x: event.clientX, y: event.clientY });
@@ -121,76 +119,21 @@ function onPointerEvent(phase, event) {
 }
 
 /**
- * Extracts metadata about the target element for gesture handling.
+ * Adjusts the frame of the given target element to the viewport, for FXL
+ * resources laid out in a frame of their own.
  *
- * Returns an object with the element's bounding rectangle, tag name, source
- * URL, a CSS selector, the href of the document that contains the element,
- * the accessible name and description, the extended description links, and
- * the caption from an enclosing figure's figcaption. This information is used
- * on the Swift side to build the appropriate `ContentElement`.
+ * Only the origin goes through the viewport transform; the size is already in
+ * viewport-relative units and does not depend on the frame offset.
  */
-function extractTargetElement(element) {
-  if (!element || !element.getBoundingClientRect) {
-    return null;
+function adjustTargetElementToViewport(targetElement) {
+  if (!targetElement) {
+    return targetElement;
   }
 
-  let imageElement = findNearestImageElement(element);
-  if (!imageElement) {
-    return null;
-  }
-
-  let rect = imageElement.getBoundingClientRect();
-  // Adjust only the origin through the viewport transform; size is already
-  // in viewport-relative units and does not depend on the frame offset.
-  let adjustedOrigin = adjustPointToViewport({ x: rect.left, y: rect.top });
-
-  let rawSrc =
-    imageElement.getAttribute("src") ||
-    imageElement.getAttribute("href") ||
-    null;
-
-  // Resolve the raw src/href attribute to an absolute URL using the document's
-  // base URI. `getAttribute` returns the literal attribute value (possibly
-  // relative), while we need the absolute form so Swift can relativize it
-  // against the publication base URL to recover the correct manifest href.
-  let src = rawSrc ? new URL(rawSrc, document.baseURI).href : null;
-
-  // `html` is only needed for inline SVGs that have no resolvable `src`.
-  let html = src ? null : imageElement.outerHTML;
-
-  let accessibility = computeAccessibilityProperties(imageElement);
-
+  let frame = targetElement.frame;
+  let origin = adjustPointToViewport({ x: frame.x, y: frame.y });
   return {
-    tag: imageElement.tagName.toLowerCase(),
-    html: html,
-    src: src,
-    resourceHref: window.readium?.link?.href ?? null,
-    frame: {
-      x: adjustedOrigin.x,
-      y: adjustedOrigin.y,
-      width: rect.width,
-      height: rect.height,
-    },
-    accessibleName: accessibility.name,
-    accessibleDescription: accessibility.description,
-    extendedDescriptions: accessibility.extendedDescriptions,
-    caption: findFigureCaption(imageElement),
-    cssSelector: getCssSelector(imageElement),
+    ...targetElement,
+    frame: { ...frame, x: origin.x, y: origin.y },
   };
-}
-
-/**
- * Walks up the DOM tree from the given element to find the nearest image
- * element (img, svg).
- */
-function findNearestImageElement(element) {
-  const imageTags = ["img", "svg"];
-  let current = element;
-  while (current && current !== document.documentElement) {
-    if (imageTags.includes(current.tagName.toLowerCase())) {
-      return current;
-    }
-    current = current.parentElement;
-  }
-  return null;
 }
