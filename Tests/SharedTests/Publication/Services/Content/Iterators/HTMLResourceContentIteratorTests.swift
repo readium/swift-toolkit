@@ -388,6 +388,106 @@ struct HTMLResourceContentIteratorTests {
             #expect(elements[0] is SVGContentElement)
         }
 
+        @Test func svgWrappingASingleImageIsEmittedAsAnImageElement() async throws {
+            let elements = try await allElements("""
+            <p>Before</p>
+            <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="0 0 656 1000" preserveAspectRatio="xMidYMid meet">
+                <image width="656" height="1000" xlink:href="cover.jpg"/>
+            </svg>
+            <p>After</p>
+            """)
+
+            #expect(elements.count == 3)
+            #expect((elements[0] as? TextContentElement)?.text == "Before")
+            #expect((elements[2] as? TextContentElement)?.text == "After")
+
+            let image = try #require(elements[1] as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+            #expect(image.locator.locations.progression != nil)
+        }
+
+        @Test func svgWrapperReadsTheSVG2HREFAttribute() async throws {
+            let elements = try await allElements("""
+            <svg viewBox="0 0 100 100"><image href="cover.jpg"/></svg>
+            """)
+
+            let image = try #require(elements.first as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+        }
+
+        @Test func svgWrapperReadsTheLegacyHREFUnderAnyPrefix() async throws {
+            let elements = try await allElements("""
+            <svg xmlns:xl="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+                <image xl:href="cover.jpg"/>
+            </svg>
+            """)
+
+            let image = try #require(elements.first as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+        }
+
+        @Test func svgWrapperPrefersTheSVG2HREFAttribute() async throws {
+            let elements = try await allElements("""
+            <svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+                <image href="cover.jpg" xlink:href="legacy.jpg"/>
+            </svg>
+            """)
+
+            let image = try #require(elements.first as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+        }
+
+        @Test func svgWrapperIgnoresElementsWhichDontDrawAnything() async throws {
+            let elements = try await allElements("""
+            <svg viewBox="0 0 100 100">
+                <title>Cover</title>
+                <desc>The book cover</desc>
+                <metadata/>
+                <defs><linearGradient id="gradient"/></defs>
+                <style>image { opacity: 1 }</style>
+                <image href="cover.jpg"/>
+            </svg>
+            """)
+
+            let image = try #require(elements.first as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+            #expect(image.accessibleName == "Cover")
+            #expect(image.accessibleDescription == "The book cover")
+        }
+
+        @Test func svgWrapperInFigureGetsCaptionFromFigcaption() async throws {
+            let elements = try await allElements("""
+            <figure><svg><image href="cover.jpg"/></svg><figcaption>Fig</figcaption></figure>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.caption == "Fig")
+        }
+
+        @Test(arguments: [
+            // Drawing content of its own alongside the image.
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\"/><rect width=\"10\" height=\"10\"/></svg>",
+            // Several images.
+            "<svg viewBox=\"0 0 100 100\"><image href=\"left.jpg\"/><image href=\"right.jpg\"/></svg>",
+            // A nested image, which carries its own transform.
+            "<svg viewBox=\"0 0 100 100\"><g transform=\"rotate(45)\"><image href=\"cover.jpg\"/></g></svg>",
+            // An image pointing nowhere.
+            "<svg viewBox=\"0 0 100 100\"><image width=\"100\" height=\"100\"/></svg>",
+            // An image drawn through a rendering attribute, which the bitmap
+            // on its own cannot reproduce.
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" transform=\"rotate(45)\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" clip-path=\"circle()\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" mask=\"url(#m)\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" filter=\"blur(2px)\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" opacity=\"0.5\"/></svg>",
+        ])
+        func svgWhichIsNotAWrapperIsEmittedAsAnSVGElement(html: String) async throws {
+            let elements = try await allElements(html)
+
+            #expect(elements.count == 1)
+            #expect(elements[0] is SVGContentElement)
+        }
+
         @Test func ariaLabelledbyResolvesIntoASkippedSubtree() async throws {
             let elements = try await allElements("""
             <svg><text id="t1">Label in svg</text></svg>
