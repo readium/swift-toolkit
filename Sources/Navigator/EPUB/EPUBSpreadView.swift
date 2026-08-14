@@ -254,7 +254,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Parses the target element JSON produced by `extractTargetElement()` in
-    /// gestures.js and builds a `PointerEvent.TargetElement` with coordinates
+    /// content.ts and builds a `PointerEvent.TargetElement` with coordinates
     /// converted to the spread view's coordinate space.
     private func targetElement(from json: Any?) -> PointerEvent.TargetElement? {
         guard
@@ -319,8 +319,27 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
 
         var attributes: [ContentAttribute] = []
-        if let label = json["accessibilityLabel"] as? String, !label.isEmpty {
-            attributes.append(ContentAttribute(key: .accessibilityLabel, value: label))
+        if let name = json["accessibleName"] as? String, !name.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibleName, value: name))
+        }
+        if let description = json["accessibleDescription"] as? String, !description.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibleDescription, value: description))
+        }
+        // Extended description links, resolved from `aria-details` by
+        // accessibility-properties.ts. Their hrefs are absolute URLs which we
+        // relativize against the publication base URL, the same way as `src`.
+        for description in json["extendedDescriptions"] as? [[String: Any]] ?? [] {
+            guard
+                let rawHREF = description["href"] as? String,
+                let url = AnyURL(string: rawHREF)
+            else {
+                continue
+            }
+            let href = viewModel.publicationBaseURL.relativize(url)?.anyURL ?? url
+            attributes.append(ContentAttribute(
+                key: .extendedDescription,
+                value: Link(href: href.string, title: description["title"] as? String)
+            ))
         }
         let caption = json["caption"] as? String
 

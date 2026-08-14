@@ -71,7 +71,6 @@ let modules: [ModuleSpec] = [
         dependencies: [
             .readium("ReadiumShared"),
             .pod("ReadiumFuzi", "~> 4.0.0"),
-            .pod("CryptoSwift", "~> 1.10.0"),
         ]
     ),
     ModuleSpec(
@@ -84,7 +83,6 @@ let modules: [ModuleSpec] = [
         ]],
         dependencies: [
             .readium("ReadiumShared"),
-            .pod("DifferenceKit", "~> 1.0"),
             // SwiftSoup's podspec is stuck at 2.11.
             .pod("SwiftSoup", "~> 2.11.0"),
         ]
@@ -111,7 +109,6 @@ let modules: [ModuleSpec] = [
         dependencies: [
             .readium("ReadiumShared"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
-            .pod("CryptoSwift", "~> 1.10.0"),
         ]
     ),
 ]

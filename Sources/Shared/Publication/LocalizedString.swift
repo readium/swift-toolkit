@@ -89,7 +89,7 @@ extension LocalizedString: CustomStringConvertible {
 }
 
 /// Provides syntactic sugar when initializing a LocalizedString from a regular String (nonlocalized) or a [String: String] (localized).
-public protocol LocalizedStringConvertible {
+public protocol LocalizedStringConvertible: Sendable {
     var localizedString: LocalizedString { get }
 }
 

@@ -1,0 +1,1330 @@
+# Source of truth for the accessibility properties sample publication.
+#
+# Run `python3 generate.py` after editing this file: it regenerates the XHTML
+# fixtures for the Swift and jest suites, and the readable
+# `accessibility-properties.epub` next to this manifest.
+#
+# Per-case keys:
+#   id           unique across the whole manifest; becomes `id="case-<id>"`
+#   title        section heading; backticks become <code>
+#   name         expected accessible name; absent means "expected none"
+#   description  expected accessible description; absent means "expected none"
+#   caption      expected caption, displayed alongside the element; absent
+#                means "expected none"
+#   extended_descriptions
+#                expected extended description links, an array of tables with
+#                an `href` (relative to the document) and an optional `title`;
+#                absent means "expected none"
+#   note         extra prose explaining the rule
+#   divergence   what a browser would compute instead, when we knowingly differ
+#   skipped      excluded from both test harnesses (rule not implemented yet)
+#   markup       verbatim XHTML; exactly one element carries `data-subject=""`
+
+[[resource]]
+id = "image"
+title = "Images"
+intro = """
+The accessible name of an `img` is looked up in this order: `aria-labelledby`,
+`aria-label`, the `alt` attribute, the `title` attribute, and finally a
+`figcaption`. The description follows its own cascade and stops at the first
+attribute that is present, even when that attribute resolves to nothing.
+"""
+
+# --- Name cascade ---------------------------------------------------------
+
+[[resource.case]]
+id = "labelledby-resolves-multiple-ids"
+title = "`aria-labelledby` joins its targets and skips dangling ids"
+name = "Hello World"
+markup = '''
+<p id="lb-hello">Hello</p>
+<p id="lb-world">World</p>
+<img data-subject="" src="assets/apple.png" alt="Ignored" aria-labelledby="lb-hello lb-missing lb-world"/>
+'''
+
+[[resource.case]]
+id = "labelledby-all-dangling-falls-through"
+title = "`aria-labelledby` with only dangling ids falls through to `aria-label`"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-nowhere" aria-label="Red apple"/>
+'''
+
+[[resource.case]]
+id = "labelledby-target-with-aria-label"
+title = "A referenced element contributes its own `aria-label`"
+name = "Red apple"
+note = "The target's text content is only used when it carries no `aria-label` of its own."
+markup = '''
+<span id="lb-labelled" aria-label="Red apple">ignore me</span>
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-labelled"/>
+'''
+
+[[resource.case]]
+id = "labelledby-text-is-whitespace-normalised"
+title = "Referenced text is whitespace-normalised"
+name = "Hello beautiful world"
+markup = '''
+<p id="lb-multiline">Hello
+    beautiful   world</p>
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-multiline"/>
+'''
+
+[[resource.case]]
+id = "aria-label-beats-alt"
+title = "`aria-label` beats `alt`"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" aria-label="Red apple" alt="Ignored"/>
+'''
+
+[[resource.case]]
+id = "name-from-alt"
+title = "Name from `alt`"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple"/>
+'''
+
+[[resource.case]]
+id = "whitespace-only-alt-is-decorative"
+title = "A whitespace-only `alt` is decorative too"
+description = "A tooltip"
+note = "`alt` is trimmed before it is used, so `alt=\" \"` behaves exactly like `alt=\"\"`."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="   " title="A tooltip"/>
+'''
+
+[[resource.case]]
+id = "decorative-alt-blocks-title"
+title = "Empty `alt` blocks the `title` fallback"
+description = "A tooltip"
+note = "HTML-AAM 4.1.10 overrides accname 2.9, whose step 2.9 would name the image from the tooltip; browsers agree with us here. The tooltip still becomes the description."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="" title="A tooltip"/>
+'''
+
+[[resource.case]]
+id = "decorative-alt-rescued-by-aria-label"
+title = "Empty `alt` rescued by `aria-label`"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="" aria-label="Red apple"/>
+'''
+
+[[resource.case]]
+id = "name-from-title"
+title = "`title` names the image when nothing else does"
+name = "A tooltip"
+note = "The `title` is consumed by the name, so it does not also become the description."
+markup = '''
+<img data-subject="" src="assets/apple.png" title="A tooltip"/>
+'''
+
+[[resource.case]]
+id = "no-name-source"
+title = "No source at all yields no name"
+markup = '''
+<img data-subject="" src="assets/apple.png"/>
+'''
+
+# --- Description cascade --------------------------------------------------
+
+[[resource.case]]
+id = "description-from-describedby"
+title = "Description from `aria-describedby`"
+name = "Red apple"
+description = "A ripe apple on a white background."
+markup = '''
+<p id="db-apple">A ripe apple on a white background.</p>
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-describedby="db-apple"/>
+'''
+
+[[resource.case]]
+id = "dangling-describedby-stops-the-cascade"
+title = "A dangling `aria-describedby` still stops the cascade"
+name = "Red apple"
+note = "The attribute is present, so it counts as the first relevant markup found: the `title` is never consulted. The spec does not spell this out and browsers vary; this is a declared choice."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-describedby="db-nowhere" title="A tooltip"/>
+'''
+
+[[resource.case]]
+id = "description-from-aria-description"
+title = "Description from `aria-description`"
+name = "Red apple"
+description = "A ripe apple on a white background."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-description="A ripe apple on a white background."/>
+'''
+
+[[resource.case]]
+id = "describedby-beats-aria-description"
+title = "`aria-describedby` beats `aria-description`"
+name = "Red apple"
+description = "From aria-describedby."
+markup = '''
+<p id="db-winner">From aria-describedby.</p>
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-describedby="db-winner" aria-description="From aria-description."/>
+'''
+
+[[resource.case]]
+id = "title-describes-when-alt-names"
+title = "`title` describes when the name came from `alt`"
+name = "Red apple"
+description = "A tooltip"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" title="A tooltip"/>
+'''
+
+# --- Suppression ----------------------------------------------------------
+
+[[resource.case]]
+id = "aria-hidden-suppresses"
+title = "`aria-hidden=\"true\"` suppresses both"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" title="A tooltip" aria-hidden="true"/>
+'''
+
+[[resource.case]]
+id = "aria-hidden-is-case-insensitive"
+title = "`aria-hidden` is compared case-insensitively"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-hidden="TRUE"/>
+'''
+
+[[resource.case]]
+id = "aria-hidden-false-does-not-suppress"
+title = "`aria-hidden=\"false\"` does not suppress"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" aria-hidden="false"/>
+'''
+
+[[resource.case]]
+id = "role-presentation-suppresses"
+title = "`role=\"presentation\"` suppresses both"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="presentation"/>
+'''
+
+[[resource.case]]
+id = "role-none-suppresses"
+title = "`role=\"none\"` suppresses both"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="none"/>
+'''
+
+[[resource.case]]
+id = "role-is-case-insensitive"
+title = "`role` is compared case-insensitively"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="PRESENTATION"/>
+'''
+
+[[resource.case]]
+id = "aria-label-cancels-presentational-role"
+title = "`aria-label` cancels the presentational role"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" role="presentation" aria-label="Red apple"/>
+'''
+
+[[resource.case]]
+id = "labelledby-cancels-presentational-role"
+title = "`aria-labelledby` cancels the presentational role"
+name = "Red apple"
+markup = '''
+<p id="pr-labelledby">Red apple</p>
+<img data-subject="" src="assets/apple.png" role="none" aria-labelledby="pr-labelledby"/>
+'''
+
+[[resource.case]]
+id = "describedby-cancels-presentational-role"
+title = "`aria-describedby` cancels the presentational role"
+name = "Red apple"
+description = "A ripe apple."
+markup = '''
+<p id="pr-describedby">A ripe apple.</p>
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="presentation" aria-describedby="pr-describedby"/>
+'''
+
+[[resource.case]]
+id = "aria-description-cancels-presentational-role"
+title = "`aria-description` cancels the presentational role"
+name = "Red apple"
+description = "A ripe apple."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="none" aria-description="A ripe apple."/>
+'''
+
+[[resource.case]]
+id = "role-token-list-first-token-wins"
+title = "`role` is a token list and the first token wins"
+note = "`presentation` comes first, so the image is suppressed."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="presentation img"/>
+'''
+
+[[resource.case]]
+id = "role-token-list-first-token-wins-the-other-way"
+title = "…and the same rule keeps a later `presentation` from applying"
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="img presentation"/>
+'''
+
+# --- figcaption as name (HTML-AAM 4.1.10 step 4) --------------------------
+
+[[resource.case]]
+id = "figcaption-names-a-lone-image"
+title = "`figcaption` names a lone image"
+name = "A red apple"
+caption = "A red apple"
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png"/>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-blocked-by-sibling-flow-content"
+title = "`figcaption` is blocked by sibling flow content"
+caption = "A red apple"
+note = "The figure holds prose beyond the caption, so the caption is about more than the image."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png"/>
+  <p>Some prose sitting next to the image.</p>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-blocked-by-a-second-image"
+title = "`figcaption` is blocked by a second image"
+caption = "A red apple"
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png"/>
+  <img src="assets/apple.png" alt="Another apple"/>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-blocked-by-alt"
+title = "`figcaption` is blocked by an `alt` attribute"
+caption = "A red apple"
+note = "The rule only applies when the image has no `alt` attribute at all, not even an empty one."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt=""/>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-blocked-by-title"
+title = "`figcaption` is blocked by a `title` attribute"
+name = "A tooltip"
+caption = "A red apple"
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" title="A tooltip"/>
+  <figcaption>A red apple</figcaption>
+</figure>
+'''
+
+# --- figcaption as caption -------------------------------------------------
+
+[[resource.case]]
+id = "figcaption-captions-a-named-image"
+title = "A `figcaption` captions an image which already has a name"
+name = "Alt text"
+caption = "The caption"
+note = "The caption is displayed alongside the image, the name is announced; the two are computed independently."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Alt text"/>
+  <figcaption>The caption</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "nested-figure-uses-the-nearest-figcaption"
+title = "A nested figure uses the nearest `figcaption`"
+name = "Alt"
+caption = "Inner"
+markup = '''
+<figure>
+  <figure>
+    <img data-subject="" src="assets/apple.png" alt="Alt"/>
+    <figcaption>Inner</figcaption>
+  </figure>
+  <figcaption>Outer</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-not-first-child-still-captions"
+title = "A `figcaption` preceded by other content still captions"
+name = "Alt"
+caption = "Cap"
+markup = '''
+<figure>
+  <p>intro</p>
+  <img data-subject="" src="assets/apple.png" alt="Alt"/>
+  <figcaption>Cap</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-holding-an-image-still-captions"
+title = "A `figcaption` holding an image still captions the figure's image"
+name = "Revenue chart"
+caption = "Source: annual report"
+note = "The logo inside the caption contributes no text of its own."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Revenue chart"/>
+  <figcaption>Source: <img src="assets/star.svg" alt="ACME"/> annual report</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "image-inside-the-figcaption-has-no-caption"
+title = "An image inside the `figcaption` is not captioned by it"
+name = "ACME"
+note = "A publisher logo or a footnote marker is not captioned by the text wrapping it, so it gets no caption at all rather than falling back to an outer figure."
+markup = '''
+<figure>
+  <img src="assets/apple.png" alt="Revenue chart"/>
+  <figcaption>Source: <img data-subject="" src="assets/star.svg" alt="ACME"/> annual report</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "two-images-share-the-caption-first"
+title = "Two images in one figure share the caption (first image)"
+name = "A"
+caption = "Shared"
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="A"/>
+  <img src="assets/star.svg" alt="B"/>
+  <figcaption>Shared</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "two-images-share-the-caption-second"
+title = "…and so does the second"
+name = "B"
+caption = "Shared"
+markup = '''
+<figure>
+  <img src="assets/apple.png" alt="A"/>
+  <img data-subject="" src="assets/star.svg" alt="B"/>
+  <figcaption>Shared</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "wrapping-figcaption-names-but-does-not-caption"
+title = "A wrapping `figcaption` names the image without captioning it"
+name = "Logo:"
+note = "HTML-AAM 4.1.10 names this image from the figcaption it lives inside, and we follow the spec there; the caption rule is deliberately stricter."
+markup = '''
+<figure>
+  <figcaption>Logo: <img data-subject="" src="assets/star.svg"/></figcaption>
+</figure>
+'''
+
+# --- Divergences ----------------------------------------------------------
+
+[[resource.case]]
+id = "nested-img-alt-in-labelledby-target"
+title = "A nested image's `alt` does not reach the label"
+divergence = "A browser recurses into the referenced element and computes “Yellow star”."
+name = "Red apple"
+note = "The referenced span has no text of its own, so it contributes nothing and the cascade continues to `alt`."
+markup = '''
+<span id="lb-nested"><img src="assets/star.svg" alt="Yellow star"/></span>
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-nested" alt="Red apple"/>
+'''
+
+[[resource.case]]
+id = "chained-labelledby"
+title = "Chained `aria-labelledby` is not followed"
+divergence = "A browser resolves the second hop and computes “Yellow star”."
+name = "ignore me"
+markup = '''
+<span id="chain-a" aria-labelledby="chain-b">ignore me</span>
+<span id="chain-b">Yellow star</span>
+<img data-subject="" src="assets/apple.png" aria-labelledby="chain-a"/>
+'''
+
+[[resource.case]]
+id = "hidden-node-inside-labelledby-target"
+title = "Hidden nodes inside a referenced target still contribute"
+divergence = "A browser excludes the hidden span and computes “Visible”."
+name = "Visible hidden"
+note = "Excluding them needs CSS knowledge SwiftSoup does not have, so the DOM side matches the Swift side on purpose."
+markup = '''
+<p id="lb-with-hidden">Visible <span aria-hidden="true">hidden</span></p>
+<img data-subject="" src="assets/apple.png" aria-labelledby="lb-with-hidden"/>
+'''
+
+[[resource.case]]
+id = "unvalidated-role-token"
+title = "Unknown `role` tokens are not skipped"
+divergence = "A browser discards the invalid token and honours `presentation`, computing no name."
+name = "Red apple"
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Red apple" role="graphics-symbol presentation"/>
+'''
+
+[[resource]]
+id = "svg"
+title = "Inline SVG"
+intro = """
+An inline `svg` takes its name from a direct `title` child and its description
+from a direct `desc` child. ARIA attributes still win over both, and an SVG
+referenced through an `img` element is an image like any other.
+"""
+
+[[resource.case]]
+id = "svg-title-names"
+title = "A direct `title` child names the SVG"
+name = "Blue circle"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-desc-describes"
+title = "A direct `desc` child describes the SVG"
+name = "Blue circle"
+description = "A filled blue disc."
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><title>Blue circle</title><desc>A filled blue disc.</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-desc-without-title"
+title = "`desc` without `title` describes but does not name"
+description = "A filled blue disc."
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><desc>A filled blue disc.</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-nested-title-is-ignored"
+title = "A `title` nested in a `g` does not count"
+note = "Only direct children of the `svg` element are host-language sources."
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><g><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></g></svg>
+'''
+
+[[resource.case]]
+id = "svg-nested-desc-is-ignored"
+title = "A `desc` nested in a `g` does not count either"
+name = "Blue circle"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><title>Blue circle</title><g><desc>Ignored</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></g></svg>
+'''
+
+[[resource.case]]
+id = "aria-label-beats-svg-title"
+title = "`aria-label` beats the `title` child"
+name = "Red apple"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" aria-label="Red apple"><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "describedby-beats-svg-desc"
+title = "`aria-describedby` beats the `desc` child"
+name = "Blue circle"
+description = "From aria-describedby."
+markup = '''
+<p id="svg-db">From aria-describedby.</p>
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" aria-describedby="svg-db"><title>Blue circle</title><desc>Ignored</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-title-child-beats-title-attribute"
+title = "The `title` child names, the `title` attribute describes"
+name = "Blue circle"
+description = "A tooltip"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" title="A tooltip"><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-title-attribute-names-without-a-title-child"
+title = "The `title` attribute names an SVG with no `title` child"
+name = "A tooltip"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" title="A tooltip"><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "aria-hidden-suppresses-svg"
+title = "`aria-hidden=\"true\"` suppresses the SVG"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" aria-hidden="true"><title>Blue circle</title><desc>A filled blue disc.</desc><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "role-presentation-suppresses-svg"
+title = "`role=\"presentation\"` suppresses the SVG"
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="presentation"><title>Blue circle</title><circle cx="40" cy="40" r="34" fill="#1565C0"/></svg>
+'''
+
+[[resource.case]]
+id = "svg-referenced-by-img-is-an-image"
+title = "An SVG behind an `img` is an image"
+name = "Yellow star"
+note = "The `title` and `desc` inside the SVG file are invisible to the host document; only the `img` attributes are read."
+markup = '''
+<img data-subject="" src="assets/star.svg" alt="Yellow star"/>
+'''
+
+[[resource]]
+id = "media"
+title = "Audio and video"
+intro = """
+`audio` and `video` have no host-language name source, so only ARIA attributes
+and `title` can name them. Their fallback content is never read.
+"""
+
+[[resource.case]]
+id = "audio-named-by-aria-label"
+title = "`aria-label` names an `audio`"
+name = "One second of silence"
+markup = '''
+<audio data-subject="" src="assets/tone.m4a" controls="controls" aria-label="One second of silence"></audio>
+'''
+
+[[resource.case]]
+id = "audio-named-by-title"
+title = "`title` names an `audio`"
+name = "One second of silence"
+markup = '''
+<audio data-subject="" src="assets/tone.m4a" controls="controls" title="One second of silence"></audio>
+'''
+
+[[resource.case]]
+id = "audio-has-no-host-language-source"
+title = "Fallback content never names an `audio`"
+note = "The children of a media element are fallback content for readers without playback support, not a text alternative."
+markup = '''
+<audio data-subject="" src="assets/tone.m4a" controls="controls">Your reading system cannot play audio.</audio>
+'''
+
+[[resource.case]]
+id = "audio-described-by-describedby"
+title = "`aria-describedby` describes an `audio`"
+name = "Silent tone"
+description = "One second of digital silence."
+markup = '''
+<p id="au-db">One second of digital silence.</p>
+<audio data-subject="" src="assets/tone.m4a" controls="controls" aria-label="Silent tone" aria-describedby="au-db"></audio>
+'''
+
+[[resource.case]]
+id = "audio-with-source-children"
+title = "`source` children do not change the name"
+name = "Silent tone"
+markup = '''
+<audio data-subject="" controls="controls" aria-label="Silent tone"><source src="assets/tone.m4a" type="audio/mp4"/></audio>
+'''
+
+[[resource.case]]
+id = "aria-hidden-suppresses-audio"
+title = "`aria-hidden=\"true\"` suppresses an `audio`"
+note = "`role=\"presentation\"` is not valid on a media element, so `aria-hidden` is the only way to suppress one."
+markup = '''
+<audio data-subject="" src="assets/tone.m4a" controls="controls" title="One second of silence" aria-hidden="true"></audio>
+'''
+
+[[resource.case]]
+id = "video-named-by-aria-label"
+title = "`aria-label` names a `video`"
+name = "A blue rectangle"
+markup = '''
+<video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle"></video>
+'''
+
+[[resource.case]]
+id = "video-title-describes-when-aria-label-names"
+title = "`title` describes a `video` named by `aria-label`"
+name = "A blue rectangle"
+description = "A tooltip"
+markup = '''
+<video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle" title="A tooltip"></video>
+'''
+
+[[resource.case]]
+id = "audio-in-a-figure-gets-the-caption"
+title = "An `audio` in a figure gets the caption"
+name = "Tone"
+caption = "A pure tone"
+markup = '''
+<figure>
+  <audio data-subject="" src="assets/tone.m4a" controls="controls" title="Tone"></audio>
+  <figcaption>A pure tone</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "video-in-a-figure-gets-the-caption"
+title = "A `video` in a figure gets the caption"
+name = "Clip"
+caption = "A short clip"
+markup = '''
+<figure>
+  <video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" title="Clip"></video>
+  <figcaption>A short clip</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "aria-hidden-suppresses-video"
+title = "`aria-hidden=\"true\"` suppresses a `video`"
+markup = '''
+<video data-subject="" src="assets/clip.mp4" controls="controls" width="160" height="120" aria-label="A blue rectangle" title="A tooltip" aria-hidden="true"></video>
+'''
+
+[[resource]]
+id = "details"
+title = "Extended descriptions"
+intro = """
+`aria-details` on an image links it to one or more extended descriptions,
+surfaced as links. A target that is a hyperlink with a usable `href` links to
+its destination, titled by its `aria-label` or its text content; any other
+target is linked to in place, titled only by its `aria-label`. The attribute is
+honored on the image itself only, and a suppressed image gets no extended
+descriptions.
+"""
+
+# --- Target kinds ----------------------------------------------------------
+
+[[resource.case]]
+id = "details-inline-aside"
+title = "An inline container target links to the target itself"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-aside-target" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-aside-target"/>
+<aside id="details-aside-target"><p>A long description of the chart.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-non-ascii-target-id"
+title = "A non-ASCII target id is percent-encoded"
+name = "Bar chart"
+extended_descriptions = [{ href = "#d%C3%A9tails" }]
+note = "The link to an inline container is built with the URL API rather than by concatenation, so an id holding non-ASCII characters (legal in XHTML) reaches the reading app as a valid URL."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="détails"/>
+<aside id="détails"><p>Une description longue.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-inline-aside-aria-label"
+title = "An inline container target is titled by its `aria-label`"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-labelled-target", title = "Chart description" }]
+note = "The target's text content is never synthesized into a title; only its `aria-label` is used."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-labelled-target"/>
+<aside id="details-labelled-target" aria-label="Chart description"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-anchor-relative"
+title = "A hyperlink target links to its destination, titled by its text"
+name = "Bar chart"
+extended_descriptions = [{ href = "image.xhtml", title = "Extended description" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-rel-link"/>
+<p><a id="details-rel-link" href="image.xhtml">Extended description</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-aria-label"
+title = "A hyperlink target is titled by its `aria-label` over its text"
+name = "Bar chart"
+extended_descriptions = [{ href = "image.xhtml", title = "Full description" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-labelled-link"/>
+<p><a id="details-labelled-link" href="image.xhtml" aria-label="Full description">ignored</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-title-with-img-alt"
+title = "A hyperlink title joins text nodes and `img` alt values"
+name = "Bar chart"
+extended_descriptions = [{ href = "image.xhtml", title = "See the detailed description" }]
+divergence = "The contributions are joined with a single space, so a word split across adjacent inline elements gains a space that a browser's `innerText` would not add."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-img-alt-link"/>
+<p><a id="details-img-alt-link" href="image.xhtml">See
+  the <img src="assets/apple.png" alt="detailed"/> <span>description</span></a></p>
+'''
+
+[[resource.case]]
+id = "details-container-labelledby-does-not-title"
+title = "`aria-labelledby` on the target does not title the link"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-labelledby-target" }]
+note = "Only the target's own `aria-label` is read. Resolving its `aria-labelledby` would need the one-level name computation, which the link title deliberately does not run."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-labelledby-target"/>
+<p id="details-target-heading">Description of the bar chart</p>
+<aside id="details-labelledby-target" aria-labelledby="details-target-heading"><p>The chart shows the website hits for the first quarter of 2014.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-summary-aria-label-does-not-title"
+title = "A `summary`'s `aria-label` does not title the link either"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-summary-labelled" }]
+note = "A `details` target is an inline container: its `summary` would be the natural title, but only the target's own `aria-label` is read today. Titling a disclosure from its `summary` is a follow-up."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-summary-labelled"/>
+<details id="details-summary-labelled">
+  <summary aria-label="Chart description">Expand / collapse description</summary>
+  <p>The chart shows the website hits for the first quarter of 2014.</p>
+</details>
+'''
+
+# --- href forms ------------------------------------------------------------
+
+[[resource.case]]
+id = "details-anchor-fragment"
+title = "A fragment-only `href` resolves against the document"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-frag-dest", title = "Description below" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-frag-link"/>
+<p><a id="details-frag-link" href="#details-frag-dest">Description below</a></p>
+<aside id="details-frag-dest"><p>The description itself.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-anchor-absolute-http"
+title = "An absolute `http(s)` `href` passes through unchanged"
+name = "Bar chart"
+extended_descriptions = [{ href = "https://example.com/description.html", title = "Description online" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-http-link"/>
+<p><a id="details-http-link" href="https://example.com/description.html">Description online</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-mailto"
+title = "A non-`http(s)` scheme falls back to the inline container branch"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-mailto-link" }]
+note = "The anchor is treated as an inline container: no `mailto:`, `javascript:` or other unsafe scheme ever reaches the reading app."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-mailto-link"/>
+<p><a id="details-mailto-link" href="mailto:author@example.com">Ask the author</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-javascript"
+title = "A `javascript:` `href` falls back to the inline container branch too"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-js-link" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-js-link"/>
+<p><a id="details-js-link" href="javascript:alert(1)">Reveal the description</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-without-href"
+title = "An `a` with no `href` is an inline container"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-no-href" }]
+note = "An anchor with nothing to navigate to is linked to in place, like any other container, and loses its text as a title."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-no-href"/>
+<p><a id="details-no-href">No destination</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-empty-href"
+title = "An empty `href` is an inline container"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-empty-href" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-empty-href"/>
+<p><a id="details-empty-href" href="">Empty destination</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-bare-hash-href"
+title = "A bare `#` `href` is an inline container"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-bare-hash" }]
+note = "`href=\"#\"` points at the top of the resource, not at a description."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-bare-hash"/>
+<p><a id="details-bare-hash" href="#">Top of the page</a></p>
+'''
+
+[[resource.case]]
+id = "details-anchor-title-keeps-escaped-entities"
+title = "A hyperlink title keeps an escaped entity escaped"
+name = "Bar chart"
+extended_descriptions = [{ href = "image.xhtml", title = "Sites A &amp; B" }]
+note = "The source writes `&amp;amp;`, so the text of the anchor is the six characters `&amp;`. It must not be decoded a second time into a bare ampersand."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-entity-link"/>
+<p><a id="details-entity-link" href="image.xhtml">Sites A &amp;amp; B</a></p>
+'''
+
+# --- IDREF list ------------------------------------------------------------
+
+[[resource.case]]
+id = "details-multiple-and-dangling"
+title = "Multiple targets keep the IDREF order; dangling ids are skipped"
+name = "Bar chart"
+extended_descriptions = [
+    { href = "#details-multi-second" },
+    { href = "#details-multi-first" },
+]
+note = "`aria-details` is a single ID reference in ARIA 1.2 and an ID reference list since ARIA 1.3; the list handling is kept for forward compatibility. EPUB validates against ARIA 1.2, so this markup is deliberately invalid: epubcheck rejects the space-separated list, and the error is in the baseline."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-multi-second details-multi-missing details-multi-first"/>
+<aside id="details-multi-first"><p>First.</p></aside>
+<aside id="details-multi-second"><p>Second.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-duplicate-idrefs"
+title = "Two IDREFs to the same node collapse to one"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-dup-target" }]
+note = "An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-dup-target details-dup-target"/>
+<aside id="details-dup-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-self-and-ancestor-skipped"
+title = "Targets that are the image itself or an ancestor are skipped"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-real-target" }]
+note = "A link into the enclosing figure would re-render the image it describes. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline."
+markup = '''
+<figure id="details-ancestor-figure">
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="case-details-self-and-ancestor-skipped details-ancestor-figure details-real-target"/>
+</figure>
+<aside id="details-real-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-two-anchors-to-the-same-destination"
+title = "Two anchors to the same destination both survive"
+name = "Bar chart"
+extended_descriptions = [
+    { href = "image.xhtml", title = "Summary" },
+    { href = "image.xhtml", title = "Full data table" },
+]
+note = "Only IDREFs resolving to the same *node* collapse. Two distinct anchors are two offers to the reader, even when they land in the same place. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-dest-a details-dest-b"/>
+<p><a id="details-dest-a" href="image.xhtml">Summary</a></p>
+<p><a id="details-dest-b" href="image.xhtml">Full data table</a></p>
+'''
+
+[[resource.case]]
+id = "details-all-targets-invalid"
+title = "An `aria-details` whose targets are all invalid yields nothing"
+name = "Bar chart"
+extended_descriptions = []
+note = "One dangling id and one pointing at the image itself: the attribute is present but contributes no link. An ARIA 1.3 IDREF list, so deliberately invalid against EPUB's ARIA 1.2 schema: epubcheck rejects it and the error is in the baseline."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-nowhere case-details-all-targets-invalid"/>
+'''
+
+# --- Suppression and scope -------------------------------------------------
+
+[[resource.case]]
+id = "details-aria-hidden-suppressed"
+title = "`aria-hidden=\"true\"` suppresses extended descriptions too"
+extended_descriptions = []
+note = "A suppressed element is out of the accessibility tree, relations included."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-hidden="true" aria-details="details-hidden-target"/>
+<aside id="details-hidden-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-cancels-presentational-role"
+title = "`aria-details` cancels a presentational `role`"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-presentation-target" }]
+note = "`aria-details` is a global ARIA attribute, so it wins the presentational-role conflict and the image keeps its name and extended descriptions."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" role="presentation" aria-details="details-presentation-target"/>
+<aside id="details-presentation-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-figure-level-ignored"
+title = "`aria-details` on the enclosing figure is ignored"
+name = "Bar chart"
+caption = "A captioned chart"
+extended_descriptions = []
+note = "Only the image's own `aria-details` is honored."
+markup = '''
+<figure aria-details="details-figure-target">
+  <img data-subject="" src="assets/apple.png" alt="Bar chart"/>
+  <figcaption>A captioned chart</figcaption>
+</figure>
+<aside id="details-figure-target"><p>Details.</p></aside>
+'''
+
+[[resource.case]]
+id = "details-plain-link-is-not-an-extended-description"
+title = "A plain link next to an image is not an extended description"
+name = "Bar chart"
+extended_descriptions = []
+note = "`aria-details` is the only thing that ties a description to an image. A link the publisher merely placed nearby, with no attribute pointing at it, is prose like any other."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart"/>
+<p><a href="image.xhtml">Description of the bar chart</a></p>
+'''
+
+[[resource.case]]
+id = "describedby-flattens-a-details-target"
+title = "`aria-describedby` flattens a `details` target into the description"
+name = "Bar chart"
+description = "Expand / collapse description The chart shows the website hits for the first quarter of 2014."
+extended_descriptions = []
+note = "`aria-describedby` is the accessible description, whatever the target looks like: a disclosure widget referenced that way is flattened into one string, summary included, and is NOT promoted to an extended description. Only `aria-details` produces those."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-describedby="details-db-disclosure"/>
+<details id="details-db-disclosure">
+  <summary>Expand / collapse description</summary>
+  <p>The chart shows the website hits for the first quarter of 2014.</p>
+</details>
+'''
+
+# --- A description wrapped by the caption ----------------------------------
+
+[[resource.case]]
+id = "details-target-in-figcaption"
+title = "A `details` target inside the `figcaption` is excluded from the caption"
+name = "Bar chart showing monthly and total visitors"
+caption = "Example.com Site visitors Jan to March 2014"
+extended_descriptions = [{ href = "#details-in-figcaption-target" }]
+note = "Publishers do put the description inside the caption. Without the exclusion, a reading app displaying the caption would print the whole long description."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart showing monthly and total visitors" aria-details="details-in-figcaption-target"/>
+  <figcaption>Example.com Site visitors Jan to March 2014
+    <details id="details-in-figcaption-target">
+      <summary>Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "details-in-figcaption-not-referenced"
+title = "A `details` in the `figcaption` is excluded even when nothing references it"
+name = "Bar chart"
+caption = "Example.com Site visitors Jan to March 2014"
+note = "A disclosure widget is a description the reader expands on demand, never caption text."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart"/>
+  <figcaption>Example.com Site visitors Jan to March 2014
+    <details>
+      <summary>Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "describedby-target-in-figcaption"
+title = "An `aria-describedby` target inside the `figcaption` is excluded from the caption"
+name = "Bar chart"
+description = "Overview The chart shows the website hits for the first quarter of 2014."
+caption = "Example.com Site visitors Jan to March 2014"
+divergence = "A browser recursing into the target would name it from its own `aria-labelledby` and stop there, computing “Overview”."
+note = "The aside is often hidden by CSS, so a sighted reader sees only the caption while a screen reader gets the whole description."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-describedby="details-aside-in-figcaption"/>
+  <figcaption>Example.com Site visitors Jan to March 2014
+    <aside id="details-aside-in-figcaption" aria-labelledby="details-aside-heading">
+      <p id="details-aside-heading">Overview</p>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </aside>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "caption-keeps-another-images-description"
+title = "The exclusion is scoped to the element being captioned"
+name = "Bar chart"
+caption = "Two charts The pie chart splits the visitors by country."
+note = "The aside describes the *other* image in the figure, so it stays part of this image's caption."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart"/>
+  <img src="assets/star.svg" alt="Pie chart" aria-describedby="details-other-image-desc"/>
+  <figcaption>Two charts
+    <aside id="details-other-image-desc"><p>The pie chart splits the visitors by country.</p></aside>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-is-itself-the-description"
+title = "A `figcaption` which is itself the description yields no caption"
+name = "Bar chart"
+description = "The chart shows the website hits for the first quarter of 2014."
+note = "Nothing is left to display once the description is taken out, and the whole caption would otherwise be repeated as one."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-describedby="details-figcaption-is-desc"/>
+  <figcaption id="details-figcaption-is-desc">The chart shows the website hits for the first quarter of 2014.</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "figcaption-holds-only-the-description"
+title = "A `figcaption` holding only the description yields no caption"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-only-child-target" }]
+note = "The stripped caption is blank, which is no caption at all rather than an empty string."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-only-child-target"/>
+  <figcaption>
+    <details id="details-only-child-target">
+      <summary>Expand / collapse description</summary>
+      <p>The chart shows the website hits for the first quarter of 2014.</p>
+    </details>
+  </figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "exclusion-does-not-reach-the-name"
+title = "The exclusion does not reach the accessible name"
+name = "Cap More Body"
+caption = "Cap"
+extended_descriptions = [{ href = "#details-name-target" }]
+note = "HTML-AAM 4.1.10 names the image from the *whole* figcaption, description included; only the displayed caption is stripped."
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" aria-details="details-name-target"/>
+  <figcaption>Cap
+    <details id="details-name-target">
+      <summary>More</summary>
+      <p>Body</p>
+    </details>
+  </figcaption>
+</figure>
+'''
+
+# --- Shapes from the DAISY extended description tests ----------------------
+
+[[resource.case]]
+id = "details-target-sibling-of-image"
+title = "A `details` sibling of the image, with no figure around them"
+name = "Bar chart showing monthly and total visitors"
+extended_descriptions = [{ href = "#details-sibling-target" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart showing monthly and total visitors" aria-details="details-sibling-target"/>
+<details id="details-sibling-target">
+  <summary>Expand / collapse description</summary>
+  <p>The chart shows the website hits for the first quarter of 2014.</p>
+</details>
+'''
+
+[[resource.case]]
+id = "details-target-in-figure-outside-figcaption"
+title = "A `details` in the figure but outside the `figcaption` keeps the caption whole"
+name = "Bar chart"
+caption = "Example.com Site visitors Jan to March 2014"
+extended_descriptions = [{ href = "#details-in-figure-target" }]
+markup = '''
+<figure>
+  <img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-in-figure-target"/>
+  <details id="details-in-figure-target">
+    <summary>Expand / collapse description</summary>
+    <p>The chart shows the website hits for the first quarter of 2014.</p>
+  </details>
+  <figcaption>Example.com Site visitors Jan to March 2014</figcaption>
+</figure>
+'''
+
+[[resource.case]]
+id = "details-end-of-chapter-container"
+title = "A plain container further down the chapter"
+name = "Bar chart"
+extended_descriptions = [{ href = "#details-end-of-chapter" }]
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-end-of-chapter"/>
+<div id="details-end-of-chapter">
+  <p>Description of Bar Chart</p>
+  <p>The chart shows the website hits for the first quarter of 2014.</p>
+</div>
+'''
+
+[[resource.case]]
+id = "details-anchor-to-another-resource"
+title = "A hyperlink to a description in another resource"
+name = "Bar chart"
+extended_descriptions = [
+    { href = "image.xhtml#case-name-from-alt", title = "Follow for extended description" },
+]
+note = "The `./` prefix is normalized away when the href is resolved against the resource, so the reading app receives a locatable link."
+markup = '''
+<img data-subject="" src="assets/apple.png" alt="Bar chart" aria-details="details-other-resource-link"/>
+<p><a id="details-other-resource-link" href="./image.xhtml#case-name-from-alt">Follow for extended description</a></p>
+'''
+
+[[resource.case]]
+id = "details-inline-svg"
+title = "An inline SVG can carry `aria-details` too"
+name = "Blue square"
+extended_descriptions = [{ href = "#details-svg-target" }]
+markup = '''
+<svg data-subject="" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" aria-details="details-svg-target"><title>Blue square</title><rect x="8" y="8" width="64" height="64" fill="#1565C0"/></svg>
+<aside id="details-svg-target"><p>A long description of the square.</p></aside>
+'''
+
+[[resource]]
+id = "table"
+title = "Tables (not implemented)"
+intro = """
+Nothing in this section is implemented: `table` is not one of the elements the
+content iterator emits, and the accessibility properties helper has no
+host-language source for it. The cases below are written as if it were, and
+every one of them is flagged as skipped so neither test harness asserts it.
+Removing those flags is the acceptance test for a future implementation.
+"""
+
+[[resource.case]]
+id = "caption-names-the-table"
+title = "`caption` names the table"
+skipped = true
+name = "Quarterly revenue"
+markup = '''
+<table data-subject="">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "aria-label-beats-caption"
+title = "`aria-label` beats the `caption`"
+skipped = true
+name = "Revenue by quarter"
+markup = '''
+<table data-subject="" aria-label="Revenue by quarter">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "labelledby-beats-caption"
+title = "`aria-labelledby` beats the `caption`"
+skipped = true
+name = "Revenue by quarter"
+markup = '''
+<p id="tb-lb">Revenue by quarter</p>
+<table data-subject="" aria-labelledby="tb-lb">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "title-describes-a-captioned-table"
+title = "`title` describes a table named by its `caption`"
+skipped = true
+name = "Quarterly revenue"
+description = "A tooltip"
+markup = '''
+<table data-subject="" title="A tooltip">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "describedby-describes-the-table"
+title = "`aria-describedby` describes the table"
+skipped = true
+name = "Quarterly revenue"
+description = "Revenue in thousands of euros."
+markup = '''
+<p id="tb-db">Revenue in thousands of euros.</p>
+<table data-subject="" aria-describedby="tb-db">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "aria-hidden-suppresses-the-table"
+title = "`aria-hidden=\"true\"` suppresses the table"
+skipped = true
+markup = '''
+<table data-subject="" aria-hidden="true">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "role-presentation-suppresses-the-table"
+title = "`role=\"presentation\"` suppresses the table"
+skipped = true
+markup = '''
+<table data-subject="" role="presentation">
+  <caption>Quarterly revenue</caption>
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
+
+[[resource.case]]
+id = "table-without-caption-has-no-name"
+title = "A table without a `caption` has no name"
+skipped = true
+markup = '''
+<table data-subject="">
+  <tr><th>Quarter</th><th>Revenue</th></tr>
+  <tr><td>Q1</td><td>120</td></tr>
+</table>
+'''
