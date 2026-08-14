@@ -1,0 +1,15 @@
+# Expected epubcheck messages, one per deliberately invalid case.
+# Refresh with `python3 generate.py --update-epubcheck-baseline`.
+ERROR(RSC-005) details.xhtml: Error while parsing file: value of attribute "aria-details" is invalid; must be a string matching the regular expression "[^\s]+"
+ERROR(RSC-005) details.xhtml: Error while parsing file: value of attribute "aria-details" is invalid; must be a string matching the regular expression "[^\s]+"
+ERROR(RSC-005) details.xhtml: Error while parsing file: value of attribute "aria-details" is invalid; must be a string matching the regular expression "[^\s]+"
+ERROR(RSC-005) details.xhtml: Error while parsing file: value of attribute "aria-details" is invalid; must be a string matching the regular expression "[^\s]+"
+ERROR(RSC-005) details.xhtml: Error while parsing file: value of attribute "aria-details" is invalid; must be a string matching the regular expression "[^\s]+"
+ERROR(RSC-005) image.xhtml: Error while parsing file: The aria-describedby attribute must refer to elements in the same document (target ID missing)
+ERROR(RSC-005) image.xhtml: Error while parsing file: The aria-labelledby attribute must refer to elements in the same document (target ID missing)
+ERROR(RSC-005) image.xhtml: Error while parsing file: The aria-labelledby attribute must refer to elements in the same document (target ID missing)
+ERROR(RSC-005) image.xhtml: Error while parsing file: value of attribute "aria-hidden" is invalid; must be equal to "false" or "true"
+ERROR(RSC-005) image.xhtml: Error while parsing file: value of attribute "role" is invalid; must be equal to "button", "checkbox", "doc-cover", "img", "link", "math", "menuitem", "menuitemcheckbox", "menuitemradio", "none", "option", "presentation", "progressbar", "radio", "scrollbar", "separator", "slider", "switch", "tab" or "treeitem"
+ERROR(RSC-005) image.xhtml: Error while parsing file: value of attribute "role" is invalid; must be equal to "button", "checkbox", "doc-cover", "img", "link", "math", "menuitem", "menuitemcheckbox", "menuitemradio", "none", "option", "presentation", "progressbar", "radio", "scrollbar", "separator", "slider", "switch", "tab" or "treeitem"
+ERROR(RSC-005) image.xhtml: Error while parsing file: value of attribute "role" is invalid; must be equal to "button", "checkbox", "doc-cover", "img", "link", "math", "menuitem", "menuitemcheckbox", "menuitemradio", "none", "option", "presentation", "progressbar", "radio", "scrollbar", "separator", "slider", "switch", "tab" or "treeitem"
+ERROR(RSC-005) image.xhtml: Error while parsing file: value of attribute "role" is invalid; must be equal to "button", "checkbox", "doc-cover", "img", "link", "math", "menuitem", "menuitemcheckbox", "menuitemradio", "none", "option", "presentation", "progressbar", "radio", "scrollbar", "separator", "slider", "switch", "tab" or "treeitem"

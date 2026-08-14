@@ -1,12 +1,9 @@
-TestApp.xcodeproj
-TestApp.xcworkspace
-TestApp.xctestplan
-project.yml
+/TestApp.xcodeproj
+/TestApp.xcworkspace
+/project.yml
 # IntelliJ AppCode
 .idea
 
-Pods/
-Podfile
-Podfile.lock
-
-R2LCPClient/
+/Pods/
+/Podfile
+/Podfile.lock

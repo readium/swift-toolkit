@@ -90,14 +90,17 @@ Here are the default available implementations:
 
 * `AudioContentElement` - audio clips
 * `VideoContentElement` - video clips
-* `ImageContentElement` - bitmap images, with the additional property:
-    * `caption: String?` - figure caption, when available
+* `ImageContentElement` - bitmap images
+
+All of them expose an additional `caption: String?` property - the caption from an enclosing figure's `figcaption`, when available.
 
 #### Text
 
 ##### Textual elements
 
 The `TextualContentElement` protocol is implemented by any element which can be represented as human-readable text. This is useful when you want to extract the text content of a publication without caring for each individual type of elements.
+
+For media elements (image, SVG, audio and video), `text` returns the accessible name only.
 
 ```swift
 let wholeText = publication.content()
@@ -136,6 +139,11 @@ If you are not interested in the segment attributes, you can also use `element.t
 ### Element attributes
 
 All types of `ContentElement` can have associated attributes. Custom `ContentService` implementations can use this as an extensibility point.
+
+The HTML content iterator fills in accessibility attributes for media elements:
+
+* `accessibleName` and `accessibleDescription` - flat strings computed following a subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2).
+* `extendedDescription` - a `Link` to an extended description declared with [`aria-details`](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html), repeated when the element declares several targets.
 
 ## Use cases
 
@@ -188,7 +196,7 @@ struct ImageIndex: View {
 
                     return Item(
                         locator: element.locator,
-                        text: element.caption ?? element.accessibilityLabel,
+                        text: element.caption ?? element.accessibleName,
                         image: image
                     )
                 }

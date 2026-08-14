@@ -24,7 +24,6 @@ Pod::Spec.new do |s|
   s.pod_target_xcconfig = { 'OTHER_SWIFT_FLAGS' => '-package-name Readium' }
 
   s.dependency 'ReadiumShared', '~> 3.11.0'
-  s.dependency 'DifferenceKit', '~> 1.0'
   s.dependency 'SwiftSoup', '~> 2.11.0'
 
 end

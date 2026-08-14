@@ -3,9 +3,13 @@ SCRIPTS_PATH := Sources/Navigator/EPUB/Scripts
 help:
 	@echo "Usage: make <target>\n\n\
 	  playground\t\tGenerate the Playground project\n\
+	  \t\t\tUse 'lcp=<url>' to enable LCP.\n\
+	  dev\t\t\tGenerate both the Playground and TestApp projects for development\n\
+	  \t\t\tUse 'lcp=<url>' to enable LCP.\n\
 	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
 	  test\t\t\tRun unit tests\n\
+	  \t\t\tUse 'only=<target>' to run a single test target.\n\
 	  lint-format\t\tVerify formatting\n\
 	  format\t\tFormat sources\n\
 	  update-locales\tUpdate the localization files\n\
@@ -13,20 +17,33 @@ help:
 
 .PHONY: test
 test:
-	xcodebuild test -project "TestApp/TestApp.xcodeproj" -scheme TestApp -destination "platform=iOS Simulator,name=iPhone Air" 2> /dev/null \
-		| xcbeautify --quieter --disable-logging \
-		| grep -Ev "^Executed |Test Suite 'All tests'|Test run started\.|Test session results:"; true
+	./scripts/test.sh $(only)
 
 .SILENT:
 .PHONY: playground
 playground:
-	cd Playground; \
-	find . -name ".DS_Store" -delete; \
-	xcodegen --use-cache --cache-path .xcodegen; \
+	cp Playground/Support/Playground.xctestplan Playground/Playground.xctestplan
+ifdef lcp
+	# The liblcp package is downloaded in Support, so that the Playground and the
+	# TestApp share it. Two local packages named `R2LCPClient` in the same Xcode
+	# workspace conflict.
+	@curl --fail --silent --show-error -L --create-dirs --output Support/R2LCPClient/Package.swift "$(lcp)"
+	cd Playground; xcodegen -s Support/project+lcp.yml --project . --project-root .
+	# The plan only declares the test targets of the package. Add the LCP tests,
+	# whose target identifier is only known once the project has been generated.
+	scripts/gen-lcp-testplan.py Playground/Playground.xctestplan Playground/Playground.xcodeproj/project.pbxproj
+else
+	cd Playground; xcodegen -s Support/project.yml --project . --project-root .
+endif
 	# The repository might be cloned to a different location than "swift-toolkit".
 	# XcodeGen will use the name of the folder in the project, which is not desirable.
 	# This will replace all occurrences of this folder by "swift-toolkit".
-	perl -i -0777 -pe 'if (/name = "?([^"]+)"?; path = \.\.; /) { my $$n = $$1; s/name = "?\Q$$n\E"?; path = \.\./name = swift-toolkit; path = ../; s|/\* \Q$$n\E \*/|/* swift-toolkit */|g; }' Playground/Playground.xcodeproj/project.pbxproj
+	perl -i -0777 -pe 'if (/name = "?([^";\n]+)"?; path = \.\.; /) { my $$n = $$1; s/name = "?\Q$$n\E"?; path = \.\.;/name = swift-toolkit; path = ..;/; s|/\* \Q$$n\E \*/|/* swift-toolkit */|g; }' Playground/Playground.xcodeproj/project.pbxproj
+
+.PHONY: dev
+dev: playground
+	$(MAKE) -C TestApp dev lcp=$(lcp)
+	@echo "\n☝️  Open Support/Readium.xcworkspace"
 
 .PHONY: podspecs
 podspecs:
@@ -40,12 +57,14 @@ navigator-ui-tests-project:
 scripts:
 	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
 
-	cd $(SCRIPTS_PATH); \
-	rm -rf "node_modules"; \
-	corepack install; \
-	pnpm install --frozen-lockfile; \
-	pnpm run format; \
-	pnpm run lint; \
+	cd $(SCRIPTS_PATH) && \
+	rm -rf "node_modules" && \
+	corepack install && \
+	pnpm install --frozen-lockfile && \
+	pnpm run format && \
+	pnpm run lint && \
+	pnpm run typecheck && \
+	pnpm run test && \
 	pnpm run bundle
 
 .PHONY: update-scripts
