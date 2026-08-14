@@ -147,6 +147,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     isolated deinit {
         playTask?.cancel()
+        durationLoadTask?.cancel()
         notificationTask?.cancel()
         if let token = audioSessionToken {
             audioSession.end(with: token)
@@ -171,14 +172,17 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Index of the current resource in the reading order.
     private var resourceIndex: Int = 0
 
-    /// Asset-reported duration for the current player item.
-    /// Falls back to the manifest duration if not loaded.
+    /// Exact duration reported by the current player item's asset, once
+    /// loaded.
     private var loadedAssetDuration: Double?
-    private var durationLoadTask: Task<Void, Never>? {
-        willSet {
-            durationLoadTask?.cancel()
-        }
-    }
+
+    /// Task loading `loadedAssetDuration`, which can be awaited to get the
+    /// exact duration of the current item.
+    private var durationLoadTask: Task<Double?, Never>?
+
+    /// A newly loaded asset duration is reported to the delegate only when it
+    /// differs from the previous one by more than this many seconds.
+    private static let assetDurationTolerance: Double = 0.1
 
     /// Starting time of the current resource, in the reading order.
     private var resourceStartingTime: Double? {
@@ -186,7 +190,6 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     /// Duration in seconds in the current resource.
-    /// A deadlock can occur if we read `player.currentItem.duration` synchronously while it's loading.
     private var resourceDuration: Double? {
         loadedAssetDuration ?? publication.readingOrder[resourceIndex].duration
     }
@@ -277,10 +280,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 preferredTimescale: 1000
             ),
             queue: .main
-        ) { [weak self] time in
+        ) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self = self else { return }
-                self.playbackDidChange(time.secondsOrZero)
+                self.locationDidChange()
             }
         }
         timeObserverToken = TimeObserverToken(player: player, observer: periodicObserver)
@@ -344,45 +347,19 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         return delegate.navigator(self, shouldPlayNextResource: playbackInfo)
     }
 
-    private func playbackDidChange(_ time: Double? = nil) {
-        if let time = time {
-            let locator = makeLocator(forTime: time)
-            currentLocation = locator
-            delegate?.navigator(self, locationDidChange: locator)
-        }
+    /// Notifies the delegate that the player state changed.
+    private func playbackDidChange() {
+        delegate?.navigator(self, playbackDidChange: playbackInfo)
+    }
 
-        let info = time == nil ? playbackInfo : MediaPlaybackInfo(
-            resourceIndex: resourceIndex,
-            state: state,
-            time: time!,
-            duration: resourceDuration
-        )
-        delegate?.navigator(self, playbackDidChange: info)
+    /// Refreshes `currentLocation` and notifies the delegate, after the
+    /// playback position or the resource duration changed.
+    private func locationDidChange() {
+        let locator = makeLocator(forTime: currentTime)
+        currentLocation = locator
+        delegate?.navigator(self, locationDidChange: locator)
 
-        if let currentItem = player.currentItem, loadedAssetDuration == nil, durationLoadTask == nil {
-            let currentResourceIndex = resourceIndex
-            durationLoadTask = Task { [weak self] in
-                let seconds = try? await currentItem.asset.load(.duration).seconds
-                guard !Task.isCancelled else { return }
-
-                guard let self = self, self.resourceIndex == currentResourceIndex, currentItem == self.player.currentItem else {
-                    return
-                }
-
-                self.durationLoadTask = nil
-
-                if let seconds = seconds, seconds.isFinite {
-                    let oldDuration = self.resourceDuration
-                    self.loadedAssetDuration = seconds
-
-                    if let oldDuration = oldDuration, abs(seconds - oldDuration) > 0.1 {
-                        self.playbackDidChange()
-                    } else if oldDuration == nil {
-                        self.playbackDidChange()
-                    }
-                }
-            }
-        }
+        playbackDidChange()
     }
 
     private func makeLocator(forTime time: Double) -> Locator {
@@ -408,6 +385,45 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 totalProgression: totalProgression
             )
         )
+    }
+
+    /// Loads in the background the exact duration reported by the current
+    /// asset, caching it in `loadedAssetDuration`.
+    ///
+    /// Loading it eagerly keeps `resourceDuration` synchronous, as awaiting the
+    /// asset can take several seconds over HTTP.
+    private func loadAssetDuration() {
+        loadedAssetDuration = nil
+        durationLoadTask?.cancel()
+        durationLoadTask = nil
+
+        guard let currentItem = player.currentItem else {
+            return
+        }
+
+        durationLoadTask = Task { [weak self] in
+            let seconds = try? await currentItem.asset.load(.duration).seconds
+
+            // The item we loaded the duration for must still be the one being
+            // played, otherwise `go(to:)` moved on while we were loading.
+            guard
+                !Task.isCancelled,
+                let self = self,
+                currentItem == self.player.currentItem,
+                let seconds = seconds, seconds.isFinite
+            else {
+                return nil
+            }
+
+            let previousDuration = resourceDuration
+            loadedAssetDuration = seconds
+
+            if previousDuration.map({ abs(seconds - $0) > Self.assetDurationTolerance }) ?? true {
+                locationDidChange()
+            }
+
+            return seconds
+        }
     }
 
     // MARK: - Loaded Time Ranges
@@ -459,14 +475,31 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 let asset = try mediaLoader.makeAsset(for: link)
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
-                loadedAssetDuration = nil
-                durationLoadTask = nil
+                loadAssetDuration()
                 loadedTimeRangesTimer.fire()
                 delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
 
             // Seeks to time
-            let time = locator.locations.time?.begin ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
+            let time: Double
+            if let begin = locator.locations.time?.begin {
+                time = begin
+            } else if let progression = locator.locations.progression, progression > 0 {
+                // `Link.duration` is only a hint, so converting a progression
+                // into a time requires the exact duration reported by the
+                // asset. We wait for it if it is not loaded yet.
+                var assetDuration = loadedAssetDuration
+                if assetDuration == nil, let durationLoadTask = durationLoadTask {
+                    assetDuration = await durationLoadTask.value
+                }
+                if assetDuration == nil {
+                    log(.warning, "Asset duration unavailable, falling back on the approximate `Link.duration` to convert the progression")
+                }
+
+                time = (assetDuration ?? link.duration ?? 0) * progression
+            } else {
+                time = 0
+            }
 
             let finished = await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
             if finished {
