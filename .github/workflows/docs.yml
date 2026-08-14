@@ -52,7 +52,7 @@ jobs:
                 echo "deploy_latest=true" >> "$GITHUB_OUTPUT"
              fi
           else
-             VERSION=$(git describe --tag --match "[0-9]*" --abbrev=0)
+             VERSION=$(git describe --tags --match "[0-9]*" --abbrev=0)
              echo "deploy_versioned=false" >> "$GITHUB_OUTPUT"
              echo "deploy_latest=true" >> "$GITHUB_OUTPUT"
           fi

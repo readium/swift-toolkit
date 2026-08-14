@@ -19,6 +19,6 @@ Pod::Spec.new do |s|
   s.pod_target_xcconfig = { 'OTHER_SWIFT_FLAGS' => '-package-name Readium' }
 
   s.dependency 'ReadiumShared', '~> 4.0.0-alpha.1'
-  s.dependency 'ReadiumFuzi', '~> 4.0.0'
+  s.dependency 'ReadiumFuzi', '~> 4.0.1'
 
 end
