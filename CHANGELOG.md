@@ -3,7 +3,9 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-## [Unreleased: swift6]
+<!-- ## [Unreleased] -->
+
+## [4.0.0-alpha.1] - 2026-08-14
 
 ### Added
 
@@ -20,14 +22,11 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
-* `ImageContentElement.caption` and `SVGContentElement.caption` are now strictly the text of the enclosing figure's `figcaption`. Other sources (such as `alt`) contribute to `accessibleName` instead.
-* Audio and video content elements now expose accessibility attributes, so the text-to-speech may start speaking their labels.
-
-#### Shared
-
 * OPDS models (`Feed`, `Group`, `Facet`, `OpdsMetadata`) are now structs with value semantics.
 * `Publication`, `Resource`, `Container` and related types are now `Sendable`. Custom implementations of `Resource`, `Container`, `HTTPClient` or `PublicationService` must be `Sendable` too.
 * `Resource.stream()` now cooperates with task cancellation: the built-in resources fail with `ReadError.cancelled` when the surrounding task is cancelled, and custom implementations are expected to do the same.
+* `ImageContentElement.caption` and `SVGContentElement.caption` are now strictly the text of the enclosing figure's `figcaption`. Other sources (such as `alt`) contribute to `accessibleName` instead.
+* Audio and video content elements now expose accessibility attributes, so the text-to-speech may start speaking their labels.
 
 #### Navigator
 
@@ -1328,3 +1327,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.9.0]: https://github.com/readium/swift-toolkit/compare/3.8.0...3.9.0
 [3.10.0]: https://github.com/readium/swift-toolkit/compare/3.9.0...3.10.0
 [3.11.0]: https://github.com/readium/swift-toolkit/compare/3.10.0...3.11.0
+[4.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/3.11.0...4.0.0-alpha.1

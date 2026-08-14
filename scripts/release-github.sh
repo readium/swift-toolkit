@@ -63,17 +63,24 @@ ${CHANGELOG_CONTENT}
 
 BODY
 
+# Mark prereleases as such, so that the latest stable release keeps the GitHub
+# "Latest release" badge.
+PRERELEASE_FLAG=""
+if is_prerelease "$VERSION"; then
+    PRERELEASE_FLAG="--prerelease"
+fi
+
 # Create draft release
 info "Creating draft GitHub release for $VERSION"
 if [[ $DRY_RUN -eq 1 ]]; then
-    dry_skip "gh release create $VERSION --title $VERSION --notes-file $TMPFILE --generate-notes --draft"
+    dry_skip "gh release create $VERSION --title $VERSION --notes-file $TMPFILE --generate-notes --draft $PRERELEASE_FLAG"
     echo ""
     echo "=== Release: $VERSION ==="
     echo ""
     cat "$TMPFILE"
     echo ""
 else
-    RELEASE_URL="$(gh release create "$VERSION" --title "$VERSION" --notes-file "$TMPFILE" --generate-notes --draft)"
+    RELEASE_URL="$(gh release create "$VERSION" --title "$VERSION" --notes-file "$TMPFILE" --generate-notes --draft $PRERELEASE_FLAG)"
     info "Draft release created: $RELEASE_URL"
     open "$RELEASE_URL"
 fi

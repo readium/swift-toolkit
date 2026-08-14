@@ -104,7 +104,7 @@ Guides are available to help you make the most of the toolkit.
 
 | Readium | iOS | Swift compiler | Xcode |
 |---------|-----|----------------|-------|
-| `develop` | 15.0 | 6.0 | 26.4  |
+| `develop` | 15.0 | 6.2 | 26.4  |
 | 3.8.0 | 15.0 | 6.0 | 16.4 |
 | 3.0.0 | 13.4 | 5.10 | 15.4 |
 | 2.5.1 | 11.0 | 5.6.1 | 13.4 |
@@ -134,11 +134,11 @@ Add the following `pod` statements to your `Podfile` for the Readium libraries y
 source 'https://github.com/readium/podspecs'
 source 'https://cdn.cocoapods.org/'
 
-pod 'ReadiumShared', '~> 3.11.0'
-pod 'ReadiumStreamer', '~> 3.11.0'
-pod 'ReadiumNavigator', '~> 3.11.0'
-pod 'ReadiumOPDS', '~> 3.11.0'
-pod 'ReadiumLCP', '~> 3.11.0'
+pod 'ReadiumShared', '~> 4.0.0-alpha.1'
+pod 'ReadiumStreamer', '~> 4.0.0-alpha.1'
+pod 'ReadiumNavigator', '~> 4.0.0-alpha.1'
+pod 'ReadiumOPDS', '~> 4.0.0-alpha.1'
+pod 'ReadiumLCP', '~> 4.0.0-alpha.1'
 ```
 
 Take a look at [CocoaPods's documentation](https://guides.cocoapods.org/using/using-cocoapods.html) for more information.
