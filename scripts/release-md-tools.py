@@ -14,6 +14,9 @@ Subcommands:
 
     update-readme VERSION OLD_VERSION README_PATH
         Bumps CocoaPods pod lines and inserts a new Minimum Requirements row when needed.
+        Prerelease versions (containing a '-') only bump the pod lines: the Minimum
+        Requirements table records the first stable release at which the requirements
+        changed, so the row is left for the eventual stable release.
 """
 
 import sys
@@ -79,6 +82,23 @@ def close_migration_guide(version, guide_path):
     Path(guide_path).write_text("".join(result))
 
 """
+Returns True if the line ends the current changelog section.
+
+A section ends at the next release heading, either a real one (## [VERSION]) or one
+commented out by close_changelog (<!-- ## [Unreleased] -->), which is left behind in
+the changelog on purpose and must not leak into the extracted release notes.
+"""
+def _is_section_boundary(line):
+    if line.startswith("## ["):
+        return True
+
+    stripped = line.strip()
+    if stripped.startswith("<!--") and stripped.endswith("-->"):
+        return stripped[len("<!--"):-len("-->")].strip().startswith("## [")
+
+    return False
+
+"""
 Prints the body of the ## [VERSION] section to stdout.
 """
 def extract_changelog(version, changelog_path):
@@ -93,7 +113,7 @@ def extract_changelog(version, changelog_path):
             if line.strip().startswith(target_heading):
                 capturing = True
             continue
-        if line.startswith("## ["):
+        if _is_section_boundary(line):
             break
         captured.append(line)
 
@@ -109,7 +129,19 @@ def extract_changelog(version, changelog_path):
     print("\n".join(captured))
 
 """
+Returns True if the version is a SemVer prerelease (e.g. 4.0.0-alpha.1).
+"""
+def _is_prerelease(version):
+    return "-" in version
+
+"""
 Bumps CocoaPods pod lines and inserts a new Minimum Requirements row when needed.
+
+A row is inserted only for a stable version, and only when the `develop` row's
+requirements differ from the topmost release row's. The table documents the first
+stable release at which the requirements changed, so a prerelease never inserts a
+row: it would otherwise claim the boundary and leave the stable release with
+nothing to add. Prereleases still get their CocoaPods pod lines bumped.
 """
 def update_readme(version, old_version, readme_path):
     text = Path(readme_path).read_text()
@@ -140,7 +172,7 @@ def update_readme(version, old_version, readme_path):
                 if cells and cells[0] == "`develop`":
                     develop_cells = cells[1:]
                 elif not first_release_seen and develop_cells is not None:
-                    if cells[1:] != develop_cells:
+                    if cells[1:] != develop_cells and not _is_prerelease(version):
                         result.append(f"| {version} | {' | '.join(develop_cells)} |\n")
                     first_release_seen = True
                     develop_cells = None

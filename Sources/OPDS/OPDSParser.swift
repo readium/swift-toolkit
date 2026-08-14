@@ -32,4 +32,9 @@ public enum OPDSParser {
             throw OPDSParserError.documentNotValid
         }
     }
+
+    @available(*, unavailable, message: "Use the async variant of parseURL(url:) instead")
+    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
+        fatalError()
+    }
 }
