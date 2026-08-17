@@ -6,13 +6,12 @@
 
 @testable import ReadiumNavigator
 import ReadiumShared
-import XCTest
+import Testing
 
-class CSSRSPropertiesTests: XCTestCase {
-    func convertEmptyPropertiesToCSSProperties() {
-        XCTAssertEqual(
-            CSSRSProperties().cssProperties(),
-            [
+struct CSSRSPropertiesTests {
+    @Test func convertEmptyPropertiesToCSSProperties() {
+        #expect(
+            CSSRSProperties().cssProperties() == [
                 "--RS__viewportWidth": nil,
                 "--RS__colWidth": nil,
                 "--RS__colCount": nil,
@@ -56,7 +55,7 @@ class CSSRSPropertiesTests: XCTestCase {
         )
     }
 
-    func testOverrideProperties() {
+    @Test func overrideProperties() {
         let props = CSSRSProperties(
             colCount: .one,
             overrides: [
@@ -65,12 +64,12 @@ class CSSRSPropertiesTests: XCTestCase {
             ]
         ).cssProperties()
 
-        XCTAssertEqual(props["--RS__colCount"], "2")
-        XCTAssertEqual(props["--RS__custom"], "value")
+        #expect(props["--RS__colCount"] == "2")
+        #expect(props["--RS__custom"] == "value")
     }
 
-    func testConvertFullPropertiesToCSSProperties() {
-        XCTAssertEqual(
+    @Test func convertFullPropertiesToCSSProperties() {
+        #expect(
             CSSRSProperties(
                 viewportWidth: CSSPercentLength(1.0),
                 colWidth: CSSCmLength(1.2),
@@ -111,8 +110,7 @@ class CSSRSPropertiesTests: XCTestCase {
                 sansSerifJaV: ["Sans serif", "JaV"],
                 compFontFamily: ["Arial"],
                 codeFontFamily: ["Monaco", "Console Sans"]
-            ).cssProperties(),
-            [
+            ).cssProperties() == [
                 "--RS__viewportWidth": "100.00000%",
                 "--RS__colWidth": "1.20000cm",
                 "--RS__colCount": "2",
@@ -156,13 +154,13 @@ class CSSRSPropertiesTests: XCTestCase {
         )
     }
 
-    func testDeprecatedMaxLineLength() {
+    @Test func deprecatedMaxLineLength() {
         var props = CSSRSProperties(maxLineLength: CSSRemLength(5.0))
-        XCTAssertEqual(props.defaultLineLength?.value, 5.0)
-        XCTAssertEqual(props.maxLineLength?.value, 5.0)
+        #expect(props.defaultLineLength?.value == 5.0)
+        #expect(props.maxLineLength?.value == 5.0)
 
         props.maxLineLength = CSSRemLength(6.0)
-        XCTAssertEqual(props.defaultLineLength?.value, 6.0)
-        XCTAssertEqual(props.cssProperties()["--RS__defaultLineLength"], "6.00000rem")
+        #expect(props.defaultLineLength?.value == 6.0)
+        #expect(props.cssProperties()["--RS__defaultLineLength"] == "6.00000rem")
     }
 }

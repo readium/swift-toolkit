@@ -6,13 +6,12 @@
 
 @testable import ReadiumNavigator
 import ReadiumShared
-import XCTest
+import Testing
 
-class CSSUserPropertiesTests: XCTestCase {
-    func testConvertEmptyUserPropertiesToCSSProperties() {
-        XCTAssertEqual(
-            CSSUserProperties().cssProperties(),
-            [
+struct CSSUserPropertiesTests {
+    @Test func convertEmptyUserPropertiesToCSSProperties() {
+        #expect(
+            CSSUserProperties().cssProperties() == [
                 "--USER__view": nil,
                 "--USER__colCount": nil,
                 "--USER__pageMargins": nil,
@@ -40,8 +39,8 @@ class CSSUserPropertiesTests: XCTestCase {
         )
     }
 
-    func testConvertFullUserPropertiesToCSSProperties() {
-        XCTAssertEqual(
+    @Test func convertFullUserPropertiesToCSSProperties() {
+        #expect(
             CSSUserProperties(
                 view: .scroll,
                 colCount: .auto,
@@ -66,8 +65,7 @@ class CSSUserPropertiesTests: XCTestCase {
                 ligatures: .common,
                 a11yNormalize: true,
                 noRuby: true
-            ).cssProperties(),
-            [
+            ).cssProperties() == [
                 "--USER__view": "readium-scroll-on",
                 "--USER__colCount": "auto",
                 "--USER__pageMargins": "1.20000",
@@ -95,7 +93,7 @@ class CSSUserPropertiesTests: XCTestCase {
         )
     }
 
-    func testOverrideUserProperties() {
+    @Test func overrideUserProperties() {
         let props = CSSUserProperties(
             colCount: .one,
             overrides: [
@@ -104,21 +102,20 @@ class CSSUserPropertiesTests: XCTestCase {
             ]
         ).cssProperties()
 
-        XCTAssertEqual(props["--USER__colCount"], "2")
-        XCTAssertEqual(props["--USER__custom"], "value")
+        #expect(props["--USER__colCount"] == "2")
+        #expect(props["--USER__custom"] == "value")
     }
 
-    func testGenerateEmptyInlineCSSProperties() {
-        XCTAssertEqual(CSSUserProperties().css(), nil)
+    @Test func generateEmptyInlineCSSProperties() {
+        #expect(CSSUserProperties().css() == nil)
     }
 
-    func testGenerateMinimalInlineCSSProperties() {
-        XCTAssertEqual(
+    @Test func generateMinimalInlineCSSProperties() {
+        #expect(
             CSSUserProperties(
                 view: .scroll,
                 colCount: .auto
-            ).css(),
-            """
+            ).css() == """
             --USER__colCount: auto !important;
             --USER__view: readium-scroll-on !important;
 
@@ -126,8 +123,8 @@ class CSSUserPropertiesTests: XCTestCase {
         )
     }
 
-    func testGenerateFullInlineCSSProperties() {
-        XCTAssertEqual(
+    @Test func generateFullInlineCSSProperties() {
+        #expect(
             CSSUserProperties(
                 view: .scroll,
                 colCount: .auto,
@@ -152,8 +149,7 @@ class CSSUserPropertiesTests: XCTestCase {
                 ligatures: .common,
                 a11yNormalize: true,
                 noRuby: true
-            ).css(),
-            """
+            ).css() == """
             --USER__a11yNormalize: readium-a11y-on !important;
             --USER__advancedSettings: readium-advanced-on !important;
             --USER__appearance: readium-night-on !important;
