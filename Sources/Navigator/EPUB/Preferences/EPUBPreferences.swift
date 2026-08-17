@@ -52,6 +52,9 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Leading line height.
     public var lineHeight: Double?
 
+    /// Hiding/disabling ruby (furigana) annotations.
+    public var noRuby: Bool?
+
     /// Indicates whether the first page should be displayed alone and centered
     /// instead of alongside the second page.
     ///
@@ -120,6 +123,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
         lineHeight: Double? = nil,
+        noRuby: Bool? = nil,
         offsetFirstPage: Bool? = nil,
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
@@ -148,6 +152,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
+        self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
         self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
@@ -179,6 +184,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
             lineHeight: other.lineHeight ?? lineHeight,
+            noRuby: other.noRuby ?? noRuby,
             offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
             pageMargins: other.pageMargins ?? pageMargins,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,

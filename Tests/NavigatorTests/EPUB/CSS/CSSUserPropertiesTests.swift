@@ -35,6 +35,7 @@ class CSSUserPropertiesTests: XCTestCase {
                 "--USER__bodyHyphens": nil,
                 "--USER__ligatures": nil,
                 "--USER__a11yNormalize": nil,
+                "--USER__noRuby": nil,
             ]
         )
     }
@@ -63,7 +64,8 @@ class CSSUserPropertiesTests: XCTestCase {
                 letterSpacing: CSSRemLength(8.9),
                 bodyHyphens: .auto,
                 ligatures: .common,
-                a11yNormalize: true
+                a11yNormalize: true,
+                noRuby: true
             ).cssProperties(),
             [
                 "--USER__view": "readium-scroll-on",
@@ -88,6 +90,7 @@ class CSSUserPropertiesTests: XCTestCase {
                 "--USER__bodyHyphens": "auto",
                 "--USER__ligatures": "common-ligatures",
                 "--USER__a11yNormalize": "readium-a11y-on",
+                "--USER__noRuby": "readium-noRuby-on",
             ]
         )
     }
@@ -147,7 +150,8 @@ class CSSUserPropertiesTests: XCTestCase {
                 letterSpacing: CSSRemLength(8.9),
                 bodyHyphens: .auto,
                 ligatures: .common,
-                a11yNormalize: true
+                a11yNormalize: true,
+                noRuby: true
             ).css(),
             """
             --USER__a11yNormalize: readium-a11y-on !important;
@@ -164,6 +168,7 @@ class CSSUserPropertiesTests: XCTestCase {
             --USER__letterSpacing: 8.90000rem !important;
             --USER__ligatures: common-ligatures !important;
             --USER__lineHeight: 4.50000pt !important;
+            --USER__noRuby: readium-noRuby-on !important;
             --USER__pageMargins: 1.20000 !important;
             --USER__paraIndent: 6.70000rem !important;
             --USER__paraSpacing: 5.60000pt !important;

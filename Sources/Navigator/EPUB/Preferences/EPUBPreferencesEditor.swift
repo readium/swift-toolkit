@@ -227,6 +227,22 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
+    /// Hiding/disabling ruby (furigana) annotations.
+    ///
+    /// Only effective when:
+    ///  - the publication is reflowable
+    ///  - the layout is CJK horizontal or vertical
+    public lazy var noRuby: AnyPreference<Bool> =
+        preference(
+            preference: \.noRuby,
+            setting: \.noRuby,
+            defaultEffectiveValue: defaults.noRuby ?? false,
+            isEffective: { [layout] in
+                layout == .reflowable
+                    && [.cjkHorizontal, .cjkVertical].contains($0.settings.cssLayout.stylesheets)
+            }
+        )
+
     /// Indicates whether the first page should be displayed alone and centered
     /// instead of alongside the second page.
     ///

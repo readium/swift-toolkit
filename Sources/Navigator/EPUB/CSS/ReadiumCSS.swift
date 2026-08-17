@@ -69,6 +69,7 @@ extension ReadiumCSS {
                     .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
                     ?? "",
             ]
+            noRuby: settings.noRuby,
         )
     }
 

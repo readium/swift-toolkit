@@ -162,6 +162,9 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     /// Requires: fontOverride
     public var a11yNormalize: Bool?
 
+    /// Hiding/disabling ruby (furigana) annotations.
+    public var noRuby: Bool?
+
     /// Additional overrides for extensions and adjustments.
     public var overrides: [String: String?]
 
@@ -188,6 +191,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         bodyHyphens: CSSHyphens? = nil,
         ligatures: CSSLigatures? = nil,
         a11yNormalize: Bool? = nil,
+        noRuby: Bool? = nil,
         overrides: [String: String?] = [:]
     ) {
         self.view = view
@@ -212,6 +216,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.bodyHyphens = bodyHyphens
         self.ligatures = ligatures
         self.a11yNormalize = a11yNormalize
+        self.noRuby = noRuby
         self.overrides = overrides
     }
 
@@ -252,6 +257,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
         // Accessibility
         props.putCSS(name: "--USER__a11yNormalize", value: CSSFlag(name: "a11y", isEnabled: a11yNormalize))
+        props.putCSS(name: "--USER__noRuby", value: CSSFlag(name: "noRuby", isEnabled: noRuby))
 
         props.merge(overrides, uniquingKeysWith: { _, n in n })
         return props

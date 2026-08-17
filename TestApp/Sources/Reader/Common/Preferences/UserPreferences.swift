@@ -115,6 +115,7 @@ struct UserPreferences<
                             letterSpacing: editor.letterSpacing,
                             ligatures: editor.ligatures,
                             lineHeight: editor.lineHeight,
+                            noRuby: editor.noRuby,
                             pageMargins: editor.pageMargins,
                             paragraphIndent: editor.paragraphIndent,
                             paragraphSpacing: editor.paragraphSpacing,
@@ -330,6 +331,7 @@ struct UserPreferences<
         letterSpacing: AnyRangePreference<Double>? = nil,
         ligatures: AnyPreference<Bool>? = nil,
         lineHeight: AnyRangePreference<Double>? = nil,
+        noRuby: AnyPreference<Bool>? = nil,
         pageMargins: AnyRangePreference<Double>? = nil,
         paragraphIndent: AnyRangePreference<Double>? = nil,
         paragraphSpacing: AnyRangePreference<Double>? = nil,
@@ -344,7 +346,7 @@ struct UserPreferences<
         verticalText: AnyPreference<Bool>? = nil,
         wordSpacing: AnyRangePreference<Double>? = nil
     ) -> some View {
-        if language != nil || readingProgression != nil || verticalText != nil {
+        if language != nil || readingProgression != nil || verticalText != nil || noRuby != nil {
             Section {
                 if let language = language {
                     languageRow(
@@ -372,6 +374,14 @@ struct UserPreferences<
                     toggleRow(
                         title: "Vertical text",
                         preference: verticalText,
+                        commit: commit
+                    )
+                }
+
+                if let noRuby = noRuby {
+                    toggleRow(
+                        title: "Hide ruby annotations",
+                        preference: noRuby,
                         commit: commit
                     )
                 }
