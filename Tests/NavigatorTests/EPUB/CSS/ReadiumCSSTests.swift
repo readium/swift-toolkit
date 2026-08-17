@@ -385,4 +385,40 @@ class ReadiumCSSTests: XCTestCase {
             """
         )
     }
+
+    @MainActor
+    func testUpdateWithSettingsComputesPageGutter() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(pageMargins: 1.5),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        css.update(with: settings)
+
+        XCTAssertEqual(
+            css.userProperties.cssProperties()["--RS__pageGutter"],
+            "30.00000px"
+        )
+    }
+
+    @MainActor
+    func testUpdateWithScrollSettingsComputesScrollPadding() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(pageMargins: 1.5, scroll: true),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        css.update(with: settings)
+
+        XCTAssertEqual(
+            css.userProperties.cssProperties()["--RS__scrollPaddingLeft"],
+            "30.00000px"
+        )
+        XCTAssertEqual(
+            css.userProperties.cssProperties()["--RS__scrollPaddingRight"],
+            "30.00000px"
+        )
+    }
 }
