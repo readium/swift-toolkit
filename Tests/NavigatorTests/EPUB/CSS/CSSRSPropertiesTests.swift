@@ -20,7 +20,7 @@ class CSSRSPropertiesTests: XCTestCase {
                 "--RS__flowSpacing": nil,
                 "--RS__paraSpacing": nil,
                 "--RS__paraIndent": nil,
-                "--RS__maxLineLength": nil,
+                "--RS__defaultLineLength": nil,
                 "--RS__maxMediaWidth": nil,
                 "--RS__maxMediaHeight": nil,
                 "--RS__boxSizingMedia": nil,
@@ -74,7 +74,7 @@ class CSSRSPropertiesTests: XCTestCase {
                 flowSpacing: CSSMmLength(4.5),
                 paraSpacing: CSSPxLength(5.6),
                 paraIndent: CSSEmLength(6.7),
-                maxLineLength: CSSRemLength(7.8),
+                defaultLineLength: CSSRemLength(7.8),
                 maxMediaWidth: CSSPercentLength(0.5),
                 maxMediaHeight: CSSVwLength(9.10),
                 boxSizingMedia: .borderBox,
@@ -110,7 +110,7 @@ class CSSRSPropertiesTests: XCTestCase {
                 "--RS__flowSpacing": "4.50000mm",
                 "--RS__paraSpacing": "5.60000px",
                 "--RS__paraIndent": "6.70000em",
-                "--RS__maxLineLength": "7.80000rem",
+                "--RS__defaultLineLength": "7.80000rem",
                 "--RS__maxMediaWidth": "50.00000%",
                 "--RS__maxMediaHeight": "9.10000vw",
                 "--RS__boxSizingMedia": "border-box",
@@ -139,5 +139,15 @@ class CSSRSPropertiesTests: XCTestCase {
                 "--RS__codeFontFamily": #"Monaco, "Console Sans""#,
             ]
         )
+    }
+
+    func testDeprecatedMaxLineLength() {
+        var props = CSSRSProperties(maxLineLength: CSSRemLength(5.0))
+        XCTAssertEqual(props.defaultLineLength?.value, 5.0)
+        XCTAssertEqual(props.maxLineLength?.value, 5.0)
+
+        props.maxLineLength = CSSRemLength(6.0)
+        XCTAssertEqual(props.defaultLineLength?.value, 6.0)
+        XCTAssertEqual(props.cssProperties()["--RS__defaultLineLength"], "6.00000rem")
     }
 }

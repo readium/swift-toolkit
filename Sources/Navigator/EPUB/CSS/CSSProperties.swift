@@ -296,9 +296,15 @@ public struct CSSRSProperties: CSSProperties, Sendable {
 
     // Safeguards
 
-    /// @param maxLineLength The optimal line-length. It must be set in rem in order to take :root’s
+    /// @param defaultLineLength The optimal line-length. It must be set in rem in order to take :root’s
     /// font-size as a reference, whichever the body’s font-size might be.
-    public var maxLineLength: CSSRemLength?
+    public var defaultLineLength: CSSRemLength?
+
+    @available(*, deprecated, renamed: "defaultLineLength")
+    public var maxLineLength: CSSRemLength? {
+        get { defaultLineLength }
+        set { defaultLineLength = newValue }
+    }
 
     /// @param maxMediaWidth The max-width for media elements i.e. img, svg, audio and video.
     public var maxMediaWidth: CSSLength?
@@ -411,7 +417,7 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         flowSpacing: CSSLength? = nil,
         paraSpacing: CSSLength? = nil,
         paraIndent: CSSLength? = nil,
-        maxLineLength: CSSRemLength? = nil,
+        defaultLineLength: CSSRemLength? = nil,
         maxMediaWidth: CSSLength? = nil,
         maxMediaHeight: CSSLength? = nil,
         boxSizingMedia: CSSBoxSizing? = nil,
@@ -447,7 +453,7 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         self.flowSpacing = flowSpacing
         self.paraSpacing = paraSpacing
         self.paraIndent = paraIndent
-        self.maxLineLength = maxLineLength
+        self.defaultLineLength = defaultLineLength
         self.maxMediaWidth = maxMediaWidth
         self.maxMediaHeight = maxMediaHeight
         self.boxSizingMedia = boxSizingMedia
@@ -477,6 +483,88 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         self.overrides = overrides
     }
 
+    @available(*, deprecated, message: "Use init with defaultLineLength instead")
+    public init(
+        colWidth: CSSLength? = nil,
+        colCount: CSSColCount? = nil,
+        colGap: CSSAbsoluteLength? = nil,
+        pageGutter: CSSAbsoluteLength? = nil,
+        flowSpacing: CSSLength? = nil,
+        paraSpacing: CSSLength? = nil,
+        paraIndent: CSSLength? = nil,
+        maxLineLength: CSSRemLength?,
+        maxMediaWidth: CSSLength? = nil,
+        maxMediaHeight: CSSLength? = nil,
+        boxSizingMedia: CSSBoxSizing? = nil,
+        boxSizingTable: CSSBoxSizing? = nil,
+        textColor: CSSColor? = nil,
+        backgroundColor: CSSColor? = nil,
+        selectionTextColor: CSSColor? = nil,
+        selectionBackgroundColor: CSSColor? = nil,
+        linkColor: CSSColor? = nil,
+        visitedColor: CSSColor? = nil,
+        primaryColor: CSSColor? = nil,
+        secondaryColor: CSSColor? = nil,
+        typeScale: Double? = nil,
+        baseFontFamily: [String]? = nil,
+        baseLineHeight: CSSLineHeight? = nil,
+        oldStyleTf: [String]? = nil,
+        modernTf: [String]? = nil,
+        sansTf: [String]? = nil,
+        humanistTf: [String]? = nil,
+        monospaceTf: [String]? = nil,
+        serifJa: [String]? = nil,
+        sansSerifJa: [String]? = nil,
+        serifJaV: [String]? = nil,
+        sansSerifJaV: [String]? = nil,
+        compFontFamily: [String]? = nil,
+        codeFontFamily: [String]? = nil,
+        overrides: [String: String?] = [:]
+    ) {
+        self.init(
+            viewportWidth: nil,
+            colWidth: colWidth,
+            colCount: colCount,
+            colGap: colGap,
+            pageGutter: pageGutter,
+            scrollPaddingTop: nil,
+            scrollPaddingBottom: nil,
+            scrollPaddingLeft: nil,
+            scrollPaddingRight: nil,
+            flowSpacing: flowSpacing,
+            paraSpacing: paraSpacing,
+            paraIndent: paraIndent,
+            defaultLineLength: maxLineLength,
+            maxMediaWidth: maxMediaWidth,
+            maxMediaHeight: maxMediaHeight,
+            boxSizingMedia: boxSizingMedia,
+            boxSizingTable: boxSizingTable,
+            textColor: textColor,
+            backgroundColor: backgroundColor,
+            selectionTextColor: selectionTextColor,
+            selectionBackgroundColor: selectionBackgroundColor,
+            linkColor: linkColor,
+            visitedColor: visitedColor,
+            primaryColor: primaryColor,
+            secondaryColor: secondaryColor,
+            typeScale: typeScale,
+            baseFontFamily: baseFontFamily,
+            baseLineHeight: baseLineHeight,
+            oldStyleTf: oldStyleTf,
+            modernTf: modernTf,
+            sansTf: sansTf,
+            humanistTf: humanistTf,
+            monospaceTf: monospaceTf,
+            serifJa: serifJa,
+            sansSerifJa: sansSerifJa,
+            serifJaV: serifJaV,
+            sansSerifJaV: sansSerifJaV,
+            compFontFamily: compFontFamily,
+            codeFontFamily: codeFontFamily,
+            overrides: overrides
+        )
+    }
+
     public func cssProperties() -> [String: String?] {
         var props: [String: String?] = [:]
 
@@ -492,7 +580,7 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         props.putCSS(name: "--RS__paraIndent", value: paraIndent)
 
         // Safeguards
-        props.putCSS(name: "--RS__maxLineLength", value: maxLineLength)
+        props.putCSS(name: "--RS__defaultLineLength", value: defaultLineLength)
         props.putCSS(name: "--RS__maxMediaWidth", value: maxMediaWidth)
         props.putCSS(name: "--RS__maxMediaHeight", value: maxMediaHeight)
         props.putCSS(name: "--RS__boxSizingMedia", value: boxSizingMedia)
