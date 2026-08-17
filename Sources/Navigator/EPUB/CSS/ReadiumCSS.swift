@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumShared
+import UIKit
 
 struct ReadiumCSS {
     var layout: CSSLayout = .init()
@@ -19,13 +20,53 @@ struct ReadiumCSS {
 }
 
 extension ReadiumCSS {
+    @MainActor
     mutating func update(with settings: EPUBSettings) {
         layout = settings.cssLayout
+
+        var overrides: [String: String] = [
+            // See https://github.com/readium/css/issues/183
+            "--RS__disableOverflow": "readium-noOverflow-on",
+
+            "font-weight": settings.fontWeight
+                .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
+                ?? "",
+        ]
+
+        let baseGutter = 20.0
+        let gutterString = String(format: "%.5fpx", baseGutter * settings.pageMargins)
+        overrides["--RS__pageGutter"] = gutterString
+
+        if settings.scroll {
+            if settings.verticalText {
+                overrides["--RS__scrollPaddingTop"] = gutterString
+                overrides["--RS__scrollPaddingBottom"] = gutterString
+            } else {
+                overrides["--RS__scrollPaddingLeft"] = gutterString
+                overrides["--RS__scrollPaddingRight"] = gutterString
+            }
+        }
+
+        // Applies WebKit patches, ideally:
+        // - iOS patch for iOS and iPadOS when the site is requested as mobile.
+        // - iPadOSPatch for iPadOS when the site is requested as desktop.
+        // - Nothing if MacOS.
+        //
+        // See https://github.com/readium/css/issues/189
+        switch UIDevice.current.userInterfaceIdiom {
+        case .pad:
+            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
+        case .phone:
+            overrides["--USER__iOSPatch"] = "readium-iOSPatch-on"
+        default:
+            break
+        }
+
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
             colCount: {
                 switch settings.columnCount {
-                case .auto: return .auto
+                case .auto: return nil
                 case .one: return .one
                 case .two: return .two
                 }
@@ -64,12 +105,8 @@ extension ReadiumCSS {
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
-            overrides: [
-                "font-weight": settings.fontWeight
-                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
-                    ?? "",
-            ]
             noRuby: settings.noRuby,
+            overrides: overrides
         )
     }
 
