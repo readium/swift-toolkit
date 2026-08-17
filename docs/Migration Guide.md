@@ -2,7 +2,17 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### Readium CSS v2 and `CSSRSProperties`
+
+Readium CSS has been upgraded to version 2. If you configure custom Reading System properties via `CSSRSProperties`, note that `maxLineLength` is deprecated in favor of `defaultLineLength`:
+
+```diff
+-CSSRSProperties(maxLineLength: CSSRemLength(40))
++CSSRSProperties(defaultLineLength: CSSRemLength(40))
+```
+
 
 ## 4.0.0-alpha.1
 

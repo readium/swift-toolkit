@@ -388,6 +388,8 @@ EPUB comes in two very different flavors: **reflowable** which allows a lot of c
 | `letterSpacing`      | :white_check_mark: |                    |
 | `ligatures`          | :white_check_mark: |                    |
 | `lineHeight`         | :white_check_mark: |                    |
+| `noRuby`             | :white_check_mark: |                    |
+| `offsetFirstPage`    |                    | :white_check_mark: |
 | `pageMargins`        | :white_check_mark: |                    |
 | `paragraphIndent`    | :white_check_mark: |                    |
 | `paragraphSpacing`   | :white_check_mark: |                    |
@@ -437,6 +439,7 @@ Some preferences are not available for all languages and layout.
 | `wordSpacing`     | :white_check_mark: |                    |     |
 | `hyphens`         | :white_check_mark: |                    |     |
 | `ligatures`       |                    | :white_check_mark: |     |
+| `noRuby`          |                    |                    | :white_check_mark: |
 
 ### PDF
 
