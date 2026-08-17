@@ -13,10 +13,15 @@ class CSSRSPropertiesTests: XCTestCase {
         XCTAssertEqual(
             CSSRSProperties().cssProperties(),
             [
+                "--RS__viewportWidth": nil,
                 "--RS__colWidth": nil,
                 "--RS__colCount": nil,
                 "--RS__colGap": nil,
                 "--RS__pageGutter": nil,
+                "--RS__scrollPaddingTop": nil,
+                "--RS__scrollPaddingBottom": nil,
+                "--RS__scrollPaddingLeft": nil,
+                "--RS__scrollPaddingRight": nil,
                 "--RS__flowSpacing": nil,
                 "--RS__paraSpacing": nil,
                 "--RS__paraIndent": nil,
@@ -67,10 +72,15 @@ class CSSRSPropertiesTests: XCTestCase {
     func testConvertFullPropertiesToCSSProperties() {
         XCTAssertEqual(
             CSSRSProperties(
+                viewportWidth: CSSPercentLength(1.0),
                 colWidth: CSSCmLength(1.2),
                 colCount: .two,
                 colGap: CSSPtLength(2.3),
                 pageGutter: CSSPcLength(3.4),
+                scrollPaddingTop: CSSPxLength(10),
+                scrollPaddingBottom: CSSPxLength(20),
+                scrollPaddingLeft: CSSPxLength(15),
+                scrollPaddingRight: CSSPxLength(25),
                 flowSpacing: CSSMmLength(4.5),
                 paraSpacing: CSSPxLength(5.6),
                 paraIndent: CSSEmLength(6.7),
@@ -103,10 +113,15 @@ class CSSRSPropertiesTests: XCTestCase {
                 codeFontFamily: ["Monaco", "Console Sans"]
             ).cssProperties(),
             [
+                "--RS__viewportWidth": "100.00000%",
                 "--RS__colWidth": "1.20000cm",
                 "--RS__colCount": "2",
                 "--RS__colGap": "2.30000pt",
                 "--RS__pageGutter": "3.40000pc",
+                "--RS__scrollPaddingTop": "10.00000px",
+                "--RS__scrollPaddingBottom": "20.00000px",
+                "--RS__scrollPaddingLeft": "15.00000px",
+                "--RS__scrollPaddingRight": "25.00000px",
                 "--RS__flowSpacing": "4.50000mm",
                 "--RS__paraSpacing": "5.60000px",
                 "--RS__paraIndent": "6.70000em",

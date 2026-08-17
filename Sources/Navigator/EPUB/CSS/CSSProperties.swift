@@ -270,6 +270,9 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 public struct CSSRSProperties: CSSProperties, Sendable {
     // Pagination
 
+    /// @param viewportWidth The optimal viewport width.
+    public var viewportWidth: CSSLength?
+
     /// @param colWidth The optimal column’s width. It serves as a floor in our design.
     public var colWidth: CSSLength?
 
@@ -281,6 +284,18 @@ public struct CSSRSProperties: CSSProperties, Sendable {
 
     /// @param pageGutter The horizontal page margins.
     public var pageGutter: CSSAbsoluteLength?
+
+    /// @param scrollPaddingTop The default top padding for continuous scroll mode.
+    public var scrollPaddingTop: CSSLength?
+
+    /// @param scrollPaddingBottom The default bottom padding for continuous scroll mode.
+    public var scrollPaddingBottom: CSSLength?
+
+    /// @param scrollPaddingLeft The default left padding for continuous scroll mode.
+    public var scrollPaddingLeft: CSSLength?
+
+    /// @param scrollPaddingRight The default right padding for continuous scroll mode.
+    public var scrollPaddingRight: CSSLength?
 
     // Vertical rhythm
 
@@ -410,10 +425,15 @@ public struct CSSRSProperties: CSSProperties, Sendable {
     public var overrides: [String: String?]
 
     public init(
+        viewportWidth: CSSLength? = nil,
         colWidth: CSSLength? = nil,
         colCount: CSSColCount? = nil,
         colGap: CSSAbsoluteLength? = nil,
         pageGutter: CSSAbsoluteLength? = nil,
+        scrollPaddingTop: CSSLength? = nil,
+        scrollPaddingBottom: CSSLength? = nil,
+        scrollPaddingLeft: CSSLength? = nil,
+        scrollPaddingRight: CSSLength? = nil,
         flowSpacing: CSSLength? = nil,
         paraSpacing: CSSLength? = nil,
         paraIndent: CSSLength? = nil,
@@ -446,10 +466,15 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         codeFontFamily: [String]? = nil,
         overrides: [String: String?] = [:]
     ) {
+        self.viewportWidth = viewportWidth
         self.colWidth = colWidth
         self.colCount = colCount
         self.colGap = colGap
         self.pageGutter = pageGutter
+        self.scrollPaddingTop = scrollPaddingTop
+        self.scrollPaddingBottom = scrollPaddingBottom
+        self.scrollPaddingLeft = scrollPaddingLeft
+        self.scrollPaddingRight = scrollPaddingRight
         self.flowSpacing = flowSpacing
         self.paraSpacing = paraSpacing
         self.paraIndent = paraIndent
@@ -569,10 +594,15 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         var props: [String: String?] = [:]
 
         // Pagination
+        props.putCSS(name: "--RS__viewportWidth", value: viewportWidth)
         props.putCSS(name: "--RS__colWidth", value: colWidth)
         props.putCSS(name: "--RS__colCount", value: colCount)
         props.putCSS(name: "--RS__colGap", value: colGap)
         props.putCSS(name: "--RS__pageGutter", value: pageGutter)
+        props.putCSS(name: "--RS__scrollPaddingTop", value: scrollPaddingTop)
+        props.putCSS(name: "--RS__scrollPaddingBottom", value: scrollPaddingBottom)
+        props.putCSS(name: "--RS__scrollPaddingLeft", value: scrollPaddingLeft)
+        props.putCSS(name: "--RS__scrollPaddingRight", value: scrollPaddingRight)
 
         // Vertical rhythm
         props.putCSS(name: "--RS__flowSpacing", value: flowSpacing)
