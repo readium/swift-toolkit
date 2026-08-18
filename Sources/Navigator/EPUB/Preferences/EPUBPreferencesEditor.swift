@@ -264,6 +264,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             }
         )
 
+    /// Factor applied to the maximum line length. Defaults to 100%.
+    public lazy var lineLength: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.lineLength,
+            setting: \.lineLength,
+            defaultEffectiveValue: defaults.lineLength ?? 1.0,
+            isEffective: { _ in true },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+
     /// Factor applied to horizontal margins. Default to 1.
     ///
     /// Only effective with reflowable publications.

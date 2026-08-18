@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Upgraded Readium CSS to version 2.0.5.
 * Added the `noRuby` preference to `EPUBPreferences`, `EPUBSettings`, `EPUBDefaults`, and `EPUBPreferencesEditor` to allow hiding ruby (furigana) annotations in CJK publications.
 * Added `CSSRSProperties.defaultLineLength`, `viewportWidth`, `scrollPaddingTop`, `scrollPaddingBottom`, `scrollPaddingLeft`, and `scrollPaddingRight` to configure Readium CSS v2 reading system properties.
+* Added the `lineLength` preference to `EPUBPreferences`, `EPUBSettings`, `EPUBDefaults`, and `EPUBPreferencesEditor`. This setting behaves as a factor applied to the maximum width of the text column, offering finer control over text presentation than `pageMargins` (which solely handles the padding around the text).
 * Added optional CSS minification to the build scripts (`make scripts minify=true`).
 
 ### Changed

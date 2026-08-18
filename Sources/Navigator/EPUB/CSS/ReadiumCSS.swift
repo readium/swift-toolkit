@@ -66,6 +66,7 @@ extension ReadiumCSS {
             view: settings.scroll ? .scroll : .paged,
             colCount: settings.columnCount,
             pageMargins: settings.pageMargins,
+            lineLength: CSSPercentLength(settings.lineLength),
             appearance: {
                 switch settings.theme {
                 case .light: return nil

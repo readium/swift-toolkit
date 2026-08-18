@@ -55,6 +55,9 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     /// To reset, change the value to 1.
     public var pageMargins: Double?
 
+    /// The maximum line length.
+    public var lineLength: CSSLength?
+
     // Appearance
 
     /// This flag applies a reading mode (sepia or night).
@@ -171,6 +174,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         view: CSSView? = nil,
         colCount: Int? = nil,
         pageMargins: Double? = nil,
+        lineLength: CSSLength? = nil,
         appearance: CSSAppearance? = nil,
         darkenImages: Bool? = nil,
         invertImages: Bool? = nil,
@@ -196,6 +200,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.view = view
         self.colCount = colCount
         self.pageMargins = pageMargins
+        self.lineLength = lineLength
         self.appearance = appearance
         self.darkenImages = darkenImages
         self.invertImages = invertImages
@@ -227,6 +232,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         // Pagination
         props.putCSS(name: "--USER__colCount", value: colCount)
         props.putCSS(name: "--USER__pageMargins", value: pageMargins)
+        props.putCSS(name: "--USER__lineLength", value: lineLength)
 
         // Appearance
         props.putCSS(name: "--USER__appearance", value: appearance)

@@ -387,6 +387,7 @@ EPUB comes in two very different flavors: **reflowable** which allows a lot of c
 | `language`           | :white_check_mark: | :white_check_mark: |
 | `letterSpacing`      | :white_check_mark: |                    |
 | `ligatures`          | :white_check_mark: |                    |
+| `lineLength`         | :white_check_mark: |
 | `lineHeight`         | :white_check_mark: |                    |
 | `noRuby`             | :white_check_mark: |                    |
 | `offsetFirstPage`    |                    | :white_check_mark: |

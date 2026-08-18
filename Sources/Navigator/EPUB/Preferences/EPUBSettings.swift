@@ -24,6 +24,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
+    public var lineLength: Double
     public var lineHeight: Double?
     public var noRuby: Bool
     public var offsetFirstPage: Bool?
@@ -60,6 +61,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         language: Language?,
         letterSpacing: Double?,
         ligatures: Bool?,
+        lineLength: Double,
         lineHeight: Double?,
         noRuby: Bool = false,
         offsetFirstPage: Bool?,
@@ -89,6 +91,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
+        self.lineLength = lineLength
         self.lineHeight = lineHeight
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
@@ -166,6 +169,9 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             language: language,
             letterSpacing: preferences.letterSpacing
                 ?? defaults.letterSpacing,
+            lineLength: preferences.lineLength
+                ?? defaults.lineLength
+                ?? 1.0,
             ligatures: preferences.ligatures
                 ?? defaults.ligatures,
             lineHeight: preferences.lineHeight
@@ -223,6 +229,7 @@ public struct EPUBDefaults: Sendable {
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
+    public var lineLength: Double?
     public var lineHeight: Double?
     public var noRuby: Bool?
     public var offsetFirstPage: Bool?
@@ -248,6 +255,7 @@ public struct EPUBDefaults: Sendable {
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
+        lineLength: Double? = nil,
         lineHeight: Double? = nil,
         noRuby: Bool? = nil,
         offsetFirstPage: Bool? = nil,
@@ -272,6 +280,7 @@ public struct EPUBDefaults: Sendable {
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
+        self.lineLength = lineLength
         self.lineHeight = lineHeight
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage

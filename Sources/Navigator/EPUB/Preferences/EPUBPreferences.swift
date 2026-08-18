@@ -51,6 +51,9 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Enable ligatures in Arabic.
     public var ligatures: Bool?
 
+    /// The maximum line length.
+    public var lineLength: Double?
+
     /// Leading line height.
     public var lineHeight: Double?
 
@@ -124,6 +127,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
+        lineLength: Double? = nil,
         lineHeight: Double? = nil,
         noRuby: Bool? = nil,
         offsetFirstPage: Bool? = nil,
@@ -153,6 +157,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
+        self.lineLength = lineLength.map { max($0, 0) }
         self.lineHeight = lineHeight
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
@@ -185,6 +190,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
+            lineLength: other.lineLength ?? lineLength,
             lineHeight: other.lineHeight ?? lineHeight,
             noRuby: other.noRuby ?? noRuby,
             offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
