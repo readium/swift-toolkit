@@ -3,7 +3,27 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Added
+
+#### Navigator
+
+* Upgraded Readium CSS to version 2.0.5.
+* Added the `noRuby` preference to `EPUBPreferences`, `EPUBSettings`, `EPUBDefaults`, and `EPUBPreferencesEditor` to allow hiding ruby (furigana) annotations in CJK publications.
+* Added `CSSRSProperties.defaultLineLength`, `viewportWidth`, `scrollPaddingTop`, `scrollPaddingBottom`, `scrollPaddingLeft`, and `scrollPaddingRight` to configure Readium CSS v2 reading system properties.
+* Added the `lineLength` preference to `EPUBPreferences`, `EPUBSettings`, `EPUBDefaults`, and `EPUBPreferencesEditor`. This setting behaves as a factor applied to the maximum width of the text column, offering finer control over text presentation than `pageMargins` (which solely handles the padding around the text).
+* Added `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji` to `EPUBPreferences`, `EPUBSettings`, `EPUBDefaults`, and `EPUBPreferencesEditor` for precise CSS filtering of images.
+* Added optional CSS minification to the build scripts (`make scripts minify=true`).
+
+### Changed
+
+#### Navigator
+
+* `CSSRSProperties.maxLineLength` is deprecated in favor of `defaultLineLength` to match Readium CSS v2.
+* Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int` to support arbitrary column counts. The `ColumnCount` enum is removed.
+* Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The `ImageFilter` enum is removed.
+
 
 ## [4.0.0-alpha.1] - 2026-08-14
 

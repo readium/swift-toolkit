@@ -6,19 +6,21 @@
 
 @testable import ReadiumNavigator
 import ReadiumShared
-import XCTest
+import Testing
 
-class CSSUserPropertiesTests: XCTestCase {
-    func testConvertEmptyUserPropertiesToCSSProperties() {
-        XCTAssertEqual(
-            CSSUserProperties().cssProperties(),
-            [
+struct CSSUserPropertiesTests {
+    @Test func convertEmptyUserPropertiesToCSSProperties() {
+        #expect(
+            CSSUserProperties().cssProperties() == [
                 "--USER__view": nil,
                 "--USER__colCount": nil,
                 "--USER__pageMargins": nil,
+                "--USER__lineLength": nil,
                 "--USER__appearance": nil,
+                "--USER__blendImages": nil,
                 "--USER__darkenImages": nil,
                 "--USER__invertImages": nil,
+                "--USER__invertGaiji": nil,
                 "--USER__textColor": nil,
                 "--USER__backgroundColor": nil,
                 "--USER__fontOverride": nil,
@@ -35,19 +37,23 @@ class CSSUserPropertiesTests: XCTestCase {
                 "--USER__bodyHyphens": nil,
                 "--USER__ligatures": nil,
                 "--USER__a11yNormalize": nil,
+                "--USER__noRuby": nil,
             ]
         )
     }
 
-    func testConvertFullUserPropertiesToCSSProperties() {
-        XCTAssertEqual(
+    @Test func convertFullUserPropertiesToCSSProperties() {
+        #expect(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto,
+                colCount: 0,
                 pageMargins: 1.2,
+                lineLength: CSSPercentLength(42),
                 appearance: .night,
-                darkenImages: true,
-                invertImages: true,
+                blendImages: true,
+                darkenImages: 0.8,
+                invertImages: 0.9,
+                invertGaiji: 0.95,
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
                 fontOverride: true,
@@ -63,15 +69,18 @@ class CSSUserPropertiesTests: XCTestCase {
                 letterSpacing: CSSRemLength(8.9),
                 bodyHyphens: .auto,
                 ligatures: .common,
-                a11yNormalize: true
-            ).cssProperties(),
-            [
+                a11yNormalize: true,
+                noRuby: true
+            ).cssProperties() == [
                 "--USER__view": "readium-scroll-on",
-                "--USER__colCount": "auto",
+                "--USER__colCount": "0",
                 "--USER__pageMargins": "1.20000",
+                "--USER__lineLength": "4200.00000%",
                 "--USER__appearance": "readium-night-on",
-                "--USER__darkenImages": "readium-darken-on",
-                "--USER__invertImages": "readium-invert-on",
+                "--USER__blendImages": "readium-blend-on",
+                "--USER__darkenImages": "0.80000",
+                "--USER__invertImages": "0.90000",
+                "--USER__invertGaiji": "0.95000",
                 "--USER__textColor": "#FF0000",
                 "--USER__backgroundColor": "#00FF00",
                 "--USER__fontOverride": "readium-font-on",
@@ -88,50 +97,53 @@ class CSSUserPropertiesTests: XCTestCase {
                 "--USER__bodyHyphens": "auto",
                 "--USER__ligatures": "common-ligatures",
                 "--USER__a11yNormalize": "readium-a11y-on",
+                "--USER__noRuby": "readium-noRuby-on",
             ]
         )
     }
 
-    func testOverrideUserProperties() {
+    @Test func overrideUserProperties() {
         let props = CSSUserProperties(
-            colCount: .one,
+            colCount: 1,
             overrides: [
                 "--USER__colCount": "2",
                 "--USER__custom": "value",
             ]
         ).cssProperties()
 
-        XCTAssertEqual(props["--USER__colCount"], "2")
-        XCTAssertEqual(props["--USER__custom"], "value")
+        #expect(props["--USER__colCount"] == "2")
+        #expect(props["--USER__custom"] == "value")
     }
 
-    func testGenerateEmptyInlineCSSProperties() {
-        XCTAssertEqual(CSSUserProperties().css(), nil)
+    @Test func generateEmptyInlineCSSProperties() {
+        #expect(CSSUserProperties().css() == nil)
     }
 
-    func testGenerateMinimalInlineCSSProperties() {
-        XCTAssertEqual(
+    @Test func generateMinimalInlineCSSProperties() {
+        #expect(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto
-            ).css(),
-            """
-            --USER__colCount: auto !important;
+                colCount: 0
+            ).css() == """
+            --USER__colCount: 0 !important;
             --USER__view: readium-scroll-on !important;
 
             """
         )
     }
 
-    func testGenerateFullInlineCSSProperties() {
-        XCTAssertEqual(
+    @Test func generateFullInlineCSSProperties() {
+        #expect(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto,
+                colCount: 0,
                 pageMargins: 1.2,
+                lineLength: CSSPercentLength(42),
                 appearance: .night,
-                darkenImages: true,
-                invertImages: true,
+                blendImages: true,
+                darkenImages: 0.8,
+                invertImages: 0.9,
+                invertGaiji: 0.95,
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
                 fontOverride: true,
@@ -147,23 +159,27 @@ class CSSUserPropertiesTests: XCTestCase {
                 letterSpacing: CSSRemLength(8.9),
                 bodyHyphens: .auto,
                 ligatures: .common,
-                a11yNormalize: true
-            ).css(),
-            """
+                a11yNormalize: true,
+                noRuby: true
+            ).css() == """
             --USER__a11yNormalize: readium-a11y-on !important;
             --USER__advancedSettings: readium-advanced-on !important;
             --USER__appearance: readium-night-on !important;
             --USER__backgroundColor: #00FF00 !important;
+            --USER__blendImages: readium-blend-on !important;
             --USER__bodyHyphens: auto !important;
-            --USER__colCount: auto !important;
-            --USER__darkenImages: readium-darken-on !important;
+            --USER__colCount: 0 !important;
+            --USER__darkenImages: 0.80000 !important;
             --USER__fontFamily: "Times New", "Comic Sans" !important;
             --USER__fontOverride: readium-font-on !important;
             --USER__fontSize: 2.30000vmax !important;
-            --USER__invertImages: readium-invert-on !important;
+            --USER__invertGaiji: 0.95000 !important;
+            --USER__invertImages: 0.90000 !important;
             --USER__letterSpacing: 8.90000rem !important;
             --USER__ligatures: common-ligatures !important;
             --USER__lineHeight: 4.50000pt !important;
+            --USER__lineLength: 4200.00000% !important;
+            --USER__noRuby: readium-noRuby-on !important;
             --USER__pageMargins: 1.20000 !important;
             --USER__paraIndent: 6.70000rem !important;
             --USER__paraSpacing: 5.60000pt !important;

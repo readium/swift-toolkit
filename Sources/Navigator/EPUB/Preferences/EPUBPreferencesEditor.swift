@@ -53,16 +53,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// Only effective when:
     ///  - the publication is reflowable
     ///  - `scroll` is off
-    public lazy var columnCount: AnyEnumPreference<ColumnCount> =
-        enumPreference(
+    public lazy var columnCount: AnyRangePreference<Int> =
+        rangePreference(
             preference: \.columnCount,
             setting: \.columnCount,
-            defaultEffectiveValue: defaults.columnCount ?? .auto,
+            defaultEffectiveValue: defaults.columnCount ?? 1,
             isEffective: { [layout] in
                 layout == .reflowable
                     && !$0.settings.scroll
             },
-            supportedValues: [.auto, .one, .two]
+            supportedRange: 1 ... 9,
+            progressionStrategy: .increment(1),
+            format: { String(format: "%d", $0) }
         )
 
     /// Method for fitting the content within the viewport.
@@ -143,18 +145,59 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             }
         )
 
-    /// Filter applied to images in dark theme.
-    ///
-    /// Only effective when:
-    ///  - the publication is reflowable
-    ///  - the `theme` is set to `Theme.DARK`
-    public lazy var imageFilter: AnyEnumPreference<ImageFilter?> =
-        enumPreference(
-            preference: \.imageFilter,
-            setting: \.imageFilter,
-            isEffective: { $0.settings.theme == .dark },
-            supportedValues: [nil, .darken, .invert]
+    /// Blends the images with the background color.
+    public lazy var blendImages: AnyPreference<Bool?> =
+        preference(
+            preference: \.blendImages,
+            setting: \.blendImages,
+            isEffective: { [layout] _ in layout == .reflowable }
         )
+
+    /// Darkens images by the given percentage.
+    public lazy var darkenImages: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.darkenImages,
+            effectiveValue: { $0.settings.darkenImages ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] _ in layout == .reflowable },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+
+    /// Inverts gaiji images.
+    public lazy var invertGaiji: AnyPreference<Bool> =
+        rangePreference(
+            preference: \.invertGaiji,
+            effectiveValue: { $0.settings.invertGaiji ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] _ in layout == .reflowable },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+        .map(
+            from: { $0 > 0 },
+            to: { $0 ? 1.0 : 0.0 }
+        )
+        .eraseToAnyPreference()
+
+    /// Inverts the color of images.
+    public lazy var invertImages: AnyPreference<Bool> =
+        rangePreference(
+            preference: \.invertImages,
+            effectiveValue: { $0.settings.invertImages ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] _ in layout == .reflowable },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+        .map(
+            from: { $0 > 0 },
+            to: { $0 ? 1.0 : 0.0 }
+        )
+        .eraseToAnyPreference()
 
     /// Language of the publication content.
     ///
@@ -227,6 +270,22 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
+    /// Hiding/disabling ruby (furigana) annotations.
+    ///
+    /// Only effective when:
+    ///  - the publication is reflowable
+    ///  - the layout is CJK horizontal or vertical
+    public lazy var noRuby: AnyPreference<Bool> =
+        preference(
+            preference: \.noRuby,
+            setting: \.noRuby,
+            defaultEffectiveValue: defaults.noRuby ?? false,
+            isEffective: { [layout] in
+                layout == .reflowable
+                    && [.cjkHorizontal, .cjkVertical].contains($0.settings.cssLayout.stylesheets)
+            }
+        )
+
     /// Indicates whether the first page should be displayed alone and centered
     /// instead of alongside the second page.
     ///
@@ -244,6 +303,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                 layout == .fixed
                     && $0.settings.spread != .never
             }
+        )
+
+    /// Factor applied to the maximum line length. Defaults to 100%.
+    public lazy var lineLength: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.lineLength,
+            setting: \.lineLength,
+            defaultEffectiveValue: defaults.lineLength ?? 1.0,
+            isEffective: { _ in true },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
         )
 
     /// Factor applied to horizontal margins. Default to 1.

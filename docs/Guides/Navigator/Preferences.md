@@ -48,7 +48,7 @@ epubNavigator.submitPreferences(editor.preferences)
 
 Preferences are low-level technical properties. While some of them can be exposed directly to the user, such as the font size, others should not be displayed as-is.
 
-For instance, in EPUB, we can simulate two pages side by side using the `columnCount` (`auto`, `1`, `2`) property for reflowable resources, and the `spread` (`auto`, `never`, `always`) property for fixed-layout publications. Rather than displaying both of these settings with all of their possible values in the user interface, you might prefer to show a single switch button to enable a dual-page mode, which will set both settings appropriately.
+For instance, in EPUB, we can simulate two pages side by side using the `columnCount` property for reflowable resources, and the `spread` (`auto`, `never`, `always`) property for fixed-layout publications. Rather than displaying both of these settings with all of their possible values in the user interface, you might prefer to show a single switch button to enable a dual-page mode, which will set both settings appropriately.
 
 ### Inactive settings
 
@@ -383,11 +383,17 @@ EPUB comes in two very different flavors: **reflowable** which allows a lot of c
 | `fontSize`           | :white_check_mark: |                    |
 | `fontWeight`         | :white_check_mark: |                    |
 | `hyphens`            | :white_check_mark: |                    |
-| `imageFilter`        | :white_check_mark: |                    |
+| `blendImages`        | :white_check_mark: |                    |
+| `darkenImages`       | :white_check_mark: |                    |
+| `invertImages`       | :white_check_mark: |                    |
+| `invertGaiji`        | :white_check_mark: |                    |
 | `language`           | :white_check_mark: | :white_check_mark: |
 | `letterSpacing`      | :white_check_mark: |                    |
 | `ligatures`          | :white_check_mark: |                    |
+| `lineLength`         | :white_check_mark: |
 | `lineHeight`         | :white_check_mark: |                    |
+| `noRuby`             | :white_check_mark: |                    |
+| `offsetFirstPage`    |                    | :white_check_mark: |
 | `pageMargins`        | :white_check_mark: |                    |
 | `paragraphIndent`    | :white_check_mark: |                    |
 | `paragraphSpacing`   | :white_check_mark: |                    |
@@ -423,7 +429,7 @@ The `columnCount` preference is available only when in paginated mode (`scroll =
 
 #### Dark theme specific preferences
 
-The `imageFilter` preference is available only in dark mode (`theme = .dark`).
+The `darkenImages`, `invertImages`, and `invertGaiji` preferences are available only in dark mode (`theme = .dark`).
 
 #### Language specific preferences
 
@@ -437,6 +443,7 @@ Some preferences are not available for all languages and layout.
 | `wordSpacing`     | :white_check_mark: |                    |     |
 | `hyphens`         | :white_check_mark: |                    |     |
 | `ligatures`       |                    | :white_check_mark: |     |
+| `noRuby`          |                    |                    | :white_check_mark: |
 
 ### PDF
 
