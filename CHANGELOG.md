@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * `CSSRSProperties.maxLineLength` is deprecated in favor of `defaultLineLength` to match Readium CSS v2.
+* Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int` to support arbitrary column counts. The `ColumnCount` enum is removed.
 
 
 ## [4.0.0-alpha.1] - 2026-08-14

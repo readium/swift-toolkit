@@ -53,16 +53,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// Only effective when:
     ///  - the publication is reflowable
     ///  - `scroll` is off
-    public lazy var columnCount: AnyEnumPreference<ColumnCount> =
-        enumPreference(
+    public lazy var columnCount: AnyRangePreference<Int> =
+        rangePreference(
             preference: \.columnCount,
             setting: \.columnCount,
-            defaultEffectiveValue: defaults.columnCount ?? .auto,
+            defaultEffectiveValue: defaults.columnCount ?? 1,
             isEffective: { [layout] in
                 layout == .reflowable
                     && !$0.settings.scroll
             },
-            supportedValues: [.auto, .one, .two]
+            supportedRange: 1 ... 9,
+            progressionStrategy: .increment(1),
+            format: { String(format: "%d", $0) }
         )
 
     /// Method for fitting the content within the viewport.

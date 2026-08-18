@@ -16,7 +16,9 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     /// Number of reflowable columns to display (one-page view or two-page
     /// spread).
-    public var columnCount: ColumnCount?
+    ///
+    /// Use `0` for an automatic number of columns, depending on the viewport size.
+    public var columnCount: Int?
 
     /// Method for fitting the content of a fixed-layout publication within the
     /// viewport.
@@ -112,7 +114,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     public init(
         backgroundColor: Color? = nil,
-        columnCount: ColumnCount? = nil,
+        columnCount: Int? = nil,
         fit: Fit? = nil,
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,

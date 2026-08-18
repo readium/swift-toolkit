@@ -13,6 +13,17 @@ Readium CSS has been upgraded to version 2. If you configure custom Reading Syst
 +CSSRSProperties(defaultLineLength: CSSRemLength(40))
 ```
 
+### `EPUBPreferences` Column Count
+
+To support arbitrary integers natively via Readium CSS v2, `EPUBPreferences.columnCount` has been changed from a `ColumnCount` enum to an `Int`. The old `ColumnCount` enum is removed.
+
+```diff
+-var preferences = EPUBPreferences()
+-preferences.columnCount = .auto
++var preferences = EPUBPreferences()
++preferences.columnCount = 0 // 0 maps to auto
+```
+
 
 ## 4.0.0-alpha.1
 

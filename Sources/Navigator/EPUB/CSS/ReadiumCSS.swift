@@ -64,13 +64,7 @@ extension ReadiumCSS {
 
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            colCount: {
-                switch settings.columnCount {
-                case .auto: return nil
-                case .one: return .one
-                case .two: return .two
-                }
-            }(),
+            colCount: settings.columnCount,
             pageMargins: settings.pageMargins,
             appearance: {
                 switch settings.theme {

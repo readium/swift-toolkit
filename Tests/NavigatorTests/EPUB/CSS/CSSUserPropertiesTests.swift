@@ -43,7 +43,7 @@ struct CSSUserPropertiesTests {
         #expect(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto,
+                colCount: 0,
                 pageMargins: 1.2,
                 appearance: .night,
                 darkenImages: true,
@@ -67,7 +67,7 @@ struct CSSUserPropertiesTests {
                 noRuby: true
             ).cssProperties() == [
                 "--USER__view": "readium-scroll-on",
-                "--USER__colCount": "auto",
+                "--USER__colCount": "0",
                 "--USER__pageMargins": "1.20000",
                 "--USER__appearance": "readium-night-on",
                 "--USER__darkenImages": "readium-darken-on",
@@ -95,7 +95,7 @@ struct CSSUserPropertiesTests {
 
     @Test func overrideUserProperties() {
         let props = CSSUserProperties(
-            colCount: .one,
+            colCount: 1,
             overrides: [
                 "--USER__colCount": "2",
                 "--USER__custom": "value",
@@ -114,9 +114,9 @@ struct CSSUserPropertiesTests {
         #expect(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto
+                colCount: 0
             ).css() == """
-            --USER__colCount: auto !important;
+            --USER__colCount: 0 !important;
             --USER__view: readium-scroll-on !important;
 
             """
@@ -127,7 +127,7 @@ struct CSSUserPropertiesTests {
         #expect(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto,
+                colCount: 0,
                 pageMargins: 1.2,
                 appearance: .night,
                 darkenImages: true,
@@ -155,7 +155,7 @@ struct CSSUserPropertiesTests {
             --USER__appearance: readium-night-on !important;
             --USER__backgroundColor: #00FF00 !important;
             --USER__bodyHyphens: auto !important;
-            --USER__colCount: auto !important;
+            --USER__colCount: 0 !important;
             --USER__darkenImages: readium-darken-on !important;
             --USER__fontFamily: "Times New", "Comic Sans" !important;
             --USER__fontOverride: readium-font-on !important;

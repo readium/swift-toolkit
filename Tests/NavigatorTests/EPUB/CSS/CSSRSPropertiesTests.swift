@@ -57,7 +57,7 @@ struct CSSRSPropertiesTests {
 
     @Test func overrideProperties() {
         let props = CSSRSProperties(
-            colCount: .one,
+            colCount: 1,
             overrides: [
                 "--RS__colCount": "2",
                 "--RS__custom": "value",
@@ -73,7 +73,7 @@ struct CSSRSPropertiesTests {
             CSSRSProperties(
                 viewportWidth: CSSPercentLength(1.0),
                 colWidth: CSSCmLength(1.2),
-                colCount: .two,
+                colCount: 2,
                 colGap: CSSPtLength(2.3),
                 pageGutter: CSSPcLength(3.4),
                 scrollPaddingTop: CSSPxLength(10),

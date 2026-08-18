@@ -43,11 +43,10 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
     // Pagination
 
-    /// The number of columns (column-count) the user wants displayed (one-page view or two-page
-    /// spread).
+    /// The number of columns (column-count) the user wants displayed.
     ///
-    /// To reset, change the value to auto.
-    public var colCount: CSSColCount?
+    /// To reset, change the value to 0.
+    public var colCount: Int?
 
     /// A factor applied to horizontal margins (padding-left and padding-right) the user wants to
     /// set.
@@ -170,7 +169,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
     public init(
         view: CSSView? = nil,
-        colCount: CSSColCount? = nil,
+        colCount: Int? = nil,
         pageMargins: Double? = nil,
         appearance: CSSAppearance? = nil,
         darkenImages: Bool? = nil,
@@ -277,7 +276,7 @@ public struct CSSRSProperties: CSSProperties, Sendable {
     public var colWidth: CSSLength?
 
     /// @param colCount The optimal number of columns (depending on the columns’ width).
-    public var colCount: CSSColCount?
+    public var colCount: Int?
 
     /// @param colGap The gap between columns. You must account for this gap when scrolling.
     public var colGap: CSSAbsoluteLength?
@@ -427,7 +426,7 @@ public struct CSSRSProperties: CSSProperties, Sendable {
     public init(
         viewportWidth: CSSLength? = nil,
         colWidth: CSSLength? = nil,
-        colCount: CSSColCount? = nil,
+        colCount: Int? = nil,
         colGap: CSSAbsoluteLength? = nil,
         pageGutter: CSSAbsoluteLength? = nil,
         scrollPaddingTop: CSSLength? = nil,
@@ -511,7 +510,7 @@ public struct CSSRSProperties: CSSProperties, Sendable {
     @available(*, deprecated, message: "Use init with defaultLineLength instead")
     public init(
         colWidth: CSSLength? = nil,
-        colCount: CSSColCount? = nil,
+        colCount: Int? = nil,
         colGap: CSSAbsoluteLength? = nil,
         pageGutter: CSSAbsoluteLength? = nil,
         flowSpacing: CSSLength? = nil,
@@ -1004,6 +1003,11 @@ private extension Dictionary where Key == String, Value == String? {
 
     mutating func putCSS(name: String, value: String?) {
         self[name] = value?.css()
+    }
+
+    mutating func putCSS(name: String, value: Int?) {
+        let css = value.map { String(format: "%d", $0) }
+        self[name] = css
     }
 
     mutating func putCSS(name: String, value: Double?) {
