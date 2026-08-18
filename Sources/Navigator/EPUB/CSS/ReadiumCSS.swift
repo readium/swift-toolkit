@@ -75,7 +75,7 @@ extension ReadiumCSS {
                 }
             }(),
             blendImages: settings.blendImages,
-            darkenImages: settings.darkenImages,
+            darkenImages: settings.darkenImages.map { 1 - $0 },
             invertImages: settings.invertImages,
             invertGaiji: settings.invertGaiji,
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
