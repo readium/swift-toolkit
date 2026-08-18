@@ -39,8 +39,17 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Enable hyphenation.
     public var hyphens: Bool?
 
-    /// Filter applied to images in dark theme.
-    public var imageFilter: ImageFilter?
+    /// Blends the images with the background color.
+    public var blendImages: Bool?
+
+    /// Darkens images by the given percentage (0.0 to 1.0).
+    public var darkenImages: Double?
+
+    /// Inverts images by the given percentage (0.0 to 1.0).
+    public var invertImages: Double?
+
+    /// Inverts gaiji images by the given percentage (0.0 to 1.0).
+    public var invertGaiji: Double?
 
     /// Language of the publication content.
     public var language: Language?
@@ -123,7 +132,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
-        imageFilter: ImageFilter? = nil,
+        blendImages: Bool? = nil,
+        darkenImages: Double? = nil,
+        invertImages: Double? = nil,
+        invertGaiji: Double? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
@@ -153,7 +165,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
         self.hyphens = hyphens
-        self.imageFilter = imageFilter
+        self.blendImages = blendImages
+        self.darkenImages = darkenImages
+        self.invertImages = invertImages
+        self.invertGaiji = invertGaiji
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
@@ -186,7 +201,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
             hyphens: other.hyphens ?? hyphens,
-            imageFilter: other.imageFilter ?? imageFilter,
+            blendImages: other.blendImages ?? blendImages,
+            darkenImages: other.darkenImages ?? darkenImages,
+            invertImages: other.invertImages ?? invertImages,
+            invertGaiji: other.invertGaiji ?? invertGaiji,
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,

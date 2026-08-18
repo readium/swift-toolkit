@@ -63,15 +63,24 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     /// This flag applies a reading mode (sepia or night).
     public var appearance: CSSAppearance?
 
-    /// This will only apply in night mode to darken images and impact img.
-    ///
-    /// Requires: appearance = Appearance.Night
-    public var darkenImages: Bool?
+    /// Blends the images with the background color.
+    public var blendImages: Bool?
 
-    /// This will only apply in night mode to invert images and impact img.
+    /// This will apply a brightness filter with the value it's given.
     ///
     /// Requires: appearance = Appearance.Night
-    public var invertImages: Bool?
+    public var darkenImages: Double?
+
+    /// This will apply an invert filter with the value it's given.
+    ///
+    /// Requires: appearance = Appearance.Night
+    public var invertImages: Double?
+
+    /// This will apply an invert filter with the value it's given,
+    /// only to img class="gaiji".
+    ///
+    /// Requires: appearance = Appearance.Night
+    public var invertGaiji: Double?
 
     /// The color for textual contents. It impacts all elements but headings and pre in the DOM.
     ///
@@ -176,8 +185,10 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         pageMargins: Double? = nil,
         lineLength: CSSLength? = nil,
         appearance: CSSAppearance? = nil,
-        darkenImages: Bool? = nil,
-        invertImages: Bool? = nil,
+        blendImages: Bool? = nil,
+        darkenImages: Double? = nil,
+        invertImages: Double? = nil,
+        invertGaiji: Double? = nil,
         textColor: CSSColor? = nil,
         backgroundColor: CSSColor? = nil,
         fontOverride: Bool? = nil,
@@ -202,8 +213,10 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.pageMargins = pageMargins
         self.lineLength = lineLength
         self.appearance = appearance
+        self.blendImages = blendImages
         self.darkenImages = darkenImages
         self.invertImages = invertImages
+        self.invertGaiji = invertGaiji
         self.textColor = textColor
         self.backgroundColor = backgroundColor
         self.fontOverride = fontOverride
@@ -236,8 +249,10 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
         // Appearance
         props.putCSS(name: "--USER__appearance", value: appearance)
-        props.putCSS(name: "--USER__darkenImages", value: CSSFlag(name: "darken", isEnabled: darkenImages))
-        props.putCSS(name: "--USER__invertImages", value: CSSFlag(name: "invert", isEnabled: invertImages))
+        props.putCSS(name: "--USER__blendImages", value: CSSFlag(name: "blend", isEnabled: blendImages))
+        props.putCSS(name: "--USER__darkenImages", value: darkenImages)
+        props.putCSS(name: "--USER__invertImages", value: invertImages)
+        props.putCSS(name: "--USER__invertGaiji", value: invertGaiji)
 
         // Colors
         props.putCSS(name: "--USER__textColor", value: textColor)

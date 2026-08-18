@@ -383,7 +383,10 @@ EPUB comes in two very different flavors: **reflowable** which allows a lot of c
 | `fontSize`           | :white_check_mark: |                    |
 | `fontWeight`         | :white_check_mark: |                    |
 | `hyphens`            | :white_check_mark: |                    |
-| `imageFilter`        | :white_check_mark: |                    |
+| `blendImages`        | :white_check_mark: |                    |
+| `darkenImages`       | :white_check_mark: |                    |
+| `invertImages`       | :white_check_mark: |                    |
+| `invertGaiji`        | :white_check_mark: |                    |
 | `language`           | :white_check_mark: | :white_check_mark: |
 | `letterSpacing`      | :white_check_mark: |                    |
 | `ligatures`          | :white_check_mark: |                    |
@@ -426,7 +429,7 @@ The `columnCount` preference is available only when in paginated mode (`scroll =
 
 #### Dark theme specific preferences
 
-The `imageFilter` preference is available only in dark mode (`theme = .dark`).
+The `darkenImages`, `invertImages`, and `invertGaiji` preferences are available only in dark mode (`theme = .dark`).
 
 #### Language specific preferences
 

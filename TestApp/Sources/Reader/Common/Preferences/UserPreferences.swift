@@ -110,7 +110,10 @@ struct UserPreferences<
                             fontSize: editor.fontSize,
                             fontWeight: editor.fontWeight,
                             hyphens: editor.hyphens,
-                            imageFilter: editor.imageFilter,
+                            blendImages: editor.blendImages,
+                            darkenImages: editor.darkenImages,
+                            invertImages: editor.invertImages,
+                            invertGaiji: editor.invertGaiji,
                             language: editor.language,
                             letterSpacing: editor.letterSpacing,
                             ligatures: editor.ligatures,
@@ -321,12 +324,15 @@ struct UserPreferences<
     @ViewBuilder func reflowableUserPreferences(
         commit: @escaping () -> Void,
         backgroundColor: AnyPreference<ReadiumNavigator.Color>? = nil,
-        columnCount: AnyEnumPreference<ColumnCount>? = nil,
+        columnCount: AnyRangePreference<Int>? = nil,
         fontFamily: AnyPreference<FontFamily?>? = nil,
         fontSize: AnyRangePreference<Double>? = nil,
         fontWeight: AnyRangePreference<Double>? = nil,
         hyphens: AnyPreference<Bool>? = nil,
-        imageFilter: AnyEnumPreference<ImageFilter?>? = nil,
+        blendImages: AnyPreference<Bool?>? = nil,
+        darkenImages: AnyRangePreference<Double>? = nil,
+        invertImages: AnyPreference<Bool>? = nil,
+        invertGaiji: AnyPreference<Bool>? = nil,
         language: AnyPreference<Language?>? = nil,
         letterSpacing: AnyRangePreference<Double>? = nil,
         ligatures: AnyPreference<Bool>? = nil,
@@ -399,17 +405,10 @@ struct UserPreferences<
                 }
 
                 if let columnCount = columnCount {
-                    pickerRow(
+                    stepperRow(
                         title: "Columns",
                         preference: columnCount,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case .auto: return "Auto"
-                            case .one: return "1"
-                            case .two: return "2"
-                            }
-                        }
+                        commit: commit
                     )
                 }
 
@@ -423,7 +422,7 @@ struct UserPreferences<
             }
         }
 
-        if theme != nil || imageFilter != nil || textColor != nil || backgroundColor != nil {
+        if theme != nil || blendImages != nil || darkenImages != nil || invertImages != nil || invertGaiji != nil || textColor != nil || backgroundColor != nil {
             Section {
                 if let theme = theme {
                     pickerRow(
@@ -440,18 +439,35 @@ struct UserPreferences<
                     )
                 }
 
-                if let imageFilter = imageFilter {
-                    pickerRow(
-                        title: "Image filter",
-                        preference: imageFilter,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case nil: return "None"
-                            case .darken: return "Darken colors"
-                            case .invert: return "Invert colors"
-                            }
-                        }
+                if let blendImages = blendImages {
+                    toggleRow(
+                        title: "Blend Images",
+                        preference: blendImages.map(from: { $0 ?? false }, to: { $0 }).eraseToAnyPreference(),
+                        commit: commit
+                    )
+                }
+
+                if let darkenImages = darkenImages {
+                    stepperRow(
+                        title: "Darken Images",
+                        preference: darkenImages,
+                        commit: commit
+                    )
+                }
+
+                if let invertImages = invertImages {
+                    toggleRow(
+                        title: "Invert Images",
+                        preference: invertImages,
+                        commit: commit
+                    )
+                }
+
+                if let invertGaiji = invertGaiji {
+                    toggleRow(
+                        title: "Invert Gaiji",
+                        preference: invertGaiji,
+                        commit: commit
                     )
                 }
 

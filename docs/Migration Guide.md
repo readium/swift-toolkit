@@ -24,6 +24,17 @@ To support arbitrary integers natively via Readium CSS v2, `EPUBPreferences.colu
 +preferences.columnCount = 0 // 0 maps to auto
 ```
 
+### `EPUBPreferences` Image Filters
+
+To support precise CSS filtering of images via Readium CSS v2, `EPUBPreferences.imageFilter` has been replaced with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The old `ImageFilter` enum is removed.
+
+```diff
+-var preferences = EPUBPreferences()
+-preferences.imageFilter = .darken
++var preferences = EPUBPreferences()
++preferences.darkenImages = 0.8
+```
+
 
 ## 4.0.0-alpha.1
 

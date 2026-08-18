@@ -145,18 +145,59 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             }
         )
 
-    /// Filter applied to images in dark theme.
-    ///
-    /// Only effective when:
-    ///  - the publication is reflowable
-    ///  - the `theme` is set to `Theme.DARK`
-    public lazy var imageFilter: AnyEnumPreference<ImageFilter?> =
-        enumPreference(
-            preference: \.imageFilter,
-            setting: \.imageFilter,
-            isEffective: { $0.settings.theme == .dark },
-            supportedValues: [nil, .darken, .invert]
+    /// Blends the images with the background color.
+    public lazy var blendImages: AnyPreference<Bool?> =
+        preference(
+            preference: \.blendImages,
+            setting: \.blendImages,
+            isEffective: { [layout] _ in layout == .reflowable }
         )
+
+    /// Darkens images by the given percentage.
+    public lazy var darkenImages: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.darkenImages,
+            effectiveValue: { $0.settings.darkenImages ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] _ in layout == .reflowable },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+
+    /// Inverts gaiji images.
+    public lazy var invertGaiji: AnyPreference<Bool> =
+        rangePreference(
+            preference: \.invertGaiji,
+            effectiveValue: { $0.settings.invertGaiji ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] _ in layout == .reflowable },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+        .map(
+            from: { $0 > 0 },
+            to: { $0 ? 1.0 : 0.0 }
+        )
+        .eraseToAnyPreference()
+
+    /// Inverts the color of images.
+    public lazy var invertImages: AnyPreference<Bool> =
+        rangePreference(
+            preference: \.invertImages,
+            effectiveValue: { $0.settings.invertImages ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layout] _ in layout == .reflowable },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+        .map(
+            from: { $0 > 0 },
+            to: { $0 ? 1.0 : 0.0 }
+        )
+        .eraseToAnyPreference()
 
     /// Language of the publication content.
     ///
