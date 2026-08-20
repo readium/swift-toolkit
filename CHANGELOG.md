@@ -3,7 +3,13 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Navigator
+
+* The EPUB navigator now reports the reading position while a reflowable page scrolls continuously. Its "scrolling ended" callback was re-scheduled on every progression change, so a page that never stops scrolling — a long momentum flick, or an app scrolling the document itself — emitted no location for as long as the motion lasted.
 
 ## [4.0.0-alpha.1] - 2026-08-14
 
