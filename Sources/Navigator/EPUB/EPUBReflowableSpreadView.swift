@@ -408,14 +408,39 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         setNeedsNotifyPagesDidChange()
     }
 
+    /// When the oldest un-notified progression change arrived.
+    private var pagesDidChangePendingSince: Date?
+
+    /// How long a page may scroll without reporting where it is.
+    ///
+    /// The debounce below waits for scrolling to *end*, which never happens
+    /// while a page scrolls continuously — a long momentum flick, or a reader
+    /// auto-scrolling. Each new progression cancels the pending callback, so
+    /// without a ceiling the position would not be reported for as long as the
+    /// motion lasted, and a reader who closed the book mid-scroll would reopen
+    /// where they last lifted their finger.
+    private static let maximumUnreportedScrollDuration: TimeInterval = 1
+
     private func setNeedsNotifyPagesDidChange() {
+        let now = Date()
+        let pendingSince = pagesDidChangePendingSince ?? now
+        pagesDidChangePendingSince = pendingSince
+
         // Makes sure we always receive the "ending scroll" event.
         // ie. https://stackoverflow.com/a/1857162/1474476
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(notifyPagesDidChange), object: nil)
+
+        // A page turn takes well under this, so it still reports once, at its
+        // end. Only a page that keeps scrolling reaches the ceiling.
+        guard now.timeIntervalSince(pendingSince) < Self.maximumUnreportedScrollDuration else {
+            notifyPagesDidChange()
+            return
+        }
         perform(#selector(notifyPagesDidChange), with: nil, afterDelay: 0.3)
     }
 
     @objc private func notifyPagesDidChange() {
+        pagesDidChangePendingSince = nil
         guard previousProgression != progression else {
             return
         }
