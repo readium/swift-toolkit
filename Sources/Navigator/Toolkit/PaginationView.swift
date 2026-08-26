@@ -34,9 +34,8 @@ protocol PageView {
     /// Moves the page to the given internal location.
     func go(to location: PageLocation, animated: Bool) async
 
-    /// Called when the page view is not the currently visible page anymore,
-    /// for example after turning the page.
-    func pageDidBecomeInvisible()
+    /// Called when the page view is not the currently visible page anymore.
+    func pageDidDisappear()
 }
 
 @MainActor
@@ -232,9 +231,7 @@ final class PaginationView: UIView, Loggable {
             }
         }
 
-        // Notifies the page view that it is not visible anymore, for example
-        // to pause any playing media.
-        previousView?.pageDidBecomeInvisible()
+        previousView?.pageDidDisappear()
 
         loadPages()
     }
