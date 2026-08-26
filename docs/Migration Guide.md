@@ -2,7 +2,9 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-## Unreleased
+<!-- ## Unreleased -->
+
+## 4.0.0-alpha.1
 
 ### Swift 6 and strict concurrency
 
@@ -18,6 +20,10 @@ If you implement custom `Resource`, `Container`, `HTTPClient` or `PublicationSer
 * For types holding mutable state (file handles, caches...), we recommend converting the class to an `actor`, as the toolkit does for its own resources (e.g. `FileResource`).
 
 Custom `Resource` implementations should also cooperate with task cancellation in `stream()`: check `Task.isCancelled` between chunks – at minimum when entering the method – and fail with `ReadError.cancelled`.
+
+#### OPDS models are now structs
+
+`Feed`, `Group`, `Facet` and `OpdsMetadata` were classes and are now `Sendable` structs. They have value semantics: assigning one to a variable, passing it to a function or capturing it in a closure makes a copy instead of sharing a reference. If your OPDS layer depended on references, it needs to be updated.
 
 #### Navigators are isolated to the main actor
 
@@ -59,6 +65,12 @@ Watch out for one behavior change in your implementation: `HTTPStatus.isSuccess`
 The toolkit adopts the [`NonisolatedNonsendingByDefault`](https://docs.swift.org/compiler/documentation/diagnostics/nonisolated-nonsending-by-default/) upcoming feature ([SE-0461](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0461-async-function-isolation.md)), which will become the language default. Its `async` APIs now run on the calling actor instead of hopping to a background thread, except for CPU-heavy operations (decryption, parsing, search...) which are marked `@concurrent` and stay off your actor.
 
 You usually don't need to change anything. But if you implement a custom `Resource`, `HTTPClient` or search algorithm as a plain class or struct (not an actor), consider annotating CPU-heavy `async` methods with `@concurrent` so they don't block the main actor when called from UI code.
+
+### Internal helpers are no longer public
+
+The `ReadiumInternal` package was removed and its utilities are now internal to `ReadiumShared`. In the process, many small helpers and extensions on standard types (`Array`, `String`, `URL`, `Result`, `Task`...) stopped being visible to your app. They were implementation details of the toolkit and were never meant to be part of Readium's public API, but they leaked through it.
+
+There is no replacement for them. For each one you were using, either copy the original implementation into your own codebase or find an alternate solution.
 
 ### Readium LCP
 

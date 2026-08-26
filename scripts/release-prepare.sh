@@ -42,13 +42,30 @@ fi
 grep -q '^podspecs:' "$REPO_ROOT/Makefile" || \
     error "'podspecs' target not found in Makefile"
 
+# The release branch is named exactly like the future tag, so a tag of that name
+# must not exist yet: `git push` would refuse the ambiguous refspec, but only
+# after the version bumps were committed.
+TAG_HINT="This is probably the temporary tag from the migration test. Delete it with:
+    git tag -d \"$VERSION\"
+    git push origin \":refs/tags/$VERSION\""
+! git -C "$REPO_ROOT" show-ref --verify --quiet "refs/tags/$VERSION" || \
+    error "A local tag '$VERSION' already exists.
+  $TAG_HINT"
+! git -C "$REPO_ROOT" ls-remote --exit-code --tags origin "$VERSION" &>/dev/null || \
+    error "A tag '$VERSION' already exists on 'origin'.
+  $TAG_HINT"
+
 # Old version
-OLD_VERSION="$(git -C "$REPO_ROOT" describe --tags --abbrev=0)"
+OLD_VERSION="$(git -C "$REPO_ROOT" describe --tags --abbrev=0 --match "[0-9]*")"
 check_semver "$OLD_VERSION"
 info "Preparing release $OLD_VERSION → $VERSION"
 
 # Branch
-BRANCH="release-$VERSION"
+# The branch is named exactly like the future tag: the generated podspecs declare
+# `s.source = { ..., :tag => s.version }` and `pod repo push` lints them by
+# running `git clone --branch <ref>`. Since the podspecs are pushed before the
+# tag exists, an identically-named branch is what makes that clone resolve.
+BRANCH="$VERSION"
 info "Creating branch '$BRANCH'"
 git -C "$REPO_ROOT" checkout -b "$BRANCH"
 
@@ -93,10 +110,12 @@ fi
 # Push + PR
 info "Pushing branch '$BRANCH'"
 if [[ $DRY_RUN -eq 1 ]]; then
-    dry_skip "git push -u origin $BRANCH"
+    dry_skip "git push -u origin refs/heads/$BRANCH"
     dry_skip "gh pr create --base develop --title \"$VERSION\" --body \"\""
 else
-    git -C "$REPO_ROOT" push -u origin "$BRANCH"
+    # Fully qualified refspec: the branch is named like the future tag, so a bare
+    # "$BRANCH" would be an ambiguous ref.
+    git -C "$REPO_ROOT" push -u origin "refs/heads/$BRANCH"
     PR_URL="$(gh pr create --base develop --title "$VERSION" --body "" | tail -1)"
     open "$PR_URL"
 fi
