@@ -3,7 +3,14 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Navigator
+
+* [#121](https://github.com/readium/swift-toolkit/issues/121) HTML `<audio>` and `<video>` elements are now paused when the resource moves off-screen in the EPUB navigator, rather than continuing to play in the background.
+
 
 ## [4.0.0-alpha.1] - 2026-08-14
 

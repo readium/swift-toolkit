@@ -504,6 +504,15 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
     }
 
+    // MARK: - PageView
+
+    func pageDidDisappear() {
+        // Pauses any HTML media element (e.g. `<audio>` or `<video>`) still
+        // playing after turning the page.
+        // See https://github.com/readium/swift-toolkit/issues/121
+        webView.pauseAllMediaPlayback()
+    }
+
     // MARK: - Location and progression.
 
     /// Current progression in the resource with given href.
