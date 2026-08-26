@@ -44,6 +44,7 @@ final class EPUBMetadataParser: Loggable {
 
         return Metadata(
             identifier: uniqueIdentifier,
+            altIdentifiers: altIdentifiers,
             conformsTo: [.epub],
             title: mainTitle,
             subtitle: subtitle,
@@ -322,6 +323,16 @@ final class EPUBMetadataParser: Loggable {
     private lazy var uniqueIdentifier: String? =
         dcElement(tag: "identifier[@id=/opf:package/@unique-identifier]")?
             .stringValue
+
+    /// Every `dc:identifier` other than the package's `unique-identifier`,
+    /// surfaced as ``Metadata/altIdentifiers``. Values are returned as declared
+    /// (only trimmed), in document order.
+    private lazy var altIdentifiers: [AltIdentifier] = {
+        let uniqueIdentifierID = document.firstChild(xpath: "/opf:package")?.attr("unique-identifier")
+        return metas["identifier", in: .dcterms]
+            .filter { $0.id != uniqueIdentifierID }
+            .map { AltIdentifier(value: $0.content) }
+    }()
 
     /// https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#publication-date
     private lazy var publishedDate =
