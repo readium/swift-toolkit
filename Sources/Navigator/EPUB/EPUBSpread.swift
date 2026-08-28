@@ -57,6 +57,16 @@ enum EPUBSpread: EPUBSpreadProtocol {
         }
     }
 
+    /// Links to the resources displayed in the spread, in reading order.
+    var links: [Link] {
+        switch self {
+        case let .single(spread):
+            return [spread.resource.link]
+        case let .double(spread):
+            return [spread.first.link, spread.second.link]
+        }
+    }
+
     private var spread: EPUBSpreadProtocol {
         switch self {
         case let .single(spread):

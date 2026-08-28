@@ -62,6 +62,12 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         }
     }
 
+    override var expectedLoadURLs: [AnyURL] {
+        // The wrapper page hosting the resource iframes is served from the
+        // publication's base URL.
+        super.expectedLoadURLs + [viewModel.publicationBaseURL.anyURL]
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         layoutSpread()

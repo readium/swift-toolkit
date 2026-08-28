@@ -70,6 +70,19 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     private var spreadLoadTask: Task<Void, Never>?
 
+    /// Decides how to handle navigations intercepted in the web view, e.g.
+    /// when the user activates a link or a script sets `window.location`.
+    private lazy var navigationPolicy = EPUBNavigationPolicy(
+        publicationBaseURL: viewModel.publicationBaseURL,
+        expectedLoadURLs: expectedLoadURLs
+    )
+
+    /// URLs the spread view is expected to load in the web view by itself.
+    /// To override in subclasses.
+    var expectedLoadURLs: [AnyURL] {
+        spread.links.map { viewModel.url(to: $0) }
+    }
+
     required init(
         viewModel: EPUBNavigatorViewModel,
         spread: EPUBSpread,
@@ -689,22 +702,33 @@ extension EPUBSpreadView: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
-        var policy: WKNavigationActionPolicy = .allow
+        let isLinkActivation = navigationAction.navigationType == .linkActivated
 
-        if navigationAction.navigationType == .linkActivated {
-            if let url = navigationAction.request.url {
-                // Check if url is internal or external
-                if let relativeURL = viewModel.publicationBaseURL.relativize(url) {
-                    delegate?.spreadView(self, didTapOnInternalLink: relativeURL.string, clickEvent: lastClick)
-                } else {
-                    delegate?.spreadView(self, didTapOnExternalURL: url)
-                }
+        let decision = navigationPolicy.decide(
+            navigationTo: navigationAction.request.url,
+            targetFrameURL: navigationAction.targetFrame?.request.url,
+            targetsMainFrame: navigationAction.targetFrame?.isMainFrame ?? true,
+            isLinkActivation: isLinkActivation
+        )
 
-                policy = .cancel
-            }
+        switch decision {
+        case .allow:
+            decisionHandler(.allow)
+
+        case let .internalLink(href):
+            // The click event is only relevant when the user activated the
+            // link, e.g. to display footnote popups.
+            delegate?.spreadView(self, didTapOnInternalLink: href, clickEvent: isLinkActivation ? lastClick : nil)
+            decisionHandler(.cancel)
+
+        case let .externalURL(url):
+            delegate?.spreadView(self, didTapOnExternalURL: url)
+            decisionHandler(.cancel)
+
+        case .block:
+            log(.warning, "Blocked navigation to \(navigationAction.request.url?.absoluteString ?? "unknown URL")")
+            decisionHandler(.cancel)
         }
-
-        decisionHandler(policy)
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
