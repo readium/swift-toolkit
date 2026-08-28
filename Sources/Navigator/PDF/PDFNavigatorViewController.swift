@@ -26,6 +26,7 @@ public extension PDFNavigatorDelegate {
 open class PDFNavigatorViewController:
     InputObservableViewController,
     VisualNavigator, ViewportObservingNavigator, SelectableNavigator,
+    DecorableNavigator,
     Configurable, Loggable
 {
     public struct Configuration: Sendable {
@@ -40,15 +41,22 @@ open class PDFNavigatorViewController:
         /// The default set of editing actions is `EditingAction.defaultActions`.
         public var editingActions: [EditingAction]
 
+        /// Supported PDF decoration templates, indexed by decoration style.
+        ///
+        /// Decorations are only rendered on iOS 16+.
+        public var decorationTemplates: [Decoration.Style.Id: PDFDecorationTemplate]
+
         @MainActor
         public init(
             preferences: PDFPreferences = PDFPreferences(),
             defaults: PDFDefaults = PDFDefaults(),
-            editingActions: [EditingAction] = EditingAction.defaultActions
+            editingActions: [EditingAction] = EditingAction.defaultActions,
+            decorationTemplates: [Decoration.Style.Id: PDFDecorationTemplate] = PDFDecorationTemplate.defaultTemplates()
         ) {
             self.preferences = preferences
             self.defaults = defaults
             self.editingActions = editingActions
+            self.decorationTemplates = decorationTemplates
         }
     }
 
@@ -192,6 +200,7 @@ open class PDFNavigatorViewController:
 
         currentResourceIndex = nil
         viewport = nil
+        resolvedDecorationsCache.removeAll()
         let pdfView = PDFDocumentView(
             frame: view.bounds,
             editingActions: editingActions,
@@ -199,6 +208,11 @@ open class PDFNavigatorViewController:
         )
         self.pdfView = pdfView
         pdfView.delegate = self
+
+        if #available(iOS 16.0, *) {
+            // Must be attached before setting `pdfView.document`.
+            pdfView.pageOverlayViewProvider = decorationOverlayProvider
+        }
         pdfView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(pdfView)
 
@@ -229,6 +243,7 @@ open class PDFNavigatorViewController:
         NotificationCenter.default.addObserver(self, selector: #selector(pageDidChange), name: .PDFViewPageChanged, object: pdfView)
         NotificationCenter.default.addObserver(self, selector: #selector(visiblePagesDidChange), name: .PDFViewVisiblePagesChanged, object: pdfView)
         NotificationCenter.default.addObserver(self, selector: #selector(selectionDidChange), name: .PDFViewSelectionChanged, object: pdfView)
+        NotificationCenter.default.addObserver(self, selector: #selector(scaleFactorDidChange), name: .PDFViewScaleChanged, object: pdfView)
 
         if let locator = locator {
             await go(to: locator, isJump: false)
@@ -309,6 +324,9 @@ open class PDFNavigatorViewController:
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: view)
+        guard !activateDecoration(at: location) else {
+            return
+        }
         let pointer = Pointer.touch(TouchPointer(id: .object(ObjectIdentifier(gesture))))
         let modifiers = KeyModifiers(flags: gesture.modifierFlags)
         Task {
@@ -321,6 +339,9 @@ open class PDFNavigatorViewController:
 
     @objc private func didClick(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: view)
+        guard !activateDecoration(at: location) else {
+            return
+        }
         let pointer = Pointer.mouse(MousePointer(id: .object(ObjectIdentifier(gesture)), buttons: .main))
         let modifiers = KeyModifiers(flags: gesture.modifierFlags)
         Task {
@@ -419,6 +440,7 @@ open class PDFNavigatorViewController:
             }
 
             currentResourceIndex = index
+            resolvedDecorationsCache.removeAll()
             pdfView.document = document
             updateScaleFactors(zoomToFit: true)
         }
@@ -553,6 +575,243 @@ open class PDFNavigatorViewController:
         )
     }
 
+    // MARK: - DecorableNavigator
+
+    private var decorations: [DecorationGroup: [DiffableDecoration]] = [:]
+
+    /// Groups in the order they were first applied, which determines the
+    /// z-order of the rendered decorations.
+    private var decorationGroupOrder: [DecorationGroup] = []
+
+    /// Decoration group callbacks, indexed by the group name.
+    private var decorationCallbacks: [DecorationGroup: [DecorableNavigator.OnActivatedCallback]] = [:]
+
+    /// Resolved geometry for the pages of the current resource, keyed by
+    /// 0-based page index.
+    ///
+    /// Cleared whenever the decorations change, the document is swapped for
+    /// another resource or the PDF view is reset, so entries never leak
+    /// across resources.
+    private var resolvedDecorationsCache: [Int: [PDFDecorationRenderItem]] = [:]
+
+    private var _decorationOverlayProvider: AnyObject?
+    @available(iOS 16.0, *)
+    private var decorationOverlayProvider: PDFDecorationOverlayProvider {
+        if let provider = _decorationOverlayProvider as? PDFDecorationOverlayProvider {
+            return provider
+        }
+        let provider = PDFDecorationOverlayProvider()
+        provider.dataSource = self
+        _decorationOverlayProvider = provider
+        return provider
+    }
+
+    public func supports(decorationStyle style: Decoration.Style.Id) -> Bool {
+        guard #available(iOS 16.0, *) else {
+            return false
+        }
+        return config.decorationTemplates.keys.contains(style)
+    }
+
+    public func apply(decorations: [Decoration], in group: DecorationGroup) {
+        guard #available(iOS 16.0, *) else {
+            log(.warning, "PDF decorations require iOS 16+, apply(decorations:in:) is ignored. Check supports(decorationStyle:) before applying decorations.")
+            return
+        }
+
+        if !decorationGroupOrder.contains(group) {
+            decorationGroupOrder.append(group)
+        }
+
+        let source = self.decorations[group] ?? []
+        let target = decorations.map {
+            var decoration = $0
+            decoration.locator = publication.normalizeLocator(decoration.locator)
+            return DiffableDecoration(decoration: decoration)
+        }
+        self.decorations[group] = target
+
+        let changes = target.changesByHREF(from: source)
+        guard !changes.isEmpty else {
+            return
+        }
+
+        guard
+            let pdfView = pdfView,
+            let document = pdfView.document
+        else {
+            resolvedDecorationsCache.removeAll()
+            return
+        }
+
+        var affectsCurrentResource = false
+        for (href, hrefChanges) in changes {
+            guard isCurrentResource(href: href) else {
+                continue
+            }
+            affectsCurrentResource = true
+
+            for change in hrefChanges {
+                switch change {
+                case let .add(decoration):
+                    invalidateResolvedDecorations(for: decoration.locator, document: document)
+                case let .remove(id):
+                    if let old = source.first(where: { $0.decoration.id == id }) {
+                        invalidateResolvedDecorations(for: old.decoration.locator, document: document)
+                    } else {
+                        resolvedDecorationsCache.removeAll()
+                    }
+                case let .update(decoration):
+                    invalidateResolvedDecorations(for: decoration.locator, document: document)
+                    // The update may have moved the decoration to another page.
+                    if let old = source.first(where: { $0.decoration.id == decoration.id }) {
+                        invalidateResolvedDecorations(for: old.decoration.locator, document: document)
+                    }
+                }
+            }
+        }
+
+        if affectsCurrentResource {
+            decorationOverlayProvider.refresh(in: pdfView)
+        }
+    }
+
+    public func observeDecorationInteractions(inGroup group: DecorationGroup, onActivated: @escaping OnActivatedCallback) {
+        var callbacks = decorationCallbacks[group] ?? []
+        callbacks.append(onActivated)
+        decorationCallbacks[group] = callbacks
+    }
+
+    /// Returns whether the given HREF matches the currently loaded resource,
+    /// honoring the legacy `publication.pdf` HREF matching.
+    private func isCurrentResource<T: URLConvertible>(href: T) -> Bool {
+        if isPDFFile {
+            return true
+        }
+        guard
+            let resourceIndex = currentResourceIndex,
+            let resourceURL = publication.readingOrder.getOrNil(resourceIndex)?.url()
+        else {
+            return false
+        }
+        return resourceURL.isEquivalentTo(href)
+    }
+
+    /// Resolves the 0-based page index of `locator` in the current resource's
+    /// document, the single conversion point from 1-based page numbers.
+    private func pageIndex(for locator: Locator, in document: PDFKit.PDFDocument) -> Int? {
+        guard let resourceIndex = currentResourceIndex else {
+            return nil
+        }
+        return PDFPageNumberResolver.resolve(
+            from: locator,
+            readingOrderIndex: resourceIndex,
+            positionsByReadingOrder: positionsByReadingOrder,
+            documentPageCount: document.pageCount
+        ).map { $0 - 1 }
+    }
+
+    private func invalidateResolvedDecorations(for locator: Locator, document: PDFKit.PDFDocument) {
+        if let pageIndex = pageIndex(for: locator, in: document) {
+            resolvedDecorationsCache.removeValue(forKey: pageIndex)
+        } else {
+            resolvedDecorationsCache.removeAll()
+        }
+    }
+
+    /// Resolves the decorations to render on the given page, in ascending
+    /// z-order: groups in the order they were first applied, then array order
+    /// within a group.
+    @available(iOS 16.0, *)
+    private func resolvedDecorations(forPageIndex pageIndex: Int, in document: PDFKit.PDFDocument) -> [PDFDecorationRenderItem] {
+        if let cached = resolvedDecorationsCache[pageIndex] {
+            return cached
+        }
+        guard let page = document.page(at: pageIndex) else {
+            return []
+        }
+        let pageBounds = page.bounds(for: .cropBox)
+
+        var items: [PDFDecorationRenderItem] = []
+        for group in decorationGroupOrder {
+            for diffable in decorations[group] ?? [] {
+                let decoration = diffable.decoration
+                guard
+                    isCurrentResource(href: decoration.locator.href),
+                    self.pageIndex(for: decoration.locator, in: document) == pageIndex
+                else {
+                    continue
+                }
+                guard let template = config.decorationTemplates[decoration.style.id] else {
+                    log(.warning, "Decoration style \(decoration.style.id.rawValue) is not supported by the PDF navigator")
+                    continue
+                }
+                guard let lineRects = PDFDecorationResolver.resolveRects(for: decoration.locator, on: page) else {
+                    log(.warning, "Can't resolve the geometry of the decoration \(decoration.id) at page index \(pageIndex)")
+                    continue
+                }
+                items.append(PDFDecorationRenderItem(
+                    decoration: decoration,
+                    group: group,
+                    rects: template.layoutRects(for: lineRects, pageBounds: pageBounds, expand: decoration.style.expand),
+                    template: template
+                ))
+            }
+        }
+
+        resolvedDecorationsCache[pageIndex] = items
+        return items
+    }
+
+    /// Attempts to activate a decoration at the tapped `point`, given in the
+    /// navigator view's coordinates. When it succeeds, the tap is consumed.
+    ///
+    /// Among the hit decorations belonging to observed groups, the topmost in
+    /// z-order wins.
+    private func activateDecoration(at point: CGPoint) -> Bool {
+        guard
+            #available(iOS 16.0, *),
+            let pdfView = pdfView,
+            let document = pdfView.document
+        else {
+            return false
+        }
+        let pointInPDFView = view.convert(point, to: pdfView)
+        guard let page = pdfView.page(for: pointInPDFView, nearest: false) else {
+            return false
+        }
+        let pageIndex = document.index(for: page)
+        guard pageIndex != NSNotFound else {
+            return false
+        }
+        let pagePoint = pdfView.convert(pointInPDFView, to: page)
+
+        let items = resolvedDecorations(forPageIndex: pageIndex, in: document)
+        for item in items.reversed() {
+            guard
+                let callbacks = decorationCallbacks[item.group].takeIf({ !$0.isEmpty }),
+                item.rects.contains(where: { $0.contains(pagePoint) }),
+                // The event's rect is the bounding rectangle for the
+                // decoration on this page, in the navigator view's coordinates.
+                let bounds = item.rects.union()
+            else {
+                continue
+            }
+            let rect = view.convert(pdfView.convert(bounds, from: page), from: pdfView)
+            for callback in callbacks {
+                callback(OnDecorationActivatedEvent(decoration: item.decoration, group: item.group, rect: rect, point: point))
+            }
+            return true
+        }
+        return false
+    }
+
+    @objc private func scaleFactorDidChange() {
+        if #available(iOS 16.0, *), let pdfView = pdfView {
+            decorationOverlayProvider.didChangeScaleFactor(of: pdfView)
+        }
+    }
+
     // MARK: - Configurable
 
     public private(set) var settings: PDFSettings
@@ -660,20 +919,79 @@ open class PDFNavigatorViewController:
             ensureSelectionIsAllowed(),
             let pdfView = pdfView,
             let selection = pdfView.currentSelection,
-            let locator = currentLocation,
             let text = selection.string,
-            let page = selection.pages.first
+            let page = selection.pages.first,
+            let baseLocator = positionLocator(forPage: page) ?? locator(to: page) ?? currentLocation
         else {
             editingActions.selection = nil
             return
         }
 
+        // One standard-syntax `highlight=` fragment per line, so a decoration
+        // created from this selection renders per-line boxes directly, with
+        // no text search.
+        let lineFragments = selection.selectionsByLine()
+            .filter { $0.pages.contains(page) }
+            .map { PDFRectFragment.highlightFragment(for: $0.bounds(for: page)) }
+
+        let (before, after) = selectionContext(for: selection, on: page)
+
         editingActions.selection = Selection(
-            locator: locator.copy(text: { $0.highlight = text }),
+            locator: baseLocator.copy(
+                locations: { $0.fragments.append(contentsOf: lineFragments) },
+                text: { $0 = Locator.Text(after: after, before: before, highlight: text) }
+            ),
             frame: pdfView.convert(selection.bounds(for: page), from: page)
                 // Makes it slightly bigger to have more room when displaying a popover.
                 .insetBy(dx: -8, dy: -8)
         )
+    }
+
+    /// Returns the position locator matching the given page, which carries the
+    /// page fragment, position and progressions.
+    private func positionLocator(forPage page: PDFPage) -> Locator? {
+        guard
+            let document = pdfView?.document,
+            let resourceIndex = currentResourceIndex
+        else {
+            return nil
+        }
+        let index = document.index(for: page)
+        guard index != NSNotFound else {
+            return nil
+        }
+        return positionsByReadingOrder?.getOrNil(resourceIndex)?.getOrNil(index)
+    }
+
+    /// Extracts the text surrounding the selection on the page, kept in the
+    /// locator for display and as a cross-format fallback.
+    private func selectionContext(for selection: PDFSelection, on page: PDFPage) -> (before: String?, after: String?) {
+        let contextLength = 200
+        guard let pageText = page.string else {
+            return (nil, nil)
+        }
+        let text = pageText as NSString
+        let rangeCount = selection.numberOfTextRanges(on: page)
+        guard rangeCount > 0 else {
+            return (nil, nil)
+        }
+        let firstRange = selection.range(at: 0, on: page)
+        let lastRange = selection.range(at: rangeCount - 1, on: page)
+        guard
+            firstRange.location != NSNotFound,
+            firstRange.location <= text.length,
+            NSMaxRange(lastRange) <= text.length
+        else {
+            return (nil, nil)
+        }
+
+        let beforeStart = max(0, firstRange.location - contextLength)
+        let before = text.substring(with: NSRange(location: beforeStart, length: firstRange.location - beforeStart))
+        let afterStart = NSMaxRange(lastRange)
+        let afterEnd = min(text.length, afterStart + contextLength)
+        let after = text.substring(with: NSRange(location: afterStart, length: afterEnd - afterStart))
+
+        return (before.isEmpty ? nil : before, after.isEmpty ? nil : after)
     }
 
     /// From iOS 13 to 15, the Share menu action is impossible to remove without
@@ -819,6 +1137,17 @@ extension PDFNavigatorViewController: PDFDocumentViewDelegate {
         }
 
         delegate?.navigator(self, didJumpTo: locator)
+    }
+}
+
+@available(iOS 16.0, *)
+extension PDFNavigatorViewController: PDFDecorationOverlayDataSource {
+    func decorationOverlayProvider(
+        _ provider: PDFDecorationOverlayProvider,
+        decorationsForPageAt pageIndex: Int,
+        in document: PDFKit.PDFDocument
+    ) -> [PDFDecorationRenderItem] {
+        resolvedDecorations(forPageIndex: pageIndex, in: document)
     }
 }
 

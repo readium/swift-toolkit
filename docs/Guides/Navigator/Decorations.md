@@ -3,7 +3,7 @@
 The Decoration API lets you overlay visual elements on publication content – highlights, search result markers, TTS playback indicators, page-number labels in the margin, and more. For the common case of implementing user highlights, see the [Highlighting guide](Highlights.md).
 
 > [!NOTE]
-> Only `EPUBNavigatorViewController` implements `DecorableNavigator` today. Always check if a navigator implements `DecorableNavigator` before enabling decoration-dependent features to future-proof your code.
+> `EPUBNavigatorViewController` and `PDFNavigatorViewController` (iOS 16+) implement `DecorableNavigator` today. Always check if a navigator implements `DecorableNavigator` and supports the styles you need before enabling decoration-dependent features, to future-proof your code.
 
 ## Overview
 
@@ -19,9 +19,12 @@ A single logical entity can map to multiple Decoration objects. For example, a u
 
 A `Decoration.Style` describes the *abstract appearance* of a decoration — for example, a semi-transparent highlight or an underline — independently of the underlying media type or rendering engine. The toolkit ships two built-in styles (`highlight` and `underline`) and lets you define your own  via `Decoration.Style.Id`.
 
-#### Decoration Template (EPUB)
+#### Decoration Templates
 
-For EPUB, each `Decoration.Style.Id` maps to an `HTMLDecorationTemplate` that translates the abstract style into concrete HTML/CSS injected into the page.
+A *decoration template* translates an abstract style into something the rendering engine can display. Each navigator has its own template type, registered per `Decoration.Style.Id` in its `Configuration`:
+
+- For EPUB, an **`HTMLDecorationTemplate`** generates HTML/CSS injected into the page.
+- For PDF, a **`PDFDecorationTemplate`** produces native views or CoreGraphics drawing overlaid on the page.
 
 ### Decoration Group
 
@@ -89,9 +92,12 @@ if navigator.supports(decorationStyle: .underline) {
 }
 ```
 
-For `EPUBNavigatorViewController`, this returns `true` for any style ID present in `Configuration.decorationTemplates`.
+For `EPUBNavigatorViewController` and `PDFNavigatorViewController`, this returns `true` for any style ID present in `Configuration.decorationTemplates`.
 
-### Creating a Custom Decoration Style
+> [!WARNING]
+> PDF decorations are rendered with PDFKit page overlays, which require iOS 16. On iOS 15, `PDFNavigatorViewController.supports(decorationStyle:)` always returns `false` and `apply(decorations:in:)` does nothing except log a warning. This is another reason to gate your features on `supports(decorationStyle:)` instead of assuming support.
+
+### Creating a Custom Decoration Style (EPUB)
 
 The following example shows how to add a page-number label in the left margin for each entry in `publication.pageList` (declared print page markers).
 
@@ -197,6 +203,84 @@ private func updatePageListDecorations() async {
 
     navigator.apply(decorations: decorations, in: "page-list")
 }
+```
+
+### Creating a Custom Decoration Style (PDF)
+
+A `PDFDecorationTemplate` renders a decoration on top of a PDF page. Rendering happens in *page space*: PDFKit applies the zoom and rotation transforms itself, so your views and drawings stay glued to the page content. A template combines three properties:
+
+| Property   | Options                       | Meaning                                                                                              |
+|------------|-------------------------------|------------------------------------------------------------------------------------------------------|
+| `layout`   | `.boxes`, `.bounds`           | Render one rect per resolved line of text, or a single rect covering all the lines on the page.       |
+| `width`    | `.wrap`, `.bounds`, `.page`   | Keep each rect's natural width, stretch it to the decoration's bounding box, or to the full page.      |
+| `renderer` | `.view`, `.draw`              | Produce a `UIView` per rect, or draw all the rects at once in a `CGContext`.                           |
+
+> [!TIP]
+> Prefer the `.view` renderer with plain `UIView`s when possible: solid-color views stay sharp at any zoom level. `.draw` output is rasterized and gets blurry past a maximum zoom scale.
+
+The following example shows how to add a *sidemark* style — a vertical bar in the margin marking an annotated passage.
+
+#### 1. Declare a custom `Decoration.Style.Id`
+
+```swift
+extension Decoration.Style.Id {
+    static let sidemark: Decoration.Style.Id = "sidemark"
+}
+```
+
+#### 2. Write the `PDFDecorationTemplate`
+
+`layout: .bounds` merges all the lines of the passage into a single rect, and `width: .page` stretches it to the full page so the bar can sit in the margin regardless of where the text starts.
+
+```swift
+extension PDFDecorationTemplate {
+    static var sidemark: PDFDecorationTemplate {
+        PDFDecorationTemplate(
+            layout: .bounds,
+            width: .page,
+            renderer: .draw { decoration, rects, context in
+                let config = decoration.style.config as? Decoration.Style.HighlightConfig
+                let tint = config?.tint ?? .systemRed
+                context.setFillColor(tint.cgColor)
+                for rect in rects {
+                    context.fill(CGRect(x: rect.minX + 8, y: rect.minY, width: 4, height: rect.height))
+                }
+            }
+        )
+    }
+}
+```
+
+#### 3. Register it in `Configuration.decorationTemplates`
+
+```swift
+var templates = PDFDecorationTemplate.defaultTemplates()
+templates[.sidemark] = .sidemark
+
+let navigator = try PDFNavigatorViewController(
+    publication: publication,
+    initialLocation: lastReadLocation,
+    config: PDFNavigatorViewController.Configuration(
+        decorationTemplates: templates
+    )
+)
+```
+
+#### 4. Build and apply decorations
+
+```swift
+let decorations = annotations.map { annotation in
+    Decoration(
+        id: annotation.id,
+        locator: annotation.locator,
+        style: Decoration.Style(
+            id: .sidemark,
+            config: Decoration.Style.HighlightConfig(tint: annotation.color)
+        )
+    )
+}
+
+navigator.apply(decorations: decorations, in: "sidemarks")
 ```
 
 ### Common Patterns
