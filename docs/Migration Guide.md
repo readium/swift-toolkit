@@ -126,6 +126,29 @@ Then drop the `sender` argument from your calls:
  )
 ```
 
+#### New requirements in the `LCPClient` facade
+
+The `LCPClient` facade to `R2LCPClient` (liblcp) has two new required members, previously covered by backward-compatible default implementations which have been removed:
+
+* `getSupportedLCPProfileURIs()`, used to report `LCPError.licenseProfileNotSupported` based on the profiles the embedded liblcp actually supports.
+* `decryptField(field:using:)`, used to decipher the user fields encrypted in a License Document (e.g. the user name or email) with `LCPLicense.decipheredUser()`. It requires an `R2LCPClient` version providing `decryptField()`, such as 4.3.0.
+
+Add them to your facade:
+
+```swift
+func decryptField(field: Data, using context: LCPClientContext) -> Data? {
+    R2LCPClient.decryptField(field: field, using: context as! DRMContext)
+}
+
+func getSupportedLCPProfileURIs() -> [String] {
+    R2LCPClient.getSupportedLCPProfileURIs() ?? []
+}
+```
+
+#### New `decipherUserField` requirement in `LCPLicense`
+
+`LCPLicense` has a new `decipherUserField(_:)` requirement, used to decipher the user fields encrypted in a License Document (e.g. the user name or email) with `decipheredUser()`. This only impacts you if you implement a custom `LCPLicense` – for example a test mock – in which case you can return `nil`.
+
 #### New `updateUserRights` signature in `LCPLicenseRepository`
 
 If you implement a custom `LCPLicenseRepository`, `updateUserRights` changed shape. It is now `async` and `throws`, and it is generic so it can return a value computed while the rights are locked – for example, whether a copy or print request fit within the remaining budget. Update your implementation to match:

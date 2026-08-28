@@ -28,6 +28,19 @@ All notable changes to this project will be documented in this file. Take a look
 * The HTML content iterator now emits inline `<svg>` elements as `SVGContentElement`, with a caption from the enclosing figure's `figcaption`.
 * `AudioContentElement` and `VideoContentElement` now expose a `caption` property, filled from the enclosing figure's `figcaption` like images and SVGs already were.
 
+### Added
+
+#### LCP
+
+* [#147](https://github.com/readium/swift-toolkit/issues/147) You can now decipher the user fields encrypted in a License Document (e.g. the user name or email) with `LCPLicense.decipheredUser()`. This requires:
+    * an `R2LCPClient` (liblcp) version providing `decryptField()`, such as 4.3.0
+    * forwarding `R2LCPClient.decryptField()` in your `LCPClient` facade:
+        ```swift
+        func decryptField(field: Data, using context: LCPClientContext) -> Data? {
+            R2LCPClient.decryptField(field: field, using: context as! DRMContext)
+        }
+        ```
+
 ### Changed
 
 * The toolkit is migrated to Swift 6 with strict concurrency checking. All packages compile in the Swift 6 language mode. See [the migration guide](docs/Migration%20Guide.md).
@@ -47,6 +60,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### LCP
 
+* `LCPClient.getSupportedLCPProfileURIs()` and the new `LCPClient.decryptField(field:using:)` are hard requirements of the facade: their backward-compatible default implementations were removed. See [the migration guide](docs/Migration%20Guide.md).
 * `LCPService.init` now requires an explicit `deviceName` parameter. We recommend passing `UIDevice.current.name`. See [the migration guide](docs/Migration%20Guide.md).
 * `LCPDialogAuthentication` no longer takes a `sender` view controller. It now presents its passphrase dialog through a new `LCPDialogAuthenticationDelegate` that you implement and retain for the lifetime of the authentication. See [the Readium LCP guide](docs/Guides/Readium%20LCP.md) and [the migration guide](docs/Migration%20Guide.md).
 

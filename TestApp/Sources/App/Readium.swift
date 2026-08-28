@@ -82,6 +82,10 @@ import UIKit
                 R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
             }
 
+            func decryptField(field: Data, using context: LCPClientContext) -> Data? {
+                R2LCPClient.decryptField(field: field, using: context as! DRMContext)
+            }
+
             func getSupportedLCPProfileURIs() -> [String] {
                 R2LCPClient.getSupportedLCPProfileURIs() ?? []
             }
