@@ -130,6 +130,20 @@ enum OPFVocabulary: String {
 
 /// Represents a `meta` tag in an OPF document.
 struct OPFMeta {
+    /// Syntax used to express the metadata in the OPF document.
+    ///
+    /// Note that `<dc:x>` elements are valid in EPUB 2 as well, so this doesn't strictly
+    /// distinguish EPUB versions. A legacy meta is superseded by a structured element with the
+    /// same property, even in a pure EPUB 2 publication, as the structured element is the more
+    /// authoritative expression of the metadata.
+    enum Syntax {
+        /// Legacy `<meta name="..." content="...">` tag (EPUB 2).
+        case legacy
+        /// Structured `<meta property="...">` (EPUB 3) or `<dc:x>` element.
+        case structured
+    }
+
+    let syntax: Syntax
     let property: String
     /// URI of the property's vocabulary.
     let vocabularyURI: String
@@ -173,6 +187,7 @@ struct OPFMetaList {
                         var refinedID = meta.attr("refines")
                         refinedID?.removeFirst() // Get rid of the # before the ID.
                         return OPFMeta(
+                            syntax: .structured,
                             property: property, vocabularyURI: vocabularyURI,
                             content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
                             id: meta.attr("id"), refines: refinedID, element: meta
@@ -181,6 +196,7 @@ struct OPFMetaList {
                     } else if let property = meta.attr("name") {
                         let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
                         return OPFMeta(
+                            syntax: .legacy,
                             property: property, vocabularyURI: vocabularyURI,
                             content: meta.attr("content")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
                             id: nil, refines: nil, element: meta
@@ -195,6 +211,7 @@ struct OPFMetaList {
                         return nil
                     }
                     return OPFMeta(
+                        syntax: .structured,
                         property: property,
                         vocabularyURI: OPFVocabulary.dcterms.uri,
                         content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -258,11 +275,25 @@ struct OPFMetaList {
     var otherMetadata: [String: JSONValue] {
         var metadata: [String: NSMutableOrderedSet] = [:]
 
+        // Properties expressed with a structured element, which supersede the equivalent legacy
+        // `<meta name= content=>` tags.
+        // https://github.com/readium/swift-toolkit/issues/85
+        let structuredProperties = Set(
+            metas.compactMap { meta in
+                (meta.syntax == .structured && meta.refines == nil)
+                    ? meta.vocabularyURI + meta.property
+                    : nil
+            }
+        )
+
         for meta in metas {
             guard meta.refines == nil, !isRWPMProperty(meta) else {
                 continue
             }
             let key = meta.vocabularyURI + meta.property
+            guard meta.syntax == .structured || !structuredProperties.contains(key) else {
+                continue
+            }
             let values = metadata[key] ?? NSMutableOrderedSet()
             values.add(value(for: meta))
             metadata[key] = values

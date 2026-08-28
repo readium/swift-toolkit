@@ -45,7 +45,6 @@ class EPUBMetadataParserTests: XCTestCase {
                         "@value": .string("Web"),
                         "http://my.url/#scheme": .string("http"),
                     ]),
-                    .string("Internet"),
                 ]),
                 "http://purl.org/dc/terms/rights": .string("Public Domain"),
                 "http://idpf.org/epub/vocab/package/#type": .string("article"),
@@ -391,6 +390,27 @@ class EPUBMetadataParserTests: XCTestCase {
         XCTAssertNil(sut.otherMetadata["\(mediaVocab)duration"])
         // The synthesized mediaOverlay key must be stored in otherMetadata
         XCTAssertNotNil(sut.otherMetadata["mediaOverlay"])
+    }
+
+    // MARK: - Other Metadata
+
+    /// An EPUB 2 `<meta name= content=>` tag is superseded by an EPUB 3 `<meta property=>` tag
+    /// with the same property.
+    /// https://github.com/readium/swift-toolkit/issues/85
+    func testEPUB2MetaSupersededByEPUB3Meta() throws {
+        let sut = try parseMetadata("other-metadata-precedence")
+        let vocab = "http://idpf.org/epub/vocab/package/#"
+
+        XCTAssertEqual(sut.otherMetadata, [
+            // The EPUB 3 metas take precedence over the equivalent EPUB 2 ones, regardless of
+            // their order of appearance.
+            "\(vocab)presentation": .string("EPUB 3 presentation"),
+            "\(vocab)generator": .string("EPUB 3 generator"),
+            // An EPUB 2 meta without any EPUB 3 equivalent is kept.
+            "\(vocab)legacy-only": .string("EPUB 2 legacy"),
+            // An EPUB 3 refining meta with the same property doesn't supersede an EPUB 2 one.
+            "\(vocab)schema": .string("EPUB 2 schema"),
+        ])
     }
 
     // MARK: - Toolkit

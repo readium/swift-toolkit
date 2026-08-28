@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="pub-id" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>Alice's Adventures in Wonderland</dc:title>
+    <!-- The EPUB 3 meta supersedes the equivalent EPUB 2 one. -->
+    <meta property="presentation">EPUB 3 presentation</meta>
+    <meta name="presentation" content="EPUB 2 presentation" />
+    <!-- Order of appearance doesn't matter. -->
+    <meta name="generator" content="EPUB 2 generator" />
+    <meta property="generator">EPUB 3 generator</meta>
+    <!-- An EPUB 2 meta without any EPUB 3 equivalent is kept. -->
+    <meta name="legacy-only" content="EPUB 2 legacy" />
+    <!-- An EPUB 3 refining meta with the same property doesn't supersede an EPUB 2 one. -->
+    <meta property="schema" refines="#pub-id">refined schema</meta>
+    <meta name="schema" content="EPUB 2 schema" />
+  </metadata>
+  <manifest>
+    <item id="chapter01" href="chapter01.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine>
+    <itemref idref="chapter01"/>
+  </spine>
+</package>

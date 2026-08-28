@@ -52,7 +52,6 @@ class EPUBManifestParserTests: XCTestCase {
                                 "@value": .string("Web"),
                                 "http://my.url/#scheme": .string("http"),
                             ]),
-                            .string("Internet"),
                         ]),
                         "http://purl.org/dc/terms/rights": .string("Public Domain"),
                         "http://idpf.org/epub/vocab/package/#type": .string("article"),
