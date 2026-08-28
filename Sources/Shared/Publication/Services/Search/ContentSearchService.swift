@@ -314,24 +314,43 @@ private actor Iterator: SearchIterator, Loggable {
 
         guard !entryText.isEmpty else { return }
 
+        // `windowTextCount` is recomputed from `windowText` after each append
+        // instead of adding the appended text's count: Swift regroups grapheme
+        // clusters across the junction (e.g. a leading combining mark merges
+        // with the preceding separator space), so the sum can exceed the real
+        // character count and offset arithmetic would later fall out of the
+        // window's bounds (see `windowIndex(at:)`).
         let startOffset: Int
         if windowText.isEmpty {
             startOffset = 0
         } else {
-            // Space separator owned by this (following) entry.
+            // The space separator is owned by this (following) entry and adds
+            // exactly one character, barring degenerate regroupings which
+            // `windowIndex(at:)` clamps.
             windowText.append(" ")
-            windowTextCount += 1
-            startOffset = windowTextCount
+            startOffset = windowTextCount + 1
         }
 
         windowText.append(contentsOf: entryText)
-        windowTextCount += entryText.count
+        windowTextCount = windowText.count
 
         entries.append(ElementEntry(
             text: entryText,
             segments: segments,
             startOffset: startOffset
         ))
+    }
+
+    /// Returns the index in `windowText` at the given character offset, or
+    /// `nil` if the offset falls out of the window's bounds.
+    ///
+    /// Offsets are clamped instead of trapping: window offsets are derived
+    /// from cached character counts, which can briefly overstate the real
+    /// window length when Swift regroups grapheme clusters across an append
+    /// junction (see `appendToWindow`). Callers degrade gracefully (skip the
+    /// trim, drop the match or return no snippet) instead of crashing.
+    private func windowIndex(at offset: Int) -> String.Index? {
+        windowText.index(windowText.startIndex, offsetBy: offset, limitedBy: windowText.endIndex)
     }
 
     /// Resets the window for a new resource.
@@ -421,7 +440,11 @@ private actor Iterator: SearchIterator, Loggable {
             trimAmount = 0
         }
 
-        guard trimAmount > 0 else { return }
+        guard
+            trimAmount > 0,
+            let trimIdx = windowIndex(at: trimAmount),
+            trimIdx < windowText.endIndex
+        else { return }
 
         // Drop leading entries.
         entries.removeFirst(dropCount)
@@ -434,7 +457,6 @@ private actor Iterator: SearchIterator, Loggable {
         searchCeiling -= trimAmount
 
         // Drop prefix from windowText.
-        let trimIdx = windowText.index(windowText.startIndex, offsetBy: trimAmount)
         windowText = String(windowText[trimIdx...])
         windowTextCount -= trimAmount
         isAtResourceStart = false
@@ -462,8 +484,10 @@ private actor Iterator: SearchIterator, Loggable {
     private func search(dangerZoneCapacity: Int) async -> [Locator] {
         guard searchCeiling > searchFloor else { return [] }
 
-        let sliceStart = windowText.index(windowText.startIndex, offsetBy: searchFloor)
-        let sliceEnd = windowText.index(windowText.startIndex, offsetBy: searchCeiling)
+        guard let sliceStart = windowIndex(at: searchFloor) else {
+            return []
+        }
+        let sliceEnd = windowIndex(at: searchCeiling) ?? windowText.endIndex
         let searchSlice = String(windowText[sliceStart ..< sliceEnd])
 
         let ranges = await searchAlgorithm.findRanges(
@@ -507,8 +531,14 @@ private actor Iterator: SearchIterator, Loggable {
             return nil
         }
 
-        let highlightStart = windowText.index(windowText.startIndex, offsetBy: matchStart)
-        let highlightEnd = windowText.index(windowText.startIndex, offsetBy: matchEnd)
+        guard
+            let highlightStart = windowIndex(at: matchStart),
+            let highlightEnd = windowIndex(at: matchEnd)
+        else {
+            log(.error, "Match range (\(matchStart), \(matchEnd)) is out of the window's bounds")
+            return nil
+        }
+
         let highlight = String(
             windowText[highlightStart ..< highlightEnd]
         )
@@ -563,11 +593,14 @@ private actor Iterator: SearchIterator, Loggable {
     /// Returns `nil` if the match is at the very beginning of a resource and
     /// the resulting text is empty after trimming.
     private func extractSnippetBefore(matchStart: Int) -> String? {
-        guard matchStart > 0 else {
+        guard
+            matchStart > 0,
+            let matchStartIndex = windowIndex(at: matchStart)
+        else {
             return nil
         }
 
-        let available = windowText[windowText.startIndex ..< windowText.index(windowText.startIndex, offsetBy: matchStart)]
+        let available = windowText[windowText.startIndex ..< matchStartIndex]
 
         var chars: [Character] = []
         var count = snippetLength
@@ -600,11 +633,13 @@ private actor Iterator: SearchIterator, Loggable {
     /// Returns `nil` if the match is at the very end of a resource and the
     /// resulting text is empty after trimming.
     private func extractSnippetAfter(matchEnd: Int) -> String? {
-        guard matchEnd < windowTextCount else {
+        guard
+            matchEnd < windowTextCount,
+            let afterStart = windowIndex(at: matchEnd)
+        else {
             return nil
         }
 
-        let afterStart = windowText.index(windowText.startIndex, offsetBy: matchEnd)
         let available = windowText[afterStart...]
 
         var result = ""
