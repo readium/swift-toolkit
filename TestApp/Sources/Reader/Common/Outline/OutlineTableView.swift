@@ -60,10 +60,8 @@ struct OutlineTableView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                Task {
-                                    if let locator = await publication.locate(item.link) {
-                                        locatorSubject.send(locator)
-                                    }
+                                if let locator = publication.locator(for: item.link) {
+                                    locatorSubject.send(locator)
                                 }
                             }
                     }

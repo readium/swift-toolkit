@@ -362,10 +362,10 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     /// description of the image.
     private func openFromImagePreview(_ link: ReadiumShared.Link) {
         Task {
-            // `locate` runs first: the href is only inspected once it comes
-            // back nil, so a remote publication whose in-publication links are
-            // themselves absolute is not misrouted to the browser.
-            let locator = await publication.locate(link)
+            // `locator(for:)` runs first: the href is only inspected once it
+            // comes back nil, so a remote publication whose in-publication
+            // links are themselves absolute is not misrouted to the browser.
+            let locator = publication.locator(for: link)
             let externalURL = (locator == nil) ? link.httpURL : nil
             if locator == nil, externalURL == nil {
                 log(.error, "Cannot locate the extended description at \(link.href)")
@@ -416,7 +416,7 @@ extension VisualReaderViewController {
         for (index, link) in publication.pageList.enumerated() {
             guard
                 let title = link.title,
-                let locator = await publication.locate(link)
+                let locator = publication.locator(for: link)
             else {
                 continue
             }
