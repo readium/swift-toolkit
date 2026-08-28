@@ -49,6 +49,12 @@ All notable changes to this project will be documented in this file. Take a look
 * The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been removed.
 * The `ReadiumInternal` package has been removed. Its utilities were internal helpers and are now folded into `ReadiumShared` with `package` visibility. If you imported `ReadiumInternal` directly, remove the import.
 
+### Fixed
+
+#### Navigator
+
+* [#112](https://github.com/readium/swift-toolkit/issues/112) In the paginated EPUB navigator, horizontal swipes over the top and bottom margins of a reflowable resource now turn the page, instead of skipping to the previous or next resource.
+
 
 <!-- ## [Unreleased] -->
 
