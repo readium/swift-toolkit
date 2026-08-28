@@ -666,10 +666,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         let (locator, viewport) = await EPUBViewportAndLocationCalculator.compute(
             readingOrderIndices: spreadView.spread.readingOrderIndices,
             progression: { spreadView.progression(in: $0) },
+            manifest: publication.manifest,
             readingOrder: readingOrder,
             positionsByReadingOrder: positionsByReadingOrder,
-            tableOfContentsTitleByHref: tableOfContentsTitleByHref,
-            fallbackLocator: { [publication] in await publication.locate($0) }
+            tableOfContentsTitleByHref: tableOfContentsTitleByHref
         )
         return (locator, viewport)
     }
@@ -727,7 +727,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
-        guard let locator = await publication.locate(link) else {
+        guard let locator = publication.locator(for: link) else {
             return false
         }
         return await go(to: locator, options: options)

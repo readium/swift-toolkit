@@ -5,14 +5,12 @@
 //
 
 @testable import ReadiumShared
-import XCTest
+import Testing
 
-class ManifestTests: XCTestCase {
-    let fixtures = Fixtures(path: "Publication")
-
-    func testParseMinimalJSON() {
-        XCTAssertEqual(
-            try? Manifest(json: [
+struct ManifestTests {
+    @Test func parseMinimalJSON() {
+        #expect(
+            (try? Manifest(json: [
                 "metadata": ["title": "Title"],
                 "links": [
                     ["href": "manifest.json", "rel": "self"],
@@ -20,18 +18,18 @@ class ManifestTests: XCTestCase {
                 "readingOrder": [
                     ["href": "chap1.html", "type": "text/html"],
                 ],
-            ] as JSONValue),
-            Manifest(
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
-            )
+            ] as JSONValue)) ==
+                Manifest(
+                    metadata: Metadata(title: "Title"),
+                    links: [Link(href: "manifest.json", rels: [.self])],
+                    readingOrder: [Link(href: "chap1.html", mediaType: .html)]
+                )
         )
     }
 
-    func testParseFullJSON() {
-        XCTAssertEqual(
-            try? Manifest(json: [
+    @Test func parseFullJSON() {
+        #expect(
+            (try? Manifest(json: [
                 "@context": "https://readium.org/webpub-manifest/context.jsonld",
                 "metadata": ["title": "Title"],
                 "links": [
@@ -52,22 +50,22 @@ class ManifestTests: XCTestCase {
                         ["href": "sublink"],
                     ],
                 ],
-            ] as JSONValue),
-            Manifest(
-                context: ["https://readium.org/webpub-manifest/context.jsonld"],
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", mediaType: .html)],
-                resources: [Link(href: "image.png", mediaType: .png)],
-                tableOfContents: [Link(href: "cover.html"), Link(href: "chap1.html")],
-                subcollections: ["sub": [PublicationCollection(links: [Link(href: "sublink")])]]
-            )
+            ] as JSONValue)) ==
+                Manifest(
+                    context: ["https://readium.org/webpub-manifest/context.jsonld"],
+                    metadata: Metadata(title: "Title"),
+                    links: [Link(href: "manifest.json", rels: [.self])],
+                    readingOrder: [Link(href: "chap1.html", mediaType: .html)],
+                    resources: [Link(href: "image.png", mediaType: .png)],
+                    tableOfContents: [Link(href: "cover.html"), Link(href: "chap1.html")],
+                    subcollections: ["sub": [PublicationCollection(links: [Link(href: "sublink")])]]
+                )
         )
     }
 
-    func testParseContextAsArray() {
-        XCTAssertEqual(
-            try? Manifest(json: [
+    @Test func parseContextAsArray() {
+        #expect(
+            (try? Manifest(json: [
                 "@context": ["context1", "context2"],
                 "metadata": ["title": "Title"],
                 "links": [
@@ -76,35 +74,39 @@ class ManifestTests: XCTestCase {
                 "readingOrder": [
                     ["href": "chap1.html", "type": "text/html"],
                 ],
-            ] as JSONValue),
-            Manifest(
-                context: ["context1", "context2"],
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
-            )
+            ] as JSONValue)) ==
+                Manifest(
+                    context: ["context1", "context2"],
+                    metadata: Metadata(title: "Title"),
+                    links: [Link(href: "manifest.json", rels: [.self])],
+                    readingOrder: [Link(href: "chap1.html", mediaType: .html)]
+                )
         )
     }
 
-    func testParseInvalidJSON() {
-        XCTAssertThrowsError(try Manifest(json: ""))
+    @Test func parseInvalidJSON() {
+        #expect(throws: JSONError.self) {
+            try Manifest(json: "")
+        }
     }
 
-    func testParseJSONRequiresMetadata() {
-        XCTAssertThrowsError(try Manifest(json: [
-            "links": [
-                ["href": "manifest.json", "rel": "self"],
-            ],
-            "readingOrder": [
-                ["href": "chap1.html", "type": "text/html"],
-            ],
-        ]))
+    @Test func parseJSONRequiresMetadata() {
+        #expect(throws: (any Error).self) {
+            try Manifest(json: [
+                "links": [
+                    ["href": "manifest.json", "rel": "self"],
+                ],
+                "readingOrder": [
+                    ["href": "chap1.html", "type": "text/html"],
+                ],
+            ])
+        }
     }
 
-    func testParseJSONSpineAsReadingOrder() {
+    @Test func parseJSONSpineAsReadingOrder() {
         // `readingOrder` used to be `spine`, so we parse `spine` as a fallback.
-        XCTAssertEqual(
-            try? Manifest(json: [
+        #expect(
+            (try? Manifest(json: [
                 "metadata": ["title": "Title"],
                 "links": [
                     ["href": "manifest.json", "rel": "self"],
@@ -112,17 +114,17 @@ class ManifestTests: XCTestCase {
                 "spine": [
                     ["href": "chap1.html", "type": "text/html"],
                 ],
-            ] as JSONValue),
-            Manifest(
-                metadata: Metadata(title: "Title"),
-                links: [Link(href: "manifest.json", rels: [.self])],
-                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
-            )
+            ] as JSONValue)) ==
+                Manifest(
+                    metadata: Metadata(title: "Title"),
+                    links: [Link(href: "manifest.json", rels: [.self])],
+                    readingOrder: [Link(href: "chap1.html", mediaType: .html)]
+                )
         )
     }
 
-    func testParseJSONIgnoresReadingOrderWithoutType() {
-        XCTAssertEqual(
+    @Test func parseJSONIgnoresReadingOrderWithoutType() throws {
+        #expect(
             try Manifest(json: [
                 "metadata": ["title": "Title"],
                 "links": [
@@ -132,19 +134,19 @@ class ManifestTests: XCTestCase {
                     ["href": "chap1.html", "type": "text/html"],
                     ["href": "chap2.html"],
                 ],
-            ] as JSONValue),
-            Manifest(
-                metadata: Metadata(title: "Title"),
-                links: [
-                    Link(href: "manifest.json", rels: [.self]),
-                ],
-                readingOrder: [Link(href: "chap1.html", mediaType: .html)]
-            )
+            ] as JSONValue) ==
+                Manifest(
+                    metadata: Metadata(title: "Title"),
+                    links: [
+                        Link(href: "manifest.json", rels: [.self]),
+                    ],
+                    readingOrder: [Link(href: "chap1.html", mediaType: .html)]
+                )
         )
     }
 
-    func testParseJSONIgnoresRessourcesWithoutType() {
-        XCTAssertEqual(
+    @Test func parseJSONIgnoresRessourcesWithoutType() throws {
+        #expect(
             try Manifest(json: [
                 "metadata": ["title": "Title"],
                 "links": [
@@ -157,39 +159,39 @@ class ManifestTests: XCTestCase {
                     ["href": "withtype", "type": "text/html"],
                     ["href": "withouttype"],
                 ],
-            ] as JSONValue),
-            Manifest(
-                metadata: Metadata(title: "Title"),
-                links: [
-                    Link(href: "manifest.json", rels: [.self]),
-                ],
-                readingOrder: [Link(href: "chap1.html", mediaType: .html)],
-                resources: [Link(href: "withtype", mediaType: .html)]
-            )
+            ] as JSONValue) ==
+                Manifest(
+                    metadata: Metadata(title: "Title"),
+                    links: [
+                        Link(href: "manifest.json", rels: [.self]),
+                    ],
+                    readingOrder: [Link(href: "chap1.html", mediaType: .html)],
+                    resources: [Link(href: "withtype", mediaType: .html)]
+                )
         )
     }
 
-    func testGetMinimalJSON() {
-        XCTAssertEqual(
+    @Test func getMinimalJSON() {
+        #expect(
             Manifest(
                 metadata: Metadata(title: "Title"),
                 links: [Link(href: "manifest.json", rels: [.self])],
                 readingOrder: [Link(href: "chap1.html", mediaType: .html)]
-            ).jsonObject,
-            [
-                "metadata": ["title": "Title", "readingProgression": "auto"],
-                "links": [
-                    ["href": "manifest.json", "rel": ["self"], "templated": false] as JSONValue,
-                ],
-                "readingOrder": [
-                    ["href": "chap1.html", "type": "text/html", "templated": false] as JSONValue,
-                ],
-            ] as [String: JSONValue]
+            ).jsonObject ==
+                [
+                    "metadata": ["title": "Title", "readingProgression": "auto"],
+                    "links": [
+                        ["href": "manifest.json", "rel": ["self"], "templated": false] as JSONValue,
+                    ],
+                    "readingOrder": [
+                        ["href": "chap1.html", "type": "text/html", "templated": false] as JSONValue,
+                    ],
+                ] as [String: JSONValue]
         )
     }
 
-    func testGetFullJSON() {
-        XCTAssertEqual(
+    @Test func getFullJSON() {
+        #expect(
             Manifest(
                 context: ["https://readium.org/webpub-manifest/context.jsonld"],
                 metadata: Metadata(title: "Title"),
@@ -198,64 +200,61 @@ class ManifestTests: XCTestCase {
                 resources: [Link(href: "image.png", mediaType: .png)],
                 tableOfContents: [Link(href: "cover.html"), Link(href: "chap1.html")],
                 subcollections: ["sub": [PublicationCollection(links: [Link(href: "sublink")])]]
-            ).jsonObject,
-            [
-                "@context": ["https://readium.org/webpub-manifest/context.jsonld"],
-                "metadata": ["title": "Title", "readingProgression": "auto"],
-                "links": [
-                    ["href": "manifest.json", "rel": ["self"], "templated": false] as JSONValue,
-                ],
-                "readingOrder": [
-                    ["href": "chap1.html", "type": "text/html", "templated": false] as JSONValue,
-                ],
-                "resources": [
-                    ["href": "image.png", "type": "image/png", "templated": false] as JSONValue,
-                ],
-                "toc": [
-                    ["href": "cover.html", "templated": false] as JSONValue,
-                    ["href": "chap1.html", "templated": false],
-                ],
-                "sub": [
+            ).jsonObject ==
+                [
+                    "@context": ["https://readium.org/webpub-manifest/context.jsonld"],
+                    "metadata": ["title": "Title", "readingProgression": "auto"],
                     "links": [
-                        ["href": "sublink", "templated": false] as JSONValue,
+                        ["href": "manifest.json", "rel": ["self"], "templated": false] as JSONValue,
                     ],
-                ],
-            ] as [String: JSONValue]
+                    "readingOrder": [
+                        ["href": "chap1.html", "type": "text/html", "templated": false] as JSONValue,
+                    ],
+                    "resources": [
+                        ["href": "image.png", "type": "image/png", "templated": false] as JSONValue,
+                    ],
+                    "toc": [
+                        ["href": "cover.html", "templated": false] as JSONValue,
+                        ["href": "chap1.html", "templated": false],
+                    ],
+                    "sub": [
+                        "links": [
+                            ["href": "sublink", "templated": false] as JSONValue,
+                        ],
+                    ],
+                ] as [String: JSONValue]
         )
     }
 
-    func testLinkWithRelInReadingOrder() {
-        XCTAssertEqual(
+    @Test func linkWithRelInReadingOrder() {
+        #expect(
             makeManifest(readingOrder: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).linkWithRel("rel1")?.href,
-            "l2"
+            ]).linkWithRel("rel1")?.href == "l2"
         )
     }
 
-    func testLinkWithRelInLinks() {
-        XCTAssertEqual(
+    @Test func linkWithRelInLinks() {
+        #expect(
             makeManifest(links: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).linkWithRel("rel1")?.href,
-            "l2"
+            ]).linkWithRel("rel1")?.href == "l2"
         )
     }
 
-    func testLinkWithRelInResources() {
-        XCTAssertEqual(
+    @Test func linkWithRelInResources() {
+        #expect(
             makeManifest(resources: [
                 Link(href: "l1"),
                 Link(href: "l2", rel: "rel1"),
-            ]).linkWithRel("rel1")?.href,
-            "l2"
+            ]).linkWithRel("rel1")?.href == "l2"
         )
     }
 
-    func testLinksWithRel() {
-        XCTAssertEqual(
+    @Test func linksWithRel() {
+        #expect(
             makeManifest(
                 links: [
                     Link(href: "l1"),
@@ -271,26 +270,92 @@ class ManifestTests: XCTestCase {
                     ]),
                     Link(href: "l6", rel: "rel1"),
                 ]
-            ).linksWithRel("rel1"),
-            [
-                Link(href: "l4", rel: "rel1"),
-                Link(href: "l6", rel: "rel1"),
-                Link(href: "l2", rel: "rel1"),
-            ]
+            ).linksWithRel("rel1") ==
+                [
+                    Link(href: "l4", rel: "rel1"),
+                    Link(href: "l6", rel: "rel1"),
+                    Link(href: "l2", rel: "rel1"),
+                ]
         )
     }
 
-    func testLinksWithRelEmpty() {
-        XCTAssertEqual(
+    @Test func linksWithRelEmpty() {
+        #expect(
             makeManifest(resources: [
                 Link(href: "l1"),
                 Link(href: "l2"),
-            ]).linksWithRel("rel1"),
-            []
+            ]).linksWithRel("rel1") == []
         )
     }
 
-    private func makeManifest(metadata: Metadata = Metadata(title: ""), links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = []) -> Manifest {
-        Manifest(metadata: metadata, links: links, readingOrder: readingOrder, resources: resources)
+    struct LocatorForLink {
+        @Test func minimalLink() {
+            let sut = makeManifest(readingOrder: [
+                Link(href: "/href", mediaType: .html, title: "Resource"),
+            ])
+
+            #expect(
+                sut.locator(for: Link(href: "/href")) ==
+                    Locator(href: "/href", mediaType: .html, title: "Resource", locations: Locator.Locations(progression: 0.0))
+            )
+        }
+
+        @Test func linkInReadingOrderResourcesOrLinks() {
+            let sut = makeManifest(
+                links: [Link(href: "/href3", mediaType: .html)],
+                readingOrder: [Link(href: "/href1", mediaType: .html)],
+                resources: [Link(href: "/href2", mediaType: .html)]
+            )
+
+            #expect(
+                sut.locator(for: Link(href: "/href1")) ==
+                    Locator(href: "/href1", mediaType: .html, locations: Locator.Locations(progression: 0.0))
+            )
+            #expect(
+                sut.locator(for: Link(href: "/href2")) ==
+                    Locator(href: "/href2", mediaType: .html, locations: Locator.Locations(progression: 0.0))
+            )
+            #expect(
+                sut.locator(for: Link(href: "/href3")) ==
+                    Locator(href: "/href3", mediaType: .html, locations: Locator.Locations(progression: 0.0))
+            )
+        }
+
+        @Test func linkWithFragment() throws {
+            let sut = makeManifest(readingOrder: [
+                Link(href: "/href", mediaType: .html, title: "Resource"),
+            ])
+
+            #expect(
+                try sut.locator(for: Link(href: "/href#page=42", mediaType: #require(MediaType("text/xml")), title: "My link")) ==
+                    Locator(href: "/href", mediaType: .html, title: "Resource", locations: Locator.Locations(fragments: ["page=42"]))
+            )
+        }
+
+        /// The link's title is used when the resource itself has none.
+        @Test func fallsBackOnLinkTitle() {
+            let sut = makeManifest(readingOrder: [
+                Link(href: "/href", mediaType: .html),
+            ])
+
+            #expect(
+                sut.locator(for: Link(href: "/href", title: "My link")) ==
+                    Locator(href: "/href", mediaType: .html, title: "My link", locations: Locator.Locations(progression: 0.0))
+            )
+        }
+
+        @Test func unknownLink() {
+            let sut = makeManifest(readingOrder: [
+                Link(href: "/href", mediaType: .html),
+            ])
+
+            #expect(sut.locator(for: Link(href: "notfound")) == nil)
+        }
     }
+}
+
+// MARK: - Helpers
+
+private func makeManifest(metadata: Metadata = Metadata(title: ""), links: [Link] = [], readingOrder: [Link] = [], resources: [Link] = []) -> Manifest {
+    Manifest(metadata: metadata, links: links, readingOrder: readingOrder, resources: resources)
 }

@@ -126,7 +126,7 @@ public actor PublicationContentIterator: ContentIterator, Loggable {
         let link = publication.readingOrder[index]
         guard
             let resource = publication.get(link),
-            let locator = await location.toLocator(to: link, in: publication)
+            let locator = location.toLocator(to: link, in: publication)
         else {
             return nil
         }
@@ -149,12 +149,12 @@ private enum LocatorOrProgression {
     case locator(Locator)
     case progression(Double)
 
-    func toLocator(to link: Link, in publication: Publication) async -> Locator? {
+    func toLocator(to link: Link, in publication: Publication) -> Locator? {
         switch self {
         case let .locator(locator):
             return locator
         case let .progression(progression):
-            return await publication.locate(link)?.copy(locations: { $0.progression = progression })
+            return publication.locator(for: link)?.copy(locations: { $0.progression = progression })
         }
     }
 }

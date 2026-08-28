@@ -41,27 +41,9 @@ public final class DefaultLocatorService: Sendable, LocatorService, Loggable {
         return nil
     }
 
+    @available(*, unavailable, message: "Use `Publication.locator(for:)` instead.")
     public func locate(_ link: Link) async -> Locator? {
-        let originalHREF = link.url()
-        let fragment = originalHREF.fragment
-        let href = originalHREF.removingFragment()
-
-        guard
-            let resourceLink = publication()?.linkWithHREF(href),
-            let type = resourceLink.mediaType
-        else {
-            return nil
-        }
-
-        return Locator(
-            href: href,
-            mediaType: type,
-            title: resourceLink.title ?? link.title,
-            locations: Locator.Locations(
-                fragments: Array(ofNotNil: fragment),
-                progression: (fragment == nil) ? 0.0 : nil
-            )
-        )
+        fatalError()
     }
 
     public func locate(progression totalProgression: Double) async -> Locator? {
