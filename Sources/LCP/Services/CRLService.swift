@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Certificate Revocation List
-final class CRLService: Sendable {
+actor CRLService {
     /// Number of days before the CRL cache expires.
     private static let expiration = 7
 
@@ -19,38 +19,66 @@ final class CRLService: Sendable {
     private static let dateKey = "org.readium.r2-lcp-swift.CRLDate"
 
     private let httpClient: HTTPClient
+    private let defaults: UserDefaults
 
-    init(httpClient: HTTPClient) {
+    /// Refresh currently in flight, if any.
+    private var refreshTask: Task<String, Error>?
+
+    init(httpClient: HTTPClient, defaults: UserDefaults = .standard) {
         self.httpClient = httpClient
+        self.defaults = defaults
     }
 
-    /// Retrieves the CRL either from the cache, or from EDRLab if the cache is outdated.
+    /// Warms the cache so that opening a publication does not have to wait on
+    /// the network.
+    func preload() {
+        guard readLocal()?.isExpired ?? true else {
+            return
+        }
+        _ = refresh()
+    }
+
+    /// Retrieves the CRL either from the cache, or from EDRLab if the cache is
+    /// missing or invalid.
+    ///
+    /// An expired cache is returned as is and refreshed in the background, as
+    /// waiting on the network would delay the opening of a publication.
     func retrieve() async throws -> String {
-        let localCRL = readLocal()
-        if let (crl, date) = localCRL, daysSince(date) < CRLService.expiration {
-            return crl
+        guard let (crl, isExpired) = readLocal() else {
+            return try await refresh().value
         }
 
-        // Short timeout to avoid blocking the License, since we can always fall back on the cached CRL.
-        let timeout: TimeInterval? = (localCRL == nil) ? nil : 8
+        if isExpired {
+            _ = refresh()
+        }
+        return crl
+    }
 
-        do {
-            let crl = try await fetch(timeout: timeout)
+    /// Starts a CRL refresh, or returns the one already in flight.
+    private func refresh() -> Task<String, Error> {
+        if let refreshTask {
+            return refreshTask
+        }
+
+        let task = Task {
+            defer { refreshTask = nil }
+
+            let crl = try await fetch()
             saveLocal(crl)
             return crl
-
-        } catch {
-            // Fallback on the locally cached CRL if available
-            guard let (crl, _) = localCRL else {
-                throw error
-            }
-            return crl
         }
+        refreshTask = task
+        return task
     }
 
     /// Fetches the updated Certificate Revocation List from EDRLab.
-    private func fetch(timeout: TimeInterval? = nil) async throws -> String {
+    private func fetch() async throws -> String {
         let url = HTTPURL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl")!
+
+        // Timeout for a CRL fetch. Generous enough for a slow connection,
+        // where a failure means the publication cannot be opened at all, but
+        // bounded so that a captive portal cannot hang the open too long.
+        let timeout: TimeInterval = 20
 
         let response = try await httpClient.fetch(HTTPRequest(url: url, timeoutInterval: timeout))
             .mapError { _ in LCPError.crlFetching }
@@ -65,8 +93,7 @@ final class CRLService: Sendable {
     }
 
     /// Reads the local CRL.
-    private func readLocal() -> (String, Date)? {
-        let defaults = UserDefaults.standard
+    private func readLocal() -> (crl: String, isExpired: Bool)? {
         guard let crl = defaults.string(forKey: CRLService.crlKey),
               let date = defaults.value(forKey: CRLService.dateKey) as? Date,
               let der = CRLService.decodePEM(crl),
@@ -75,7 +102,7 @@ final class CRLService: Sendable {
             return nil
         }
 
-        return (crl, date)
+        return (crl, isExpired: daysSince(date) >= CRLService.expiration)
     }
 
     /// Extracts the DER payload of a PEM-encoded CRL cached by ``saveLocal(_:)``.
@@ -138,7 +165,6 @@ final class CRLService: Sendable {
 
     /// Caches the given CRL.
     private func saveLocal(_ crl: String) {
-        let defaults = UserDefaults.standard
         defaults.set(crl, forKey: CRLService.crlKey)
         defaults.set(Date(), forKey: CRLService.dateKey)
     }

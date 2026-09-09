@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Converting a `Link` to a `Locator` is now synchronous: `await publication.locate(link)` becomes `publication.locator(for: link)`. The logic moved to `Manifest`, so it is also available as `manifest.locator(for: link)` without a `Publication`.
 
+#### LCP
+
+* Opening an LCP publication is no longer delayed by the CRL used to validate its license. The CRL is now downloaded when creating the `LCPService`, and an expired one is refreshed in the background instead of making the user wait for the response.
+
 ### Fixed
 
 #### Navigator
