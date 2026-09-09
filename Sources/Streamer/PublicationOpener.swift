@@ -15,7 +15,7 @@ import ReadiumShared
 ///   - onCreatePublication: Called on every parsed `Publication.Builder`. It
 ///   can be used to modify the manifest, the root container or the list of
 ///   service factories of a `Publication`.
-public class PublicationOpener {
+public final class PublicationOpener: Sendable {
     private let parser: PublicationParser
     private let contentProtections: [ContentProtection]
     private let onCreatePublication: Publication.Builder.Transform
@@ -52,15 +52,12 @@ public class PublicationOpener {
     ///     Publication Builder. It can be used to modify the manifest, the root
     ///     container or the list of service factories of the `Publication`.
     ///   - warnings: Logger used to broadcast non-fatal parsing warnings.
-    ///   - sender: Free object that can be used by reading apps to give some
-    ///     UX context when presenting dialogs.
     public func open(
         asset: Asset,
         allowUserInteraction: Bool,
         credentials: String? = nil,
         onCreatePublication: @escaping Publication.Builder.Transform = { _, _, _ in },
-        warnings: WarningLogger? = nil,
-        sender: Any? = nil
+        warnings: WarningLogger? = nil
     ) async -> Result<Publication, PublicationOpenError> {
         var asset = asset
         var builderTransforms: [Publication.Builder.Transform] = [
@@ -72,8 +69,7 @@ public class PublicationOpener {
             switch await protection.open(
                 asset: asset,
                 credentials: credentials,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
+                allowUserInteraction: allowUserInteraction
             ) {
             case let .success(contentProtectionAsset):
                 asset = contentProtectionAsset.asset
@@ -106,9 +102,21 @@ public class PublicationOpener {
             }
         }
     }
+
+    @available(*, unavailable, message: "The `sender` parameter has been removed. Use the variant without `sender`.")
+    public func open(
+        asset: Asset,
+        allowUserInteraction: Bool,
+        credentials: String? = nil,
+        onCreatePublication: @escaping Publication.Builder.Transform = { _, _, _ in },
+        warnings: WarningLogger? = nil,
+        sender: Any?
+    ) async -> Result<Publication, PublicationOpenError> {
+        fatalError()
+    }
 }
 
-public enum PublicationOpenError: Error {
+public enum PublicationOpenError: Error, Sendable {
     /// The asset is not supported by the publication parser.
     case formatNotSupported
 

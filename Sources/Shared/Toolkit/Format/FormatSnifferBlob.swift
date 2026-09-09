@@ -10,11 +10,14 @@ public actor FormatSnifferBlob {
     private let source: Streamable
     private let xmlDocumentFactory: XMLDocumentFactory
 
-    // Caches
     private var length: ReadResult<UInt64?>?
     private var bytes: ReadResult<Data?>?
     private var string: ReadResult<String?>?
     private var json: ReadResult<JSONValue?>?
+
+    /// Caches. Warning: The `xml` cache holds an `XMLDocument`, which is a complex,
+    /// mutable reference type (non-Sendable). It is safe here because it never leaves
+    /// the actor's isolation domain.
     private var xml: ReadResult<XMLDocument?>?
 
     public init(source: Streamable) {
@@ -71,8 +74,10 @@ public actor FormatSnifferBlob {
         return json!
     }
 
-    /// Reads the whole content as an XML document.
-    func readAsXML() async -> ReadResult<XMLDocument?> {
+    /// Reads the whole content as an XML document and applies the given closure on it.
+    ///
+    /// - Parameter closure: A closure that evaluates the XML document and returns a Sendable result.
+    func sniffXML<T: Sendable>(_ closure: @Sendable (XMLDocument?) throws -> T) async -> ReadResult<T> {
         if xml == nil {
             xml = await read().asyncMap {
                 await $0.asyncFlatMap {
@@ -80,7 +85,13 @@ public actor FormatSnifferBlob {
                 }
             }
         }
-        return xml!
+        return xml!.flatMap { document in
+            do {
+                return try .success(closure(document))
+            } catch {
+                return .failure(.decoding(error))
+            }
+        }
     }
 
     private func length() async -> ReadResult<UInt64?> {

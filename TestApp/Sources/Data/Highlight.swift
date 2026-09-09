@@ -11,7 +11,7 @@ import ReadiumNavigator
 import ReadiumShared
 import UIKit
 
-enum HighlightColor: UInt8, Codable, SQLExpressible {
+nonisolated enum HighlightColor: UInt8, Codable, SQLExpressible {
     case red = 1
     case green = 2
     case blue = 3
@@ -33,8 +33,8 @@ extension HighlightColor {
     }
 }
 
-struct Highlight: Codable {
-    struct Id: EntityId { let rawValue: Int64 }
+nonisolated struct Highlight: Codable {
+    nonisolated struct Id: EntityId { let rawValue: Int64 }
 
     let id: Id?
     /// Foreign key to the publication.
@@ -64,7 +64,7 @@ struct Highlight: Codable {
     }
 }
 
-extension Highlight: TableRecord, FetchableRecord, PersistableRecord {
+nonisolated extension Highlight: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
         case id, bookId, locator, color, created, progression
     }
@@ -119,4 +119,4 @@ final class HighlightRepository {
 }
 
 /// for the default SwiftUI support
-extension Highlight: Hashable {}
+nonisolated extension Highlight: Hashable {}

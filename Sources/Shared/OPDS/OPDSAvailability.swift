@@ -5,11 +5,10 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Indicated the availability of a given resource.
 /// https://specs.opds.io/schema/properties.schema.json
-public struct OPDSAvailability: Equatable, JSONValueDecodable, JSONObjectEncodable {
+public struct OPDSAvailability: Equatable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public let state: State
 
     /// Timestamp for the previous state change.
@@ -50,7 +49,7 @@ public struct OPDSAvailability: Equatable, JSONValueDecodable, JSONObjectEncodab
         ])
     }
 
-    public enum State: String {
+    public enum State: String, Sendable {
         case available, unavailable, reserved, ready
     }
 }

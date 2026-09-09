@@ -5,11 +5,10 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Library-specific features when a specific book is unavailable but provides a hold list.
 /// https://specs.opds.io/schema/properties.schema.json
-public struct OPDSHolds: Equatable, JSONValueDecodable, JSONObjectEncodable {
+public struct OPDSHolds: Equatable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     public let total: Int?
     public let position: Int?
 

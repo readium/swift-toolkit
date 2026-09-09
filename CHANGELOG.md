@@ -2,13 +2,80 @@
 
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
+
 ## [Unreleased]
 
+### Changed
+
+#### Shared
+
+* Converting a `Link` to a `Locator` is now synchronous: `await publication.locate(link)` becomes `publication.locator(for: link)`. The logic moved to `Manifest`, so it is also available as `manifest.locator(for: link)` without a `Publication`.
+
+### Fixed
+
+#### Navigator
+
+* [#121](https://github.com/readium/swift-toolkit/issues/121) HTML `<audio>` and `<video>` elements are now paused when the resource moves off-screen in the EPUB navigator, rather than continuing to play in the background.
+
+
+## [4.0.0-alpha.1] - 2026-08-14
+
 ### Added
+
+#### Shared
+
+* Content elements now expose `accessibleName`, `accessibleDescription` and `extendedDescription` attributes, computed following a subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2) and [Best Practices for Implementing Extended Descriptions in EPUB](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html). 
+* The HTML content iterator now emits inline `<svg>` elements as `SVGContentElement`, with a caption from the enclosing figure's `figcaption`.
+* `AudioContentElement` and `VideoContentElement` now expose a `caption` property, filled from the enclosing figure's `figcaption` like images and SVGs already were.
+
+### Changed
+
+* The toolkit is migrated to Swift 6 with strict concurrency checking. All packages compile in the Swift 6 language mode. See [the migration guide](docs/Migration%20Guide.md).
+    * The toolkit adopts the `NonisolatedNonsendingByDefault` (SE-0461), `InferIsolatedConformances` and `MemberImportVisibility` upcoming Swift features.
+
+#### Shared
+
+* OPDS models (`Feed`, `Group`, `Facet`, `OpdsMetadata`) are now structs with value semantics.
+* `Publication`, `Resource`, `Container` and related types are now `Sendable`. Custom implementations of `Resource`, `Container`, `HTTPClient` or `PublicationService` must be `Sendable` too.
+* `Resource.stream()` now cooperates with task cancellation: the built-in resources fail with `ReadError.cancelled` when the surrounding task is cancelled, and custom implementations are expected to do the same.
+* `ImageContentElement.caption` and `SVGContentElement.caption` are now strictly the text of the enclosing figure's `figcaption`. Other sources (such as `alt`) contribute to `accessibleName` instead.
+* Audio and video content elements now expose accessibility attributes, so the text-to-speech may start speaking their labels.
+
+#### Navigator
+
+* The `Navigator` and `VisualNavigator` protocols and their delegates are now isolated to the main actor.
+
+#### LCP
+
+* `LCPService.init` now requires an explicit `deviceName` parameter. We recommend passing `UIDevice.current.name`. See [the migration guide](docs/Migration%20Guide.md).
+* `LCPDialogAuthentication` no longer takes a `sender` view controller. It now presents its passphrase dialog through a new `LCPDialogAuthenticationDelegate` that you implement and retain for the lifetime of the authentication. See [the Readium LCP guide](docs/Guides/Readium%20LCP.md) and [the migration guide](docs/Migration%20Guide.md).
+
+### Removed
+
+* The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been removed.
+* The `ReadiumInternal` package has been removed. Its utilities were internal helpers and are now folded into `ReadiumShared` with `package` visibility. If you imported `ReadiumInternal` directly, remove the import.
+
+
+<!-- ## [Unreleased] -->
+
+## [3.11.0] - 2026-07-17
+
+### Added
+
+#### Navigator
+
+* Added the `AudioSessionManaging` protocol, letting apps provide their own audio session manager instead of the built-in `AudioSession` (contributed by [@svenmeyers89](https://github.com/readium/swift-toolkit/pull/856)).
 
 #### LCP
 
 * `LCPService` has a new `addPassphrase(_:isHashed:userID:provider:)` method to store a passphrase candidate in the repository without opening a license first. Useful to preload a passphrase ahead of time (e.g. from a catalog).
+* `LCPClient` has a new `getSupportedLCPProfileURIs()` requirement, letting the toolkit report `LCPError.licenseProfileNotSupported` based on the profiles the embedded liblcp actually supports. Update your `LCPClient` facade to forward `R2LCPClient.getSupportedLCPProfileURIs()` (a default implementation is provided for backward compatibility).
+
+### Changed
+
+#### LCP
+
+* The auto-generated LCP device ID is now stored in the Keychain instead of `UserDefaults`, so it survives an app delete/reinstall and no longer needlessly consumes a license's device-registration slots. Existing IDs are automatically migrated from `UserDefaults`.
 
 ### Fixed
 
@@ -1279,3 +1346,5 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.8.0]: https://github.com/readium/swift-toolkit/compare/3.7.0...3.8.0
 [3.9.0]: https://github.com/readium/swift-toolkit/compare/3.8.0...3.9.0
 [3.10.0]: https://github.com/readium/swift-toolkit/compare/3.9.0...3.10.0
+[3.11.0]: https://github.com/readium/swift-toolkit/compare/3.10.0...3.11.0
+[4.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/3.11.0...4.0.0-alpha.1

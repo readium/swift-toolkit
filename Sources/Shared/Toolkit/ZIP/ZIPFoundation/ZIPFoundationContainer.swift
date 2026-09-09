@@ -104,8 +104,12 @@ private actor ZIPFoundationResource: Resource, Loggable {
         })
     }
 
-    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
-        await archive().asyncFlatMap { archive in
+    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
+        guard !Task.isCancelled else {
+            return .failure(.cancelled)
+        }
+
+        return await archive().asyncFlatMap { archive in
             do {
                 if let range = range {
                     // The `Streamable` contract requires out-of-range indexes
@@ -117,10 +121,12 @@ private actor ZIPFoundationResource: Resource, Loggable {
                         return .success(())
                     }
                     try await archive.extractRange(range, of: entry) { data in
+                        try Task.checkCancellation()
                         consume(data)
                     }
                 } else {
                     _ = try await archive.extract(entry, skipCRC32: true) { data in
+                        try Task.checkCancellation()
                         consume(data)
                     }
                 }

@@ -11,32 +11,39 @@ import XCTest
 
 class AudioLocatorServiceTests: XCTestCase {
     func testLocateLocatorMatchingReadingOrderHREF() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1"),
             Link(href: "l2"),
         ])
+        _ = publication // Silence warning
 
         let locator = Locator(href: "l1", mediaType: .mp3, locations: .init(totalProgression: 0.53))
         let result = await service.locate(locator)
         XCTAssertEqual(result, locator)
+
+        withExtendedLifetime(publication) {}
     }
 
     func testLocateLocatorReturnsNilIfNoMatch() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1"),
             Link(href: "l2"),
         ])
+        _ = publication // Silence warning
 
         let locator = Locator(href: "l3", mediaType: .mp3, locations: .init(totalProgression: 0.53))
         let result = await service.locate(locator)
         XCTAssertNil(result)
+
+        withExtendedLifetime(publication) {}
     }
 
     func testLocateLocatorUsesTotalProgression() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
+        _ = publication // Silence warning
 
         var result = await service.locate(Locator(href: "wrong", mediaType: .mp3, locations: .init(totalProgression: 0.49)))
         XCTAssertEqual(
@@ -67,13 +74,16 @@ class AudioLocatorServiceTests: XCTestCase {
                 totalProgression: 0.51
             ))
         )
+
+        withExtendedLifetime(publication) {}
     }
 
     func testLocateLocatorUsingTotalProgressionKeepsTitleAndText() async throws {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
+        _ = publication // Silence warning
 
         let result = try await service.locate(
             Locator(
@@ -105,13 +115,16 @@ class AudioLocatorServiceTests: XCTestCase {
                 text: .init(after: "after", before: "before", highlight: "highlight")
             )
         )
+
+        withExtendedLifetime(publication) {}
     }
 
     func testLocateProgression() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
+        _ = publication // Silence warning
 
         var result = await service.locate(progression: 0)
         XCTAssertEqual(
@@ -162,26 +175,31 @@ class AudioLocatorServiceTests: XCTestCase {
                 totalProgression: 1
             ))
         )
+
+        withExtendedLifetime(publication) {}
     }
 
     func testLocateInvalidProgression() async {
-        let service = makeService(readingOrder: [
+        let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),
             Link(href: "l2", mediaType: .mp3, duration: 100),
         ])
+        _ = publication // Silence warning
 
         var result = await service.locate(progression: -0.5)
         XCTAssertNil(result)
 
         result = await service.locate(progression: 1.5)
         XCTAssertNil(result)
+
+        withExtendedLifetime(publication) {}
     }
 
-    private func makeService(readingOrder: [Link]) -> AudioLocatorService {
-        AudioLocatorService(
-            publication: _Strong(Publication(
-                manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
-            ))
+    private func makeService(readingOrder: [Link]) -> (Publication, AudioLocatorService) {
+        let publication = Publication(
+            manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder)
         )
+        let service = AudioLocatorService(readingOrder: readingOrder, publication: Weak(publication))
+        return (publication, service)
     }
 }

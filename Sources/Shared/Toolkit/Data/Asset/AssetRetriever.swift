@@ -8,7 +8,7 @@ import Foundation
 
 /// Error while trying to retrieve an asset from a ``Resource`` or a
 /// ``Container``.
-public enum AssetRetrieveError: Error {
+public enum AssetRetrieveError: Error, Sendable {
     /// The format of the resource is not recognized.
     case formatNotSupported
 
@@ -17,7 +17,7 @@ public enum AssetRetrieveError: Error {
 }
 
 /// Error while trying to retrieve an asset from an URL.
-public enum AssetRetrieveURLError: Error {
+public enum AssetRetrieveURLError: Error, Sendable {
     /// The scheme (e.g. http, file, content) for the requested URL is not
     /// supported.
     case schemeNotSupported(URLScheme)
@@ -32,7 +32,7 @@ public enum AssetRetrieveURLError: Error {
 /// Retrieves an ``Asset`` instance that provides read-only access to the
 /// resource(s) of an asset stored at a given ``AbsoluteURL`` and its
 /// ``Format``.
-public final class AssetRetriever {
+public final class AssetRetriever: Sendable {
     private let formatSniffer: FormatSniffer
     private let resourceFactory: ResourceFactory
     private let archiveOpener: ArchiveOpener

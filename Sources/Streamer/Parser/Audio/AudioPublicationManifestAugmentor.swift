@@ -11,11 +11,11 @@ import UIKit
 
 /// Implements a strategy to augment a `Manifest` of an audio publication with additional metadata and
 /// cover, for example by looking into the audio files metadata.
-public protocol AudioPublicationManifestAugmentor {
+public protocol AudioPublicationManifestAugmentor: Sendable {
     func augment(_ baseManifest: Manifest, using container: Container) async -> AudioPublicationAugmentedManifest
 }
 
-public struct AudioPublicationAugmentedManifest {
+public struct AudioPublicationAugmentedManifest: Sendable {
     public var manifest: Manifest
     public var cover: UIImage?
 
@@ -28,7 +28,7 @@ public struct AudioPublicationAugmentedManifest {
 /// An `AudioPublicationManifestAugmentor` using AVFoundation to retrieve the audio metadata.
 ///
 /// It will only work for local publications (file://).
-public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifestAugmentor {
+public final class AVAudioPublicationManifestAugmentor: AudioPublicationManifestAugmentor, Sendable {
     public init() {}
 
     public func augment(_ manifest: Manifest, using container: Container) async -> AudioPublicationAugmentedManifest {

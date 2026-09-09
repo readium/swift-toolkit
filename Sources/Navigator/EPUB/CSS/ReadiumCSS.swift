@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 struct ReadiumCSS {

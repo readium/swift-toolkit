@@ -7,7 +7,7 @@
 import UIKit
 
 /// Represents a set of modifier keys held together.
-public struct KeyModifiers: OptionSet, Equatable, CustomStringConvertible {
+public struct KeyModifiers: OptionSet, Equatable, CustomStringConvertible, Sendable {
     public static let command = KeyModifiers(rawValue: 1 << 0)
     public static let control = KeyModifiers(rawValue: 1 << 1)
     public static let option = KeyModifiers(rawValue: 1 << 2)

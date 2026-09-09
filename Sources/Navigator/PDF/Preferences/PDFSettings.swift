@@ -5,13 +5,12 @@
 //
 
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
 /// Setting values of the `PDFNavigatorViewController`.
 ///
 /// See `PDFPreferences`
-public struct PDFSettings: ConfigurableSettings {
+public struct PDFSettings: ConfigurableSettings, Sendable {
     public let backgroundColor: Color?
     public let fit: Fit
     public let offsetFirstPage: Bool
@@ -67,7 +66,7 @@ public struct PDFSettings: ConfigurableSettings {
 /// takes precedence.
 ///
 /// See `PDFPreferences`.
-public struct PDFDefaults {
+public struct PDFDefaults: Sendable {
     public var backgroundColor: Color?
     public var fit: Fit?
     public var offsetFirstPage: Bool?

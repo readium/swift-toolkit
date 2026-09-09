@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import ReadiumShared
 import SwiftUI
 import UIKit
 
@@ -63,7 +64,27 @@ final class LCPDialogViewController: UIViewController {
             return
         }
         isCompleted = true
-        completion(passphrase)
-        dismiss(animated: true)
+
+        guard presentingViewController != nil else {
+            completion(passphrase)
+            return
+        }
+
+        // The completion must be called only after the dialog is fully
+        // dismissed. Otherwise, when retrying an invalid passphrase, the next
+        // dialog might be presented while this one is still animating its
+        // dismissal, which fails and leaks the caller's continuation.
+        dismiss(animated: true) {
+            self.completion(passphrase)
+        }
+    }
+
+    isolated deinit {
+        // Safety net: if the dialog is deallocated without being submitted or
+        // cancelled (e.g. the delegate failed to present it), we still need
+        // to call the completion to avoid leaking the caller's continuation.
+        if !isCompleted {
+            completion(nil)
+        }
     }
 }

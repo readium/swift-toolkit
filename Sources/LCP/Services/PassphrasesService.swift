@@ -4,16 +4,12 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import CryptoSwift
 import Foundation
-import ReadiumInternal
 import ReadiumShared
 
-final class PassphrasesService: Loggable {
+final class PassphrasesService: Loggable, Sendable {
     private let client: LCPClient
     private let repository: LCPPassphraseRepository
-
-    private let sha256Predicate = NSPredicate(format: "SELF MATCHES[c] %@", "^([a-f0-9]{64})$")
 
     init(client: LCPClient, repository: LCPPassphraseRepository) {
         self.client = client
@@ -32,7 +28,7 @@ final class PassphrasesService: Loggable {
     ) async throws(LCPAddPassphraseError) {
         let hash: LCPPassphraseHash
         if isHashed {
-            guard sha256Predicate.evaluate(with: passphrase) else {
+            guard isValidHashedPassphrase(passphrase) else {
                 throw .invalidHash
             }
             // Normalize to lowercase to match `sha256()` output, so a hashed
@@ -61,8 +57,7 @@ final class PassphrasesService: Loggable {
     func request(
         for license: LicenseDocument,
         authentication: LCPAuthenticating?,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async throws -> LCPPassphraseHash? {
         // Look for a stored passphrase matching this license.
         //
@@ -76,8 +71,7 @@ final class PassphrasesService: Loggable {
                 for: license,
                 reason: .passphraseNotFound,
                 using: authentication,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
+                allowUserInteraction: allowUserInteraction
             )
         }
 
@@ -131,24 +125,23 @@ final class PassphrasesService: Loggable {
         for license: LicenseDocument,
         reason: LCPAuthenticationReason,
         using authentication: LCPAuthenticating,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async throws -> LCPPassphraseHash? {
         let authenticatedLicense = LCPAuthenticatedLicense(document: license)
-        guard let clearPassphrase = await authentication.retrievePassphrase(
+        guard let clearPassphrase = await retrievePassphrase(
+            using: authentication,
             for: authenticatedLicense,
             reason: reason,
-            allowUserInteraction: allowUserInteraction,
-            sender: sender
+            allowUserInteraction: allowUserInteraction
         ) else {
             return nil
         }
 
         let hashedPassphrase = clearPassphrase.sha256()
         var passphrases = [hashedPassphrase]
-        // Note: The C++ LCP lib crashes if we provide a passphrase that is not a valid
-        // SHA-256 hash. So we check this beforehand.
-        if sha256Predicate.evaluate(with: clearPassphrase) {
+        // Note: The C++ LCP lib crashes if we provide a passphrase that is not
+        // a valid SHA-256 hash. So we check this beforehand.
+        if isValidHashedPassphrase(clearPassphrase) {
             passphrases.append(clearPassphrase)
         }
 
@@ -164,11 +157,31 @@ final class PassphrasesService: Loggable {
                 for: license,
                 reason: .invalidPassphrase,
                 using: authentication,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
+                allowUserInteraction: allowUserInteraction
             )
         }
 
         return passphrase
+    }
+
+    /// Prompts the user for a passphrase on the main actor.
+    @MainActor
+    private func retrievePassphrase(
+        using authentication: LCPAuthenticating,
+        for license: LCPAuthenticatedLicense,
+        reason: LCPAuthenticationReason,
+        allowUserInteraction: Bool
+    ) async -> String? {
+        await authentication.retrievePassphrase(
+            for: license,
+            reason: reason,
+            allowUserInteraction: allowUserInteraction
+        )
+    }
+
+    /// Returns whether the provided `passphrase` is actually a valid hashed
+    /// passphrase, and not just a clear passphrase.
+    private func isValidHashedPassphrase(_ passphrase: String) -> Bool {
+        passphrase.count == 64 && passphrase.allSatisfy { $0.isASCII && $0.isHexDigit }
     }
 }

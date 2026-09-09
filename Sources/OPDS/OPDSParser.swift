@@ -7,39 +7,34 @@
 import Foundation
 import ReadiumShared
 
-public enum OPDSParserError: Error {
+public enum OPDSParserError: Error, Sendable {
     case documentNotFound
     case documentNotValid
 }
 
 public enum OPDSParser {
-    static var feedURL: URL?
-
     /// Parse an OPDS feed or publication.
     /// Feed can be v1 (XML) or v2 (JSON).
-    /// - Parameters:
-    ///   - url: The feed URL.
-    ///   - completion: A closure called when the parsing is complete, returning the
-    ///     parsed `ParseData` on success, or an `Error` if the operation failed.
+    /// - Parameter url: The feed URL.
+    /// - Returns: The parsed `ParseData`.
+    /// - Throws: An error if the resource could not be fetched, or is not a valid OPDS resource.
+    public static func parseURL(url: URL) async throws -> ParseData {
+        let (data, response) = try await URLSession.shared.data(from: url)
+
+        // We try to parse as an OPDS v1 feed,
+        // then, if it fails, we try as an OPDS v2 feed.
+        if let parseData = try? OPDS1Parser.parse(xmlData: data, url: url, response: response) {
+            return parseData
+        } else if let parseData = try? OPDS2Parser.parse(jsonData: data, url: url, response: response) {
+            return parseData
+        } else {
+            // Not a valid OPDS ressource
+            throw OPDSParserError.documentNotValid
+        }
+    }
+
+    @available(*, unavailable, message: "Use the async variant of parseURL(url:) instead")
     public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
-        feedURL = url
-
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, let response = response else {
-                completion(nil, error ?? OPDSParserError.documentNotFound)
-                return
-            }
-
-            // We try to parse as an OPDS v1 feed,
-            // then, if it fails, we try as an OPDS v2 feed.
-            if let parseData = try? OPDS1Parser.parse(xmlData: data, url: url, response: response) {
-                completion(parseData, nil)
-            } else if let parseData = try? OPDS2Parser.parse(jsonData: data, url: url, response: response) {
-                completion(parseData, nil)
-            } else {
-                // Not a valid OPDS ressource
-                completion(nil, OPDSParserError.documentNotValid)
-            }
-        }.resume()
+        fatalError()
     }
 }

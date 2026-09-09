@@ -8,13 +8,14 @@ import Foundation
 import ReadiumNavigator
 import ReadiumShared
 import ReadiumStreamer
+import UIKit
 
 #if LCP
-    import R2LCPClient
+    @preconcurrency import R2LCPClient
     import ReadiumLCP
 #endif
 
-final class Readium {
+@MainActor final class Readium {
     lazy var httpClient: HTTPClient = DefaultHTTPClient()
 
     lazy var formatSniffer: FormatSniffer = DefaultFormatSniffer()
@@ -42,16 +43,33 @@ final class Readium {
 
         lazy var lcpService = LCPService(
             client: LCPClient(),
+            deviceName: UIDevice.current.name,
             licenseRepository: LCPKeychainLicenseRepository(),
             passphraseRepository: LCPKeychainPassphraseRepository(),
             assetRetriever: assetRetriever,
             httpClient: httpClient
         )
 
-        lazy var lcpAuthentication: LCPAuthenticating = LCPDialogAuthentication()
+        lazy var lcpAuthentication: LCPAuthenticating = LCPDialogAuthentication(delegate: lcpDialogPresenter)
+
+        /// The dialog authentication holds its delegate weakly, so we retain
+        /// the presenter for the lifetime of the application.
+        private let lcpDialogPresenter = LCPDialogPresenter()
+
+        /// Presents the LCP passphrase dialog on the app's top-most view
+        /// controller, replacing the former `sender` parameter.
+        @MainActor
+        private final class LCPDialogPresenter: LCPDialogAuthenticationDelegate {
+            func lcpDialogAuthentication(
+                _ authentication: LCPDialogAuthentication,
+                present dialogViewController: UIViewController
+            ) {
+                UIViewController.topMost?.present(dialogViewController, animated: true)
+            }
+        }
 
         /// Facade to the private R2LCPClient.framework.
-        class LCPClient: ReadiumLCP.LCPClient {
+        final class LCPClient: ReadiumLCP.LCPClient {
             func createContext(jsonLicense: String, hashedPassphrase: LCPPassphraseHash, pemCrl: String) throws -> LCPClientContext {
                 try R2LCPClient.createContext(jsonLicense: jsonLicense, hashedPassphrase: hashedPassphrase, pemCrl: pemCrl)
             }
@@ -62,6 +80,10 @@ final class Readium {
 
             func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash? {
                 R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
+            }
+
+            func getSupportedLCPProfileURIs() -> [String] {
+                R2LCPClient.getSupportedLCPProfileURIs() ?? []
             }
         }
     #endif

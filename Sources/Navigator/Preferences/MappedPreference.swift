@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumShared
 
 public extension Preference {
     /// Creates a new `Preference` object wrapping the receiver and converting
@@ -134,7 +135,7 @@ public extension RangePreference {
     }
 }
 
-public class MappedPreference<OldValue, NewValue>: Preference {
+public class MappedPreference<OldValue: Sendable, NewValue: Sendable>: Preference {
     let original: AnyPreference<OldValue>
     let from: (OldValue) -> NewValue
     let to: (NewValue) -> OldValue
@@ -166,7 +167,7 @@ public class MappedPreference<OldValue, NewValue>: Preference {
     }
 }
 
-public class PreferenceWithSupportedValues<Value: Hashable>: MappedPreference<Value, Value>, EnumPreference {
+public final class PreferenceWithSupportedValues<Value: Hashable & Sendable>: MappedPreference<Value, Value>, EnumPreference {
     public let supportedValues: [Value]
 
     init(original: AnyPreference<Value>, supportedValues: [Value]) {
@@ -175,7 +176,7 @@ public class PreferenceWithSupportedValues<Value: Hashable>: MappedPreference<Va
     }
 }
 
-public class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>:
+public final class MappedEnumPreference<OldValue: Hashable & Sendable, NewValue: Hashable & Sendable>:
     MappedPreference<OldValue, NewValue>, EnumPreference
 {
     let originalEnum: AnyEnumPreference<OldValue>
@@ -203,7 +204,7 @@ public class MappedEnumPreference<OldValue: Hashable, NewValue: Hashable>:
     }
 }
 
-public class MappedRangePreference<OldValue: Comparable, NewValue: Comparable>:
+public final class MappedRangePreference<OldValue: Comparable & Sendable, NewValue: Comparable & Sendable>:
     MappedPreference<OldValue, NewValue>, RangePreference
 {
     let originalRange: AnyRangePreference<OldValue>

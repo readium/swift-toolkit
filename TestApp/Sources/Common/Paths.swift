@@ -8,7 +8,7 @@ import Combine
 import Foundation
 import ReadiumShared
 
-final class Paths {
+final nonisolated class Paths {
     private init() {}
 
     static let home: FileURL =
@@ -50,7 +50,7 @@ final class Paths {
     }
 }
 
-extension FileURL {
+nonisolated extension FileURL {
     func appendingUniquePathComponent(_ pathComponent: String? = nil) -> FileURL {
         /// Returns the first path component matching the given `validation` closure.
         /// Numbers are appended to the path component until a valid candidate is found.

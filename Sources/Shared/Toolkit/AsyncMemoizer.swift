@@ -15,7 +15,7 @@
 ///
 /// let result = await memoizer()
 /// ```
-package actor AsyncMemoizer<T> {
+package actor AsyncMemoizer<T: Sendable> {
     private let compute: @Sendable () async -> T
     private var task: Task<T, Never>?
 
@@ -28,7 +28,7 @@ package actor AsyncMemoizer<T> {
         if let task {
             return await task.value
         }
-        let newTask = Task(operation: compute)
+        let newTask = Task { await compute() }
         task = newTask
         return await newTask.value
     }

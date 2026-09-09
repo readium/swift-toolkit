@@ -15,7 +15,7 @@ import UIKit
 /// - Import new publications (`Book` in the database).
 /// - Remove existing publications from the bookshelf.
 /// - Open publications for presentation in a navigator.
-final class LibraryService: Loggable {
+@MainActor final class LibraryService: Loggable {
     private let books: BookRepository
     private let readium: Readium
     private let lcp: LCPModuleAPI
@@ -33,8 +33,8 @@ final class LibraryService: Loggable {
     // MARK: Opening
 
     /// Opens the Readium 2 Publication for the given `book`.
-    func openBook(_ book: Book, sender: UIViewController) async throws -> Publication? {
-        let (pub, _) = try await openPublication(at: book.absoluteURL(), allowUserInteraction: true, sender: sender)
+    func openBook(_ book: Book) async throws -> Publication? {
+        let (pub, _) = try await openPublication(at: book.absoluteURL(), allowUserInteraction: true)
         guard try checkIsReadable(publication: pub) else {
             return nil
         }
@@ -44,16 +44,14 @@ final class LibraryService: Loggable {
     /// Opens the Readium 2 Publication at the given `url`.
     private func openPublication(
         at url: AbsoluteURL,
-        allowUserInteraction: Bool,
-        sender: UIViewController?
+        allowUserInteraction: Bool
     ) async throws -> (Publication, Format) {
         do {
             let asset = try await readium.assetRetriever.retrieve(url: url).get()
 
             let publication = try await readium.publicationOpener.open(
                 asset: asset,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
+                allowUserInteraction: allowUserInteraction
             ).get()
 
             return (publication, asset.format)
@@ -79,12 +77,12 @@ final class LibraryService: Loggable {
     // MARK: Importation
 
     /// Imports a bunch of publications.
-    func importPublications(from sourceURLs: [URL], sender: UIViewController) async throws {
+    func importPublications(from sourceURLs: [URL]) async throws {
         for url in sourceURLs {
             guard let url = url.anyURL.absoluteURL else {
                 continue
             }
-            try await importPublication(from: url, sender: sender, progress: { _ in })
+            try await importPublication(from: url, progress: { _ in })
         }
     }
 
@@ -99,8 +97,7 @@ final class LibraryService: Loggable {
     @discardableResult
     func importPublication(
         from url: AbsoluteURL,
-        sender: UIViewController,
-        progress: @escaping (Double) -> Void
+        progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book {
         // Necessary to read URL exported from the Files app, for example.
         let shouldRelinquishAccess = url.url.startAccessingSecurityScopedResource()
@@ -115,7 +112,7 @@ final class LibraryService: Loggable {
             url = try await fulfillIfNeeded(file, progress: progress)
         }
 
-        let (pub, format) = try await openPublication(at: url, allowUserInteraction: false, sender: sender)
+        let (pub, format) = try await openPublication(at: url, allowUserInteraction: false)
         let title = pub.metadata.title ?? url.url.deletingPathExtension().lastPathComponent
         let coverPath = try await importCover(of: pub)
 
@@ -137,7 +134,7 @@ final class LibraryService: Loggable {
     }
 
     /// Fulfills the given `url` if it's a DRM license file.
-    private func fulfillIfNeeded(_ url: FileURL, progress: @escaping (Double) -> Void) async throws -> FileURL {
+    private func fulfillIfNeeded(_ url: FileURL, progress: @escaping @Sendable (Double) -> Void) async throws -> FileURL {
         guard lcp.canFulfill(url) else {
             return url
         }

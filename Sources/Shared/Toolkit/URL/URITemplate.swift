@@ -5,13 +5,12 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// A lightweight implementation of URI Template (RFC 6570).
 ///
 /// Only handles simple cases, fitting Readium's use cases.
 /// See https://tools.ietf.org/html/rfc6570
-public struct URITemplate: CustomStringConvertible {
+public struct URITemplate: CustomStringConvertible, Sendable {
     public let uri: String
 
     public init(_ uri: String) {

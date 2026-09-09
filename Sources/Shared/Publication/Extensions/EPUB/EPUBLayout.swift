@@ -7,6 +7,6 @@
 import Foundation
 
 /// Hint about the nature of the layout for the linked resources.
-public enum EPUBLayout: String {
+public enum EPUBLayout: String, Sendable {
     case fixed, reflowable
 }

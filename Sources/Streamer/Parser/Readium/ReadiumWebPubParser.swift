@@ -7,14 +7,14 @@
 import Foundation
 import ReadiumShared
 
-public enum ReadiumWebPubParserError: Error {
+public enum ReadiumWebPubParserError: Error, Sendable {
     case parseFailure(url: URL, Error?)
     case missingFile(path: String)
 }
 
 /// Parser for a Readium Web Publication (packaged, or as a manifest).
-public class ReadiumWebPubParser: PublicationParser, Loggable {
-    public enum Error: Swift.Error {
+public final class ReadiumWebPubParser: PublicationParser, Loggable {
+    public enum Error: Swift.Error, Sendable {
         case manifestNotFound
         case invalidManifest
     }
@@ -193,7 +193,7 @@ private extension ReadResult<Data> {
 }
 
 /// Warning raised when parsing a RWPM.
-public struct RWPMWarning: Warning {
+public struct RWPMWarning: Warning, Sendable {
     public let message: String
     public let severity: WarningSeverityLevel
 

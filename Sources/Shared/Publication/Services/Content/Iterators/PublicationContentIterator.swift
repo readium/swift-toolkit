@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol ResourceContentIteratorFactory {
+public protocol ResourceContentIteratorFactory: Sendable {
     /// Creates a `ContentIterator` instance for the `resource`, starting from
     /// the given `locator`.
     ///
@@ -21,7 +21,7 @@ public protocol ResourceContentIteratorFactory {
 
 /// A composite [Content.Iterator] which iterates through a whole [publication] and delegates the
 /// iteration inside a given resource to media type-specific iterators.
-public class PublicationContentIterator: ContentIterator, Loggable {
+public actor PublicationContentIterator: ContentIterator, Loggable {
     /// `ContentIterator` for a resource, associated with its index in the reading order.
     private typealias IndexedIterator = (index: Int, iterator: ContentIterator)
 
@@ -126,7 +126,7 @@ public class PublicationContentIterator: ContentIterator, Loggable {
         let link = publication.readingOrder[index]
         guard
             let resource = publication.get(link),
-            let locator = await location.toLocator(to: link, in: publication)
+            let locator = location.toLocator(to: link, in: publication)
         else {
             return nil
         }
@@ -149,12 +149,12 @@ private enum LocatorOrProgression {
     case locator(Locator)
     case progression(Double)
 
-    func toLocator(to link: Link, in publication: Publication) async -> Locator? {
+    func toLocator(to link: Link, in publication: Publication) -> Locator? {
         switch self {
         case let .locator(locator):
             return locator
         case let .progression(progression):
-            return await publication.locate(link)?.copy(locations: { $0.progression = progression })
+            return publication.locator(for: link)?.copy(locations: { $0.progression = progression })
         }
     }
 }

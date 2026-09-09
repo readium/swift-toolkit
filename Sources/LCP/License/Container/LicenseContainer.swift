@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Encapsulates the read/write access to the packaged License Document (eg. in
 /// an EPUB container, or a standalone LCPL file)
-protocol LicenseContainer {
+protocol LicenseContainer: Sendable {
     /// Returns whether this container currently contains a License Document.
     ///
     /// For example, when fulfilling an EPUB publication, it initially doesn't contain the license.

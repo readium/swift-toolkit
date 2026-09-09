@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Represents a Guided Navigation Document, as defined in the
 /// Readium Guided Navigation specification.

@@ -33,7 +33,9 @@ import OSLog
     /// Returns the files at the given index offsets in the current `documents`
     /// list.
     func get(atOffsets offsets: IndexSet) -> [URL] {
-        offsets.compactMap { documents.getOrNil($0) }
+        offsets.compactMap {
+            documents.indices.contains($0) ? documents[$0] : nil
+        }
     }
 
     /// Copies `file` into the Documents directory, replacing any existing file
@@ -71,16 +73,16 @@ import OSLog
             return
         }
 
+        // The source must target the main queue, as the event handler is
+        // MainActor-isolated.
         dispatchSource = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: fileDescriptor,
             eventMask: .all,
-            queue: .global()
+            queue: .main
         )
 
         dispatchSource?.setEventHandler { [weak self] in
-            Task { @MainActor in
-                self?.loadDocuments()
-            }
+            self?.loadDocuments()
         }
 
         dispatchSource?.setCancelHandler {

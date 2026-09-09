@@ -311,7 +311,7 @@ private struct SMILGuidedNavigationDocumentParsing {
 
 /// Warning raised when parsing a model object from its SMIL representation
 /// fails.
-public struct SMILWarning: Warning {
+public struct SMILWarning: Warning, Sendable {
     /// Type of the model object to be parsed.
     public let modelType: Any.Type
     /// Details about the failure.

@@ -4,7 +4,7 @@
 Pod::Spec.new do |s|
 
   s.name          = "ReadiumOPDS"
-  s.version       = "3.10.0"
+  s.version       = "4.0.0-alpha.1"
   s.license       = "BSD 3-Clause License"
   s.summary       = "Readium OPDS"
   s.homepage      = "http://readium.github.io"
@@ -12,14 +12,13 @@ Pod::Spec.new do |s|
   s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => s.version }
   s.requires_arc  = true
   s.source_files  = "Sources/OPDS/**/*.{m,h,swift}"
-  s.swift_version = '5.10'
+  s.swift_version = '6.0'
   s.platform      = :ios
   s.ios.deployment_target = "15.0"
   s.xcconfig      = { 'HEADER_SEARCH_PATHS' => '$(SDKROOT)/usr/include/libxml2' }
   s.pod_target_xcconfig = { 'OTHER_SWIFT_FLAGS' => '-package-name Readium' }
 
-  s.dependency 'ReadiumInternal', '~> 3.10.0'
-  s.dependency 'ReadiumShared', '~> 3.10.0'
-  s.dependency 'ReadiumFuzi', '~> 4.0.0'
+  s.dependency 'ReadiumShared', '~> 4.0.0-alpha.1'
+  s.dependency 'ReadiumFuzi', '~> 4.0.1'
 
 end

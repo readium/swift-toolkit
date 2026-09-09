@@ -34,8 +34,8 @@ public actor HTTPResource: Resource {
     }
 
     public func estimatedLength() async -> ReadResult<UInt64?> {
-        await headResponse().flatMap {
-            if let length = $0?.contentLength {
+        await headResponse().flatMap { response in
+            if let length = response?.resourceLength {
                 return .success(UInt64(length))
             } else {
                 return .success(nil)
@@ -44,26 +44,53 @@ public actor HTTPResource: Resource {
     }
 
     private var _headResponse: ReadResult<HTTPResponse?>?
+    private func setHeadResponse(_ result: ReadResult<HTTPResponse?>) {
+        _headResponse = result
+    }
 
     /// Cached HEAD response to get the expected content length and other
     /// metadata.
+    ///
+    /// To ensure compatibility with servers that do not support HEAD requests,
+    /// we fall back on a 2-byte range request and interrupt it immediately.
     private func headResponse() async -> ReadResult<HTTPResponse?> {
         if _headResponse == nil {
-            _headResponse = await client.fetch(HTTPRequest(url: url, method: .head))
-                .map { $0 as HTTPResponse? }
-                .flatMapError { error in
-                    switch error {
-                    case let .errorResponse(response) where response.status == .methodNotAllowed:
-                        return .success(nil)
-                    default:
-                        return .failure(.access(.http(error)))
+            let headRequest = HTTPRequest(url: url, method: .head)
+            let _ = await client.stream(
+                headRequest,
+                onReceiveResponse: { response in
+                    await self.setHeadResponse(.success(response))
+                    return .success(())
+                },
+                consume: { _, _ in .success(()) }
+            )
+
+            if _headResponse == nil {
+                var rangeRequest = HTTPRequest(url: url)
+                rangeRequest.setRange(0 ..< 2)
+
+                let rangeResult = await client.stream(
+                    rangeRequest,
+                    onReceiveResponse: { response in
+                        await self.setHeadResponse(.success(response))
+                        return .failure(.cancelled)
+                    },
+                    consume: { _, _ in .failure(.cancelled) }
+                )
+
+                if _headResponse == nil, case let .failure(error) = rangeResult {
+                    if let error: ReadError = .wrap(error) {
+                        _headResponse = .failure(error)
+                    } else {
+                        _headResponse = .success(nil)
                     }
                 }
+            }
         }
         return _headResponse!
     }
 
-    public func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+    public func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         let request = {
             var request = HTTPRequest(url: url)
             if let range = range {
@@ -73,7 +100,7 @@ public actor HTTPResource: Resource {
         }()
 
         return await client.stream(
-            request: request,
+            request,
             consume: { data, _ in
                 consume(data)
                 return .success(())

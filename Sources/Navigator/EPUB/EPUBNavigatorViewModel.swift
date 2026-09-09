@@ -8,6 +8,7 @@ import Foundation
 import ReadiumShared
 import UIKit
 
+@MainActor
 protocol EPUBNavigatorViewModelDelegate: AnyObject {
     func epubNavigatorViewModel(_ viewModel: EPUBNavigatorViewModel, runScript script: String, in scope: EPUBScriptScope)
     func epubNavigatorViewModelInvalidatePaginationView(_ viewModel: EPUBNavigatorViewModel)
@@ -125,6 +126,7 @@ enum EPUBScriptScope {
         self.server = server
         self.assetsBaseURL = assetsBaseURL
         self.formatSniffer = formatSniffer
+        servedFonts = server.serve(config.fontFamilyDeclarations)
 
         preferences = config.preferences
         settings = EPUBSettings(publication: publication, config: config)
@@ -160,7 +162,7 @@ enum EPUBScriptScope {
             return
         }
         needsInvalidatePagination = true
-        DispatchQueue.main.async { [self] in
+        Task { @MainActor [self] in
             needsInvalidatePagination = false
             delegate?.epubNavigatorViewModelInvalidatePaginationView(self)
         }
@@ -305,7 +307,7 @@ enum EPUBScriptScope {
     // MARK: - Readium CSS
 
     private var css: ReadiumCSS
-    private var servedFonts: [FileURL: AbsoluteURL] = [:]
+    private let servedFonts: [FileURL: AbsoluteURL]
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
@@ -316,30 +318,19 @@ enum EPUBScriptScope {
             return resource
         }
 
-        return resource.mapAsString { [weak self] content in
-            guard let self = self else {
-                return content
-            }
+        let css = css
+        let fontFamilyDeclarations = config.fontFamilyDeclarations
+        let servedFonts = servedFonts
 
+        return resource.mapAsString { content in
             do {
                 var content = try css.inject(in: content)
-                for ff in config.fontFamilyDeclarations {
-                    content = try ff.inject(
-                        in: content,
-                        servingFile: { [server] file in
-                            if let url = self.servedFonts[file] {
-                                return url
-                            }
-                            let name = file.lastPathSegment ?? UUID().uuidString
-                            let url = server.serve(file: file, at: "assets/fonts/\(name)")
-                            self.servedFonts[file] = url
-                            return url
-                        }
-                    )
+                for ff in fontFamilyDeclarations {
+                    content = try ff.inject(in: content, servedFiles: servedFonts)
                 }
                 return content
             } catch {
-                log(.error, error)
+                EPUBNavigatorViewModel.log(.error, error)
                 return content
             }
         }
@@ -409,6 +400,7 @@ enum EPUBScriptScope {
 }
 
 private extension EPUBSettings {
+    @MainActor
     init(
         preferences: EPUBPreferences? = nil,
         publication: Publication,

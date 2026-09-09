@@ -7,7 +7,7 @@
 import Foundation
 
 /// Provides an iterable list of `ContentElement`s.
-public protocol Content {
+public protocol Content: Sendable {
     /// Creates a new fallible bidirectional iterator for this content.
     func iterator() -> ContentIterator
 }
@@ -20,7 +20,11 @@ public extension Content {
 
     /// Returns all the elements as a list.
     func elements() async -> [ContentElement] {
-        await sequence().reduce(into: [ContentElement]()) { $0.append($1) }
+        var elements: [ContentElement] = []
+        for await element in sequence() {
+            elements.append(element)
+        }
+        return elements
     }
 
     /// Extracts the full raw text, or returns null if no text content can be found.
@@ -40,7 +44,7 @@ public extension Content {
 }
 
 /// Represents a single semantic content element part of a publication.
-public protocol ContentElement: ContentAttributesHolder {
+public protocol ContentElement: ContentAttributesHolder, Sendable {
     /// Locator targeting this element in the Publication.
     var locator: Locator { get }
 
@@ -82,7 +86,7 @@ public struct AnyEquatableContentElement: Equatable, ContentElement {
 
 /// An element which can be represented as human-readable text.
 ///
-/// The default implementation returns the first accessibility label associated to the element.
+/// The default implementation returns the accessible name of the element.
 public protocol TextualContentElement: ContentElement {
     /// Human-readable text representation for this element.
     var text: String? { get }
@@ -90,7 +94,7 @@ public protocol TextualContentElement: ContentElement {
 
 public extension TextualContentElement {
     var text: String? {
-        accessibilityLabel
+        accessibleName
     }
 }
 
@@ -100,40 +104,24 @@ public protocol EmbeddedContentElement: ContentElement {
     var embeddedLink: Link { get }
 }
 
+/// An element which may carry a caption.
+public protocol CaptionedContentElement: ContentElement {
+    /// Caption of the element, meant to be displayed alongside it.
+    ///
+    /// `nil` when the element has no caption, or when the caption is blank.
+    ///
+    /// May be equal to `accessibleName`, which is announced rather than
+    /// displayed. Prefer one or the other for display, rather than
+    /// concatenating them.
+    var caption: String? { get }
+}
+
 /// An audio clip.
-public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
+public struct AudioContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
     public var locator: Locator
     public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    public init(locator: Locator, embeddedLink: Link, attributes: [ContentAttribute] = []) {
-        self.locator = locator
-        self.embeddedLink = embeddedLink
-        self.attributes = attributes
-    }
-}
-
-/// A video clip.
-public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
-    public var locator: Locator
-    public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    public init(locator: Locator, embeddedLink: Link, attributes: [ContentAttribute] = []) {
-        self.locator = locator
-        self.embeddedLink = embeddedLink
-        self.attributes = attributes
-    }
-}
-
-/// An embedded image (bitmap or SVG).
-public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement {
-    public var locator: Locator
-    public var embeddedLink: Link
-    public var attributes: [ContentAttribute]
-
-    /// Short piece of text associated with the image.
     public var caption: String?
+    public var attributes: [ContentAttribute]
 
     public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
@@ -141,34 +129,52 @@ public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualCont
         self.caption = caption
         self.attributes = attributes
     }
+}
 
-    public var text: String? {
-        // The caption might be a better text description than the accessibility label, when available.
-        caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
+/// A video clip.
+public struct VideoContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
+    public var locator: Locator
+    public var embeddedLink: Link
+    public var caption: String?
+    public var attributes: [ContentAttribute]
+
+    public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
+        self.locator = locator
+        self.embeddedLink = embeddedLink
+        self.caption = caption
+        self.attributes = attributes
+    }
+}
+
+/// An embedded image (bitmap or SVG).
+public struct ImageContentElement: Hashable, EmbeddedContentElement, TextualContentElement, CaptionedContentElement {
+    public var locator: Locator
+    public var embeddedLink: Link
+    public var caption: String?
+    public var attributes: [ContentAttribute]
+
+    public init(locator: Locator, embeddedLink: Link, caption: String? = nil, attributes: [ContentAttribute] = []) {
+        self.locator = locator
+        self.embeddedLink = embeddedLink
+        self.caption = caption
+        self.attributes = attributes
     }
 }
 
 /// An inline SVG image.
-public struct SVGContentElement: Hashable, TextualContentElement {
+public struct SVGContentElement: Hashable, TextualContentElement, CaptionedContentElement {
     public var locator: Locator
+    public var caption: String?
     public var attributes: [ContentAttribute]
 
     /// Raw SVG contents.
     public var svg: String
-
-    /// Optional human-readable description of the image (e.g. from `<title>`,
-    ///  `<desc>`, `alt` or `title`).
-    public var caption: String?
 
     public init(locator: Locator, svg: String, caption: String? = nil, attributes: [ContentAttribute] = []) {
         self.locator = locator
         self.svg = svg
         self.caption = caption
         self.attributes = attributes
-    }
-
-    public var text: String? {
-        caption.takeIf { !$0.isEmpty } ?? accessibilityLabel
     }
 }
 
@@ -194,7 +200,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     }
 
     /// Represents a purpose of an element in the broader context of the document.
-    public enum Role: Hashable {
+    public enum Role: Hashable, Sendable {
         /// Title of a section with its level (1 being the highest).
         case heading(level: Int)
 
@@ -213,7 +219,7 @@ public struct TextContentElement: Hashable, TextualContentElement {
     /// @param locator Locator to the segment of text.
     /// @param text Text in the segment.
     /// @param attributes Attributes associated with this segment, e.g. language.
-    public struct Segment: Hashable, ContentAttributesHolder {
+    public struct Segment: Hashable, Sendable, ContentAttributesHolder {
         public var locator: Locator
         public var text: String
         public var attributes: [ContentAttribute]
@@ -229,9 +235,33 @@ public struct TextContentElement: Hashable, TextualContentElement {
 /// An attribute key identifies uniquely a type of attribute.
 ///
 /// The `V` phantom type is there to perform static type checking when requesting an attribute.
-public struct ContentAttributeKey<V>: Hashable {
+public struct ContentAttributeKey<V>: Hashable, Sendable {
+    @available(*, unavailable, renamed: "accessibleName")
     public static var accessibilityLabel: ContentAttributeKey<String> {
-        .init("accessibilityLabel")
+        fatalError()
+    }
+
+    /// Accessible name of the element, computed following a subset of
+    /// https://www.w3.org/TR/accname-1.2
+    public static var accessibleName: ContentAttributeKey<String> {
+        .init("accessibleName")
+    }
+
+    /// Accessible description of the element, computed following a subset of
+    /// https://www.w3.org/TR/accname-1.2
+    public static var accessibleDescription: ContentAttributeKey<String> {
+        .init("accessibleDescription")
+    }
+
+    /// Link to an extended description of the element, declared with
+    /// `aria-details` per the DAISY guidance on extended descriptions:
+    /// https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html
+    ///
+    /// Repeated when the element declares several targets; use the plural
+    /// `attributes(.extendedDescription)` accessor or the
+    /// `extendedDescriptions` convenience property to retrieve them all.
+    public static var extendedDescription: ContentAttributeKey<Link> {
+        .init("extendedDescription")
     }
 
     public static var language: ContentAttributeKey<Language> {
@@ -244,23 +274,27 @@ public struct ContentAttributeKey<V>: Hashable {
     }
 }
 
-public struct ContentAttribute: Hashable {
+public struct ContentAttribute: Hashable, Sendable {
     public let key: String
-    public let value: AnyHashable
 
-    public init<T: Hashable>(key: ContentAttributeKey<T>, value: T) {
-        self.key = key.key
-        self.value = value
+    private let _value: AnySendableHashable
+    public var value: AnyHashable {
+        _value.asAnyHashable
     }
 
-    public init(key: String, value: AnyHashable) {
+    public init<T: Hashable & Sendable>(key: ContentAttributeKey<T>, value: T) {
+        self.key = key.key
+        _value = AnySendableHashable(value)
+    }
+
+    public init(key: String, value: any Sendable & Hashable) {
         self.key = key
-        self.value = value
+        _value = AnySendableHashable(value)
     }
 }
 
 /// Object associated with a list of attributes.
-public protocol ContentAttributesHolder {
+public protocol ContentAttributesHolder: Sendable {
     /// Associated list of attributes.
     var attributes: [ContentAttribute] { get }
 }
@@ -270,17 +304,33 @@ public extension ContentAttributesHolder {
         self[.language]
     }
 
+    @available(*, unavailable, renamed: "accessibleName")
     var accessibilityLabel: String? {
-        self[.accessibilityLabel]
+        fatalError()
+    }
+
+    var accessibleName: String? {
+        self[.accessibleName]
+    }
+
+    var accessibleDescription: String? {
+        self[.accessibleDescription]
+    }
+
+    /// Links to the extended descriptions of the element, declared with
+    /// `aria-details` per the DAISY guidance on extended descriptions:
+    /// https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html
+    var extendedDescriptions: [Link] {
+        attributes(.extendedDescription)
     }
 
     /// Gets the first attribute with the given `key`.
-    subscript<T>(_ key: ContentAttributeKey<T>) -> T? {
+    subscript<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> T? {
         attribute(key)
     }
 
     /// Gets the first attribute with the given `key`.
-    func attribute<T>(_ key: ContentAttributeKey<T>) -> T? {
+    func attribute<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> T? {
         attributes.first { attr in
             if attr.key == key.key, let value = attr.value as? T {
                 return value
@@ -291,7 +341,7 @@ public extension ContentAttributesHolder {
     }
 
     /// Gets all the attributes with the given `key`.
-    func attributes<T>(_ key: ContentAttributeKey<T>) -> [T] {
+    func attributes<T: Hashable & Sendable>(_ key: ContentAttributeKey<T>) -> [T] {
         attributes.compactMap { attr in
             if attr.key == key.key, let value = attr.value as? T {
                 return value
@@ -303,7 +353,7 @@ public extension ContentAttributesHolder {
 }
 
 /// Iterates through a list of `ContentElement` items.
-public protocol ContentIterator: AnyObject {
+public protocol ContentIterator: AnyObject, Sendable {
     /// Retrieves the next element, or nil if we reached the end.
     func next() async throws -> ContentElement?
 
@@ -312,7 +362,7 @@ public protocol ContentIterator: AnyObject {
 }
 
 /// Helper class to treat a `Content` as a `Sequence`.
-public class ContentSequence: AsyncSequence {
+public final class ContentSequence: AsyncSequence, Sendable {
     public typealias Element = ContentElement
 
     private let content: Content
@@ -325,7 +375,7 @@ public class ContentSequence: AsyncSequence {
         Iterator(iterator: content.iterator())
     }
 
-    public class Iterator: AsyncIteratorProtocol, Loggable {
+    public final class Iterator: AsyncIteratorProtocol, Loggable {
         private let iterator: ContentIterator
 
         public init(iterator: ContentIterator) {

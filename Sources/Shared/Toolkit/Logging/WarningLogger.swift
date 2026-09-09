@@ -8,7 +8,7 @@ import Foundation
 
 /// Interface to be implemented by third-party apps if they want to observe warnings raised,
 /// for example, during the parsing of a `Publication`.
-public protocol WarningLogger {
+public protocol WarningLogger: Sendable {
     /// Notifies that a warning occurred.
     func log(_ warning: Warning)
 }
@@ -17,7 +17,7 @@ public protocol WarningLogger {
 ///
 /// For example, while parsing an EPUB we, might want to report issues in the publication without
 /// failing the whole parsing.
-public protocol Warning {
+public protocol Warning: Sendable {
     /// Tag used to group similar warnings together.
     /// For example `json`, `metadata`, etc.
     var tag: String { get }
@@ -30,7 +30,7 @@ public protocol Warning {
 }
 
 /// Indicates how the user experience might be affected by a warning.
-public enum WarningSeverityLevel {
+public enum WarningSeverityLevel: Sendable {
     /// The user probably won't notice the issue.
     case minor
     /// The user experience might be affected, but it shouldn't prevent the user from enjoying the
@@ -41,7 +41,7 @@ public enum WarningSeverityLevel {
 }
 
 /// Warning raised when parsing a model object from its JSON representation fails.
-public struct JSONWarning: Warning {
+public struct JSONWarning: Warning, Sendable {
     /// Type of the model object to be parsed.
     public let modelType: Any.Type
     /// Details about the failure.
@@ -67,11 +67,15 @@ extension WarningLogger {
 /// Implementation of a `WarningLogger` which accumulates the warnings in a list, to be used as a
 /// convenience by reading apps.
 public final class ListWarningLogger: WarningLogger {
+    private let _warnings = Mutex<[Warning]>([])
+
     /// The list of accumulated `Warning`s.
-    private(set) var warnings: [Warning] = []
+    var warnings: [Warning] {
+        _warnings.withLock { $0 }
+    }
 
     public func log(_ warning: Warning) {
-        warnings.append(warning)
+        _warnings.withLock { $0.append(warning) }
     }
 }
 

@@ -193,7 +193,7 @@ Alternatively, you can supply your own device name when initializing `LCPService
 The `LCPService` expects repositories to store the opened licenses and passphrases. `ReadiumLCP` provides built-in Keychain-based implementations that store data securely in the iOS/macOS Keychain. Unlike database-based storage, Keychain data persists across app reinstalls and can optionally be synchronized across the user's devices via iCloud Keychain.
 
 ```swift
-import R2LCPClient
+@preconcurrency import R2LCPClient
 import ReadiumLCP
 
 let httpClient = DefaultHTTPClient()
@@ -268,7 +268,8 @@ A publication protected with LCP can be opened using the `PublicationOpener` com
 ```swift
 let httpClient = DefaultHTTPClient()
 
-let authentication = LCPDialogAuthentication()
+let dialogPresenter = LCPDialogPresenter()
+let authentication = LCPDialogAuthentication(delegate: dialogPresenter)
 
 let publicationOpener = PublicationOpener(
     parser: DefaultPublicationParser(
@@ -282,7 +283,23 @@ let publicationOpener = PublicationOpener(
 )
 ```
 
-An LCP package is secured with a *user passphrase* for decrypting the content. The `LCPAuthenticating` protocol used by `LCPService.contentProtection(with:)` provides the passphrase when needed. You can use the default UIKit `LCPDialogAuthentication` which displays a pop-up to enter the passphrase, or implement your own method for passphrase retrieval. If your application is built using SwiftUI, [prefer using the new `LCPDialog`](#using-the-swiftui-lcp-authentication-dialog)
+An LCP package is secured with a *user passphrase* for decrypting the content. The `LCPAuthenticating` protocol used by `LCPService.contentProtection(with:)` provides the passphrase when needed. You can use the default UIKit `LCPDialogAuthentication` which displays a pop-up to enter the passphrase, or implement your own method for passphrase retrieval. If your application is built using SwiftUI, [prefer using the new `LCPDialog`](#using-the-swiftui-lcp-authentication-dialog).
+
+`LCPDialogAuthentication` delegates the presentation of the dialog to an `LCPDialogAuthenticationDelegate`, for example on the top-most view controller of your application. As the delegate is held weakly, you must retain it yourself for the lifetime of the authentication.
+
+```swift
+@MainActor
+final class LCPDialogPresenter: LCPDialogAuthenticationDelegate {
+    func lcpDialogAuthentication(
+        _ authentication: LCPDialogAuthentication,
+        present dialogViewController: UIViewController
+    ) {
+        // Present the dialog on your top-most view controller. It will
+        // dismiss itself automatically once the user submits or cancels.
+        hostViewController.present(dialogViewController, animated: true)
+    }
+}
+```
 
 > [!NOTE]
 > The user will be prompted once per passphrase since `ReadiumLCP` stores known passphrases on the device. 
@@ -299,8 +316,7 @@ let asset = try await assetRetriever.retrieve(url: url).get()
 // Open a `Publication` from the `Asset`.
 let result = await publicationOpener.open(
     asset: asset,
-    allowUserInteraction: true,
-    sender: hostViewController
+    allowUserInteraction: true
 )
 
 switch result {
@@ -311,7 +327,7 @@ case .failure(let error):
 }
 ```
 
-The `allowUserInteraction` and `sender` arguments are forwarded to the `LCPAuthenticating` implementation when the passphrase is unknown. `LCPDialogAuthentication` shows a pop-up only if `allowUserInteraction` is `true`, using the `sender` as the pop-up's host `UIViewController`.
+The `allowUserInteraction` argument is forwarded to the `LCPAuthenticating` implementation when the passphrase is unknown. `LCPDialogAuthentication` shows a pop-up only if `allowUserInteraction` is `true`.
 
 When importing the publication to the bookshelf, set `allowUserInteraction` to `false` as you don't need the passphrase for accessing the publication metadata and cover. If you intend to present the publication using a Navigator, set `allowUserInteraction` to `true` as decryption will be required.
 
@@ -353,7 +369,7 @@ let publicationOpener = PublicationOpener(
         assetRetriever: assetRetriever
     ),
     contentProtections: [
-        lcpService.contentProtection(with: LCPDialogAuthentication()),
+        lcpService.contentProtection(with: LCPDialogAuthentication(delegate: dialogPresenter)),
     ]
 )
 
@@ -364,8 +380,7 @@ let asset = try await assetRetriever.retrieve(url: url).get()
 // Open a `Publication` from the LCPL `Asset`.
 let publication = try await publicationOpener.open(
     asset: asset,
-    allowUserInteraction: true,
-    sender: hostViewController
+    allowUserInteraction: true
 ).get()
     
 print("Opened \(publication.metadata.title)")
@@ -380,9 +395,8 @@ Use the `LCPService` to retrieve the `LCPLicense` instance for a publication.
 ```swift
 let result = await lcpService.retrieveLicense(
     from: asset,
-    authentication: LCPDialogAuthentication(),
-    allowUserInteraction: true,
-    sender: hostViewController
+    authentication: LCPDialogAuthentication(delegate: dialogPresenter),
+    allowUserInteraction: true
 )
 
 switch result {

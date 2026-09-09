@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Certificate Revocation List
-final class CRLService {
+final class CRLService: Sendable {
     /// Number of days before the CRL cache expires.
     private static let expiration = 7
 
@@ -53,9 +53,11 @@ final class CRLService {
             .mapError { _ in LCPError.crlFetching }
             .get()
 
-        guard let body = response.body?.base64EncodedString() else {
+        guard !response.body.isEmpty else {
             throw LCPError.crlFetching
         }
+
+        let body = response.body.base64EncodedString()
         return "-----BEGIN X509 CRL-----\(body)-----END X509 CRL-----"
     }
 

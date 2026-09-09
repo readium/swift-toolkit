@@ -9,8 +9,8 @@ import ReadiumShared
 
 /// Document that contains information about the history of a License Document, along with its current status and available interactions.
 /// https://github.com/readium/lcp-specs/blob/master/schema/status.schema.json
-public struct StatusDocument {
-    public enum Status: String {
+public struct StatusDocument: Sendable {
+    public enum Status: String, Sendable {
         /// The License Document is available, but the user hasn't accessed the License and/or Status Document yet.
         case ready
         /// The license is active, and a device has been successfully registered for this license. This is the default value if the License Document does not contain a registration link, or a registration mechanism through the license itself.
@@ -25,7 +25,7 @@ public struct StatusDocument {
         case expired
     }
 
-    public enum Rel: String {
+    public enum Rel: String, Sendable {
         case register
         case license
         case `return`

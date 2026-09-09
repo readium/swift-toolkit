@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumFuzi
 import ReadiumShared
 
 /// Errors thrown during the parsing of the EPUB
@@ -15,7 +14,7 @@ import ReadiumShared
 /// - missingFile: A file is missing from the container at `path`.
 /// - xmlParse: An XML parsing error occurred.
 /// - missingElement: An XML element is missing.
-public enum EPUBParserError: Error {
+public enum EPUBParserError: Error, Sendable {
     /// The mimetype of the EPUB is not valid.
     case wrongMimeType
     case missingFile(path: String)

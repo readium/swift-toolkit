@@ -8,7 +8,7 @@ import Foundation
 import SwiftSoup
 
 /// Extracts pure content from a marked-up (e.g. HTML) or binary (e.g. PDF) resource.
-public protocol ResourceContentExtractor {
+public protocol ResourceContentExtractor: Sendable {
     /// Extracts the text content of the given `resource`.
     func extractText(of resource: Resource) async -> ReadResult<String>
 }
@@ -17,7 +17,7 @@ public protocol ResourceContentExtractor {
 public typealias _ResourceContentExtractor = ResourceContentExtractor
 
 /// Creates a `ResourceContentExtractor` for a given resource and media type.
-public protocol ResourceContentExtractorFactory {
+public protocol ResourceContentExtractorFactory: Sendable {
     /// Creates a `ResourceContentExtractor` instance for the given `resource`.
     /// Returns nil if the resource format is not supported.
     func makeExtractor(for resource: Resource, mediaType: MediaType) -> ResourceContentExtractor?
@@ -27,7 +27,7 @@ public protocol ResourceContentExtractorFactory {
 public typealias _ResourceContentExtractorFactory = ResourceContentExtractorFactory
 
 /// Default `ResourceContentExtractorFactory` supporting HTML resources.
-public class DefaultResourceContentExtractorFactory: ResourceContentExtractorFactory {
+public final class DefaultResourceContentExtractorFactory: ResourceContentExtractorFactory {
     public init() {}
 
     public func makeExtractor(for resource: Resource, mediaType: MediaType) -> ResourceContentExtractor? {
@@ -43,10 +43,10 @@ public class DefaultResourceContentExtractorFactory: ResourceContentExtractorFac
 public typealias _DefaultResourceContentExtractorFactory = DefaultResourceContentExtractorFactory
 
 /// `ResourceContentExtractor` implementation for HTML resources.
-class HTMLResourceContentExtractor: ResourceContentExtractor {
+final class HTMLResourceContentExtractor: ResourceContentExtractor {
     private let xmlFactory = DefaultXMLDocumentFactory()
 
-    func extractText(of resource: Resource) async -> ReadResult<String> {
+    @concurrent func extractText(of resource: Resource) async -> ReadResult<String> {
         await resource.read()
             .asString()
             .asyncFlatMap { content in

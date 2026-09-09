@@ -20,7 +20,8 @@ public protocol PublicationSpeechSynthesizerDelegate: AnyObject {
 
 /// `PublicationSpeechSynthesizer` orchestrates the rendition of a `Publication` by iterating through its content,
 /// splitting it into individual utterances using a `ContentTokenizer`, then using a `TTSEngine` to read them aloud.
-public class PublicationSpeechSynthesizer: Loggable {
+@MainActor
+public final class PublicationSpeechSynthesizer: Loggable {
     public typealias EngineFactory = () -> TTSEngine
     public typealias TokenizerFactory = (_ defaultLanguage: Language?) -> ContentTokenizer
 
@@ -29,13 +30,13 @@ public class PublicationSpeechSynthesizer: Loggable {
         publication.content() != nil
     }
 
-    public enum Error: Swift.Error {
+    public enum Error: Swift.Error, Sendable {
         /// Underlying `TTSEngine` error.
         case engine(TTSError)
     }
 
     /// User configuration for the text-to-speech engine.
-    public struct Configuration: Equatable {
+    public struct Configuration: Equatable, Sendable {
         /// Language overriding the publication one.
         public var defaultLanguage: Language?
 
@@ -53,7 +54,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// An utterance is an arbitrary text (e.g. sentence) extracted from the publication, that can be synthesized by
     /// the TTS engine.
-    public struct Utterance: Equatable {
+    public struct Utterance: Equatable, Sendable {
         /// Text to be spoken.
         public let text: String
         /// Locator to the utterance in the publication.
@@ -63,7 +64,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// Represents a state of the `PublicationSpeechSynthesizer`.
-    public enum State: Equatable {
+    public enum State: Equatable, Sendable {
         /// The synthesizer is completely stopped and must be (re)started from a given locator.
         case stopped
 
@@ -88,12 +89,10 @@ public class PublicationSpeechSynthesizer: Loggable {
     public private(set) var state: State = .stopped {
         didSet {
             if oldValue.isPlaying != state.isPlaying {
-                AudioSession.shared.user(audioSessionUser, didChangePlaying: state.isPlaying)
+                audioSessionUser.didChangePlaying(state.isPlaying)
             }
 
-            Task {
-                await delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
-            }
+            delegate?.publicationSpeechSynthesizer(self, stateDidChange: state)
         }
     }
 
@@ -105,6 +104,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     public weak var delegate: PublicationSpeechSynthesizerDelegate?
 
     private let publication: Publication
+    private let audioSession: AudioSessionManaging
     private let engineFactory: EngineFactory
     private let tokenizerFactory: TokenizerFactory
 
@@ -117,6 +117,7 @@ public class PublicationSpeechSynthesizer: Loggable {
     ///   - config: Initial TTS configuration.
     ///   - audioSessionConfig: Configuration of the audio session used to play
     ///     the utterances.
+    ///   - audioSession: Audio session manager used to coordinate playback.
     ///   - engineFactory: Factory to create an instance of `TtsEngine`. Defaults to `AVTTSEngine`.
     ///   - tokenizerFactory: Factory to create a `ContentTokenizer` which will be used to
     ///     split each `ContentElement` item into smaller chunks. Splits by sentences by default.
@@ -129,6 +130,7 @@ public class PublicationSpeechSynthesizer: Loggable {
             mode: .spokenAudio,
             routeSharingPolicy: .longFormAudio
         ),
+        audioSession: AudioSessionManaging = AudioSession.shared,
         engineFactory: @escaping EngineFactory = { AVTTSEngine() },
         tokenizerFactory: @escaping TokenizerFactory = defaultTokenizerFactory,
         delegate: PublicationSpeechSynthesizerDelegate? = nil
@@ -139,7 +141,8 @@ public class PublicationSpeechSynthesizer: Loggable {
 
         self.publication = publication
         self.config = config
-        audioSessionUser = AudioSessionUser(config: audioSessionConfig)
+        self.audioSession = audioSession
+        audioSessionUser = AudioSessionUser(session: audioSession, config: audioSessionConfig)
         self.engineFactory = engineFactory
         self.tokenizerFactory = tokenizerFactory
         self.delegate = delegate
@@ -181,7 +184,7 @@ public class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
-        AudioSession.shared.start(with: audioSessionUser, isPlaying: false)
+        audioSessionUser.start(isPlaying: false)
 
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
@@ -304,7 +307,7 @@ public class PublicationSpeechSynthesizer: Loggable {
             await playNextUtterance(.forward)
         case let .failure(error):
             state = .paused(utterance)
-            await delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
+            delegate?.publicationSpeechSynthesizer(self, utterance: utterance, didFailWithError: .engine(error))
         }
     }
 
@@ -417,15 +420,29 @@ public class PublicationSpeechSynthesizer: Loggable {
     private final class AudioSessionUser: ReadiumShared.AudioSessionUser {
         let audioConfiguration: AudioSession.Configuration
 
-        init(config: AudioSession.Configuration) {
+        private let session: any AudioSessionManaging
+        private var token: AudioSessionToken?
+
+        init(session: any AudioSessionManaging, config: AudioSession.Configuration) {
+            self.session = session
             audioConfiguration = config
         }
 
-        deinit {
-            AudioSession.shared.end(for: self)
+        isolated deinit {
+            if let token = token {
+                session.end(with: token)
+            }
         }
 
         func play() {}
+
+        func start(isPlaying: Bool) {
+            token = session.start(with: self, isPlaying: isPlaying)
+        }
+
+        func didChangePlaying(_ isPlaying: Bool) {
+            session.user(self, didChangePlaying: isPlaying)
+        }
     }
 }
 

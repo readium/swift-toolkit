@@ -5,13 +5,13 @@
 //
 
 /// Readium toolkit version — bump this when releasing a new version, then run `make podspecs`.
-let version = "3.10.0"
+let version = "4.0.0-alpha.1"
 
 /// Minimum iOS deployment target shared by all modules.
 let iosTarget = "15.0"
 
 /// Swift version requirement shared by all modules.
-let swiftVersion = "5.10"
+let swiftVersion = "6.0"
 
 /// Swift package name (from Package.swift). All modules share this so that `package` access
 /// level works across module boundaries, matching the SPM build behaviour.
@@ -43,12 +43,6 @@ enum Dependency {
 
 let modules: [ModuleSpec] = [
     ModuleSpec(
-        name: "ReadiumInternal",
-        sourcePath: "Sources/Internal",
-        summary: "Private utilities used by the Readium modules",
-        xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"]
-    ),
-    ModuleSpec(
         name: "ReadiumShared",
         sourcePath: "Sources/Shared",
         summary: "Readium Shared",
@@ -57,11 +51,10 @@ let modules: [ModuleSpec] = [
         xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
         resourceBundles: ["ReadiumShared": ["Sources/Shared/Resources/**"]],
         dependencies: [
-            .readium("ReadiumInternal"),
             .pod("Minizip", "~> 1.0.0"),
             // SwiftSoup's podspec is stuck at 2.11.
             .pod("SwiftSoup", "~> 2.11.0"),
-            .pod("ReadiumFuzi", "~> 4.0.0"),
+            .pod("ReadiumFuzi", "~> 4.0.1"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
         ]
     ),
@@ -76,10 +69,8 @@ let modules: [ModuleSpec] = [
             "Sources/Streamer/Assets",
         ]],
         dependencies: [
-            .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
-            .pod("ReadiumFuzi", "~> 4.0.0"),
-            .pod("CryptoSwift", "~> 1.10.0"),
+            .pod("ReadiumFuzi", "~> 4.0.1"),
         ]
     ),
     ModuleSpec(
@@ -91,9 +82,7 @@ let modules: [ModuleSpec] = [
             "Sources/Navigator/EPUB/Assets",
         ]],
         dependencies: [
-            .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
-            .pod("DifferenceKit", "~> 1.0"),
             // SwiftSoup's podspec is stuck at 2.11.
             .pod("SwiftSoup", "~> 2.11.0"),
         ]
@@ -104,9 +93,8 @@ let modules: [ModuleSpec] = [
         summary: "Readium OPDS",
         xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
         dependencies: [
-            .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
-            .pod("ReadiumFuzi", "~> 4.0.0"),
+            .pod("ReadiumFuzi", "~> 4.0.1"),
         ]
     ),
     ModuleSpec(
@@ -119,33 +107,8 @@ let modules: [ModuleSpec] = [
             "Sources/LCP/**/*.xib",
         ]],
         dependencies: [
-            .readium("ReadiumInternal"),
             .readium("ReadiumShared"),
             .pod("ReadiumZIPFoundation", "~> 3.0.1"),
-            .pod("CryptoSwift", "~> 1.10.0"),
-        ]
-    ),
-    ModuleSpec(
-        name: "ReadiumAdapterGCDWebServer",
-        sourcePath: "Sources/Adapters/GCDWebServer",
-        summary: "Adapter to use GCDWebServer as an HTTP server in Readium",
-        xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
-        dependencies: [
-            .readium("ReadiumInternal"),
-            .readium("ReadiumShared"),
-            .pod("ReadiumGCDWebServer", "~> 4.0.0"),
-        ]
-    ),
-    ModuleSpec(
-        name: "ReadiumAdapterLCPSQLite",
-        sourcePath: "Sources/Adapters/LCPSQLite",
-        summary: "Adapter to use SQLite.swift for the Readium LCP repositories",
-        xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
-        dependencies: [
-            .readium("ReadiumInternal"),
-            .readium("ReadiumShared"),
-            .readium("ReadiumLCP"),
-            .pod("SQLite.swift", "~> 0.16.0"),
         ]
     ),
 ]

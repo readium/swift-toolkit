@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs a RAR file.
-public struct RARFormatSniffer: FormatSniffer {
+public struct RARFormatSniffer: FormatSniffer, Sendable {
     public init() {}
 
     public func sniffHints(_ hints: FormatHints) -> Format? {

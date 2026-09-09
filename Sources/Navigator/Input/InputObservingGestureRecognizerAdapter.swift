@@ -21,7 +21,7 @@ final class InputObservingGestureRecognizerAdapter: UIGestureRecognizer {
     /// Stores the ``PointerEvent`` that were notified to the `observer`, to
     /// cancel them if the gesture recognizer is resetted before the touches
     /// are cancelled or ended.
-    private var pendingPointers: [AnyHashable: PointerEvent] = [:]
+    private var pendingPointers: [PointerId: PointerEvent] = [:]
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)

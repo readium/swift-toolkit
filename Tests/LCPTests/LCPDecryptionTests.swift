@@ -9,7 +9,6 @@ import PDFKit
 import ReadiumShared
 import ReadiumStreamer
 import Testing
-import TestPublications
 
 struct LCPDecryptionTests {
     let encryptedResource: Resource
@@ -21,6 +20,7 @@ struct LCPDecryptionTests {
 
         let service = LCPService(
             client: LCPTestClient(),
+            deviceName: "Test Device",
             licenseRepository: InMemoryLCPLicenseRepository(),
             passphraseRepository: InMemoryLCPPassphraseRepository(),
             assetRetriever: assetRetriever,

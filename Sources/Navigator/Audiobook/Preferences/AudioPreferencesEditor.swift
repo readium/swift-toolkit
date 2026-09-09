@@ -5,6 +5,7 @@
 //
 
 import Foundation
+import ReadiumShared
 
 /// Editor for a set of `AudioPreferences`.
 ///

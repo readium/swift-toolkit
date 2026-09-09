@@ -63,10 +63,12 @@ let publicationOpener = PublicationOpener(
         pdfFactory: DefaultPDFDocumentFactory()
     ),
     contentProtections: [
-        lcpService.contentProtection(with: LCPDialogAuthentication())
+        lcpService.contentProtection(with: authentication)
     ]
 )
 ```
+
+[See the Readium LCP guide](Readium%20LCP.md#opening-a-publication-protected-with-lcp) to learn how to create the `LCPAuthenticating` instance.
 
 ### Opening a `Publication`
 
@@ -77,8 +79,7 @@ The `allowUserInteraction` parameter is useful when supporting Readium LCP. When
 ```swift
 let result = await publicationOpener.open(
     asset: asset,
-    allowUserInteraction: true,
-    sender: sender
+    allowUserInteraction: true
 )
 ```
 

@@ -12,10 +12,11 @@ import UIKit
 ///
 /// Simply set the `playback` and `media` properties when needed, the calls will automatically be
 /// throttled to avoid updating the Now Playing screen too frequently.
+@MainActor
 public final class NowPlayingInfo {
     public static let shared = NowPlayingInfo()
 
-    public struct Media: Equatable {
+    public struct Media: Equatable, Sendable {
         /// The title (or name) of the media item.
         public var title: String
         /// The performing artist(s) for a media item.
@@ -36,7 +37,7 @@ public final class NowPlayingInfo {
         }
     }
 
-    public struct Playback: Equatable {
+    public struct Playback: Equatable, Sendable {
         /// The playback duration of the media item, in seconds.
         public var duration: Double?
         /// The elapsed time of the now playing item, in seconds.
@@ -65,7 +66,7 @@ public final class NowPlayingInfo {
                 return
             }
             mpArtwork = media?.artwork.map { image in
-                MPMediaItemArtwork(boundsSize: image.size, requestHandler: { _ in image })
+                Self.makeArtwork(image: image)
             }
             playback.clear()
             update()
@@ -91,12 +92,17 @@ public final class NowPlayingInfo {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
+    private nonisolated static func makeArtwork(image: UIImage) -> MPMediaItemArtwork {
+        MPMediaItemArtwork(boundsSize: image.size, requestHandler: { _ in image })
+    }
+
     private var mpArtwork: MPMediaItemArtwork?
 
     /// Updates the Now Playing screen, maximum once per second.
     private lazy var update = throttle(duration: 1) { [weak self] in
+        guard let self = self else { return }
         var info = [String: Any]()
-        if let self = self, let media = self.media {
+        if let media = self.media {
             info[MPMediaItemPropertyTitle] = media.title
             if let artist = media.artist {
                 info[MPMediaItemPropertyArtist] = artist

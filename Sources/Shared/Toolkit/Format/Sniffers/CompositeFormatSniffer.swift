@@ -6,7 +6,7 @@
 
 import Foundation
 
-public class CompositeFormatSniffer: FormatSniffer {
+public final class CompositeFormatSniffer: FormatSniffer {
     private let sniffers: [FormatSniffer]
 
     public init(_ sniffers: [FormatSniffer]) {

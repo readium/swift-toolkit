@@ -4,7 +4,7 @@ options:
 packages:
   Readium:
     url: https://github.com/readium/swift-toolkit.git
-    VERSION
+    READIUM_VERSION
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     from: 6.9.23
@@ -41,5 +41,8 @@ targets:
       - package: Kingfisher
       - package: MBProgressHUD
     settings:
+      SWIFT_VERSION: 6.0
+      SWIFT_APPROACHABLE_CONCURRENCY: Yes
+      SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
       DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 

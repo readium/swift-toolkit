@@ -9,7 +9,7 @@ import Foundation
 /// Sniffs an EPUB publication.
 ///
 /// Reference: https://www.w3.org/publishing/epub3/epub-ocf.html#sec-zip-container-mime
-public struct EPUBFormatSniffer: FormatSniffer {
+public struct EPUBFormatSniffer: FormatSniffer, Sendable {
     private let xmlDocumentFactory: XMLDocumentFactory
 
     public init(xmlDocumentFactory: XMLDocumentFactory) {

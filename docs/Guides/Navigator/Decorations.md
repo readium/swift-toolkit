@@ -105,10 +105,10 @@ extension Decoration.Style.Id {
 
 #### 2. Define a config struct
 
-The config carries the data your template needs. It must be `Hashable` so the diffing engine can detect changes.
+The config carries the data your template needs.
 
 ```swift
-struct PageListConfig: Hashable {
+struct PageListConfig: Hashable, Sendable {
     /// Page number label from publication.pageList[].title
     var label: String   
 }

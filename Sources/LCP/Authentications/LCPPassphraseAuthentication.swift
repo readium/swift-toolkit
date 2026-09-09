@@ -10,7 +10,7 @@ import Foundation
 /// passphrase.
 ///
 /// If the provided `passphrase` is incorrect, the given `fallback` authentication is used.
-public class LCPPassphraseAuthentication: LCPAuthenticating {
+public final class LCPPassphraseAuthentication: LCPAuthenticating, Sendable {
     private let passphrase: String
     private let fallback: LCPAuthenticating?
 
@@ -19,10 +19,10 @@ public class LCPPassphraseAuthentication: LCPAuthenticating {
         self.fallback = fallback
     }
 
-    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool, sender: Any?) async -> String? {
+    public func retrievePassphrase(for license: LCPAuthenticatedLicense, reason: LCPAuthenticationReason, allowUserInteraction: Bool) async -> String? {
         guard reason == .passphraseNotFound else {
             if let fallback = fallback {
-                return await fallback.retrievePassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction, sender: sender)
+                return await fallback.retrievePassphrase(for: license, reason: reason, allowUserInteraction: allowUserInteraction)
             } else {
                 return nil
             }

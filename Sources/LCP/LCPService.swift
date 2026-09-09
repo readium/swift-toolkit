@@ -6,70 +6,54 @@
 
 import Foundation
 import ReadiumShared
-import UIKit
 
 /// Service used to acquire and open publications protected with LCP.
 ///
-/// If an `LCPAuthenticating` instance is not given when expected, the request is cancelled if no
-/// passphrase is found in the local database. This can be the desired behavior when trying to
-/// import a license in the background, without prompting the user for its passphrase.
-///
-/// You can freely use the `sender` parameter to give some UI context which will be forwarded to
-/// your instance of `LCPAuthenticating`. This can be useful to provide the host `UIViewController`
-/// when presenting a dialog, for example.
-public final class LCPService: Loggable {
+/// When a passphrase is not already stored in the `passphraseRepository`, it
+/// is requested from the provided `LCPAuthenticating` instance. If
+/// `allowUserInteraction` is false then the `authentication` implementation
+/// will not present any dialog to the user. This can be the desired behavior
+/// when trying to import a license in the background, without prompting the
+/// user for their passphrase.
+public final class LCPService: Loggable, Sendable {
     private let licenses: LicensesService
     private let passphrases: PassphrasesService
     private let assetRetriever: AssetRetriever
 
     /// - Parameters:
     ///   - client: The LCP client used for core license operations.
+    ///   - deviceName: Device name used when registering a license to an LSD
+    ///     server. We recommend using `UIDevice.current.name` and adding the
+    ///     `com.apple.developer.device-information.user-assigned-device-name`
+    ///     entitlement.
+    ///   - deviceId: Device ID used when registering a license to an LSD
+    ///     server. You must ensure the identifier is unique and stable for the
+    ///     device (persist and reuse across app launches). If not provided, the
+    ///     device ID will be generated as a random UUID.
     ///   - licenseRepository: Repository for managing stored licenses.
     ///   - passphraseRepository: Repository for managing user passphrases.
     ///   - assetRetriever: The retriever used to fetch protected assets.
     ///   - httpClient: The HTTP client used for network requests to LSD/LCP servers.
-    ///   - deviceName: Device name used when registering a license to an LSD server.
-    ///     If not provided, the device name will be `UIDevice.current.name`. Since iOS 16,
-    ///     this returns a generic name (e.g. "iPhone") unless the
-    ///     `com.apple.developer.device-information.user-assigned-device-name` entitlement
-    ///     is added to your app.
-    ///   - deviceId: Device ID used when registering a license to an LSD server.
-    ///     You must ensure the identifier is unique and stable for the device (persist and
-    ///     reuse across app launches). If not provided, the device ID will be generated as
-    ///     a random UUID.
     public init(
         client: LCPClient,
+        deviceName: String,
+        deviceId: String? = nil,
         licenseRepository: LCPLicenseRepository,
         passphraseRepository: LCPPassphraseRepository,
         assetRetriever: AssetRetriever,
-        httpClient: HTTPClient,
-        deviceName: String? = nil,
-        deviceId: String? = nil
+        httpClient: HTTPClient
     ) {
-        // Determine whether the embedded liblcp.a is in production mode, by attempting to open a production license.
-        let isProduction: Bool = {
-            guard
-                let prodLicenseURL = Bundle.module.url(forResource: "prod-license", withExtension: "lcpl"),
-                let prodLicense = try? String(contentsOf: prodLicenseURL, encoding: .utf8)
-            else {
-                return false
-            }
-            let passphrase = "7B7602FEF5DEDA10F768818FFACBC60B173DB223B7E66D8B2221EBE2C635EFAD" // "One passphrase"
-            return client.findOneValidPassphrase(jsonLicense: prodLicense, hashedPassphrases: [passphrase]) == passphrase
-        }()
-
         let passphrases = PassphrasesService(
             client: client,
             repository: passphraseRepository
         )
 
         licenses = LicensesService(
-            isProduction: isProduction,
             client: client,
             licenses: licenseRepository,
             crl: CRLService(httpClient: httpClient),
             device: DeviceService(
-                deviceName: deviceName ?? UIDevice.current.name,
+                deviceName: deviceName,
                 deviceId: deviceId,
                 repository: licenseRepository,
                 httpClient: httpClient
@@ -112,7 +96,7 @@ public final class LCPService: Loggable {
     /// Acquires a protected publication from an LCPL.
     public func acquirePublication(
         from lcpl: LicenseDocumentSource,
-        onProgress: @escaping (LCPProgress) -> Void = { _ in }
+        onProgress: @escaping @Sendable (LCPProgress) -> Void = { _ in }
     ) async -> Result<LCPAcquiredPublication, LCPError> {
         await wrap {
             try await licenses.acquirePublication(from: lcpl, onProgress: onProgress)
@@ -149,22 +133,28 @@ public final class LCPService: Loggable {
     ///     `authentication`.
     ///   - allowUserInteraction: Indicates whether the user can be prompted
     ///     for their passphrase.
-    ///   - sender: Free object that can be used by reading apps to give some
-    ///     UX context when presenting dialogs with ``LCPAuthenticating``.
+    public func retrieveLicense(
+        from asset: Asset,
+        authentication: LCPAuthenticating,
+        allowUserInteraction: Bool
+    ) async -> Result<LCPLicense, LCPError> {
+        await wrap {
+            try await licenses.retrieve(
+                from: asset,
+                authentication: authentication,
+                allowUserInteraction: allowUserInteraction
+            )
+        }
+    }
+
+    @available(*, unavailable, message: "The `sender` parameter has been removed. Present any UI from your `LCPDialogAuthenticationDelegate` implementation and use the variant without `sender`.")
     public func retrieveLicense(
         from asset: Asset,
         authentication: LCPAuthenticating,
         allowUserInteraction: Bool,
         sender: Any?
     ) async -> Result<LCPLicense, LCPError> {
-        await wrap {
-            try await licenses.retrieve(
-                from: asset,
-                authentication: authentication,
-                allowUserInteraction: allowUserInteraction,
-                sender: sender
-            )
-        }
+        fatalError()
     }
 
     /// Creates a `ContentProtection` instance which can be used with a `Streamer` to unlock
@@ -187,7 +177,7 @@ public final class LCPService: Loggable {
 }
 
 /// Source of an LCP License Document (LCPL) file.
-public enum LicenseDocumentSource {
+public enum LicenseDocumentSource: Sendable {
     /// Raw bytes of the LCPL.
     case data(Data)
 

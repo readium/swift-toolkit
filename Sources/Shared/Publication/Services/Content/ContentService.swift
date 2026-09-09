@@ -19,7 +19,7 @@ public protocol ContentService: PublicationService {
 
 /// Default implementation of `ContentService`, delegating the content parsing
 /// to `ResourceContentIteratorFactory`.
-public class DefaultContentService: ContentService {
+public final class DefaultContentService: ContentService, Sendable {
     private let publication: Weak<Publication>
     private let resourceContentIteratorFactories: [ResourceContentIteratorFactory]
 
@@ -41,7 +41,7 @@ public class DefaultContentService: ContentService {
         return DefaultContent(publication: pub, start: start, resourceContentIteratorFactories: resourceContentIteratorFactories)
     }
 
-    private class DefaultContent: Content {
+    private final class DefaultContent: Content {
         let publication: Publication
         let start: Locator?
         let resourceContentIteratorFactories: [ResourceContentIteratorFactory]

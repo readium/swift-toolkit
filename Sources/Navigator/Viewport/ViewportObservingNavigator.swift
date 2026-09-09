@@ -26,7 +26,7 @@ public extension ViewportObservingNavigatorDelegate {
 }
 
 /// Information about the visible portion of a publication.
-public struct NavigatorViewport: Equatable {
+public struct NavigatorViewport: Equatable, Sendable {
     /// Visible reading order resources, in reading order.
     public var resources: [Resource]
 
@@ -51,7 +51,7 @@ public struct NavigatorViewport: Equatable {
     }
 
     /// A visible reading order resource inside the viewport.
-    public struct Resource: Equatable {
+    public struct Resource: Equatable, Sendable {
         /// HREF of the reading order resource.
         public var href: AnyURL
 
@@ -65,19 +65,5 @@ public struct NavigatorViewport: Equatable {
             self.href = href
             self.progression = progression
         }
-    }
-
-    // MARK: - Deprecated
-
-    /// Visible reading order resource HREFs.
-    @available(*, deprecated, message: "Use resources instead")
-    public var readingOrder: [AnyURL] {
-        resources.map(\.href)
-    }
-
-    /// Range of visible scroll progressions for each visible reading order resource.
-    @available(*, deprecated, message: "Use resources instead")
-    public var progressions: [AnyURL: ClosedRange<Double>] {
-        Dictionary(resources.map { ($0.href, $0.progression) }, uniquingKeysWith: { $1 })
     }
 }

@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// https://readium.org/webpub-manifest/schema/contributor.schema.json
 public struct Contributor: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {

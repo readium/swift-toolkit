@@ -16,7 +16,9 @@ import ReadiumShared
 /// https://github.com/readium/architecture/issues/101
 ///
 public actor EPUBPositionsService: PositionsService {
-    public static func makeFactory(reflowableStrategy: ReflowableStrategy = .recommended) -> (PublicationServiceContext) -> EPUBPositionsService? {
+    public static func makeFactory(
+        reflowableStrategy: ReflowableStrategy = .recommended
+    ) -> @Sendable (PublicationServiceContext) -> EPUBPositionsService? {
         { context in
             EPUBPositionsService(
                 readingOrder: context.manifest.readingOrder,
@@ -30,7 +32,7 @@ public actor EPUBPositionsService: PositionsService {
     /// Strategy used to calculate the number of positions in a reflowable resource.
     ///
     /// Note that a fixed-layout resource always has a single position.
-    public enum ReflowableStrategy {
+    public enum ReflowableStrategy: Sendable {
         /// Use the archive entry length (whether it is compressed or stored) and split it by the given `pageLength`.
         case archiveEntryLength(pageLength: Int)
 
@@ -38,7 +40,7 @@ public actor EPUBPositionsService: PositionsService {
         ///
         /// This strategy is used by Adobe RMSDK as well.
         /// See https://github.com/readium/architecture/issues/123
-        public static var recommended = archiveEntryLength(pageLength: 1024)
+        public static let recommended = archiveEntryLength(pageLength: 1024)
 
         /// Returns the number of positions in the given `resource` according to the strategy.
         func positionCount(for link: Link, resource: Resource) async -> Int {
@@ -86,21 +88,24 @@ public actor EPUBPositionsService: PositionsService {
 
     private func computePositionsByReadingOrder() async -> [[Locator]] {
         var lastPositionOfPreviousResource = 0
-        var positions = await readingOrder.asyncMap { link -> [Locator] in
-            let (lastPosition, positions): (Int, [Locator]) = await {
-                switch layout {
-                case .fixed:
-                    return makePositions(ofFixedResource: link, from: lastPositionOfPreviousResource)
-                case nil, .reflowable, .scrolled:
-                    return await makePositions(ofReflowableResource: link, from: lastPositionOfPreviousResource)
-                }
-            }()
+        var positions: [[Locator]] = []
+        // Positions are computed sequentially because each resource's first
+        // position depends on the last position of the previous one.
+        for link in readingOrder {
+            let lastPosition: Int
+            let resourcePositions: [Locator]
+            switch layout {
+            case .fixed:
+                (lastPosition, resourcePositions) = makePositions(ofFixedResource: link, from: lastPositionOfPreviousResource)
+            case nil, .reflowable, .scrolled:
+                (lastPosition, resourcePositions) = await makePositions(ofReflowableResource: link, from: lastPositionOfPreviousResource)
+            }
             lastPositionOfPreviousResource = lastPosition
-            return positions
+            positions.append(resourcePositions)
         }
 
         // Calculates totalProgression
-        let totalPageCount = await positions.asyncMap(\.count).reduce(0, +)
+        let totalPageCount = positions.map(\.count).reduce(0, +)
         if totalPageCount > 0 {
             positions = positions.map { locators in
                 locators.map { locator in

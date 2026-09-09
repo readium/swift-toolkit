@@ -174,7 +174,7 @@ class LibraryViewController: UIViewController, Loggable {
     private func importPublication(from url: HTTPURL) {
         Task {
             do {
-                try await library.importPublication(from: url, sender: self, progress: { _ in })
+                try await library.importPublication(from: url, progress: { _ in })
             } catch {
                 alert(UserError(error))
             }
@@ -210,7 +210,7 @@ extension LibraryViewController: UIDocumentPickerDelegate {
     private func importFiles(at urls: [URL]) {
         Task {
             do {
-                try await library.importPublications(from: urls, sender: self)
+                try await library.importPublications(from: urls)
             } catch {
                 libraryDelegate?.presentError(error, from: self)
             }
@@ -299,7 +299,7 @@ extension LibraryViewController: UICollectionViewDelegateFlowLayout, UICollectio
             let book = books[indexPath.item]
 
             do {
-                guard let pub = try await library.openBook(book, sender: self) else {
+                guard let pub = try await library.openBook(book) else {
                     return
                 }
                 libraryDelegate.libraryDidSelectPublication(pub, book: book)
@@ -340,7 +340,7 @@ extension LibraryViewController: PublicationCollectionViewCellDelegate {
 
         Task {
             do {
-                guard let pub = try await library.openBook(book, sender: self) else {
+                guard let pub = try await library.openBook(book) else {
                     return
                 }
                 let pubMetadataViewController = UIHostingController(rootView: PublicationMetadataView(publication: pub))

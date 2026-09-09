@@ -10,7 +10,7 @@ import Foundation
 ///
 /// This is required by some Navigators to access a local publication's
 /// resources.
-public protocol HTTPServer {
+public protocol HTTPServer: Sendable {
     /// Serves resources at the given `endpoint`.
     ///
     /// Subsequent calls with the same `endpoint` overwrite each other.
@@ -47,7 +47,7 @@ public extension HTTPServer {
         contentsOf url: FileURL,
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
-        func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
+        let onRequest: HTTPRequestHandler.OnRequest = { request in
             let file = request.href.flatMap { url.resolve($0) }
                 ?? url
 
@@ -78,15 +78,8 @@ public extension HTTPServer {
         publication: Publication,
         onFailure: HTTPRequestHandler.OnFailure? = nil
     ) throws -> HTTPURL {
-        func onRequest(request: HTTPServerRequest) -> HTTPServerResponse {
-            lazy var notFound = HTTPError.errorResponse(HTTPResponse(
-                request: HTTPRequest(url: request.url),
-                url: request.url,
-                status: .notFound,
-                headers: [:],
-                mediaType: nil,
-                body: nil
-            ))
+        let onRequest: HTTPRequestHandler.OnRequest = { request in
+            let notFound: HTTPError = .errorResponse(HTTPErrorResponse(status: .notFound))
 
             guard
                 let href = request.href,
@@ -118,7 +111,7 @@ public extension HTTPServer {
 public typealias HTTPServerEndpoint = String
 
 /// Request made to an `HTTPServer`.
-public struct HTTPServerRequest {
+public struct HTTPServerRequest: Sendable {
     /// Absolute URL on the server.
     public let url: HTTPURL
 
@@ -132,7 +125,7 @@ public struct HTTPServerRequest {
 }
 
 /// Response sent from the `HTTPServer` when receiving a request.
-public struct HTTPServerResponse {
+public struct HTTPServerResponse: Sendable {
     public var resource: Resource
     public var mediaType: MediaType?
 
@@ -152,9 +145,9 @@ public struct HTTPServerResponse {
 /// Callbacks handling a request.
 ///
 /// If the resource cannot be served, the `onFailure` callback is called.
-public struct HTTPRequestHandler {
-    public typealias OnRequest = (_ request: HTTPServerRequest) -> HTTPServerResponse
-    public typealias OnFailure = (_ request: HTTPServerRequest, _ error: ReadError) -> Void
+public struct HTTPRequestHandler: Sendable {
+    public typealias OnRequest = @Sendable (_ request: HTTPServerRequest) -> HTTPServerResponse
+    public typealias OnFailure = @Sendable (_ request: HTTPServerRequest, _ error: ReadError) -> Void
 
     public let onRequest: OnRequest
     public let onFailure: OnFailure?

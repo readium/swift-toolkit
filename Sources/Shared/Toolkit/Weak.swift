@@ -4,16 +4,16 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import Foundation
-
 /// Smart pointer holding a weak reference to a reference-based object.
 ///
 /// Get the reference by calling `weakVar()`.
 /// Conveniently, the reference can be reset by setting the `ref` property.
 @dynamicCallable
-public class Weak<T: AnyObject> {
-    /// Weakly held reference.
-    public weak var ref: T?
+public final class Weak<T: AnyObject & Sendable>: Sendable {
+    /// Invariant making `nonisolated(unsafe)` sound: `ref` is written exactly
+    /// once, before the `Weak` instance is shared with other isolation
+    /// domains (see `Publication.init`), and is read-only afterwards.
+    public package(set) nonisolated(unsafe) weak var ref: T?
 
     public init(_ ref: T? = nil) {
         self.ref = ref
@@ -21,24 +21,5 @@ public class Weak<T: AnyObject> {
 
     public func dynamicallyCall(withArguments args: [Any]) -> T? {
         ref
-    }
-}
-
-/// Smart pointer passing as a Weak reference but preventing the reference from being lost.
-/// Mainly useful for the unit test suite.
-public class _Strong<T: AnyObject>: Weak<T> {
-    private var strongRef: T?
-
-    override public var ref: T? {
-        get { super.ref }
-        set {
-            super.ref = newValue
-            strongRef = newValue
-        }
-    }
-
-    override public init(_ ref: T? = nil) {
-        strongRef = ref
-        super.init(ref)
     }
 }

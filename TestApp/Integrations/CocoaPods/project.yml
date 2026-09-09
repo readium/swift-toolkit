@@ -13,4 +13,7 @@ targets:
       - path: Sources/Resources/Fonts
         type: folder
     settings:
+      SWIFT_VERSION: 6.0
+      SWIFT_APPROACHABLE_CONCURRENCY: Yes
+      SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
       DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}

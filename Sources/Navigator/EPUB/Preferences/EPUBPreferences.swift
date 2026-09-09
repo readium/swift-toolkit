@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Preferences for the `EPUBNavigatorViewController`.
-public struct EPUBPreferences: ConfigurablePreferences {
+public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     public static let empty: EPUBPreferences = .init()
 
     /// Default page background color.

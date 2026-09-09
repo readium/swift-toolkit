@@ -7,8 +7,8 @@
 import Foundation
 
 /// A default implementation of the `LocatorService` using the `PositionsService` to locate its inputs.
-open class DefaultLocatorService: LocatorService, Loggable {
-    public let publication: Weak<Publication>
+public final class DefaultLocatorService: Sendable, LocatorService, Loggable {
+    private let publication: Weak<Publication>
 
     public init(publication: Weak<Publication>) {
         self.publication = publication
@@ -19,7 +19,7 @@ open class DefaultLocatorService: LocatorService, Loggable {
     /// If `locator.href` can be found in the links, `locator` will be returned directly.
     /// Otherwise, will attempt to find the closest match using `totalProgression`, `position`,
     /// `fragments`, etc.
-    open func locate(_ locator: Locator) async -> Locator? {
+    public func locate(_ locator: Locator) async -> Locator? {
         guard let publication = publication() else {
             return nil
         }
@@ -41,30 +41,12 @@ open class DefaultLocatorService: LocatorService, Loggable {
         return nil
     }
 
-    open func locate(_ link: Link) async -> Locator? {
-        let originalHREF = link.url()
-        let fragment = originalHREF.fragment
-        let href = originalHREF.removingFragment()
-
-        guard
-            let resourceLink = publication()?.linkWithHREF(href),
-            let type = resourceLink.mediaType
-        else {
-            return nil
-        }
-
-        return Locator(
-            href: href,
-            mediaType: type,
-            title: resourceLink.title ?? link.title,
-            locations: Locator.Locations(
-                fragments: Array(ofNotNil: fragment),
-                progression: (fragment == nil) ? 0.0 : nil
-            )
-        )
+    @available(*, unavailable, message: "Use `Publication.locator(for:)` instead.")
+    public func locate(_ link: Link) async -> Locator? {
+        fatalError()
     }
 
-    open func locate(progression totalProgression: Double) async -> Locator? {
+    public func locate(progression totalProgression: Double) async -> Locator? {
         guard 0.0 ... 1.0 ~= totalProgression else {
             log(.error, "Progression must be between 0.0 and 1.0, received \(totalProgression)")
             return nil

@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public enum OPDS2ParserError: Error {
+public enum OPDS2ParserError: Error, Sendable {
     case invalidJSON
     case metadataNotFound
     case invalidLink
@@ -18,27 +18,20 @@ public enum OPDS2ParserError: Error {
     case invalidNavigation
 }
 
-public class OPDS2Parser: Loggable {
+public enum OPDS2Parser: Loggable {
     /// Parse an OPDS feed or publication.
     /// Feed can only be v2 (JSON).
-    /// - Parameters:
-    ///   - url: The feed URL.
-    ///   - completion: A closure called when the parsing is complete, returning the
-    ///     parsed `ParseData` on success, or an `Error` if the operation failed.
-    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, let response = response else {
-                completion(nil, error ?? OPDSParserError.documentNotFound)
-                return
-            }
+    /// - Parameter url: The feed URL.
+    /// - Returns: The parsed `ParseData`.
+    /// - Throws: An error if the resource could not be fetched or parsed.
+    public static func parseURL(url: URL) async throws -> ParseData {
+        let (data, response) = try await URLSession.shared.data(from: url)
+        return try parse(jsonData: data, url: url, response: response)
+    }
 
-            do {
-                let parseData = try self.parse(jsonData: data, url: url, response: response)
-                completion(parseData, nil)
-            } catch {
-                completion(nil, error)
-            }
-        }.resume()
+    @available(*, unavailable, message: "Use the async variant of parseURL(url:) instead")
+    public static func parseURL(url: URL, completion: @escaping (ParseData?, Error?) -> Void) {
+        fatalError()
     }
 
     /// Parse an OPDS feed or publication.
@@ -91,8 +84,8 @@ public class OPDS2Parser: Loggable {
             throw OPDS2ParserError.missingTitle
         }
 
-        let feed = Feed(title: title)
-        parseMetadata(opdsMetadata: feed.metadata, metadataDict: metadataDict)
+        var feed = Feed(title: title)
+        parseMetadata(opdsMetadata: &feed.metadata, metadataDict: metadataDict)
 
         for (k, v) in jsonDict {
             switch k {
@@ -108,27 +101,27 @@ public class OPDS2Parser: Loggable {
                 guard let links = v.array else {
                     throw OPDS2ParserError.invalidLink
                 }
-                try parseLinks(feed: feed, feedURL: feedURL, links: links)
+                try parseLinks(feed: &feed, feedURL: feedURL, links: links)
             case "facets":
                 guard let facets = v.array else {
                     throw OPDS2ParserError.invalidFacet
                 }
-                try parseFacets(feed: feed, feedURL: feedURL, facets: facets)
+                try parseFacets(feed: &feed, feedURL: feedURL, facets: facets)
             case "publications":
                 guard let publications = v.array else {
                     throw OPDS2ParserError.invalidPublication
                 }
-                try parsePublications(feed: feed, feedURL: feedURL, publications: publications)
+                try parsePublications(feed: &feed, feedURL: feedURL, publications: publications)
             case "navigation":
                 guard let navLinks = v.array else {
                     throw OPDS2ParserError.invalidNavigation
                 }
-                try parseNavigation(feed: feed, feedURL: feedURL, navLinks: navLinks)
+                try parseNavigation(feed: &feed, feedURL: feedURL, navLinks: navLinks)
             case "groups":
                 guard let groups = v.array else {
                     throw OPDS2ParserError.invalidGroup
                 }
-                try parseGroups(feed: feed, feedURL: feedURL, groups: groups)
+                try parseGroups(feed: &feed, feedURL: feedURL, groups: groups)
             default:
                 continue
             }
@@ -137,7 +130,7 @@ public class OPDS2Parser: Loggable {
         return feed
     }
 
-    static func parseMetadata(opdsMetadata: OpdsMetadata, metadataDict: [String: JSONValue]) {
+    static func parseMetadata(opdsMetadata: inout OpdsMetadata, metadataDict: [String: JSONValue]) {
         for (k, v) in metadataDict {
             switch k {
             case "title":
@@ -162,7 +155,7 @@ public class OPDS2Parser: Loggable {
         }
     }
 
-    static func parseFacets(feed: Feed, feedURL: URL, facets: [JSONValue]) throws {
+    static func parseFacets(feed: inout Feed, feedURL: URL, facets: [JSONValue]) throws {
         for facetValue in facets {
             guard let facetDict = facetValue.object else { continue }
             guard let metadata = facetDict["metadata"]?.object else {
@@ -172,8 +165,8 @@ public class OPDS2Parser: Loggable {
                 throw OPDS2ParserError.invalidFacet
             }
 
-            let facet = Facet(title: title)
-            parseMetadata(opdsMetadata: facet.metadata, metadataDict: metadata)
+            var facet = Facet(title: title)
+            parseMetadata(opdsMetadata: &facet.metadata, metadataDict: metadata)
 
             for (k, v) in facetDict {
                 if k == "links" {
@@ -192,7 +185,7 @@ public class OPDS2Parser: Loggable {
         }
     }
 
-    static func parseLinks(feed: Feed, feedURL: URL, links: [JSONValue]) throws {
+    static func parseLinks(feed: inout Feed, feedURL: URL, links: [JSONValue]) throws {
         for linkValue in links {
             if var link = try Link(json: linkValue) {
                 try link.normalizeHREFs(to: feedURL)
@@ -201,14 +194,14 @@ public class OPDS2Parser: Loggable {
         }
     }
 
-    static func parsePublications(feed: Feed, feedURL: URL, publications: [JSONValue]) throws {
+    static func parsePublications(feed: inout Feed, feedURL: URL, publications: [JSONValue]) throws {
         for pubValue in publications {
             let pub = try Publication(json: pubValue)
             feed.publications.append(pub)
         }
     }
 
-    static func parseNavigation(feed: Feed, feedURL: URL, navLinks: [JSONValue]) throws {
+    static func parseNavigation(feed: inout Feed, feedURL: URL, navLinks: [JSONValue]) throws {
         for navValue in navLinks {
             if var link = try Link(json: navValue) {
                 try link.normalizeHREFs(to: feedURL)
@@ -217,7 +210,7 @@ public class OPDS2Parser: Loggable {
         }
     }
 
-    static func parseGroups(feed: Feed, feedURL: URL, groups: [JSONValue]) throws {
+    static func parseGroups(feed: inout Feed, feedURL: URL, groups: [JSONValue]) throws {
         for groupValue in groups {
             guard let groupDict = groupValue.object else { continue }
             guard let metadata = groupDict["metadata"]?.object else {
@@ -227,8 +220,8 @@ public class OPDS2Parser: Loggable {
                 throw OPDS2ParserError.invalidGroup
             }
 
-            let group = Group(title: title)
-            parseMetadata(opdsMetadata: group.metadata, metadataDict: metadata)
+            var group = Group(title: title)
+            parseMetadata(opdsMetadata: &group.metadata, metadataDict: metadata)
 
             for (k, v) in groupDict {
                 switch k {
@@ -270,8 +263,4 @@ public class OPDS2Parser: Loggable {
             feed.groups.append(group)
         }
     }
-}
-
-private func hrefNormalizer(_ baseURL: URL?) -> (String) -> (String) {
-    { href in URLHelper.getAbsolute(href: href, base: baseURL) ?? href }
 }

@@ -35,7 +35,7 @@ public extension CSSProperties {
 /// User settings properties.
 ///
 /// See https://readium.org/readium-css/docs/CSS19-api.html#user-settings
-public struct CSSUserProperties: CSSProperties {
+public struct CSSUserProperties: CSSProperties, Sendable {
     // View mode
 
     /// User view: paged or scrolled.
@@ -261,7 +261,7 @@ public struct CSSUserProperties: CSSProperties {
 /// Reading System properties.
 ///
 /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
-public struct CSSRSProperties: CSSProperties {
+public struct CSSRSProperties: CSSProperties, Sendable {
     // Pagination
 
     /// @param colWidth The optimal column’s width. It serves as a floor in our design.
@@ -530,7 +530,7 @@ public struct CSSRSProperties: CSSProperties {
     }
 }
 
-public enum CSSView: String, CSSConvertible {
+public enum CSSView: String, CSSConvertible, Sendable {
     case paged = "readium-paged-on"
     case scroll = "readium-scroll-on"
 
@@ -539,7 +539,7 @@ public enum CSSView: String, CSSConvertible {
     }
 }
 
-public enum CSSColCount: String, CSSConvertible {
+public enum CSSColCount: String, CSSConvertible, Sendable {
     case auto
     case one = "1"
     case two = "2"
@@ -549,7 +549,7 @@ public enum CSSColCount: String, CSSConvertible {
     }
 }
 
-public enum CSSAppearance: String, CSSConvertible {
+public enum CSSAppearance: String, CSSConvertible, Sendable {
     case night = "readium-night-on"
     case sepia = "readium-sepia-on"
 
@@ -558,9 +558,9 @@ public enum CSSAppearance: String, CSSConvertible {
     }
 }
 
-public protocol CSSColor: CSSConvertible {}
+public protocol CSSColor: CSSConvertible, Sendable {}
 
-public struct CSSRGBColor: CSSColor {
+public struct CSSRGBColor: CSSColor, Sendable {
     let red: Int
     let green: Int
     let blue: Int
@@ -579,7 +579,7 @@ public struct CSSRGBColor: CSSColor {
     }
 }
 
-public struct CSSHexColor: CSSColor {
+public struct CSSHexColor: CSSColor, Sendable {
     let color: String
 
     public init(_ color: String) {
@@ -591,7 +591,7 @@ public struct CSSHexColor: CSSColor {
     }
 }
 
-public struct CSSIntColor: CSSColor {
+public struct CSSIntColor: CSSColor, Sendable {
     let color: Int
 
     public init(_ color: Int) {
@@ -603,12 +603,12 @@ public struct CSSIntColor: CSSColor {
     }
 }
 
-public protocol CSSLength: CSSConvertible {}
+public protocol CSSLength: CSSConvertible, Sendable {}
 
 public protocol CSSAbsoluteLength: CSSLength {}
 
 /// Centimeters
-public struct CSSCmLength: CSSAbsoluteLength {
+public struct CSSCmLength: CSSAbsoluteLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -621,7 +621,7 @@ public struct CSSCmLength: CSSAbsoluteLength {
 }
 
 /// Millimeters
-public struct CSSMmLength: CSSAbsoluteLength {
+public struct CSSMmLength: CSSAbsoluteLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -634,7 +634,7 @@ public struct CSSMmLength: CSSAbsoluteLength {
 }
 
 /// Inches
-public struct CSSInLength: CSSAbsoluteLength {
+public struct CSSInLength: CSSAbsoluteLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -647,7 +647,7 @@ public struct CSSInLength: CSSAbsoluteLength {
 }
 
 /// Pixels
-public struct CSSPxLength: CSSAbsoluteLength {
+public struct CSSPxLength: CSSAbsoluteLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -660,7 +660,7 @@ public struct CSSPxLength: CSSAbsoluteLength {
 }
 
 /// Points
-public struct CSSPtLength: CSSAbsoluteLength {
+public struct CSSPtLength: CSSAbsoluteLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -673,7 +673,7 @@ public struct CSSPtLength: CSSAbsoluteLength {
 }
 
 /// Picas
-public struct CSSPcLength: CSSAbsoluteLength {
+public struct CSSPcLength: CSSAbsoluteLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -688,7 +688,7 @@ public struct CSSPcLength: CSSAbsoluteLength {
 public protocol CSSRelativeLength: CSSLength {}
 
 /// Relative to the font-size of the element.
-public struct CSSEmLength: CSSRelativeLength {
+public struct CSSEmLength: CSSRelativeLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -701,7 +701,7 @@ public struct CSSEmLength: CSSRelativeLength {
 }
 
 /// Relative to the width of the "0" (zero).
-public struct CSSChLength: CSSRelativeLength {
+public struct CSSChLength: CSSRelativeLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -714,7 +714,7 @@ public struct CSSChLength: CSSRelativeLength {
 }
 
 /// Relative to font-size of the root element.
-public struct CSSRemLength: CSSRelativeLength {
+public struct CSSRemLength: CSSRelativeLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -727,7 +727,7 @@ public struct CSSRemLength: CSSRelativeLength {
 }
 
 /// Relative to 1% of the width of the viewport.
-public struct CSSVwLength: CSSRelativeLength {
+public struct CSSVwLength: CSSRelativeLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -740,7 +740,7 @@ public struct CSSVwLength: CSSRelativeLength {
 }
 
 /// Relative to 1% of the height of the viewport.
-public struct CSSVhLength: CSSRelativeLength {
+public struct CSSVhLength: CSSRelativeLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -753,7 +753,7 @@ public struct CSSVhLength: CSSRelativeLength {
 }
 
 /// Relative to 1% of viewport's smaller dimension.
-public struct CSSVMinLength: CSSRelativeLength {
+public struct CSSVMinLength: CSSRelativeLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -766,7 +766,7 @@ public struct CSSVMinLength: CSSRelativeLength {
 }
 
 /// Relative to 1% of viewport's larger dimension.
-public struct CSSVMaxLength: CSSRelativeLength {
+public struct CSSVMaxLength: CSSRelativeLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -779,7 +779,7 @@ public struct CSSVMaxLength: CSSRelativeLength {
 }
 
 /// Relative to the parent element.
-public struct CSSPercentLength: CSSRelativeLength {
+public struct CSSPercentLength: CSSRelativeLength, Sendable {
     public let value: Double
 
     public init(_ value: Double) {
@@ -791,7 +791,7 @@ public struct CSSPercentLength: CSSRelativeLength {
     }
 }
 
-public enum CSSTextAlign: String, CSSConvertible {
+public enum CSSTextAlign: String, CSSConvertible, Sendable {
     case start
     case left
     case right
@@ -803,7 +803,7 @@ public enum CSSTextAlign: String, CSSConvertible {
 }
 
 /// Line height supports unitless numbers.
-public enum CSSLineHeight: CSSConvertible {
+public enum CSSLineHeight: CSSConvertible, Sendable {
     case length(CSSLength)
     case unitless(Double)
 
@@ -817,7 +817,7 @@ public enum CSSLineHeight: CSSConvertible {
     }
 }
 
-public enum CSSHyphens: String, CSSConvertible {
+public enum CSSHyphens: String, CSSConvertible, Sendable {
     case none
     case auto
 
@@ -826,7 +826,7 @@ public enum CSSHyphens: String, CSSConvertible {
     }
 }
 
-public enum CSSLigatures: String, CSSConvertible {
+public enum CSSLigatures: String, CSSConvertible, Sendable {
     case none
     case common = "common-ligatures"
 
@@ -835,7 +835,7 @@ public enum CSSLigatures: String, CSSConvertible {
     }
 }
 
-public enum CSSBoxSizing: String, CSSConvertible {
+public enum CSSBoxSizing: String, CSSConvertible, Sendable {
     case contentBox = "content-box"
     case borderBox = "border-box"
 

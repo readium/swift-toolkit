@@ -11,13 +11,13 @@ import Testing
 struct TransformingResourceTests {
     @Test func sourceURLIsNil() {
         let resource = DataResource(string: "hello")
-        let sut = TransformingResource(resource) { $0 }
+        let sut = TransformingResource(resource, transform: { $0 })
         #expect(sut.sourceURL == nil)
     }
 
     @Test func estimatedLengthIsNil() async throws {
         let resource = DataResource(string: "hello")
-        let sut = TransformingResource(resource) { $0 }
+        let sut = TransformingResource(resource, transform: { $0 })
         let result = try await sut.estimatedLength().get()
         #expect(result == nil)
     }
@@ -27,27 +27,27 @@ struct TransformingResourceTests {
             $0.filename = "chapter.html"
         }
         let resource = FakeResource(properties: .success(expected))
-        let sut = TransformingResource(resource) { $0 }
+        let sut = TransformingResource(resource, transform: { $0 })
         let actual = try await sut.properties().get()
         #expect(actual == expected)
     }
 
     @Test func transformApplied() async throws {
         let resource = DataResource(string: "hello")
-        let sut = TransformingResource(resource) { data in
+        let sut = TransformingResource(resource, transform: { data in
             data.map {
                 String(data: $0, encoding: .utf8)!
                     .uppercased()
                     .data(using: .utf8)!
             }
-        }
+        })
         let data = try await sut.read().get()
         #expect(data == "HELLO".data(using: .utf8)!)
     }
 
     @Test func rangeRead() async throws {
         let resource = DataResource(data: Data([0, 1, 2, 3, 4, 5, 6, 7]))
-        let sut = TransformingResource(resource) { $0 }
+        let sut = TransformingResource(resource, transform: { $0 })
         let data = try await sut.read(range: 2 ..< 5).get()
         #expect(data == Data([2, 3, 4]))
     }
@@ -83,13 +83,13 @@ struct TransformingResourceTests {
         @Test func transformCalledOnce() async {
             let counter = Counter()
             let resource = DataResource(string: "hello")
-            let sut = TransformingResource(resource) { data in
+            let sut = TransformingResource(resource, transform: { data in
                 // Sleep to widen the race window so concurrent callers all
                 // enter this branch before any of them finishes writing to `_data`.
                 try? await Task.sleep(seconds: 0.5)
                 await counter.increment()
                 return data
-            }
+            })
 
             await withTaskGroup(of: Void.self) { group in
                 for _ in 0 ..< 50 {
@@ -106,10 +106,10 @@ struct TransformingResourceTests {
         @Test func concurrentReadsReturnSameData() async throws {
             let expected = "hello".data(using: .utf8)!
             let resource = DataResource(string: "hello")
-            let sut = TransformingResource(resource) { data in
+            let sut = TransformingResource(resource, transform: { data in
                 try? await Task.sleep(seconds: 0.5)
                 return data
-            }
+            })
 
             var results: [ReadResult<Data>] = []
             await withTaskGroup(of: ReadResult<Data>.self) { group in

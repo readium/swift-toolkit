@@ -7,7 +7,7 @@
 import Foundation
 
 /// A ``PositionsService`` holding the pre-computed position locators in memory.
-public class InMemoryPositionsService: PositionsService {
+public final class InMemoryPositionsService: PositionsService {
     private let _positions: [[Locator]]
 
     public init(positionsByReadingOrder: [[Locator]]) {
@@ -18,7 +18,7 @@ public class InMemoryPositionsService: PositionsService {
         .success(_positions)
     }
 
-    public static func makeFactory(positionsByReadingOrder: [[Locator]]) -> (PublicationServiceContext) -> InMemoryPositionsService {
+    public static func makeFactory(positionsByReadingOrder: [[Locator]]) -> @Sendable (PublicationServiceContext) -> InMemoryPositionsService {
         { _ in
             InMemoryPositionsService(positionsByReadingOrder: positionsByReadingOrder)
         }

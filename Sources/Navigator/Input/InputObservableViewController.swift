@@ -128,9 +128,10 @@ open class InputObservableViewController: UIViewController, InputObservable {
     }
 }
 
+@MainActor
 extension Pointer {
     init(touch: UITouch, event: UIEvent?) {
-        let id = AnyHashable(ObjectIdentifier(touch))
+        let id = PointerId.object(ObjectIdentifier(touch))
 
         self = switch touch.type {
         case .direct, .indirect:
@@ -143,6 +144,7 @@ extension Pointer {
     }
 }
 
+@MainActor
 extension KeyEvent {
     init?(phase: KeyEvent.Phase, uiPress: UIPress) {
         guard
@@ -160,6 +162,7 @@ extension KeyEvent {
     }
 }
 
+@MainActor
 extension Key {
     init?(uiPress: UIPress) {
         guard let key = uiPress.key else {
@@ -209,6 +212,7 @@ extension Key {
     }
 }
 
+@MainActor
 extension MouseButtons {
     init(event: UIEvent?) {
         self.init()
@@ -226,6 +230,7 @@ extension MouseButtons {
     }
 }
 
+@MainActor
 extension KeyModifiers {
     init(event: UIEvent?) {
         if let flags = event?.modifierFlags {

@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Wraps an existing `Resource` and buffers its content.
 ///
@@ -35,11 +34,6 @@ public actor BufferingResource: Resource, Loggable {
         buffer = Buffer(maxSize: bufferSize)
     }
 
-    @available(*, deprecated, message: "Use an Int bufferSize instead.")
-    public init(resource: Resource, bufferSize: UInt64) {
-        self.init(resource: resource, bufferSize: Int(bufferSize))
-    }
-
     public nonisolated var sourceURL: AbsoluteURL? {
         resource.sourceURL
     }
@@ -63,8 +57,12 @@ public actor BufferingResource: Resource, Loggable {
 
     public func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
+        guard !Task.isCancelled else {
+            return .failure(.cancelled)
+        }
+
         // Reading the whole resource bypasses buffering to keep things simple.
         guard let requestedRange = range, !requestedRange.isEmpty else {
             return await resource.stream(range: range, consume: consume)
@@ -105,20 +103,22 @@ public actor BufferingResource: Resource, Loggable {
 
         // Read from the original resource using stream to avoid materializing
         // more than needed.
-        var data = prefixData
+        let data = Mutex(prefixData)
+
         let result = await resource.stream(range: fetchRange) { chunk in
-            data.append(chunk)
+            data.withLock { $0.append(chunk) }
         }
 
         guard case .success = result else {
             return result
         }
 
-        buffer.set(data, at: readRange.lowerBound)
+        let finalData = data.withLock { $0 }
+        buffer.set(finalData, at: readRange.lowerBound)
 
-        let end = min(Int(requestedRange.count), data.count)
+        let end = min(Int(requestedRange.count), finalData.count)
         if end > 0 {
-            consume(data[0 ..< end])
+            consume(finalData[0 ..< end])
         }
         return .success(())
     }
@@ -167,10 +167,5 @@ public extension Resource {
     /// performances.
     func buffered(size: Int) -> BufferingResource {
         BufferingResource(resource: self, bufferSize: size)
-    }
-
-    @available(*, deprecated, message: "Use an Int bufferSize instead.")
-    func buffered(size: UInt64) -> BufferingResource {
-        buffered(size: Int(size))
     }
 }

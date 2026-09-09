@@ -4,15 +4,11 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import DifferenceKit
 import Foundation
 import ReadiumShared
 
-struct DiffableDecoration: Hashable, Differentiable {
+struct DiffableDecoration: Hashable {
     let decoration: Decoration
-    var differenceIdentifier: Decoration.Id {
-        decoration.id
-    }
 }
 
 enum DecorationChange {
@@ -23,28 +19,29 @@ enum DecorationChange {
 
 extension Array where Element == DiffableDecoration {
     func changesByHREF(from source: [DiffableDecoration]) -> [AnyURL: [DecorationChange]] {
-        let changeset = StagedChangeset(source: source, target: self)
-
         var changes: [AnyURL: [DecorationChange]] = [:]
 
         func register(_ change: DecorationChange, at locator: Locator) {
-            var resourceChanges: [DecorationChange] = changes[locator.href] ?? []
-            resourceChanges.append(change)
-            changes[locator.href] = resourceChanges
+            changes[locator.href, default: []].append(change)
         }
 
-        for change in changeset {
-            for deleted in change.elementDeleted {
-                let decoration = source[deleted.element].decoration
-                register(.remove(decoration.id), at: decoration.locator)
+        let sourceById = Dictionary(source.map { ($0.decoration.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let targetById = Dictionary(map { ($0.decoration.id, $0) }, uniquingKeysWith: { first, _ in first })
+
+        for sourceElement in source {
+            let id = sourceElement.decoration.id
+            if let targetElement = targetById[id] {
+                if sourceElement != targetElement {
+                    register(.update(targetElement.decoration), at: targetElement.decoration.locator)
+                }
+            } else {
+                register(.remove(id), at: sourceElement.decoration.locator)
             }
-            for inserted in change.elementInserted {
-                let decoration = self[inserted.element].decoration
-                register(.add(decoration), at: decoration.locator)
-            }
-            for updated in change.elementUpdated {
-                let decoration = self[updated.element].decoration
-                register(.update(decoration), at: decoration.locator)
+        }
+
+        for targetElement in self {
+            if sourceById[targetElement.decoration.id] == nil {
+                register(.add(targetElement.decoration), at: targetElement.decoration.locator)
             }
         }
 

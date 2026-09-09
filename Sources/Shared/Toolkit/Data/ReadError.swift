@@ -7,7 +7,7 @@
 import Foundation
 
 /// Errors occurring while reading a resource.
-public enum ReadError: Error {
+public enum ReadError: Error, Sendable {
     /// An error occurred while trying to access the content.
     ///
     /// At the moment, `AccessError`s constructed by the toolkit can be either
@@ -135,6 +135,13 @@ public enum ReadError: Error {
 public extension ReadError {
     /// Indicates whether the error is caused by a cancelled task or HTTP
     /// request, instead of a genuine failure.
+    ///
+    /// Not made redundant by 4.0's `ReadError.wrap(_:)`. `wrap` normalises at the
+    /// BOUNDARY, turning a `CancellationError` or a cancelled `HTTPError` into
+    /// `.cancelled` as the error is constructed. This is a PREDICATE over an error
+    /// that already exists, and it additionally unwraps `.decoding(...)` — which is
+    /// how a cancellation reaches `PublicationMediaLoader` in practice. The two are
+    /// complementary.
     var isCancellation: Bool {
         switch self {
         case .cancelled, .access(.http(.cancelled)):
@@ -148,7 +155,7 @@ public extension ReadError {
     }
 }
 
-public enum AccessError: Error {
+public enum AccessError: Error, Sendable {
     /// An error occurred while accessing content over HTTP.
     case http(HTTPError)
 
@@ -157,15 +164,4 @@ public enum AccessError: Error {
 
     /// For extension purposes. This is not used in the Readium toolkit.
     case other(Error)
-
-    /// Wraps a native error into an `AccessError`, if possible.
-    ///
-    /// Returns `nil` if the error cannot be mapped to a known `AccessError`.
-    @available(*, deprecated, message: "Use ReadError.wrap() instead")
-    public static func wrap(_ error: Error) -> AccessError? {
-        guard case let .access(error) = ReadError.wrap(error) else {
-            return nil
-        }
-        return error
-    }
 }

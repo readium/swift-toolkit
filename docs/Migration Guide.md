@@ -4,6 +4,140 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 <!-- ## Unreleased -->
 
+## 4.0.0-alpha.1
+
+### Swift 6 and strict concurrency
+
+The toolkit is now built with the Swift 6 language mode and strict concurrency checking. Building requires Xcode 26 (Swift 6.2 toolchain) or later. Your app does not need to adopt the Swift 6 language mode itself, but some APIs changed shape.
+
+#### Core types are `Sendable`
+
+`Publication`, `Manifest`, `Link`, `Locator`, `Resource`, `Container` and most other Shared models are now `Sendable` and can safely cross concurrency domains.
+
+If you implement custom `Resource`, `Container`, `HTTPClient` or `PublicationService` types, they must now conform to `Sendable`:
+
+* For stateless types, add the conformance – structs of `Sendable` values get it for free.
+* For types holding mutable state (file handles, caches...), we recommend converting the class to an `actor`, as the toolkit does for its own resources (e.g. `FileResource`).
+
+Custom `Resource` implementations should also cooperate with task cancellation in `stream()`: check `Task.isCancelled` between chunks – at minimum when entering the method – and fail with `ReadError.cancelled`.
+
+#### OPDS models are now structs
+
+`Feed`, `Group`, `Facet` and `OpdsMetadata` were classes and are now `Sendable` structs. They have value semantics: assigning one to a variable, passing it to a function or capturing it in a closure makes a copy instead of sharing a reference. If your OPDS layer depended on references, it needs to be updated.
+
+#### Navigators are isolated to the main actor
+
+The `Navigator` and `VisualNavigator` protocols – and their delegates such as `NavigatorDelegate` – are now `@MainActor`. In practice:
+
+* Call navigator APIs from the main actor (which you most likely already do, as they drive UIKit views).
+* Conformances to the delegate protocols must be main-actor-isolated. If your delegate is a `UIViewController`, nothing changes. Otherwise, annotate the type with `@MainActor`.
+
+```diff
+-final class ReaderCoordinator: NavigatorDelegate {
++@MainActor final class ReaderCoordinator: NavigatorDelegate {
+```
+
+#### Navigator Pointer identifiers are `Sendable`
+
+To keep input events `Sendable` and type-safe, the pointer identifiers are no longer type-erased as `AnyHashable`. This only matters if you implement a custom `InputObserving`, in which case switch to the concrete types:
+
+* `Pointer.id`, `TouchPointer.id` and `MousePointer.id` are now `PointerId`.
+* `InputObservableToken.id` is now a `UUID`.
+
+#### Updated `stream(...)` signature for custom `HTTPClient`
+
+If you provide your own `HTTPClient` implementation, the `stream(...)` method changed shape. Its closures are now `@Sendable` for strict concurrency, and it gained an `onReceiveResponse` callback, invoked once the response headers arrive so you can inspect them and cancel early (e.g. on an unexpected status) before the body is consumed:
+
+```diff
+ func stream(
+-    request: HTTPRequestConvertible,
+-    consume: @escaping (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
++    _ request: HTTPRequestConvertible,
++    onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)?,
++    consume: @Sendable (_ chunk: Data, _ progress: Double?) -> HTTPResult<Void>
+ ) async -> HTTPResult<HTTPResponse>
+```
+
+Watch out for one behavior change in your implementation: `HTTPStatus.isSuccess` is now `true` only for `2xx` codes – `3xx` redirects no longer count as a success as they are supposed to be handled by the `HTTPClient` implementation before being returned to the caller.
+
+#### Async APIs run on the caller's actor
+
+The toolkit adopts the [`NonisolatedNonsendingByDefault`](https://docs.swift.org/compiler/documentation/diagnostics/nonisolated-nonsending-by-default/) upcoming feature ([SE-0461](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0461-async-function-isolation.md)), which will become the language default. Its `async` APIs now run on the calling actor instead of hopping to a background thread, except for CPU-heavy operations (decryption, parsing, search...) which are marked `@concurrent` and stay off your actor.
+
+You usually don't need to change anything. But if you implement a custom `Resource`, `HTTPClient` or search algorithm as a plain class or struct (not an actor), consider annotating CPU-heavy `async` methods with `@concurrent` so they don't block the main actor when called from UI code.
+
+### Internal helpers are no longer public
+
+The `ReadiumInternal` package was removed and its utilities are now internal to `ReadiumShared`. In the process, many small helpers and extensions on standard types (`Array`, `String`, `URL`, `Result`, `Task`...) stopped being visible to your app. They were implementation details of the toolkit and were never meant to be part of Readium's public API, but they leaked through it.
+
+There is no replacement for them. For each one you were using, either copy the original implementation into your own codebase or find an alternate solution.
+
+### Readium LCP
+
+#### Required `deviceName` in `LCPService`
+
+`LCPService.init` now requires an explicit `deviceName`. We recommend passing `UIDevice.current.name`:
+
+```diff
+ let lcpService = LCPService(
+     client: LCPClient(),
++    deviceName: UIDevice.current.name,
+     ...
+ )
+```
+
+> [!NOTE]
+> Since iOS 16, `UIDevice.current.name` returns a generic name (e.g. "iPhone") unless the `com.apple.developer.device-information.user-assigned-device-name` entitlement is added to your app.
+
+#### Removal of the `sender` parameter from the LCP authentication APIs
+
+The `sender` parameter used to give UX context (e.g. the host `UIViewController`) when presenting an LCP passphrase dialog has been removed from `PublicationOpener.open(...)`, `LCPService.retrieveLicense(...)` and `LCPAuthenticating.retrievePassphrase(...)`. 
+
+If you use the SwiftUI `LCPDialog`, just remove the `sender` argument from your calls.
+
+But if you use the UIKit `LCPDialogAuthentication`, you need to provide a `LCPDialogAuthenticationDelegate` instead:
+
+```diff
+-let authentication = LCPDialogAuthentication()
++let dialogPresenter = LCPDialogPresenter()
++let authentication = LCPDialogAuthentication(delegate: dialogPresenter)
+```
+
+```swift
+@MainActor
+final class LCPDialogPresenter: LCPDialogAuthenticationDelegate {
+    func lcpDialogAuthentication(
+        _ authentication: LCPDialogAuthentication,
+        present dialogViewController: UIViewController
+    ) {
+        hostViewController.present(dialogViewController, animated: true)
+    }
+}
+```
+
+Then drop the `sender` argument from your calls:
+
+```diff
+ let result = await publicationOpener.open(
+     asset: asset,
+-    allowUserInteraction: true,
+-    sender: hostViewController
++    allowUserInteraction: true
+ )
+```
+
+#### New `updateUserRights` signature in `LCPLicenseRepository`
+
+If you implement a custom `LCPLicenseRepository`, `updateUserRights` changed shape. It is now `async` and `throws`, and it is generic so it can return a value computed while the rights are locked – for example, whether a copy or print request fit within the remaining budget. Update your implementation to match:
+
+```swift
+func updateUserRights<T: Sendable>(
+    for id: LicenseDocument.ID,
+    with changes: @Sendable (inout LCPConsumableUserRights) throws -> T
+) async throws -> T
+```
+
+
 ## 3.9.0
 
 ### Removing the HTTP Server from the PDF Navigator
@@ -74,7 +208,6 @@ The free functions `serializeJSONString` and `serializeJSONData` have been repla
 -let data = serializeJSONData(locator.json)
 +let data = locator.jsonData()
 ```
-
 
 ## 3.8.0
 

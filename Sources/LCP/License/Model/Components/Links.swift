@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public struct Links: JSONValueDecodable {
+public struct Links: JSONValueDecodable, Sendable {
     private let links: [Link]
 
     public init?<T: JSONValueEncodable>(json: T?, warnings: WarningLogger?) throws {

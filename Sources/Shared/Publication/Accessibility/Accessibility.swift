@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Holds the accessibility metadata of a Publication.
 ///
@@ -53,7 +52,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
     public var exemptions: [Exemption]
 
     /// Accessibility profile.
-    public struct Profile: Hashable, RawRepresentable, Sendable {
+    public struct Profile: Hashable, Sendable, RawRepresentable {
         public let uri: String
 
         public init(_ uri: String) {
@@ -237,7 +236,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         case visual
     }
 
-    public struct Feature: Hashable, RawRepresentable, Sendable {
+    public struct Feature: Hashable, Sendable, RawRepresentable {
         public let id: String
 
         public init(_ id: String) {
@@ -483,7 +482,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
         }
     }
 
-    public struct Hazard: Hashable, RawRepresentable, Sendable {
+    public struct Hazard: Hashable, Sendable, RawRepresentable {
         public let id: String
 
         public init(_ id: String) {
@@ -551,7 +550,7 @@ public struct Accessibility: Hashable, Sendable, JSONValueDecodable, JSONObjectE
     /// While this list is currently limited to exemptions covered by the
     /// European Accessibility Act, it will be extended to cover additional
     /// exemptions in the future.
-    public struct Exemption: Hashable, RawRepresentable, Sendable {
+    public struct Exemption: Hashable, Sendable, RawRepresentable {
         public let id: String
 
         public init(_ id: String) {

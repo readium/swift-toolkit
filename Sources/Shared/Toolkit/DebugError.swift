@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct DebugError: Error, CustomStringConvertible {
+public struct DebugError: Error, CustomStringConvertible, Sendable {
     public let message: String
     public let cause: Error?
 

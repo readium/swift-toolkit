@@ -6,7 +6,7 @@
 
 import Foundation
 
-public typealias SearchServiceFactory = (PublicationServiceContext) -> SearchService?
+public typealias SearchServiceFactory = @Sendable (PublicationServiceContext) -> SearchService?
 
 /// Provides a way to search terms in a publication.
 public protocol SearchService: PublicationService {
@@ -22,14 +22,14 @@ public protocol SearchService: PublicationService {
 }
 
 /// Iterates through search results.
-public protocol SearchIterator: AnyObject, Closeable {
+public protocol SearchIterator: AnyObject, Sendable {
     /// Number of matches for this search, if known.
     ///
     /// Depending on the search algorithm, it may not be possible to know the result count until reaching the end of the
     /// publication.
     ///
     /// The count might be updated after each call to `next()`.
-    var resultCount: Int? { get }
+    var resultCount: Int? { get async }
 
     /// Retrieves the next page of results.
     ///
@@ -41,8 +41,8 @@ public protocol SearchIterator: AnyObject, Closeable {
 public extension SearchIterator {
     /// Iterates over all the search results, calling the given `block` for each page.
     @discardableResult
-    func forEach(_ block: @escaping (LocatorCollection) -> Void) async -> SearchResult<Void> {
-        func next() async -> SearchResult<Void> {
+    func forEach(_ block: @escaping @Sendable (LocatorCollection) -> Void) async -> SearchResult<Void> {
+        @Sendable func next() async -> SearchResult<Void> {
             await self.next().asyncFlatMap { locators in
                 if let locators = locators {
                     block(locators)
@@ -58,7 +58,7 @@ public extension SearchIterator {
 }
 
 /// Holds the available search options and their current values.
-public struct SearchOptions: Hashable {
+public struct SearchOptions: Hashable, Sendable {
     /// Whether the search will differentiate between capital and lower-case letters.
     public var caseSensitive: Bool?
 
@@ -110,7 +110,7 @@ public struct SearchOptions: Hashable {
 public typealias SearchResult<Success> = Result<Success, SearchError>
 
 /// Represents an error which might occur during a search activity.
-public enum SearchError: Error {
+public enum SearchError: Error, Sendable {
     /// The publication is not searchable.
     case publicationNotSearchable
 

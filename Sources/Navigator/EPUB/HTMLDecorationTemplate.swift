@@ -11,7 +11,7 @@ import UIKit
 /// An `HTMLDecorationTemplate` renders a `Decoration` into a set of HTML elements and associated stylesheet.
 public struct HTMLDecorationTemplate: JSONObjectEncodable {
     /// Determines the number of created HTML elements and their position relative to the matching DOM range.
-    public enum Layout: String {
+    public enum Layout: String, Sendable {
         /// A single HTML element covering the smallest region containing all CSS border boxes.
         case bounds
         /// One HTML element for each CSS border box (e.g. line of text).
@@ -19,7 +19,7 @@ public struct HTMLDecorationTemplate: JSONObjectEncodable {
     }
 
     /// Indicates how the width of each created HTML element expands in the viewport.
-    public enum Width: String {
+    public enum Width: String, Sendable {
         /// Smallest width fitting the CSS border box.
         case wrap
         /// Fills the bounds layout.
@@ -95,9 +95,9 @@ public struct HTMLDecorationTemplate: JSONObjectEncodable {
         return HTMLDecorationTemplate(
             layout: .boxes,
             element: { decoration in
-                let config = decoration.style.config as! Decoration.Style.HighlightConfig
-                let tint = config.tint ?? defaultTint
-                let isActive = config.isActive
+                let config = decoration.style.config as? Decoration.Style.HighlightConfig
+                let tint = config?.tint ?? defaultTint
+                let isActive = config?.isActive ?? false
                 var css = ""
                 if asHighlight || isActive {
                     css += "background-color: \(tint.cssValue(alpha: alpha)) !important;"
@@ -143,9 +143,12 @@ public struct HTMLDecorationTemplate: JSONObjectEncodable {
         )
     }
 
-    private static var classNamesId = 0
+    private static let classNamesId = Mutex(0)
     private static func makeUniqueClassName(key: String) -> String {
-        classNamesId += 1
-        return "readium-\(key)-\(classNamesId)"
+        let id = classNamesId.withLock { value -> Int in
+            value += 1
+            return value
+        }
+        return "readium-\(key)-\(id)"
     }
 }

@@ -7,7 +7,7 @@
 import Foundation
 
 /// Error occurring on the file system.
-public enum FileSystemError: Error {
+public enum FileSystemError: Error, Sendable {
     /// File was not found.
     case fileNotFound(Error?)
 
@@ -19,18 +19,4 @@ public enum FileSystemError: Error {
 
     /// An unexpected IO error occurred on the file system.
     case io(Error?)
-
-    /// Wraps a native error into a `FileSystemError`, if possible.
-    ///
-    /// Returns `nil` if the error is not related to the file system.
-    @available(*, deprecated, message: "Use ReadError.wrap() instead")
-    public static func wrap(_ error: Error) -> FileSystemError? {
-        guard
-            case let .access(error) = ReadError.wrap(error),
-            case let .fileSystem(error) = error
-        else {
-            return nil
-        }
-        return error
-    }
 }

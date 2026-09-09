@@ -260,7 +260,7 @@ public extension Data {
 }
 
 /// Struct based type representing a Crc32 checksum.
-public struct Crc32: CustomStringConvertible {
+public struct Crc32: CustomStringConvertible, Sendable {
     private static let zLibCrc32: ZLibCrc32FuncPtr? = loadCrc32fromZLib()
 
     public init() {}
@@ -349,7 +349,7 @@ public struct Crc32: CustomStringConvertible {
 }
 
 /// Struct based type representing a Adler32 checksum.
-public struct Adler32: CustomStringConvertible {
+public struct Adler32: CustomStringConvertible, Sendable {
     private static let zLibAdler32: ZLibAdler32FuncPtr? = loadAdler32fromZLib()
 
     public init() {}

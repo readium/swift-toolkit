@@ -11,7 +11,7 @@ import Foundation
 /// Its responsibilities are to:
 /// - Unlock a publication by returning a customized `Fetcher`.
 /// - Create a `ContentProtectionService` publication service.
-public protocol ContentProtection {
+public protocol ContentProtection: Sendable {
     /// Attempts to unlock a potentially protected publication asset.
     ///
     /// - Returns: An ``Asset`` in case of success or an
@@ -20,14 +20,25 @@ public protocol ContentProtection {
     func open(
         asset: Asset,
         credentials: String?,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError>
 }
 
-public enum ContentProtectionOpenError: Error {
+public extension ContentProtection {
+    @available(*, unavailable, message: "The `sender` parameter has been removed. Use the variant without `sender`.")
+    func open(
+        asset: Asset,
+        credentials: String?,
+        allowUserInteraction: Bool,
+        sender: Any?
+    ) async -> Result<ContentProtectionAsset, ContentProtectionOpenError> {
+        fatalError()
+    }
+}
+
+public enum ContentProtectionOpenError: Error, Sendable {
     /// The asset is not supported by this ``ContentProtection``
-    case assetNotSupported(Error?)
+    case assetNotSupported((any Error)?)
 
     /// An error occurred while reading the asset.
     case reading(ReadError)
@@ -49,7 +60,7 @@ public struct ContentProtectionScheme: RawRepresentable, Equatable, Sendable {
     public static let adept = ContentProtectionScheme(rawValue: HTTPURL(string: "http://ns.adobe.com/adept")!)
 }
 
-public struct ContentProtectionSchemeNotSupportedError: Error {
+public struct ContentProtectionSchemeNotSupportedError: Error, Sendable {
     public let scheme: ContentProtectionScheme
 
     public init(scheme: ContentProtectionScheme) {
@@ -58,7 +69,7 @@ public struct ContentProtectionSchemeNotSupportedError: Error {
 }
 
 /// Holds the result of opening an ``Asset`` with a ``ContentProtection``.
-public struct ContentProtectionAsset {
+public struct ContentProtectionAsset: Sendable {
     /// Asset granting access to the decrypted content.
     public let asset: Asset
 

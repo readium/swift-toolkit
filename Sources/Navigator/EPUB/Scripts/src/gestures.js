@@ -7,7 +7,7 @@
 import { findDecorationTarget, handleDecorationClickEvent } from "./decorator";
 import { adjustPointToViewport } from "./rect";
 import { findNearestInteractiveElement } from "./dom";
-import { getCssSelector } from "css-selector-generator";
+import { extractTargetElement } from "./content";
 
 let isSelecting = false;
 
@@ -82,7 +82,9 @@ function onPointerEvent(phase, event) {
   var targetElement;
   if (phase != "move") {
     interactiveElement = findNearestInteractiveElement(event.target);
-    targetElement = extractTargetElement(event.target);
+    targetElement = adjustTargetElementToViewport(
+      extractTargetElement(event.target)
+    );
   }
 
   let point = adjustPointToViewport({ x: event.clientX, y: event.clientY });
@@ -117,110 +119,21 @@ function onPointerEvent(phase, event) {
 }
 
 /**
- * Extracts metadata about the target element for gesture handling.
+ * Adjusts the frame of the given target element to the viewport, for FXL
+ * resources laid out in a frame of their own.
  *
- * Returns an object with the element's bounding rectangle, tag name, source
- * URL, a CSS selector, the href of the document that contains the element,
- * an accessibility label, and a caption. This information is used on the
- * Swift side to build the appropriate `ContentElement`.
+ * Only the origin goes through the viewport transform; the size is already in
+ * viewport-relative units and does not depend on the frame offset.
  */
-function extractTargetElement(element) {
-  if (!element || !element.getBoundingClientRect) {
-    return null;
+function adjustTargetElementToViewport(targetElement) {
+  if (!targetElement) {
+    return targetElement;
   }
 
-  let imageElement = findNearestImageElement(element);
-  if (!imageElement) {
-    return null;
-  }
-
-  let rect = imageElement.getBoundingClientRect();
-  // Adjust only the origin through the viewport transform; size is already
-  // in viewport-relative units and does not depend on the frame offset.
-  let adjustedOrigin = adjustPointToViewport({ x: rect.left, y: rect.top });
-
-  let rawSrc =
-    imageElement.getAttribute("src") ||
-    imageElement.getAttribute("href") ||
-    null;
-
-  // Resolve the raw src/href attribute to an absolute URL using the document's
-  // base URI. `getAttribute` returns the literal attribute value (possibly
-  // relative), while we need the absolute form so Swift can relativize it
-  // against the publication base URL to recover the correct manifest href.
-  let src = rawSrc ? new URL(rawSrc, document.baseURI).href : null;
-
-  // `html` is only needed for inline SVGs that have no resolvable `src`.
-  let html = src ? null : imageElement.outerHTML;
-
+  let frame = targetElement.frame;
+  let origin = adjustPointToViewport({ x: frame.x, y: frame.y });
   return {
-    tag: imageElement.tagName.toLowerCase(),
-    html: html,
-    src: src,
-    resourceHref: window.readium?.link?.href ?? null,
-    frame: {
-      x: adjustedOrigin.x,
-      y: adjustedOrigin.y,
-      width: rect.width,
-      height: rect.height,
-    },
-    accessibilityLabel: imageElement.getAttribute("aria-label")?.trim() || null,
-    caption: extractCaption(imageElement),
-    cssSelector: getCssSelector(imageElement),
+    ...targetElement,
+    frame: { ...frame, x: origin.x, y: origin.y },
   };
-}
-
-/**
- * Returns a human-readable caption for an image element by checking, in
- * order: the `alt` attribute, the `title` attribute, the text content of the
- * first SVG `<title>` child, the text content of the first SVG `<desc>`
- * child, and the text content of a `<figcaption>` inside a parent `<figure>`.
- * Returns `null` when none of these are present.
- *
- * When `alt` is present — even as an empty string (decorative image) — no
- * other source is consulted, so that an explicit `alt=""` suppresses fallback
- * captions rather than incorrectly propagating them.
- */
-function extractCaption(imageElement) {
-  if (imageElement.hasAttribute("alt")) {
-    const alt = imageElement.getAttribute("alt").trim();
-    return alt || null;
-  }
-
-  const title = imageElement.getAttribute("title")?.trim();
-  if (title) return title;
-
-  const svgTitle = imageElement
-    .querySelector(":scope > title")
-    ?.textContent.trim();
-  if (svgTitle) return svgTitle;
-
-  const svgDesc = imageElement
-    .querySelector(":scope > desc")
-    ?.textContent.trim();
-  if (svgDesc) return svgDesc;
-
-  const figure = imageElement.closest("figure");
-  if (figure) {
-    const figcaption = figure.querySelector("figcaption")?.textContent.trim();
-    if (figcaption) return figcaption;
-  }
-
-  return null;
-}
-
-/**
- * Walks up the DOM tree from the given element to find the nearest image
- * element (img, svg).
- */
-function findNearestImageElement(element) {
-  const imageTags = ["img", "svg"];
-  let current = element;
-  while (current && current !== document.documentElement) {
-    if (imageTags.includes(current.tagName.toLowerCase())) {
-      return current;
-    }
-    current = current.parentElement;
-  }
-  return null;
 }

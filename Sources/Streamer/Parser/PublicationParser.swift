@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Parses a Publication from an asset.
-public protocol PublicationParser {
+public protocol PublicationParser: Sendable {
     /// Constructs a `Publication.Builder` to build a `Publication` from a
     /// publication asset.
     ///
@@ -20,7 +20,7 @@ public protocol PublicationParser {
     func parse(asset: Asset, warnings: WarningLogger?) async -> Result<Publication.Builder, PublicationParseError>
 }
 
-public enum PublicationParseError: Error {
+public enum PublicationParseError: Error, Sendable {
     /// Asset format not supported.
     case formatNotSupported
 

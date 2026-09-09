@@ -35,13 +35,33 @@ Returning `true` consumes the event, preventing other observers from handling th
 
 **`ImageContentElement`** describes a bitmap image element and provides the following properties:
 
-| Property             | Type          | Description                                                                    |
-|----------------------|---------------|--------------------------------------------------------------------------------|
-| `embeddedLink`       | **`Link`**    | Points to the image resource in the publication                                |
-| `caption`            | **`String?`** | Caption extracted from a surrounding `<figcaption>` element or `alt` attribute |
-| `accessibilityLabel` | **`String?`** | Accessibility label extracted from the `aria-label` attribute                  |
+| Property                | Type          | Description                                                                                 |
+|-------------------------|---------------|---------------------------------------------------------------------------------------------|
+| `embeddedLink`          | **`Link`**    | Points to the image resource in the publication                                             |
+| `caption`               | **`String?`** | Caption from the enclosing figure's `<figcaption>` element                                  |
+| `accessibleName`        | **`String?`** | Accessible name, computed following [accname-1.2](https://www.w3.org/TR/accname-1.2)        |
+| `accessibleDescription` | **`String?`** | Accessible description, computed following [accname-1.2](https://www.w3.org/TR/accname-1.2) |
+| `extendedDescriptions`  | **`[Link]`**  | Links to extended descriptions, declared with [`aria-details`](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html) |
 
-The `text` property returns the caption when available, otherwise the accessibility label — a convenient fallback when you need a single display string.
+The `text` property returns the `accessibleName`. To display a single text under the image, prefer the caption when available instead: `element.caption ?? element.accessibleName`. The caption and the accessible name can be the same string, when the `<figcaption>` also named an image which had no `alt` or `title` attribute. Coalesce them as above rather than concatenating them, or that image is labelled twice.
 
 > [!NOTE]
 > **`SVGContentElement`** follows a similar shape for inline SVG (`<svg>`), but exposes a `svg: String` property with the raw SVG source instead of `embeddedLink`. SVG images referenced via `<img src="...svg">` are reported as **`ImageContentElement`**.
+
+### Extended descriptions
+
+When the publication attaches [extended descriptions](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html) to an image with `aria-details`, `extendedDescriptions` holds one `Link` per description. Each link points either at a separate resource of the publication, or at the description's container in the current resource (a fragment href). Its `title` comes from the target's `aria-label` or, for hyperlink targets, its text.
+
+A good place to surface them is the image preview itself, as a "view extended description" action per link. To display one, navigate to it:
+
+```swift
+if let link = image.extendedDescriptions.first {
+    if let locator = await publication.locate(link) {
+        await navigator.go(to: locator)
+
+    } else if let url = link.httpURL {
+        // The description lives outside the publication.
+        UIApplication.shared.open(url.url)
+    }
+}
+```

@@ -9,6 +9,7 @@ import ReadiumShared
 import UIKit
 
 /// A navigator rendering the publication visually on-screen.
+@MainActor
 public protocol VisualNavigator: Navigator, InputObservable {
     /// Viewport view.
     var view: UIView! { get }
@@ -65,7 +66,7 @@ public extension VisualNavigator {
     }
 }
 
-public struct VisualNavigatorPresentation {
+public struct VisualNavigatorPresentation: Sendable {
     /// Horizontal direction of progression across resources.
     public let readingProgression: ReadingProgression
 

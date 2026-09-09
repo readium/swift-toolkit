@@ -10,7 +10,7 @@ import ReadiumShared
 /// Setting values of the `EPUBNavigatorViewController`.
 ///
 /// See `EPUBPreferences`
-public struct EPUBSettings: ConfigurableSettings {
+public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var backgroundColor: Color?
     public var columnCount: ColumnCount
     public var fit: Fit
@@ -205,7 +205,7 @@ public struct EPUBSettings: ConfigurableSettings {
 /// takes precedence.
 ///
 /// See `EPUBPreferences`.
-public struct EPUBDefaults {
+public struct EPUBDefaults: Sendable {
     public var columnCount: ColumnCount?
     public var fit: Fit?
     public var fontSize: Double?

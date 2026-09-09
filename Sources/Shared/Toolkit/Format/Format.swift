@@ -5,10 +5,9 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Represents and holds information about the document format of an asset.
-public struct Format: Hashable {
+public struct Format: Hashable, Sendable {
     public var specifications: FormatSpecifications
     public var mediaType: MediaType?
     public var fileExtension: FileExtension?
@@ -86,7 +85,7 @@ public struct Format: Hashable {
     )
 }
 
-public struct FormatSpecifications: Hashable {
+public struct FormatSpecifications: Hashable, Sendable {
     public var specifications: Set<FormatSpecification>
 
     public init(_ specifications: FormatSpecification...) {
@@ -122,7 +121,7 @@ public struct FormatSpecifications: Hashable {
     }
 }
 
-public struct FormatSpecification: RawRepresentable, Hashable {
+public struct FormatSpecification: RawRepresentable, Hashable, Sendable {
     public var rawValue: String
 
     public init(rawValue: String) {

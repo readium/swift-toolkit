@@ -7,6 +7,7 @@
 import ReadiumShared
 @preconcurrency import WebKit
 
+@MainActor
 protocol EPUBSpreadViewDelegate: AnyObject {
     /// Returns the content inset the spread view should use.
     func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets
@@ -28,9 +29,6 @@ protocol EPUBSpreadViewDelegate: AnyObject {
 
     /// Called when the pages visible in the spread changed.
     func spreadViewPagesDidChange(_ spreadView: EPUBSpreadView)
-
-    /// Called when the spread view needs to present a view controller.
-    func spreadView(_ spreadView: EPUBSpreadView, present viewController: UIViewController)
 
     /// Called when the user triggered an input pointer event.
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent)
@@ -56,9 +54,20 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     let animatedLoad: Bool
 
     weak var activityIndicatorView: UIActivityIndicatorView?
-    private var activityIndicatorStopWorkItem: DispatchWorkItem?
+    private var activityIndicatorStopTask: Task<Void, Never>?
 
+    /// Set once the spread's DOM is loaded and its subclass may operate on it
+    /// (e.g. to scroll to a pending location). Note that decoration templates
+    /// and other delegate-provided setup are not yet in place at this point;
+    /// use `isSpreadInitialized` for that.
     private(set) var isSpreadLoaded = false
+
+    /// Set once the spread is fully initialized, i.e. after
+    /// `spreadViewDidLoad(_:)` has registered decoration templates and run
+    /// other delegate-provided setup. External script evaluation should gate on
+    /// this rather than `isSpreadLoaded` to avoid racing the setup.
+    private(set) var isSpreadInitialized = false
+
     private var spreadLoadTask: Task<Void, Never>?
 
     required init(
@@ -106,7 +115,6 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     deinit {
         NotificationCenter.default.removeObserver(self)
-        clear()
     }
 
     /// Called when the spread view is removed from the view hierarchy, to
@@ -176,15 +184,13 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         await spreadLoaded()
 
         log(.trace, "Evaluate script: \(script)")
-        return await withCheckedContinuation { continuation in
-            webView.evaluateJavaScript(script) { [weak self] res, error in
-                if let error = error {
-                    self?.log(.error, error)
-                    continuation.resume(returning: .failure(error))
-                } else {
-                    continuation.resume(returning: .success(res ?? ()))
-                }
-            }
+
+        do {
+            let res = try await webView.evaluateJavaScript(script)
+            return .success(res ?? ())
+        } catch {
+            log(.error, error)
+            return .failure(error)
         }
     }
 
@@ -248,7 +254,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     }
 
     /// Parses the target element JSON produced by `extractTargetElement()` in
-    /// gestures.js and builds a `PointerEvent.TargetElement` with coordinates
+    /// content.ts and builds a `PointerEvent.TargetElement` with coordinates
     /// converted to the spread view's coordinate space.
     private func targetElement(from json: Any?) -> PointerEvent.TargetElement? {
         guard
@@ -313,8 +319,27 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
 
         var attributes: [ContentAttribute] = []
-        if let label = json["accessibilityLabel"] as? String, !label.isEmpty {
-            attributes.append(ContentAttribute(key: .accessibilityLabel, value: label))
+        if let name = json["accessibleName"] as? String, !name.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibleName, value: name))
+        }
+        if let description = json["accessibleDescription"] as? String, !description.isEmpty {
+            attributes.append(ContentAttribute(key: .accessibleDescription, value: description))
+        }
+        // Extended description links, resolved from `aria-details` by
+        // accessibility-properties.ts. Their hrefs are absolute URLs which we
+        // relativize against the publication base URL, the same way as `src`.
+        for description in json["extendedDescriptions"] as? [[String: Any]] ?? [] {
+            guard
+                let rawHREF = description["href"] as? String,
+                let url = AnyURL(string: rawHREF)
+            else {
+                continue
+            }
+            let href = viewModel.publicationBaseURL.relativize(url)?.anyURL ?? url
+            attributes.append(ContentAttribute(
+                key: .extendedDescription,
+                value: Link(href: href.string, title: description["title"] as? String)
+            ))
         }
         let caption = json["caption"] as? String
 
@@ -391,7 +416,12 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
     }
 
-    private func spreadLoadDidStart(_ body: Any) {}
+    private func spreadLoadDidStart(_ body: Any) {
+        // The spread began loading, so we cancel the safety-net task that would
+        // otherwise stop the activity indicator after 2 seconds. The indicator
+        // is stopped once the spread is fully loaded, in `showSpread()`.
+        activityIndicatorStopTask.cancel()
+    }
 
     /// Called by the javascript code when the spread contents is fully loaded.
     /// The JS message `spreadLoaded` needs to be emitted by a subclass script, EPUBSpreadView's scripts don't.
@@ -402,6 +432,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             applySettings()
             await spreadDidLoad()
             await delegate?.spreadViewDidLoad(self)
+            isSpreadInitialized = true
             onSpreadLoadedCallbacks.complete()
             showSpread()
         }
@@ -435,7 +466,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
 
     func showSpread() {
         activityIndicatorView?.stopAnimating()
-        activityIndicatorStopWorkItem?.cancel()
+        activityIndicatorStopTask.cancel()
         UIView.animate(withDuration: animatedLoad ? 0.3 : 0, animations: {
             self.scrollView.alpha = 1
         })
@@ -471,6 +502,15 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// To override in subclasses.
     func applySettings() {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
+    }
+
+    // MARK: - PageView
+
+    func pageDidDisappear() {
+        // Pauses any HTML media element (e.g. `<audio>` or `<video>`) still
+        // playing after turning the page.
+        // See https://github.com/readium/swift-toolkit/issues/121
+        webView.pauseAllMediaPlayback()
     }
 
     // MARK: - Location and progression.
@@ -648,7 +688,7 @@ extension EPUBSpreadView: WKNavigationDelegate {
         setNeedsStopActivityIndicator()
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
         var policy: WKNavigationActionPolicy = .allow
 
         if navigationAction.navigationType == .linkActivated {
@@ -716,19 +756,24 @@ private extension EPUBSpreadView {
     }
 
     private func setNeedsStopActivityIndicator() {
-        guard activityIndicatorStopWorkItem == nil else {
+        guard activityIndicatorStopTask == nil else {
             return
         }
 
-        activityIndicatorStopWorkItem = DispatchWorkItem { [weak self] in
+        // If the spread doesn't begin loading within 2 seconds it means that
+        // we likely encountered an error. In that case the task we start
+        // below will stop the activity indicator.
+        // If the spread begins to load it will send a `spreadLoadStart` JS
+        // event which will cancel this task.
+        trace("scheduling activity indicator stop")
+        activityIndicatorStopTask = Task { [weak self] in
             defer {
-                self?.activityIndicatorStopWorkItem = nil
+                self?.activityIndicatorStopTask = nil
             }
 
             guard
-                let self = self,
-                let workItem = activityIndicatorStopWorkItem,
-                !workItem.isCancelled
+                await (try? Task.sleep(seconds: 2)) != nil,
+                let self = self
             else {
                 return
             }
@@ -736,17 +781,6 @@ private extension EPUBSpreadView {
             trace("stopping activity indicator because spread \(spread.first.link.href) did not load")
             activityIndicatorView?.stopAnimating()
         }
-
-        // If the spread doesn't begin loading within 2 seconds it means that we
-        // likely encountered an error. In that case the work item we
-        // schedule below will stop the activity indicator.
-        // If the spread begins to load it will send a `spreadLoadStart` JS
-        // event which will cancel the work item being scheduled here.
-        trace("scheduling activity indicator stop")
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + 2,
-            execute: activityIndicatorStopWorkItem!
-        )
     }
 }
 
@@ -787,9 +821,9 @@ private extension PointerEvent {
 
         let optionalPointer: Pointer? = switch pointerType {
         case "mouse":
-            .mouse(MousePointer(id: pointerId, buttons: MouseButtons(json: json)))
+            .mouse(MousePointer(id: .int(pointerId), buttons: MouseButtons(json: json)))
         case "touch":
-            .touch(TouchPointer(id: pointerId))
+            .touch(TouchPointer(id: .int(pointerId)))
         default:
             nil
         }

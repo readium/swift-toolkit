@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumFuzi
+@preconcurrency import ReadiumFuzi
 
 final class FuziXMLDocument: XMLDocument, Loggable {
     enum ParseError: Error {
@@ -13,6 +13,7 @@ final class FuziXMLDocument: XMLDocument, Loggable {
     }
 
     fileprivate let document: ReadiumFuzi.XMLDocument
+    let documentElement: XMLElement?
 
     convenience init(data: Data, namespaces: [XMLNamespace]) throws {
         try self.init(document: ReadiumFuzi.XMLDocument(data: data), namespaces: namespaces)
@@ -29,10 +30,10 @@ final class FuziXMLDocument: XMLDocument, Loggable {
 
         document.definePrefixes(namespaces)
         self.document = document
+        documentElement = document.root.map {
+            FuziXMLElement(document: document, element: $0)
+        }
     }
-
-    lazy var documentElement: XMLElement? =
-        document.root.map { FuziXMLElement(document: document, element: $0) }
 
     var textContent: String? {
         document.root?.stringValue

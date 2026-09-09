@@ -11,7 +11,7 @@ import ReadiumStreamer
 import UIKit
 
 /// The Library module handles the presentation of the bookshelf, and the publications' management.
-protocol LibraryModuleAPI {
+@MainActor protocol LibraryModuleAPI {
     var delegate: LibraryModuleDelegate? { get }
 
     /// Root navigation controller containing the Library.
@@ -24,12 +24,11 @@ protocol LibraryModuleAPI {
     @discardableResult
     func importPublication(
         from url: AbsoluteURL,
-        sender: UIViewController,
-        progress: @escaping (Double) -> Void
+        progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book
 }
 
-protocol LibraryModuleDelegate: ModuleDelegate {
+@MainActor protocol LibraryModuleDelegate: ModuleDelegate {
     /// Called when the user tap on a publication in the library.
     func libraryDidSelectPublication(_ publication: Publication, book: Book)
 }
@@ -67,9 +66,8 @@ final class LibraryModule: LibraryModuleAPI {
 
     func importPublication(
         from url: AbsoluteURL,
-        sender: UIViewController,
-        progress: @escaping (Double) -> Void
+        progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book {
-        try await library.importPublication(from: url, sender: sender, progress: progress)
+        try await library.importPublication(from: url, progress: progress)
     }
 }

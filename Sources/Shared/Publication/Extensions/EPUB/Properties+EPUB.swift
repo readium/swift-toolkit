@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// EPUB Link Properties Extension
 /// https://readium.org/webpub-manifest/schema/extensions/epub/properties.schema.json

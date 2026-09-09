@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// This construct enables a serializable representation of a DOM Range.
 ///
@@ -22,7 +21,7 @@ import ReadiumInternal
 /// represents a "collapsed" range that has identical `start` and `end` boundary points.
 ///
 /// https://github.com/readium/architecture/blob/master/models/locators/extensions/html.md#the-domrange-object
-public struct DOMRange: Hashable, JSONValueDecodable, JSONObjectEncodable {
+public struct DOMRange: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
     /// A serializable representation of the "start" boundary point of the DOM Range.
     let start: Point
 
@@ -71,7 +70,7 @@ public struct DOMRange: Hashable, JSONValueDecodable, JSONObjectEncodable {
     /// node).
     ///
     /// https://github.com/readium/architecture/blob/master/models/locators/extensions/html.md#the-start-and-end-object
-    public struct Point: Hashable, JSONValueDecodable, JSONObjectEncodable {
+    public struct Point: Hashable, Sendable, JSONValueDecodable, JSONObjectEncodable {
         let cssSelector: String
         let textNodeIndex: Int
         let charOffset: Int?

@@ -9,7 +9,7 @@ import Foundation
 /// Represents an absolute URL with the special schemes `http` or `https`.
 ///
 /// See https://url.spec.whatwg.org/#special-scheme
-public struct HTTPURL: AbsoluteURL, Hashable, Sendable {
+public struct HTTPURL: AbsoluteURL, Hashable {
     public init?(url: URL) {
         guard
             let scheme = url.scheme.map(URLScheme.init(rawValue:)),
@@ -42,7 +42,7 @@ public struct HTTPURL: AbsoluteURL, Hashable, Sendable {
     ///
     /// To ignore this warning, compare `HTTPURL.string` instead of
     /// `HTTPURL` itself.
-    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalent() instead.")
+    @available(*, deprecated, message: "Strict URL comparisons can be a source of bug. Use isEquivalentTo() instead.")
     public static func == (lhs: HTTPURL, rhs: HTTPURL) -> Bool {
         lhs.string == rhs.string
     }

@@ -10,6 +10,7 @@ import ReadiumNavigator
 import ReadiumShared
 import SwiftUI
 
+@MainActor
 final class UserPreferencesViewModel<
     S: ConfigurableSettings,
     P: ConfigurablePreferences,
@@ -37,14 +38,23 @@ final class UserPreferencesViewModel<
             .receive(on: DispatchQueue.main)
 
         preferences
-            .compactMap { configurable.editor(of: $0) }
-            .assign(to: &$editor)
+            .sink { [weak self] prefs in
+                // The publisher delivers on the main queue.
+                MainActor.assumeIsolated {
+                    self?.editor = configurable.editor(of: prefs)
+                }
+            }
+            .store(in: &subscriptions)
 
         preferences
             // First one is dropped to avoid refreshing the navigator when
             // opening the user preferences screen.
             .dropFirst()
-            .sink { configurable.submitPreferences($0) }
+            .sink { prefs in
+                MainActor.assumeIsolated {
+                    configurable.submitPreferences(prefs)
+                }
+            }
             .store(in: &subscriptions)
     }
 

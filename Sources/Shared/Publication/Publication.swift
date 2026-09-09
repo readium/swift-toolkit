@@ -6,11 +6,10 @@
 
 import CoreServices
 import Foundation
-import ReadiumInternal
 
 /// Shared model for a Readium Publication.
-public class Publication: Closeable, Loggable {
-    public var manifest: Manifest
+public final class Publication: Sendable, Loggable {
+    public let manifest: Manifest
     private let container: Container
     private let services: [PublicationService]
 
@@ -105,6 +104,19 @@ public class Publication: Closeable, Loggable {
         manifest.linksWithRel(rel)
     }
 
+    /// Creates a new `Locator` pointing to the resource targeted by the given
+    /// `link`.
+    ///
+    /// Returns `nil` if the resource is not found in the publication.
+    public func locator(for link: Link) -> Locator? {
+        manifest.locator(for: link)
+    }
+
+    @available(*, unavailable, renamed: "locator(for:)")
+    public func locate(_ link: Link) async -> Locator? {
+        fatalError()
+    }
+
     /// Returns the resource targeted by the given `link`.
     public func get(_ link: Link) -> Resource? {
         assert(!link.templated, "You must expand templated links before calling `Publication.get`")
@@ -161,7 +173,7 @@ public class Publication: Closeable, Loggable {
     ///
     /// For a list of supported profiles, see the registry:
     /// https://readium.org/webpub-manifest/profiles/
-    public struct Profile: Hashable, RawRepresentable, Sendable {
+    public struct Profile: Hashable, Sendable, RawRepresentable {
         public let uri: String
 
         public init(_ uri: String) {
@@ -197,7 +209,7 @@ public class Publication: Closeable, Loggable {
         /// Transform which can be used to modify a `Publication`'s components
         /// before building it. For example, to add Publication Services or
         /// wrap the root Container.
-        public typealias Transform = (
+        public typealias Transform = @Sendable (
             _ manifest: inout Manifest,
             _ container: inout Container,
             _ services: inout PublicationServicesBuilder

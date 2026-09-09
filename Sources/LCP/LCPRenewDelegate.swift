@@ -10,7 +10,7 @@ import SafariServices
 import UIKit
 
 /// UX delegate for the loan renew LSD interaction.
-public protocol LCPRenewDelegate {
+public protocol LCPRenewDelegate: Sendable {
     /// Called when the renew interaction allows to customize the end date programmatically.
     ///
     /// You can prompt the user for the number of days to renew, for example.
@@ -28,7 +28,8 @@ public protocol LCPRenewDelegate {
 ///
 /// No date picker is presented for selecting a preferred end date. If you want to support one, you can subclass or
 /// decorate `LCPRenewDelegate`.
-public class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
+@MainActor
+public final class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
     private let presentingViewController: UIViewController
     private let modalPresentationStyle: UIModalPresentationStyle
 
@@ -44,6 +45,15 @@ public class LCPDefaultRenewDelegate: NSObject, LCPRenewDelegate {
     @MainActor
     public func presentWebPage(url: HTTPURL) async throws {
         await withCheckedContinuation { continuation in
+            guard presentingViewController.presentedViewController == nil else {
+                // `present(_:animated:)` would fail silently and neither
+                // delegate callback would ever fire, leaving the caller
+                // suspended forever.
+                continuation.resume(returning: ())
+                return
+            }
+
+            webPageContinuation?.resume(returning: ())
             webPageContinuation = continuation
 
             let safariVC = SFSafariViewController(url: url.url)
@@ -64,7 +74,7 @@ extension LCPDefaultRenewDelegate: UIAdaptivePresentationControllerDelegate {
     }
 }
 
-extension LCPDefaultRenewDelegate: SFSafariViewControllerDelegate {
+extension LCPDefaultRenewDelegate: @preconcurrency SFSafariViewControllerDelegate {
     public func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
         webPageContinuation?.resume(returning: ())
         webPageContinuation = nil

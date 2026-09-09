@@ -8,32 +8,42 @@ import Foundation
 import ReadiumShared
 import UIKit
 
+/// Delegate presenting the passphrase dialog produced by
+/// `LCPDialogAuthentication`.
+@MainActor public protocol LCPDialogAuthenticationDelegate: AnyObject, Sendable {
+    /// Presents the LCP passphrase dialog view controller.
+    ///
+    /// The dialog dismisses itself once the user submits or cancels, so you
+    /// only need to present it.
+    func lcpDialogAuthentication(
+        _ authentication: LCPDialogAuthentication,
+        present dialogViewController: UIViewController
+    )
+}
+
 /// An `LCPAuthenticating` implementation presenting a dialog to the user.
 ///
-/// For this authentication to trigger, you must provide a `sender` parameter of type
-/// `UIViewController` to `Streamer.open()` or `LCPService.retrieveLicense()`. It will be used
-/// as the presenting view controller for the dialog.
-public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
-    private let animated: Bool
-    private let modalPresentationStyle: UIModalPresentationStyle
-    private let modalTransitionStyle: UIModalTransitionStyle
+/// For this authentication to trigger, you must provide a ``delegate`` that
+/// presents the dialog (for example on your top-most view controller).
+@MainActor
+public final class LCPDialogAuthentication: LCPAuthenticating, Loggable {
+    /// Delegate responsible for presenting the passphrase dialog.
+    private weak var delegate: LCPDialogAuthenticationDelegate?
 
-    public init(animated: Bool = true, modalPresentationStyle: UIModalPresentationStyle = .formSheet, modalTransitionStyle: UIModalTransitionStyle = .coverVertical) {
-        self.animated = animated
-        self.modalPresentationStyle = modalPresentationStyle
-        self.modalTransitionStyle = modalTransitionStyle
+    public init(delegate: LCPDialogAuthenticationDelegate) {
+        self.delegate = delegate
     }
 
     public func retrievePassphrase(
         for license: LCPAuthenticatedLicense,
         reason: LCPAuthenticationReason,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async -> String? {
-        guard allowUserInteraction, let viewController = sender as? UIViewController else {
-            if !(sender is UIViewController) {
-                log(.error, "Tried to present the LCP dialog without providing a `UIViewController` as `sender`")
-            }
+        guard allowUserInteraction else {
+            return nil
+        }
+        guard let delegate = delegate else {
+            log(.error, "The `LCPDialogAuthentication` delegate was deallocated before it could present the passphrase dialog. Make sure you retain it for the lifetime of the authentication.")
             return nil
         }
 
@@ -41,11 +51,15 @@ public class LCPDialogAuthentication: LCPAuthenticating, Loggable {
             let dialogViewController = LCPDialogViewController(license: license, reason: reason) { passphrase in
                 continuation.resume(returning: passphrase)
             }
-
-            dialogViewController.modalPresentationStyle = modalPresentationStyle
-            dialogViewController.modalTransitionStyle = modalTransitionStyle
-
-            viewController.present(dialogViewController, animated: animated)
+            delegate.lcpDialogAuthentication(self, present: dialogViewController)
         }
+    }
+
+    @available(*, unavailable, message: "Set the modal presentation and transition styles from your LCPDialogAuthenticationDelegate implementation")
+    public convenience init(
+        modalPresentationStyle: UIModalPresentationStyle = .formSheet,
+        modalTransitionStyle: UIModalTransitionStyle = .coverVertical
+    ) {
+        fatalError()
     }
 }

@@ -121,7 +121,7 @@ let url: URL = URL(...)
 switch await assetRetriever.retrieve(url: url.anyURL.absoluteURL!) {
 case .success(let asset):
     // Open a `Publication` from the `Asset`.
-    switch await publicationOpener.open(asset: asset, allowUserInteraction: true, sender: view) {
+    switch await publicationOpener.open(asset: asset, allowUserInteraction: true) {
     case .success(let publication):
         print("Opened \(publication.metadata.title)")
 

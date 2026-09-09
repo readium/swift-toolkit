@@ -54,7 +54,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         self.state = state
     }
 
-    func preference<Value>(
+    func preference<Value: Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value>,
         defaultEffectiveValue: Value,
@@ -68,7 +68,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         )
     }
 
-    func preference<Value>(
+    func preference<Value: Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         effectiveValue: @escaping (State) -> Value?,
         defaultEffectiveValue: Value,
@@ -99,7 +99,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         ).eraseToAnyPreference()
     }
 
-    func preference<Value>(
+    func preference<Value: Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value?>,
         isEffective: @escaping (State) -> Bool
@@ -126,7 +126,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         ).eraseToAnyPreference()
     }
 
-    func enumPreference<Value>(
+    func enumPreference<Value: Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value>,
         defaultEffectiveValue: Value,
@@ -142,7 +142,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         )
     }
 
-    func enumPreference<Value>(
+    func enumPreference<Value: Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         effectiveValue: @escaping (State) -> Value?,
         defaultEffectiveValue: Value,
@@ -175,7 +175,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         ).eraseToAnyPreference()
     }
 
-    func enumPreference<Value>(
+    func enumPreference<Value: Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value?>,
         isEffective: @escaping (State) -> Bool,
@@ -204,7 +204,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         ).eraseToAnyPreference()
     }
 
-    func rangePreference<Value: Comparable>(
+    func rangePreference<Value: Comparable & Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value>,
         defaultEffectiveValue: Value,
@@ -224,7 +224,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         )
     }
 
-    func rangePreference<Value: Comparable>(
+    func rangePreference<Value: Comparable & Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         effectiveValue: @escaping (State) -> Value?,
         defaultEffectiveValue: Value,

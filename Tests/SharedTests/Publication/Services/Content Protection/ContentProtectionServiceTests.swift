@@ -102,12 +102,20 @@ struct TestContentProtectionService: ContentProtectionService {
 }
 
 final class TestUserRights: UserRights {
-    var copyCount: Int
-    var printCount: Int
+    private let _copyCount: Mutex<Int>
+    private let _printCount: Mutex<Int>
+
+    var copyCount: Int {
+        _copyCount.withLock { $0 }
+    }
+
+    var printCount: Int {
+        _printCount.withLock { $0 }
+    }
 
     init(copyCount: Int = 10, printCount: Int = 10) {
-        self.copyCount = copyCount
-        self.printCount = printCount
+        _copyCount = Mutex(copyCount)
+        _printCount = Mutex(printCount)
     }
 
     var canCopy: Bool {
@@ -119,11 +127,13 @@ final class TestUserRights: UserRights {
     }
 
     func copy(text: String) -> Bool {
-        guard canCopy(text: text) else {
-            return false
+        _copyCount.withLock { count in
+            guard count >= text.count else {
+                return false
+            }
+            count -= text.count
+            return true
         }
-        copyCount -= text.count
-        return true
     }
 
     var canPrint: Bool {
@@ -135,10 +145,12 @@ final class TestUserRights: UserRights {
     }
 
     func print(pageCount: Int) -> Bool {
-        guard canPrint(pageCount: pageCount) else {
-            return false
+        _printCount.withLock { count in
+            guard count >= pageCount else {
+                return false
+            }
+            count -= pageCount
+            return true
         }
-        printCount -= pageCount
-        return true
     }
 }

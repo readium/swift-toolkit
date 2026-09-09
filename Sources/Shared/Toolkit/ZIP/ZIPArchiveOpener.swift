@@ -7,11 +7,21 @@
 import Foundation
 
 /// An ``ArchiveOpener`` for ZIP resources.
-public class ZIPArchiveOpener: CompositeArchiveOpener {
+public final class ZIPArchiveOpener: ArchiveOpener {
+    private let opener: CompositeArchiveOpener
+
     public init() {
-        super.init([
+        opener = CompositeArchiveOpener([
             MinizipArchiveOpener(),
             ZIPFoundationArchiveOpener(),
         ])
+    }
+
+    public func open(resource: any Resource, format: Format) async -> Result<ContainerAsset, ArchiveOpenError> {
+        await opener.open(resource: resource, format: format)
+    }
+
+    public func sniffOpen(resource: any Resource) async -> Result<ContainerAsset, ArchiveSniffOpenError> {
+        await opener.sniffOpen(resource: resource)
     }
 }

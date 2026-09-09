@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Core Collection Model
 /// https://readium.org/webpub-manifest/schema/subcollection.schema.json

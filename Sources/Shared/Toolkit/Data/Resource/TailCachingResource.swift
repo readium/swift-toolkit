@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Caches in memory the tail of the given `resource`, starting from
 /// `cacheFromOffset`.
@@ -35,32 +34,34 @@ actor TailCachingResource: Resource, Loggable {
 
     func stream(
         range: Range<UInt64>?,
-        consume: @escaping (Data) -> Void
+        consume: @escaping @Sendable (Data) -> Void
     ) async -> ReadResult<Void> {
         guard cacheFromOffset <= range?.lowerBound ?? 0 else {
             return await resource.stream(range: range, consume: consume)
         }
 
-        return await cachedTail()
-            .asyncFlatMap { data in
-                guard let data = data else {
-                    return await resource.stream(range: range, consume: consume)
-                }
-
-                if let range = range {
-                    let range = range.clampedToInt()
-                    let lower = Int(range.lowerBound) - Int(cacheFromOffset)
-                    let upper = min(lower + range.count, data.count)
-                    guard lower >= 0 else {
-                        return .failure(.decoding("Cannot satisty requested range from the cached tail"))
-                    }
-                    consume(data[lower ..< upper])
-                } else {
-                    consume(data)
-                }
-
-                return .success(())
+        switch await cachedTail() {
+        case let .failure(error):
+            return .failure(error)
+        case let .success(data):
+            guard let data = data else {
+                return await resource.stream(range: range, consume: consume)
             }
+
+            if let range = range {
+                let range = range.clampedToInt()
+                let lower = Int(range.lowerBound) - Int(cacheFromOffset)
+                let upper = min(lower + range.count, data.count)
+                guard lower >= 0 else {
+                    return .failure(.decoding("Cannot satisfy requested range from the cached tail"))
+                }
+                consume(data[lower ..< upper])
+            } else {
+                consume(data)
+            }
+
+            return .success(())
+        }
     }
 
     private var cache: ReadResult<Data?>?
@@ -70,20 +71,24 @@ actor TailCachingResource: Resource, Loggable {
             return cache
         }
 
-        return await estimatedLength()
-            .asyncFlatMap { length in
-                let length = length ?? .max
-                guard cacheFromOffset < length else {
-                    cache = .success(nil)
-                    return cache!
-                }
-
-                var data = Data()
-                cache = await resource.stream(range: cacheFromOffset ..< length) { chunk in
-                    data.append(chunk)
-                }.map { data }
-
+        let lengthResult = await estimatedLength()
+        switch lengthResult {
+        case let .failure(error):
+            return .failure(error)
+        case let .success(length):
+            let length = length ?? .max
+            guard cacheFromOffset < length else {
+                cache = .success(nil)
                 return cache!
             }
+
+            let data = Mutex(Data())
+            let streamResult = await resource.stream(range: cacheFromOffset ..< length) { chunk in
+                data.withLock { $0.append(chunk) }
+            }
+
+            cache = streamResult.map { data.withLock { $0 } }
+            return cache!
+        }
     }
 }

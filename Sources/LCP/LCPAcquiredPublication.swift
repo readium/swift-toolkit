@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Holds information about an LCP protected publication which was acquired
 /// from an LCPL.
-public struct LCPAcquiredPublication {
+public struct LCPAcquiredPublication: Sendable {
     /// Path to the downloaded publication.
     ///
     /// You must move this file to the user library's folder.

@@ -29,11 +29,16 @@ enum PageLocation: Equatable {
     }
 }
 
+@MainActor
 protocol PageView {
     /// Moves the page to the given internal location.
     func go(to location: PageLocation, animated: Bool) async
+
+    /// Called when the page view is not the currently visible page anymore.
+    func pageDidDisappear()
 }
 
+@MainActor
 protocol PaginationViewDelegate: AnyObject {
     /// Creates the page view for the page at given index.
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)?
@@ -76,19 +81,6 @@ final class PaginationView: UIView, Loggable {
     /// Return the currently presented page view from the Views array.
     var currentView: (UIView & PageView)? {
         loadedViews[currentIndex]
-    }
-
-    /// Loaded page views in reading order.
-    private var orderedViews: [UIView & PageView] {
-        var orderedViews = loadedViews
-            .sorted { $0.key < $1.key }
-            .map(\.value)
-
-        if readingProgression == .rtl {
-            orderedViews.reverse()
-        }
-
-        return orderedViews
     }
 
     private let scrollView = UIScrollView()
@@ -173,7 +165,7 @@ final class PaginationView: UIView, Loggable {
         super.didMoveToWindow()
 
         if window == nil {
-            loadPagesTask.cancel()
+            loadPagesTask?.cancel()
         } else {
             loadPages()
         }
@@ -221,6 +213,7 @@ final class PaginationView: UIView, Loggable {
         let movingBackward = (currentIndex - 1 == index)
         let location = location ?? (movingBackward ? .end : .start)
 
+        let previousView = currentView
         currentIndex = index
 
         // To make sure that the views the most likely to be visible are loaded first, we first load
@@ -238,11 +231,14 @@ final class PaginationView: UIView, Loggable {
             }
         }
 
+        previousView?.pageDidDisappear()
+
         loadPages()
     }
 
     private func loadPages() {
-        loadPagesTask.replace { @MainActor in
+        loadPagesTask?.cancel()
+        loadPagesTask = Task { @MainActor in
             await loadNextPage()
             delegate?.paginationViewDidUpdateViews(self)
         }

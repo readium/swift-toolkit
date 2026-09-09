@@ -54,12 +54,16 @@ class PublicationCollectionViewCell: UICollectionViewCell {
 
     }()
 
-    override func awakeFromNib() {
+    override nonisolated func awakeFromNib() {
         super.awakeFromNib()
 
-        publicationMenuViewController.delegate = self
-        publicationMenuViewController.view.isHidden = !isMenuDisplayed
-        contentView.addSubview(publicationMenuViewController.view)
+        // `awakeFromNib` is always called on the main thread, but is declared
+        // nonisolated in the UIKit SDK.
+        MainActor.assumeIsolated {
+            publicationMenuViewController.delegate = self
+            publicationMenuViewController.view.isHidden = !isMenuDisplayed
+            contentView.addSubview(publicationMenuViewController.view)
+        }
     }
 
     override func layoutSubviews() {

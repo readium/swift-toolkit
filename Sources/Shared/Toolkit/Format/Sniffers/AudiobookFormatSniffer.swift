@@ -7,7 +7,7 @@
 import Foundation
 
 /// Sniffs an Audiobook.
-public struct ZABFormatSniffer: FormatSniffer {
+public struct ZABFormatSniffer: FormatSniffer, Sendable {
     /// Required extensions for an archive to be considered an audiobook
     public static let defaultRequiredExtensions: Set<FileExtension> = audioExtensions
 

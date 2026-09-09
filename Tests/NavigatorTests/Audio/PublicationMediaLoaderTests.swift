@@ -5,6 +5,7 @@
 //
 
 @testable import ReadiumNavigator
+import ReadiumShared
 import XCTest
 
 class PublicationMediaLoaderTests: XCTestCase {

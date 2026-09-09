@@ -10,7 +10,7 @@ import ReadiumShared
 import Testing
 
 /// Configuration for a single `SearchService` test run.
-struct SearchServiceTestConfig: CustomTestStringConvertible {
+struct SearchServiceTestConfig: CustomTestStringConvertible, Sendable {
     /// Human-readable description of the config, used for test reporting.
     let testDescription: String
 
@@ -460,11 +460,11 @@ struct SearchServiceTests {
             // "alice" (case-insensitive) appears in chapter1, chapter2,
             // chapter3 — 3 results total.
             let iterator = try await pub.search(query: "alice", options: .init(caseSensitive: false)).get()
-            #expect(iterator.resultCount == 0)
+            #expect(await iterator.resultCount == 0)
             var total = 0
             while let batch = try await iterator.next().get() {
                 total += batch.locators.count
-                #expect(iterator.resultCount == total)
+                #expect(await iterator.resultCount == total)
             }
             #expect(total == 3)
         }

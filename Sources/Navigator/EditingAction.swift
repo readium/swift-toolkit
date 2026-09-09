@@ -16,7 +16,8 @@ import UIKit
 /// Then, implement the selector in one of your classes in the responder chain.
 /// Typically, in the `UIViewController` wrapping the navigator view
 /// controller.
-public struct EditingAction: Hashable {
+@MainActor
+public struct EditingAction: Hashable, Sendable {
     /// Default editing actions enabled in the navigator.
     public static var defaultActions: [EditingAction] {
         [copy, share, lookup, translate]
@@ -83,6 +84,7 @@ public struct EditingAction: Hashable {
     }
 }
 
+@MainActor
 protocol EditingActionsControllerDelegate: AnyObject {
     func editingActionsDidPreventCopy(_ editingActions: EditingActionsController)
     func editingActions(_ editingActions: EditingActionsController, shouldShowMenuForSelection selection: Selection) -> Bool
@@ -90,6 +92,7 @@ protocol EditingActionsControllerDelegate: AnyObject {
 }
 
 /// Handles the authorization and check of editing actions.
+@MainActor
 final class EditingActionsController {
     weak var delegate: EditingActionsControllerDelegate?
 

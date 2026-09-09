@@ -7,7 +7,7 @@
 import Foundation
 import ReadiumShared
 
-public struct PotentialRights: JSONValueDecodable {
+public struct PotentialRights: JSONValueDecodable, Sendable {
     /// Time and Date when the license ends.
     public let end: Date?
 

@@ -13,7 +13,7 @@ import UIKit
 
 /// Base module delegate, that sub-modules' delegate can extend.
 /// Provides basic shared functionalities.
-protocol ModuleDelegate: AnyObject {
+@MainActor protocol ModuleDelegate: AnyObject {
     func presentAlert(_ title: String, message: String, from viewController: UIViewController)
     func presentError(_ error: Error, from viewController: UIViewController)
 }
@@ -21,7 +21,7 @@ protocol ModuleDelegate: AnyObject {
 /// Main application module, it:
 /// - owns the sub-modules (library, reader, etc.)
 /// - orchestrates the communication between its sub-modules, through the modules' delegates.
-final class AppModule: Loggable {
+@MainActor final class AppModule: Loggable {
     // App modules
     var library: LibraryModuleAPI!
     var reader: ReaderModuleAPI!
@@ -29,7 +29,7 @@ final class AppModule: Loggable {
 
     let readium: Readium
 
-    init() throws {
+    @MainActor init() throws {
         let file = Paths.library.appendingPath("database.db", isDirectory: false)
         let db = try Database(file: file.url)
         print("Created database at \(file.path)")
@@ -100,14 +100,13 @@ extension AppModule: OPDSModuleDelegate {
     func opdsDownloadPublication(
         _ publication: Publication?,
         at link: ReadiumShared.Link,
-        sender: UIViewController,
-        progress: @escaping (Double) -> Void
+        progress: @escaping @Sendable (Double) -> Void
     ) async throws -> Book {
         guard let url = link.url(relativeTo: publication?.baseURL).httpURL else {
             throw OPDSError.invalidURL(link.href)
         }
 
         let fileURL = try await readium.httpClient.download(url, onProgress: progress).get().location
-        return try await library.importPublication(from: fileURL, sender: sender, progress: progress)
+        return try await library.importPublication(from: fileURL, progress: progress)
     }
 }

@@ -10,7 +10,7 @@ import Foundation
 ///
 /// https://tools.ietf.org/html/rfc7807
 public struct HTTPProblemDetails: Decodable, Equatable, Sendable {
-    public enum Error: Swift.Error {
+    public enum Error: Swift.Error, Sendable {
         case malformed(json: String?)
     }
 

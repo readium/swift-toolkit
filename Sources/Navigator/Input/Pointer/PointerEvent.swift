@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Represents a pointer event (e.g. touch, mouse) emitted by a navigator.
-public struct PointerEvent: Equatable {
+public struct PointerEvent: Equatable, Sendable {
     /// Pointer causing this event.
     public var pointer: Pointer
 
@@ -26,7 +26,7 @@ public struct PointerEvent: Equatable {
 
     /// A content element targeted by a pointer event, paired with its
     /// on-screen frame.
-    @_spi(ExperimentalTargetElement) public struct TargetElement: Equatable {
+    @_spi(ExperimentalTargetElement) public struct TargetElement: Equatable, Sendable {
         /// Frame of the element relative to the navigator's view.
         public var frame: CGRect
 
@@ -44,7 +44,7 @@ public struct PointerEvent: Equatable {
     }
 
     /// Phase of a pointer event.
-    public enum Phase: Equatable, CustomStringConvertible {
+    public enum Phase: Equatable, CustomStringConvertible, Sendable {
         /// Fired when a pointer becomes active.
         case down
 
@@ -70,13 +70,29 @@ public struct PointerEvent: Equatable {
     }
 }
 
+public enum PointerId: Hashable, Sendable, CustomStringConvertible {
+    case object(ObjectIdentifier)
+    case string(String)
+    case int(Int)
+    case uuid(UUID)
+
+    public var description: String {
+        switch self {
+        case let .object(id): return String(describing: id)
+        case let .string(id): return id
+        case let .int(id): return String(id)
+        case let .uuid(id): return id.uuidString
+        }
+    }
+}
+
 /// Represents a pointer device, such as a mouse or a physical touch.
-public enum Pointer: Equatable, CustomStringConvertible {
+public enum Pointer: Equatable, CustomStringConvertible, Sendable {
     case touch(TouchPointer)
     case mouse(MousePointer)
 
     /// Unique identifier for this pointer.
-    public var id: AnyHashable {
+    public var id: PointerId {
         switch self {
         case let .touch(pointer): pointer.id
         case let .mouse(pointer): pointer.id
@@ -102,30 +118,30 @@ public enum Pointer: Equatable, CustomStringConvertible {
 }
 
 /// Type of a pointer.
-public enum PointerType: Equatable, CaseIterable {
+public enum PointerType: Equatable, CaseIterable, Sendable {
     case touch
     case mouse
 }
 
 /// Represents a physical touch pointer.
-public struct TouchPointer: Identifiable, Equatable {
+public struct TouchPointer: Identifiable, Equatable, Sendable {
     /// Unique identifier for this pointer.
-    public let id: AnyHashable
+    public let id: PointerId
 
-    public init(id: AnyHashable) {
+    public init(id: PointerId) {
         self.id = id
     }
 }
 
 /// Represents a mouse pointer.
-public struct MousePointer: Identifiable, Equatable {
+public struct MousePointer: Identifiable, Equatable, Sendable {
     /// Unique identifier for this pointer.
-    public let id: AnyHashable
+    public let id: PointerId
 
     /// Indicates which buttons are pressed on the mouse.
     public let buttons: MouseButtons
 
-    public init(id: AnyHashable, buttons: MouseButtons) {
+    public init(id: PointerId, buttons: MouseButtons) {
         self.id = id
         self.buttons = buttons
     }
@@ -134,7 +150,7 @@ public struct MousePointer: Identifiable, Equatable {
 /// Represents a set of mouse buttons.
 ///
 /// The values are derived from https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons#value
-public struct MouseButtons: OptionSet, Equatable, CustomStringConvertible {
+public struct MouseButtons: OptionSet, Equatable, CustomStringConvertible, Sendable {
     /// Main button, usually the left button.
     public static let main = MouseButtons(rawValue: 1 << 0)
 

@@ -52,11 +52,11 @@ struct UserError: LocalizedError {
 
 /// Convenience protocol for an object (usually an ``Error``) that can be
 /// converted into a ``UserError``.
-protocol UserErrorConvertible {
+nonisolated protocol UserErrorConvertible {
     func userError() -> UserError?
 }
 
-extension UserError: UserErrorConvertible {
+nonisolated extension UserError: UserErrorConvertible {
     func userError() -> UserError? {
         self
     }
@@ -90,7 +90,7 @@ extension UIViewController {
     }
 }
 
-extension String {
+nonisolated extension String {
     var localized: String {
         NSLocalizedString(self, comment: "")
     }

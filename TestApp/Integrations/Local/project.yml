@@ -20,11 +20,7 @@ schemes:
   TestApp:
     build:
       targets:
-        TestApp: none
-    test:
-      testPlans:
-        - path: TestApp.xctestplan
-          defaultPlan: true
+        TestApp: all
 targets:
   TestApp:
     type: application
@@ -50,5 +46,8 @@ targets:
       - package: MBProgressHUD
       - package: SwiftSoup
     settings:
+      SWIFT_VERSION: 6.0
+      SWIFT_APPROACHABLE_CONCURRENCY: Yes
+      SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
       DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
 

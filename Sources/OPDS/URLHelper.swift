@@ -6,7 +6,7 @@
 
 import Foundation
 
-class URLHelper {
+enum URLHelper {
     /**
      Check if an href destination is absolute or not.
 

@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Errors occurring in ``LCPKeychainPassphraseRepository``.
-public enum LCPKeychainPassphraseRepositoryError: Error {
+public enum LCPKeychainPassphraseRepositoryError: Error, Sendable {
     /// An error occurred while accessing the keychain.
     case keychain(KeychainError)
 

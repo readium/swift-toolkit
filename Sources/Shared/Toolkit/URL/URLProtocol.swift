@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// A type that can represent a URL.
 public protocol URLProtocol: URLConvertible, Sendable, CustomStringConvertible {

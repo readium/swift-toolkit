@@ -7,26 +7,10 @@
 import Foundation
 import ReadiumShared
 
-/// To modify depending of the profiles supported by liblcp.a.
-private let supportedProfiles = [
-    "http://readium.org/lcp/basic-profile",
-    "http://readium.org/lcp/profile-1.0",
-    "http://readium.org/lcp/profile-2.0",
-    "http://readium.org/lcp/profile-2.1",
-    "http://readium.org/lcp/profile-2.2",
-    "http://readium.org/lcp/profile-2.3",
-    "http://readium.org/lcp/profile-2.4",
-    "http://readium.org/lcp/profile-2.5",
-    "http://readium.org/lcp/profile-2.6",
-    "http://readium.org/lcp/profile-2.7",
-    "http://readium.org/lcp/profile-2.8",
-    "http://readium.org/lcp/profile-2.9",
-]
-
 typealias Context = Result<LCPClientContext, LCPError>
 
 /// Holds the License/Status Documents and the DRM context, once validated.
-struct ValidatedDocuments {
+struct ValidatedDocuments: Sendable {
     let license: LicenseDocument
     let context: Context
     let status: StatusDocument?
@@ -42,13 +26,11 @@ struct ValidatedDocuments {
 ///
 /// Use `validate` to start the validation of a Document.
 /// Use `observe` to be notified when any validation is done or if an error occurs.
-final actor LicenseValidation: Loggable {
+actor LicenseValidation: Loggable {
     // Dependencies for the State's handlers
-    fileprivate let isProduction: Bool
     fileprivate let client: LCPClient
     fileprivate let authentication: LCPAuthenticating?
     fileprivate let allowUserInteraction: Bool
-    fileprivate let sender: Any?
     fileprivate let crl: CRLService
     fileprivate let device: DeviceService
     fileprivate let httpClient: HTTPClient
@@ -57,7 +39,9 @@ final actor LicenseValidation: Loggable {
     /// List of observers notified when the Documents are validated, or if an error occurred.
     fileprivate var observers: [(callback: Observer, policy: ObserverPolicy)] = []
 
-    fileprivate let onLicenseValidated: (LicenseDocument) async throws -> Void
+    fileprivate let onLicenseValidated: @Sendable (LicenseDocument) async throws -> Void
+
+    private let tasks = CancellableTasks()
 
     /// Current state in the validation steps.
     private(set) var state: State = .start {
@@ -69,19 +53,15 @@ final actor LicenseValidation: Loggable {
     init(
         authentication: LCPAuthenticating?,
         allowUserInteraction: Bool,
-        sender: Any?,
-        isProduction: Bool,
         client: LCPClient,
         crl: CRLService,
         device: DeviceService,
         httpClient: HTTPClient,
         passphrases: PassphrasesService,
-        onLicenseValidated: @escaping (LicenseDocument) async throws -> Void
+        onLicenseValidated: @escaping @Sendable (LicenseDocument) async throws -> Void
     ) {
         self.authentication = authentication
         self.allowUserInteraction = allowUserInteraction
-        self.sender = sender
-        self.isProduction = isProduction
         self.client = client
         self.crl = crl
         self.device = device
@@ -279,9 +259,12 @@ extension LicenseValidation {
     private func validateLicense(data: Data) async throws {
         let license = try LicenseDocument(data: data)
 
-        // In test mode, only the basic profile is authorized.
-        // This is done here instead of during the integrity check because the passphrase can't be validated.
-        guard isProduction || license.encryption.profile == "http://readium.org/lcp/basic-profile" else {
+        // Reject the license early (before passphrase validation) if liblcp doesn't
+        // support its profile, to report a clear error instead of a confusing
+        // "incorrect passphrase". An empty list means the profiles are unknown, so we
+        // defer to `createContext` rather than blocking a possibly-valid license.
+        let supportedProfiles = client.getSupportedLCPProfileURIs()
+        guard supportedProfiles.isEmpty || supportedProfiles.contains(license.encryption.profile) else {
             throw LCPError.licenseProfileNotSupported
         }
 
@@ -299,7 +282,7 @@ extension LicenseValidation {
                 // Short timeout to avoid blocking the License, since the LSD is optional.
                 timeoutInterval: 5
             ))
-            .map { $0.body ?? Data() }
+            .map(\.body)
             .get()
 
         try await raise(.retrievedStatusData(data))
@@ -316,7 +299,7 @@ extension LicenseValidation {
         let data = try await httpClient
             // Short timeout to avoid blocking the License, since it can be updated next time.
             .fetch(HTTPRequest(url: url, timeoutInterval: 5))
-            .map { $0.body ?? Data() }
+            .map(\.body)
             .get()
 
         try await raise(.retrievedLicenseData(data))
@@ -361,8 +344,7 @@ extension LicenseValidation {
         if let passphrase = try await passphrases.request(
             for: license,
             authentication: authentication,
-            allowUserInteraction: allowUserInteraction,
-            sender: sender
+            allowUserInteraction: allowUserInteraction
         ) {
             try await raise(.retrievedPassphrase(passphrase))
         } else {
@@ -371,13 +353,7 @@ extension LicenseValidation {
     }
 
     private func validateIntegrity(of license: LicenseDocument, with passphrase: String) async throws {
-        // 1. Checks the profile
-        let profile = license.encryption.profile
-        guard supportedProfiles.contains(profile) else {
-            throw LCPError.licenseProfileNotSupported
-        }
-
-        // 2. Creates the DRM context
+        // Creates the DRM context
         let pemCrl = try await crl.retrieve()
         let context = try client.createContext(jsonLicense: license.jsonString, hashedPassphrase: passphrase, pemCrl: pemCrl)
 
@@ -425,7 +401,7 @@ extension LicenseValidation {
 
 /// Validation observers
 extension LicenseValidation {
-    typealias Observer = (Result<ValidatedDocuments, Error>) -> Void
+    typealias Observer = @Sendable (Result<ValidatedDocuments, Error>) -> Void
 
     enum ObserverPolicy {
         /// The observer is automatically removed when called.
@@ -435,26 +411,28 @@ extension LicenseValidation {
     }
 
     nonisolated func observe(_ policy: ObserverPolicy = .always, _ observer: @escaping Observer) {
-        Task {
-            // If the state is already valid or a failure, we notify it to the observer right away.
-            var notified = true
-            switch await state {
-            case let .valid(documents):
-                observer(.success(documents))
-            case let .failure(error):
-                observer(.failure(error))
-            default:
-                notified = false
-            }
-
-            guard !notified || policy == .always else {
-                return
-            }
-            await addObserver(observer, policy: policy)
+        tasks.add {
+            await register(observer, policy: policy)
         }
     }
 
-    private func addObserver(_ observer: @escaping Observer, policy: ObserverPolicy) {
+    /// Atomically checks the current state and registers the observer, so it
+    /// cannot miss a notification fired between the two.
+    private func register(_ observer: @escaping Observer, policy: ObserverPolicy) {
+        // If the state is already valid or a failure, we notify it to the observer right away.
+        var notified = true
+        switch state {
+        case let .valid(documents):
+            observer(.success(documents))
+        case let .failure(error):
+            observer(.failure(error))
+        default:
+            notified = false
+        }
+
+        guard !notified || policy == .always else {
+            return
+        }
         observers.append((observer, policy))
     }
 

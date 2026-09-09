@@ -18,7 +18,7 @@ import Foundation
 /// ```swift
 /// let value: JSONValue = ["title": "Moby Dick", "year": 1851]
 /// ```
-public enum JSONValue: Sendable, Hashable, Loggable {
+public enum JSONValue: Hashable, Sendable, Loggable {
     /// A JSON `null`.
     case null
     /// A JSON boolean.
@@ -127,11 +127,11 @@ public enum JSONValue: Sendable, Hashable, Loggable {
 // MARK: - Errors
 
 /// Errors thrown during JSON parsing and serialization.
-public enum JSONError: Error {
+public enum JSONError: Error, Sendable {
     /// The JSON data could not be parsed into the expected type.
-    case parsing(Any.Type, cause: Error? = nil)
+    case parsing(Any.Type, cause: (any Error)? = nil)
     /// The value could not be serialized to JSON.
-    case serializing(Any.Type, cause: Error? = nil)
+    case serializing(Any.Type, cause: (any Error)? = nil)
 }
 
 // MARK: - Decoding Protocols

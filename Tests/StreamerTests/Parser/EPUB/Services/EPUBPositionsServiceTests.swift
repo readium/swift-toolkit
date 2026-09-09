@@ -348,7 +348,7 @@ private func makeProperties(layout: EPUBLayout? = nil, originalLength: Int? = ni
     return Properties(props)
 }
 
-private class MockContainer: Container {
+private final class MockContainer: Container {
     private let readingOrder: [(UInt64, Link, ArchiveProperties?)]
 
     init(readingOrder: [(UInt64, Link, ArchiveProperties?)]) {
@@ -389,7 +389,7 @@ private class MockContainer: Container {
             .success(_properties)
         }
 
-        func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
             consume(Data())
             return .success(())
         }

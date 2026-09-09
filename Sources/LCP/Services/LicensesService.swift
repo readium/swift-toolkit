@@ -7,14 +7,13 @@
 import Foundation
 import ReadiumShared
 
-final class LicensesService: Loggable {
+final class LicensesService: Loggable, Sendable {
     /// Mapping between an unprotected format to the matching LCP protected format.
     private let mediaTypesMapping: [MediaType: MediaType] = [
         .readiumAudiobook: .lcpProtectedAudiobook,
         .pdf: .lcpProtectedPDF,
     ]
 
-    private let isProduction: Bool
     private let client: LCPClient
     private let licenses: LCPLicenseRepository
     private let crl: CRLService
@@ -24,7 +23,6 @@ final class LicensesService: Loggable {
     private let passphrases: PassphrasesService
 
     init(
-        isProduction: Bool,
         client: LCPClient,
         licenses: LCPLicenseRepository,
         crl: CRLService,
@@ -33,7 +31,6 @@ final class LicensesService: Loggable {
         httpClient: HTTPClient,
         passphrases: PassphrasesService
     ) {
-        self.isProduction = isProduction
         self.client = client
         self.licenses = licenses
         self.crl = crl
@@ -46,41 +43,37 @@ final class LicensesService: Loggable {
     func retrieve(
         from asset: Asset,
         authentication: LCPAuthenticating?,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async throws -> LCPLicense {
         try await retrieve(
             from: makeLicenseContainer(for: asset),
             authentication: authentication,
-            allowUserInteraction: allowUserInteraction,
-            sender: sender
+            allowUserInteraction: allowUserInteraction
         )
     }
 
     private func retrieve(
         from container: LicenseContainer,
         authentication: LCPAuthenticating?,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async throws -> License {
         let initialData = try await container.read()
 
-        func onLicenseValidated(of license: LicenseDocument) async throws {
+        let onLicenseValidated: @Sendable (LicenseDocument) async throws -> Void = { [licenses, container, initialData] license in
             // Any errors are ignored to avoid blocking the publication.
-
             do {
                 try await licenses.addLicense(license)
             } catch {
-                log(.error, "Failed to add the LCP License to the local database: \(error)")
+                Self.log(.error, "Failed to add the LCP License to the local database: \(error)")
             }
 
             // Updates the License in the container if needed
             if license.jsonData != initialData {
                 do {
                     try await container.write(license)
-                    log(.debug, "Wrote updated License Document in container")
+                    Self.log(.debug, "Wrote updated License Document in container")
                 } catch {
-                    log(.error, "Failed to write updated License Document in container: \(error)")
+                    Self.log(.error, "Failed to write updated License Document in container: \(error)")
                 }
             }
         }
@@ -88,8 +81,6 @@ final class LicensesService: Loggable {
         let validation = LicenseValidation(
             authentication: authentication,
             allowUserInteraction: allowUserInteraction,
-            sender: sender,
-            isProduction: isProduction,
             client: client,
             crl: crl,
             device: device,
@@ -105,7 +96,7 @@ final class LicensesService: Loggable {
 
     func acquirePublication(
         from lcpl: LicenseDocumentSource,
-        onProgress: @escaping (LCPProgress) -> Void
+        onProgress: @escaping @Sendable (LCPProgress) -> Void
     ) async throws -> LCPAcquiredPublication {
         guard let license = try await readLicense(from: lcpl) else {
             throw LCPError.notALicenseDocument(lcpl)

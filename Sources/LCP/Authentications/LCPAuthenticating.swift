@@ -6,7 +6,7 @@
 
 import Foundation
 
-public protocol LCPAuthenticating {
+public protocol LCPAuthenticating: Sendable {
     /// Retrieves the passphrase to decrypt the given license.
     ///
     /// If `allowUserInteraction` is true, the reading app can prompt the user to enter the
@@ -20,25 +20,35 @@ public protocol LCPAuthenticating {
     ///   - allowUserInteraction: Indicates whether the user can be prompted for their passphrase.
     ///     If your implementation requires it and `allowUserInteraction` is false, terminate
     ///     quickly by returning `nil`.
-    ///   - sender: Free object that can be used by reading apps to give some UX context when
-    ///     presenting dialogs. For example, the host `UIViewController`.
+    @MainActor
+    func retrievePassphrase(
+        for license: LCPAuthenticatedLicense,
+        reason: LCPAuthenticationReason,
+        allowUserInteraction: Bool
+    ) async -> String?
+}
+
+public extension LCPAuthenticating {
+    @available(*, unavailable, message: "The `sender` parameter has been removed. Present any UI from your `LCPDialogAuthenticationDelegate` implementation and use the variant without `sender`.")
     @MainActor
     func retrievePassphrase(
         for license: LCPAuthenticatedLicense,
         reason: LCPAuthenticationReason,
         allowUserInteraction: Bool,
         sender: Any?
-    ) async -> String?
+    ) async -> String? {
+        fatalError()
+    }
 }
 
-public enum LCPAuthenticationReason {
+public enum LCPAuthenticationReason: Sendable {
     /// No matching passphrase was found.
     case passphraseNotFound
     /// The provided passphrase was invalid.
     case invalidPassphrase
 }
 
-public struct LCPAuthenticatedLicense {
+public struct LCPAuthenticatedLicense: Sendable {
     /// A hint to be displayed to the User to help them remember the User Passphrase.
     public var hint: String {
         document.encryption.userKey.textHint

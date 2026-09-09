@@ -7,7 +7,7 @@
 import Foundation
 
 /// The license repository stores registered licenses with their consumed rights (e.g. copy).
-public protocol LCPLicenseRepository {
+public protocol LCPLicenseRepository: Sendable {
     /// Adds a new `licenseDocument` to the repository, using `licenseDocument.id` as the
     /// primary key.
     ///
@@ -31,15 +31,24 @@ public protocol LCPLicenseRepository {
     /// Returns the consumable user rights for the license with given `id`.
     func userRights(for id: LicenseDocument.ID) async throws -> LCPConsumableUserRights
 
-    /// Updates the consumable user rights for the license with given `id`.
-    func updateUserRights(
+    /// Atomically reads, mutates, and persists the consumable user rights for
+    /// the license with the given `id`.
+    ///
+    /// The `changes` closure receives the license's current rights as an
+    /// `inout` value and may modify them in place; any modifications are
+    /// persisted once the closure returns. Use the closure's return value to
+    /// surface a result computed while the rights are held — for example,
+    /// whether a copy/print request was within the allowed budget.
+    ///
+    /// - Returns: The value returned by the `changes` closure.
+    func updateUserRights<T: Sendable>(
         for id: LicenseDocument.ID,
-        with changes: (inout LCPConsumableUserRights) -> Void
-    ) async throws
+        with changes: @Sendable (inout LCPConsumableUserRights) throws -> T
+    ) async throws -> T
 }
 
 /// Holds the current state of consumable user rights for a license.
-public struct LCPConsumableUserRights {
+public struct LCPConsumableUserRights: Sendable {
     /// Maximum number of pages left to be printed.
     ///
     /// If `nil`, there is no limit.

@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Combine
 import SwiftUI
 
 /// An ``LCPAuthenticating`` implementation which can be used to observe
@@ -12,38 +13,32 @@ import SwiftUI
 /// Pair an ``LCPObservableAuthentication``  with an ``LCPDialog`` to implement
 /// the LCP authentication in SwiftUI.
 @MainActor
-public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObject {
+public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObject, Sendable {
     /// Represents an on-going LCP authentication request.
     ///
     /// You must call the `submit()` or `cancel()` API to conclude the request.
     @MainActor
-    public final class Request: Identifiable {
+    public final class Request: Identifiable, Sendable {
         /// LCP License requested to be unlocked.
         public let license: LCPAuthenticatedLicense
 
         /// Reason for this authentication request.
         public let reason: LCPAuthenticationReason
 
-        /// Sender given to the component requesting the authentication.
-        ///
-        /// For example, this is the `sender` you provided to the
-        /// `PublicationOpener.open()` API.
-        ///
-        /// Readium does not use this internally. You can pass any object to
-        /// help you determine how to present the LCP authentication dialog.
-        public let sender: Any?
+        @available(*, unavailable, message: "The `sender` parameter has been removed. Present any UI from your `LCPDialogAuthenticationDelegate` implementation instead.")
+        public var sender: Any? {
+            fatalError()
+        }
 
         private var continuation: CheckedContinuation<String?, Never>?
 
         init(
             license: LCPAuthenticatedLicense,
             reason: LCPAuthenticationReason,
-            sender: Any?,
             continuation: CheckedContinuation<String?, Never>
         ) {
             self.license = license
             self.reason = reason
-            self.sender = sender
             self.continuation = continuation
         }
 
@@ -75,8 +70,7 @@ public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObj
     public func retrievePassphrase(
         for license: LCPAuthenticatedLicense,
         reason: LCPAuthenticationReason,
-        allowUserInteraction: Bool,
-        sender: Any?
+        allowUserInteraction: Bool
     ) async -> String? {
         guard allowUserInteraction else {
             return nil
@@ -88,7 +82,6 @@ public final class LCPObservableAuthentication: LCPAuthenticating, ObservableObj
             self.request = Request(
                 license: license,
                 reason: reason,
-                sender: sender,
                 continuation: $0
             )
         }

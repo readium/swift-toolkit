@@ -5,13 +5,12 @@
 //
 
 import Foundation
-import ReadiumInternal
 
 /// Holds the metadata of a Readium publication, as described in the Readium Web Publication
 /// Manifest.
 ///
 /// See. https://readium.org/webpub-manifest/
-public struct Metadata: Hashable, Loggable, WarningLogger, Sendable, JSONValueDecodable, JSONObjectEncodable {
+public struct Metadata: Hashable, Sendable, Loggable, WarningLogger, JSONValueDecodable, JSONObjectEncodable {
     /// Collection type used for collection/series metadata.
     /// For convenience, the JSON schema reuse the Contributor's definition.
     public typealias Collection = Contributor

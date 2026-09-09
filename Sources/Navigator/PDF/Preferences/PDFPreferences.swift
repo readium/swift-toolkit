@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 
 /// Preferences for the `PDFNavigatorViewController`.
-public struct PDFPreferences: ConfigurablePreferences {
+public struct PDFPreferences: ConfigurablePreferences, Sendable {
     public static let empty: PDFPreferences = .init()
 
     /// Background color behind the document pages.

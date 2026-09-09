@@ -10,6 +10,7 @@ import MediaPlayer
 import ReadiumNavigator
 import ReadiumShared
 
+@MainActor
 final class TTSViewModel: ObservableObject, Loggable {
     struct State: Equatable {
         /// Whether the TTS was enabled by the user.
@@ -26,6 +27,7 @@ final class TTSViewModel: ObservableObject, Loggable {
         /// Voices supported by the synthesizer, for the selected language.
         let availableVoiceIds: [String]
 
+        @MainActor
         init(synthesizer: PublicationSpeechSynthesizer) {
             let voicesByLanguage: [Language: [TTSVoice]] =
                 Dictionary(grouping: synthesizer.availableVoices, by: \.language)

@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import PDFKit
+@preconcurrency import PDFKit
 import ReadiumShared
 import UIKit
 
@@ -28,7 +28,7 @@ open class PDFNavigatorViewController:
     VisualNavigator, ViewportObservingNavigator, SelectableNavigator,
     Configurable, Loggable
 {
-    public struct Configuration {
+    public struct Configuration: Sendable {
         /// Initial set of setting preferences.
         public var preferences: PDFPreferences
 
@@ -40,6 +40,7 @@ open class PDFNavigatorViewController:
         /// The default set of editing actions is `EditingAction.defaultActions`.
         public var editingActions: [EditingAction]
 
+        @MainActor
         public init(
             preferences: PDFPreferences = PDFPreferences(),
             defaults: PDFDefaults = PDFDefaults(),
@@ -104,17 +105,6 @@ open class PDFNavigatorViewController:
         super.init(nibName: nil, bundle: nil)
 
         editingActions.delegate = self
-    }
-
-    @available(*, deprecated, message: "The httpServer is not needed anymore.")
-    public convenience init(
-        publication: Publication,
-        initialLocation: Locator?,
-        config: Configuration = .init(),
-        delegate: PDFNavigatorDelegate? = nil,
-        httpServer: HTTPServer?
-    ) throws {
-        try self.init(publication: publication, initialLocation: initialLocation, config: config, delegate: delegate)
     }
 
     @available(*, unavailable)
@@ -319,7 +309,7 @@ open class PDFNavigatorViewController:
 
     @objc private func didTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: view)
-        let pointer = Pointer.touch(TouchPointer(id: ObjectIdentifier(gesture)))
+        let pointer = Pointer.touch(TouchPointer(id: .object(ObjectIdentifier(gesture))))
         let modifiers = KeyModifiers(flags: gesture.modifierFlags)
         Task {
             _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .down, location: location, modifiers: modifiers))
@@ -331,7 +321,7 @@ open class PDFNavigatorViewController:
 
     @objc private func didClick(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: view)
-        let pointer = Pointer.mouse(MousePointer(id: ObjectIdentifier(gesture), buttons: .main))
+        let pointer = Pointer.mouse(MousePointer(id: .object(ObjectIdentifier(gesture)), buttons: .main))
         let modifiers = KeyModifiers(flags: gesture.modifierFlags)
         Task {
             _ = await inputObservers.didReceive(PointerEvent(pointer: pointer, phase: .down, location: location, modifiers: modifiers))
@@ -450,7 +440,7 @@ open class PDFNavigatorViewController:
         return true
     }
 
-    private func openDocument<HREF: URLConvertible>(at href: HREF) async -> PDFKit.PDFDocument? {
+    private func openDocument<HREF: URLConvertible & Sendable>(at href: HREF) async -> PDFKit.PDFDocument? {
         let service = publication.pdfDocumentService
 
         if let cached = await service?.cachedDocument(at: href) as? PDFKitDocumentProviding {
@@ -460,14 +450,15 @@ open class PDFNavigatorViewController:
         let factory = PDFKitPDFDocumentFactory()
         guard
             let resource = publication.get(href),
-            let opened = try? await factory.open(resource: resource, at: href, password: nil) as? PDFKit.PDFDocument
+            let document = try? await factory.open(resource: resource, at: href, password: nil),
+            let pdfKitDocument = (document as? PDFKitDocumentProviding)?.pdfKitDocument
         else {
             return nil
         }
 
-        await service?.setCachedDocument(opened, at: href)
+        await service?.setCachedDocument(document, at: href)
 
-        return opened
+        return pdfKitDocument
     }
 
     /// Updates the scale factors to match the currently visible pages.
@@ -737,7 +728,7 @@ open class PDFNavigatorViewController:
     }
 
     public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
-        guard let locator = await publication.locate(link) else {
+        guard let locator = publication.locator(for: link) else {
             return false
         }
 
@@ -792,7 +783,7 @@ open class PDFNavigatorViewController:
     }
 }
 
-extension PDFNavigatorViewController: PDFViewDelegate {
+extension PDFNavigatorViewController: @preconcurrency PDFViewDelegate {
     public func pdfViewWillClick(onLink sender: PDFView, with url: URL) {
         let url = url.addingSchemeWhenMissing("http")
         delegate?.navigator(self, presentExternalURL: url)
