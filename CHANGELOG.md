@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Navigator
+
+* The EPUB navigator supports publications mixing reflowable and fixed-layout resources, rendering each resource according to its own layout.
+
 ### Changed
 
 #### Shared

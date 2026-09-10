@@ -243,7 +243,8 @@ enum EPUBScriptScope {
     func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
         EPUBPreferencesEditor(
             initialPreferences: preferences,
-            metadata: publication.metadata,
+            publication: publication,
+            readingOrder: readingOrder,
             defaults: config.defaults
         )
     }
@@ -313,7 +314,7 @@ enum EPUBScriptScope {
         guard
             let link = publication.linkWithHREF(href),
             link.mediaType?.isHTML == true,
-            publication.metadata.epubLayout == .reflowable
+            publication.metadata.epubLayout(of: link) == .reflowable
         else {
             return resource
         }

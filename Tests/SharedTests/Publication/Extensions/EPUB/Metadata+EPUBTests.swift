@@ -87,4 +87,44 @@ enum MetadataEPUBTests {
             #expect(metadata.mediaOverlay?.activeClass == "-epub-media-overlay-active")
         }
     }
+
+    @Suite("Metadata.epubLayout") struct EPUBLayoutTests {
+        @Test("defaults to reflowable", arguments: [nil, Layout.reflowable, Layout.scrolled])
+        func defaultsToReflowable(layout: Layout?) {
+            let metadata = Metadata(title: "Test", layout: layout)
+            #expect(metadata.epubLayout == .reflowable)
+        }
+
+        @Test("is fixed when the layout is fixed")
+        func fixed() {
+            let metadata = Metadata(title: "Test", layout: .fixed)
+            #expect(metadata.epubLayout == .fixed)
+        }
+
+        @Test("of a link uses the link override")
+        func linkOverrideWins() {
+            var fixedLink = Link(href: "fixed.xhtml")
+            fixedLink.properties.epubLayout = .fixed
+            var reflowableLink = Link(href: "reflowable.xhtml")
+            reflowableLink.properties.epubLayout = .reflowable
+
+            let fixedMetadata = Metadata(title: "Test", layout: .fixed)
+            let reflowableMetadata = Metadata(title: "Test", layout: .reflowable)
+
+            #expect(fixedMetadata.epubLayout(of: reflowableLink) == .reflowable)
+            #expect(reflowableMetadata.epubLayout(of: fixedLink) == .fixed)
+        }
+
+        @Test("of a link falls back to fixed metadata")
+        func linkFallsBackToFixed() {
+            let metadata = Metadata(title: "Test", layout: .fixed)
+            #expect(metadata.epubLayout(of: Link(href: "res.xhtml")) == .fixed)
+        }
+
+        @Test("of a link falls back to reflowable", arguments: [nil, Layout.reflowable, Layout.scrolled])
+        func linkFallsBackToReflowable(layout: Layout?) {
+            let metadata = Metadata(title: "Test", layout: layout)
+            #expect(metadata.epubLayout(of: Link(href: "res.xhtml")) == .reflowable)
+        }
+    }
 }

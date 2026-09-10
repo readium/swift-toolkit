@@ -57,6 +57,19 @@ enum EPUBSpread: EPUBSpreadProtocol {
         }
     }
 
+    /// Returns the layout used to render this spread.
+    ///
+    /// A double spread is always fixed-layout. A single spread uses the layout
+    /// of its resource, resolved from the publication `metadata`.
+    func layout(in publication: Publication) -> EPUBLayout {
+        switch self {
+        case let .single(spread):
+            return publication.metadata.epubLayout(of: spread.resource.link)
+        case .double:
+            return .fixed
+        }
+    }
+
     private var spread: EPUBSpreadProtocol {
         switch self {
         case let .single(spread):
@@ -138,8 +151,8 @@ enum EPUBSpread: EPUBSpreadProtocol {
                 if let offsetFirstPage = offsetFirstPage {
                     // User explicitly chose to offset (or not) the first page.
                     first.properties.page = offsetFirstPage ? .center : nil
-                } else if first.properties.page == nil, publication.metadata.layout == .fixed {
-                    // For FXL publications, default to displaying the first
+                } else if first.properties.page == nil, publication.metadata.epubLayout(of: first) == .fixed {
+                    // For FXL resources, default to displaying the first
                     // page (typically a cover) on its own when the publication
                     // doesn't provide an explicit page position. This is the
                     // behavior of Apple Books, so it's expected by publishers.
@@ -152,12 +165,12 @@ enum EPUBSpread: EPUBSpreadProtocol {
 
             let nextIndex = index + 1
 
-            // To be displayed together, two pages must be part of a fixed
-            // layout publication and have consecutive position hints
-            // (Properties.Page).
+            // To be displayed together, two pages must both be fixed-layout
+            // resources and have consecutive position hints (Properties.Page).
             if
                 let second = readingOrder.getOrNil(nextIndex),
-                publication.metadata.layout == .fixed,
+                publication.metadata.epubLayout(of: first) == .fixed,
+                publication.metadata.epubLayout(of: second) == .fixed,
                 areConsecutive(first, second, readingProgression: publication.metadata.readingProgression)
             {
                 spreads.append(.double(

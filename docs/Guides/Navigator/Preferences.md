@@ -375,6 +375,8 @@ let combinedPrefs = publicationPrefs.merging(sharedPrefs)
 
 EPUB comes in two very different flavors: **reflowable** which allows a lot of customization, and **fixed-layout** which is similar to a PDF or a comic book. Depending on the EPUB being rendered, the Navigator will ignore some of the preferences.
 
+An EPUB can also mix both kinds of resources in a single publication. In this case, a preference is effective as soon as at least one resource of the matching kind is in the reading order, and it applies only to those resources. For example, `fontSize` is effective in a fixed-layout publication containing a reflowable chapter, but it changes only that chapter.
+
 | Setting              | Reflowable         | Fixed Layout       |
 |----------------------|--------------------|--------------------|
 | `backgroundColor`    | :white_check_mark: | :white_check_mark: |
