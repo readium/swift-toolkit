@@ -24,9 +24,13 @@ actor CRLService {
     /// Refresh currently in flight, if any.
     private var refreshTask: Task<String, Error>?
 
-    init(httpClient: HTTPClient, defaults: UserDefaults = .standard) {
+    /// - Parameter defaultsSuite: Name of the `UserDefaults` suite used to
+    ///   cache the CRL, or `nil` for the standard one. A suite name is taken
+    ///   rather than a `UserDefaults`, as the latter is not `Sendable` and
+    ///   cannot be handed over to an actor.
+    init(httpClient: HTTPClient, defaultsSuite: String? = nil) {
         self.httpClient = httpClient
-        self.defaults = defaults
+        defaults = defaultsSuite.flatMap { UserDefaults(suiteName: $0) } ?? .standard
     }
 
     /// Warms the cache so that opening a publication does not have to wait on
@@ -60,7 +64,7 @@ actor CRLService {
             return refreshTask
         }
 
-        let task = Task {
+        let task = Task(priority: .utility) {
             defer { refreshTask = nil }
 
             let crl = try await fetch()
@@ -75,12 +79,7 @@ actor CRLService {
     private func fetch() async throws -> String {
         let url = HTTPURL(string: "http://crl.edrlab.telesec.de/rl/EDRLab_CA.crl")!
 
-        // Timeout for a CRL fetch. Generous enough for a slow connection,
-        // where a failure means the publication cannot be opened at all, but
-        // bounded so that a captive portal cannot hang the open too long.
-        let timeout: TimeInterval = 20
-
-        let response = try await httpClient.fetch(HTTPRequest(url: url, timeoutInterval: timeout))
+        let response = try await httpClient.fetch(HTTPRequest(url: url))
             .mapError { _ in LCPError.crlFetching }
             .get()
 

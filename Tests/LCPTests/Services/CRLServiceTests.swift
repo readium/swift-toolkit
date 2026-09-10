@@ -48,10 +48,10 @@ enum CRLServiceTests {
         /// A cache poisoned by a previous version must not be served for the
         /// seven days of its expiration.
         @Test func refetchesAPoisonedCache() async throws {
-            let defaults = makeDefaults()
-            seedCache(defaults, crl: pem(captivePortalPage), daysAgo: 0)
+            let suite = makeSuite()
+            seedCache(suite, crl: pem(captivePortalPage), daysAgo: 0)
             let client = MockHTTPClient(body: realCRL)
-            let service = CRLService(httpClient: client, defaults: defaults)
+            let service = CRLService(httpClient: client, defaultsSuite: suite)
 
             let crl = try await service.retrieve()
 
@@ -60,10 +60,10 @@ enum CRLServiceTests {
         }
 
         @Test func returnsAFreshCacheWithoutFetching() async throws {
-            let defaults = makeDefaults()
-            seedCache(defaults, crl: pem(realCRL), daysAgo: 1)
+            let suite = makeSuite()
+            seedCache(suite, crl: pem(realCRL), daysAgo: 1)
             let client = MockHTTPClient(body: otherCRL)
-            let service = CRLService(httpClient: client, defaults: defaults)
+            let service = CRLService(httpClient: client, defaultsSuite: suite)
 
             let crl = try await service.retrieve()
 
@@ -72,10 +72,10 @@ enum CRLServiceTests {
         }
 
         @Test func aCaptivePortalRefreshLeavesTheCacheIntact() async throws {
-            let defaults = makeDefaults()
-            seedCache(defaults, crl: pem(realCRL), daysAgo: 8)
+            let suite = makeSuite()
+            seedCache(suite, crl: pem(realCRL), daysAgo: 8)
             let client = MockHTTPClient(body: captivePortalPage)
-            let service = CRLService(httpClient: client, defaults: defaults)
+            let service = CRLService(httpClient: client, defaultsSuite: suite)
 
             let crl = try await service.retrieve()
             #expect(crl == pem(realCRL))
@@ -84,7 +84,7 @@ enum CRLServiceTests {
             var responses = client.responses.makeAsyncIterator()
             _ = await responses.next()
 
-            #expect(cachedCRL(in: defaults) == pem(realCRL))
+            #expect(cachedCRL(in: suite) == pem(realCRL))
         }
     }
 }
@@ -122,18 +122,27 @@ private func pem(_ der: Data) -> String {
     "-----BEGIN X509 CRL-----\(der.base64EncodedString())-----END X509 CRL-----"
 }
 
-/// Returns defaults isolated from the other tests and from the real ones.
-private func makeDefaults() -> UserDefaults {
-    UserDefaults(suiteName: "crl-tests-\(UUID().uuidString)")!
+/// Returns the name of a defaults suite isolated from the other tests and from
+/// the real ones.
+///
+/// Every instance of a same suite shares its storage, so the tests and the
+/// service under test read and write the same cache.
+private func makeSuite() -> String {
+    "crl-tests-\(UUID().uuidString)"
 }
 
-private func seedCache(_ defaults: UserDefaults, crl: String, daysAgo: Int) {
+private func defaults(_ suite: String) -> UserDefaults {
+    UserDefaults(suiteName: suite)!
+}
+
+private func seedCache(_ suite: String, crl: String, daysAgo: Int) {
+    let defaults = defaults(suite)
     defaults.set(crl, forKey: crlKey)
     defaults.set(Date().addingTimeInterval(-Double(daysAgo) * 24 * 60 * 60), forKey: crlDateKey)
 }
 
-private func cachedCRL(in defaults: UserDefaults) -> String? {
-    defaults.string(forKey: crlKey)
+private func cachedCRL(in suite: String) -> String? {
+    defaults(suite).string(forKey: crlKey)
 }
 
 private let crlKey = "org.readium.r2-lcp-swift.CRL"

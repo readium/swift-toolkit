@@ -38,21 +38,30 @@ final class MockHTTPClient: HTTPClient {
         onReceiveResponse: (@Sendable (HTTPResponse) async -> HTTPResult<Void>)?,
         consume: @Sendable (Data, Double?) -> HTTPResult<Void>
     ) async -> HTTPResult<HTTPResponse> {
-        guard let request = try? request.httpRequest().get() else {
-            return .failure(.malformedResponse(nil))
+        let httpRequest: HTTPRequest
+        switch request.httpRequest() {
+        case let .success(request):
+            httpRequest = request
+        case let .failure(error):
+            return .failure(error)
         }
         _requestCount.withLock { $0 += 1 }
 
         let response = HTTPResponse(
-            request: request,
-            url: request.url,
+            request: httpRequest,
+            url: httpRequest.url,
             status: status,
             headers: [:],
             mediaType: mediaType
         )
-        _ = await onReceiveResponse?(response)
-        _ = consume(body, 1.0)
         responsesStream.continuation.yield(response)
+
+        if let onReceiveResponse = onReceiveResponse, case let .failure(error) = await onReceiveResponse(response) {
+            return .failure(error)
+        }
+        if case let .failure(error) = consume(body, 1.0) {
+            return .failure(error)
+        }
 
         return .success(response)
     }
