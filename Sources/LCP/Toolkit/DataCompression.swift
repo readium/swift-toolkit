@@ -132,7 +132,9 @@ public extension Data {
 
         guard let inflated = cresult else { return nil }
 
-        if skipCheckSumValidation { return inflated }
+        if skipCheckSumValidation {
+            return inflated
+        }
 
         let cksum: UInt32 = withUnsafeBytes { (bytePtr: UnsafePointer<UInt8>) -> UInt32 in
             let last = bytePtr.advanced(by: count - 4)
@@ -399,9 +401,13 @@ public struct Adler32: CustomStringConvertible, Sendable {
 
         for byte in data {
             s1 += UInt32(byte)
-            if s1 >= prime { s1 = s1 % prime }
+            if s1 >= prime {
+                s1 = s1 % prime
+            }
             s2 += s1
-            if s2 >= prime { s2 = s2 % prime }
+            if s2 >= prime {
+                s2 = s2 % prime
+            }
         }
         return (s2 << 16) | s1
     }

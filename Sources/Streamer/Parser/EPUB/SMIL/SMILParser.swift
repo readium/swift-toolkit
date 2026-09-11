@@ -215,7 +215,9 @@ private struct SMILGuidedNavigationDocumentParsing {
         while result.last == "0" {
             result.removeLast()
         }
-        if result.last == "." { result.removeLast() }
+        if result.last == "." {
+            result.removeLast()
+        }
         return result
     }
 
