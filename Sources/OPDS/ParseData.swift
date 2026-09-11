@@ -31,7 +31,9 @@ public struct ParseData: Sendable {
     public var feed: Feed? {
         didSet {
             // Publication is nil when feed is not
-            if feed != nil { publication = nil }
+            if feed != nil {
+                publication = nil
+            }
         }
     }
 
@@ -39,7 +41,9 @@ public struct ParseData: Sendable {
     public var publication: Publication? {
         didSet {
             // Feed is nil when publication is not
-            if publication != nil { feed = nil }
+            if publication != nil {
+                feed = nil
+            }
         }
     }
 

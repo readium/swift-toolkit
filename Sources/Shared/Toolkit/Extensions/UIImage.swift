@@ -71,7 +71,9 @@ extension UIImage {
         let pixelSize = CGSize(width: size.width * scale, height: size.height * scale)
         let renderSize: CGSize
         if pixelSize.width <= maxSize.width, pixelSize.height <= maxSize.height {
-            if scale == 1 { return self }
+            if scale == 1 {
+                return self
+            }
             renderSize = pixelSize
         } else {
             renderSize = AVMakeRect(aspectRatio: pixelSize, insideRect: CGRect(origin: .zero, size: maxSize)).size

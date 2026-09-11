@@ -18,7 +18,9 @@ actor InMemoryLCPPassphraseRepository: LCPPassphraseRepository {
     func passphrasesMatching(userID: User.ID?, provider: LicenseDocument.Provider) async throws -> [LCPPassphraseHash] {
         entries.compactMap { hash, entry in
             guard entry.provider == provider else { return nil }
-            if let userID { return entry.userID == userID ? hash : nil }
+            if let userID {
+                return entry.userID == userID ? hash : nil
+            }
             return hash
         }
     }

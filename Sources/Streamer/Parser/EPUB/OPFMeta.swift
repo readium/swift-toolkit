@@ -270,8 +270,12 @@ struct OPFMetaList {
 
         return metadata.compactMapValues { values in
             func toJSONValue(_ value: Any) -> JSONValue? {
-                if let v = value as? String { return .string(v) }
-                if let v = value as? [String: JSONValue] { return .object(v) }
+                if let v = value as? String {
+                    return .string(v)
+                }
+                if let v = value as? [String: JSONValue] {
+                    return .object(v)
+                }
                 return nil
             }
 

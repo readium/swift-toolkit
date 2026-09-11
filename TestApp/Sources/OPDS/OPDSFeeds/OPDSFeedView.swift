@@ -63,22 +63,24 @@ struct OPDSFeedView: View {
             .navigationDestination(
                 isPresented: Binding(
                     get: { facetNavigationURL != nil },
-                    set: { if !$0 { facetNavigationURL = nil } }
+                    set: {
+                        if !$0 {
+                            facetNavigationURL = nil
+                        }
+                    }
                 )
             ) {
                 facetDestinationView()
             }
     }
 
+    @ViewBuilder
     private var mainContent: some View {
-        Group {
-            // If the feed is only publications, show a grid.
-            if viewModel.isPublicationOnly {
-                buildPublicationOnlyView(viewModel.publications)
-            } else {
-                // Otherwise, show a list view.
-                buildListView()
-            }
+        if viewModel.isPublicationOnly {
+            buildPublicationOnlyView(viewModel.publications)
+        } else {
+            // Otherwise, show a list view.
+            buildListView()
         }
     }
 

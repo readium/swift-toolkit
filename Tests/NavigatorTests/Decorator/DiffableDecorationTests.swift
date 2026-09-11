@@ -56,11 +56,17 @@ struct DiffableDecorationTests {
         for change in ch1 {
             switch change {
             case let .update(dec):
-                if dec.id == "1" { hasUpdate1 = true }
+                if dec.id == "1" {
+                    hasUpdate1 = true
+                }
             case let .remove(id):
-                if id == "2" { hasRemove2 = true }
+                if id == "2" {
+                    hasRemove2 = true
+                }
             case let .add(dec):
-                if dec.id == "4" { hasAdd4 = true }
+                if dec.id == "4" {
+                    hasAdd4 = true
+                }
             }
         }
 

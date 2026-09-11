@@ -82,21 +82,27 @@ public enum JSONValue: Hashable, Sendable, Loggable {
 
     /// Returns the associated `Bool` if this value is `.bool`, otherwise `nil`.
     public var bool: Bool? {
-        if case let .bool(v) = self { return v }
+        if case let .bool(v) = self {
+            return v
+        }
         return nil
     }
 
     /// Returns the associated `String` if this value is `.string`, otherwise
     /// `nil`.
     public var string: String? {
-        if case let .string(v) = self { return v }
+        if case let .string(v) = self {
+            return v
+        }
         return nil
     }
 
     /// Returns the associated `Int` if this value is `.integer`, otherwise
     /// `nil`.
     public var integer: Int? {
-        if case let .integer(v) = self { return v }
+        if case let .integer(v) = self {
+            return v
+        }
         return nil
     }
 
@@ -105,21 +111,29 @@ public enum JSONValue: Hashable, Sendable, Loggable {
     /// Returns the associated value for `.double`, or the integer value
     /// promoted to `Double` for `.integer`. Returns `nil` for all other cases.
     public var double: Double? {
-        if case let .double(v) = self { return v }
-        if case let .integer(v) = self { return Double(v) }
+        if case let .double(v) = self {
+            return v
+        }
+        if case let .integer(v) = self {
+            return Double(v)
+        }
         return nil
     }
 
     /// Returns the associated array if this value is `.array`, otherwise `nil`.
     public var array: [JSONValue]? {
-        if case let .array(v) = self { return v }
+        if case let .array(v) = self {
+            return v
+        }
         return nil
     }
 
     /// Returns the associated dictionary if this value is `.object`, otherwise
     /// `nil`.
     public var object: [String: JSONValue]? {
-        if case let .object(v) = self { return v }
+        if case let .object(v) = self {
+            return v
+        }
         return nil
     }
 }
@@ -470,7 +484,9 @@ extension [String: JSONValue]: JSONObjectEncodable, JSONValueEncodable {
 
         if filteringNull {
             dict = dict.filter { _, value in
-                if case .null = value { return false }
+                if case .null = value {
+                    return false
+                }
                 return true
             }
         }
@@ -602,9 +618,15 @@ public extension JSONValue {
             return T(exactly: value)
         case let .double(value):
             guard value >= 0 else { return nil }
-            if let t = value as? T { return t }
-            if let t = Float(value) as? T { return t }
-            if let t = UInt64(exactly: value) as? T { return t }
+            if let t = value as? T {
+                return t
+            }
+            if let t = Float(value) as? T {
+                return t
+            }
+            if let t = UInt64(exactly: value) as? T {
+                return t
+            }
             return Int64(exactly: value).flatMap { T(exactly: $0) }
         default:
             return nil
