@@ -38,6 +38,18 @@ public enum ReadError: Error, Sendable {
         .decoding(DebugError(message, cause: cause))
     }
 
+    /// Converts an ``HTTPError`` into a ``ReadError``.
+    ///
+    /// A cancelled request is normalized to ``cancelled``, so that callers
+    /// don't need to check for cancellation in two different places.
+    public init(_ error: HTTPError) {
+        if case .cancelled = error {
+            self = .cancelled
+        } else {
+            self = .access(.http(error))
+        }
+    }
+
     /// Wraps a native error into a `ReadError`, if possible.
     ///
     /// Returns `nil` if the error cannot be mapped to a known `ReadError`.
@@ -53,10 +65,7 @@ public enum ReadError: Error, Sendable {
             return wrap(error)
         default:
             if let error = HTTPError.wrap(error) {
-                if case .cancelled = error {
-                    return .cancelled
-                }
-                return .access(.http(error))
+                return ReadError(error)
             } else {
                 return nil
             }
@@ -128,22 +137,6 @@ public enum ReadError: Error, Sendable {
             .access(.fileSystem(.io(error)))
         default:
             nil
-        }
-    }
-}
-
-public extension ReadError {
-    /// Indicates whether the error is caused by a cancelled task or HTTP
-    /// request, instead of a genuine failure.
-    var isCancellation: Bool {
-        switch self {
-        case .cancelled, .access(.http(.cancelled)):
-            return true
-        case let .decoding(error):
-            return (error as? ReadError)?.isCancellation
-                ?? (error is CancellationError)
-        default:
-            return false
         }
     }
 }

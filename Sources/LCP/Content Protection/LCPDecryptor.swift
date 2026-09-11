@@ -135,7 +135,7 @@ final class LCPDecryptor: Sendable {
                 }
             }
 
-            guard let plainTextSize = plainTextSize else {
+            guard let plainTextSize else {
                 // Without the plaintext size, we can't compute the chunks to
                 // decrypt; fall back on reading and decrypting the whole
                 // resource in one shot.
@@ -198,8 +198,9 @@ final class LCPDecryptor: Sendable {
                 return failure(.invalidRange(range))
             }
 
-            // Encrypted data is shifted by AESBlockSize, because of IV and because the
-            // previous block must be provided to perform XOR on intermediate blocks.
+            // Encrypted data is shifted by AESBlockSize, because of IV and
+            // because the previous block must be provided to perform XOR on
+            // intermediate blocks.
             let encryptedStart = rangeFirst.floorMultiple(of: AESBlockSize)
             let encryptedEndExclusive = min(
                 (rangeLast + 1).ceilMultiple(of: AESBlockSize) + AESBlockSize,
@@ -213,18 +214,21 @@ final class LCPDecryptor: Sendable {
                             return failure(.emptyDecryptedData)
                         }
 
-                        // Exclude the bytes added to match a multiple of AESBlockSize.
+                        // Exclude the bytes added to match a multiple of
+                        // AESBlockSize.
                         let sliceStart = (rangeFirst - encryptedStart)
 
                         let isLastBlockRead = encryptedLength - encryptedEndExclusive <= AESBlockSize
                         let rangeLength = isLastBlockRead
-                            // Use decrypted length to ensure `rangeLast` doesn't exceed decrypted length - 1.
+                            // Use decrypted length to ensure `rangeLast`
+                            // doesn't exceed decrypted length - 1.
                             ? min(rangeLast, plainTextSize - 1) - rangeFirst + 1
-                            // The last block won't be read, so there's no need to compute the length
+                            // The last block won't be read, so there's no need
+                            // to compute the length
                             : rangeLast - rangeFirst + 1
 
-                        // Keep only enough bytes to fit the length-corrected request in order to never
-                        // include padding.
+                        // Keep only enough bytes to fit the length-corrected
+                        // request in order to never include padding.
                         let sliceEnd = sliceStart + rangeLength
 
                         return .success(bytes[sliceStart ..< sliceEnd])

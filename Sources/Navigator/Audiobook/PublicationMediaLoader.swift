@@ -181,6 +181,12 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
                 consume: { dataRequest.respond(with: $0) }
             )
 
+            // The player abandons data requests regularly, e.g. when seeking.
+            // There's nothing to report or finish in this case.
+            guard !Task.isCancelled else {
+                return
+            }
+
             queue.async { [weak self] in
                 switch result {
                 case .success:
@@ -200,7 +206,7 @@ final class PublicationMediaLoader: NSObject, AVAssetResourceLoaderDelegate, Log
     private func report(_ error: ReadError, forHREF href: AnyURL) {
         // Cancellation is not an error worth reporting, it occurs whenever
         // the player abandons a data request, e.g. when seeking.
-        guard !error.isCancellation else {
+        if case .cancelled = error {
             return
         }
         onLoadingError?(href, error)

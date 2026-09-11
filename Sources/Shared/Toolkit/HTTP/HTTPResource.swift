@@ -107,6 +107,6 @@ public actor HTTPResource: Resource {
             }
         )
         .map { _ in () }
-        .mapError { .access(.http($0)) }
+        .mapError { ReadError($0) }
     }
 }
