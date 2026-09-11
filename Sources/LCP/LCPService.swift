@@ -48,10 +48,18 @@ public final class LCPService: Loggable, Sendable {
             repository: passphraseRepository
         )
 
+        let crl = CRLService(httpClient: httpClient)
+
+        // Warms the CRL cache so that opening a publication does not have to
+        // wait on the network.
+        Task(priority: .utility) {
+            await crl.preload()
+        }
+
         licenses = LicensesService(
             client: client,
             licenses: licenseRepository,
-            crl: CRLService(httpClient: httpClient),
+            crl: crl,
             device: DeviceService(
                 deviceName: deviceName,
                 deviceId: deviceId,
