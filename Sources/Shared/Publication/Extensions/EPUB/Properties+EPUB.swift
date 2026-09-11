@@ -6,6 +6,8 @@
 
 import Foundation
 
+private let layoutKey: String = "layout"
+
 /// EPUB Link Properties Extension
 /// https://readium.org/webpub-manifest/schema/extensions/epub/properties.schema.json
 public extension Properties {
@@ -22,6 +24,13 @@ public extension Properties {
     /// spine `itemref`, allowing a publication to mix reflowable and
     /// fixed-layout resources.
     var epubLayout: EPUBLayout? {
-        otherProperties["layout"]?.decode()
+        get { otherProperties[layoutKey]?.decode() }
+        set {
+            if let newValue = newValue {
+                otherProperties[layoutKey] = .string(newValue.rawValue)
+            } else {
+                otherProperties.removeValue(forKey: layoutKey)
+            }
+        }
     }
 }

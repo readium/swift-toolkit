@@ -18,15 +18,19 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// Individual resources can override it, so this alone does not determine
     /// whether a preference is effective. Check `isEffective` on each
     /// preference instead.
-    public let layout: EPUBLayout
+    public var defaultLayout: EPUBLayout {
+        layouts.default
+    }
+
+    @available(*, unavailable, renamed: "defaultLayout")
+    public var layout: EPUBLayout {
+        fatalError()
+    }
+
+    /// Layouts used by the resources of the reading order.
+    private let layouts: EPUBLayouts
 
     private let defaults: EPUBDefaults
-
-    /// Whether the reading order contains at least one reflowable resource.
-    private let hasReflowableResources: Bool
-
-    /// Whether the reading order contains at least one fixed-layout resource.
-    private let hasFixedResources: Bool
 
     /// Creates an editor for the given `publication`.
     ///
@@ -42,11 +46,11 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         defaults: EPUBDefaults
     ) {
         let metadata = publication.metadata
-        let layouts = Set((readingOrder ?? publication.readingOrder).map { metadata.epubLayout(of: $0) })
 
-        layout = metadata.epubLayout
-        hasReflowableResources = layouts.contains(.reflowable)
-        hasFixedResources = layouts.contains(.fixed)
+        layouts = EPUBLayouts(
+            readingOrder: readingOrder ?? publication.readingOrder,
+            metadata: metadata
+        )
         self.defaults = defaults
 
         super.init(
@@ -92,8 +96,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.columnCount,
             setting: \.columnCount,
             defaultEffectiveValue: defaults.columnCount ?? .auto,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && !$0.settings.scroll
             },
             supportedValues: [.auto, .one, .two]
@@ -107,7 +111,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.fit,
             setting: \.fit,
             defaultEffectiveValue: defaults.fit ?? .auto,
-            isEffective: { [hasFixedResources] _ in hasFixedResources },
+            isEffective: { [layouts] _ in layouts.contains(.fixed) },
             supportedValues: [.auto, .page, .width]
         )
 
@@ -118,7 +122,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         preference(
             preference: \.fontFamily,
             setting: \.fontFamily,
-            isEffective: { [hasReflowableResources] _ in hasReflowableResources }
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
     /// Base text font size as a percentage. Default to 100%.
@@ -132,7 +136,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.fontSize,
             setting: \.fontSize,
             defaultEffectiveValue: defaults.fontSize ?? 1.0,
-            isEffective: { [hasReflowableResources] _ in hasReflowableResources },
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
             supportedRange: 0.1 ... 5.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
@@ -149,8 +153,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.fontWeight,
             effectiveValue: { $0.settings.fontWeight },
             defaultEffectiveValue: defaults.fontWeight ?? 1.0,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && $0.preferences.fontWeight != nil
             },
             supportedRange: 0.0 ... 2.5,
@@ -169,8 +173,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.hyphens,
             effectiveValue: { $0.settings.hyphens ?? ($0.settings.textAlign == .justify) },
             defaultEffectiveValue: defaults.hyphens ?? false,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && $0.settings.cssLayout.stylesheets == .default
                     && !$0.settings.publisherStyles
                     && ($0.preferences.hyphens != nil || $0.settings.textAlign == .justify)
@@ -186,7 +190,10 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         enumPreference(
             preference: \.imageFilter,
             setting: \.imageFilter,
-            isEffective: { $0.settings.theme == .dark },
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && $0.settings.theme == .dark
+            },
             supportedValues: [nil, .darken, .invert]
         )
 
@@ -211,8 +218,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.letterSpacing,
             effectiveValue: { $0.settings.letterSpacing },
             defaultEffectiveValue: defaults.letterSpacing ?? 0.0,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && $0.settings.cssLayout.stylesheets == .default
                     && !$0.settings.publisherStyles
                     && $0.preferences.letterSpacing != nil
@@ -233,8 +240,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.ligatures,
             effectiveValue: { $0.settings.ligatures },
             defaultEffectiveValue: defaults.ligatures ?? false,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && $0.settings.cssLayout.stylesheets == .rtl
                     && !$0.settings.publisherStyles
                     && $0.preferences.ligatures != nil
@@ -251,8 +258,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.lineHeight,
             effectiveValue: { $0.settings.lineHeight },
             defaultEffectiveValue: defaults.lineHeight ?? 1.2,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && !$0.settings.publisherStyles
                     && $0.preferences.lineHeight != nil
             },
@@ -274,8 +281,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         preference(
             preference: \.offsetFirstPage,
             setting: \.offsetFirstPage,
-            isEffective: { [hasFixedResources] in
-                hasFixedResources
+            isEffective: { [layouts] in
+                layouts.contains(.fixed)
                     && $0.settings.spread != .never
             }
         )
@@ -288,7 +295,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.pageMargins,
             setting: \.pageMargins,
             defaultEffectiveValue: defaults.pageMargins ?? 1.0,
-            isEffective: { [hasReflowableResources] _ in hasReflowableResources },
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
             supportedRange: 0.0 ... 4.0,
             progressionStrategy: .increment(0.3),
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
@@ -305,8 +312,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.paragraphIndent,
             effectiveValue: { $0.settings.paragraphIndent },
             defaultEffectiveValue: defaults.paragraphIndent ?? 0.0,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
                     && !$0.settings.publisherStyles
                     && $0.preferences.paragraphIndent != nil
@@ -326,8 +333,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.paragraphSpacing,
             effectiveValue: { $0.settings.paragraphSpacing },
             defaultEffectiveValue: defaults.paragraphSpacing ?? 0.0,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && !$0.settings.publisherStyles
                     && $0.preferences.paragraphSpacing != nil
             },
@@ -345,7 +352,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.publisherStyles,
             setting: \.publisherStyles,
             defaultEffectiveValue: defaults.publisherStyles ?? true,
-            isEffective: { [hasReflowableResources] _ in hasReflowableResources }
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
     /// Direction of the reading progression across resources.
@@ -363,15 +370,14 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// Indicates if the overflow of resources should be handled using
     /// scrolling instead of synthetic pagination.
     ///
-    /// Only effective with reflowable publications.
     /// Only effective when the publication contains reflowable resources.
     public lazy var scroll: AnyPreference<Bool> =
         preference(
             preference: \.scroll,
             setting: \.scroll,
             defaultEffectiveValue: defaults.scroll ?? false,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources && !$0.settings.verticalText
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable) && !$0.settings.verticalText
             }
         )
 
@@ -384,7 +390,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.spread,
             setting: \.spread,
             defaultEffectiveValue: defaults.spread ?? .auto,
-            isEffective: { [hasFixedResources] _ in hasFixedResources },
+            isEffective: { [layouts] _ in layouts.contains(.fixed) },
             supportedValues: [.auto, .never, .always]
         )
 
@@ -398,8 +404,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         enumPreference(
             preference: \.textAlign,
             setting: \.textAlign,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
                     && !$0.settings.publisherStyles
                     && $0.preferences.textAlign != nil
@@ -419,8 +425,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                     ?? (theme?.value ?? theme?.effectiveValue)?.contentColor
             },
             defaultEffectiveValue: Theme.light.contentColor,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && $0.preferences.textColor != nil
             }
         )
@@ -433,7 +439,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.textNormalization,
             setting: \.textNormalization,
             defaultEffectiveValue: defaults.textNormalization ?? false,
-            isEffective: { [hasReflowableResources] _ in hasReflowableResources }
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
     /// Reader theme (light, dark, sepia).
@@ -444,7 +450,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.theme,
             setting: \.theme,
             defaultEffectiveValue: .light,
-            isEffective: { [hasReflowableResources] _ in hasReflowableResources },
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
             supportedValues: [.light, .dark, .sepia]
         )
 
@@ -458,8 +464,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.typeScale,
             effectiveValue: { $0.settings.typeScale },
             defaultEffectiveValue: defaults.typeScale ?? 1.2,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && !$0.settings.publisherStyles
                     && $0.preferences.typeScale != nil
             },
@@ -478,7 +484,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.verticalText,
             setting: \.verticalText,
             defaultEffectiveValue: false,
-            isEffective: { [hasReflowableResources] _ in hasReflowableResources }
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
     /// Space between words.
@@ -491,8 +497,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.wordSpacing,
             effectiveValue: { $0.settings.wordSpacing },
             defaultEffectiveValue: defaults.wordSpacing ?? 0.0,
-            isEffective: { [hasReflowableResources] in
-                hasReflowableResources
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && $0.settings.cssLayout.stylesheets == .default
                     && !$0.settings.publisherStyles
                     && $0.preferences.wordSpacing != nil

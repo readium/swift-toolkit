@@ -512,9 +512,7 @@ enum EPUBSpreadTests {
 private func link(_ href: String, page: Properties.Page? = nil, layout: EPUBLayout? = nil) -> Link {
     var properties = Properties()
     properties.page = page
-    if let layout {
-        properties.otherProperties["layout"] = .string(layout.rawValue)
-    }
+    properties.epubLayout = layout
     return Link(href: href, properties: properties)
 }
 

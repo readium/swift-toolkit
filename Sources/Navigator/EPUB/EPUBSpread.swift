@@ -146,12 +146,13 @@ enum EPUBSpread: EPUBSpreadProtocol {
             var first = readingOrder[index]
 
             // The first resource (often the cover) has special rules for its
-            // position in the spread.
-            if index == 0 {
+            // position in the spread. They only apply to fixed-layout
+            // resources, as a reflowable one is never paired with another.
+            if index == 0, publication.metadata.epubLayout(of: first) == .fixed {
                 if let offsetFirstPage = offsetFirstPage {
                     // User explicitly chose to offset (or not) the first page.
                     first.properties.page = offsetFirstPage ? .center : nil
-                } else if first.properties.page == nil, publication.metadata.epubLayout(of: first) == .fixed {
+                } else if first.properties.page == nil {
                     // For FXL resources, default to displaying the first
                     // page (typically a cover) on its own when the publication
                     // doesn't provide an explicit page position. This is the

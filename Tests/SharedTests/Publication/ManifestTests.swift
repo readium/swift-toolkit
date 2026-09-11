@@ -321,13 +321,13 @@ struct ManifestTests {
             )
         }
 
-        @Test func linkWithFragment() throws {
+        @Test func linkWithFragment() {
             let sut = makeManifest(readingOrder: [
                 Link(href: "/href", mediaType: .html, title: "Resource"),
             ])
 
             #expect(
-                try sut.locator(for: Link(href: "/href#page=42", mediaType: #require(MediaType("text/xml")), title: "My link")) ==
+                sut.locator(for: Link(href: "/href#page=42", mediaType: MediaType("text/xml"), title: "My link")) ==
                     Locator(href: "/href", mediaType: .html, title: "Resource", locations: Locator.Locations(fragments: ["page=42"]))
             )
         }
