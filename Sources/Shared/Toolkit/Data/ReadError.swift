@@ -38,11 +38,25 @@ public enum ReadError: Error, Sendable {
         .decoding(DebugError(message, cause: cause))
     }
 
+    /// Converts an ``HTTPError`` into a ``ReadError``.
+    ///
+    /// A cancelled request is normalized to ``cancelled``, so that callers
+    /// don't need to check for cancellation in two different places.
+    public init(_ error: HTTPError) {
+        if case .cancelled = error {
+            self = .cancelled
+        } else {
+            self = .access(.http(error))
+        }
+    }
+
     /// Wraps a native error into a `ReadError`, if possible.
     ///
     /// Returns `nil` if the error cannot be mapped to a known `ReadError`.
     public static func wrap(_ error: Error) -> ReadError? {
         switch error {
+        case let error as ReadError:
+            return error
         case is CancellationError:
             return .cancelled
         case let error as CocoaError:
@@ -51,10 +65,7 @@ public enum ReadError: Error, Sendable {
             return wrap(error)
         default:
             if let error = HTTPError.wrap(error) {
-                if case .cancelled = error {
-                    return .cancelled
-                }
-                return .access(.http(error))
+                return ReadError(error)
             } else {
                 return nil
             }

@@ -100,6 +100,20 @@ class BufferingResourceTests: XCTestCase {
         }
     }
 
+    /// The read-ahead must not request bytes past the end of the resource,
+    /// as some resources reject out-of-range requests instead of clamping
+    /// them (e.g. HTTP servers reply with a 416 error).
+    func testReadNearEndDoesNotOverRequest() async throws {
+        let data = Data((0 ..< 2000).map { UInt8($0 % 256) })
+        let sut = BufferingResource(resource: StrictResource(data: data), bufferSize: 1024)
+
+        var result = try await sut.read(range: 1900 ..< 2000).get()
+        XCTAssertEqual(result, data[1900 ..< 2000])
+
+        result = try await sut.read(range: 1990 ..< 1995).get()
+        XCTAssertEqual(result, data[1990 ..< 1995])
+    }
+
     private let file = FileURL(url: TestPublications.url(for: "childrens-literature.epub"))!
     private lazy var data = try! Data(contentsOf: file.url)
     private lazy var resource = FileResource(file: file)
@@ -118,5 +132,37 @@ class BufferingResourceTests: XCTestCase {
         } else {
             XCTAssertEqual(readData, data, file: file, line: line)
         }
+    }
+}
+
+/// A `Resource` that fails when requesting a range past its end, instead of
+/// clamping it.
+private actor StrictResource: Resource {
+    private let data: Data
+
+    init(data: Data) {
+        self.data = data
+    }
+
+    let sourceURL: AbsoluteURL? = nil
+
+    func estimatedLength() async -> ReadResult<UInt64?> {
+        .success(UInt64(data.count))
+    }
+
+    func properties() async -> ReadResult<ResourceProperties> {
+        .success(ResourceProperties())
+    }
+
+    func stream(range: Range<UInt64>?, consume: @escaping (Data) -> Void) async -> ReadResult<Void> {
+        guard let range = range else {
+            consume(data)
+            return .success(())
+        }
+        guard range.upperBound <= UInt64(data.count) else {
+            return .failure(.decoding("Requested a range out of bounds"))
+        }
+        consume(data[Int(range.lowerBound) ..< Int(range.upperBound)])
+        return .success(())
     }
 }

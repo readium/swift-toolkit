@@ -70,6 +70,41 @@ struct LCPDecryptionTests {
         }
     }
 
+    /// A large range is decrypted and delivered in several chunks, so the
+    /// caller can process the beginning of the resource without waiting for
+    /// the whole range.
+    @Test func streamsLargeRangeInChunks() async throws {
+        let chunks = Capture<[Data]>([])
+        let result = await encryptedResource.stream(range: 0 ..< UInt64(clearData.count)) { chunk in
+            chunks.value.append(chunk)
+        }
+        try result.get()
+
+        #expect(chunks.value.count > 1)
+        #expect(chunks.value.reduce(Data(), +) == clearData)
+    }
+
+    /// Cancelling the task stops the decryption loop, instead of streaming
+    /// the remaining chunks.
+    @Test func cancellationStopsStreaming() async {
+        let chunks = Capture<[Data]>([])
+
+        // The streaming runs in a child task, as cancelling the test's own
+        // task would abort the test instead of the decryption loop.
+        let result = await Task {
+            await encryptedResource.stream(range: 0 ..< UInt64(clearData.count)) { chunk in
+                chunks.value.append(chunk)
+                withUnsafeCurrentTask { $0?.cancel() }
+            }
+        }.value
+
+        guard case .failure(.cancelled) = result else {
+            Issue.record("Expected a cancelled failure, got \(result)")
+            return
+        }
+        #expect(chunks.value.count == 1)
+    }
+
     /// Reproduces the arithmetic overflow in
     /// `CBCLCPResource.stream(range:consume:)`.
     ///

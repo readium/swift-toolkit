@@ -156,7 +156,27 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Returns whether the resource is currently playing or not.
     public var state: MediaPlaybackState {
-        MediaPlaybackState(player.timeControlStatus)
+        let state = MediaPlaybackState(player.timeControlStatus)
+        if
+            state == .playing,
+            let item = player.currentItem,
+            item.isPlaybackBufferEmpty, !item.isPlaybackLikelyToKeepUp
+        {
+            // As `automaticallyWaitsToMinimizeStalling` is disabled, the
+            // player reports `.playing` even when it is stalled on an empty
+            // buffer waiting for data.
+            return .loading
+        }
+        return state
+    }
+
+    /// Indicates whether the player is meant to be playing, even if it is
+    /// currently stalled waiting for data.
+    ///
+    /// Unlike `state`, this reflects the playback intent, which is what we
+    /// need to know when temporarily pausing the player to seek.
+    private var isPlaybackRequested: Bool {
+        player.timeControlStatus != .paused
     }
 
     /// Current playback info.
@@ -243,7 +263,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Seeks to the given time in the current resource.
     public func seek(to time: Double) async {
-        let wasPlaying = (state == .playing)
+        let wasPlaying = isPlaybackRequested
         pause()
 
         await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
@@ -261,10 +281,23 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
+    private var itemStatusObserver: NSKeyValueObservation?
+    private var itemLikelyToKeepUpObserver: NSKeyValueObservation?
     private var timeObserverToken: TimeObserverToken?
     private var notificationTask: Task<Void, Never>?
 
-    private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
+    private lazy var mediaLoader: PublicationMediaLoader = {
+        let loader = PublicationMediaLoader(publication: publication)
+        loader.onLoadingError = { [weak self] href, error in
+            Task { @MainActor in
+                guard let self = self, let href = href.relativeURL else {
+                    return
+                }
+                self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+            }
+        }
+        return loader
+    }()
 
     private lazy var player: AVPlayer = makePlayer()
 
@@ -312,8 +345,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
         }
 
-        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
+        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] player, _ in
+            let item = player.currentItem
             Task { @MainActor [weak self] in
+                self?.observe(currentItem: item)
                 self?.playbackDidChange()
             }
         }
@@ -337,6 +372,33 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
 
         return player
+    }
+
+    private func observe(currentItem item: AVPlayerItem?) {
+        itemLikelyToKeepUpObserver = item?.observe(\.isPlaybackLikelyToKeepUp) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                self?.playbackDidChange()
+            }
+        }
+
+        itemStatusObserver = item?.observe(\.status) { [weak self] item, _ in
+            guard item.status == .failed else {
+                return
+            }
+
+            let itemError = item.error
+
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                log(.error, "Failed to load the player item: \(String(describing: itemError))")
+                guard let href = self.publication.readingOrder[self.resourceIndex].url().relativeURL else {
+                    return
+                }
+                let error: ReadError = itemError.flatMap { .wrap($0) }
+                    ?? .decoding("The AVPlayerItem failed to load", cause: itemError)
+                self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+            }
+        }
     }
 
     private func shouldPlayNextResource() -> Bool {
@@ -459,7 +521,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public private(set) var currentLocation: Locator?
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
-        let wasPlaying = (state == .playing)
+        let wasPlaying = isPlaybackRequested
         pause()
 
         guard let newResourceIndex = publication.readingOrder.firstIndexWithHREF(locator.href) else {

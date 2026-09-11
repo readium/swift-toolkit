@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### LCP
 
 * The CRL used to validate LCP licenses is now checked to be a genuine X.509 CRL before being cached. Networks with a captive portal (e.g. on a plane) could return their login page with a `200 OK` status, which was then cached for seven days and prevented opening LCP publications. An invalid CRL cached by a previous version is now ignored instead of waiting for its expiration.
+* [#579](https://github.com/readium/swift-toolkit/issues/579) Streamed LCP audiobooks now start playing almost immediately. Resources encrypted with AES-CBC are decrypted and served in chunks, instead of being fully downloaded and decrypted upfront.
 
 
 ## [4.0.0-alpha.1] - 2026-08-14
