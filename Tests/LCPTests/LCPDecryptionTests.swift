@@ -74,30 +74,35 @@ struct LCPDecryptionTests {
     /// caller can process the beginning of the resource without waiting for
     /// the whole range.
     @Test func streamsLargeRangeInChunks() async throws {
-        var chunks: [Data] = []
+        let chunks = Capture<[Data]>([])
         let result = await encryptedResource.stream(range: 0 ..< UInt64(clearData.count)) { chunk in
-            chunks.append(chunk)
+            chunks.value.append(chunk)
         }
         try result.get()
 
-        #expect(chunks.count > 1)
-        #expect(chunks.reduce(Data(), +) == clearData)
+        #expect(chunks.value.count > 1)
+        #expect(chunks.value.reduce(Data(), +) == clearData)
     }
 
     /// Cancelling the task stops the decryption loop, instead of streaming
     /// the remaining chunks.
     @Test func cancellationStopsStreaming() async {
-        var chunks: [Data] = []
-        let result = await encryptedResource.stream(range: 0 ..< UInt64(clearData.count)) { chunk in
-            chunks.append(chunk)
-            withUnsafeCurrentTask { $0?.cancel() }
-        }
+        let chunks = Capture<[Data]>([])
+
+        // The streaming runs in a child task, as cancelling the test's own
+        // task would abort the test instead of the decryption loop.
+        let result = await Task {
+            await encryptedResource.stream(range: 0 ..< UInt64(clearData.count)) { chunk in
+                chunks.value.append(chunk)
+                withUnsafeCurrentTask { $0?.cancel() }
+            }
+        }.value
 
         guard case .failure(.cancelled) = result else {
             Issue.record("Expected a cancelled failure, got \(result)")
             return
         }
-        #expect(chunks.count == 1)
+        #expect(chunks.value.count == 1)
     }
 
     /// Reproduces the arithmetic overflow in
