@@ -86,7 +86,7 @@ struct LCPDecryptionTests {
 
     /// Cancelling the task stops the decryption loop, instead of streaming
     /// the remaining chunks.
-    @Test func cancellationStopsStreaming() async throws {
+    @Test func cancellationStopsStreaming() async {
         var chunks: [Data] = []
         let result = await encryptedResource.stream(range: 0 ..< UInt64(clearData.count)) { chunk in
             chunks.append(chunk)

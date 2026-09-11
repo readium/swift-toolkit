@@ -304,7 +304,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 preferredTimescale: 1000
             ),
             queue: .main
-        ) { [weak self] time in
+        ) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self = self else { return }
                 self.locationDidChange()
@@ -336,11 +336,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
         }
 
-        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
+        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] player, _ in
+            let item = player.currentItem
             Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                self.observe(currentItem: self.player.currentItem)
-                self.playbackDidChange()
+                self?.observe(currentItem: item)
+                self?.playbackDidChange()
             }
         }
 
@@ -367,20 +367,22 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     private func observe(currentItem item: AVPlayerItem?) {
         itemLikelyToKeepUpObserver = item?.observe(\.isPlaybackLikelyToKeepUp) { [weak self] _, _ in
-            self?.playbackDidChange()
+            Task { @MainActor [weak self] in
+                self?.playbackDidChange()
+            }
         }
 
         itemStatusObserver = item?.observe(\.status) { [weak self] item, _ in
-            guard let self = self, item.status == .failed else {
+            guard item.status == .failed else {
                 return
             }
 
             let itemError = item.error
-            log(.error, "Failed to load the player item: \(String(describing: itemError))")
 
-            let href = publication.readingOrder[resourceIndex].url().relativeURL
-            Task { @MainActor in
-                guard let href = href else {
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                log(.error, "Failed to load the player item: \(String(describing: itemError))")
+                guard let href = self.publication.readingOrder[self.resourceIndex].url().relativeURL else {
                     return
                 }
                 let error: ReadError = itemError.flatMap { .wrap($0) }
