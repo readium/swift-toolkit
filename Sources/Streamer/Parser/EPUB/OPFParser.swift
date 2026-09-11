@@ -282,6 +282,7 @@ final class OPFParser: Loggable {
     private func parseStringProperties(_ properties: [String]) -> [String: JSONValue] {
         var contains: [String] = []
         var page: Properties.Page?
+        var layout: EPUBLayout?
 
         for property in properties {
             switch property {
@@ -299,12 +300,17 @@ final class OPFParser: Loggable {
             case "remote-resources":
                 contains.append("remote-resources")
             // Page
-            case "page-spread-left":
+            case "page-spread-left", "rendition:page-spread-left":
                 page = .left
-            case "page-spread-right":
+            case "page-spread-right", "rendition:page-spread-right":
                 page = .right
             case "page-spread-center", "rendition:page-spread-center":
                 page = .center
+            // Layout
+            case "rendition:layout-reflowable":
+                layout = .reflowable
+            case "rendition:layout-pre-paginated":
+                layout = .fixed
             default:
                 continue
             }
@@ -316,6 +322,9 @@ final class OPFParser: Loggable {
         }
         if let jsonPage = page?.jsonValue {
             otherProperties["page"] = jsonPage
+        }
+        if let layout = layout {
+            otherProperties["layout"] = .string(layout.rawValue)
         }
 
         return otherProperties

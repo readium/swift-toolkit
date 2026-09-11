@@ -1036,7 +1036,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         // the application's bars.
         var insets = view.window?.safeAreaInsets ?? .zero
 
-        switch publication.metadata.epubLayout {
+        switch spreadView.spread.layout(in: publication) {
         case .fixed:
             // With iPadOS and macOS, we aim to display content edge-to-edge
             // since there are no physical notches or Dynamic Island like on the
@@ -1258,7 +1258,7 @@ extension EPUBNavigatorViewController: EditingActionsControllerDelegate {
 extension EPUBNavigatorViewController: PaginationViewDelegate {
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)? {
         let spread = spreads[index]
-        let spreadViewType = (publication.metadata.layout == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
+        let spreadViewType = (spread.layout(in: publication) == .fixed) ? EPUBFixedSpreadView.self : EPUBReflowableSpreadView.self
         let spreadView = spreadViewType.init(
             viewModel: viewModel,
             spread: spread,

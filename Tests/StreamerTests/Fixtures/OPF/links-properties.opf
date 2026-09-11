@@ -25,8 +25,8 @@
     <itemref idref="chapter03" properties="rendition:flow-scrolled-continuous 
 rendition:orientation-portrait rendition:page-spread-center"/>
     <itemref idref="chapter04" properties="rendition:flow-scrolled-doc rendition:spread-auto"/>
-    <itemref idref="chapter05" properties="rendition:spread-both"/>
-    <itemref idref="chapter06" properties="rendition:spread-landscape"/>
+    <itemref idref="chapter05" properties="rendition:spread-both rendition:page-spread-left"/>
+    <itemref idref="chapter06" properties="rendition:spread-landscape rendition:page-spread-right"/>
     <itemref idref="chapter07" properties="rendition:spread-none"/>
     <itemref idref="chapter08" properties="
 rendition:spread-portrait"/>

@@ -5,16 +5,44 @@
 //
 
 @testable import ReadiumShared
-import XCTest
+import Testing
 
-class PropertiesEPUBTests: XCTestCase {
-    func testNoContains() {
-        let sut = Properties()
-        XCTAssertEqual(sut.contains, [])
+enum PropertiesEPUBTests {
+    struct Contains {
+        @Test func noContains() {
+            let sut = Properties()
+            #expect(sut.contains == [])
+        }
+
+        @Test func contains() {
+            let sut = Properties(["contains": ["mathml", "onix"]])
+            #expect(sut.contains == ["mathml", "onix"])
+        }
     }
 
-    func testContains() {
-        let sut = Properties(["contains": ["mathml", "onix"]])
-        XCTAssertEqual(sut.contains, ["mathml", "onix"])
+    struct EPUBLayoutProperty {
+        @Test func noLayout() {
+            let sut = Properties()
+            #expect(sut.epubLayout == nil)
+        }
+
+        @Test func layout() {
+            let sut = Properties(["layout": "fixed"])
+            #expect(sut.epubLayout == .fixed)
+        }
+
+        @Test func unknownLayoutValueIsIgnored() {
+            let sut = Properties(["layout": "scrolled"])
+            #expect(sut.epubLayout == nil)
+        }
+
+        @Test func setLayout() {
+            var sut = Properties()
+            sut.epubLayout = .reflowable
+            #expect(sut.otherProperties["layout"] == "reflowable")
+
+            sut.epubLayout = nil
+            #expect(sut.otherProperties["layout"] == nil)
+        }
     }
 }

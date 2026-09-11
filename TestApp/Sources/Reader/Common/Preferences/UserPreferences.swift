@@ -100,7 +100,7 @@ struct UserPreferences<
                     )
 
                 case let editor as EPUBPreferencesEditor:
-                    switch editor.layout {
+                    switch editor.defaultLayout {
                     case .reflowable:
                         reflowableUserPreferences(
                             commit: commit,

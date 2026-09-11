@@ -266,6 +266,84 @@ enum EPUBSpreadTests {
                 }
             }
         }
+
+        @Suite("Mixed layouts") struct MixedLayouts {
+            @Test("fixed resources in a reflowable publication are combined")
+            func fixedResourcesInReflowablePublicationAreCombined() {
+                let pub = reflowablePublication(readingOrder: [
+                    link("c1.html"),
+                    link("p1.html", page: .left, layout: .fixed),
+                    link("p2.html", page: .right, layout: .fixed),
+                    link("c2.html"),
+                ])
+                let spreads = makeSpreads(publication: pub, spread: true)
+
+                #expect(spreads.count == 3)
+                guard case .single = spreads[0], case let .double(pair) = spreads[1], case .single = spreads[2] else {
+                    Issue.record("Expected .single, .double, .single")
+                    return
+                }
+                #expect(pair.first.link.href == "p1.html")
+                #expect(pair.second.link.href == "p2.html")
+            }
+
+            @Test("a fixed resource is not combined with a following reflowable one")
+            func fixedNotCombinedWithReflowable() {
+                let pub = reflowablePublication(readingOrder: [
+                    link("p1.html", page: .left, layout: .fixed),
+                    link("c1.html", page: .right),
+                ])
+                let spreads = makeSpreads(publication: pub, spread: true, offsetFirstPage: false)
+
+                #expect(spreads.count == 2)
+                for spread in spreads {
+                    guard case .single = spread else {
+                        Issue.record("Expected all .single")
+                        return
+                    }
+                }
+            }
+
+            @Test("a reflowable resource in a fixed publication is never combined")
+            func reflowableResourceInFixedPublicationIsNeverCombined() {
+                let pub = fxlPublication(readingOrder: [
+                    link("cover.html", page: .center),
+                    link("p1.html", page: .left),
+                    link("c1.html", page: .right, layout: .reflowable),
+                    link("p2.html", page: .right),
+                ])
+                let spreads = makeSpreads(publication: pub, spread: true)
+
+                #expect(spreads.count == 4)
+                for spread in spreads {
+                    guard case .single = spread else {
+                        Issue.record("Expected all .single")
+                        return
+                    }
+                }
+            }
+
+            @Test("a reflowable first resource in a fixed publication is not centered by default")
+            func reflowableFirstResourceIsNotCentered() {
+                let pub = fxlPublication(readingOrder: [
+                    link("c1.html", layout: .reflowable),
+                    link("p1.html", page: .left),
+                    link("p2.html", page: .right),
+                ])
+                let spreads = makeSpreads(publication: pub, spread: true)
+
+                #expect(spreads.count == 2)
+                guard case let .single(first) = spreads[0] else {
+                    Issue.record("Expected the reflowable first resource to be .single")
+                    return
+                }
+                #expect(first.resource.link.properties.page == nil)
+                guard case .double = spreads[1] else {
+                    Issue.record("Expected p1+p2 to be .double")
+                    return
+                }
+            }
+        }
     }
 
     enum Properties {
@@ -431,9 +509,10 @@ enum EPUBSpreadTests {
 
 // MARK: - Helpers
 
-private func link(_ href: String, page: Properties.Page? = nil) -> Link {
+private func link(_ href: String, page: Properties.Page? = nil, layout: EPUBLayout? = nil) -> Link {
     var properties = Properties()
     properties.page = page
+    properties.epubLayout = layout
     return Link(href: href, properties: properties)
 }
 
