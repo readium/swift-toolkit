@@ -14,3 +14,18 @@ public extension Metadata {
         try? otherMetadata[mediaOverlayKey]?.decode()
     }
 }
+
+package extension Metadata {
+    /// Default EPUB layout of the publication, derived from `layout`.
+    var epubLayout: EPUBLayout {
+        layout == .fixed ? .fixed : .reflowable
+    }
+
+    /// Resolves the EPUB layout of the given `link`.
+    ///
+    /// The per-resource `Properties.epubLayout` override wins over the
+    /// publication default.
+    func epubLayout(of link: Link) -> EPUBLayout {
+        link.properties.epubLayout ?? epubLayout
+    }
+}

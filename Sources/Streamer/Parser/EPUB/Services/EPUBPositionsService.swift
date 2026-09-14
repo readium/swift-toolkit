@@ -9,8 +9,8 @@ import ReadiumShared
 
 /// Positions Service for an EPUB from its `readingOrder` and `fetcher`.
 ///
-/// The `presentation` is used to apply different calculation strategy if the resource has a
-/// reflowable or fixed layout.
+/// A different calculation strategy is applied depending on whether the
+/// resource has a reflowable or fixed layout.
 ///
 /// https://github.com/readium/architecture/blob/master/models/locators/best-practices/format.md#epub
 /// https://github.com/readium/architecture/issues/101
@@ -22,7 +22,7 @@ public actor EPUBPositionsService: PositionsService {
         { context in
             EPUBPositionsService(
                 readingOrder: context.manifest.readingOrder,
-                layout: context.manifest.metadata.layout,
+                metadata: context.manifest.metadata,
                 container: context.container,
                 reflowableStrategy: reflowableStrategy
             )
@@ -61,18 +61,18 @@ public actor EPUBPositionsService: PositionsService {
     }
 
     private let readingOrder: [Link]
-    private let layout: Layout?
+    private let metadata: Metadata
     private let container: Container
     private let reflowableStrategy: ReflowableStrategy
 
     init(
         readingOrder: [Link],
-        layout: Layout?,
+        metadata: Metadata,
         container: Container,
         reflowableStrategy: ReflowableStrategy
     ) {
         self.readingOrder = readingOrder
-        self.layout = layout
+        self.metadata = metadata
         self.container = container
         self.reflowableStrategy = reflowableStrategy
     }
@@ -94,10 +94,10 @@ public actor EPUBPositionsService: PositionsService {
         for link in readingOrder {
             let lastPosition: Int
             let resourcePositions: [Locator]
-            switch layout {
+            switch metadata.epubLayout(of: link) {
             case .fixed:
                 (lastPosition, resourcePositions) = makePositions(ofFixedResource: link, from: lastPositionOfPreviousResource)
-            case nil, .reflowable, .scrolled:
+            case .reflowable:
                 (lastPosition, resourcePositions) = await makePositions(ofReflowableResource: link, from: lastPositionOfPreviousResource)
             }
             lastPositionOfPreviousResource = lastPosition
