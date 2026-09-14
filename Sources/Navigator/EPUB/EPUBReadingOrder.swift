@@ -18,7 +18,6 @@ import ReadiumShared
 /// resource, so that hrefs referencing another variant of a rendered link are
 /// still found.
 struct EPUBReadingOrder {
-    
     /// Links rendered by the navigator.
     let links: [Link]
 
