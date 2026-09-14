@@ -372,8 +372,11 @@ open class PDFNavigatorViewController:
         let locator = publication.normalizeLocator(locator)
 
         let readingOrderIndex: Int? =
-            if isPDFFile { 0 }
-            else { publication.readingOrder.firstIndexWithHREF(locator.href) }
+            if isPDFFile {
+                0
+            } else {
+                publication.readingOrder.firstIndexWithHREF(locator.href)
+            }
 
         guard let readingOrderIndex else {
             return false
