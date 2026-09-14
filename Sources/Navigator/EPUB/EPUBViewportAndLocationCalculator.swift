@@ -94,7 +94,11 @@ enum EPUBViewportAndLocationCalculator {
 
             // Build the locator from the nearest position, then override
             // progression fields with the actual continuous scroll values.
+            // The href and media type are taken from the rendered link, as
+            // the positions might reference another variant of the resource.
             locator = positionsOfFirstResource[firstPositionIndex].copy(
+                href: link.url(),
+                mediaType: link.mediaType,
                 title: tableOfContentsTitleByHref[link.url()],
                 locations: {
                     $0.progression = firstProgressionInFirstResource

@@ -467,6 +467,27 @@ enum EPUBViewportAndLocationCalculatorTests {
             #expect(viewport.resources.first(where: { $0.href.string == ro[1].href })?.progression == 0.2 ... 0.8)
         }
     }
+
+    @Suite("Locator - rendered variant") struct LocatorWithRenderedVariant {
+        @Test("uses the href and media type of the rendered link instead of the position")
+        func usesRenderedLinkHREFAndMediaType() {
+            let manifest = makeManifest(count: 2)
+            var readingOrder = manifest.readingOrder
+            readingOrder[0] = Link(href: "chap1.jpg", mediaType: .jpeg)
+
+            let (locator, _) = EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 0,
+                progression: { _ in 0.0 ... 1.0 },
+                manifest: manifest,
+                readingOrder: readingOrder,
+                positionsByReadingOrder: makePositions(resourceCount: 2, positionsPerResource: 1),
+                tableOfContentsTitleByHref: [:]
+            )
+            #expect(locator?.href.string == "chap1.jpg")
+            #expect(locator?.mediaType == .jpeg)
+            #expect(locator?.locations.position == 1)
+        }
+    }
 }
 
 // MARK: - Helpers

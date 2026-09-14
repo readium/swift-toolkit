@@ -152,25 +152,25 @@ struct OPFParserTests {
             #expect(sut.resources.isEmpty)
         }
 
-        /// When HTML is in the spine with an image fallback, we swap: the image
-        /// should be in readingOrder and HTML should be added as an alternate.
+        /// When HTML is in the spine with an image fallback, the HTML should
+        /// stay in readingOrder and the image should be added as an alternate.
         @Test func parseHTMLInSpineWithImageFallback() throws {
             let sut = try parseManifest("fallback-html-in-spine", at: "EPUB/content.opf").manifest
 
             #expect(sut.readingOrder.count == 2)
 
-            // First item: image swapped into readingOrder, HTML as alternate
-            #expect(sut.readingOrder[0].href == "EPUB/page1.jpg")
-            #expect(sut.readingOrder[0].mediaType == .jpeg)
+            // First item: HTML in readingOrder, image as alternate
+            #expect(sut.readingOrder[0].href == "EPUB/page1.xhtml")
+            #expect(sut.readingOrder[0].mediaType == .xhtml)
             #expect(sut.readingOrder[0].alternates == [
-                Link(href: "EPUB/page1.xhtml", mediaType: .xhtml),
+                Link(href: "EPUB/page1.jpg", mediaType: .jpeg),
             ])
 
-            // Second item: image swapped into readingOrder, HTML as alternate
-            #expect(sut.readingOrder[1].href == "EPUB/page2.png")
-            #expect(sut.readingOrder[1].mediaType == .png)
+            // Second item: HTML in readingOrder, image as alternate
+            #expect(sut.readingOrder[1].href == "EPUB/page2.xhtml")
+            #expect(sut.readingOrder[1].mediaType == .xhtml)
             #expect(sut.readingOrder[1].alternates == [
-                Link(href: "EPUB/page2.xhtml", mediaType: .xhtml),
+                Link(href: "EPUB/page2.png", mediaType: .png),
             ])
 
             // Fallback images should not be in resources
@@ -234,6 +234,28 @@ struct OPFParserTests {
 
             // Should only conform to EPUB, not Divina
             #expect(sut.metadata.conformsTo.contains(.epub))
+            #expect(!sut.metadata.conformsTo.contains(.divina))
+        }
+
+        /// When all HTML spine items have a bitmap fallback, the publication
+        /// conforms to Divina but stays reflowable, as the reading order
+        /// links are not bitmaps.
+        @Test func parseAllHTMLWithImageFallbacksSetsDivinaProfileOnly() throws {
+            let sut = try parseManifest("fallback-html-in-spine", at: "EPUB/content.opf").manifest
+
+            #expect(sut.metadata.layout == .reflowable)
+            #expect(sut.metadata.conformsTo.contains(.epub))
+            #expect(sut.metadata.conformsTo.contains(.divina))
+            #expect(sut.readingOrder.allSatisfy { $0.mediaType == .xhtml })
+            #expect(sut.readingOrder.allSatisfy { $0.alternates.first?.mediaType?.isBitmap == true })
+        }
+
+        /// When only some HTML spine items have a bitmap fallback, the
+        /// publication doesn't conform to Divina.
+        @Test func parsePartialHTMLWithImageFallbacksDoesNotSetDivinaProfile() throws {
+            let sut = try parseManifest("fallback-html-image-partial", at: "EPUB/content.opf").manifest
+
+            #expect(sut.metadata.layout == .reflowable)
             #expect(!sut.metadata.conformsTo.contains(.divina))
         }
     }

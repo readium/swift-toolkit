@@ -10,8 +10,16 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The EPUB navigator supports publications mixing reflowable and fixed-layout resources, rendering each resource according to its own layout.
+* New `EPUBNavigatorViewController.Configuration.preferredResourceVariant` to choose which variant of each resource is rendered among its `alternates`, such as the XHTML page or its bitmap fallback.
+    * Bitmap resources in the reading order are rendered as fixed-layout, even in a reflowable publication.
 
 ### Changed
+
+#### Streamer
+
+* EPUB spine items with a bitmap fallback are no longer swapped with their fallback. The spine item stays in the reading order and the bitmap is available in its `alternates`.
+    * This changes the resources rendered by default and the href of the reported locations. Locations saved with the previous version are still restored by the EPUB navigator.
+    * Use `EPUBNavigatorViewController.Configuration.preferredResourceVariant = .image` in the EPUB navigator configuration to render the bitmaps like before.
 
 #### Shared
 
