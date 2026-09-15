@@ -447,6 +447,47 @@ enum EPUBSpreadTests {
         }
     }
 
+    @Suite("JSON") struct JSON {
+        let baseURL = AnyURL(string: "https://readium/publication/")!.absoluteURL!
+
+        @Test(
+            "single spread without a page position is centered",
+            arguments: [ReadiumNavigator.ReadingProgression.ltr, .rtl], [0, 3]
+        )
+        func singleWithoutPageIsCentered(readingProgression: ReadiumNavigator.ReadingProgression, index: Int) {
+            let spread = EPUBSingleSpread(resource: EPUBSpreadResource(index: index, link: link("p.html")))
+            #expect(pages(in: spread.json(forBaseURL: baseURL, readingProgression: readingProgression)) == ["center"])
+        }
+
+        @Test(
+            "single spread keeps an explicit page position",
+            arguments: [ReadiumNavigator.ReadingProgression.ltr, .rtl], ["left", "right"]
+        )
+        func singleKeepsExplicitPage(readingProgression: ReadiumNavigator.ReadingProgression, page: String) {
+            let spread = EPUBSingleSpread(resource: EPUBSpreadResource(index: 1, link: link("p.html", page: ReadiumShared.Properties.Page(rawValue: page))))
+            #expect(pages(in: spread.json(forBaseURL: baseURL, readingProgression: readingProgression)) == [page])
+        }
+
+        @Test("unpaired first page with offsetFirstPage: false is centered")
+        func unpairedFirstPageIsCentered() {
+            let pub = fxlPublication(readingOrder: [
+                link("cover.html"),
+                link("c1.html", layout: .reflowable),
+            ])
+            let spreads = makeSpreads(publication: pub, spread: true, offsetFirstPage: false)
+
+            guard case let .single(cover) = spreads.first else {
+                Issue.record("Expected cover to be .single")
+                return
+            }
+            #expect(pages(in: cover.json(forBaseURL: baseURL, readingProgression: .ltr)) == ["center"])
+        }
+
+        private func pages(in json: [JSONValue]) -> [String?] {
+            json.map { $0.object?["page"]?.string }
+        }
+    }
+
     struct PositionCount {
         @Test("for a single spread")
         func single() {

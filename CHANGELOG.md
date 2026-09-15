@@ -15,15 +15,19 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Changed
 
+#### Shared
+
+* Converting a `Link` to a `Locator` is now synchronous: `await publication.locate(link)` becomes `publication.locator(for: link)`. The logic moved to `Manifest`, so it is also available as `manifest.locator(for: link)` without a `Publication`.
+
+#### Navigator
+
+* In the EPUB navigator, a fixed-layout resource displayed on its own when spreads are enabled is now centered, unless the publication provides an explicit page position (e.g. `page-spread-left`). It was previously displayed on the left or right half of the viewport, depending on the reading progression.
+
 #### Streamer
 
 * EPUB spine items with a bitmap fallback are no longer swapped with their fallback. The spine item stays in the reading order and the bitmap is available in its `alternates`.
     * This changes the resources rendered by default and the href of the reported locations. Locations saved with the previous version are still restored by the EPUB navigator.
     * Use `EPUBNavigatorViewController.Configuration.preferredResourceVariant = .image` in the EPUB navigator configuration to render the bitmaps like before.
-
-#### Shared
-
-* Converting a `Link` to a `Locator` is now synchronous: `await publication.locate(link)` becomes `publication.locator(for: link)`. The logic moved to `Manifest`, so it is also available as `manifest.locator(for: link)` without a `Publication`.
 
 #### LCP
 
