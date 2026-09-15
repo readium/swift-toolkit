@@ -553,7 +553,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             isScrollEnabled: isPaginationViewScrollingEnabled
         )
         view.delegate = self
-        view.backgroundColor = .clear
+        // The background color must be painted by the pagination view
+        // itself, so that it is part of the snapshot used during page
+        // transitions.
+        view.backgroundColor = settings.effectiveBackgroundColor.uiColor
         return view
     }
 
@@ -927,7 +930,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return
         }
 
-        view.backgroundColor = settings.effectiveBackgroundColor.uiColor
+        let backgroundColor = settings.effectiveBackgroundColor.uiColor
+        view.backgroundColor = backgroundColor
+        paginationView?.backgroundColor = backgroundColor
         paginationView?.isScrollEnabled = isPaginationViewScrollingEnabled
     }
 
