@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. Take a look
 * The EPUB navigator supports publications mixing reflowable and fixed-layout resources, rendering each resource according to its own layout.
 * New `EPUBNavigatorViewController.Configuration.preferredResourceVariant` to choose which variant of each resource is rendered among its `alternates`, such as the XHTML page or its bitmap fallback.
     * Bitmap resources in the reading order are rendered as fixed-layout, even in a reflowable publication.
+* New `EPUBNavigatorDelegate.navigator(_:contentInsetFor:)` to customize the content insets of a spread according to its `EPUBLayout`, for example to add margins only around the reflowable resources of a mixed-layout publication. It takes precedence over `navigatorContentInset(_:)`.
 
 ### Changed
 

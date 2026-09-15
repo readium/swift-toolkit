@@ -16,10 +16,35 @@ import WebKit
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
+
+    // MARK: - Layout
+
+    /// Returns the content insets that the navigator applies around the content
+    /// of a spread with the given `layout`.
+    ///
+    /// Implement this method to customize the margins around the publication
+    /// content and to control which areas may be covered by the app's UI or
+    /// system bars.
+    ///
+    /// Consider the view's safe area insets to prevent notches, the status bar,
+    /// or other overlays from obscuring the content.
+    ///
+    /// This method takes precedence over `navigatorContentInset(_:)`, and offer
+    /// per-layout tuning to support publications mixing reflowable and fixed-
+    /// layout resources.
+    ///
+    /// - Returns: The insets to apply, or `nil` to fall back on
+    ///   `navigatorContentInset(_:)`, then on the navigator's default
+    ///   behavior.
+    func navigator(_ navigator: EPUBNavigatorViewController, contentInsetFor layout: EPUBLayout) -> UIEdgeInsets?
 }
 
 public extension EPUBNavigatorDelegate {
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
+
+    func navigator(_ navigator: EPUBNavigatorViewController, contentInsetFor layout: EPUBLayout) -> UIEdgeInsets? {
+        nil
+    }
 }
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
@@ -65,9 +90,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// The insets can be configured for each size class to allow smaller
         /// margins on compact screens.
         ///
-        /// For more control, implement the `navigatorContentInset()` delegate
-        /// method, which takes precedence over this configuration property
-        /// when implemented.
+        /// For more control, implement the `navigator(_:contentInsetFor:)` or
+        /// `navigatorContentInset(_:)` delegate methods, which take precedence
+        /// over this configuration property when implemented.
         public var contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
 
         /// Number of positions (as in `Publication.positionList`) to preload before the current page.
@@ -1053,7 +1078,9 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets {
-        if let inset = delegate?.navigatorContentInset(self) {
+        let layout = spreadView.spread.layout(in: publication)
+
+        if let inset = delegate?.navigator(self, contentInsetFor: layout) ?? delegate?.navigatorContentInset(self) {
             return inset
         }
 
@@ -1062,7 +1089,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         // the application's bars.
         var insets = view.window?.safeAreaInsets ?? .zero
 
-        switch spreadView.spread.layout(in: publication) {
+        switch layout {
         case .fixed:
             // With iPadOS and macOS, we aim to display content edge-to-edge
             // since there are no physical notches or Dynamic Island like on the
