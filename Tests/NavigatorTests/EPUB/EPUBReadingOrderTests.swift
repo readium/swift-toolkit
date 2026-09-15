@@ -45,7 +45,6 @@ enum EPUBReadingOrderTests {
             #expect(sut.links[0].href == "p1.jpg")
             #expect(sut.links[0].mediaType == .jpeg)
             #expect(sut.links[0].alternates == [xhtml])
-            #expect(sut.links[0].properties.epubLayout == .fixed)
         }
 
         @Test("keeps the main link when no alternate matches", arguments: [EPUBResourceVariant.html, .image])
@@ -85,21 +84,6 @@ enum EPUBReadingOrderTests {
             let main = link(xhtml, alternates: [jpeg, jpeg])
             let sut = EPUBReadingOrder(readingOrder: [main], preferredVariant: .image)
             #expect(sut.links[0].alternates == [xhtml, jpeg])
-        }
-
-        @Test("forces a bitmap main link as fixed-layout with .default")
-        func bitmapMainIsFixed() {
-            let sut = EPUBReadingOrder(readingOrder: [jpeg, xhtml], preferredVariant: .default)
-            #expect(sut.links[0].properties.epubLayout == .fixed)
-            #expect(sut.links[1].properties.epubLayout == nil)
-        }
-
-        @Test("overrides a reflowable layout from the spine for bitmaps")
-        func overridesReflowableSpineLayout() {
-            var main = link(xhtml, alternates: [jpeg])
-            main.properties.epubLayout = .reflowable
-            let sut = EPUBReadingOrder(readingOrder: [main], preferredVariant: .image)
-            #expect(sut.links[0].properties.epubLayout == .fixed)
         }
     }
 

@@ -45,7 +45,8 @@ enum EPUBViewportAndLocationCalculator {
             .map { index in
                 NavigatorViewport.Resource(
                     href: readingOrder[index].url(),
-                    progression: progression(index)
+                    progression: progression(index),
+                    layout: Layout(manifest.metadata.epubLayout(of: readingOrder[index]))
                 )
             }
 

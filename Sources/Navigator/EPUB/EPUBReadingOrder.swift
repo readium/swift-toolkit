@@ -11,8 +11,7 @@ import ReadiumShared
 /// variant of each resource among its alternates.
 ///
 /// Only one level of alternates is considered. SMIL, audio, video and other
-/// media types are never rendered. A rendered bitmap is always laid out as
-/// fixed-layout.
+/// media types are never rendered.
 ///
 /// Use the alternates-aware `index(of:)` and `resolve(_:)` to look up a
 /// resource, so that hrefs referencing another variant of a rendered link are
@@ -78,14 +77,7 @@ private func renderedLink(for main: Link, preferredVariant: EPUBResourceVariant)
     // Candidates are handled by index, as duplicate links are possible.
     let candidates = [main] + main.alternates
     let pick = preferredIndex(in: candidates, for: preferredVariant) ?? 0
-
-    var link = (pick == 0) ? main : promote(candidates: candidates, at: pick)
-
-    if link.mediaType?.isBitmap == true {
-        link.properties.epubLayout = .fixed
-    }
-
-    return link
+    return (pick == 0) ? main : promote(candidates: candidates, at: pick)
 }
 
 /// Returns the index of the first candidate matching `preferredVariant`.

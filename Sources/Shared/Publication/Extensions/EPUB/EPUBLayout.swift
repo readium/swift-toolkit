@@ -10,3 +10,20 @@ import Foundation
 public enum EPUBLayout: String, Sendable {
     case fixed, reflowable
 }
+
+package extension EPUBLayout {
+    init(_ layout: Layout?) {
+        self = (layout == .fixed) ? .fixed : .reflowable
+    }
+}
+
+package extension Layout {
+    init(_ layout: EPUBLayout) {
+        switch layout {
+        case .fixed:
+            self = .fixed
+        case .reflowable:
+            self = .reflowable
+        }
+    }
+}

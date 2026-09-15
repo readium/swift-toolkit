@@ -55,6 +55,45 @@ enum EPUBViewportAndLocationCalculatorTests {
             #expect(viewport.resources.first(where: { $0.href.string == ro[1].href })?.progression == 0.0 ... 1.0)
         }
 
+        @Test("records the rendered layout of each visible resource")
+        func layout() {
+            var fixed = Link(href: "chap2.html", mediaType: .html)
+            fixed.properties.epubLayout = .fixed
+            let ro = [
+                Link(href: "chap1.html", mediaType: .html),
+                fixed,
+                Link(href: "page3.jpg", mediaType: .jpeg),
+            ]
+            let manifest = makeManifest(readingOrder: ro)
+            let (_, viewport) = EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 2,
+                progression: { _ in 0.0 ... 1.0 },
+                manifest: manifest,
+                readingOrder: ro,
+                positionsByReadingOrder: [],
+                tableOfContentsTitleByHref: [:]
+            )
+            #expect(viewport.resources.map(\.layout) == [.reflowable, .fixed, .fixed])
+        }
+
+        @Test("records a fixed layout for an HTML resource rendered as its bitmap alternate")
+        func layoutOfPromotedBitmap() {
+            var main = Link(href: "page1.xhtml", mediaType: .xhtml)
+            main.alternates = [Link(href: "page1.jpg", mediaType: .jpeg)]
+            let manifest = makeManifest(readingOrder: [main])
+            let ro = EPUBReadingOrder(readingOrder: manifest.readingOrder, preferredVariant: .image).links
+            let (_, viewport) = EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 0,
+                progression: { _ in 0.0 ... 1.0 },
+                manifest: manifest,
+                readingOrder: ro,
+                positionsByReadingOrder: [],
+                tableOfContentsTitleByHref: [:]
+            )
+            #expect(viewport.resources.map(\.href.string) == ["page1.jpg"])
+            #expect(viewport.resources.map(\.layout) == [.fixed])
+        }
+
         @Test("total progression range lower bound matches locator totalProgression")
         func totalProgressionLowerBoundMatchesLocator() {
             let manifest = makeManifest(count: 2)
