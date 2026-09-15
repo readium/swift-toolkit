@@ -287,6 +287,30 @@ enum EPUBSpreadTests {
                 #expect(pair.second.link.href == "p2.html")
             }
 
+            @Test("bitmap resources forced fixed in a reflowable publication are combined")
+            func renderedBitmapsInReflowablePublicationAreCombined() {
+                var p1 = link("p1.html", page: .left)
+                p1.alternates = [Link(href: "p1.jpg", mediaType: .jpeg)]
+                var p2 = link("p2.html", page: .right)
+                p2.alternates = [Link(href: "p2.jpg", mediaType: .jpeg)]
+                let pub = reflowablePublication(readingOrder: [link("c1.html"), p1, p2])
+                let readingOrder = EPUBReadingOrder(readingOrder: pub.readingOrder, preferredVariant: .image)
+                let spreads = EPUBSpread.makeSpreads(
+                    for: pub,
+                    readingOrder: readingOrder.links,
+                    readingProgression: .ltr,
+                    spread: true
+                )
+
+                #expect(spreads.count == 2)
+                guard case .single = spreads[0], case let .double(pair) = spreads[1] else {
+                    Issue.record("Expected .single, .double")
+                    return
+                }
+                #expect(pair.first.link.href == "p1.jpg")
+                #expect(pair.second.link.href == "p2.jpg")
+            }
+
             @Test("a fixed resource is not combined with a following reflowable one")
             func fixedNotCombinedWithReflowable() {
                 let pub = reflowablePublication(readingOrder: [
@@ -420,6 +444,47 @@ enum EPUBSpreadTests {
                 #expect(spread.left(for: .rtl).link.href == "p2.html")
                 #expect(spread.right(for: .rtl).link.href == "p1.html")
             }
+        }
+    }
+
+    @Suite("JSON") struct JSON {
+        let baseURL = AnyURL(string: "https://readium/publication/")!.absoluteURL!
+
+        @Test(
+            "single spread without a page position is centered",
+            arguments: [ReadiumNavigator.ReadingProgression.ltr, .rtl], [0, 3]
+        )
+        func singleWithoutPageIsCentered(readingProgression: ReadiumNavigator.ReadingProgression, index: Int) {
+            let spread = EPUBSingleSpread(resource: EPUBSpreadResource(index: index, link: link("p.html")))
+            #expect(pages(in: spread.json(forBaseURL: baseURL, readingProgression: readingProgression)) == ["center"])
+        }
+
+        @Test(
+            "single spread keeps an explicit page position",
+            arguments: [ReadiumNavigator.ReadingProgression.ltr, .rtl], ["left", "right"]
+        )
+        func singleKeepsExplicitPage(readingProgression: ReadiumNavigator.ReadingProgression, page: String) {
+            let spread = EPUBSingleSpread(resource: EPUBSpreadResource(index: 1, link: link("p.html", page: ReadiumShared.Properties.Page(rawValue: page))))
+            #expect(pages(in: spread.json(forBaseURL: baseURL, readingProgression: readingProgression)) == [page])
+        }
+
+        @Test("unpaired first page with offsetFirstPage: false is centered")
+        func unpairedFirstPageIsCentered() {
+            let pub = fxlPublication(readingOrder: [
+                link("cover.html"),
+                link("c1.html", layout: .reflowable),
+            ])
+            let spreads = makeSpreads(publication: pub, spread: true, offsetFirstPage: false)
+
+            guard case let .single(cover) = spreads.first else {
+                Issue.record("Expected cover to be .single")
+                return
+            }
+            #expect(pages(in: cover.json(forBaseURL: baseURL, readingProgression: .ltr)) == ["center"])
+        }
+
+        private func pages(in json: [JSONValue]) -> [String?] {
+            json.map { $0.object?["page"]?.string }
         }
     }
 

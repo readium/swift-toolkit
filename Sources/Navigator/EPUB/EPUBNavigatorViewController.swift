@@ -16,10 +16,35 @@ import WebKit
     // MARK: - WebView Customization
 
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController)
+
+    // MARK: - Layout
+
+    /// Returns the content insets that the navigator applies around the content
+    /// of a spread with the given `layout`.
+    ///
+    /// Implement this method to customize the margins around the publication
+    /// content and to control which areas may be covered by the app's UI or
+    /// system bars.
+    ///
+    /// Consider the view's safe area insets to prevent notches, the status bar,
+    /// or other overlays from obscuring the content.
+    ///
+    /// This method takes precedence over `navigatorContentInset(_:)`, and offer
+    /// per-layout tuning to support publications mixing reflowable and fixed-
+    /// layout resources.
+    ///
+    /// - Returns: The insets to apply, or `nil` to fall back on
+    ///   `navigatorContentInset(_:)`, then on the navigator's default
+    ///   behavior.
+    func navigator(_ navigator: EPUBNavigatorViewController, contentInsetFor layout: EPUBLayout) -> UIEdgeInsets?
 }
 
 public extension EPUBNavigatorDelegate {
     func navigator(_ navigator: EPUBNavigatorViewController, setupUserScripts userContentController: WKUserContentController) {}
+
+    func navigator(_ navigator: EPUBNavigatorViewController, contentInsetFor layout: EPUBLayout) -> UIEdgeInsets? {
+        nil
+    }
 }
 
 public typealias EPUBContentInsets = (top: CGFloat, bottom: CGFloat)
@@ -65,9 +90,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// The insets can be configured for each size class to allow smaller
         /// margins on compact screens.
         ///
-        /// For more control, implement the `navigatorContentInset()` delegate
-        /// method, which takes precedence over this configuration property
-        /// when implemented.
+        /// For more control, implement the `navigator(_:contentInsetFor:)` or
+        /// `navigatorContentInset(_:)` delegate methods, which take precedence
+        /// over this configuration property when implemented.
         public var contentInset: [UIUserInterfaceSizeClass: EPUBContentInsets]
 
         /// Number of positions (as in `Publication.positionList`) to preload before the current page.
@@ -75,6 +100,18 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         /// Number of positions (as in `Publication.positionList`) to preload after the current page.
         public var preloadNextPositionCount: Int
+
+        /// Variant of each reading order resource to render, among the link
+        /// and its alternates. For example, an EPUB can provide a bitmap
+        /// fallback for each XHTML page.
+        ///
+        /// Only one level of alternates is considered. A rendered bitmap is
+        /// always laid out as fixed-layout.
+        ///
+        /// Locators reported by the navigator use the href of the rendered
+        /// resource. Locators referencing another variant are still resolved
+        /// when navigating.
+        public var preferredResourceVariant: EPUBResourceVariant
 
         /// Supported HTML decoration templates.
         public var decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate]
@@ -102,6 +139,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             ],
             preloadPreviousPositionCount: Int = 2,
             preloadNextPositionCount: Int = 6,
+            preferredResourceVariant: EPUBResourceVariant = .default,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
@@ -114,6 +152,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.contentInset = contentInset
             self.preloadPreviousPositionCount = preloadPreviousPositionCount
             self.preloadNextPositionCount = preloadNextPositionCount
+            self.preferredResourceVariant = preferredResourceVariant
             self.decorationTemplates = decorationTemplates
             self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
@@ -244,7 +283,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         }
     }
 
-    private let readingOrder: [Link]
     public private(set) var currentLocation: Locator?
     private let loadPositionsByReadingOrder: () async -> ReadResult<[[Locator]]>
     private var positionsByReadingOrder: [[Locator]] = []
@@ -256,6 +294,11 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     var config: Configuration {
         viewModel.config
+    }
+
+    /// Reading order rendered by the navigator.
+    private var readingOrder: EPUBReadingOrder {
+        viewModel.readingOrder
     }
 
     /// Creates a new instance of `EPUBNavigatorViewController`.
@@ -300,7 +343,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         self.init(
             viewModel: viewModel,
             initialLocation: initialLocation,
-            readingOrder: viewModel.readingOrder,
             positionsByReadingOrder: positionsByReadingOrderClosure
         )
     }
@@ -308,12 +350,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private init(
         viewModel: EPUBNavigatorViewModel,
         initialLocation: Locator?,
-        readingOrder: [Link],
         positionsByReadingOrder: @escaping () async -> ReadResult<[[Locator]]>
     ) {
         self.viewModel = viewModel
-        currentLocation = initialLocation
-        self.readingOrder = readingOrder
+        // Resolved up front, so the first location notified to the delegate
+        // uses the href of the rendered resource.
+        currentLocation = initialLocation.map { viewModel.readingOrder.resolve($0)?.locator ?? $0 }
         loadPositionsByReadingOrder = positionsByReadingOrder
 
         super.init(nibName: nil, bundle: nil)
@@ -536,7 +578,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             isScrollEnabled: isPaginationViewScrollingEnabled
         )
         view.delegate = self
-        view.backgroundColor = .clear
+        // The background color must be painted by the pagination view
+        // itself, so that it is part of the snapshot used during page
+        // transitions.
+        view.backgroundColor = settings.effectiveBackgroundColor.uiColor
         return view
     }
 
@@ -590,7 +635,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         spreads = EPUBSpread.makeSpreads(
             for: publication,
-            readingOrder: readingOrder,
+            readingOrder: readingOrder.links,
             readingProgression: viewModel.readingProgression,
             spread: viewModel.spreadEnabled,
             offsetFirstPage: viewModel.offsetFirstPage
@@ -599,7 +644,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         let initialIndex: ReadingOrder.Index = {
             if
                 let href = locator?.href,
-                let index = readingOrder.firstIndexWithHREF(href),
+                let index = readingOrder.index(of: href),
                 let foundIndex = self.spreads.firstIndexWithReadingOrderIndex(index)
             {
                 return foundIndex
@@ -618,10 +663,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         on(.loaded)
     }
 
+    /// Returns the loaded spread view rendering the resource at `href`.
+    ///
+    /// Only the rendered links are searched, as the JavaScript side only knows
+    /// their hrefs. For example, a decoration on another variant of a
+    /// resource is not rendered.
     private func loadedSpreadViewForHREF<T: URLConvertible>(_ href: T) -> EPUBSpreadView? {
         guard
             let loadedViews = paginationView?.loadedViews,
-            let index = readingOrder.firstIndexWithHREF(href)
+            let index = readingOrder.links.firstIndexWithHREF(href)
         else {
             return nil
         }
@@ -667,7 +717,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             readingOrderIndices: spreadView.spread.readingOrderIndices,
             progression: { spreadView.progression(in: $0) },
             manifest: publication.manifest,
-            readingOrder: readingOrder,
+            readingOrder: readingOrder.links,
             positionsByReadingOrder: positionsByReadingOrder,
             tableOfContentsTitleByHref: tableOfContentsTitleByHref
         )
@@ -707,16 +757,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     }
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
-        let locator = publication.normalizeLocator(locator)
-
         guard
             let paginationView = paginationView,
-            let index = readingOrder.firstIndexWithHREF(locator.href),
-            let spreadIndex = spreads.firstIndexWithReadingOrderIndex(index),
-            on(.jump(locator))
+            let resolved = readingOrder.resolve(publication.normalizeLocator(locator)),
+            let spreadIndex = spreads.firstIndexWithReadingOrderIndex(resolved.index),
+            on(.jump(resolved.locator))
         else {
             return false
         }
+        let locator = resolved.locator
 
         let success = await paginationView.goToIndex(spreadIndex, location: .locator(locator), options: options)
         on(.jumped)
@@ -906,7 +955,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             return
         }
 
-        view.backgroundColor = settings.effectiveBackgroundColor.uiColor
+        let backgroundColor = settings.effectiveBackgroundColor.uiColor
+        view.backgroundColor = backgroundColor
+        paginationView?.backgroundColor = backgroundColor
         paginationView?.isScrollEnabled = isPaginationViewScrollingEnabled
     }
 
@@ -1002,7 +1053,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
                 for (_, view) in paginationView.loadedViews {
                     guard
                         let view = view as? EPUBSpreadView,
-                        let index = readingOrder.firstIndexWithHREF(href),
+                        let index = readingOrder.links.firstIndexWithHREF(href),
                         view.spread.contains(index: index)
                     else {
                         continue
@@ -1027,7 +1078,9 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets {
-        if let inset = delegate?.navigatorContentInset(self) {
+        let layout = spreadView.spread.layout(in: publication)
+
+        if let inset = delegate?.navigator(self, contentInsetFor: layout) ?? delegate?.navigatorContentInset(self) {
             return inset
         }
 
@@ -1036,7 +1089,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
         // the application's bars.
         var insets = view.window?.safeAreaInsets ?? .zero
 
-        switch spreadView.spread.layout(in: publication) {
+        switch layout {
         case .fixed:
             // With iPadOS and macOS, we aim to display content edge-to-edge
             // since there are no physical notches or Dynamic Island like on the
@@ -1075,7 +1128,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             .joined(separator: "\n")
 
         let links = spreadView.spread.readingOrderIndices
-            .compactMap { readingOrder.getOrNil($0) }
+            .compactMap { readingOrder.links.getOrNil($0) }
 
         for link in links {
             let href = link.url()
@@ -1281,6 +1334,6 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     }
 
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
-        spreads[index].positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
+        spreads[index].positionCount(in: readingOrder.links, positionsByReadingOrder: positionsByReadingOrder)
     }
 }

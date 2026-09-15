@@ -94,7 +94,8 @@ enum PDFViewportCalculator {
             resources: [
                 NavigatorViewport.Resource(
                     href: href,
-                    progression: resourceProgression
+                    progression: resourceProgression,
+                    layout: .fixed
                 ),
             ],
             progression: totalProgression,
