@@ -188,7 +188,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         preference(
             preference: \.blendImages,
             setting: \.blendImages,
-            isEffective: { [layout] _ in layout == .reflowable }
+            isEffective: { [defaultLayout] _ in defaultLayout == .reflowable }
         )
 
     /// Darkens images by the given percentage.
@@ -197,7 +197,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.darkenImages,
             effectiveValue: { $0.settings.darkenImages ?? 0 },
             defaultEffectiveValue: 0,
-            isEffective: { [layout] _ in layout == .reflowable },
+            isEffective: { [defaultLayout] _ in defaultLayout == .reflowable },
             supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
@@ -209,7 +209,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.invertGaiji,
             effectiveValue: { $0.settings.invertGaiji ?? 0 },
             defaultEffectiveValue: 0,
-            isEffective: { [layout] _ in layout == .reflowable },
+            isEffective: { [defaultLayout] _ in defaultLayout == .reflowable },
             supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
@@ -226,7 +226,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.invertImages,
             effectiveValue: { $0.settings.invertImages ?? 0 },
             defaultEffectiveValue: 0,
-            isEffective: { [layout] _ in layout == .reflowable },
+            isEffective: { [defaultLayout] _ in defaultLayout == .reflowable },
             supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
@@ -318,8 +318,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             preference: \.noRuby,
             setting: \.noRuby,
             defaultEffectiveValue: defaults.noRuby ?? false,
-            isEffective: { [layout] in
-                layout == .reflowable
+            isEffective: { [defaultLayout] in
+                defaultLayout == .reflowable
                     && [.cjkHorizontal, .cjkVertical].contains($0.settings.cssLayout.stylesheets)
             }
         )
