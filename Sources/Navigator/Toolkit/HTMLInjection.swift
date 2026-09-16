@@ -127,7 +127,9 @@ extension HTMLElement {
         for name in names {
             let escaped = NSRegularExpression.escapedPattern(for: name)
             let regex = regex(for: "\\s\(escaped)\\s*=")
-            if regex.firstMatch(in: tag, range: nsRange) != nil { return true }
+            if regex.firstMatch(in: tag, range: nsRange) != nil {
+                return true
+            }
         }
         return false
     }

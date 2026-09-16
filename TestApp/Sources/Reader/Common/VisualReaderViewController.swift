@@ -271,7 +271,9 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     }
 
     private func addHighlightDecorationsObserverOnce() {
-        if highlights == nil { return }
+        if highlights == nil {
+            return
+        }
 
         if let decorator = navigator as? DecorableNavigator {
             decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { [weak self] event in
