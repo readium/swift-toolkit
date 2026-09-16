@@ -19,19 +19,12 @@ public protocol LocatorService: PublicationService {
     /// Locates the target of the given `locator`.
     func locate(_ locator: Locator) async -> Locator?
 
-    /// Locates the target of the given `link`.
-    func locate(_ link: Link) async -> Locator?
-
     /// Locates the target at the given `progression` relative to the whole publication.
     func locate(progression: Double) async -> Locator?
 }
 
 public extension LocatorService {
     func locate(_ locator: Locator) async -> Locator? {
-        nil
-    }
-
-    func locate(_ link: Link) async -> Locator? {
         nil
     }
 
@@ -51,11 +44,6 @@ public extension Publication {
     /// Locates the target at the given `progression` relative to the whole publication.
     func locate(progression: Double) async -> Locator? {
         await findService(LocatorService.self)?.locate(progression: progression)
-    }
-
-    /// Locates the target of the given `link`.
-    func locate(_ link: Link) async -> Locator? {
-        await findService(LocatorService.self)?.locate(link)
     }
 }
 

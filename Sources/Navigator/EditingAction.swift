@@ -79,7 +79,9 @@ public struct EditingAction: Hashable, Sendable {
 
     /// Whether this is a custom (non-native) action.
     var isCustom: Bool {
-        if case .custom = kind { return true }
+        if case .custom = kind {
+            return true
+        }
         return false
     }
 }

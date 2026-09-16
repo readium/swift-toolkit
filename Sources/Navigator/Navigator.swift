@@ -13,6 +13,13 @@ public protocol Navigator: AnyObject {
     /// Publication being rendered.
     var publication: Publication { get }
 
+    /// Reading order actually rendered by the navigator.
+    ///
+    /// It may differ from `publication.readingOrder` when the navigator was
+    /// initialized with a custom reading order, or when a resource variant is
+    /// selected for rendering.
+    var readingOrder: [Link] { get }
+
     /// Current position in the publication.
     /// Can be used to save a bookmark to the current position.
     var currentLocation: Locator? { get }

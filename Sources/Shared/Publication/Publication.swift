@@ -104,6 +104,19 @@ public final class Publication: Sendable, Loggable {
         manifest.linksWithRel(rel)
     }
 
+    /// Creates a new `Locator` pointing to the resource targeted by the given
+    /// `link`.
+    ///
+    /// Returns `nil` if the resource is not found in the publication.
+    public func locator(for link: Link) -> Locator? {
+        manifest.locator(for: link)
+    }
+
+    @available(*, unavailable, renamed: "locator(for:)")
+    public func locate(_ link: Link) async -> Locator? {
+        fatalError()
+    }
+
     /// Returns the resource targeted by the given `link`.
     public func get(_ link: Link) -> Resource? {
         assert(!link.templated, "You must expand templated links before calling `Publication.get`")

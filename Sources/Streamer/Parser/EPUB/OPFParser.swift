@@ -93,10 +93,21 @@ final class OPFParser: Loggable {
         let (resources, readingOrder) = splitResourcesAndReadingOrderLinks(manifestItems)
         var metadata = try EPUBMetadataParser(document: document, displayOptions: displayOptions, metas: metas).parse()
 
-        // If all reading order items are bitmaps, we infer a Divina.
+        // If all reading order items are bitmaps, or have a bitmap in their
+        // direct alternates, we infer a Divina. Only one level of alternates
+        // is considered.
+        let hasBitmapVariant: (Link) -> Bool = { link in
+            link.mediaType?.isBitmap == true
+                || link.alternates.contains { $0.mediaType?.isBitmap == true }
+        }
+        if readingOrder.allSatisfy(hasBitmapVariant) {
+            metadata.conformsTo.append(.divina)
+        }
+
+        // The publication is fixed-layout only when the reading order links
+        // themselves are bitmaps.
         if readingOrder.allAreBitmap {
             metadata.layout = .fixed
-            metadata.conformsTo.append(.divina)
         }
 
         return Package(
@@ -225,9 +236,9 @@ final class OPFParser: Loggable {
     /// They are only composed of an `idref` referencing one of the previously
     /// parsed resource (XML: idref -> id).
     ///
-    /// Handles image spine items with HTML fallbacks (and vice versa) by
-    /// putting the image in the reading order and the HTML in `alternates`.
-    /// This is because we prefer treating it as a Divina to render it.
+    /// Spine items with a fallback keep the spine item in the reading order
+    /// and put the fallback in its `alternates`. Navigators can then choose
+    /// which variant to render.
     ///
     /// - Parameter manifestItems: The items parsed from the manifest.
     /// - Returns: The `Link` in `resources` and in `readingOrder`.
@@ -250,17 +261,14 @@ final class OPFParser: Loggable {
             let item = items.remove(at: index)
             var spineLink = item.link
 
-            // Resolve fallback: prefer bitmaps as primary to treat image-based
-            // EPUBs as Divina
+            // Resolve fallback: the spine item is the primary link and the
+            // fallback becomes an alternate.
             if
                 let fallbackId = item.fallbackId,
                 let fallbackIndex = items.firstIndex(where: { $0.id == fallbackId })
             {
                 let fallbackItem = items.remove(at: fallbackIndex)
-                spineLink = resolveFallbackChain(
-                    spineLink: spineLink,
-                    fallbackLink: fallbackItem.link
-                )
+                spineLink.alternates = [fallbackItem.link]
             }
 
             if
@@ -282,6 +290,7 @@ final class OPFParser: Loggable {
     private func parseStringProperties(_ properties: [String]) -> [String: JSONValue] {
         var contains: [String] = []
         var page: Properties.Page?
+        var layout: EPUBLayout?
 
         for property in properties {
             switch property {
@@ -299,12 +308,17 @@ final class OPFParser: Loggable {
             case "remote-resources":
                 contains.append("remote-resources")
             // Page
-            case "page-spread-left":
+            case "page-spread-left", "rendition:page-spread-left":
                 page = .left
-            case "page-spread-right":
+            case "page-spread-right", "rendition:page-spread-right":
                 page = .right
             case "page-spread-center", "rendition:page-spread-center":
                 page = .center
+            // Layout
+            case "rendition:layout-reflowable":
+                layout = .reflowable
+            case "rendition:layout-pre-paginated":
+                layout = .fixed
             default:
                 continue
             }
@@ -317,28 +331,10 @@ final class OPFParser: Loggable {
         if let jsonPage = page?.jsonValue {
             otherProperties["page"] = jsonPage
         }
+        if let layout = layout {
+            otherProperties["layout"] = .string(layout.rawValue)
+        }
 
         return otherProperties
-    }
-
-    /// Resolves which link should be primary vs alternate when a fallback is
-    /// present.
-    ///
-    /// We prefer bitmaps as primary to treat image-based EPUBs as Divina.
-    private func resolveFallbackChain(
-        spineLink: Link,
-        fallbackLink: Link
-    ) -> Link {
-        var link = spineLink
-        // If fallback is a bitmap and spine is HTML, swap them.
-        if spineLink.mediaType?.isHTML == true, fallbackLink.mediaType?.isBitmap == true {
-            link = fallbackLink
-            // Transfer spine properties (like page spread) to the image
-            link.properties = spineLink.properties
-            link.alternates = [spineLink]
-        } else {
-            link.alternates = [fallbackLink]
-        }
-        return link
     }
 }

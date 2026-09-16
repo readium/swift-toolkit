@@ -23,6 +23,43 @@ All notable changes to this project will be documented in this file. Take a look
 * `CSSRSProperties.maxLineLength` is deprecated in favor of `defaultLineLength` to match Readium CSS v2.
 * Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int` to support arbitrary column counts. The `ColumnCount` enum is removed.
 * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The `ImageFilter` enum is removed.
+* The EPUB navigator supports publications mixing reflowable and fixed-layout resources, rendering each resource according to its own layout.
+* New `EPUBNavigatorViewController.Configuration.preferredResourceVariant` to choose which variant of each resource is rendered among its `alternates`, such as the XHTML page or its bitmap fallback.
+    * Bitmap resources in the reading order are rendered as fixed-layout, even in a reflowable publication.
+* New `EPUBNavigatorDelegate.navigator(_:contentInsetFor:)` to customize the content insets of a spread according to its `EPUBLayout`, for example to add margins only around the reflowable resources of a mixed-layout publication. It takes precedence over `navigatorContentInset(_:)`.
+* New `Navigator.readingOrder` property returning the reading order actually rendered by the navigator, which may differ from `publication.readingOrder` when a custom reading order or a resource variant is used.
+
+### Changed
+
+#### Shared
+
+* Converting a `Link` to a `Locator` is now synchronous: `await publication.locate(link)` becomes `publication.locator(for: link)`. The logic moved to `Manifest`, so it is also available as `manifest.locator(for: link)` without a `Publication`.
+
+#### Navigator
+
+* In the EPUB navigator, a fixed-layout resource displayed on its own when spreads are enabled is now centered, unless the publication provides an explicit page position (e.g. `page-spread-left`). It was previously displayed on the left or right half of the viewport, depending on the reading progression.
+
+#### Streamer
+
+* EPUB spine items with a bitmap fallback are no longer swapped with their fallback. The spine item stays in the reading order and the bitmap is available in its `alternates`.
+    * This changes the resources rendered by default and the href of the reported locations. Locations saved with the previous version are still restored by the EPUB navigator.
+    * Use `EPUBNavigatorViewController.Configuration.preferredResourceVariant = .image` in the EPUB navigator configuration to render the bitmaps like before.
+
+#### LCP
+
+* Opening an LCP publication is no longer delayed by the CRL used to validate its license. The CRL is now downloaded when creating the `LCPService`, and an expired one is refreshed in the background instead of making the user wait for the response.
+
+### Fixed
+
+#### Navigator
+
+* [#121](https://github.com/readium/swift-toolkit/issues/121) HTML `<audio>` and `<video>` elements are now paused when the resource moves off-screen in the EPUB navigator, rather than continuing to play in the background.
+* Fixed the PDF navigator's content being inset by the surrounding safe area (e.g. the navigation bar) on iOS 27.
+
+#### LCP
+
+* The CRL used to validate LCP licenses is now checked to be a genuine X.509 CRL before being cached. Networks with a captive portal (e.g. on a plane) could return their login page with a `200 OK` status, which was then cached for seven days and prevented opening LCP publications. An invalid CRL cached by a previous version is now ignored instead of waiting for its expiration.
+* [#579](https://github.com/readium/swift-toolkit/issues/579) Streamed LCP audiobooks now start playing almost immediately. Resources encrypted with AES-CBC are decrypted and served in chunks, instead of being fully downloaded and decrypted upfront.
 
 
 ## [4.0.0-alpha.1] - 2026-08-14

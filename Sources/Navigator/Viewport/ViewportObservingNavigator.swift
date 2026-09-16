@@ -61,9 +61,13 @@ public struct NavigatorViewport: Equatable, Sendable {
         /// visible, this is `0.0...1.0`.
         public var progression: ClosedRange<Double>
 
-        public init(href: AnyURL, progression: ClosedRange<Double>) {
+        /// Layout used to render the resource.
+        public var layout: Layout
+
+        public init(href: AnyURL, progression: ClosedRange<Double>, layout: Layout) {
             self.href = href
             self.progression = progression
+            self.layout = layout
         }
     }
 }

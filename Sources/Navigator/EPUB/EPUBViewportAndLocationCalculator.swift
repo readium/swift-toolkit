@@ -9,7 +9,6 @@ import ReadiumShared
 
 /// Computes the current `Locator` and `Viewport` from a spread's visible
 /// progressions and the publication's position list.
-@MainActor
 enum EPUBViewportAndLocationCalculator {
     /// Computes the locator and viewport for the currently visible spread.
     ///
@@ -20,22 +19,23 @@ enum EPUBViewportAndLocationCalculator {
     ///   - progression: Returns the visible scroll progression range (0–1)
     ///     for a given reading-order index. For fixed-layout resources this
     ///     is always `0...1`.
-    ///   - readingOrder: The publication's reading order links.
+    ///   - manifest: The publication's manifest, used to build a basic locator
+    ///     for the first visible link when no positions are available.
+    ///   - readingOrder: The links displayed by the navigator, indexed by
+    ///     `readingOrderIndices`. May differ from the manifest's reading order
+    ///     when the navigator was given a custom one.
     ///   - positionsByReadingOrder: Positions grouped by reading-order index.
     ///     May be empty if the publication has no positions.
     ///   - tableOfContentsTitleByHref: Mapping from resource URL to its table-
     ///     of-contents title, used to populate `Locator.title`.
-    ///   - fallbackLocator: Called with the first visible link when no
-    ///     positions are available; should return a basic locator for that
-    ///     link (e.g. from `Publication.locate(_:)`).
     static func compute(
         readingOrderIndices: ClosedRange<Int>,
         progression: (Int) -> ClosedRange<Double>,
+        manifest: Manifest,
         readingOrder: [Link],
         positionsByReadingOrder: [[Locator]],
-        tableOfContentsTitleByHref: [AnyURL: String],
-        fallbackLocator: (Link) async -> Locator?
-    ) async -> (locator: Locator?, viewport: NavigatorViewport) {
+        tableOfContentsTitleByHref: [AnyURL: String]
+    ) -> (locator: Locator?, viewport: NavigatorViewport) {
         let firstIndex = readingOrderIndices.lowerBound
         let lastIndex = readingOrderIndices.upperBound
         let firstProgressionInFirstResource = min(max(progression(firstIndex).lowerBound, 0.0), 1.0)
@@ -45,7 +45,8 @@ enum EPUBViewportAndLocationCalculator {
             .map { index in
                 NavigatorViewport.Resource(
                     href: readingOrder[index].url(),
-                    progression: progression(index)
+                    progression: progression(index),
+                    layout: manifest.metadata.epubLayout(of: readingOrder[index]).layout
                 )
             }
 
@@ -94,7 +95,11 @@ enum EPUBViewportAndLocationCalculator {
 
             // Build the locator from the nearest position, then override
             // progression fields with the actual continuous scroll values.
+            // The href and media type are taken from the rendered link, as
+            // the positions might reference another variant of the resource.
             locator = positionsOfFirstResource[firstPositionIndex].copy(
+                href: link.url(),
+                mediaType: link.mediaType,
                 title: tableOfContentsTitleByHref[link.url()],
                 locations: {
                     $0.progression = firstProgressionInFirstResource
@@ -117,7 +122,7 @@ enum EPUBViewportAndLocationCalculator {
             return (locator, viewport)
 
         } else {
-            locator = await fallbackLocator(link)?.copy(
+            locator = manifest.locator(for: link)?.copy(
                 locations: { $0.progression = firstProgressionInFirstResource }
             )
 

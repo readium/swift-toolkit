@@ -493,7 +493,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
 
-        focusedResource = viewModel.readingOrder.firstIndexWithHREF(href)
+        focusedResource = viewModel.readingOrder.index(of: href)
         frame.origin = convertPointToNavigatorSpace(frame.origin)
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }
@@ -502,6 +502,15 @@ class EPUBSpreadView: UIView, Loggable, PageView {
     /// To override in subclasses.
     func applySettings() {
         assert(Thread.isMainThread, "User settings must be updated from the main thread")
+    }
+
+    // MARK: - PageView
+
+    func pageDidDisappear() {
+        // Pauses any HTML media element (e.g. `<audio>` or `<video>`) still
+        // playing after turning the page.
+        // See https://github.com/readium/swift-toolkit/issues/121
+        webView.pauseAllMediaPlayback()
     }
 
     // MARK: - Location and progression.
