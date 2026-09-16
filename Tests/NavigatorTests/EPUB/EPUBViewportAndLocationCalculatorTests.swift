@@ -55,6 +55,45 @@ enum EPUBViewportAndLocationCalculatorTests {
             #expect(viewport.resources.first(where: { $0.href.string == ro[1].href })?.progression == 0.0 ... 1.0)
         }
 
+        @Test("records the rendered layout of each visible resource")
+        func layout() {
+            var fixed = Link(href: "chap2.html", mediaType: .html)
+            fixed.properties.epubLayout = .fixed
+            let ro = [
+                Link(href: "chap1.html", mediaType: .html),
+                fixed,
+                Link(href: "page3.jpg", mediaType: .jpeg),
+            ]
+            let manifest = makeManifest(readingOrder: ro)
+            let (_, viewport) = EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 2,
+                progression: { _ in 0.0 ... 1.0 },
+                manifest: manifest,
+                readingOrder: ro,
+                positionsByReadingOrder: [],
+                tableOfContentsTitleByHref: [:]
+            )
+            #expect(viewport.resources.map(\.layout) == [.reflowable, .fixed, .fixed])
+        }
+
+        @Test("records a fixed layout for an HTML resource rendered as its bitmap alternate")
+        func layoutOfPromotedBitmap() {
+            var main = Link(href: "page1.xhtml", mediaType: .xhtml)
+            main.alternates = [Link(href: "page1.jpg", mediaType: .jpeg)]
+            let manifest = makeManifest(readingOrder: [main])
+            let ro = EPUBReadingOrder(readingOrder: manifest.readingOrder, preferredVariant: .image).links
+            let (_, viewport) = EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 0,
+                progression: { _ in 0.0 ... 1.0 },
+                manifest: manifest,
+                readingOrder: ro,
+                positionsByReadingOrder: [],
+                tableOfContentsTitleByHref: [:]
+            )
+            #expect(viewport.resources.map(\.href.string) == ["page1.jpg"])
+            #expect(viewport.resources.map(\.layout) == [.fixed])
+        }
+
         @Test("total progression range lower bound matches locator totalProgression")
         func totalProgressionLowerBoundMatchesLocator() {
             let manifest = makeManifest(count: 2)
@@ -465,6 +504,27 @@ enum EPUBViewportAndLocationCalculatorTests {
             )
             #expect(viewport.resources.first(where: { $0.href.string == ro[0].href })?.progression == 0.1 ... 0.9)
             #expect(viewport.resources.first(where: { $0.href.string == ro[1].href })?.progression == 0.2 ... 0.8)
+        }
+    }
+
+    @Suite("Locator - rendered variant") struct LocatorWithRenderedVariant {
+        @Test("uses the href and media type of the rendered link instead of the position")
+        func usesRenderedLinkHREFAndMediaType() {
+            let manifest = makeManifest(count: 2)
+            var readingOrder = manifest.readingOrder
+            readingOrder[0] = Link(href: "chap1.jpg", mediaType: .jpeg)
+
+            let (locator, _) = EPUBViewportAndLocationCalculator.compute(
+                readingOrderIndices: 0 ... 0,
+                progression: { _ in 0.0 ... 1.0 },
+                manifest: manifest,
+                readingOrder: readingOrder,
+                positionsByReadingOrder: makePositions(resourceCount: 2, positionsPerResource: 1),
+                tableOfContentsTitleByHref: [:]
+            )
+            #expect(locator?.href.string == "chap1.jpg")
+            #expect(locator?.mediaType == .jpeg)
+            #expect(locator?.locations.position == 1)
         }
     }
 }

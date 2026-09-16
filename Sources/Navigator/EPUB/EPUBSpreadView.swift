@@ -493,7 +493,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
             return
         }
 
-        focusedResource = viewModel.readingOrder.firstIndexWithHREF(href)
+        focusedResource = viewModel.readingOrder.index(of: href)
         frame.origin = convertPointToNavigatorSpace(frame.origin)
         delegate?.spreadView(self, selectionDidChange: text, frame: frame)
     }

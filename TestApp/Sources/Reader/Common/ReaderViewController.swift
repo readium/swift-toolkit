@@ -56,7 +56,12 @@ class ReaderViewController<N: Navigator>: UIViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(close))
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
+    }
+
+    @objc private func close() {
+        dismiss(animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
