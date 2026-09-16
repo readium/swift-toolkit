@@ -57,6 +57,18 @@ public final class PDFDocumentView: PDFView {
         documentViewDelegate?.pdfDocumentView(self, didGoTo: destination)
     }
 
+    /// Since iOS 27, PDFKit lays out the pages inside the view's bounds inset
+    /// by its `safeAreaInsets`, instead of the full bounds. In paginated mode
+    /// this is not routed through the scroll view's `contentInset` at all, so
+    /// neither `contentInsetAdjustmentBehavior` nor zeroing `contentInset` has
+    /// any effect on it.
+    ///
+    /// We report our own insets instead, so that PDFKit lays out the content
+    /// exactly where we want it.
+    override public var safeAreaInsets: UIEdgeInsets {
+        contentInset
+    }
+
     override public func safeAreaInsetsDidChange() {
         super.safeAreaInsetsDidChange()
         updateContentInset()

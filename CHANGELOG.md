@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * [#121](https://github.com/readium/swift-toolkit/issues/121) HTML `<audio>` and `<video>` elements are now paused when the resource moves off-screen in the EPUB navigator, rather than continuing to play in the background.
+* Fixed the PDF navigator's content being inset by the surrounding safe area (e.g. the navigation bar) on iOS 27.
 
 #### LCP
 

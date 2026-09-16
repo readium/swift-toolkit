@@ -760,7 +760,7 @@ struct UserPreferences<
             isActive: isActive,
             onClear: onClear
         ) {
-            HStack {
+            HStack(spacing: 4) {
                 Stepper(title,
                         onIncrement: onIncrement,
                         onDecrement: onDecrement)
@@ -835,7 +835,7 @@ struct UserPreferences<
         onClear: @escaping () -> Void,
         content: @escaping () -> V
     ) -> some View {
-        HStack {
+        HStack(spacing: 8) {
             content()
                 .foregroundColor(isActive ? nil : .gray)
 
