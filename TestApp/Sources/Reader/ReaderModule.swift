@@ -60,8 +60,6 @@ final class ReaderModule: ReaderModuleAPI {
             }
 
             @MainActor func present(_ viewController: UIViewController) {
-                let backItem = UIBarButtonItem()
-                backItem.title = ""
                 let host = UINavigationController(rootViewController: viewController)
                 host.modalPresentationStyle = .fullScreen
                 navigationController.present(host, animated: true)
