@@ -296,9 +296,8 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         viewModel.config
     }
 
-    /// Reading order rendered by the navigator.
-    private var readingOrder: EPUBReadingOrder {
-        viewModel.readingOrder
+    public var readingOrder: [Link] {
+        viewModel.readingOrder.links
     }
 
     /// Creates a new instance of `EPUBNavigatorViewController`.
@@ -635,7 +634,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         spreads = EPUBSpread.makeSpreads(
             for: publication,
-            readingOrder: readingOrder.links,
+            readingOrder: readingOrder,
             readingProgression: viewModel.readingProgression,
             spread: viewModel.spreadEnabled,
             offsetFirstPage: viewModel.offsetFirstPage
@@ -644,7 +643,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         let initialIndex: ReadingOrder.Index = {
             if
                 let href = locator?.href,
-                let index = readingOrder.index(of: href),
+                let index = viewModel.readingOrder.index(of: href),
                 let foundIndex = self.spreads.firstIndexWithReadingOrderIndex(index)
             {
                 return foundIndex
@@ -671,7 +670,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private func loadedSpreadViewForHREF<T: URLConvertible>(_ href: T) -> EPUBSpreadView? {
         guard
             let loadedViews = paginationView?.loadedViews,
-            let index = readingOrder.links.firstIndexWithHREF(href)
+            let index = readingOrder.firstIndexWithHREF(href)
         else {
             return nil
         }
@@ -717,7 +716,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             readingOrderIndices: spreadView.spread.readingOrderIndices,
             progression: { spreadView.progression(in: $0) },
             manifest: publication.manifest,
-            readingOrder: readingOrder.links,
+            readingOrder: readingOrder,
             positionsByReadingOrder: positionsByReadingOrder,
             tableOfContentsTitleByHref: tableOfContentsTitleByHref
         )
@@ -759,7 +758,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
         guard
             let paginationView = paginationView,
-            let resolved = readingOrder.resolve(publication.normalizeLocator(locator)),
+            let resolved = viewModel.readingOrder.resolve(publication.normalizeLocator(locator)),
             let spreadIndex = spreads.firstIndexWithReadingOrderIndex(resolved.index),
             on(.jump(resolved.locator))
         else {
@@ -1053,7 +1052,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
                 for (_, view) in paginationView.loadedViews {
                     guard
                         let view = view as? EPUBSpreadView,
-                        let index = readingOrder.links.firstIndexWithHREF(href),
+                        let index = readingOrder.firstIndexWithHREF(href),
                         view.spread.contains(index: index)
                     else {
                         continue
@@ -1128,7 +1127,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             .joined(separator: "\n")
 
         let links = spreadView.spread.readingOrderIndices
-            .compactMap { readingOrder.links.getOrNil($0) }
+            .compactMap { readingOrder.getOrNil($0) }
 
         for link in links {
             let href = link.url()
@@ -1334,6 +1333,6 @@ extension EPUBNavigatorViewController: PaginationViewDelegate {
     }
 
     func paginationView(_ paginationView: PaginationView, positionCountAtIndex index: Int) -> Int {
-        spreads[index].positionCount(in: readingOrder.links, positionsByReadingOrder: positionsByReadingOrder)
+        spreads[index].positionCount(in: readingOrder, positionsByReadingOrder: positionsByReadingOrder)
     }
 }

@@ -65,6 +65,11 @@ open class PDFNavigatorViewController:
     private var pdfViewDefaultBackgroundColor: UIColor!
 
     public let publication: Publication
+
+    public var readingOrder: [Link] {
+        publication.readingOrder
+    }
+
     private let initialLocation: Locator?
     private let config: Configuration
     private let editingActions: EditingActionsController
