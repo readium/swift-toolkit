@@ -112,6 +112,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     public let publication: Publication
+
+    public var readingOrder: [Link] {
+        publication.readingOrder
+    }
+
     private let initialLocation: Locator?
     private let config: Configuration
     private let audioSession: AudioSessionManaging
