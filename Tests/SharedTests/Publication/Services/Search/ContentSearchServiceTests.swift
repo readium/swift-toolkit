@@ -16,46 +16,80 @@ enum ContentSearchServiceTests {
     /// used to run ahead of the real `windowText.count`, and offset arithmetic
     /// trapped with "String index is out of bounds".
     struct GraphemeClusterBoundaries {
-        @Test func elementStartingWithCombiningMark() async throws {
-            let results = try await search(query: "夜灯", elements: [
-                ["夜灯亮着，街角安静。"],
-                ["\u{0301}猫在窗台上打盹，夜灯映出影子。"],
-            ])
+        /// A publication made of one `TextContentElement` per array of segment
+        /// texts, containing the query "夜灯" twice.
+        struct Fixture: CustomTestStringConvertible {
+            let name: String
+            let elements: [[String]]
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        static let fixtures: [Fixture] = [
+            Fixture(
+                name: "plain content (control)",
+                elements: [
+                    ["夜灯亮着，街角安静。"],
+                    ["猫在窗台上打盹，夜灯映出影子。"],
+                ]
+            ),
+            Fixture(
+                name: "element starting with a combining mark",
+                elements: [
+                    ["夜灯亮着，街角安静。"],
+                    ["\u{0301}猫在窗台上打盹，夜灯映出影子。"],
+                ]
+            ),
+            Fixture(
+                name: "element starting with a variation selector",
+                elements: [
+                    ["夜灯亮着，街角安静。"],
+                    ["\u{FE0F}猫在窗台上打盹，夜灯映出影子。"],
+                ]
+            ),
+            Fixture(
+                name: "segment starting with a combining mark",
+                elements: [
+                    ["夜灯亮着，街角安静", "\u{0301}，猫在窗台上打盹，夜灯映出影子。"],
+                ]
+            ),
+        ]
+
+        @Test(arguments: fixtures)
+        func findsAllMatches(fixture: Fixture) async throws {
+            let results = try await search(query: "夜灯", elements: fixture.elements)
 
             #expect(results.count == 2)
             #expect(results.allSatisfy { $0.text.highlight == "夜灯" })
         }
 
-        @Test func elementStartingWithVariationSelector() async throws {
+        /// The merged cluster shifts every character of the entry one position
+        /// back in the window. The entry's start offset must account for it,
+        /// otherwise a match is attributed to the wrong segment.
+        @Test func matchResolvesToTheOwningSegment() async throws {
             let results = try await search(query: "夜灯", elements: [
-                ["夜灯亮着，街角安静。"],
-                ["\u{FE0F}猫在窗台上打盹，夜灯映出影子。"],
+                ["第一段。"],
+                ["\u{0301}abc", "夜灯xyz"],
             ])
 
-            #expect(results.count == 2)
-            #expect(results.allSatisfy { $0.text.highlight == "夜灯" })
+            #expect(results.count == 1)
+            let result = try #require(results.first)
+            #expect(result.text.highlight == "夜灯")
+            #expect(result.locations.fragments == ["e1s1"])
         }
 
-        /// A segment starting with a combining mark merges with the last
-        /// character of the previous segment inside the same element.
-        @Test func segmentStartingWithCombiningMark() async throws {
-            let results = try await search(query: "夜灯", elements: [
-                ["夜灯亮着，街角安静", "\u{0301}，猫在窗台上打盹，夜灯映出影子。"],
+        @Test func snippetsAroundAMergedCluster() async throws {
+            let results = try await search(query: "abc", elements: [
+                ["第一段。"],
+                ["\u{0301}abc def"],
             ])
 
-            #expect(results.count == 2)
-            #expect(results.allSatisfy { $0.text.highlight == "夜灯" })
-        }
-
-        /// Control: the same content without any cluster-merging character.
-        @Test func plainContent() async throws {
-            let results = try await search(query: "夜灯", elements: [
-                ["夜灯亮着，街角安静。"],
-                ["猫在窗台上打盹，夜灯映出影子。"],
-            ])
-
-            #expect(results.count == 2)
-            #expect(results.allSatisfy { $0.text.highlight == "夜灯" })
+            let result = try #require(results.first)
+            #expect(result.text.highlight == "abc")
+            #expect(result.text.before == "第一段。 \u{0301}")
+            #expect(result.text.after == "def")
         }
     }
 }
@@ -66,11 +100,16 @@ enum ContentSearchServiceTests {
 /// `TextContentElement` per array of segment texts.
 private func search(query: String, elements segmentTexts: [[String]]) async throws -> [Locator] {
     let locator = Locator(href: "chap1", mediaType: .html)
-    let elements: [ContentElement] = segmentTexts.map { texts in
+    let elements: [ContentElement] = segmentTexts.enumerated().map { elementIndex, texts in
         TextContentElement(
             locator: locator,
             role: .body,
-            segments: texts.map { TextContentElement.Segment(locator: locator, text: $0) }
+            segments: texts.enumerated().map { segmentIndex, text in
+                TextContentElement.Segment(
+                    locator: locator.copy(locations: { $0.fragments = ["e\(elementIndex)s\(segmentIndex)"] }),
+                    text: text
+                )
+            }
         )
     }
 
