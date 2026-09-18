@@ -110,31 +110,22 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
     }
 
-    /// In paginated mode, the top and bottom content insets are applied
-    /// outside the web view, which therefore does not span the full height of
-    /// the spread view. Horizontal swipes over these margins would be picked
-    /// up by the parent `PaginationView` and jump to the previous or next
-    /// resource, instead of turning the page.
-    ///
-    /// To fix this, touches falling through to the spread view (i.e. over the
-    /// margins) are rerouted to the web view's scroll view, so they behave
-    /// exactly like swipes over the content. Taps on the margins are still
-    /// expected to reach this view's `touchesBegan`/`touchesEnded` (and
-    /// therefore the app chrome activation) through the responder chain, as
-    /// the web view's scroll view forwards the touches it does not consume up
-    /// the chain.
+    /// Reroutes touches over the top and bottom margins of a paginated spread
+    /// to the web view's scroll view, so that horizontal swipes turn the page
+    /// instead of being caught by the parent `PaginationView`. Unconsumed
+    /// taps still reach `touchesBegan`/`touchesEnded` through the responder
+    /// chain.
     ///
     /// See https://github.com/readium/swift-toolkit/issues/112
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        let view = super.hitTest(point, with: event)
+        let hitView = super.hitTest(point, with: event)
         guard
             !viewModel.scroll,
-            view == self,
-            // Returning the scroll view manually would bypass the
-            // `isUserInteractionEnabled` check of the regular hit-testing.
+            hitView == self,
+            isSpreadInitialized,
             scrollView.isUserInteractionEnabled
         else {
-            return view
+            return hitView
         }
         return scrollView
     }
