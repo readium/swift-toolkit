@@ -11,12 +11,7 @@
   "defaultOptions" : {
     "codeCoverage" : false,
     "language" : "en",
-    "region" : "US",
-    "targetForVariableExpansion" : {
-      "containerPath" : "container:Playground.xcodeproj",
-      "identifier" : "BED194980D56484BC288A866",
-      "name" : "Playground"
-    }
+    "region" : "US"
   },
   "testTargets" : [
     {

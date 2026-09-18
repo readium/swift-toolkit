@@ -4,10 +4,12 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumShared
+import CryptoKit
+import Foundation
 
-extension Metadata {
-    var epubLayout: EPUBLayout {
-        layout == .fixed ? .fixed : .reflowable
+extension String {
+    func sha256() -> String {
+        let digest = SHA256.hash(data: Data(utf8))
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }

@@ -18,7 +18,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// spread).
     public var columnCount: ColumnCount?
 
-    /// Method for fitting the content of a fixed-layout publication within the
+    /// Method for fitting the content of fixed-layout resources within the
     /// viewport.
     ///
     /// - `auto` or `page`: Fit entire page within viewport (default).
@@ -79,7 +79,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// scrolling instead of synthetic pagination.
     public var scroll: Bool?
 
-    /// Indicates if the fixed-layout publication should be rendered with a
+    /// Indicates if the fixed-layout resources should be rendered with a
     /// synthetic spread (dual-page).
     public var spread: Spread?
 

@@ -3,7 +3,65 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-## [Unreleased: swift6]
+## [Unreleased]
+
+### Added
+
+#### Navigator
+
+* The EPUB navigator supports publications mixing reflowable and fixed-layout resources, rendering each resource according to its own layout.
+* New `EPUBNavigatorViewController.Configuration.preferredResourceVariant` to choose which variant of each resource is rendered among its `alternates`, such as the XHTML page or its bitmap fallback.
+    * Bitmap resources in the reading order are rendered as fixed-layout, even in a reflowable publication.
+* New `EPUBNavigatorDelegate.navigator(_:contentInsetFor:)` to customize the content insets of a spread according to its `EPUBLayout`, for example to add margins only around the reflowable resources of a mixed-layout publication. It takes precedence over `navigatorContentInset(_:)`.
+* New `Navigator.readingOrder` property returning the reading order actually rendered by the navigator, which may differ from `publication.readingOrder` when a custom reading order or a resource variant is used.
+
+### Changed
+
+#### Shared
+
+* Converting a `Link` to a `Locator` is now synchronous: `await publication.locate(link)` becomes `publication.locator(for: link)`. The logic moved to `Manifest`, so it is also available as `manifest.locator(for: link)` without a `Publication`.
+
+#### Navigator
+
+* In the EPUB navigator, a fixed-layout resource displayed on its own when spreads are enabled is now centered, unless the publication provides an explicit page position (e.g. `page-spread-left`). It was previously displayed on the left or right half of the viewport, depending on the reading progression.
+
+#### Streamer
+
+* EPUB spine items with a bitmap fallback are no longer swapped with their fallback. The spine item stays in the reading order and the bitmap is available in its `alternates`.
+    * This changes the resources rendered by default and the href of the reported locations. Locations saved with the previous version are still restored by the EPUB navigator.
+    * Use `EPUBNavigatorViewController.Configuration.preferredResourceVariant = .image` in the EPUB navigator configuration to render the bitmaps like before.
+
+#### LCP
+
+* Opening an LCP publication is no longer delayed by the CRL used to validate its license. The CRL is now downloaded when creating the `LCPService`, and an expired one is refreshed in the background instead of making the user wait for the response.
+
+### Fixed
+
+#### Shared
+
+* [#876](https://github.com/readium/swift-toolkit/issues/876) Fixed a crash (`String index is out of bounds`) in `ContentSearchService` when searching a publication containing characters merging with the surrounding text, such as combining diacritical marks.
+
+#### Navigator
+
+* [#121](https://github.com/readium/swift-toolkit/issues/121) HTML `<audio>` and `<video>` elements are now paused when the resource moves off-screen in the EPUB navigator, rather than continuing to play in the background.
+* Fixed the PDF navigator's content being inset by the surrounding safe area (e.g. the navigation bar) on iOS 27.
+* [#112](https://github.com/readium/swift-toolkit/issues/112) In the paginated EPUB navigator, horizontal swipes over the top and bottom margins of a reflowable resource now turn the page, instead of skipping to the previous or next resource.
+
+#### LCP
+
+* The CRL used to validate LCP licenses is now checked to be a genuine X.509 CRL before being cached. Networks with a captive portal (e.g. on a plane) could return their login page with a `200 OK` status, which was then cached for seven days and prevented opening LCP publications. An invalid CRL cached by a previous version is now ignored instead of waiting for its expiration.
+* [#579](https://github.com/readium/swift-toolkit/issues/579) Streamed LCP audiobooks now start playing almost immediately. Resources encrypted with AES-CBC are decrypted and served in chunks, instead of being fully downloaded and decrypted upfront.
+
+
+## [4.0.0-alpha.1] - 2026-08-14
+
+### Added
+
+#### Shared
+
+* Content elements now expose `accessibleName`, `accessibleDescription` and `extendedDescription` attributes, computed following a subset of [the W3C accessible name computation](https://www.w3.org/TR/accname-1.2) and [Best Practices for Implementing Extended Descriptions in EPUB](https://daisy.github.io/transitiontoepub/best-practices/extended-desc/ExtendedDescriptionsBestPractices.html). 
+* The HTML content iterator now emits inline `<svg>` elements as `SVGContentElement`, with a caption from the enclosing figure's `figcaption`.
+* `AudioContentElement` and `VideoContentElement` now expose a `caption` property, filled from the enclosing figure's `figcaption` like images and SVGs already were.
 
 ### Changed
 
@@ -15,6 +73,8 @@ All notable changes to this project will be documented in this file. Take a look
 * OPDS models (`Feed`, `Group`, `Facet`, `OpdsMetadata`) are now structs with value semantics.
 * `Publication`, `Resource`, `Container` and related types are now `Sendable`. Custom implementations of `Resource`, `Container`, `HTTPClient` or `PublicationService` must be `Sendable` too.
 * `Resource.stream()` now cooperates with task cancellation: the built-in resources fail with `ReadError.cancelled` when the surrounding task is cancelled, and custom implementations are expected to do the same.
+* `ImageContentElement.caption` and `SVGContentElement.caption` are now strictly the text of the enclosing figure's `figcaption`. Other sources (such as `alt`) contribute to `accessibleName` instead.
+* Audio and video content elements now expose accessibility attributes, so the text-to-speech may start speaking their labels.
 
 #### Navigator
 
@@ -36,8 +96,6 @@ All notable changes to this project will be documented in this file. Take a look
 
 * When an OPF package document declares the same property with both a legacy EPUB 2 `<meta name=>` tag and a structured element (EPUB 3 `<meta property=>` or `<dc:x>`), the structured one now supersedes the legacy one in `otherMetadata`, instead of both values being kept ([#85](https://github.com/readium/swift-toolkit/issues/85)).
 
-
-<!-- ## [Unreleased] -->
 
 ## [3.11.0] - 2026-07-17
 
@@ -1321,3 +1379,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.9.0]: https://github.com/readium/swift-toolkit/compare/3.8.0...3.9.0
 [3.10.0]: https://github.com/readium/swift-toolkit/compare/3.9.0...3.10.0
 [3.11.0]: https://github.com/readium/swift-toolkit/compare/3.10.0...3.11.0
+[4.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/3.11.0...4.0.0-alpha.1

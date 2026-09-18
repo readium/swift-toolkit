@@ -27,8 +27,6 @@ final class AudioLocatorService: LocatorService {
     /// Total duration of the publication.
     private let totalDuration: Double?
 
-    private let locatorService: DefaultLocatorService
-
     init(readingOrder: [Link], publication: Weak<Publication>) {
         self.publication = publication
         self.readingOrder = readingOrder
@@ -36,7 +34,6 @@ final class AudioLocatorService: LocatorService {
         self.durations = durations
         let total = durations.reduce(0, +)
         totalDuration = (total > 0) ? total : nil
-        locatorService = DefaultLocatorService(publication: publication)
     }
 
     func locate(_ locator: Locator) async -> Locator? {
@@ -50,8 +47,8 @@ final class AudioLocatorService: LocatorService {
 
         // Routes the `totalProgression` fallback through this service's audio
         // `locate(progression:)`, which is duration-based. Delegating to
-        // `locatorService.locate(locator)` would instead use the default
-        // positions-based progression and lose the audio behavior.
+        // `DefaultLocatorService` would instead use the default positions-based
+        // progression and lose the audio behavior.
         if
             let totalProgression = locator.locations.totalProgression,
             let target = await locate(progression: totalProgression)
@@ -63,10 +60,6 @@ final class AudioLocatorService: LocatorService {
         }
 
         return nil
-    }
-
-    func locate(_ link: Link) async -> Locator? {
-        await locatorService.locate(link)
     }
 
     func locate(progression: Double) async -> Locator? {

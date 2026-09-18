@@ -122,6 +122,19 @@ enum PDFViewportCalculatorTests {
             #expect(viewport?.resources.first?.progression == 0.0 ... 1.0)
         }
 
+        @Test("resources are fixed-layout")
+        func fixedLayout() {
+            let (_, viewport) = PDFViewportCalculator.compute(
+                currentPageNumber: 1,
+                visiblePageNumbers: 1 ... 1,
+                pageCount: 4,
+                currentResourceIndex: 0,
+                readingOrder: makeReadingOrder(count: 1),
+                positionsByReadingOrder: makePositions(resourceCount: 1, pagesPerResource: 4)
+            )
+            #expect(viewport?.resources.first?.layout == .fixed)
+        }
+
         @Test("middle pages — progression is an interior range")
         func middlePages() {
             let (_, viewport) = PDFViewportCalculator.compute(

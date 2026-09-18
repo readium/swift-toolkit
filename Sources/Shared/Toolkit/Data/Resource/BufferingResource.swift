@@ -74,8 +74,14 @@ public actor BufferingResource: Resource, Loggable {
             return .success(())
         }
 
-        // Read ahead from the request start to fill the buffer.
-        let readAheadEnd = requestedRange.lowerBound + UInt64(buffer.maxSize)
+        // Read ahead from the request start to fill the buffer, without
+        // requesting bytes past the end of the resource. Not all resources
+        // clamp out-of-range requests, e.g. HTTP servers reply with a
+        // 416 Range Not Satisfiable error.
+        var readAheadEnd = requestedRange.lowerBound + UInt64(buffer.maxSize)
+        if case let .success(.some(length)) = await estimatedLength() {
+            readAheadEnd = min(readAheadEnd, length)
+        }
         let readRange = requestedRange.lowerBound ..< max(requestedRange.upperBound, readAheadEnd)
 
         // Range that will actually need to be read from the original resource,

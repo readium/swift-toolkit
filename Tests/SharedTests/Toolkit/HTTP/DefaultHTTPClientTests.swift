@@ -1156,7 +1156,9 @@ private extension URLRequest {
             defer { buffer.deallocate() }
             while stream.hasBytesAvailable {
                 let bytesRead = stream.read(buffer, maxLength: 1024)
-                if bytesRead > 0 { data.append(buffer, count: bytesRead) }
+                if bytesRead > 0 {
+                    data.append(buffer, count: bytesRead)
+                }
             }
             stream.close()
             return data
