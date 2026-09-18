@@ -35,7 +35,7 @@ public extension EPUBPreferences {
                 .flatMap { Color(hex: $0) },
             columnCount: defaults.optInt(for: .columnCount)
                 .flatMap { (columnCountValues ?? defaultColumnCountValues).getOrNil($0) }
-                .flatMap { ColumnCount(rawValue: $0) },
+                .flatMap { Int($0) },
             fontFamily: defaults.optInt(for: .fontFamily)
                 .takeIf { $0 != 0 } // Original
                 .flatMap { (fontFamilyValues ?? defaultFontFamilyValues).getOrNil($0) }

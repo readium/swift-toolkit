@@ -43,11 +43,10 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
     // Pagination
 
-    /// The number of columns (column-count) the user wants displayed (one-page view or two-page
-    /// spread).
+    /// The number of columns (column-count) the user wants displayed.
     ///
-    /// To reset, change the value to auto.
-    public var colCount: CSSColCount?
+    /// To reset, change the value to 0.
+    public var colCount: Int?
 
     /// A factor applied to horizontal margins (padding-left and padding-right) the user wants to
     /// set.
@@ -56,20 +55,32 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     /// To reset, change the value to 1.
     public var pageMargins: Double?
 
+    /// The maximum line length.
+    public var lineLength: CSSLength?
+
     // Appearance
 
     /// This flag applies a reading mode (sepia or night).
     public var appearance: CSSAppearance?
 
-    /// This will only apply in night mode to darken images and impact img.
-    ///
-    /// Requires: appearance = Appearance.Night
-    public var darkenImages: Bool?
+    /// Blends the images with the background color.
+    public var blendImages: Bool?
 
-    /// This will only apply in night mode to invert images and impact img.
+    /// This will apply a brightness filter with the value it's given.
     ///
     /// Requires: appearance = Appearance.Night
-    public var invertImages: Bool?
+    public var darkenImages: Double?
+
+    /// This will apply an invert filter with the value it's given.
+    ///
+    /// Requires: appearance = Appearance.Night
+    public var invertImages: Double?
+
+    /// This will apply an invert filter with the value it's given,
+    /// only to img class="gaiji".
+    ///
+    /// Requires: appearance = Appearance.Night
+    public var invertGaiji: Double?
 
     /// The color for textual contents. It impacts all elements but headings and pre in the DOM.
     ///
@@ -162,16 +173,22 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     /// Requires: fontOverride
     public var a11yNormalize: Bool?
 
+    /// Hiding/disabling ruby (furigana) annotations.
+    public var noRuby: Bool?
+
     /// Additional overrides for extensions and adjustments.
     public var overrides: [String: String?]
 
     public init(
         view: CSSView? = nil,
-        colCount: CSSColCount? = nil,
+        colCount: Int? = nil,
         pageMargins: Double? = nil,
+        lineLength: CSSLength? = nil,
         appearance: CSSAppearance? = nil,
-        darkenImages: Bool? = nil,
-        invertImages: Bool? = nil,
+        blendImages: Bool? = nil,
+        darkenImages: Double? = nil,
+        invertImages: Double? = nil,
+        invertGaiji: Double? = nil,
         textColor: CSSColor? = nil,
         backgroundColor: CSSColor? = nil,
         fontOverride: Bool? = nil,
@@ -188,14 +205,18 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         bodyHyphens: CSSHyphens? = nil,
         ligatures: CSSLigatures? = nil,
         a11yNormalize: Bool? = nil,
+        noRuby: Bool? = nil,
         overrides: [String: String?] = [:]
     ) {
         self.view = view
         self.colCount = colCount
         self.pageMargins = pageMargins
+        self.lineLength = lineLength
         self.appearance = appearance
+        self.blendImages = blendImages
         self.darkenImages = darkenImages
         self.invertImages = invertImages
+        self.invertGaiji = invertGaiji
         self.textColor = textColor
         self.backgroundColor = backgroundColor
         self.fontOverride = fontOverride
@@ -212,6 +233,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.bodyHyphens = bodyHyphens
         self.ligatures = ligatures
         self.a11yNormalize = a11yNormalize
+        self.noRuby = noRuby
         self.overrides = overrides
     }
 
@@ -223,11 +245,14 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         // Pagination
         props.putCSS(name: "--USER__colCount", value: colCount)
         props.putCSS(name: "--USER__pageMargins", value: pageMargins)
+        props.putCSS(name: "--USER__lineLength", value: lineLength)
 
         // Appearance
         props.putCSS(name: "--USER__appearance", value: appearance)
-        props.putCSS(name: "--USER__darkenImages", value: CSSFlag(name: "darken", isEnabled: darkenImages))
-        props.putCSS(name: "--USER__invertImages", value: CSSFlag(name: "invert", isEnabled: invertImages))
+        props.putCSS(name: "--USER__blendImages", value: CSSFlag(name: "blend", isEnabled: blendImages))
+        props.putCSS(name: "--USER__darkenImages", value: darkenImages)
+        props.putCSS(name: "--USER__invertImages", value: invertImages)
+        props.putCSS(name: "--USER__invertGaiji", value: invertGaiji)
 
         // Colors
         props.putCSS(name: "--USER__textColor", value: textColor)
@@ -252,6 +277,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
         // Accessibility
         props.putCSS(name: "--USER__a11yNormalize", value: CSSFlag(name: "a11y", isEnabled: a11yNormalize))
+        props.putCSS(name: "--USER__noRuby", value: CSSFlag(name: "noRuby", isEnabled: noRuby))
 
         props.merge(overrides, uniquingKeysWith: { _, n in n })
         return props
@@ -264,17 +290,32 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 public struct CSSRSProperties: CSSProperties, Sendable {
     // Pagination
 
+    /// @param viewportWidth The optimal viewport width.
+    public var viewportWidth: CSSLength?
+
     /// @param colWidth The optimal column’s width. It serves as a floor in our design.
     public var colWidth: CSSLength?
 
     /// @param colCount The optimal number of columns (depending on the columns’ width).
-    public var colCount: CSSColCount?
+    public var colCount: Int?
 
     /// @param colGap The gap between columns. You must account for this gap when scrolling.
     public var colGap: CSSAbsoluteLength?
 
     /// @param pageGutter The horizontal page margins.
     public var pageGutter: CSSAbsoluteLength?
+
+    /// @param scrollPaddingTop The default top padding for continuous scroll mode.
+    public var scrollPaddingTop: CSSLength?
+
+    /// @param scrollPaddingBottom The default bottom padding for continuous scroll mode.
+    public var scrollPaddingBottom: CSSLength?
+
+    /// @param scrollPaddingLeft The default left padding for continuous scroll mode.
+    public var scrollPaddingLeft: CSSLength?
+
+    /// @param scrollPaddingRight The default right padding for continuous scroll mode.
+    public var scrollPaddingRight: CSSLength?
 
     // Vertical rhythm
 
@@ -290,9 +331,15 @@ public struct CSSRSProperties: CSSProperties, Sendable {
 
     // Safeguards
 
-    /// @param maxLineLength The optimal line-length. It must be set in rem in order to take :root’s
+    /// @param defaultLineLength The optimal line-length. It must be set in rem in order to take :root’s
     /// font-size as a reference, whichever the body’s font-size might be.
-    public var maxLineLength: CSSRemLength?
+    public var defaultLineLength: CSSRemLength?
+
+    @available(*, deprecated, renamed: "defaultLineLength")
+    public var maxLineLength: CSSRemLength? {
+        get { defaultLineLength }
+        set { defaultLineLength = newValue }
+    }
 
     /// @param maxMediaWidth The max-width for media elements i.e. img, svg, audio and video.
     public var maxMediaWidth: CSSLength?
@@ -398,14 +445,19 @@ public struct CSSRSProperties: CSSProperties, Sendable {
     public var overrides: [String: String?]
 
     public init(
+        viewportWidth: CSSLength? = nil,
         colWidth: CSSLength? = nil,
-        colCount: CSSColCount? = nil,
+        colCount: Int? = nil,
         colGap: CSSAbsoluteLength? = nil,
         pageGutter: CSSAbsoluteLength? = nil,
+        scrollPaddingTop: CSSLength? = nil,
+        scrollPaddingBottom: CSSLength? = nil,
+        scrollPaddingLeft: CSSLength? = nil,
+        scrollPaddingRight: CSSLength? = nil,
         flowSpacing: CSSLength? = nil,
         paraSpacing: CSSLength? = nil,
         paraIndent: CSSLength? = nil,
-        maxLineLength: CSSRemLength? = nil,
+        defaultLineLength: CSSRemLength? = nil,
         maxMediaWidth: CSSLength? = nil,
         maxMediaHeight: CSSLength? = nil,
         boxSizingMedia: CSSBoxSizing? = nil,
@@ -434,14 +486,19 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         codeFontFamily: [String]? = nil,
         overrides: [String: String?] = [:]
     ) {
+        self.viewportWidth = viewportWidth
         self.colWidth = colWidth
         self.colCount = colCount
         self.colGap = colGap
         self.pageGutter = pageGutter
+        self.scrollPaddingTop = scrollPaddingTop
+        self.scrollPaddingBottom = scrollPaddingBottom
+        self.scrollPaddingLeft = scrollPaddingLeft
+        self.scrollPaddingRight = scrollPaddingRight
         self.flowSpacing = flowSpacing
         self.paraSpacing = paraSpacing
         self.paraIndent = paraIndent
-        self.maxLineLength = maxLineLength
+        self.defaultLineLength = defaultLineLength
         self.maxMediaWidth = maxMediaWidth
         self.maxMediaHeight = maxMediaHeight
         self.boxSizingMedia = boxSizingMedia
@@ -471,14 +528,101 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         self.overrides = overrides
     }
 
+    @available(*, deprecated, message: "Use init with defaultLineLength instead")
+    public init(
+        colWidth: CSSLength? = nil,
+        colCount: Int? = nil,
+        colGap: CSSAbsoluteLength? = nil,
+        pageGutter: CSSAbsoluteLength? = nil,
+        flowSpacing: CSSLength? = nil,
+        paraSpacing: CSSLength? = nil,
+        paraIndent: CSSLength? = nil,
+        maxLineLength: CSSRemLength?,
+        maxMediaWidth: CSSLength? = nil,
+        maxMediaHeight: CSSLength? = nil,
+        boxSizingMedia: CSSBoxSizing? = nil,
+        boxSizingTable: CSSBoxSizing? = nil,
+        textColor: CSSColor? = nil,
+        backgroundColor: CSSColor? = nil,
+        selectionTextColor: CSSColor? = nil,
+        selectionBackgroundColor: CSSColor? = nil,
+        linkColor: CSSColor? = nil,
+        visitedColor: CSSColor? = nil,
+        primaryColor: CSSColor? = nil,
+        secondaryColor: CSSColor? = nil,
+        typeScale: Double? = nil,
+        baseFontFamily: [String]? = nil,
+        baseLineHeight: CSSLineHeight? = nil,
+        oldStyleTf: [String]? = nil,
+        modernTf: [String]? = nil,
+        sansTf: [String]? = nil,
+        humanistTf: [String]? = nil,
+        monospaceTf: [String]? = nil,
+        serifJa: [String]? = nil,
+        sansSerifJa: [String]? = nil,
+        serifJaV: [String]? = nil,
+        sansSerifJaV: [String]? = nil,
+        compFontFamily: [String]? = nil,
+        codeFontFamily: [String]? = nil,
+        overrides: [String: String?] = [:]
+    ) {
+        self.init(
+            viewportWidth: nil,
+            colWidth: colWidth,
+            colCount: colCount,
+            colGap: colGap,
+            pageGutter: pageGutter,
+            scrollPaddingTop: nil,
+            scrollPaddingBottom: nil,
+            scrollPaddingLeft: nil,
+            scrollPaddingRight: nil,
+            flowSpacing: flowSpacing,
+            paraSpacing: paraSpacing,
+            paraIndent: paraIndent,
+            defaultLineLength: maxLineLength,
+            maxMediaWidth: maxMediaWidth,
+            maxMediaHeight: maxMediaHeight,
+            boxSizingMedia: boxSizingMedia,
+            boxSizingTable: boxSizingTable,
+            textColor: textColor,
+            backgroundColor: backgroundColor,
+            selectionTextColor: selectionTextColor,
+            selectionBackgroundColor: selectionBackgroundColor,
+            linkColor: linkColor,
+            visitedColor: visitedColor,
+            primaryColor: primaryColor,
+            secondaryColor: secondaryColor,
+            typeScale: typeScale,
+            baseFontFamily: baseFontFamily,
+            baseLineHeight: baseLineHeight,
+            oldStyleTf: oldStyleTf,
+            modernTf: modernTf,
+            sansTf: sansTf,
+            humanistTf: humanistTf,
+            monospaceTf: monospaceTf,
+            serifJa: serifJa,
+            sansSerifJa: sansSerifJa,
+            serifJaV: serifJaV,
+            sansSerifJaV: sansSerifJaV,
+            compFontFamily: compFontFamily,
+            codeFontFamily: codeFontFamily,
+            overrides: overrides
+        )
+    }
+
     public func cssProperties() -> [String: String?] {
         var props: [String: String?] = [:]
 
         // Pagination
+        props.putCSS(name: "--RS__viewportWidth", value: viewportWidth)
         props.putCSS(name: "--RS__colWidth", value: colWidth)
         props.putCSS(name: "--RS__colCount", value: colCount)
         props.putCSS(name: "--RS__colGap", value: colGap)
         props.putCSS(name: "--RS__pageGutter", value: pageGutter)
+        props.putCSS(name: "--RS__scrollPaddingTop", value: scrollPaddingTop)
+        props.putCSS(name: "--RS__scrollPaddingBottom", value: scrollPaddingBottom)
+        props.putCSS(name: "--RS__scrollPaddingLeft", value: scrollPaddingLeft)
+        props.putCSS(name: "--RS__scrollPaddingRight", value: scrollPaddingRight)
 
         // Vertical rhythm
         props.putCSS(name: "--RS__flowSpacing", value: flowSpacing)
@@ -486,7 +630,7 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         props.putCSS(name: "--RS__paraIndent", value: paraIndent)
 
         // Safeguards
-        props.putCSS(name: "--RS__maxLineLength", value: maxLineLength)
+        props.putCSS(name: "--RS__defaultLineLength", value: defaultLineLength)
         props.putCSS(name: "--RS__maxMediaWidth", value: maxMediaWidth)
         props.putCSS(name: "--RS__maxMediaHeight", value: maxMediaHeight)
         props.putCSS(name: "--RS__boxSizingMedia", value: boxSizingMedia)
@@ -880,6 +1024,11 @@ private extension Dictionary where Key == String, Value == String? {
 
     mutating func putCSS(name: String, value: String?) {
         self[name] = value?.css()
+    }
+
+    mutating func putCSS(name: String, value: Int?) {
+        let css = value.map { String(format: "%d", $0) }
+        self[name] = css
     }
 
     mutating func putCSS(name: String, value: Double?) {

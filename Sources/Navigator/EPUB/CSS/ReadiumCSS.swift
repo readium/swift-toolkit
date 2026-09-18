@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumShared
+import UIKit
 
 struct ReadiumCSS {
     var layout: CSSLayout = .init()
@@ -19,18 +20,53 @@ struct ReadiumCSS {
 }
 
 extension ReadiumCSS {
+    @MainActor
     mutating func update(with settings: EPUBSettings) {
         layout = settings.cssLayout
+
+        var overrides: [String: String] = [
+            // See https://github.com/readium/css/issues/183
+            "--RS__disableOverflow": "readium-noOverflow-on",
+
+            "font-weight": settings.fontWeight
+                .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
+                ?? "",
+        ]
+
+        let baseGutter = 20.0
+        let gutterString = String(format: "%.5fpx", baseGutter * settings.pageMargins)
+        overrides["--RS__pageGutter"] = gutterString
+
+        if settings.scroll {
+            if settings.verticalText {
+                overrides["--RS__scrollPaddingTop"] = gutterString
+                overrides["--RS__scrollPaddingBottom"] = gutterString
+            } else {
+                overrides["--RS__scrollPaddingLeft"] = gutterString
+                overrides["--RS__scrollPaddingRight"] = gutterString
+            }
+        }
+
+        // Applies WebKit patches, ideally:
+        // - iOS patch for iOS and iPadOS when the site is requested as mobile.
+        // - iPadOSPatch for iPadOS when the site is requested as desktop.
+        // - Nothing if MacOS.
+        //
+        // See https://github.com/readium/css/issues/189
+        switch UIDevice.current.userInterfaceIdiom {
+        case .pad:
+            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
+        case .phone:
+            overrides["--USER__iOSPatch"] = "readium-iOSPatch-on"
+        default:
+            break
+        }
+
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            colCount: {
-                switch settings.columnCount {
-                case .auto: return .auto
-                case .one: return .one
-                case .two: return .two
-                }
-            }(),
+            colCount: settings.columnCount,
             pageMargins: settings.pageMargins,
+            lineLength: CSSPercentLength(settings.lineLength),
             appearance: {
                 switch settings.theme {
                 case .light: return nil
@@ -38,8 +74,10 @@ extension ReadiumCSS {
                 case .sepia: return .sepia
                 }
             }(),
-            darkenImages: settings.imageFilter == .darken,
-            invertImages: settings.imageFilter == .invert,
+            blendImages: settings.blendImages,
+            darkenImages: settings.darkenImages.map { 1 - $0 },
+            invertImages: settings.invertImages,
+            invertGaiji: settings.invertGaiji,
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
             fontOverride: settings.fontFamily != nil || settings.textNormalization,
@@ -64,11 +102,8 @@ extension ReadiumCSS {
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
-            overrides: [
-                "font-weight": settings.fontWeight
-                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
-                    ?? "",
-            ]
+            noRuby: settings.noRuby,
+            overrides: overrides
         )
     }
 
