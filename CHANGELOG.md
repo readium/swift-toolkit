@@ -37,10 +37,15 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+#### Shared
+
+* [#876](https://github.com/readium/swift-toolkit/issues/876) Fixed a crash (`String index is out of bounds`) in `ContentSearchService` when searching a publication containing characters merging with the surrounding text, such as combining diacritical marks.
+
 #### Navigator
 
 * [#121](https://github.com/readium/swift-toolkit/issues/121) HTML `<audio>` and `<video>` elements are now paused when the resource moves off-screen in the EPUB navigator, rather than continuing to play in the background.
 * Fixed the PDF navigator's content being inset by the surrounding safe area (e.g. the navigation bar) on iOS 27.
+* [#112](https://github.com/readium/swift-toolkit/issues/112) In the paginated EPUB navigator, horizontal swipes over the top and bottom margins of a reflowable resource now turn the page, instead of skipping to the previous or next resource.
 
 #### LCP
 
@@ -85,14 +90,6 @@ All notable changes to this project will be documented in this file. Take a look
 * The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been removed.
 * The `ReadiumInternal` package has been removed. Its utilities were internal helpers and are now folded into `ReadiumShared` with `package` visibility. If you imported `ReadiumInternal` directly, remove the import.
 
-### Fixed
-
-#### Navigator
-
-* [#112](https://github.com/readium/swift-toolkit/issues/112) In the paginated EPUB navigator, horizontal swipes over the top and bottom margins of a reflowable resource now turn the page, instead of skipping to the previous or next resource.
-
-
-<!-- ## [Unreleased] -->
 
 ## [3.11.0] - 2026-07-17
 
