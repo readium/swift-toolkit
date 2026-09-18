@@ -173,14 +173,14 @@ let navigator = try EPUBNavigatorViewController(
 #### 5. Build and apply decorations
 
 ```swift
-private func updatePageListDecorations() async {
+private func updatePageListDecorations() {
     guard let navigator = navigator as? DecorableNavigator else { return }
 
     var decorations: [Decoration] = []
     for (index, link) in publication.pageList.enumerated() {
         guard
             let title = link.title,
-            let locator = await publication.locate(link)
+            let locator = publication.locator(for: link)
         else {
             continue
         }

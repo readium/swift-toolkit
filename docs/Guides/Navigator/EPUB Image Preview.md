@@ -56,7 +56,7 @@ A good place to surface them is the image preview itself, as a "view extended de
 
 ```swift
 if let link = image.extendedDescriptions.first {
-    if let locator = await publication.locate(link) {
+    if let locator = publication.locator(for: link) {
         await navigator.go(to: locator)
 
     } else if let url = link.httpURL {
