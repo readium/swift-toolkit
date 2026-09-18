@@ -4,6 +4,27 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 <!-- ## Unreleased -->
 
+## 4.0.0-alpha.2
+
+### EPUB bitmap fallbacks are no longer swapped in the reading order
+
+When an EPUB spine item declares a bitmap fallback (e.g. a JPEG image for an XHTML resource), the parser used to replace the spine item with its fallback. The spine item now stays in the reading order, and the bitmap is available in its `alternates`.
+
+This changes the resources rendered by the EPUB navigator and the `href` of the locations it reports. Locations saved with the previous version are still restored by the EPUB navigator, but if you store or compare `href`s on your side (e.g. for bookmarks or highlights), expect them to point to the spine items instead of their fallbacks.
+
+To keep rendering the bitmaps like before, set `preferredResourceVariant` in the EPUB navigator configuration:
+
+```swift
+let navigator = try EPUBNavigatorViewController(
+    publication: publication,
+    initialLocation: locator,
+    config: EPUBNavigatorViewController.Configuration(
+        preferredResourceVariant: .image
+    )
+)
+```
+
+
 ## 4.0.0-alpha.1
 
 ### Swift 6 and strict concurrency
