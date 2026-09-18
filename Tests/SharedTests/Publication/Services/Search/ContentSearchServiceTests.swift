@@ -91,6 +91,21 @@ enum ContentSearchServiceTests {
             #expect(result.text.before == "第一段。 \u{0301}")
             #expect(result.text.after == "def")
         }
+
+        /// A long resource forces the window to be front-trimmed repeatedly,
+        /// which rebases every entry's offset. Merged clusters must not make
+        /// the offsets drift across trims.
+        @Test(arguments: ["\u{0301}", "\u{FE0F}", "\u{200C}"])
+        func matchesSurviveWindowTrimming(mergingCharacter: String) async throws {
+            let elementCount = 100
+            let results = try await search(query: "夜灯", elements: (0 ..< elementCount).map { _ in
+                ["\(mergingCharacter)猫在窗台上打盹，", "\(mergingCharacter)夜灯映出影子。"]
+            })
+
+            #expect(results.count == elementCount)
+            #expect(results.allSatisfy { $0.text.highlight == "夜灯" })
+            #expect(results.map(\.locations.fragments) == (0 ..< elementCount).map { ["e\($0)s1"] })
+        }
     }
 }
 
