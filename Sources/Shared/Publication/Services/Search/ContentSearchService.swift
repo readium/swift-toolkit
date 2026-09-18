@@ -348,7 +348,12 @@ private actor Iterator: SearchIterator, Loggable {
     /// issue #876), an out-of-bounds offset is logged and returns `nil`
     /// instead of trapping.
     private func windowIndex(at offset: Int) -> String.Index? {
-        guard let index = windowText.index(windowText.startIndex, offsetBy: offset, limitedBy: windowText.endIndex) else {
+        guard
+            // `limitedBy` only bounds the forward walk: a negative offset would
+            // still trap.
+            offset >= 0,
+            let index = windowText.index(windowText.startIndex, offsetBy: offset, limitedBy: windowText.endIndex)
+        else {
             log(.error, "Window offset \(offset) is out of bounds (window count: \(windowText.count))")
             return nil
         }
