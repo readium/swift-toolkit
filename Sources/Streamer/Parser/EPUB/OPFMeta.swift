@@ -130,6 +130,18 @@ enum OPFVocabulary: String {
 
 /// Represents a `meta` tag in an OPF document.
 struct OPFMeta {
+    /// Syntax used to express the metadata in the OPF document.
+    ///
+    /// Note that `<dc:x>` elements are valid in EPUB 2 as well, so this doesn't strictly
+    /// distinguish EPUB versions.
+    enum Syntax {
+        /// Legacy `<meta name="..." content="...">` tag (EPUB 2).
+        case legacy
+        /// Structured `<meta property="...">` (EPUB 3) or `<dc:x>` element.
+        case structured
+    }
+
+    let syntax: Syntax
     let property: String
     /// URI of the property's vocabulary.
     let vocabularyURI: String
@@ -138,6 +150,11 @@ struct OPFMeta {
     /// ID of the metadata that is refined by this one, if any.
     let refines: String?
     let element: ReadiumFuzi.XMLElement
+
+    /// Fully qualified URI of the property, e.g. `http://purl.org/dc/terms/source`.
+    var key: String {
+        vocabularyURI + property
+    }
 }
 
 /// Represents a `link` tag in an OPF document.
@@ -163,7 +180,7 @@ struct OPFMetaList {
 
         // Parses `<meta>` and `<dc:x>` tags in order of appearance.
         let root = "/opf:package/opf:metadata"
-        metas = document
+        let metas: [OPFMeta] = document
             .xpath("\(root)/opf:meta|\(root)/dc:*|\(root)/opf:dc-metadata/dc:*|\(root)/opf:x-metadata/opf:meta")
             .compactMap { meta in
                 if meta.tag == "meta" {
@@ -173,6 +190,7 @@ struct OPFMetaList {
                         var refinedID = meta.attr("refines")
                         refinedID?.removeFirst() // Get rid of the # before the ID.
                         return OPFMeta(
+                            syntax: .structured,
                             property: property, vocabularyURI: vocabularyURI,
                             content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
                             id: meta.attr("id"), refines: refinedID, element: meta
@@ -181,6 +199,7 @@ struct OPFMetaList {
                     } else if let property = meta.attr("name") {
                         let (property, vocabularyURI) = OPFVocabulary.parse(property: property, prefixes: prefixes)
                         return OPFMeta(
+                            syntax: .legacy,
                             property: property, vocabularyURI: vocabularyURI,
                             content: meta.attr("content")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
                             id: nil, refines: nil, element: meta
@@ -195,6 +214,7 @@ struct OPFMetaList {
                         return nil
                     }
                     return OPFMeta(
+                        syntax: .structured,
                         property: property,
                         vocabularyURI: OPFVocabulary.dcterms.uri,
                         content: meta.stringValue.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -204,6 +224,20 @@ struct OPFMetaList {
                     )
                 }
             }
+
+        // A legacy `<meta name= content=>` tag is superseded by a structured element with the
+        // same property, whatever their order of appearance. This applies even in a pure EPUB 2
+        // publication, as the structured element is the more authoritative expression of the
+        // metadata. Refining metas don't supersede top-level legacy tags.
+        // https://github.com/readium/swift-toolkit/issues/85
+        let structuredKeys = Set(
+            metas
+                .filter { $0.syntax == .structured && $0.refines == nil }
+                .map(\.key)
+        )
+        self.metas = metas.filter { meta in
+            meta.syntax == .structured || !structuredKeys.contains(meta.key)
+        }
 
         links = document
             .xpath("\(root)/opf:link")
@@ -262,10 +296,9 @@ struct OPFMetaList {
             guard meta.refines == nil, !isRWPMProperty(meta) else {
                 continue
             }
-            let key = meta.vocabularyURI + meta.property
-            let values = metadata[key] ?? NSMutableOrderedSet()
+            let values = metadata[meta.key] ?? NSMutableOrderedSet()
             values.add(value(for: meta))
-            metadata[key] = values
+            metadata[meta.key] = values
         }
 
         return metadata.compactMapValues { values in
@@ -304,7 +337,7 @@ struct OPFMetaList {
             if !refines.isEmpty {
                 var value: [String: JSONValue] = ["@value": .string(meta.content)]
                 for refine in refines {
-                    value[refine.vocabularyURI + refine.property] = .string(refine.content)
+                    value[refine.key] = .string(refine.content)
                 }
                 return value
             }
