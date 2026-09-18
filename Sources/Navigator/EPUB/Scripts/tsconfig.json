@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "es2019",
+    "lib": ["es2019", "dom"],
+    "moduleResolution": "bundler",
+    "allowJs": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/vendor"]
+}

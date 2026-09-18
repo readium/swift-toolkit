@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <title>Ignored by the host document</title>
+  <desc>Also ignored: this file is referenced through an img element.</desc>
+  <polygon fill="#F9A825" points="100,10 124,74 192,74 137,114 158,178 100,138 42,178 63,114 8,74 76,74"/>
+</svg>

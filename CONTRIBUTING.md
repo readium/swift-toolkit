@@ -6,6 +6,29 @@ We welcome many kind of contributions such as improving the documentation, submi
 
 ## Writing code
 
+### Setting up the Xcode projects
+
+The Xcode projects (Playground and TestApp) are not committed to this repository, they are generated with [XcodeGen](https://github.com/yonaskolb/XcodeGen). Install it first, then run from the project's root directory:
+
+```sh
+make dev
+```
+
+This generates both the [Playground](Playground) project, which is used to run the unit tests and try out the toolkit, and the [Test App](TestApp) project.
+
+To enable Readium LCP, provide the liblcp URL given to you by EDRLab:
+
+```sh
+make dev lcp=https://.../Package.swift
+```
+
+Then, use the `Support/Readium.xcworkspace` workspace for working on the toolkit.
+
+> [!IMPORTANT]
+> Run `make dev` again after pulling any change from the repository, as the projects may be out of date.
+
+If you only need one of the two applications, use `make playground` for the Playground, or run `make dev` from the `TestApp` directory for the Test App.
+
 ### Coding standard
 
 We use [`SwiftFormat`](https://github.com/nicklockwood/SwiftFormat) to ensure code formatting and avoid bikeshedding.

@@ -8,8 +8,10 @@
   "scripts": {
     "bundle": "webpack",
     "lint": "eslint src",
-    "checkformat": "prettier --check '**/*.js'",
-    "format": "prettier --list-different --write '**/*.js'"
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "checkformat": "prettier --check '**/*.{js,ts}'",
+    "format": "prettier --list-different --write '**/*.{js,ts}'"
   },
   "browserslist": [
     "iOS 13"
@@ -18,9 +20,15 @@
     "@babel/core": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
     "@babel/preset-typescript": "^7.29.7",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.1.2",
     "babel-loader": "^8.4.1",
     "eslint": "^7.32.0",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "prettier": "2.3.1",
+    "ts-jest": "^29.4.12",
+    "typescript": "^5.9.3",
     "webpack": "^5.107.2",
     "webpack-cli": "^5.1.4"
   },

@@ -5,7 +5,6 @@
 //
 
 import Foundation
-import ReadiumFuzi
 import ReadiumShared
 
 /// Errors thrown during the parsing of the EPUB

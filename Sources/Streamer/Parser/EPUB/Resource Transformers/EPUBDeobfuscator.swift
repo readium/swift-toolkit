@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import CryptoSwift
+import CryptoKit
 import Foundation
 import ReadiumShared
 
@@ -122,7 +122,7 @@ private final class IDPFAlgorithm: ObfuscationAlgorithm {
     let obfuscatedLength = 1040
 
     func key(for publicationId: String) -> [UInt8] {
-        publicationId.sha1().hexaToBytes
+        Array(Insecure.SHA1.hash(data: Data(publicationId.utf8)))
     }
 }
 
