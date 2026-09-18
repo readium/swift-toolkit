@@ -73,6 +73,11 @@ extension License: LCPLicense {
         return client.decrypt(data: data, using: context)
     }
 
+    func decipherUserField(_ data: Data) throws -> Data? {
+        let context = try documents.withLock { $0.context }.get()
+        return client.decryptField(field: data, using: context)
+    }
+
     func charactersToCopyLeft() async -> Int? {
         guard !isRestricted else { return 0 }
 

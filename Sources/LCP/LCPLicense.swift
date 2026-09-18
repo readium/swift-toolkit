@@ -25,6 +25,17 @@ public protocol LCPLicense: UserRights {
     /// Deciphers the given encrypted data to be displayed in the reader.
     func decipher(_ data: Data) throws -> Data?
 
+    /// Deciphers the given License Document field (e.g. the user name or
+    /// email), which is encrypted with the user key, unlike publication
+    /// resources which are encrypted with the content key.
+    ///
+    /// `data` is the raw encrypted value, after decoding the Base64 string
+    /// found in the License Document.
+    ///
+    /// Returns nil if the field cannot be deciphered, and throws when the
+    /// license is restricted (e.g. missing passphrase or invalid license).
+    func decipherUserField(_ data: Data) throws -> Data?
+
     /// Number of remaining characters allowed to be copied by the user.
     /// If nil, there's no limit.
     func charactersToCopyLeft() async -> Int?
@@ -61,5 +72,19 @@ public protocol LCPLicense: UserRights {
 public extension LCPLicense {
     func renewLoan(with delegate: LCPRenewDelegate) async -> Result<Void, LCPError> {
         await renewLoan(with: delegate, prefersWebPage: false)
+    }
+
+    /// Returns the license user information, after deciphering the fields
+    /// encrypted with the user key (e.g. the user name or email).
+    ///
+    /// Fields that cannot be deciphered are left untouched and still listed
+    /// in `User.encrypted`.
+    ///
+    /// Throws when the license is restricted (e.g. missing passphrase or
+    /// invalid license).
+    func decipheredUser() throws -> User {
+        try license.user.decrypted { data in
+            try decipherUserField(data)
+        }
     }
 }
