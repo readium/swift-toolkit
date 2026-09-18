@@ -112,6 +112,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     public let publication: Publication
+
+    public var readingOrder: [Link] {
+        publication.readingOrder
+    }
+
     private let initialLocation: Locator?
     private let config: Configuration
     private let audioSession: AudioSessionManaging
@@ -147,6 +152,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     isolated deinit {
         playTask?.cancel()
+        durationLoadTask?.cancel()
         notificationTask?.cancel()
         if let token = audioSessionToken {
             audioSession.end(with: token)
@@ -155,7 +161,27 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Returns whether the resource is currently playing or not.
     public var state: MediaPlaybackState {
-        MediaPlaybackState(player.timeControlStatus)
+        let state = MediaPlaybackState(player.timeControlStatus)
+        if
+            state == .playing,
+            let item = player.currentItem,
+            item.isPlaybackBufferEmpty, !item.isPlaybackLikelyToKeepUp
+        {
+            // As `automaticallyWaitsToMinimizeStalling` is disabled, the
+            // player reports `.playing` even when it is stalled on an empty
+            // buffer waiting for data.
+            return .loading
+        }
+        return state
+    }
+
+    /// Indicates whether the player is meant to be playing, even if it is
+    /// currently stalled waiting for data.
+    ///
+    /// Unlike `state`, this reflects the playback intent, which is what we
+    /// need to know when temporarily pausing the player to seek.
+    private var isPlaybackRequested: Bool {
+        player.timeControlStatus != .paused
     }
 
     /// Current playback info.
@@ -171,6 +197,18 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Index of the current resource in the reading order.
     private var resourceIndex: Int = 0
 
+    /// Exact duration reported by the current player item's asset, once
+    /// loaded.
+    private var loadedAssetDuration: Double?
+
+    /// Task loading `loadedAssetDuration`, which can be awaited to get the
+    /// exact duration of the current item.
+    private var durationLoadTask: Task<Double?, Never>?
+
+    /// A newly loaded asset duration is reported to the delegate only when it
+    /// differs from the previous one by more than this many seconds.
+    private static let assetDurationTolerance: Double = 0.1
+
     /// Starting time of the current resource, in the reading order.
     private var resourceStartingTime: Double? {
         durations[..<resourceIndex].reduce(0, +)
@@ -178,11 +216,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Duration in seconds in the current resource.
     private var resourceDuration: Double? {
-        if let duration = player.currentItem?.duration, duration.isNumeric {
-            return duration.secondsOrZero
-        } else {
-            return publication.readingOrder[resourceIndex].duration
-        }
+        loadedAssetDuration ?? publication.readingOrder[resourceIndex].duration
     }
 
     /// Total duration in the publication.
@@ -234,7 +268,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Seeks to the given time in the current resource.
     public func seek(to time: Double) async {
-        let wasPlaying = (state == .playing)
+        let wasPlaying = isPlaybackRequested
         pause()
 
         await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
@@ -252,10 +286,23 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
+    private var itemStatusObserver: NSKeyValueObservation?
+    private var itemLikelyToKeepUpObserver: NSKeyValueObservation?
     private var timeObserverToken: TimeObserverToken?
     private var notificationTask: Task<Void, Never>?
 
-    private lazy var mediaLoader = PublicationMediaLoader(publication: publication)
+    private lazy var mediaLoader: PublicationMediaLoader = {
+        let loader = PublicationMediaLoader(publication: publication)
+        loader.onLoadingError = { [weak self] href, error in
+            Task { @MainActor in
+                guard let self = self, let href = href.relativeURL else {
+                    return
+                }
+                self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+            }
+        }
+        return loader
+    }()
 
     private lazy var player: AVPlayer = makePlayer()
 
@@ -271,10 +318,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 preferredTimescale: 1000
             ),
             queue: .main
-        ) { [weak self] time in
+        ) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self = self else { return }
-                self.playbackDidChange(time.secondsOrZero)
+                self.locationDidChange()
             }
         }
         timeObserverToken = TimeObserverToken(player: player, observer: periodicObserver)
@@ -303,8 +350,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
         }
 
-        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] _, _ in
+        currentItemObserver = player.observe(\.currentItem, options: [.new, .old]) { [weak self] player, _ in
+            let item = player.currentItem
             Task { @MainActor [weak self] in
+                self?.observe(currentItem: item)
                 self?.playbackDidChange()
             }
         }
@@ -319,14 +368,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                     continue
                 }
 
-                self.shouldPlayNextResource { playNext in
-                    if playNext {
-                        Task { @MainActor [weak self] in
-                            guard let self = self else { return }
-                            if await self.goForward() {
-                                self.play()
-                            }
-                        }
+                if self.shouldPlayNextResource() {
+                    if await self.goForward() {
+                        self.play()
                     }
                 }
             }
@@ -335,53 +379,54 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         return player
     }
 
-    private func shouldPlayNextResource(completion: @escaping @MainActor @Sendable (Bool) -> Void) {
-        guard let delegate = delegate else {
-            completion(true)
-            return
+    private func observe(currentItem item: AVPlayerItem?) {
+        itemLikelyToKeepUpObserver = item?.observe(\.isPlaybackLikelyToKeepUp) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                self?.playbackDidChange()
+            }
         }
 
-        makePlaybackInfo { info in
-            completion(delegate.navigator(self, shouldPlayNextResource: info))
-        }
-    }
-
-    private func playbackDidChange(_ time: Double? = nil) {
-        if let time = time {
-            let locator = makeLocator(forTime: time)
-            currentLocation = locator
-            delegate?.navigator(self, locationDidChange: locator)
-        }
-
-        makePlaybackInfo(forTime: time) { [weak self] info in
-            guard let self = self else { return }
-            self.delegate?.navigator(self, playbackDidChange: info)
-        }
-    }
-
-    private func makePlaybackInfo(forTime time: Double? = nil, completion: @escaping @MainActor @Sendable (MediaPlaybackInfo) -> Void) {
-        let resourceIndex = resourceIndex
-        let state = state
-        let time = time ?? currentTime
-        let defaultDuration = publication.readingOrder[resourceIndex].duration
-        let currentItem = player.currentItem
-
-        Task {
-            // A deadlock can occur when loading HTTP assets and creating the playback info from the main thread.
-            // To fix this, we load the duration asynchronously.
-            var duration = defaultDuration
-            if let currentItem = currentItem, let seconds = try? await currentItem.asset.load(.duration).seconds, seconds.isFinite {
-                duration = seconds
+        itemStatusObserver = item?.observe(\.status) { [weak self] item, _ in
+            guard item.status == .failed else {
+                return
             }
 
-            let info = MediaPlaybackInfo(
-                resourceIndex: resourceIndex,
-                state: state,
-                time: time,
-                duration: duration
-            )
-            completion(info)
+            let itemError = item.error
+
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                log(.error, "Failed to load the player item: \(String(describing: itemError))")
+                guard let href = self.publication.readingOrder[self.resourceIndex].url().relativeURL else {
+                    return
+                }
+                let error: ReadError = itemError.flatMap { .wrap($0) }
+                    ?? .decoding("The AVPlayerItem failed to load", cause: itemError)
+                self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+            }
         }
+    }
+
+    private func shouldPlayNextResource() -> Bool {
+        guard let delegate = delegate else {
+            return true
+        }
+
+        return delegate.navigator(self, shouldPlayNextResource: playbackInfo)
+    }
+
+    /// Notifies the delegate that the player state changed.
+    private func playbackDidChange() {
+        delegate?.navigator(self, playbackDidChange: playbackInfo)
+    }
+
+    /// Refreshes `currentLocation` and notifies the delegate, after the
+    /// playback position or the resource duration changed.
+    private func locationDidChange() {
+        let locator = makeLocator(forTime: currentTime)
+        currentLocation = locator
+        delegate?.navigator(self, locationDidChange: locator)
+
+        playbackDidChange()
     }
 
     private func makeLocator(forTime time: Double) -> Locator {
@@ -407,6 +452,45 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 totalProgression: totalProgression
             )
         )
+    }
+
+    /// Loads in the background the exact duration reported by the current
+    /// asset, caching it in `loadedAssetDuration`.
+    ///
+    /// Loading it eagerly keeps `resourceDuration` synchronous, as awaiting the
+    /// asset can take several seconds over HTTP.
+    private func loadAssetDuration() {
+        loadedAssetDuration = nil
+        durationLoadTask?.cancel()
+        durationLoadTask = nil
+
+        guard let currentItem = player.currentItem else {
+            return
+        }
+
+        durationLoadTask = Task { [weak self] in
+            let seconds = try? await currentItem.asset.load(.duration).seconds
+
+            // The item we loaded the duration for must still be the one being
+            // played, otherwise `go(to:)` moved on while we were loading.
+            guard
+                !Task.isCancelled,
+                let self = self,
+                currentItem == self.player.currentItem,
+                let seconds = seconds, seconds.isFinite
+            else {
+                return nil
+            }
+
+            let previousDuration = resourceDuration
+            loadedAssetDuration = seconds
+
+            if previousDuration.map({ abs(seconds - $0) > Self.assetDurationTolerance }) ?? true {
+                locationDidChange()
+            }
+
+            return seconds
+        }
     }
 
     // MARK: - Loaded Time Ranges
@@ -442,7 +526,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public private(set) var currentLocation: Locator?
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
-        let wasPlaying = (state == .playing)
+        let wasPlaying = isPlaybackRequested
         pause()
 
         guard let newResourceIndex = publication.readingOrder.firstIndexWithHREF(locator.href) else {
@@ -458,12 +542,31 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 let asset = try mediaLoader.makeAsset(for: link)
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
                 resourceIndex = newResourceIndex
+                loadAssetDuration()
                 loadedTimeRangesTimer.fire()
                 delegate?.navigator(self, loadedTimeRangesDidChange: [])
             }
 
             // Seeks to time
-            let time = locator.locations.time?.begin ?? ((resourceDuration ?? 0) * (locator.locations.progression ?? 0))
+            let time: Double
+            if let begin = locator.locations.time?.begin {
+                time = begin
+            } else if let progression = locator.locations.progression, progression > 0 {
+                // `Link.duration` is only a hint, so converting a progression
+                // into a time requires the exact duration reported by the
+                // asset. We wait for it if it is not loaded yet.
+                var assetDuration = loadedAssetDuration
+                if assetDuration == nil, let durationLoadTask = durationLoadTask {
+                    assetDuration = await durationLoadTask.value
+                }
+                if assetDuration == nil {
+                    log(.warning, "Asset duration unavailable, falling back on the approximate `Link.duration` to convert the progression")
+                }
+
+                time = (assetDuration ?? link.duration ?? 0) * progression
+            } else {
+                time = 0
+            }
 
             let finished = await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
             if finished {
@@ -483,7 +586,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
-        guard let locator = await publication.locate(link) else {
+        guard let locator = publication.locator(for: link) else {
             return false
         }
         return await go(to: locator, options: options)

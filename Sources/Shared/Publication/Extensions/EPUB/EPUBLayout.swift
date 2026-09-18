@@ -9,4 +9,15 @@ import Foundation
 /// Hint about the nature of the layout for the linked resources.
 public enum EPUBLayout: String, Sendable {
     case fixed, reflowable
+
+    public var layout: Layout {
+        switch self {
+        case .reflowable: .reflowable
+        case .fixed: .fixed
+        }
+    }
+
+    public init(_ layout: Layout?) {
+        self = (layout == .fixed) ? .fixed : .reflowable
+    }
 }

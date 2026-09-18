@@ -5,7 +5,9 @@ packages:
   Readium:
     path: ..
   R2LCPClient:
-    path: R2LCPClient
+    # The repository's Support folder, shared with the Playground project. See
+    # TestApp/Makefile.
+    path: ../Support/R2LCPClient
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     from: 6.9.23
@@ -22,11 +24,7 @@ schemes:
   TestApp:
     build:
       targets:
-        TestApp: none
-    test:
-      testPlans:
-        - path: TestApp.xctestplan
-          defaultPlan: true
+        TestApp: all
 targets:
   TestApp:
     type: application
@@ -61,4 +59,3 @@ targets:
       SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
       OTHER_SWIFT_FLAGS: -DLCP
       DEVELOPMENT_TEAM: ${RD_DEVELOPMENT_TEAM}
-

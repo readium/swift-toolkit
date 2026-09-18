@@ -4,6 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Foundation
 @testable import ReadiumShared
 import Testing
 
@@ -174,7 +175,7 @@ struct HTMLResourceContentIteratorTests {
                 locator: makeLocator(progression: 0.5, selector: "html > body > img:nth-child(2)"),
                 embeddedLink: Link(href: "cover.jpg"),
                 caption: nil,
-                attributes: [ContentAttribute(key: .accessibilityLabel, value: "Accessibility description")]
+                attributes: [ContentAttribute(key: .accessibleName, value: "Accessibility description")]
             ).equatable(),
         ]
 
@@ -265,6 +266,255 @@ struct HTMLResourceContentIteratorTests {
         }
         let result = try await iter.next()
         #expect(result == nil)
+    }
+
+    /// What the caption rules themselves compute is asserted by
+    /// `AccessibilityPropertiesSampleTests`, from the shared case manifest in
+    /// `Tests/Samples/accessibility-properties/cases.toml`. Only what the
+    /// manifest cannot express — the structure the iterator emits around a
+    /// figure — lives here.
+    struct Figures {
+        @Test func theFigcaptionIsAlsoEmittedAsATextElement() async throws {
+            let elements = try await allElements("""
+            <figure><img src="a.jpg" alt="Alt text"/><figcaption>The caption</figcaption></figure>
+            """)
+
+            #expect(elements.count == 2)
+            let image = try #require(elements[0] as? ImageContentElement)
+            #expect(image.caption == "The caption")
+            #expect(image.text == "Alt text")
+
+            let text = try #require(elements[1] as? TextContentElement)
+            #expect(text.text == "The caption")
+        }
+
+        @Test func everyImageOfAFigureIsEmitted() async throws {
+            let elements = try await allElements("""
+            <figure>
+                <img src="chart.png" alt="Revenue chart"/>
+                <figcaption>Source: <img src="logo.png" alt="ACME"/> annual report</figcaption>
+            </figure>
+            """)
+
+            // The logo wrapped by the figcaption is an element of its own,
+            // emitted alongside the chart and the caption's text.
+            let images = elements.compactMap { $0 as? ImageContentElement }
+            #expect(images.count == 2)
+        }
+    }
+
+    struct MediaAccessibilityAttributes {
+        @Test func audioElementExposesAccessibilityAttributes() async throws {
+            let elements = try await allElements("""
+            <audio src="a.mp3" aria-label="Podcast"/>
+            """)
+
+            let audio = try #require(elements.first as? AudioContentElement)
+            #expect(audio.accessibleName == "Podcast")
+        }
+
+        @Test func videoElementExposesAccessibilityAttributes() async throws {
+            let elements = try await allElements("""
+            <video src="v.mp4" aria-label="Movie"/>
+            """)
+
+            let video = try #require(elements.first as? VideoContentElement)
+            #expect(video.accessibleName == "Movie")
+        }
+    }
+
+    struct ExtendedDescriptions {
+        @Test func figureLevelAriaDetailsIsIgnored() async throws {
+            let elements = try await allElements("""
+            <figure aria-details="chart-desc">
+                <img src="a.jpg" alt="Chart"/>
+            </figure>
+            <aside id="chart-desc"><p>Details.</p></aside>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.extendedDescriptions.isEmpty)
+        }
+
+        @Test func inlineTargetIsStillEmittedInTheContentStream() async throws {
+            let elements = try await allElements("""
+            <img src="a.jpg" alt="Chart" aria-details="chart-desc"/>
+            <aside id="chart-desc"><p>A long description.</p></aside>
+            """)
+
+            let texts = elements.compactMap { $0 as? TextContentElement }
+            #expect(texts.map(\.text) == ["A long description."])
+        }
+    }
+
+    struct SVGElements {
+        @Test func inlineSVGIsEmittedAsAnSVGElementAndItsSubtreeIsSkipped() async throws {
+            let elements = try await allElements("""
+            <p>Before</p>
+            <svg><title>Chart title</title><desc>Chart description</desc><circle/></svg>
+            <p>After</p>
+            """)
+
+            #expect(elements.count == 3)
+            #expect((elements[0] as? TextContentElement)?.text == "Before")
+            #expect((elements[2] as? TextContentElement)?.text == "After")
+
+            let svg = try #require(elements[1] as? SVGContentElement)
+            #expect(svg.svg.contains("circle"))
+            #expect(svg.accessibleName == "Chart title")
+            #expect(svg.accessibleDescription == "Chart description")
+            #expect(svg.locator.locations.progression != nil)
+
+            // The SVG title and description must not leak as text elements.
+            let texts = elements.compactMap { ($0 as? TextContentElement)?.text }
+            #expect(!texts.contains { $0.contains("Chart title") || $0.contains("Chart description") })
+        }
+
+        @Test func svgInFigureGetsCaptionFromFigcaption() async throws {
+            let elements = try await allElements("""
+            <figure><svg><circle/></svg><figcaption>Fig</figcaption></figure>
+            """)
+
+            let svg = try #require(elements.compactMap { $0 as? SVGContentElement }.first)
+            #expect(svg.caption == "Fig")
+        }
+
+        @Test func nestedMediaInsideSVGIsNotEmitted() async throws {
+            let elements = try await allElements("""
+            <svg><foreignObject><img src="b.jpg" alt="Nested"/></foreignObject></svg>
+            """)
+
+            #expect(elements.count == 1)
+            #expect(elements[0] is SVGContentElement)
+        }
+
+        @Test func svgWrappingASingleImageIsEmittedAsAnImageElement() async throws {
+            let elements = try await allElements("""
+            <p>Before</p>
+            <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="0 0 656 1000" preserveAspectRatio="xMidYMid meet">
+                <image width="656" height="1000" xlink:href="cover.jpg"/>
+            </svg>
+            <p>After</p>
+            """)
+
+            #expect(elements.count == 3)
+            #expect((elements[0] as? TextContentElement)?.text == "Before")
+            #expect((elements[2] as? TextContentElement)?.text == "After")
+
+            let image = try #require(elements[1] as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+            #expect(image.locator.locations.progression != nil)
+        }
+
+        @Test func svgWrapperReadsTheSVG2HREFAttribute() async throws {
+            let elements = try await allElements("""
+            <svg viewBox="0 0 100 100"><image href="cover.jpg"/></svg>
+            """)
+
+            let image = try #require(elements.first as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+        }
+
+        @Test func svgWrapperReadsTheLegacyHREFUnderAnyPrefix() async throws {
+            let elements = try await allElements("""
+            <svg xmlns:xl="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+                <image xl:href="cover.jpg"/>
+            </svg>
+            """)
+
+            let image = try #require(elements.first as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+        }
+
+        @Test func svgWrapperPrefersTheSVG2HREFAttribute() async throws {
+            let elements = try await allElements("""
+            <svg xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+                <image href="cover.jpg" xlink:href="legacy.jpg"/>
+            </svg>
+            """)
+
+            let image = try #require(elements.first as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+        }
+
+        @Test func svgWrapperIgnoresElementsWhichDontDrawAnything() async throws {
+            let elements = try await allElements("""
+            <svg viewBox="0 0 100 100">
+                <title>Cover</title>
+                <desc>The book cover</desc>
+                <metadata/>
+                <defs><linearGradient id="gradient"/></defs>
+                <style>image { opacity: 1 }</style>
+                <image href="cover.jpg"/>
+            </svg>
+            """)
+
+            let image = try #require(elements.first as? ImageContentElement)
+            #expect(image.embeddedLink == Link(href: "dir/cover.jpg"))
+            #expect(image.accessibleName == "Cover")
+            #expect(image.accessibleDescription == "The book cover")
+        }
+
+        @Test func svgWrapperInFigureGetsCaptionFromFigcaption() async throws {
+            let elements = try await allElements("""
+            <figure><svg><image href="cover.jpg"/></svg><figcaption>Fig</figcaption></figure>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.caption == "Fig")
+        }
+
+        @Test(arguments: [
+            // Drawing content of its own alongside the image.
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\"/><rect width=\"10\" height=\"10\"/></svg>",
+            // Several images.
+            "<svg viewBox=\"0 0 100 100\"><image href=\"left.jpg\"/><image href=\"right.jpg\"/></svg>",
+            // A nested image, which carries its own transform.
+            "<svg viewBox=\"0 0 100 100\"><g transform=\"rotate(45)\"><image href=\"cover.jpg\"/></g></svg>",
+            // An image pointing nowhere.
+            "<svg viewBox=\"0 0 100 100\"><image width=\"100\" height=\"100\"/></svg>",
+            // An image drawn through a rendering attribute, which the bitmap
+            // on its own cannot reproduce.
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" transform=\"rotate(45)\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" clip-path=\"circle()\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" mask=\"url(#m)\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" filter=\"blur(2px)\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\"><image href=\"cover.jpg\" opacity=\"0.5\"/></svg>",
+            // A wrapper drawn through a rendering attribute, which the bitmap
+            // on its own cannot reproduce either.
+            "<svg viewBox=\"0 0 100 100\" transform=\"rotate(45)\"><image href=\"cover.jpg\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\" clip-path=\"circle()\"><image href=\"cover.jpg\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\" mask=\"url(#m)\"><image href=\"cover.jpg\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\" filter=\"blur(2px)\"><image href=\"cover.jpg\"/></svg>",
+            "<svg viewBox=\"0 0 100 100\" opacity=\"0.5\"><image href=\"cover.jpg\"/></svg>",
+        ])
+        func svgWhichIsNotAWrapperIsEmittedAsAnSVGElement(html: String) async throws {
+            let elements = try await allElements(html)
+
+            #expect(elements.count == 1)
+            #expect(elements[0] is SVGContentElement)
+        }
+
+        @Test func ariaLabelledbyResolvesIntoASkippedSubtree() async throws {
+            let elements = try await allElements("""
+            <svg><text id="t1">Label in svg</text></svg>
+            <img src="a.jpg" aria-labelledby="t1"/>
+            """)
+
+            let image = try #require(elements.compactMap { $0 as? ImageContentElement }.first)
+            #expect(image.accessibleName == "Label in svg")
+        }
+    }
+
+    struct ImageFallbackContent {
+        @Test func imageInVideoFallbackContentIsNotEmitted() async throws {
+            let elements = try await allElements("""
+            <video src="v.mp4"><img src="poster.jpg" alt="Poster"/></video>
+            """)
+
+            #expect(elements.count == 1)
+            #expect(elements[0] is VideoContentElement)
+        }
     }
 
     @Test func iteratingOverElementContainingBothATextNodeAndChildElements() async throws {
@@ -760,4 +1010,23 @@ private func makeIterator(
         totalProgressionRange: { totalProgressionRange },
         locator: startLocator ?? makeLocator()
     )
+}
+
+/// Iterates all the elements of an HTML `body` fragment.
+private func allElements(_ body: String) async throws -> [ContentElement] {
+    let html = """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    <body>
+    \(body)
+    </body>
+    </html>
+    """
+
+    let iter = makeIterator(html)
+    var elements: [ContentElement] = []
+    while let element = try await iter.next() {
+        elements.append(element)
+    }
+    return elements
 }

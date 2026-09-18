@@ -15,7 +15,7 @@ import ReadiumShared
 /// will not present any dialog to the user. This can be the desired behavior
 /// when trying to import a license in the background, without prompting the
 /// user for their passphrase.
-public final class LCPService: Loggable {
+public final class LCPService: Loggable, Sendable {
     private let licenses: LicensesService
     private let passphrases: PassphrasesService
     private let assetRetriever: AssetRetriever
@@ -48,10 +48,18 @@ public final class LCPService: Loggable {
             repository: passphraseRepository
         )
 
+        let crl = CRLService(httpClient: httpClient)
+
+        // Warms the CRL cache so that opening a publication does not have to
+        // wait on the network.
+        Task(priority: .utility) {
+            await crl.preload()
+        }
+
         licenses = LicensesService(
             client: client,
             licenses: licenseRepository,
-            crl: CRLService(httpClient: httpClient),
+            crl: crl,
             device: DeviceService(
                 deviceName: deviceName,
                 deviceId: deviceId,

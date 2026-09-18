@@ -69,7 +69,9 @@ private func makePublication(
     cover: CoverServiceFactory? = nil
 ) -> Publication {
     var builder = PublicationServicesBuilder()
-    if let cover { builder.setCoverServiceFactory(cover) }
+    if let cover {
+        builder.setCoverServiceFactory(cover)
+    }
     return Publication(
         manifest: Manifest(
             metadata: Metadata(title: "title"),

@@ -42,7 +42,8 @@ enum EPUBScriptScope {
 
     weak var delegate: EPUBNavigatorViewModelDelegate?
 
-    let readingOrder: ReadingOrder
+    /// Reading order rendered by the navigator.
+    let readingOrder: EPUBReadingOrder
 
     convenience init(
         publication: Publication,
@@ -117,7 +118,10 @@ enum EPUBScriptScope {
         }
 
         self.publication = publication
-        self.readingOrder = readingOrder
+        self.readingOrder = EPUBReadingOrder(
+            readingOrder: readingOrder,
+            preferredVariant: config.preferredResourceVariant
+        )
         self.config = config
         editingActions = EditingActionsController(
             actions: config.editingActions,
@@ -243,7 +247,8 @@ enum EPUBScriptScope {
     func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
         EPUBPreferencesEditor(
             initialPreferences: preferences,
-            metadata: publication.metadata,
+            publication: publication,
+            readingOrder: readingOrder.links,
             defaults: config.defaults
         )
     }
@@ -313,7 +318,7 @@ enum EPUBScriptScope {
         guard
             let link = publication.linkWithHREF(href),
             link.mediaType?.isHTML == true,
-            publication.metadata.epubLayout == .reflowable
+            publication.metadata.epubLayout(of: link) == .reflowable
         else {
             return resource
         }

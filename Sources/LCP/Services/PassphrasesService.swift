@@ -4,7 +4,6 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import CryptoSwift
 import Foundation
 import ReadiumShared
 

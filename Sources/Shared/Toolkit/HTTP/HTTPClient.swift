@@ -297,7 +297,7 @@ public struct HTTPDownload: Equatable, Sendable {
 ///
 /// Conforming types must provide a dictionary of HTTP headers. The protocol
 /// extension provides convenient typed accessors for common HTTP headers.
-public protocol HTTPHeadersProviding {
+public protocol HTTPHeadersProviding: Sendable {
     /// HTTP response headers, indexed by their name.
     var headers: [String: String] { get }
 }

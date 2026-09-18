@@ -271,7 +271,9 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
     }
 
     private func addHighlightDecorationsObserverOnce() {
-        if highlights == nil { return }
+        if highlights == nil {
+            return
+        }
 
         if let decorator = navigator as? DecorableNavigator {
             decorator.observeDecorationInteractions(inGroup: highlightDecorationGroup) { [weak self] event in
@@ -348,11 +350,45 @@ class VisualReaderViewController<N: UIViewController & Navigator>: ReaderViewCon
         let viewer = UIHostingController(
             rootView: ImagePreview(
                 publication: publication,
-                image: image
+                image: image,
+                onSelectLink: { [weak self] link in
+                    self?.openFromImagePreview(link)
+                }
             )
         )
         viewer.modalPresentationStyle = .pageSheet
         present(viewer, animated: true)
+    }
+
+    /// Opens a link selected in the image preview, e.g. an extended
+    /// description of the image.
+    private func openFromImagePreview(_ link: ReadiumShared.Link) {
+        Task {
+            // `locator(for:)` runs first: the href is only inspected once it
+            // comes back nil, so a remote publication whose in-publication
+            // links are themselves absolute is not misrouted to the browser.
+            let locator = publication.locator(for: link)
+            let externalURL = (locator == nil) ? link.httpURL : nil
+            if locator == nil, externalURL == nil {
+                log(.error, "Cannot locate the extended description at \(link.href)")
+            }
+
+            await dismissPresentedViewController()
+
+            if let locator = locator {
+                await navigator.go(to: locator)
+            } else if let externalURL = externalURL {
+                presentExternalURL(externalURL.url)
+            }
+        }
+    }
+
+    private func dismissPresentedViewController() async {
+        await withCheckedContinuation { continuation in
+            dismiss(animated: true) {
+                continuation.resume()
+            }
+        }
     }
 }
 
@@ -382,7 +418,7 @@ extension VisualReaderViewController {
         for (index, link) in publication.pageList.enumerated() {
             guard
                 let title = link.title,
-                let locator = await publication.locate(link)
+                let locator = publication.locator(for: link)
             else {
                 continue
             }

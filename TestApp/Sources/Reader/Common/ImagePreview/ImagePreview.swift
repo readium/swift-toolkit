@@ -15,6 +15,10 @@ struct ImagePreview: View {
     let publication: Publication
     let image: ImageContentElement
 
+    /// Called when the user selects an extended description link, to close the
+    /// preview and navigate to it in the reader.
+    let onSelectLink: (ReadiumShared.Link) -> Void
+
     @State private var uiImage: UIImage?
 
     var body: some View {
@@ -31,9 +35,33 @@ struct ImagePreview: View {
                         }
                     }
 
-                    if let accessibilityLabel = image.accessibilityLabel {
-                        LabeledContent("Accessibility Label") {
-                            Text(accessibilityLabel)
+                    if let accessibleName = image.accessibleName {
+                        LabeledContent("Accessible Name") {
+                            Text(accessibleName)
+                        }
+                    }
+
+                    if let accessibleDescription = image.accessibleDescription {
+                        LabeledContent("Accessible Description") {
+                            Text(accessibleDescription)
+                        }
+                    }
+                }
+
+                let extendedDescriptions = image.extendedDescriptions
+                if !extendedDescriptions.isEmpty {
+                    Section("Extended Descriptions") {
+                        ForEach(extendedDescriptions, id: \.self) { link in
+                            Button {
+                                onSelectLink(link)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(link.title ?? "Extended description")
+                                    Text(link.href)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
                         }
                     }
                 }

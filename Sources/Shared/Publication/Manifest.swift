@@ -171,4 +171,31 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
     public func linksMatching(_ predicate: (Link) -> Bool) -> [Link] {
         (readingOrder + resources + links).filter(predicate)
     }
+
+    /// Creates a new `Locator` pointing to the resource targeted by the given
+    /// `link`.
+    ///
+    /// Returns `nil` if the resource is not found in the manifest.
+    public func locator(for link: Link) -> Locator? {
+        let originalHREF = link.url()
+        let fragment = originalHREF.fragment
+        let href = originalHREF.removingFragment()
+
+        guard
+            let resourceLink = linkWithHREF(href),
+            let mediaType = resourceLink.mediaType
+        else {
+            return nil
+        }
+
+        return Locator(
+            href: href,
+            mediaType: mediaType,
+            title: resourceLink.title ?? link.title,
+            locations: Locator.Locations(
+                fragments: Array(ofNotNil: fragment),
+                progression: (fragment == nil) ? 0.0 : nil
+            )
+        )
+    }
 }

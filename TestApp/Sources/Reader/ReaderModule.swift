@@ -60,11 +60,9 @@ final class ReaderModule: ReaderModuleAPI {
             }
 
             @MainActor func present(_ viewController: UIViewController) {
-                let backItem = UIBarButtonItem()
-                backItem.title = ""
-                viewController.navigationItem.backBarButtonItem = backItem
-                viewController.hidesBottomBarWhenPushed = true
-                navigationController.pushViewController(viewController, animated: true)
+                let host = UINavigationController(rootViewController: viewController)
+                host.modalPresentationStyle = .fullScreen
+                navigationController.present(host, animated: true)
             }
 
             guard let module = self.formatModules.first(where: { $0.supports(publication) }) else {

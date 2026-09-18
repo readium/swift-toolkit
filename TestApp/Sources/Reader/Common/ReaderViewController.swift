@@ -56,7 +56,12 @@ class ReaderViewController<N: Navigator>: UIViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(close))
         navigationItem.rightBarButtonItems = makeNavigationBarButtons()
+    }
+
+    @objc private func close() {
+        dismiss(animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -112,6 +117,11 @@ class ReaderViewController<N: Navigator>: UIViewController,
     }
 
     func navigator(_ navigator: Navigator, presentExternalURL url: URL) {
+        presentExternalURL(url)
+    }
+
+    /// Opens a URL outside the publication in an in-app browser.
+    func presentExternalURL(_ url: URL) {
         // SFSafariViewController crashes when given an URL without an HTTP scheme.
         guard ["http", "https"].contains(url.scheme?.lowercased() ?? "") else {
             return

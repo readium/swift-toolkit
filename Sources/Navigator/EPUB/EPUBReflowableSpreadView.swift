@@ -337,7 +337,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     private func go(to locator: Locator, animated: Bool) async -> Bool {
         if !["", "#"].contains(locator.href.string) {
             guard
-                let index = viewModel.readingOrder.firstIndexWithHREF(locator.href),
+                let index = viewModel.readingOrder.index(of: locator.href),
                 spread.contains(index: index)
             else {
                 log(.warning, "The locator's href is not in the spread")

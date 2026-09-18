@@ -41,7 +41,7 @@ public final class DefaultContentService: ContentService, Sendable {
         return DefaultContent(publication: pub, start: start, resourceContentIteratorFactories: resourceContentIteratorFactories)
     }
 
-    private class DefaultContent: Content {
+    private final class DefaultContent: Content {
         let publication: Publication
         let start: Locator?
         let resourceContentIteratorFactories: [ResourceContentIteratorFactory]

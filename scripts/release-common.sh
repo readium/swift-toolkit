@@ -11,10 +11,16 @@ info()  { echo "▶ $*"; }
 # Print an error message to stderr and exit with code 1.
 error() { echo "✗ $*" >&2; exit 1; }
 
-# Validate that $1 is a semver string of the form a.b or a.b.c.
+# Validate that $1 is a semver string of the form a.b or a.b.c, with an
+# optional -alpha.N, -beta.N or -rc.N prerelease suffix (e.g. 4.0.0-alpha.1).
 check_semver() {
-    [[ "$1" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || \
-        error "'$1' is not valid semver (expected a.b or a.b.c)"
+    [[ "$1" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?(-(alpha|beta|rc)\.[0-9]+)?$ ]] || \
+        error "'$1' is not valid semver (expected a.b, a.b.c, or a.b.c followed by -alpha.N, -beta.N or -rc.N)"
+}
+
+# Return success when $1 is a prerelease version (e.g. 4.0.0-alpha.1).
+is_prerelease() {
+    [[ "$1" == *-* ]]
 }
 
 # Print a "Dry-run: skipped" message for an operation that was not executed.
