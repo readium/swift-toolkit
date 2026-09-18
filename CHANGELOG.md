@@ -47,6 +47,10 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed the PDF navigator's content being inset by the surrounding safe area (e.g. the navigation bar) on iOS 27.
 * [#112](https://github.com/readium/swift-toolkit/issues/112) In the paginated EPUB navigator, horizontal swipes over the top and bottom margins of a reflowable resource now turn the page, instead of skipping to the previous or next resource.
 
+#### Streamer
+
+* [#85](https://github.com/readium/swift-toolkit/issues/85) When an EPUB declares the same metadata with both an EPUB 2 `<meta name=>` tag and an EPUB 3 `<meta property=>` or `<dc:x>` element, the EPUB 3 value now takes precedence and the EPUB 2 one is ignored.
+
 #### LCP
 
 * The CRL used to validate LCP licenses is now checked to be a genuine X.509 CRL before being cached. Networks with a captive portal (e.g. on a plane) could return their login page with a `200 OK` status, which was then cached for seven days and prevented opening LCP publications. An invalid CRL cached by a previous version is now ignored instead of waiting for its expiration.
@@ -89,12 +93,6 @@ All notable changes to this project will be documented in this file. Take a look
 
 * The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been removed.
 * The `ReadiumInternal` package has been removed. Its utilities were internal helpers and are now folded into `ReadiumShared` with `package` visibility. If you imported `ReadiumInternal` directly, remove the import.
-
-### Fixed
-
-#### Streamer
-
-* When an OPF package document declares the same property with both a legacy EPUB 2 `<meta name=>` tag and a structured element (EPUB 3 `<meta property=>` or `<dc:x>`), the structured one now supersedes the legacy one in `otherMetadata`, instead of both values being kept ([#85](https://github.com/readium/swift-toolkit/issues/85)).
 
 
 ## [3.11.0] - 2026-07-17

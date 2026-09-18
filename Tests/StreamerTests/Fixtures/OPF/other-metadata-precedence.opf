@@ -8,6 +8,9 @@
     <!-- Order of appearance doesn't matter. -->
     <meta name="generator" content="EPUB 2 generator" />
     <meta property="generator">EPUB 3 generator</meta>
+    <!-- A <dc:x> element supersedes the equivalent EPUB 2 meta. -->
+    <meta name="dc:source" content="EPUB 2 source" />
+    <dc:source>DC source</dc:source>
     <!-- An EPUB 2 meta without any EPUB 3 equivalent is kept. -->
     <meta name="legacy-only" content="EPUB 2 legacy" />
     <!-- An EPUB 3 refining meta with the same property doesn't supersede an EPUB 2 one. -->
