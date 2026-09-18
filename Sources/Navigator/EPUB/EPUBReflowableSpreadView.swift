@@ -110,6 +110,26 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         }
     }
 
+    /// Reroutes touches over the top and bottom margins of a paginated spread
+    /// to the web view's scroll view, so that horizontal swipes turn the page
+    /// instead of being caught by the parent `PaginationView`. Unconsumed
+    /// taps still reach `touchesBegan`/`touchesEnded` through the responder
+    /// chain.
+    ///
+    /// See https://github.com/readium/swift-toolkit/issues/112
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hitView = super.hitTest(point, with: event)
+        guard
+            !viewModel.scroll,
+            hitView == self,
+            isSpreadInitialized,
+            scrollView.isUserInteractionEnabled
+        else {
+            return hitView
+        }
+        return scrollView
+    }
+
     override func convertPointToNavigatorSpace(_ point: CGPoint) -> CGPoint {
         var point = point
         if viewModel.scroll {
