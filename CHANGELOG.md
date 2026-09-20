@@ -3,7 +3,16 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Changed
+
+#### Navigator
+
+* In the paginated EPUB navigator, the number of columns no longer depends on the dimensions of the device screen, which are unreliable on the iPhone Duo and in a resizable window such as Split View or Stage Manager. Two columns are displayed when the navigator is in landscape and at least 950px wide, or when its viewport is split into two panels by a fold.
+    * The threshold was lowered from 960px, so that an iPhone Duo unfolded in landscape displays two columns.
+    * A navigator in portrait now always displays a single column, including on a 13-inch iPad which previously displayed two.
+    * A single column is still used when two of them would no longer fit at the current font size.
 
 ## [4.0.0-alpha.2] - 2026-09-18
 
