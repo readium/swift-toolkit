@@ -146,6 +146,8 @@ public final class PublicationSpeechSynthesizer: Loggable {
         self.engineFactory = engineFactory
         self.tokenizerFactory = tokenizerFactory
         self.delegate = delegate
+
+        audioSessionUser.synthesizer = self
     }
 
     /// The default content tokenizer will split the `Content.Element` items into individual sentences.
@@ -197,6 +199,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     ///
     /// Use `start()` to restart it.
     public func stop() {
+        audioSessionUser.isPausedByInterruption = false
         currentTask?.cancel()
         state = .stopped
         publicationIterator = nil
@@ -206,6 +209,9 @@ public final class PublicationSpeechSynthesizer: Loggable {
     ///
     /// Use `resume()` to restart the playback from the same utterance.
     public func pause() {
+        // A pause requested during an interruption (e.g. with Siri) must
+        // prevent resuming when it ends, even if we're already paused.
+        audioSessionUser.isPausedByInterruption = false
         currentTask?.cancel()
         if case let .playing(utterance, range: _) = state {
             state = .paused(utterance)
@@ -420,6 +426,12 @@ public final class PublicationSpeechSynthesizer: Loggable {
     private final class AudioSessionUser: ReadiumShared.AudioSessionUser {
         let audioConfiguration: AudioSession.Configuration
 
+        weak var synthesizer: PublicationSpeechSynthesizer?
+
+        /// Whether the synthesizer was paused by an audio session
+        /// interruption, and should resume when it ends.
+        var isPausedByInterruption = false
+
         private let session: any AudioSessionManaging
         private var token: AudioSessionToken?
 
@@ -434,13 +446,39 @@ public final class PublicationSpeechSynthesizer: Loggable {
             }
         }
 
-        func play() {}
+        func play() {
+            synthesizer?.resume()
+        }
+
+        func audioSessionInterruptionDidBegin() {
+            guard let synthesizer, synthesizer.state.isPlaying else {
+                return
+            }
+            // `pause()` clears the flag, so we set it afterwards.
+            synthesizer.pause()
+            isPausedByInterruption = true
+        }
+
+        func audioSessionInterruptionDidEnd(shouldResume: Bool) {
+            guard isPausedByInterruption else {
+                return
+            }
+            isPausedByInterruption = false
+            if shouldResume {
+                // The utterance restarts from its beginning, as `pause()`
+                // cancelled it.
+                synthesizer?.resume()
+            }
+        }
 
         func start(isPlaying: Bool) {
             token = session.start(with: self, isPlaying: isPlaying)
         }
 
         func didChangePlaying(_ isPlaying: Bool) {
+            if isPlaying {
+                isPausedByInterruption = false
+            }
             session.user(self, didChangePlaying: isPlaying)
         }
     }
