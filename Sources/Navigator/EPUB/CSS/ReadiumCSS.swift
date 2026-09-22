@@ -21,7 +21,11 @@ struct ReadiumCSS {
 
 extension ReadiumCSS {
     @MainActor
-    mutating func update(with settings: EPUBSettings) {
+    mutating func update(
+        with settings: EPUBSettings,
+        resolvedLayout: LayoutResolver.Layout? = nil,
+        safeAreaInsets: UIEdgeInsets = .zero
+    ) {
         layout = settings.cssLayout
 
         var overrides: [String: String] = [
@@ -38,12 +42,22 @@ extension ReadiumCSS {
         overrides["--RS__pageGutter"] = gutterString
 
         if settings.scroll {
-            if settings.verticalText {
-                overrides["--RS__scrollPaddingTop"] = gutterString
-                overrides["--RS__scrollPaddingBottom"] = gutterString
+            if resolvedLayout != nil {
+                if settings.verticalText {
+                    overrides["--RS__scrollPaddingLeft"] = String(format: "%.5fpx", safeAreaInsets.left / settings.fontSize)
+                    overrides["--RS__scrollPaddingRight"] = String(format: "%.5fpx", safeAreaInsets.right / settings.fontSize)
+                } else {
+                    overrides["--RS__scrollPaddingTop"] = String(format: "%.5fpx", safeAreaInsets.top / settings.fontSize)
+                    overrides["--RS__scrollPaddingBottom"] = String(format: "%.5fpx", safeAreaInsets.bottom / settings.fontSize)
+                }
             } else {
-                overrides["--RS__scrollPaddingLeft"] = gutterString
-                overrides["--RS__scrollPaddingRight"] = gutterString
+                if settings.verticalText {
+                    overrides["--RS__scrollPaddingTop"] = gutterString
+                    overrides["--RS__scrollPaddingBottom"] = gutterString
+                } else {
+                    overrides["--RS__scrollPaddingLeft"] = gutterString
+                    overrides["--RS__scrollPaddingRight"] = gutterString
+                }
             }
         }
 
@@ -62,11 +76,15 @@ extension ReadiumCSS {
             break
         }
 
+        let colCount: Int = resolvedLayout?.colCount ?? settings.columnCount
+        let lineLength: CSSLength? = resolvedLayout.map { CSSPxLength($0.lineLength / settings.fontSize) }
+            ?? CSSPercentLength(settings.lineLength)
+
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            colCount: settings.columnCount,
+            colCount: colCount,
             pageMargins: settings.pageMargins,
-            lineLength: CSSPercentLength(settings.lineLength),
+            lineLength: lineLength,
             appearance: {
                 switch settings.theme {
                 case .light: return nil
