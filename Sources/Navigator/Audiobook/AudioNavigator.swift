@@ -154,7 +154,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         playTask?.cancel()
         durationLoadTask?.cancel()
         didPlayToEndTimeTask?.cancel()
-        rateDidChangeTask?.cancel()
+        if let rateDidChangeObserver {
+            NotificationCenter.default.removeObserver(rateDidChangeObserver)
+        }
         endAudioSession()
     }
 
@@ -314,7 +316,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private var itemLikelyToKeepUpObserver: NSKeyValueObservation?
     private var timeObserverToken: TimeObserverToken?
     private var didPlayToEndTimeTask: Task<Void, Never>?
-    private var rateDidChangeTask: Task<Void, Never>?
+    private var rateDidChangeObserver: Any?
 
     /// Whether the player was paused by an audio session interruption, and
     /// should resume when it ends.
@@ -353,7 +355,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 self.locationDidChange()
             }
         }
-        
+
         timeObserverToken = TimeObserverToken(player: player, observer: periodicObserver)
 
         timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
@@ -370,19 +372,26 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
         }
 
-        rateDidChangeTask = Task { @MainActor [weak self, player] in
-            for await notification in NotificationCenter.default.notifications(named: AVPlayer.rateDidChangeNotification, object: player) {
+        rateDidChangeObserver = NotificationCenter.default.addObserver(
+            forName: AVPlayer.rateDidChangeNotification,
+            object: player,
+            queue: .main
+        ) { [weak self, player] notification in
+            let reason = notification.userInfo?[AVPlayer.rateDidChangeReasonKey] as? AVPlayer.RateDidChangeReason
+
+            // Handled synchronously, to be ordered with the audio session
+            // interruption hooks which read `isPausedByInterruption`.
+            MainActor.assumeIsolated {
                 guard let self else {
                     return
                 }
-                let reason = notification.userInfo?[AVPlayer.rateDidChangeReasonKey] as? AVPlayer.RateDidChangeReason
-                isPausedByInterruption = player.rate == 0 && reason == .audioSessionInterrupted
+                self.isPausedByInterruption = player.rate == 0 && reason == .audioSessionInterrupted
 
                 switch player.timeControlStatus {
                 case .paused:
-                    audioSession.user(self, didChangePlaying: false)
+                    self.audioSession.user(self, didChangePlaying: false)
                 case .waitingToPlayAtSpecifiedRate, .playing:
-                    audioSession.user(self, didChangePlaying: true)
+                    self.audioSession.user(self, didChangePlaying: true)
                 @unknown default:
                     break
                 }
