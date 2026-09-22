@@ -46,7 +46,9 @@ public protocol AudioSessionManaging: Sendable {
     @discardableResult
     func start(with user: any AudioSessionUser, isPlaying: Bool) -> AudioSessionToken
 
-    /// Ends the current audio session.
+    /// Ends the audio session of the user identified by `token`.
+    ///
+    /// Does nothing if another user started a session since.
     func end(with token: AudioSessionToken)
 
     /// Indicates whether the `user` is playing.
@@ -129,11 +131,9 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
         return token
     }
 
-    /// Ends the current audio session.
-    public nonisolated func end(with token: AudioSessionToken) {
-        Task {
-            await end(forUserID: token.id)
-        }
+    /// Ends the audio session of the user identified by `token`.
+    public func end(with token: AudioSessionToken) {
+        end(forUserID: token.id)
     }
 
     private func end(forUserID id: ObjectIdentifier) {

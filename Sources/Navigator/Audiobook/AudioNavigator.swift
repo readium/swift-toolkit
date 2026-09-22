@@ -155,8 +155,13 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         durationLoadTask?.cancel()
         didPlayToEndTimeTask?.cancel()
         rateDidChangeTask?.cancel()
+        endAudioSession()
+    }
+
+    private func endAudioSession() {
         if let token = audioSessionToken {
             audioSession.end(with: token)
+            audioSessionToken = nil
         }
     }
 
@@ -239,6 +244,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Resumes or start the playback.
     public func play() {
         playTask = Task { @MainActor in
+            guard !Task.isCancelled else {
+                return
+            }
             audioSessionToken = audioSession.start(with: self, isPlaying: false)
 
             if player.currentItem == nil {
@@ -247,6 +255,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 } else if let link = publication.readingOrder.first {
                     await go(to: link)
                 }
+            }
+            guard !Task.isCancelled else {
+                return
             }
             player.playImmediately(atRate: Float(settings.speed))
         }
@@ -259,6 +270,15 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         // interruption (e.g. with Siri) would be ignored when it ends.
         isPausedByInterruption = false
         player.pause()
+    }
+
+    /// Stops the playback and ends the audio session.
+    ///
+    /// Use `play()` to resume the playback from the current position.
+    public func stop() {
+        playTask = nil
+        pause()
+        endAudioSession()
     }
 
     /// Toggles the playback.

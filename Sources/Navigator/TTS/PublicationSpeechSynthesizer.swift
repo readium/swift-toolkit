@@ -198,7 +198,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
         }
     }
 
-    /// Stops the synthesizer.
+    /// Stops the synthesizer and ends its audio session.
     ///
     /// Use `start()` to restart it.
     public func stop() {
@@ -206,6 +206,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
         currentTask?.cancel()
         state = .stopped
         publicationIterator = nil
+        audioSessionUser.end()
     }
 
     /// Interrupts a played utterance.
@@ -468,9 +469,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
         }
 
         isolated deinit {
-            if let token = token {
-                session.end(with: token)
-            }
+            end()
         }
 
         func audioSessionInterruptionDidBegin() {
@@ -483,6 +482,13 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
         func start(isPlaying: Bool) {
             token = session.start(with: self, isPlaying: isPlaying)
+        }
+
+        func end() {
+            if let token {
+                session.end(with: token)
+                self.token = nil
+            }
         }
 
         func didChangePlaying(_ isPlaying: Bool) {
