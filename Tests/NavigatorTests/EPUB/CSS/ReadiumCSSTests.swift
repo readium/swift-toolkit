@@ -7,6 +7,7 @@
 @testable import ReadiumNavigator
 import ReadiumShared
 import Testing
+import UIKit
 
 struct ReadiumCSSTests {
     let baseURL = HTTPURL(string: "https://readium/assets")!
@@ -403,6 +404,43 @@ struct ReadiumCSSTests {
         )
         #expect(
             css.userProperties.cssProperties()["--RS__scrollPaddingRight"] == "30.00000px"
+        )
+    }
+
+    @Test @MainActor func updateWithLayoutAppliesColCountAndLineLength() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(fontSize: 2.0),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        let layout = LayoutResolver.Layout(colCount: 2, lineLength: 640.0)
+        css.update(with: settings, resolvedLayout: layout)
+
+        #expect(
+            css.userProperties.cssProperties()["--USER__colCount"] == "2"
+        )
+        #expect(
+            css.userProperties.cssProperties()["--USER__lineLength"] == "320.00000px"
+        )
+    }
+
+    @Test @MainActor func updateWithLayoutAndScrollSettingsComputesScrollPaddingFromInsets() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(scroll: true),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        let insets = UIEdgeInsets(top: 44, left: 20, bottom: 34, right: 25)
+        let layout = LayoutResolver.Layout(colCount: 1, lineLength: 500.0)
+        css.update(with: settings, resolvedLayout: layout, safeAreaInsets: insets)
+
+        #expect(
+            css.userProperties.cssProperties()["--RS__scrollPaddingTop"] == "44.00000px"
+        )
+        #expect(
+            css.userProperties.cssProperties()["--RS__scrollPaddingBottom"] == "34.00000px"
         )
     }
 }
