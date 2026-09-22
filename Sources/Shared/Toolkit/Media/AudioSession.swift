@@ -14,38 +14,25 @@ public protocol AudioSessionUser: AnyObject {
     /// Audio session configuration to use for this user.
     var audioConfiguration: AudioSession.Configuration { get }
 
-    /// Resumes audio playback or recording.
-    ///
-    /// The default implementation of `audioSessionInterruptionDidEnd(shouldResume:)`
-    /// calls it when the system allows resuming after an interruption.
-    func play()
-
     /// Called when the system interrupts the audio session, e.g. with a phone
     /// call.
     ///
-    /// Pause the playback if the underlying engine doesn't pause on its own,
-    /// and remember whether this interruption paused it.
+    /// Pause the playback if the underlying engine doesn't pause on its own
+    /// (`AVPlayer` does), and remember whether this interruption paused it.
     func audioSessionInterruptionDidBegin()
 
     /// Called when an audio interruption finishes.
     ///
     /// `shouldResume` is a hint from the system that it's appropriate to
     /// resume the playback without waiting for user input. Resume only if the
-    /// interruption paused the playback.
+    /// interruption paused the playback, and the user didn't pause it in the
+    /// meantime (e.g. with Siri).
     func audioSessionInterruptionDidEnd(shouldResume: Bool)
 }
 
 public extension AudioSessionUser {
     var audioConfiguration: AudioSession.Configuration {
         .init()
-    }
-
-    func audioSessionInterruptionDidBegin() {}
-
-    func audioSessionInterruptionDidEnd(shouldResume: Bool) {
-        if shouldResume {
-            play()
-        }
     }
 }
 
@@ -280,21 +267,7 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
         case .ended:
             isInterrupted = false
 
-            guard let user = user?.user else {
-                return
-            }
-
-            let shouldResume = options.contains(.shouldResume)
-            if shouldResume {
-                // We reactivate the session before knowing whether the user
-                // will resume. The Readium engines reactivate it on their own
-                // when they resume, but custom users relying on the default
-                // `play()` hook might not report `didChangePlaying`. The
-                // trade-off is briefly holding the session when nothing
-                // resumes.
-                startSession(with: user.audioConfiguration)
-            }
-            user.audioSessionInterruptionDidEnd(shouldResume: shouldResume)
+            user?.user?.audioSessionInterruptionDidEnd(shouldResume: options.contains(.shouldResume))
 
         @unknown default:
             break

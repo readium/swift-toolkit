@@ -2,7 +2,15 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### Handling audio interruptions in a custom `AudioSessionUser`
+
+`AudioSessionUser.play()` is removed. The `AudioSession` used to call it when an interruption (e.g. a phone call) ended, even if the playback was paused before the interruption. Conformers now implement two hooks and decide themselves whether to resume:
+
+* `audioSessionInterruptionDidBegin()` is called when the interruption begins. Pause the playback if your engine doesn't pause on its own (`AVPlayer` does), and remember whether this interruption paused it.
+* `audioSessionInterruptionDidEnd(shouldResume:)` is called when it ends. Resume only if `shouldResume` is set and the interruption paused the playback. Forget the paused state in any case, and when the user pauses during the interruption (e.g. with Siri).
+
 
 ## 4.0.0-alpha.2
 

@@ -425,6 +425,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         return delegate.navigator(self, shouldPlayNextResource: playbackInfo)
     }
 
+    public func audioSessionInterruptionDidBegin() {
+        // `AVPlayer` pauses on its own, and reports it with the
+        // `.audioSessionInterrupted` rate change reason.
+    }
+
     public func audioSessionInterruptionDidEnd(shouldResume: Bool) {
         // The flag is cleared even when we don't resume, otherwise a later
         // interruption of the paused player (e.g. with Siri) would resume it.

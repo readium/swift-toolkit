@@ -89,6 +89,9 @@ public final class PublicationSpeechSynthesizer: Loggable {
     public private(set) var state: State = .stopped {
         didSet {
             if oldValue.isPlaying != state.isPlaying {
+                if state.isPlaying {
+                    isPausedByInterruption = false
+                }
                 audioSessionUser.didChangePlaying(state.isPlaying)
             }
 
@@ -199,7 +202,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     ///
     /// Use `start()` to restart it.
     public func stop() {
-        audioSessionUser.isPausedByInterruption = false
+        isPausedByInterruption = false
         currentTask?.cancel()
         state = .stopped
         publicationIterator = nil
@@ -211,7 +214,11 @@ public final class PublicationSpeechSynthesizer: Loggable {
     public func pause() {
         // A pause requested during an interruption (e.g. with Siri) must
         // prevent resuming when it ends, even if we're already paused.
-        audioSessionUser.isPausedByInterruption = false
+        isPausedByInterruption = false
+        pausePlayback()
+    }
+
+    private func pausePlayback() {
         currentTask?.cancel()
         if case let .playing(utterance, range: _) = state {
             state = .paused(utterance)
@@ -423,14 +430,34 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     private let audioSessionUser: AudioSessionUser
 
+    /// Whether the synthesizer was paused by an audio session interruption,
+    /// and should resume when it ends.
+    private var isPausedByInterruption = false
+
+    private func audioSessionInterruptionDidBegin() {
+        guard state.isPlaying else {
+            return
+        }
+        pausePlayback()
+        isPausedByInterruption = true
+    }
+
+    private func audioSessionInterruptionDidEnd(shouldResume: Bool) {
+        let wasPausedByInterruption = isPausedByInterruption
+        isPausedByInterruption = false
+        if shouldResume, wasPausedByInterruption {
+            // The utterance restarts from its beginning, as the pause
+            // cancelled it.
+            resume()
+        }
+    }
+
+    /// Forwards the audio session events to the synthesizer, without
+    /// exposing `AudioSessionUser` in its public API.
     private final class AudioSessionUser: ReadiumShared.AudioSessionUser {
         let audioConfiguration: AudioSession.Configuration
 
         weak var synthesizer: PublicationSpeechSynthesizer?
-
-        /// Whether the synthesizer was paused by an audio session
-        /// interruption, and should resume when it ends.
-        var isPausedByInterruption = false
 
         private let session: any AudioSessionManaging
         private var token: AudioSessionToken?
@@ -446,29 +473,12 @@ public final class PublicationSpeechSynthesizer: Loggable {
             }
         }
 
-        func play() {
-            synthesizer?.resume()
-        }
-
         func audioSessionInterruptionDidBegin() {
-            guard let synthesizer, synthesizer.state.isPlaying else {
-                return
-            }
-            // `pause()` clears the flag, so we set it afterwards.
-            synthesizer.pause()
-            isPausedByInterruption = true
+            synthesizer?.audioSessionInterruptionDidBegin()
         }
 
         func audioSessionInterruptionDidEnd(shouldResume: Bool) {
-            guard isPausedByInterruption else {
-                return
-            }
-            isPausedByInterruption = false
-            if shouldResume {
-                // The utterance restarts from its beginning, as `pause()`
-                // cancelled it.
-                synthesizer?.resume()
-            }
+            synthesizer?.audioSessionInterruptionDidEnd(shouldResume: shouldResume)
         }
 
         func start(isPlaying: Bool) {
@@ -476,9 +486,6 @@ public final class PublicationSpeechSynthesizer: Loggable {
         }
 
         func didChangePlaying(_ isPlaying: Bool) {
-            if isPlaying {
-                isPausedByInterruption = false
-            }
             session.user(self, didChangePlaying: isPlaying)
         }
     }
