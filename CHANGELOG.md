@@ -3,7 +3,22 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Changed
+
+#### Shared
+
+* `AudioSessionUser.play()` is removed. Conformers must implement the new interruption hooks instead, [see the migration guide](docs/Migration%20Guide.md).
+
+### Fixed
+
+#### Navigator
+
+* Fixed audio session interruptions:
+    * The TTS pauses when an audio interruption begins, and resumes when it ends.
+    * The audio navigator no longer resumes after an audio interruption if it was paused beforehand.
+
 
 ## [4.0.0-alpha.2] - 2026-09-18
 
