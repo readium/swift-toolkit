@@ -3,7 +3,9 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-## [Unreleased]
+<!-- ## [Unreleased] -->
+
+## [4.0.0-alpha.2] - 2026-09-18
 
 ### Added
 
@@ -51,10 +53,19 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+#### Shared
+
+* [#876](https://github.com/readium/swift-toolkit/issues/876) Fixed a crash (`String index is out of bounds`) in `ContentSearchService` when searching a publication containing characters merging with the surrounding text, such as combining diacritical marks.
+
 #### Navigator
 
 * [#121](https://github.com/readium/swift-toolkit/issues/121) HTML `<audio>` and `<video>` elements are now paused when the resource moves off-screen in the EPUB navigator, rather than continuing to play in the background.
 * Fixed the PDF navigator's content being inset by the surrounding safe area (e.g. the navigation bar) on iOS 27.
+* [#112](https://github.com/readium/swift-toolkit/issues/112) In the paginated EPUB navigator, horizontal swipes over the top and bottom margins of a reflowable resource now turn the page, instead of skipping to the previous or next resource.
+
+#### Streamer
+
+* [#85](https://github.com/readium/swift-toolkit/issues/85) When an EPUB declares the same metadata with both an EPUB 2 `<meta name=>` tag and an EPUB 3 `<meta property=>` or `<dc:x>` element, the EPUB 3 value now takes precedence and the EPUB 2 one is ignored.
 
 #### LCP
 
@@ -99,8 +110,6 @@ All notable changes to this project will be documented in this file. Take a look
 * The deprecated `ReadiumAdapterGCDWebServer` and `ReadiumAdapterLCPSQLite` adapter packages have been removed.
 * The `ReadiumInternal` package has been removed. Its utilities were internal helpers and are now folded into `ReadiumShared` with `package` visibility. If you imported `ReadiumInternal` directly, remove the import.
 
-
-<!-- ## [Unreleased] -->
 
 ## [3.11.0] - 2026-07-17
 
@@ -1385,3 +1394,4 @@ progression. Now if no reading progression is set, the `effectiveReadingProgress
 [3.10.0]: https://github.com/readium/swift-toolkit/compare/3.9.0...3.10.0
 [3.11.0]: https://github.com/readium/swift-toolkit/compare/3.10.0...3.11.0
 [4.0.0-alpha.1]: https://github.com/readium/swift-toolkit/compare/3.11.0...4.0.0-alpha.1
+[4.0.0-alpha.2]: https://github.com/readium/swift-toolkit/compare/4.0.0-alpha.1...4.0.0-alpha.2
