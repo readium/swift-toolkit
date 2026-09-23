@@ -41,27 +41,20 @@ public extension AudioSessionUser {
 public protocol AudioSessionManaging: Sendable {
     /// Starts a new audio session with the given `user`.
     ///
-    /// The returned opaque token can be used to end the session for the same
-    /// user.
-    @discardableResult
-    func start(with user: any AudioSessionUser, isPlaying: Bool) -> AudioSessionToken
+    /// Returns when the audio session is ready to play, so the `user` must
+    /// await it before starting its engine.
+    func start(with user: any AudioSessionUser, isPlaying: Bool) async
 
-    /// Ends the audio session of the user identified by `token`.
+    /// Ends the audio session of the given `user`.
     ///
     /// Does nothing if another user started a session since.
-    func end(with token: AudioSessionToken)
+    ///
+    /// This may be called from the `user`'s `deinit`, so implementations
+    /// must not retain the `user`.
+    func end(with user: any AudioSessionUser)
 
     /// Indicates whether the `user` is playing.
     func user(_ user: any AudioSessionUser, didChangePlaying isPlaying: Bool)
-}
-
-/// Opaque token identifying an audio session user.
-public struct AudioSessionToken: Sendable, Equatable {
-    public let id: ObjectIdentifier
-
-    public init(id: ObjectIdentifier) {
-        self.id = id
-    }
 }
 
 /// Manages an activated `AVAudioSession`.
@@ -113,27 +106,27 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
     private var user: User?
 
     /// Starts a new audio session with the given `user`.
-    @discardableResult
-    public func start(with user: any AudioSessionUser, isPlaying: Bool) -> AudioSessionToken {
+    ///
+    /// Returns when the audio session is ready to play.
+    public func start(with user: any AudioSessionUser, isPlaying: Bool) async {
         let id = ObjectIdentifier(user)
-        let token = AudioSessionToken(id: id)
-        guard self.user?.id != id else {
-            return token
+        if self.user?.id != id {
+            if let oldUser = self.user {
+                end(forUserID: oldUser.id)
+            }
+            self.user = User(user)
+            self.isPlaying = isPlaying
         }
 
-        if let oldUser = self.user {
-            end(forUserID: oldUser.id)
-        }
-        self.user = User(user)
-        self.isPlaying = isPlaying
-
+        // The session of the same user may have been ended in the background,
+        // or by an interruption.
         startSession(with: user.audioConfiguration)
-        return token
+        await waitForActivation()
     }
 
-    /// Ends the audio session of the user identified by `token`.
-    public func end(with token: AudioSessionToken) {
-        end(forUserID: token.id)
+    /// Ends the audio session of the given `user`.
+    public func end(with user: any AudioSessionUser) {
+        end(forUserID: ObjectIdentifier(user))
     }
 
     private func end(forUserID id: ObjectIdentifier) {
@@ -212,15 +205,7 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
             return
         }
 
-        let audioSession = AVAudioSession.sharedInstance()
-        do {
-            try audioSession.setCategory(config.category, mode: config.mode, policy: config.routeSharingPolicy, options: config.options)
-            try audioSession.setActive(true)
-            log(.info, "Started audio session with category: \(config.category), mode: \(config.mode), policy: \(config.routeSharingPolicy), options: \(config.options)")
-        } catch {
-            log(.error, "Failed to start the audio session: \(error)")
-        }
-
+        apply(.activate(config))
         isSessionStarted = true
     }
 
@@ -229,14 +214,66 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
             return
         }
 
-        do {
-            try AVAudioSession.sharedInstance().setActive(false)
-            log(.info, "Ended audio session")
-        } catch {
-            log(.error, "Failed to end the audio session: \(error)")
-        }
-
+        apply(.deactivate)
         isSessionStarted = false
+    }
+
+    /// Last requested change of the `AVAudioSession` activation state.
+    private var activationTask: Task<Void, Never>?
+
+    /// Waits until the last requested activation change is applied, or
+    /// skipped.
+    private func waitForActivation() async {
+        await activationTask?.value
+    }
+
+    /// Change of the `AVAudioSession` activation state.
+    private enum ActivationChange: Sendable {
+        /// Sets the category from the given configuration, then activates
+        /// the session.
+        case activate(Configuration)
+        /// Deactivates the session.
+        case deactivate
+    }
+
+    /// Applies the given `change` to the `AVAudioSession`.
+    ///
+    /// These are blocking operations which can hang the main thread, so they
+    /// run in a concurrent context. Each change awaits the previous one, to
+    /// be applied in the order of the calls.
+    ///
+    /// A change still waiting for its turn is skipped when a new one is
+    /// requested, as only the last requested state matters. Otherwise, a
+    /// pending deactivation could stop an engine which started playing in
+    /// the meantime.
+    private func apply(_ change: ActivationChange) {
+        activationTask?.cancel()
+        activationTask = Task { @concurrent [previous = activationTask] in
+            await previous?.value
+            guard !Task.isCancelled else {
+                return
+            }
+
+            let session = AVAudioSession.sharedInstance()
+            switch change {
+            case let .activate(config):
+                do {
+                    try session.setCategory(config.category, mode: config.mode, policy: config.routeSharingPolicy, options: config.options)
+                    try session.setActive(true)
+                    Self.log(.info, "Started audio session with category: \(config.category), mode: \(config.mode), policy: \(config.routeSharingPolicy), options: \(config.options)")
+                } catch {
+                    Self.log(.error, "Failed to start the audio session: \(error)")
+                }
+
+            case .deactivate:
+                do {
+                    try session.setActive(false)
+                    Self.log(.info, "Ended audio session")
+                } catch {
+                    Self.log(.error, "Failed to end the audio session: \(error)")
+                }
+            }
+        }
     }
 
     /// Whether the audio session is currently interrupted, e.g. by a phone call.
@@ -252,8 +289,10 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
     ) {
         switch type {
         case .began:
-            // The system deactivated the session.
+            // The system deactivated the session. A pending activation would
+            // fail during the interruption, so it is skipped.
             isSessionStarted = false
+            activationTask?.cancel()
 
             // The app was suspended while the session was active in the
             // background. Nothing was playing, and no `.ended` will follow.

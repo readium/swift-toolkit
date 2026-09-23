@@ -189,8 +189,6 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
-        audioSessionUser.start(isPlaying: false)
-
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
         currentTask = Task {
@@ -282,6 +280,15 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Plays the given `utterance` with the TTS `engine`.
     private func play(_ utterance: Utterance) async {
+        // Starts the audio session when (re)starting the playback, e.g. after
+        // an interruption which deactivated it. Not needed between utterances.
+        if !state.isPlaying {
+            await audioSessionUser.start(isPlaying: false)
+            guard !Task.isCancelled else {
+                return
+            }
+        }
+
         state = .playing(utterance, range: nil)
 
         let result = await engine.speak(
@@ -461,7 +468,6 @@ public final class PublicationSpeechSynthesizer: Loggable {
         weak var synthesizer: PublicationSpeechSynthesizer?
 
         private let session: any AudioSessionManaging
-        private var token: AudioSessionToken?
 
         init(session: any AudioSessionManaging, config: AudioSession.Configuration) {
             self.session = session
@@ -480,15 +486,12 @@ public final class PublicationSpeechSynthesizer: Loggable {
             synthesizer?.audioSessionInterruptionDidEnd(shouldResume: shouldResume)
         }
 
-        func start(isPlaying: Bool) {
-            token = session.start(with: self, isPlaying: isPlaying)
+        func start(isPlaying: Bool) async {
+            await session.start(with: self, isPlaying: isPlaying)
         }
 
         func end() {
-            if let token {
-                session.end(with: token)
-                self.token = nil
-            }
+            session.end(with: self)
         }
 
         func didChangePlaying(_ isPlaying: Bool) {

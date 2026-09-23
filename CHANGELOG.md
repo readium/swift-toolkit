@@ -16,6 +16,9 @@ All notable changes to this project will be documented in this file. Take a look
 #### Shared
 
 * `AudioSessionUser.play()` is removed. Conformers must implement the new interruption hooks instead, [see the migration guide](docs/Migration%20Guide.md).
+* `AudioSessionManaging` changed to activate the audio session off the main thread, [see the migration guide](docs/Migration%20Guide.md).
+    * `start(with:isPlaying:)` is now `async`, and returns when the audio session is ready to play.
+    * `end(with:)` takes the `AudioSessionUser` instead of an `AudioSessionToken`, which is removed.
 
 ### Fixed
 

@@ -4,12 +4,22 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
-### Handling audio interruptions in a custom `AudioSessionUser`
+### Audio session changes
+
+#### Custom `AudioSessionManaging` implementations
+
+The audio session is now activated off the main thread, as it can block for a noticeable time.
+
+* `start(with:isPlaying:)` is now `async`. Return only once the audio session is ready to play, as callers start their engine right after.
+* `AudioSessionToken` is removed. `end(with:)` takes the `AudioSessionUser` instead. It may be called from the user's `deinit`, so don't retain the user or capture it in a `Task`.
+
+#### Handling audio interruptions in a custom `AudioSessionUser`
 
 `AudioSessionUser.play()` is removed. The `AudioSession` used to call it when an interruption (e.g. a phone call) ended, even if the playback was paused before the interruption. Conformers now implement two hooks and decide themselves whether to resume:
 
 * `audioSessionInterruptionDidBegin()` is called when the interruption begins. Pause the playback if your engine doesn't pause on its own (`AVPlayer` does), and remember whether this interruption paused it.
 * `audioSessionInterruptionDidEnd(shouldResume:)` is called when it ends. Resume only if `shouldResume` is set and the interruption paused the playback. Forget the paused state in any case, and when the user pauses during the interruption (e.g. with Siri).
+
 
 
 ## 4.0.0-alpha.2
