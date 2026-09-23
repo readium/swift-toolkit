@@ -192,10 +192,6 @@ public final class PublicationSpeechSynthesizer: Loggable {
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
         currentTask = Task {
-            await audioSessionUser.start(isPlaying: false)
-            guard !Task.isCancelled else {
-                return
-            }
             await playNextUtterance(.forward)
         }
     }
@@ -284,6 +280,15 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Plays the given `utterance` with the TTS `engine`.
     private func play(_ utterance: Utterance) async {
+        // Starts the audio session when (re)starting the playback, e.g. after
+        // an interruption which deactivated it. Not needed between utterances.
+        if !state.isPlaying {
+            await audioSessionUser.start(isPlaying: false)
+            guard !Task.isCancelled else {
+                return
+            }
+        }
+
         state = .playing(utterance, range: nil)
 
         let result = await engine.speak(
