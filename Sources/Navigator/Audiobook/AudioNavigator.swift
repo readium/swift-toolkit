@@ -376,7 +376,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             forName: AVPlayer.rateDidChangeNotification,
             object: player,
             queue: .main
-        ) { [weak self, player] notification in
+        ) { [weak self] notification in
             let reason = notification.userInfo?[AVPlayer.rateDidChangeReasonKey] as? AVPlayer.RateDidChangeReason
 
             // Handled synchronously, to be ordered with the audio session
@@ -385,9 +385,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 guard let self else {
                     return
                 }
-                self.isPausedByInterruption = player.rate == 0 && reason == .audioSessionInterrupted
+                self.isPausedByInterruption = self.player.rate == 0 && reason == .audioSessionInterrupted
 
-                switch player.timeControlStatus {
+                switch self.player.timeControlStatus {
                 case .paused:
                     self.audioSession.user(self, didChangePlaying: false)
                 case .waitingToPlayAtSpecifiedRate, .playing:

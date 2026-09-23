@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Navigator
+
+* `AudioNavigator.stop()` stops the playback and ends the audio session.
+
 ### Changed
 
 #### Shared
