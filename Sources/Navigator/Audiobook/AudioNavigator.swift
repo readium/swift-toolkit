@@ -148,8 +148,6 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         )
     }
 
-    private var audioSessionToken: AudioSessionToken?
-
     isolated deinit {
         playTask?.cancel()
         durationLoadTask?.cancel()
@@ -157,14 +155,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         if let rateDidChangeObserver {
             NotificationCenter.default.removeObserver(rateDidChangeObserver)
         }
-        endAudioSession()
-    }
-
-    private func endAudioSession() {
-        if let token = audioSessionToken {
-            audioSession.end(with: token)
-            audioSessionToken = nil
-        }
+        audioSession.end(with: self)
     }
 
     /// Returns whether the resource is currently playing or not.
@@ -249,7 +240,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             guard !Task.isCancelled else {
                 return
             }
-            audioSessionToken = audioSession.start(with: self, isPlaying: false)
+            await audioSession.start(with: self, isPlaying: false)
+            guard !Task.isCancelled else {
+                return
+            }
 
             if player.currentItem == nil {
                 if let location = initialLocation {
@@ -280,7 +274,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public func stop() {
         playTask = nil
         pause()
-        endAudioSession()
+        audioSession.end(with: self)
     }
 
     /// Toggles the playback.
@@ -377,7 +371,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             object: player,
             queue: .main
         ) { [weak self] notification in
-            let reason = notification.userInfo?[AVPlayer.rateDidChangeReasonKey] as? AVPlayer.RateDidChangeReason
+            // `Notification` is not `Sendable`, but it is safe to use here as
+            // the block is called synchronously on the main queue.
+            nonisolated(unsafe) let notification = notification
 
             // Handled synchronously, to be ordered with the audio session
             // interruption hooks which read `isPausedByInterruption`.
@@ -385,6 +381,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 guard let self else {
                     return
                 }
+                let reason = notification.userInfo?[AVPlayer.rateDidChangeReasonKey] as? AVPlayer.RateDidChangeReason
                 self.isPausedByInterruption = self.player.rate == 0 && reason == .audioSessionInterrupted
 
                 switch self.player.timeControlStatus {

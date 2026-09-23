@@ -189,11 +189,13 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
-        audioSessionUser.start(isPlaying: false)
-
         currentTask?.cancel()
         publicationIterator = publication.content(from: startLocator)?.iterator()
         currentTask = Task {
+            await audioSessionUser.start(isPlaying: false)
+            guard !Task.isCancelled else {
+                return
+            }
             await playNextUtterance(.forward)
         }
     }
@@ -461,7 +463,6 @@ public final class PublicationSpeechSynthesizer: Loggable {
         weak var synthesizer: PublicationSpeechSynthesizer?
 
         private let session: any AudioSessionManaging
-        private var token: AudioSessionToken?
 
         init(session: any AudioSessionManaging, config: AudioSession.Configuration) {
             self.session = session
@@ -480,15 +481,12 @@ public final class PublicationSpeechSynthesizer: Loggable {
             synthesizer?.audioSessionInterruptionDidEnd(shouldResume: shouldResume)
         }
 
-        func start(isPlaying: Bool) {
-            token = session.start(with: self, isPlaying: isPlaying)
+        func start(isPlaying: Bool) async {
+            await session.start(with: self, isPlaying: isPlaying)
         }
 
         func end() {
-            if let token {
-                session.end(with: token)
-                self.token = nil
-            }
+            session.end(with: self)
         }
 
         func didChangePlaying(_ isPlaying: Bool) {
