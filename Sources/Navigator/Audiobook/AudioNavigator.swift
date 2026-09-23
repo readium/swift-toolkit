@@ -153,9 +153,17 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     isolated deinit {
         playTask?.cancel()
         durationLoadTask?.cancel()
-        notificationTask?.cancel()
+        didPlayToEndTimeTask?.cancel()
+        if let rateDidChangeObserver {
+            NotificationCenter.default.removeObserver(rateDidChangeObserver)
+        }
+        endAudioSession()
+    }
+
+    private func endAudioSession() {
         if let token = audioSessionToken {
             audioSession.end(with: token)
+            audioSessionToken = nil
         }
     }
 
@@ -238,6 +246,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Resumes or start the playback.
     public func play() {
         playTask = Task { @MainActor in
+            guard !Task.isCancelled else {
+                return
+            }
             audioSessionToken = audioSession.start(with: self, isPlaying: false)
 
             if player.currentItem == nil {
@@ -247,13 +258,29 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                     await go(to: link)
                 }
             }
+            guard !Task.isCancelled else {
+                return
+            }
             player.playImmediately(atRate: Float(settings.speed))
         }
     }
 
     /// Pauses the playback.
     public func pause() {
+        // Pausing an already paused player doesn't change its rate, so we
+        // need to reset the flag here. Otherwise a pause requested during an
+        // interruption (e.g. with Siri) would be ignored when it ends.
+        isPausedByInterruption = false
         player.pause()
+    }
+
+    /// Stops the playback and ends the audio session.
+    ///
+    /// Use `play()` to resume the playback from the current position.
+    public func stop() {
+        playTask = nil
+        pause()
+        endAudioSession()
     }
 
     /// Toggles the playback.
@@ -283,13 +310,17 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         await seek(to: currentTime + delta)
     }
 
-    private var rateObserver: NSKeyValueObservation?
     private var timeControlStatusObserver: NSKeyValueObservation?
     private var currentItemObserver: NSKeyValueObservation?
     private var itemStatusObserver: NSKeyValueObservation?
     private var itemLikelyToKeepUpObserver: NSKeyValueObservation?
     private var timeObserverToken: TimeObserverToken?
-    private var notificationTask: Task<Void, Never>?
+    private var didPlayToEndTimeTask: Task<Void, Never>?
+    private var rateDidChangeObserver: Any?
+
+    /// Whether the player was paused by an audio session interruption, and
+    /// should resume when it ends.
+    private var isPausedByInterruption = false
 
     private lazy var mediaLoader: PublicationMediaLoader = {
         let loader = PublicationMediaLoader(publication: publication)
@@ -324,25 +355,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 self.locationDidChange()
             }
         }
+
         timeObserverToken = TimeObserverToken(player: player, observer: periodicObserver)
-
-        rateObserver = player.observe(\.rate, options: [.new, .old]) { [weak self] _, _ in
-            Task { @MainActor in
-                guard let self = self else {
-                    return
-                }
-
-                let session = self.audioSession
-                switch self.player.timeControlStatus {
-                case .paused:
-                    session.user(self, didChangePlaying: false)
-                case .waitingToPlayAtSpecifiedRate, .playing:
-                    session.user(self, didChangePlaying: true)
-                @unknown default:
-                    break
-                }
-            }
-        }
 
         timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
             Task { @MainActor [weak self] in
@@ -358,7 +372,33 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
         }
 
-        notificationTask = Task { @MainActor [weak self] in
+        rateDidChangeObserver = NotificationCenter.default.addObserver(
+            forName: AVPlayer.rateDidChangeNotification,
+            object: player,
+            queue: .main
+        ) { [weak self] notification in
+            let reason = notification.userInfo?[AVPlayer.rateDidChangeReasonKey] as? AVPlayer.RateDidChangeReason
+
+            // Handled synchronously, to be ordered with the audio session
+            // interruption hooks which read `isPausedByInterruption`.
+            MainActor.assumeIsolated {
+                guard let self else {
+                    return
+                }
+                self.isPausedByInterruption = self.player.rate == 0 && reason == .audioSessionInterrupted
+
+                switch self.player.timeControlStatus {
+                case .paused:
+                    self.audioSession.user(self, didChangePlaying: false)
+                case .waitingToPlayAtSpecifiedRate, .playing:
+                    self.audioSession.user(self, didChangePlaying: true)
+                @unknown default:
+                    break
+                }
+            }
+        }
+
+        didPlayToEndTimeTask = Task { @MainActor [weak self] in
             for await notification in NotificationCenter.default.notifications(named: .AVPlayerItemDidPlayToEndTime) {
                 guard
                     let self = self,
@@ -412,6 +452,21 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
 
         return delegate.navigator(self, shouldPlayNextResource: playbackInfo)
+    }
+
+    public func audioSessionInterruptionDidBegin() {
+        // `AVPlayer` pauses on its own, and reports it with the
+        // `.audioSessionInterrupted` rate change reason.
+    }
+
+    public func audioSessionInterruptionDidEnd(shouldResume: Bool) {
+        // The flag is cleared even when we don't resume, otherwise a later
+        // interruption of the paused player (e.g. with Siri) would resume it.
+        let wasPausedByInterruption = isPausedByInterruption
+        isPausedByInterruption = false
+        if shouldResume, wasPausedByInterruption {
+            play()
+        }
     }
 
     /// Notifies the delegate that the player state changed.

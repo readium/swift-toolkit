@@ -14,9 +14,20 @@ public protocol AudioSessionUser: AnyObject {
     /// Audio session configuration to use for this user.
     var audioConfiguration: AudioSession.Configuration { get }
 
-    /// Called when an audio interruption (e.g. phone call) finishes, to resume audio playback or
-    /// recording.
-    func play()
+    /// Called when the system interrupts the audio session, e.g. with a phone
+    /// call.
+    ///
+    /// Pause the playback if the underlying engine doesn't pause on its own
+    /// (`AVPlayer` does), and remember whether this interruption paused it.
+    func audioSessionInterruptionDidBegin()
+
+    /// Called when an audio interruption finishes.
+    ///
+    /// `shouldResume` is a hint from the system that it's appropriate to
+    /// resume the playback without waiting for user input. Resume only if the
+    /// interruption paused the playback, and the user didn't pause it in the
+    /// meantime (e.g. with Siri).
+    func audioSessionInterruptionDidEnd(shouldResume: Bool)
 }
 
 public extension AudioSessionUser {
@@ -35,7 +46,9 @@ public protocol AudioSessionManaging: Sendable {
     @discardableResult
     func start(with user: any AudioSessionUser, isPlaying: Bool) -> AudioSessionToken
 
-    /// Ends the current audio session.
+    /// Ends the audio session of the user identified by `token`.
+    ///
+    /// Does nothing if another user started a session since.
     func end(with token: AudioSessionToken)
 
     /// Indicates whether the `user` is playing.
@@ -118,11 +131,9 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
         return token
     }
 
-    /// Ends the current audio session.
-    public nonisolated func end(with token: AudioSessionToken) {
-        Task {
-            await end(forUserID: token.id)
-        }
+    /// Ends the audio session of the user identified by `token`.
+    public func end(with token: AudioSessionToken) {
+        end(forUserID: token.id)
     }
 
     private func end(forUserID id: ObjectIdentifier) {
@@ -158,6 +169,32 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
 
     private func observeAppStateChanges() {
         NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+
+        interruptionObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            guard
+                let userInfo = notification.userInfo,
+                let rawType = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+                let type = AVAudioSession.InterruptionType(rawValue: rawType)
+            else {
+                return
+            }
+            let rawReason = userInfo[AVAudioSessionInterruptionReasonKey] as? UInt
+            let rawOptions = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt
+
+            // The hooks must run synchronously, before any engine delegate
+            // callback following the notification.
+            MainActor.assumeIsolated {
+                self?.handleAudioSessionInterruption(
+                    type: type,
+                    reason: rawReason.flatMap(AVAudioSession.InterruptionReason.init(rawValue:)),
+                    options: rawOptions.map(AVAudioSession.InterruptionOptions.init(rawValue:)) ?? []
+                )
+            }
+        }
     }
 
     @objc private func appDidEnterBackground() {
@@ -185,14 +222,6 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
         }
 
         isSessionStarted = true
-
-        interruptionObserver = NotificationCenter.default.addObserver(
-            forName: AVAudioSession.interruptionNotification,
-            object: audioSession,
-            queue: .main
-        ) { [weak self] notification in
-            self?.handleAudioSessionInterruption(notification: notification)
-        }
     }
 
     private func endSession() {
@@ -201,7 +230,6 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
         }
 
         do {
-            AVAudioSession.sharedInstance()
             try AVAudioSession.sharedInstance().setActive(false)
             log(.info, "Ended audio session")
         } catch {
@@ -209,7 +237,6 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
         }
 
         isSessionStarted = false
-        interruptionObserver = nil
     }
 
     /// Whether the audio session is currently interrupted, e.g. by a phone call.
@@ -218,44 +245,29 @@ public final class AudioSession: AudioSessionManaging, Sendable, Loggable {
     /// The observer of audio session interruption notifications.
     private var interruptionObserver: Any?
 
-    private nonisolated func handleAudioSessionInterruption(notification: Notification) {
-        guard let userInfo = notification.userInfo,
-              let rawInterruptionType = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-              let interruptionType = AVAudioSession.InterruptionType(rawValue: rawInterruptionType)
-        else {
-            return
-        }
-
-        let options = (userInfo[AVAudioSessionInterruptionOptionKey] as? UInt)
-            .map(AVAudioSession.InterruptionOptions.init(rawValue:))
-            ?? []
-
-        Task {
-            await handleAudioSessionInterruption(type: interruptionType, options: options)
-        }
-    }
-
-    private func handleAudioSessionInterruption(type: AVAudioSession.InterruptionType, options: AVAudioSession.InterruptionOptions) {
+    private func handleAudioSessionInterruption(
+        type: AVAudioSession.InterruptionType,
+        reason: AVAudioSession.InterruptionReason?,
+        options: AVAudioSession.InterruptionOptions
+    ) {
         switch type {
         case .began:
+            // The system deactivated the session.
+            isSessionStarted = false
+
+            // The app was suspended while the session was active in the
+            // background. Nothing was playing, and no `.ended` will follow.
+            if reason == .appWasSuspended {
+                return
+            }
+
             isInterrupted = true
+            user?.user?.audioSessionInterruptionDidBegin()
 
         case .ended:
             isInterrupted = false
 
-            // When an interruption ends, determine whether playback should resume automatically,
-            // and reactivate the audio session if necessary.
-            do {
-                if let user = user?.user {
-                    try AVAudioSession.sharedInstance().setActive(true)
-
-                    if options.contains(.shouldResume) {
-                        user.play()
-                    }
-                }
-            } catch {
-                log(.error, "Cannot resume audio session after interruption: \(error)")
-            }
+            user?.user?.audioSessionInterruptionDidEnd(shouldResume: options.contains(.shouldResume))
 
         @unknown default:
             break
