@@ -20,6 +20,20 @@ The audio session is now activated off the main thread, as it can block for a no
 * `audioSessionInterruptionDidBegin()` is called when the interruption begins. Pause the playback if your engine doesn't pause on its own (`AVPlayer` does), and remember whether this interruption paused it.
 * `audioSessionInterruptionDidEnd(shouldResume:)` is called when it ends. Resume only if `shouldResume` is set and the interruption paused the playback. Forget the paused state in any case, and when the user pauses during the interruption (e.g. with Siri).
 
+### Now Playing chapter number
+
+`NowPlayingInfo.Media.chapterNumber` moved to `NowPlayingInfo.Playback.chapterNumber`. Setting a different `NowPlayingInfo.media` resets the `playback`, so updating the chapter number on the `media` used to discard the playback info (duration, elapsed time and rate).
+
+```swift
+// Before
+nowPlaying.playback = NowPlayingInfo.Playback(duration: duration, elapsedTime: time, rate: rate)
+nowPlaying.media?.chapterNumber = chapterNumber
+
+// After
+nowPlaying.playback = NowPlayingInfo.Playback(chapterNumber: chapterNumber, duration: duration, elapsedTime: time, rate: rate)
+```
+
+For the same reason, we recommend setting the `media` once all its metadata is available, including the artwork, instead of updating it afterwards.
 
 
 ## 4.0.0-alpha.2
