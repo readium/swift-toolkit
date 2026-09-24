@@ -257,7 +257,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public func play() {
         guard pendingSeek == nil else {
             // The playback resumes once the seek completes.
-            pendingSeek?.resumesPlayback = true
+            setPendingSeekResumesPlayback(true)
             return
         }
         playNow()
@@ -298,8 +298,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         isPausedByInterruption = false
         // A pending play or seek would resume the playback otherwise.
         playTask = nil
-        pendingSeek?.resumesPlayback = false
         player.pause()
+        setPendingSeekResumesPlayback(false)
     }
 
     /// Stops the playback and ends the audio session.
@@ -325,6 +325,19 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         let seekID = beginSeek()
         await seekPlayer(to: time, seekID: seekID)
         await endSeek(seekID)
+    }
+
+    /// Updates whether the pending seek resumes the playback, notifying the
+    /// delegate as it changes the reported `state`.
+    private func setPendingSeekResumesPlayback(_ resumesPlayback: Bool) {
+        guard
+            let seek = pendingSeek,
+            seek.resumesPlayback != resumesPlayback
+        else {
+            return
+        }
+        pendingSeek?.resumesPlayback = resumesPlayback
+        playbackDidChange()
     }
 
     /// Pauses the player for a new seek, superseding any seek in progress.
