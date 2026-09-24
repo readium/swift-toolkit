@@ -160,6 +160,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Returns whether the resource is currently playing or not.
     public var state: MediaPlaybackState {
+        if pendingSeek?.resumesPlayback == true {
+            // The player is paused during a seek, but the playback resumes
+            // once it completes.
+            return .loading
+        }
         let state = MediaPlaybackState(player.timeControlStatus)
         if
             state == .playing,
@@ -180,8 +185,20 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Unlike `state`, this reflects the playback intent, which is what we
     /// need to know when temporarily pausing the player to seek.
     private var isPlaybackRequested: Bool {
-        player.timeControlStatus != .paused
+        pendingSeek?.resumesPlayback ?? (player.timeControlStatus != .paused)
     }
+
+    /// Seek in progress, pausing the player until it completes.
+    private struct PendingSeek {
+        let id: Int
+        /// Target time in the current resource, once known.
+        var time: Double?
+        /// Whether the playback resumes once the seek completes.
+        var resumesPlayback: Bool
+    }
+
+    private var pendingSeek: PendingSeek?
+    private var lastSeekID = 0
 
     /// Current playback info.
     public var playbackInfo: MediaPlaybackInfo {
@@ -224,8 +241,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Durations indexed by reading order position.
     private let durations: [Double]
 
+    /// Current time in the current resource, or the target of the seek in
+    /// progress.
     public var currentTime: Double {
-        player.currentTime().secondsOrZero
+        pendingSeek?.time ?? player.currentTime().secondsOrZero
     }
 
     private var playTask: Task<Void, Never>? {
@@ -236,6 +255,18 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Resumes or start the playback.
     public func play() {
+        guard pendingSeek == nil else {
+            // The playback resumes once the seek completes.
+            pendingSeek?.resumesPlayback = true
+            return
+        }
+        playNow()
+    }
+
+    /// Starts the playback, even during a seek.
+    ///
+    /// Waits for the audio session before playing, unless `pause()` cancels it first.
+    private func playNow() {
         playTask = Task { @MainActor in
             guard !Task.isCancelled else {
                 return
@@ -265,6 +296,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         // need to reset the flag here. Otherwise a pause requested during an
         // interruption (e.g. with Siri) would be ignored when it ends.
         isPausedByInterruption = false
+        // A pending play or seek would resume the playback otherwise.
+        playTask = nil
+        pendingSeek?.resumesPlayback = false
         player.pause()
     }
 
@@ -272,7 +306,6 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     ///
     /// Use `play()` to resume the playback from the current position.
     public func stop() {
-        playTask = nil
         pause()
         audioSession.end(with: self)
     }
@@ -289,14 +322,50 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Seeks to the given time in the current resource.
     public func seek(to time: Double) async {
-        let wasPlaying = isPlaybackRequested
-        pause()
+        let seekID = beginSeek()
+        await seekPlayer(to: time, seekID: seekID)
+        await endSeek(seekID)
+    }
 
-        await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+    /// Pauses the player for a new seek, superseding any seek in progress.
+    ///
+    /// Returns the ID of the new seek.
+    private func beginSeek() -> Int {
+        lastSeekID += 1
+        pendingSeek = PendingSeek(id: lastSeekID, resumesPlayback: isPlaybackRequested)
+        player.pause()
+        return lastSeekID
+    }
 
-        if wasPlaying {
-            play()
+    /// Seeks the player to `time`, unless a newer seek superseded this one.
+    ///
+    /// Returns whether the seek finished.
+    @discardableResult
+    private func seekPlayer(to time: Double, seekID: Int) async -> Bool {
+        guard pendingSeek?.id == seekID else {
+            return false
         }
+        pendingSeek?.time = time
+        locationDidChange()
+
+        return await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+    }
+
+    /// Resumes the playback if it was requested, then reports the actual
+    /// position, unless a newer seek superseded this one.
+    private func endSeek(_ seekID: Int) async {
+        guard let seek = pendingSeek, seek.id == seekID else {
+            return
+        }
+        if seek.resumesPlayback {
+            playNow()
+            await playTask?.value
+        }
+        guard pendingSeek?.id == seekID else {
+            return
+        }
+        pendingSeek = nil
+        locationDidChange()
     }
 
     /// Seeks relatively from the current time in the current resource.
@@ -578,13 +647,12 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public private(set) var currentLocation: Locator?
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
-        let wasPlaying = isPlaybackRequested
-        pause()
-
         guard let newResourceIndex = publication.readingOrder.firstIndexWithHREF(locator.href) else {
             return false
         }
         let link = publication.readingOrder[newResourceIndex]
+
+        let seekID = beginSeek()
 
         do {
             currentLocation = locator
@@ -620,19 +688,21 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 time = 0
             }
 
-            let finished = await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
+            let finished = await seekPlayer(to: time, seekID: seekID)
             if finished {
                 delegate?.navigator(self, didJumpTo: locator)
             }
 
-            if wasPlaying {
-                play()
-            }
-
+            await endSeek(seekID)
             return true
 
         } catch {
             log(.error, error)
+            // The playback doesn't resume after a failed jump.
+            if pendingSeek?.id == seekID {
+                pendingSeek = nil
+                playbackDidChange()
+            }
             return false
         }
     }

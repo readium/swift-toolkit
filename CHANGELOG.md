@@ -28,6 +28,9 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed audio session interruptions:
     * The TTS pauses when an audio interruption begins, and resumes when it ends.
     * The audio navigator no longer resumes after an audio interruption if it was paused beforehand.
+* Fixed seeking with the `AudioNavigator`:
+    * The target of a seek in progress is reported as the current time, instead of the old position until the seek completes.
+    * The playback is reported as `.loading` instead of `.paused` during a seek, when it resumes afterwards.
 
 
 ## [4.0.0-alpha.2] - 2026-09-18
