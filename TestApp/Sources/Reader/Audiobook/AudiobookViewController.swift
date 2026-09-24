@@ -107,14 +107,6 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
     // MARK: - Command Center controls
 
     private func setupCommandCenterControls() {
-        Task {
-            NowPlayingInfo.shared.media = await .init(
-                title: publication.metadata.title ?? "",
-                artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
-                artwork: try? publication.cover().get()
-            )
-        }
-
         let rcc = MPRemoteCommandCenter.shared()
 
         func on(_ command: MPRemoteCommand, _ block: @escaping (AudioNavigator, MPRemoteCommandEvent) -> Void) {
@@ -184,33 +176,25 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
     // MARK: - Now Playing metadata
 
     private func setupNowPlaying() {
-        let nowPlaying = NowPlayingInfo.shared
-
-        // Initial publication metadata.
-        nowPlaying.media = NowPlayingInfo.Media(
-            title: publication.metadata.title ?? "",
-            artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
-            chapterCount: publication.readingOrder.count
-        )
-
-        // Update the artwork after the view model loaded it.
-        model.$cover
-            .sink { cover in
-                nowPlaying.media?.artwork = cover
-            }
-            .store(in: &subscriptions)
+        Task {
+            NowPlayingInfo.shared.media = await .init(
+                title: publication.metadata.title ?? "",
+                artist: publication.metadata.authors.map(\.name).joined(separator: ", "),
+                artwork: try? publication.cover().get(),
+                chapterCount: publication.readingOrder.count
+            )
+        }
     }
 
     private func updateNowPlaying(info: MediaPlaybackInfo) {
         let nowPlaying = NowPlayingInfo.shared
 
         nowPlaying.playback = NowPlayingInfo.Playback(
+            chapterNumber: info.resourceIndex,
             duration: info.duration,
             elapsedTime: info.time,
             rate: navigator.settings.speed
         )
-
-        nowPlaying.media?.chapterNumber = info.resourceIndex
     }
 
     private func clearNowPlaying() {
