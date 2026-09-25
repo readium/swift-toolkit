@@ -174,6 +174,7 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
 
             starting -> playing [label = "didStart"]
             starting -> stopping [label = "play/stop"]
+            starting -> stopped [label = "didFinish"]
 
             playing -> stopped [label = "didFinish"]
             playing -> stopping [label = "play/stop"]
@@ -239,6 +240,12 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
         case let (.starting(current), .didStart(started)) where current == started:
             state = .playing(current)
 
+        // The utterance can be cancelled before it starts, e.g. by an audio
+        // interruption.
+        case let (.starting(current), .didFinish(finished)) where current == finished:
+            state = .stopped
+            current.finish()
+
         case let (.starting(current), .play(next)):
             state = .stopping(current, queued: next)
 
@@ -249,7 +256,6 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
 
         case let (.playing(current), .didFinish(finished)) where current == finished:
             state = .stopped
-
             current.finish()
 
         case let (.playing(current), .play(next)):

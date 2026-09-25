@@ -35,6 +35,37 @@ To support precise CSS filtering of images via Readium CSS v2, `EPUBPreferences.
 +preferences.darkenImages = 0.8
 ```
 
+### Audio session changes
+
+#### Custom `AudioSessionManaging` implementations
+
+The audio session is now activated off the main thread, as it can block for a noticeable time.
+
+* `start(with:isPlaying:)` is now `async`. Return only once the audio session is ready to play, as callers start their engine right after.
+* `AudioSessionToken` is removed. `end(with:)` takes the `AudioSessionUser` instead. It may be called from the user's `deinit`, so don't retain the user or capture it in a `Task`.
+
+#### Handling audio interruptions in a custom `AudioSessionUser`
+
+`AudioSessionUser.play()` is removed. The `AudioSession` used to call it when an interruption (e.g. a phone call) ended, even if the playback was paused before the interruption. Conformers now implement two hooks and decide themselves whether to resume:
+
+* `audioSessionInterruptionDidBegin()` is called when the interruption begins. Pause the playback if your engine doesn't pause on its own (`AVPlayer` does), and remember whether this interruption paused it.
+* `audioSessionInterruptionDidEnd(shouldResume:)` is called when it ends. Resume only if `shouldResume` is set and the interruption paused the playback. Forget the paused state in any case, and when the user pauses during the interruption (e.g. with Siri).
+
+### Now Playing chapter number
+
+`NowPlayingInfo.Media.chapterNumber` moved to `NowPlayingInfo.Playback.chapterNumber`. Setting a different `NowPlayingInfo.media` resets the `playback`, so updating the chapter number on the `media` used to discard the playback info (duration, elapsed time and rate).
+
+```swift
+// Before
+nowPlaying.playback = NowPlayingInfo.Playback(duration: duration, elapsedTime: time, rate: rate)
+nowPlaying.media?.chapterNumber = chapterNumber
+
+// After
+nowPlaying.playback = NowPlayingInfo.Playback(chapterNumber: chapterNumber, duration: duration, elapsedTime: time, rate: rate)
+```
+
+For the same reason, we recommend setting the `media` once all its metadata is available, including the artwork, instead of updating it afterwards.
+
 
 ## 4.0.0-alpha.2
 

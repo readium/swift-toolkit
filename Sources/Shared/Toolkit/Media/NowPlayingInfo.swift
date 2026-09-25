@@ -10,8 +10,11 @@ import UIKit
 
 /// Manages the Now Playing media item displayed on the lock screen.
 ///
-/// Simply set the `playback` and `media` properties when needed, the calls will automatically be
-/// throttled to avoid updating the Now Playing screen too frequently.
+/// Simply set the `playback` and `media` properties when needed, the calls will
+/// automatically be throttled to avoid updating the Now Playing screen too
+/// frequently.
+///
+/// Setting a different `media` resets the `playback`.
 @MainActor
 public final class NowPlayingInfo {
     public static let shared = NowPlayingInfo()
@@ -25,34 +28,46 @@ public final class NowPlayingInfo {
         public var artwork: UIImage?
         /// The total number of chapters in the now-playing item.
         public var chapterCount: Int?
-        /// The number corresponding to the chapter currently being played.
-        public var chapterNumber: Int?
 
-        public init(title: String, artist: String? = nil, artwork: UIImage? = nil, chapterCount: Int? = nil, chapterNumber: Int? = nil) {
+        public init(title: String, artist: String? = nil, artwork: UIImage? = nil, chapterCount: Int? = nil) {
             self.title = title
             self.artist = artist
             self.artwork = artwork
             self.chapterCount = chapterCount
-            self.chapterNumber = chapterNumber
+        }
+
+        @available(*, unavailable, message: "Use `NowPlayingInfo.Playback.chapterNumber` instead.")
+        public var chapterNumber: Int? {
+            get { fatalError() }
+            set { fatalError() }
+        }
+
+        @available(*, unavailable, message: "Use `NowPlayingInfo.Playback.chapterNumber` to set the chapterNumber.")
+        public init(title: String, artist: String? = nil, artwork: UIImage? = nil, chapterCount: Int? = nil, chapterNumber: Int?) {
+            fatalError()
         }
     }
 
     public struct Playback: Equatable, Sendable {
+        /// The number corresponding to the chapter currently being played.
+        public var chapterNumber: Int?
         /// The playback duration of the media item, in seconds.
         public var duration: Double?
         /// The elapsed time of the now playing item, in seconds.
         public var elapsedTime: Double?
-        /// The playback rate of the now-playing item, with a value of 1.0 indicating the normal
-        /// playback rate.
+        /// The playback rate of the now-playing item, with a value of 1.0
+        /// indicating the normal playback rate.
         public var rate: Double?
 
-        public init(duration: Double? = nil, elapsedTime: Double? = nil, rate: Double? = nil) {
+        public init(chapterNumber: Int? = nil, duration: Double? = nil, elapsedTime: Double? = nil, rate: Double? = nil) {
+            self.chapterNumber = chapterNumber
             self.duration = duration
             self.elapsedTime = elapsedTime
             self.rate = rate
         }
 
         public mutating func clear() {
+            chapterNumber = nil
             duration = nil
             elapsedTime = nil
             rate = nil
@@ -60,6 +75,8 @@ public final class NowPlayingInfo {
     }
 
     /// Information about the current media item being played.
+    ///
+    /// Setting a different value resets the `playback`.
     public var media: Media? {
         didSet {
             guard oldValue != media else {
@@ -113,10 +130,10 @@ public final class NowPlayingInfo {
             if let chapterCount = media.chapterCount {
                 info[MPNowPlayingInfoPropertyChapterCount] = chapterCount
             }
-            if let chapterNumber = media.chapterNumber {
+
+            if let chapterNumber = self.playback.chapterNumber {
                 info[MPNowPlayingInfoPropertyChapterNumber] = chapterNumber
             }
-
             if let duration = self.playback.duration {
                 info[MPMediaItemPropertyPlaybackDuration] = duration
             }
