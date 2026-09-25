@@ -196,29 +196,27 @@ struct UserPreferences<
         spread: AnyEnumPreference<ReadiumNavigator.Spread>? = nil,
         visibleScrollbar: AnyPreference<Bool>? = nil
     ) -> some View {
-        if language != nil || readingProgression != nil {
-            Section {
-                if let language = language {
-                    languageRow(
-                        title: "Language",
-                        preference: language,
-                        commit: commit
-                    )
-                }
+        NonEmptySection {
+            if let language = language {
+                languageRow(
+                    title: "Language",
+                    preference: language,
+                    commit: commit
+                )
+            }
 
-                if let readingProgression = readingProgression {
-                    pickerRow(
-                        title: "Reading progression",
-                        preference: readingProgression,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case .ltr: return "LTR"
-                            case .rtl: return "RTL"
-                            }
+            if let readingProgression = readingProgression {
+                pickerRow(
+                    title: "Reading progression",
+                    preference: readingProgression,
+                    commit: commit,
+                    formatValue: { v in
+                        switch v {
+                        case .ltr: return "LTR"
+                        case .rtl: return "RTL"
                         }
-                    )
-                }
+                    }
+                )
             }
         }
 
@@ -350,282 +348,272 @@ struct UserPreferences<
         verticalText: AnyPreference<Bool>? = nil,
         wordSpacing: AnyRangePreference<Double>? = nil
     ) -> some View {
-        if language != nil || readingProgression != nil || verticalText != nil || noRuby != nil {
-            Section {
-                if let language = language {
-                    languageRow(
-                        title: "Language",
-                        preference: language,
-                        commit: commit
-                    )
-                }
+        NonEmptySection {
+            if let language = language {
+                languageRow(
+                    title: "Language",
+                    preference: language,
+                    commit: commit
+                )
+            }
 
-                if let readingProgression = readingProgression {
-                    pickerRow(
-                        title: "Reading progression",
-                        preference: readingProgression,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case .ltr: return "LTR"
-                            case .rtl: return "RTL"
-                            }
+            if let readingProgression = readingProgression {
+                pickerRow(
+                    title: "Reading progression",
+                    preference: readingProgression,
+                    commit: commit,
+                    formatValue: { v in
+                        switch v {
+                        case .ltr: return "LTR"
+                        case .rtl: return "RTL"
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if let verticalText = verticalText {
-                    toggleRow(
-                        title: "Vertical text",
-                        preference: verticalText,
-                        commit: commit
-                    )
-                }
+            if let verticalText = verticalText {
+                toggleRow(
+                    title: "Vertical text",
+                    preference: verticalText,
+                    commit: commit
+                )
+            }
 
-                if let noRuby = noRuby {
-                    toggleRow(
-                        title: "Hide ruby annotations",
-                        preference: noRuby,
-                        commit: commit
-                    )
-                }
+            if let noRuby = noRuby {
+                toggleRow(
+                    title: "Hide ruby annotations",
+                    preference: noRuby,
+                    commit: commit
+                )
             }
         }
 
-        if scroll != nil || columnCount != nil || pageMargins != nil {
-            Section {
-                if let scroll = scroll {
-                    toggleRow(
-                        title: "Scroll",
-                        preference: scroll,
-                        commit: commit
-                    )
-                }
+        NonEmptySection {
+            if let scroll = scroll {
+                toggleRow(
+                    title: "Scroll",
+                    preference: scroll,
+                    commit: commit
+                )
+            }
 
-                if let columnCount = columnCount {
-                    stepperRow(
-                        title: "Columns",
-                        preference: columnCount,
-                        commit: commit
-                    )
-                }
+            if let columnCount = columnCount {
+                stepperRow(
+                    title: "Columns",
+                    preference: columnCount,
+                    commit: commit
+                )
+            }
 
-                if let pageMargins = pageMargins {
-                    stepperRow(
-                        title: "Page margins",
-                        preference: pageMargins,
-                        commit: commit
-                    )
-                }
+            if let pageMargins = pageMargins {
+                stepperRow(
+                    title: "Page margins",
+                    preference: pageMargins,
+                    commit: commit
+                )
             }
         }
 
-        if theme != nil || blendImages != nil || darkenImages != nil || invertImages != nil || invertGaiji != nil || textColor != nil || backgroundColor != nil {
-            Section {
-                if let theme = theme {
-                    pickerRow(
-                        title: "Theme",
-                        preference: theme,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case .light: return "Light"
-                            case .dark: return "Dark"
-                            case .sepia: return "Sepia"
-                            }
+        NonEmptySection {
+            if let theme = theme {
+                pickerRow(
+                    title: "Theme",
+                    preference: theme,
+                    commit: commit,
+                    formatValue: { v in
+                        switch v {
+                        case .light: return "Light"
+                        case .dark: return "Dark"
+                        case .sepia: return "Sepia"
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if let blendImages = blendImages {
-                    toggleRow(
-                        title: "Blend Images",
-                        preference: blendImages.map(from: { $0 ?? false }, to: { $0 }).eraseToAnyPreference(),
-                        commit: commit
-                    )
-                }
+            if let blendImages = blendImages {
+                toggleRow(
+                    title: "Blend Images",
+                    preference: blendImages.map(from: { $0 ?? false }, to: { $0 }).eraseToAnyPreference(),
+                    commit: commit
+                )
+            }
 
-                if let darkenImages = darkenImages {
-                    stepperRow(
-                        title: "Darken Images",
-                        preference: darkenImages,
-                        commit: commit
-                    )
-                }
+            if let darkenImages = darkenImages {
+                stepperRow(
+                    title: "Darken Images",
+                    preference: darkenImages,
+                    commit: commit
+                )
+            }
 
-                if let invertImages = invertImages {
-                    toggleRow(
-                        title: "Invert Images",
-                        preference: invertImages,
-                        commit: commit
-                    )
-                }
+            if let invertImages = invertImages {
+                toggleRow(
+                    title: "Invert Images",
+                    preference: invertImages,
+                    commit: commit
+                )
+            }
 
-                if let invertGaiji = invertGaiji {
-                    toggleRow(
-                        title: "Invert Gaiji",
-                        preference: invertGaiji,
-                        commit: commit
-                    )
-                }
+            if let invertGaiji = invertGaiji {
+                toggleRow(
+                    title: "Invert Gaiji",
+                    preference: invertGaiji,
+                    commit: commit
+                )
+            }
 
-                if let textColor = textColor {
-                    colorRow(
-                        title: "Text color",
-                        preference: textColor,
-                        commit: commit
-                    )
-                }
+            if let textColor = textColor {
+                colorRow(
+                    title: "Text color",
+                    preference: textColor,
+                    commit: commit
+                )
+            }
 
-                if let backgroundColor = backgroundColor {
-                    colorRow(
-                        title: "Background color",
-                        preference: backgroundColor,
-                        commit: commit
-                    )
-                }
+            if let backgroundColor = backgroundColor {
+                colorRow(
+                    title: "Background color",
+                    preference: backgroundColor,
+                    commit: commit
+                )
             }
         }
 
-        if fontFamily != nil || fontSize != nil || fontWeight != nil || textNormalization != nil {
-            Section {
-                if let fontFamily = fontFamily {
-                    pickerRow(
-                        title: "Typeface",
-                        preference: fontFamily
-                            .with(supportedValues: [
-                                nil,
-                                .sansSerif,
-                                .iaWriterDuospace,
-                                .accessibleDfA,
-                                .openDyslexic,
-                                .literata,
-                            ])
-                            .eraseToAnyPreference(),
-                        commit: commit,
-                        formatValue: { ff in
-                            if let ff = ff {
-                                switch ff {
-                                case .sansSerif: return "Sans serif"
-                                default: return ff.rawValue
-                                }
-                            } else {
-                                return "Original"
+        NonEmptySection {
+            if let fontFamily = fontFamily {
+                pickerRow(
+                    title: "Typeface",
+                    preference: fontFamily
+                        .with(supportedValues: [
+                            nil,
+                            .sansSerif,
+                            .iaWriterDuospace,
+                            .accessibleDfA,
+                            .openDyslexic,
+                            .literata,
+                        ])
+                        .eraseToAnyPreference(),
+                    commit: commit,
+                    formatValue: { ff in
+                        if let ff = ff {
+                            switch ff {
+                            case .sansSerif: return "Sans serif"
+                            default: return ff.rawValue
                             }
+                        } else {
+                            return "Original"
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if let fontSize = fontSize {
-                    stepperRow(
-                        title: "Font size",
-                        preference: fontSize,
-                        commit: commit
-                    )
-                }
+            if let fontSize = fontSize {
+                stepperRow(
+                    title: "Font size",
+                    preference: fontSize,
+                    commit: commit
+                )
+            }
 
-                if let fontWeight = fontWeight {
-                    stepperRow(
-                        title: "Font weight",
-                        preference: fontWeight,
-                        commit: commit
-                    )
-                }
+            if let fontWeight = fontWeight {
+                stepperRow(
+                    title: "Font weight",
+                    preference: fontWeight,
+                    commit: commit
+                )
+            }
 
-                if let textNormalization = textNormalization {
-                    toggleRow(
-                        title: "Text normalization",
-                        preference: textNormalization,
-                        commit: commit
-                    )
-                }
+            if let textNormalization = textNormalization {
+                toggleRow(
+                    title: "Text normalization",
+                    preference: textNormalization,
+                    commit: commit
+                )
             }
         }
 
-        if textAlign != nil || typeScale != nil || lineHeight != nil || paragraphIndent != nil || paragraphSpacing != nil || wordSpacing != nil || letterSpacing != nil || hyphens != nil || ligatures != nil {
-            Section {
-                if let textAlign = textAlign {
-                    pickerRow(
-                        title: "Text alignment",
-                        preference: textAlign,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case nil: return "Default"
-                            case .center: return "Center"
-                            case .left: return "Left"
-                            case .right: return "Right"
-                            case .justify: return "Justify"
-                            case .start: return "Start"
-                            case .end: return "End"
-                            }
+        NonEmptySection {
+            if let textAlign = textAlign {
+                pickerRow(
+                    title: "Text alignment",
+                    preference: textAlign,
+                    commit: commit,
+                    formatValue: { v in
+                        switch v {
+                        case nil: return "Default"
+                        case .center: return "Center"
+                        case .left: return "Left"
+                        case .right: return "Right"
+                        case .justify: return "Justify"
+                        case .start: return "Start"
+                        case .end: return "End"
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if let typeScale = typeScale {
-                    stepperRow(
-                        title: "Type scale",
-                        preference: typeScale,
-                        commit: commit
-                    )
-                }
+            if let typeScale = typeScale {
+                stepperRow(
+                    title: "Type scale",
+                    preference: typeScale,
+                    commit: commit
+                )
+            }
 
-                if let lineHeight = lineHeight {
-                    stepperRow(
-                        title: "Line height",
-                        preference: lineHeight,
-                        commit: commit
-                    )
-                }
+            if let lineHeight = lineHeight {
+                stepperRow(
+                    title: "Line height",
+                    preference: lineHeight,
+                    commit: commit
+                )
+            }
 
-                if let paragraphIndent = paragraphIndent {
-                    stepperRow(
-                        title: "Paragraph indent",
-                        preference: paragraphIndent,
-                        commit: commit
-                    )
-                }
+            if let paragraphIndent = paragraphIndent {
+                stepperRow(
+                    title: "Paragraph indent",
+                    preference: paragraphIndent,
+                    commit: commit
+                )
+            }
 
-                if let paragraphSpacing = paragraphSpacing {
-                    stepperRow(
-                        title: "Paragraph spacing",
-                        preference: paragraphSpacing,
-                        commit: commit
-                    )
-                }
+            if let paragraphSpacing = paragraphSpacing {
+                stepperRow(
+                    title: "Paragraph spacing",
+                    preference: paragraphSpacing,
+                    commit: commit
+                )
+            }
 
-                if let wordSpacing = wordSpacing {
-                    stepperRow(
-                        title: "Word spacing",
-                        preference: wordSpacing,
-                        commit: commit
-                    )
-                }
+            if let wordSpacing = wordSpacing {
+                stepperRow(
+                    title: "Word spacing",
+                    preference: wordSpacing,
+                    commit: commit
+                )
+            }
 
-                if let letterSpacing = letterSpacing {
-                    stepperRow(
-                        title: "Letter spacing",
-                        preference: letterSpacing,
-                        commit: commit
-                    )
-                }
+            if let letterSpacing = letterSpacing {
+                stepperRow(
+                    title: "Letter spacing",
+                    preference: letterSpacing,
+                    commit: commit
+                )
+            }
 
-                if let hyphens = hyphens {
-                    toggleRow(
-                        title: "Hyphens",
-                        preference: hyphens,
-                        commit: commit
-                    )
-                }
+            if let hyphens = hyphens {
+                toggleRow(
+                    title: "Hyphens",
+                    preference: hyphens,
+                    commit: commit
+                )
+            }
 
-                if let ligatures = ligatures {
-                    toggleRow(
-                        title: "Ligatures",
-                        preference: ligatures,
-                        commit: commit
-                    )
-                }
+            if let ligatures = ligatures {
+                toggleRow(
+                    title: "Ligatures",
+                    preference: ligatures,
+                    commit: commit
+                )
             }
         }
     }
@@ -869,5 +857,19 @@ extension Preference {
             get: { value ?? effectiveValue },
             set: { set($0); onSet() }
         )
+    }
+}
+
+/// A `Section` which is not rendered when its content is empty, for example
+/// when none of its optional preference rows are available.
+struct NonEmptySection<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        Group(subviews: content) { subviews in
+            if !subviews.isEmpty {
+                Section { subviews }
+            }
+        }
     }
 }
