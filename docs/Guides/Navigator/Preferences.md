@@ -17,7 +17,7 @@ For instance: "font size" is a **setting**, and the application can submit the f
 let preferences = EPUBPreferences(
     fontFamily: .serif,
     fontSize: 2.0,
-    publisherStyles: false
+    textAlign: .justify
 )
 
 // 2. Submit the preferences, the Navigator will update its settings and the presentation.
@@ -38,7 +38,7 @@ let editor = epubNavigator.editor(of: preferences)
 // 2. Modify the preferences through the editor.
 editor.fontFamily.set(.serif)
 editor.fontSize.increment()
-editor.publisherStyles.toggle()
+editor.hyphens.toggle()
 
 // 3. Submit the edited preferences.
 epubNavigator.submitPreferences(editor.preferences)
@@ -48,11 +48,11 @@ epubNavigator.submitPreferences(editor.preferences)
 
 Preferences are low-level technical properties. While some of them can be exposed directly to the user, such as the font size, others should not be displayed as-is.
 
-For instance, in EPUB, we can simulate two pages side by side using the `columnCount` (`auto`, `1`, `2`) property for reflowable resources, and the `spread` (`auto`, `never`, `always`) property for fixed-layout publications. Rather than displaying both of these settings with all of their possible values in the user interface, you might prefer to show a single switch button to enable a dual-page mode, which will set both settings appropriately.
+For instance, in EPUB, we can simulate two pages side by side using the `columnCount` property for reflowable resources, and the `spread` (`auto`, `never`, `always`) property for fixed-layout publications. Rather than displaying both of these settings with all of their possible values in the user interface, you might prefer to show a single switch button to enable a dual-page mode, which will set both settings appropriately.
 
 ### Inactive settings
 
-A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the word spacing setting requires the publisher styles to be disabled in order to take effect.
+A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the word spacing setting is effective only with a left-to-right layout.
 
 You can check if a setting is effective for a set of preferences using the `PreferencesEditor`:
 
@@ -385,15 +385,20 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `fontSize`           | :white_check_mark: |                    |
 | `fontWeight`         | :white_check_mark: |                    |
 | `hyphens`            | :white_check_mark: |                    |
-| `imageFilter`        | :white_check_mark: |                    |
+| `blendImages`        | :white_check_mark: |                    |
+| `darkenImages`       | :white_check_mark: |                    |
+| `invertImages`       | :white_check_mark: |                    |
+| `invertGaiji`        | :white_check_mark: |                    |
 | `language`           | :white_check_mark: | :white_check_mark: |
 | `letterSpacing`      | :white_check_mark: |                    |
 | `ligatures`          | :white_check_mark: |                    |
+| `lineLength`         | :white_check_mark: |
 | `lineHeight`         | :white_check_mark: |                    |
+| `noRuby`             | :white_check_mark: |                    |
+| `offsetFirstPage`    |                    | :white_check_mark: |
 | `pageMargins`        | :white_check_mark: |                    |
 | `paragraphIndent`    | :white_check_mark: |                    |
 | `paragraphSpacing`   | :white_check_mark: |                    |
-| `publisherStyles`    | :white_check_mark: |                    |
 | `readingProgression` | :white_check_mark: | :white_check_mark: |
 | `scroll`             | :white_check_mark: |                    |
 | `spread`             |                    | :white_check_mark: |
@@ -401,22 +406,21 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `textColor`          | :white_check_mark: |                    |
 | `textNormalization`  | :white_check_mark: |                    |
 | `theme`              | :white_check_mark: |                    |
-| `typeScale`          | :white_check_mark: |                    |
 | `verticalText`       | :white_check_mark: |                    |
 | `wordSpacing`        | :white_check_mark: |                    |
 
-#### Publisher styles
+#### Unset preferences
 
-The following advanced preferences require `publisherStyles` to be explicitly set to `false`. Make sure you convey this in your user interface.
+The following preferences are effective only when explicitly set. When unset, the publisher styles are observed.
 
-* `hyphens`
+* `fontWeight`
+* `hyphens` (also effective when `textAlign` is `.justify`)
 * `letterSpacing`
 * `ligatures`
 * `lineHeight`
 * `paragraphIndent`
 * `paragraphSpacing`
 * `textAlign`
-* `typeScale`
 * `wordSpacing`
 
 #### Scroll vs paginated
@@ -425,7 +429,7 @@ The `columnCount` preference is available only when in paginated mode (`scroll =
 
 #### Dark theme specific preferences
 
-The `imageFilter` preference is available only in dark mode (`theme = .dark`).
+The `darkenImages`, `invertImages`, and `invertGaiji` preferences are available only in dark mode (`theme = .dark`).
 
 #### Language specific preferences
 
@@ -439,6 +443,7 @@ Some preferences are not available for all languages and layout.
 | `wordSpacing`     | :white_check_mark: |                    |     |
 | `hyphens`         | :white_check_mark: |                    |     |
 | `ligatures`       |                    | :white_check_mark: |     |
+| `noRuby`          |                    |                    | :white_check_mark: |
 
 ### PDF
 

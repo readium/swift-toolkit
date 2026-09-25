@@ -4,6 +4,52 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Readium CSS v2 properties
+
+Readium CSS has been upgraded to version 2. If you configure custom Reading System properties via `CSSRSProperties`, note that `maxLineLength` is deprecated in favor of `defaultLineLength`:
+
+```diff
+-CSSRSProperties(maxLineLength: CSSRemLength(40))
++CSSRSProperties(defaultLineLength: CSSRemLength(40))
+```
+
+`CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, and `typeScale` are also removed, as these properties don't exist in Readium CSS v2.
+
+### `EPUBPreferences` Column Count
+
+To support arbitrary integers natively via Readium CSS v2, `EPUBPreferences.columnCount` has been changed from a `ColumnCount` enum to an `Int`. The old `ColumnCount` enum is removed.
+
+```diff
+-var preferences = EPUBPreferences()
+-preferences.columnCount = .auto
++var preferences = EPUBPreferences()
++preferences.columnCount = 0 // 0 maps to auto
+```
+
+### `EPUBPreferences` Image Filters
+
+To support precise CSS filtering of images via Readium CSS v2, `EPUBPreferences.imageFilter` has been replaced with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The old `ImageFilter` enum is removed.
+
+```diff
+-var preferences = EPUBPreferences()
+-preferences.imageFilter = .darken
++var preferences = EPUBPreferences()
++preferences.darkenImages = 0.8
+```
+
+### `EPUBPreferences` publisher styles
+
+Readium CSS v2 no longer requires a flag to apply the user settings, so the `publisherStyles` preference is removed from `EPUBPreferences` and associated types.
+
+The publisher styles are observed as long as the related preferences are unset. Preferences such as `textAlign`, `lineHeight`, or `wordSpacing` take effect as soon as they are set, so you can remove any toggle for the publisher styles from your user interface. To restore the publisher styles, reset these preferences to `nil` (e.g. with `editor.textAlign.clear()`).
+
+```diff
+ let preferences = EPUBPreferences(
+-    publisherStyles: false,
+     textAlign: .justify
+ )
+```
+
 ### Audio session changes
 
 #### Custom `AudioSessionManaging` implementations

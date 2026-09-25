@@ -6,21 +6,25 @@
 
 @testable import ReadiumNavigator
 import ReadiumShared
-import XCTest
+import Testing
 
-class CSSRSPropertiesTests: XCTestCase {
-    func convertEmptyPropertiesToCSSProperties() {
-        XCTAssertEqual(
-            CSSRSProperties().cssProperties(),
-            [
+struct CSSRSPropertiesTests {
+    @Test func convertEmptyPropertiesToCSSProperties() {
+        #expect(
+            CSSRSProperties().cssProperties() == [
+                "--RS__viewportWidth": nil,
                 "--RS__colWidth": nil,
                 "--RS__colCount": nil,
                 "--RS__colGap": nil,
                 "--RS__pageGutter": nil,
+                "--RS__scrollPaddingTop": nil,
+                "--RS__scrollPaddingBottom": nil,
+                "--RS__scrollPaddingLeft": nil,
+                "--RS__scrollPaddingRight": nil,
                 "--RS__flowSpacing": nil,
                 "--RS__paraSpacing": nil,
                 "--RS__paraIndent": nil,
-                "--RS__maxLineLength": nil,
+                "--RS__defaultLineLength": nil,
                 "--RS__maxMediaWidth": nil,
                 "--RS__maxMediaHeight": nil,
                 "--RS__boxSizingMedia": nil,
@@ -51,30 +55,35 @@ class CSSRSPropertiesTests: XCTestCase {
         )
     }
 
-    func testOverrideProperties() {
+    @Test func overrideProperties() {
         let props = CSSRSProperties(
-            colCount: .one,
+            colCount: 1,
             overrides: [
                 "--RS__colCount": "2",
                 "--RS__custom": "value",
             ]
         ).cssProperties()
 
-        XCTAssertEqual(props["--RS__colCount"], "2")
-        XCTAssertEqual(props["--RS__custom"], "value")
+        #expect(props["--RS__colCount"] == "2")
+        #expect(props["--RS__custom"] == "value")
     }
 
-    func testConvertFullPropertiesToCSSProperties() {
-        XCTAssertEqual(
+    @Test func convertFullPropertiesToCSSProperties() {
+        #expect(
             CSSRSProperties(
+                viewportWidth: CSSPercentLength(1.0),
                 colWidth: CSSCmLength(1.2),
-                colCount: .two,
+                colCount: 2,
                 colGap: CSSPtLength(2.3),
                 pageGutter: CSSPcLength(3.4),
+                scrollPaddingTop: CSSPxLength(10),
+                scrollPaddingBottom: CSSPxLength(20),
+                scrollPaddingLeft: CSSPxLength(15),
+                scrollPaddingRight: CSSPxLength(25),
                 flowSpacing: CSSMmLength(4.5),
                 paraSpacing: CSSPxLength(5.6),
                 paraIndent: CSSEmLength(6.7),
-                maxLineLength: CSSRemLength(7.8),
+                defaultLineLength: CSSRemLength(7.8),
                 maxMediaWidth: CSSPercentLength(0.5),
                 maxMediaHeight: CSSVwLength(9.10),
                 boxSizingMedia: .borderBox,
@@ -101,16 +110,20 @@ class CSSRSPropertiesTests: XCTestCase {
                 sansSerifJaV: ["Sans serif", "JaV"],
                 compFontFamily: ["Arial"],
                 codeFontFamily: ["Monaco", "Console Sans"]
-            ).cssProperties(),
-            [
+            ).cssProperties() == [
+                "--RS__viewportWidth": "100.00000%",
                 "--RS__colWidth": "1.20000cm",
                 "--RS__colCount": "2",
                 "--RS__colGap": "2.30000pt",
                 "--RS__pageGutter": "3.40000pc",
+                "--RS__scrollPaddingTop": "10.00000px",
+                "--RS__scrollPaddingBottom": "20.00000px",
+                "--RS__scrollPaddingLeft": "15.00000px",
+                "--RS__scrollPaddingRight": "25.00000px",
                 "--RS__flowSpacing": "4.50000mm",
                 "--RS__paraSpacing": "5.60000px",
                 "--RS__paraIndent": "6.70000em",
-                "--RS__maxLineLength": "7.80000rem",
+                "--RS__defaultLineLength": "7.80000rem",
                 "--RS__maxMediaWidth": "50.00000%",
                 "--RS__maxMediaHeight": "9.10000vw",
                 "--RS__boxSizingMedia": "border-box",
@@ -139,5 +152,15 @@ class CSSRSPropertiesTests: XCTestCase {
                 "--RS__codeFontFamily": #"Monaco, "Console Sans""#,
             ]
         )
+    }
+
+    @Test func deprecatedMaxLineLength() {
+        var props = CSSRSProperties(maxLineLength: CSSRemLength(5.0))
+        #expect(props.defaultLineLength?.value == 5.0)
+        #expect(props.maxLineLength?.value == 5.0)
+
+        props.maxLineLength = CSSRemLength(6.0)
+        #expect(props.defaultLineLength?.value == 6.0)
+        #expect(props.cssProperties()["--RS__defaultLineLength"] == "6.00000rem")
     }
 }

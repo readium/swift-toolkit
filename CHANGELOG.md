@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * `AudioNavigator.stop()` stops the playback and ends the audio session.
+* Upgraded Readium CSS to version 2.0.5.
+    * Added the `noRuby` preference to allow hiding ruby (furigana) annotations in CJK publications.
+    * Added the `lineLength` preference, which behaves as a factor applied to the maximum width of the text column, offering finer control over text presentation than `pageMargins` (which solely handles the padding around the text).
+    * Added `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji` preferences for precise CSS filtering of images.
+    * Added `CSSRSProperties.defaultLineLength`, `viewportWidth`, `scrollPaddingTop`, `scrollPaddingBottom`, `scrollPaddingLeft`, and `scrollPaddingRight` to configure Readium CSS v2 reading system properties.
+    * Added optional CSS minification to the build scripts (`make scripts minify=true`).
 
 ### Changed
 
@@ -20,6 +26,16 @@ All notable changes to this project will be documented in this file. Take a look
     * `start(with:isPlaying:)` is now `async`, and returns when the audio session is ready to play.
     * `end(with:)` takes the `AudioSessionUser` instead of an `AudioSessionToken`, which is removed.
 * `NowPlayingInfo.Media.chapterNumber` moved to `NowPlayingInfo.Playback.chapterNumber`, [see the migration guide](docs/Migration%20Guide.md).
+
+#### Navigator
+
+* Changes in the EPUB navigator preferences, following the upgrade to Readium CSS v2.
+    * `CSSRSProperties.maxLineLength` is deprecated in favor of `defaultLineLength` to match Readium CSS v2, [see the migration guide](docs/Migration%20Guide.md).
+    * Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int` to support arbitrary column counts. The `ColumnCount` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
+    * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The `ImageFilter` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
+    * Removed the `publisherStyles` preference. Readium CSS v2 applies the user settings as soon as they are set, [see the migration guide](docs/Migration%20Guide.md).
+    * Removed the `typeScale` preference, as the type scale user setting is no longer available in Readium CSS v2.
+    * Removed `CSSUserProperties.fontOverride`, `advancedSettings`, and `pageMargins`, which don't exist in Readium CSS v2.
 
 ### Fixed
 

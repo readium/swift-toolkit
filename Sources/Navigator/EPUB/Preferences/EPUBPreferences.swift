@@ -16,7 +16,9 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     /// Number of reflowable columns to display (one-page view or two-page
     /// spread).
-    public var columnCount: ColumnCount?
+    ///
+    /// Use `0` for an automatic number of columns, depending on the viewport size.
+    public var columnCount: Int?
 
     /// Method for fitting the content of fixed-layout resources within the
     /// viewport.
@@ -37,8 +39,17 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Enable hyphenation.
     public var hyphens: Bool?
 
-    /// Filter applied to images in dark theme.
-    public var imageFilter: ImageFilter?
+    /// Blends the images with the background color.
+    public var blendImages: Bool?
+
+    /// Darkens images by the given percentage (0.0 to 1.0).
+    public var darkenImages: Double?
+
+    /// Inverts images by the given percentage (0.0 to 1.0).
+    public var invertImages: Double?
+
+    /// Inverts gaiji images by the given percentage (0.0 to 1.0).
+    public var invertGaiji: Double?
 
     /// Language of the publication content.
     public var language: Language?
@@ -49,8 +60,14 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Enable ligatures in Arabic.
     public var ligatures: Bool?
 
+    /// The maximum line length.
+    public var lineLength: Double?
+
     /// Leading line height.
     public var lineHeight: Double?
+
+    /// Hiding/disabling ruby (furigana) annotations.
+    public var noRuby: Bool?
 
     /// Indicates whether the first page should be displayed alone and centered
     /// instead of alongside the second page.
@@ -66,11 +83,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     /// Vertical margins for paragraphs.
     public var paragraphSpacing: Double?
-
-    /// Indicates whether the original publisher styles should be observed.
-    ///
-    /// Many settings require this to be off.
-    public var publisherStyles: Bool?
 
     /// Direction of the reading progression across resources.
     public var readingProgression: ReadingProgression?
@@ -95,9 +107,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Reader theme.
     public var theme: Theme?
 
-    /// Scale applied to all element font sizes.
-    public var typeScale: Double?
-
     /// Indicates whether the text should be laid out vertically.
     ///
     /// This is used for example with CJK languages. This setting is
@@ -109,22 +118,26 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     public init(
         backgroundColor: Color? = nil,
-        columnCount: ColumnCount? = nil,
+        columnCount: Int? = nil,
         fit: Fit? = nil,
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
-        imageFilter: ImageFilter? = nil,
+        blendImages: Bool? = nil,
+        darkenImages: Double? = nil,
+        invertImages: Double? = nil,
+        invertGaiji: Double? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
+        lineLength: Double? = nil,
         lineHeight: Double? = nil,
+        noRuby: Bool? = nil,
         offsetFirstPage: Bool? = nil,
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
-        publisherStyles: Bool? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
         spread: Spread? = nil,
@@ -132,7 +145,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         textColor: Color? = nil,
         textNormalization: Bool? = nil,
         theme: Theme? = nil,
-        typeScale: Double? = nil,
         verticalText: Bool? = nil,
         wordSpacing: Double? = nil
     ) {
@@ -143,16 +155,20 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
         self.hyphens = hyphens
-        self.imageFilter = imageFilter
+        self.blendImages = blendImages
+        self.darkenImages = darkenImages
+        self.invertImages = invertImages
+        self.invertGaiji = invertGaiji
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
+        self.lineLength = lineLength.map { max($0, 0) }
         self.lineHeight = lineHeight
+        self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
         self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
-        self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = [nil, .never, .always].contains(spread) ? spread : nil
@@ -160,7 +176,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.textColor = textColor
         self.textNormalization = textNormalization
         self.theme = theme
-        self.typeScale = typeScale.map { max($0, 0) }
         self.verticalText = verticalText
         self.wordSpacing = wordSpacing.map { max($0, 0) }
     }
@@ -174,16 +189,20 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
             hyphens: other.hyphens ?? hyphens,
-            imageFilter: other.imageFilter ?? imageFilter,
+            blendImages: other.blendImages ?? blendImages,
+            darkenImages: other.darkenImages ?? darkenImages,
+            invertImages: other.invertImages ?? invertImages,
+            invertGaiji: other.invertGaiji ?? invertGaiji,
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
+            lineLength: other.lineLength ?? lineLength,
             lineHeight: other.lineHeight ?? lineHeight,
+            noRuby: other.noRuby ?? noRuby,
             offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
             pageMargins: other.pageMargins ?? pageMargins,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
-            publisherStyles: other.publisherStyles ?? publisherStyles,
             readingProgression: other.readingProgression ?? readingProgression,
             scroll: other.scroll ?? scroll,
             spread: other.spread ?? spread,
@@ -191,10 +210,19 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             textColor: other.textColor ?? textColor,
             textNormalization: other.textNormalization ?? textNormalization,
             theme: other.theme ?? theme,
-            typeScale: other.typeScale ?? typeScale,
             verticalText: other.verticalText ?? verticalText,
             wordSpacing: other.wordSpacing ?? wordSpacing
         )
+    }
+
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    public var publisherStyles: Bool? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    public var typeScale: Double? {
+        fatalError()
     }
 
     /// Returns a new `EPUBPreferences` with the publication-specific preferences
