@@ -24,7 +24,6 @@ struct CSSUserPropertiesTests {
                 "--USER__backgroundColor": nil,
                 "--USER__fontFamily": nil,
                 "--USER__fontSize": nil,
-                "--USER__typeScale": nil,
                 "--USER__textAlign": nil,
                 "--USER__lineHeight": nil,
                 "--USER__paraSpacing": nil,
@@ -54,7 +53,6 @@ struct CSSUserPropertiesTests {
                 backgroundColor: CSSHexColor("#00FF00"),
                 fontFamily: ["Times New"],
                 fontSize: CSSVMaxLength(2.3),
-                typeScale: 3.4,
                 textAlign: .justify,
                 lineHeight: .length(CSSPtLength(4.5)),
                 paraSpacing: CSSPtLength(5.6),
@@ -78,7 +76,6 @@ struct CSSUserPropertiesTests {
                 "--USER__backgroundColor": "#00FF00",
                 "--USER__fontFamily": "\"Times New\"",
                 "--USER__fontSize": "2.30000vmax",
-                "--USER__typeScale": "3.40000",
                 "--USER__textAlign": "justify",
                 "--USER__lineHeight": "4.50000pt",
                 "--USER__paraSpacing": "5.60000pt",
@@ -138,7 +135,6 @@ struct CSSUserPropertiesTests {
                 backgroundColor: CSSHexColor("#00FF00"),
                 fontFamily: ["Times New", "Comic Sans"],
                 fontSize: CSSVMaxLength(2.3),
-                typeScale: 3.4,
                 textAlign: .justify,
                 lineHeight: .length(CSSPtLength(4.5)),
                 paraSpacing: CSSPtLength(5.6),
@@ -170,7 +166,6 @@ struct CSSUserPropertiesTests {
             --USER__paraSpacing: 5.60000pt !important;
             --USER__textAlign: justify !important;
             --USER__textColor: #FF0000 !important;
-            --USER__typeScale: 3.40000 !important;
             --USER__view: readium-scroll-on !important;
             --USER__wordSpacing: 7.80000rem !important;
 

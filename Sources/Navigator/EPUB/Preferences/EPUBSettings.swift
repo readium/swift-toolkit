@@ -41,7 +41,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var textColor: Color?
     public var textNormalization: Bool
     public var theme: Theme
-    public var typeScale: Double?
     public var verticalText: Bool
     public var wordSpacing: Double?
 
@@ -51,6 +50,11 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 
     @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
     public var publisherStyles: Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    public var typeScale: Double? {
         fatalError()
     }
 
@@ -85,7 +89,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         textColor: Color?,
         textNormalization: Bool,
         theme: Theme,
-        typeScale: Double?,
         verticalText: Bool,
         wordSpacing: Double?
     ) {
@@ -117,7 +120,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.textColor = textColor
         self.textNormalization = textNormalization
         self.theme = theme
-        self.typeScale = typeScale
         self.verticalText = verticalText
         self.wordSpacing = wordSpacing
         cssLayout = CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
@@ -181,7 +183,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let textAlign = preferences.textAlign ?? defaults.textAlign
         let textNormalization = preferences.textNormalization ?? defaults.textNormalization ?? false
         let theme = preferences.theme ?? .light
-        let typeScale = preferences.typeScale ?? defaults.typeScale
         let wordSpacing = preferences.wordSpacing ?? defaults.wordSpacing
 
         self.init(
@@ -213,7 +214,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             textColor: preferences.textColor,
             textNormalization: textNormalization,
             theme: theme,
-            typeScale: typeScale,
             verticalText: verticalText,
             wordSpacing: wordSpacing
         )
@@ -251,7 +251,6 @@ public struct EPUBDefaults: Sendable {
     public var spread: Spread?
     public var textAlign: TextAlignment?
     public var textNormalization: Bool?
-    public var typeScale: Double?
     public var wordSpacing: Double?
 
     public init(
@@ -279,7 +278,6 @@ public struct EPUBDefaults: Sendable {
         spread: Spread? = nil,
         textAlign: TextAlignment? = nil,
         textNormalization: Bool? = nil,
-        typeScale: Double? = nil,
         wordSpacing: Double? = nil
     ) {
         self.columnCount = columnCount
@@ -306,12 +304,16 @@ public struct EPUBDefaults: Sendable {
         self.spread = spread
         self.textAlign = textAlign
         self.textNormalization = textNormalization
-        self.typeScale = typeScale
         self.wordSpacing = wordSpacing
     }
 
     @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
     public var publisherStyles: Bool? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    public var typeScale: Double? {
         fatalError()
     }
 }

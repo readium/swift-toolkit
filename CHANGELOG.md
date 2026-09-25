@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file. Take a look
     * Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int` to support arbitrary column counts. The `ColumnCount` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
     * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The `ImageFilter` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
     * Removed the `publisherStyles` preference. Readium CSS v2 applies the user settings as soon as they are set, [see the migration guide](docs/Migration%20Guide.md).
+    * Removed the `typeScale` preference, as the type scale user setting is no longer available in Readium CSS v2.
     * Removed `CSSUserProperties.fontOverride`, `advancedSettings`, and `pageMargins`, which don't exist in Readium CSS v2.
 
 ### Fixed

@@ -232,7 +232,6 @@ struct LayoutResolverTests {
             textColor: nil,
             textNormalization: false,
             theme: .light,
-            typeScale: nil,
             verticalText: false,
             wordSpacing: nil
         )

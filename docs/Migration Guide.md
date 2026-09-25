@@ -13,7 +13,7 @@ Readium CSS has been upgraded to version 2. If you configure custom Reading Syst
 +CSSRSProperties(defaultLineLength: CSSRemLength(40))
 ```
 
-`CSSUserProperties.fontOverride`, `advancedSettings`, and `pageMargins` are also removed, as these properties don't exist in Readium CSS v2.
+`CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, and `typeScale` are also removed, as these properties don't exist in Readium CSS v2.
 
 ### `EPUBPreferences` Column Count
 

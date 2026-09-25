@@ -404,6 +404,11 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         fatalError()
     }
 
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    public var typeScale: AnyRangePreference<Double> {
+        fatalError()
+    }
+
     /// Direction of the reading progression across resources.
     ///
     /// This can be changed to influence directly the layout (e.g. LTR or RTL).
@@ -499,24 +504,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             defaultEffectiveValue: .light,
             isEffective: { [layouts] _ in layouts.contains(.reflowable) },
             supportedValues: [.light, .dark, .sepia]
-        )
-
-    /// Scale applied to all element font sizes.
-    ///
-    /// Only effective when:
-    ///  - the publication contains reflowable resources
-    public lazy var typeScale: AnyRangePreference<Double> =
-        rangePreference(
-            preference: \.typeScale,
-            effectiveValue: { $0.settings.typeScale },
-            defaultEffectiveValue: defaults.typeScale ?? 1.2,
-            isEffective: { [layouts] in
-                layouts.contains(.reflowable)
-                    && $0.preferences.typeScale != nil
-            },
-            supportedRange: 1.0 ... 2.0,
-            progressionStrategy: .steps(1.0, 1.067, 1.125, 1.2, 1.25, 1.333, 1.414, 1.5, 1.618),
-            format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
     /// Indicates whether the text should be laid out vertically. This is used

@@ -128,7 +128,6 @@ struct UserPreferences<
                             textColor: editor.textColor,
                             textNormalization: editor.textNormalization,
                             theme: editor.theme,
-                            typeScale: editor.typeScale,
                             verticalText: editor.verticalText,
                             wordSpacing: editor.wordSpacing
                         )
@@ -344,7 +343,6 @@ struct UserPreferences<
         textColor: AnyPreference<ReadiumNavigator.Color>? = nil,
         textNormalization: AnyPreference<Bool>? = nil,
         theme: AnyEnumPreference<Theme>? = nil,
-        typeScale: AnyRangePreference<Double>? = nil,
         verticalText: AnyPreference<Bool>? = nil,
         wordSpacing: AnyRangePreference<Double>? = nil
     ) -> some View {
@@ -549,14 +547,6 @@ struct UserPreferences<
                         case .end: return "End"
                         }
                     }
-                )
-            }
-
-            if let typeScale = typeScale {
-                stepperRow(
-                    title: "Type scale",
-                    preference: typeScale,
-                    commit: commit
                 )
             }
 

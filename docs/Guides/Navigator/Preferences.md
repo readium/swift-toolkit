@@ -406,7 +406,6 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `textColor`          | :white_check_mark: |                    |
 | `textNormalization`  | :white_check_mark: |                    |
 | `theme`              | :white_check_mark: |                    |
-| `typeScale`          | :white_check_mark: |                    |
 | `verticalText`       | :white_check_mark: |                    |
 | `wordSpacing`        | :white_check_mark: |                    |
 
@@ -422,7 +421,6 @@ The following preferences are effective only when explicitly set. When unset, th
 * `paragraphIndent`
 * `paragraphSpacing`
 * `textAlign`
-* `typeScale`
 * `wordSpacing`
 
 #### Scroll vs paginated

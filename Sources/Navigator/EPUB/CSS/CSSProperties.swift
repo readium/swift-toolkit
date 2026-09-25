@@ -92,12 +92,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     /// Increasing and decreasing the root font-size. It will serve as a reference for the cascade.
     public var fontSize: CSSLength?
 
-    /// The type scale the user wants to use for the publication. It impacts headings, p, li, div,
-    /// pre, dd, small, sub, and sup.
-    ///
-    /// Recommended values: a range from 75% to 250%. Increments are left to implementers’ judgment.
-    public var typeScale: Double?
-
     /// The alignment (text-align) the user prefers. It impacts body, li, and p which are not
     /// children of blockquote and figcaption.
     public var textAlign: CSSTextAlign?
@@ -158,7 +152,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         backgroundColor: CSSColor? = nil,
         fontFamily: [String]? = nil,
         fontSize: CSSLength? = nil,
-        typeScale: Double? = nil,
         textAlign: CSSTextAlign? = nil,
         lineHeight: CSSLineHeight? = nil,
         paraSpacing: CSSLength? = nil,
@@ -183,7 +176,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.backgroundColor = backgroundColor
         self.fontFamily = fontFamily
         self.fontSize = fontSize
-        self.typeScale = typeScale
         self.textAlign = textAlign
         self.lineHeight = lineHeight
         self.paraSpacing = paraSpacing
@@ -212,6 +204,11 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         fatalError()
     }
 
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    public var typeScale: Double? {
+        fatalError()
+    }
+
     public func cssProperties() -> [String: String?] {
         var props: [String: String?] = [:]
         // View mode
@@ -235,8 +232,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         // Typography
         props.putCSS(name: "--USER__fontFamily", value: fontFamily)
         props.putCSS(name: "--USER__fontSize", value: fontSize)
-
-        props.putCSS(name: "--USER__typeScale", value: typeScale)
         props.putCSS(name: "--USER__textAlign", value: textAlign)
         props.putCSS(name: "--USER__lineHeight", value: lineHeight)
         props.putCSS(name: "--USER__paraSpacing", value: paraSpacing)

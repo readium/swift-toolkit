@@ -99,7 +99,6 @@ extension ReadiumCSS {
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
-            typeScale: settings.typeScale,
             textAlign: {
                 switch settings.textAlign {
                 case .justify: return .justify
