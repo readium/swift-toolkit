@@ -193,7 +193,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
             chapterNumber: info.resourceIndex,
             duration: info.duration,
             elapsedTime: info.time,
-            rate: navigator.settings.speed
+            rate: info.state == .playing ? navigator.settings.speed : 0
         )
     }
 
