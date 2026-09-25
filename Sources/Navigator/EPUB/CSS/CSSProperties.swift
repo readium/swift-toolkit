@@ -48,13 +48,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     /// To reset, change the value to 0.
     public var colCount: Int?
 
-    /// A factor applied to horizontal margins (padding-left and padding-right) the user wants to
-    /// set.
-    ///
-    /// Recommended values: a range from 0.5 to 2. Increments are left to implementers’ judgment.
-    /// To reset, change the value to 1.
-    public var pageMargins: Double?
-
     /// The maximum line length.
     public var lineLength: CSSLength?
 
@@ -92,85 +85,58 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
     // Typography
 
-    /// This flag is required to change the font-family user setting.
-    public var fontOverride: Bool?
-
     /// The typeface (font-family) the user wants to read with. It impacts body, p, li, div, dt, dd
     /// and phrasing elements which don’t have a lang or xml:lang attribute.
-    ///
-    /// To reset, remove the required flag.
-    /// Requires: fontOverride
     public var fontFamily: [String]?
 
     /// Increasing and decreasing the root font-size. It will serve as a reference for the cascade.
-    ///
-    /// To reset, remove the required flag.
     public var fontSize: CSSLength?
-
-    // Advanced settings
-
-    /// This flag is required to apply the font-size and/or advanced user settings.
-    public var advancedSettings: Bool?
 
     /// The type scale the user wants to use for the publication. It impacts headings, p, li, div,
     /// pre, dd, small, sub, and sup.
     ///
     /// Recommended values: a range from 75% to 250%. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
     public var typeScale: Double?
 
     /// The alignment (text-align) the user prefers. It impacts body, li, and p which are not
     /// children of blockquote and figcaption.
-    ///
-    /// Requires: advancedSettings
     public var textAlign: CSSTextAlign?
 
     /// Increasing and decreasing leading (line-height). It impacts body, p, li and div.
     ///
     /// Recommended values: a range from 1 to 2. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
     public var lineHeight: CSSLineHeight?
 
     /// The vertical margins (margin-top and margin-bottom) for paragraphs.
     ///
     /// Recommended values: a range from 0 to 2rem. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings = true
     public var paraSpacing: CSSLength?
 
     /// The text-indent for paragraphs.
     ///
     /// Recommended values: a range from 0 to 3rem. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
     public var paraIndent: CSSRemLength?
 
     /// Increasing space between words (word-spacing, related to a11y).
     ///
     /// Recommended values: a range from 0 to 1rem. Increments are left to implementers’ judgment.
-    /// Requires: advancedSettings
     public var wordSpacing: CSSRemLength?
 
     /// Increasing space between letters (letter-spacing, related to a11y).
     ///
     /// Recommended values: a range from 0 to 0.5rem. Increments are left to implementers’
     /// judgment.
-    /// Requires: advancedSettings
     public var letterSpacing: CSSRemLength?
 
     /// Enabling and disabling hyphenation. It impacts body, p, li, div and dd.
-    ///
-    /// Requires: advancedSettings
     public var bodyHyphens: CSSHyphens?
 
     /// Enabling and disabling ligatures in Arabic (related to a11y).
-    ///
-    /// Requires: advancedSettings
     public var ligatures: CSSLigatures?
 
     // Accessibility
 
     /// It impacts font style, weight and variant, text decoration, super and subscripts.
-    ///
-    /// Requires: fontOverride
     public var a11yNormalize: Bool?
 
     /// Hiding/disabling ruby (furigana) annotations.
@@ -182,7 +148,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     public init(
         view: CSSView? = nil,
         colCount: Int? = nil,
-        pageMargins: Double? = nil,
         lineLength: CSSLength? = nil,
         appearance: CSSAppearance? = nil,
         blendImages: Bool? = nil,
@@ -191,10 +156,8 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         invertGaiji: Double? = nil,
         textColor: CSSColor? = nil,
         backgroundColor: CSSColor? = nil,
-        fontOverride: Bool? = nil,
         fontFamily: [String]? = nil,
         fontSize: CSSLength? = nil,
-        advancedSettings: Bool? = nil,
         typeScale: Double? = nil,
         textAlign: CSSTextAlign? = nil,
         lineHeight: CSSLineHeight? = nil,
@@ -210,7 +173,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     ) {
         self.view = view
         self.colCount = colCount
-        self.pageMargins = pageMargins
         self.lineLength = lineLength
         self.appearance = appearance
         self.blendImages = blendImages
@@ -219,10 +181,8 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.invertGaiji = invertGaiji
         self.textColor = textColor
         self.backgroundColor = backgroundColor
-        self.fontOverride = fontOverride
         self.fontFamily = fontFamily
         self.fontSize = fontSize
-        self.advancedSettings = advancedSettings
         self.typeScale = typeScale
         self.textAlign = textAlign
         self.lineHeight = lineHeight
@@ -237,6 +197,21 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.overrides = overrides
     }
 
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    public var pageMargins: Double? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2")
+    public var fontOverride: Bool? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2")
+    public var advancedSettings: Bool? {
+        fatalError()
+    }
+
     public func cssProperties() -> [String: String?] {
         var props: [String: String?] = [:]
         // View mode
@@ -244,7 +219,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
         // Pagination
         props.putCSS(name: "--USER__colCount", value: colCount)
-        props.putCSS(name: "--USER__pageMargins", value: pageMargins)
         props.putCSS(name: "--USER__lineLength", value: lineLength)
 
         // Appearance
@@ -259,12 +233,9 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         props.putCSS(name: "--USER__backgroundColor", value: backgroundColor)
 
         // Typography
-        props.putCSS(name: "--USER__fontOverride", value: CSSFlag(name: "font", isEnabled: fontOverride))
         props.putCSS(name: "--USER__fontFamily", value: fontFamily)
         props.putCSS(name: "--USER__fontSize", value: fontSize)
 
-        // Advanced settings
-        props.putCSS(name: "--USER__advancedSettings", value: CSSFlag(name: "advanced", isEnabled: advancedSettings))
         props.putCSS(name: "--USER__typeScale", value: typeScale)
         props.putCSS(name: "--USER__textAlign", value: textAlign)
         props.putCSS(name: "--USER__lineHeight", value: lineHeight)

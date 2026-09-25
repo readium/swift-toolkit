@@ -83,7 +83,6 @@ extension ReadiumCSS {
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
             colCount: colCount,
-            pageMargins: settings.pageMargins,
             lineLength: lineLength,
             appearance: {
                 switch settings.theme {
@@ -98,10 +97,8 @@ extension ReadiumCSS {
             invertGaiji: settings.invertGaiji,
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
-            fontOverride: settings.fontFamily != nil || settings.textNormalization,
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
-            advancedSettings: !settings.publisherStyles,
             typeScale: settings.typeScale,
             textAlign: {
                 switch settings.textAlign {

@@ -34,7 +34,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var pageMargins: Double
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
-    public var publisherStyles: Bool
     public var readingProgression: ReadingProgression
     public var scroll: Bool
     public var spread: Spread
@@ -48,6 +47,11 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 
     public var effectiveBackgroundColor: Color {
         backgroundColor ?? theme.backgroundColor
+    }
+
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    public var publisherStyles: Bool {
+        fatalError()
     }
 
     let cssLayout: CSSLayout
@@ -74,7 +78,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         pageMargins: Double,
         paragraphIndent: Double?,
         paragraphSpacing: Double?,
-        publisherStyles: Bool,
         readingProgression: ReadingProgression,
         scroll: Bool,
         spread: Spread,
@@ -107,7 +110,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.pageMargins = pageMargins
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
-        self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = spread
@@ -175,7 +177,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let pageMargins = preferences.pageMargins ?? defaults.pageMargins ?? 1.0
         let paragraphIndent = preferences.paragraphIndent ?? defaults.paragraphIndent
         let paragraphSpacing = preferences.paragraphSpacing ?? defaults.paragraphSpacing
-        let publisherStyles = preferences.publisherStyles ?? defaults.publisherStyles ?? true
         let spread = preferences.spread ?? defaults.spread ?? .auto
         let textAlign = preferences.textAlign ?? defaults.textAlign
         let textNormalization = preferences.textNormalization ?? defaults.textNormalization ?? false
@@ -205,7 +206,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             pageMargins: pageMargins,
             paragraphIndent: paragraphIndent,
             paragraphSpacing: paragraphSpacing,
-            publisherStyles: publisherStyles,
             readingProgression: readingProgression,
             scroll: scroll,
             spread: spread,
@@ -246,7 +246,6 @@ public struct EPUBDefaults: Sendable {
     public var pageMargins: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
-    public var publisherStyles: Bool?
     public var readingProgression: ReadingProgression?
     public var scroll: Bool?
     public var spread: Spread?
@@ -275,7 +274,6 @@ public struct EPUBDefaults: Sendable {
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
-        publisherStyles: Bool? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
         spread: Spread? = nil,
@@ -303,7 +301,6 @@ public struct EPUBDefaults: Sendable {
         self.pageMargins = pageMargins
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
-        self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = spread
@@ -311,6 +308,11 @@ public struct EPUBDefaults: Sendable {
         self.textNormalization = textNormalization
         self.typeScale = typeScale
         self.wordSpacing = wordSpacing
+    }
+
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    public var publisherStyles: Bool? {
+        fatalError()
     }
 }
 

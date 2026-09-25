@@ -225,7 +225,6 @@ struct LayoutResolverTests {
             pageMargins: 1.0,
             paragraphIndent: nil,
             paragraphSpacing: nil,
-            publisherStyles: true,
             readingProgression: .ltr,
             scroll: false,
             spread: .auto,

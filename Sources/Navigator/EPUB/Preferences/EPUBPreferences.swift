@@ -84,11 +84,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Vertical margins for paragraphs.
     public var paragraphSpacing: Double?
 
-    /// Indicates whether the original publisher styles should be observed.
-    ///
-    /// Many settings require this to be off.
-    public var publisherStyles: Bool?
-
     /// Direction of the reading progression across resources.
     public var readingProgression: ReadingProgression?
 
@@ -146,7 +141,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
-        publisherStyles: Bool? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
         spread: Spread? = nil,
@@ -179,7 +173,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
-        self.publisherStyles = publisherStyles
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = [nil, .never, .always].contains(spread) ? spread : nil
@@ -215,7 +208,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             pageMargins: other.pageMargins ?? pageMargins,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
-            publisherStyles: other.publisherStyles ?? publisherStyles,
             readingProgression: other.readingProgression ?? readingProgression,
             scroll: other.scroll ?? scroll,
             spread: other.spread ?? spread,
@@ -227,6 +219,11 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             verticalText: other.verticalText ?? verticalText,
             wordSpacing: other.wordSpacing ?? wordSpacing
         )
+    }
+
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    public var publisherStyles: Bool? {
+        fatalError()
     }
 
     /// Returns a new `EPUBPreferences` with the publication-specific preferences

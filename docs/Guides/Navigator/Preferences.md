@@ -17,7 +17,7 @@ For instance: "font size" is a **setting**, and the application can submit the f
 let preferences = EPUBPreferences(
     fontFamily: .serif,
     fontSize: 2.0,
-    publisherStyles: false
+    textAlign: .justify
 )
 
 // 2. Submit the preferences, the Navigator will update its settings and the presentation.
@@ -38,7 +38,7 @@ let editor = epubNavigator.editor(of: preferences)
 // 2. Modify the preferences through the editor.
 editor.fontFamily.set(.serif)
 editor.fontSize.increment()
-editor.publisherStyles.toggle()
+editor.hyphens.toggle()
 
 // 3. Submit the edited preferences.
 epubNavigator.submitPreferences(editor.preferences)
@@ -52,7 +52,7 @@ For instance, in EPUB, we can simulate two pages side by side using the `columnC
 
 ### Inactive settings
 
-A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the word spacing setting requires the publisher styles to be disabled in order to take effect.
+A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the word spacing setting is effective only with a left-to-right layout.
 
 You can check if a setting is effective for a set of preferences using the `PreferencesEditor`:
 
@@ -399,7 +399,6 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `pageMargins`        | :white_check_mark: |                    |
 | `paragraphIndent`    | :white_check_mark: |                    |
 | `paragraphSpacing`   | :white_check_mark: |                    |
-| `publisherStyles`    | :white_check_mark: |                    |
 | `readingProgression` | :white_check_mark: | :white_check_mark: |
 | `scroll`             | :white_check_mark: |                    |
 | `spread`             |                    | :white_check_mark: |
@@ -411,11 +410,12 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `verticalText`       | :white_check_mark: |                    |
 | `wordSpacing`        | :white_check_mark: |                    |
 
-#### Publisher styles
+#### Unset preferences
 
-The following advanced preferences require `publisherStyles` to be explicitly set to `false`. Make sure you convey this in your user interface.
+The following preferences are effective only when explicitly set. When unset, the publisher styles are observed.
 
-* `hyphens`
+* `fontWeight`
+* `hyphens` (also effective when `textAlign` is `.justify`)
 * `letterSpacing`
 * `ligatures`
 * `lineHeight`

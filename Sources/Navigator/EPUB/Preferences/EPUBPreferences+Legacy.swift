@@ -47,7 +47,6 @@ public extension EPUBPreferences {
             lineHeight: defaults.optDouble(for: .lineHeight),
             pageMargins: defaults.optDouble(for: .pageMargins),
             paragraphSpacing: defaults.optDouble(for: .paragraphMargins),
-            publisherStyles: defaults.optBool(for: .publisherDefault),
             scroll: defaults.optBool(for: .scroll),
             // Used to be merged with column-count
             spread: defaults.optInt(for: .columnCount)
@@ -129,7 +128,6 @@ private enum ReadiumCSSName: String {
     case fontOverride = "--USER__fontOverride"
     case appearance = "--USER__appearance"
     case scroll = "--USER__scroll"
-    case publisherDefault = "--USER__advancedSettings"
     case textAlignment = "--USER__textAlign"
     case columnCount = "--USER__colCount"
     case wordSpacing = "--USER__wordSpacing"

@@ -14,7 +14,6 @@ struct CSSUserPropertiesTests {
             CSSUserProperties().cssProperties() == [
                 "--USER__view": nil,
                 "--USER__colCount": nil,
-                "--USER__pageMargins": nil,
                 "--USER__lineLength": nil,
                 "--USER__appearance": nil,
                 "--USER__blendImages": nil,
@@ -23,10 +22,8 @@ struct CSSUserPropertiesTests {
                 "--USER__invertGaiji": nil,
                 "--USER__textColor": nil,
                 "--USER__backgroundColor": nil,
-                "--USER__fontOverride": nil,
                 "--USER__fontFamily": nil,
                 "--USER__fontSize": nil,
-                "--USER__advancedSettings": nil,
                 "--USER__typeScale": nil,
                 "--USER__textAlign": nil,
                 "--USER__lineHeight": nil,
@@ -47,7 +44,6 @@ struct CSSUserPropertiesTests {
             CSSUserProperties(
                 view: .scroll,
                 colCount: 0,
-                pageMargins: 1.2,
                 lineLength: CSSPercentLength(42),
                 appearance: .night,
                 blendImages: true,
@@ -56,10 +52,8 @@ struct CSSUserPropertiesTests {
                 invertGaiji: 0.95,
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
-                fontOverride: true,
                 fontFamily: ["Times New"],
                 fontSize: CSSVMaxLength(2.3),
-                advancedSettings: true,
                 typeScale: 3.4,
                 textAlign: .justify,
                 lineHeight: .length(CSSPtLength(4.5)),
@@ -74,7 +68,6 @@ struct CSSUserPropertiesTests {
             ).cssProperties() == [
                 "--USER__view": "readium-scroll-on",
                 "--USER__colCount": "0",
-                "--USER__pageMargins": "1.20000",
                 "--USER__lineLength": "4200.00000%",
                 "--USER__appearance": "readium-night-on",
                 "--USER__blendImages": "readium-blend-on",
@@ -83,10 +76,8 @@ struct CSSUserPropertiesTests {
                 "--USER__invertGaiji": "0.95000",
                 "--USER__textColor": "#FF0000",
                 "--USER__backgroundColor": "#00FF00",
-                "--USER__fontOverride": "readium-font-on",
                 "--USER__fontFamily": "\"Times New\"",
                 "--USER__fontSize": "2.30000vmax",
-                "--USER__advancedSettings": "readium-advanced-on",
                 "--USER__typeScale": "3.40000",
                 "--USER__textAlign": "justify",
                 "--USER__lineHeight": "4.50000pt",
@@ -137,7 +128,6 @@ struct CSSUserPropertiesTests {
             CSSUserProperties(
                 view: .scroll,
                 colCount: 0,
-                pageMargins: 1.2,
                 lineLength: CSSPercentLength(42),
                 appearance: .night,
                 blendImages: true,
@@ -146,10 +136,8 @@ struct CSSUserPropertiesTests {
                 invertGaiji: 0.95,
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
-                fontOverride: true,
                 fontFamily: ["Times New", "Comic Sans"],
                 fontSize: CSSVMaxLength(2.3),
-                advancedSettings: true,
                 typeScale: 3.4,
                 textAlign: .justify,
                 lineHeight: .length(CSSPtLength(4.5)),
@@ -163,7 +151,6 @@ struct CSSUserPropertiesTests {
                 noRuby: true
             ).css() == """
             --USER__a11yNormalize: readium-a11y-on !important;
-            --USER__advancedSettings: readium-advanced-on !important;
             --USER__appearance: readium-night-on !important;
             --USER__backgroundColor: #00FF00 !important;
             --USER__blendImages: readium-blend-on !important;
@@ -171,7 +158,6 @@ struct CSSUserPropertiesTests {
             --USER__colCount: 0 !important;
             --USER__darkenImages: 0.80000 !important;
             --USER__fontFamily: "Times New", "Comic Sans" !important;
-            --USER__fontOverride: readium-font-on !important;
             --USER__fontSize: 2.30000vmax !important;
             --USER__invertGaiji: 0.95000 !important;
             --USER__invertImages: 0.90000 !important;
@@ -180,7 +166,6 @@ struct CSSUserPropertiesTests {
             --USER__lineHeight: 4.50000pt !important;
             --USER__lineLength: 4200.00000% !important;
             --USER__noRuby: readium-noRuby-on !important;
-            --USER__pageMargins: 1.20000 !important;
             --USER__paraIndent: 6.70000rem !important;
             --USER__paraSpacing: 5.60000pt !important;
             --USER__textAlign: justify !important;
