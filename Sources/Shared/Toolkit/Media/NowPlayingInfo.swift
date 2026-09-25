@@ -10,12 +10,17 @@ import UIKit
 
 /// Manages the Now Playing media item displayed on the lock screen.
 ///
-/// Simply set the `playback` and `media` properties when needed. Any change is
-/// shown immediately, except a progress of the elapsed time matching the one
-/// extrapolated by the system from the playback rate, which is not pushed to
-/// avoid updating the Now Playing screen needlessly.
+/// It owns `MPNowPlayingInfoCenter.default().nowPlayingInfo`, which must not
+/// be modified directly. Use it as follows:
 ///
-/// Setting a different `media` resets the `playback`.
+/// 1. Set `media` when opening a publication.
+/// 2. Set `playback` every time it changes. It is ignored until a `media` is
+///    set.
+/// 3. Call `clear()` when closing the publication.
+///
+/// Any change is shown immediately, except a progress of the elapsed time
+/// matching the one extrapolated by the system from the playback rate, which
+/// is not pushed to avoid updating the Now Playing screen needlessly.
 @MainActor
 public final class NowPlayingInfo {
     public static let shared = NowPlayingInfo()
