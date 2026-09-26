@@ -110,22 +110,54 @@ public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
 
             public static let highlight: Id = "highlight"
             public static let underline: Id = "underline"
+            public static let strikethrough: Id = "strikethrough"
+            public static let outline: Id = "outline"
+            public static let mask: Id = "mask"
         }
 
-        public static func highlight(tint: UIColor? = nil, isActive: Bool = false) -> Style {
-            .init(id: .highlight, config: HighlightConfig(tint: tint, isActive: isActive))
+        public static func highlight(tint: UIColor? = nil, isActive: Bool = false, expand: CGFloat = 0) -> Style {
+            .init(id: .highlight, config: HighlightConfig(tint: tint, isActive: isActive, expand: expand))
         }
 
-        public static func underline(tint: UIColor? = nil, isActive: Bool = false) -> Style {
-            .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive))
+        public static func underline(tint: UIColor? = nil, isActive: Bool = false, expand: CGFloat = 0) -> Style {
+            .init(id: .underline, config: HighlightConfig(tint: tint, isActive: isActive, expand: expand))
+        }
+
+        public static func strikethrough(tint: UIColor? = nil, expand: CGFloat = 0) -> Style {
+            .init(id: .strikethrough, config: TintConfig(tint: tint, expand: expand))
+        }
+
+        public static func outline(tint: UIColor? = nil, expand: CGFloat = 0) -> Style {
+            .init(id: .outline, config: TintConfig(tint: tint, expand: expand))
+        }
+
+        public static func mask(tint: UIColor? = nil, expand: CGFloat = 0) -> Style {
+            .init(id: .mask, config: TintConfig(tint: tint, expand: expand))
         }
 
         public struct HighlightConfig: Hashable, Sendable {
             public var tint: UIColor?
             public var isActive: Bool
-            public init(tint: UIColor? = nil, isActive: Bool = false) {
+            /// Distance the decoration extends beyond the decorated text, in
+            /// media-dependent units: CSS pixels on EPUB, page points on PDF.
+            public var expand: CGFloat
+            public init(tint: UIColor? = nil, isActive: Bool = false, expand: CGFloat = 0) {
                 self.tint = tint
                 self.isActive = isActive
+                self.expand = expand
+            }
+        }
+
+        /// Config shared by the `strikethrough`, `outline` and `mask` built-in
+        /// styles.
+        public struct TintConfig: Hashable, Sendable {
+            public var tint: UIColor?
+            /// Distance the decoration extends beyond the decorated text, in
+            /// media-dependent units: CSS pixels on EPUB, page points on PDF.
+            public var expand: CGFloat
+            public init(tint: UIColor? = nil, expand: CGFloat = 0) {
+                self.tint = tint
+                self.expand = expand
             }
         }
 
@@ -153,5 +185,28 @@ public struct Decoration: Hashable, JSONObjectEncodable, Sendable {
             "locator": locator,
             "style": style.id,
         ])
+    }
+}
+
+/// Properties shared by the built-in style configs, read by the rendering
+/// pipelines of the navigators. Custom configs don't get automatic handling
+/// of these properties.
+protocol BuiltInDecorationConfig {
+    /// Tint color of the decoration, when it supports one.
+    var tint: UIColor? { get }
+
+    /// Distance the decoration extends beyond the decorated text, in
+    /// media-dependent units: CSS pixels on EPUB, page points on PDF.
+    var expand: CGFloat { get }
+}
+
+extension Decoration.Style.HighlightConfig: BuiltInDecorationConfig {}
+extension Decoration.Style.TintConfig: BuiltInDecorationConfig {}
+
+extension Decoration.Style {
+    /// Resolved `expand` value for this style, or 0 when the config doesn't
+    /// support the property.
+    var expand: CGFloat {
+        (config?.base as? BuiltInDecorationConfig)?.expand ?? 0
     }
 }
