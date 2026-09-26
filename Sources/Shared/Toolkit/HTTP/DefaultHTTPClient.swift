@@ -246,6 +246,16 @@ public final class DefaultHTTPClient: HTTPClient, Loggable {
             request.userAgent = userAgent
         }
 
+        // `URLSession` transparently negotiates compressed responses (e.g.
+        // gzip), but servers usually cannot serve byte ranges of a compressed
+        // representation and may omit the `Accept-Ranges` header in that case.
+        // Requesting the identity encoding ensures the server advertises and
+        // serves byte ranges properly.
+        // See https://github.com/readium/swift-toolkit/issues/653
+        if request.hasHeader("Range"), !request.hasHeader("Accept-Encoding") {
+            request.headers["Accept-Encoding"] = "identity"
+        }
+
         log(.info, request)
 
         let taskDelegate = TaskDelegate(
