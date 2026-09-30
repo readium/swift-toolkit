@@ -255,3 +255,186 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         )
     }
 }
+
+// MARK: - Codable
+
+public extension EPUBPreferences {
+
+    /// Version of the serialization format, written in the `version` key.
+    ///
+    /// Preferences serialized before the Readium CSS v2 upgrade (toolkit 3.x)
+    /// have no version.
+    internal static let codingVersion = 4
+
+    // New properties must be added here, in `init(from:)` and in
+    // `encode(to:)`, and to the round-trip fixture in `EPUBPreferencesTests`.
+    private enum CodingKeys: String, CodingKey {
+        case version
+        case backgroundColor
+        case columnCount
+        case fit
+        case fontFamily
+        case fontSize
+        case fontWeight
+        case hyphens
+        case blendImages
+        case darkenImages
+        case invertImages
+        case invertGaiji
+        case language
+        case letterSpacing
+        case ligatures
+        case lineLength
+        case lineHeight
+        case noRuby
+        case offsetFirstPage
+        case pageMargins
+        case paragraphIndent
+        case paragraphSpacing
+        case readingProgression
+        case scroll
+        case spread
+        case textAlign
+        case textColor
+        case textNormalization
+        case theme
+        case verticalText
+        case wordSpacing
+    }
+
+    /// Keys of the preferences serialized without a version, which changed
+    /// or were removed.
+    private enum LegacyCodingKeys: String, CodingKey {
+        case columnCount
+        case imageFilter
+        case publisherStyles
+    }
+
+    /// Decodes the preferences leniently: an invalid value drops only its
+    /// preference.
+    ///
+    /// Preferences serialized without a version are migrated from the
+    /// previous format.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            backgroundColor: container.decodeLeniently(Color.self, forKey: .backgroundColor),
+            columnCount: container.decodeLeniently(Int.self, forKey: .columnCount),
+            fit: container.decodeLeniently(Fit.self, forKey: .fit),
+            fontFamily: container.decodeLeniently(FontFamily.self, forKey: .fontFamily),
+            fontSize: container.decodeLeniently(Double.self, forKey: .fontSize),
+            fontWeight: container.decodeLeniently(Double.self, forKey: .fontWeight),
+            hyphens: container.decodeLeniently(Bool.self, forKey: .hyphens),
+            blendImages: container.decodeLeniently(Bool.self, forKey: .blendImages),
+            darkenImages: container.decodeLeniently(Double.self, forKey: .darkenImages),
+            invertImages: container.decodeLeniently(Double.self, forKey: .invertImages),
+            invertGaiji: container.decodeLeniently(Double.self, forKey: .invertGaiji),
+            language: container.decodeLeniently(Language.self, forKey: .language),
+            letterSpacing: container.decodeLeniently(Double.self, forKey: .letterSpacing),
+            ligatures: container.decodeLeniently(Bool.self, forKey: .ligatures),
+            lineLength: container.decodeLeniently(Double.self, forKey: .lineLength),
+            lineHeight: container.decodeLeniently(Double.self, forKey: .lineHeight),
+            noRuby: container.decodeLeniently(Bool.self, forKey: .noRuby),
+            offsetFirstPage: container.decodeLeniently(Bool.self, forKey: .offsetFirstPage),
+            pageMargins: container.decodeLeniently(Double.self, forKey: .pageMargins),
+            paragraphIndent: container.decodeLeniently(Double.self, forKey: .paragraphIndent),
+            paragraphSpacing: container.decodeLeniently(Double.self, forKey: .paragraphSpacing),
+            readingProgression: container.decodeLeniently(ReadingProgression.self, forKey: .readingProgression),
+            scroll: container.decodeLeniently(Bool.self, forKey: .scroll),
+            spread: container.decodeLeniently(Spread.self, forKey: .spread),
+            textAlign: container.decodeLeniently(TextAlignment.self, forKey: .textAlign),
+            textColor: container.decodeLeniently(Color.self, forKey: .textColor),
+            textNormalization: container.decodeLeniently(Bool.self, forKey: .textNormalization),
+            theme: container.decodeLeniently(Theme.self, forKey: .theme),
+            verticalText: container.decodeLeniently(Bool.self, forKey: .verticalText),
+            wordSpacing: container.decodeLeniently(Double.self, forKey: .wordSpacing)
+        )
+
+        if container.decodeLeniently(Int.self, forKey: .version) == nil {
+            try migrateUnversioned(from: decoder)
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(Self.codingVersion, forKey: .version)
+        try container.encodeIfPresent(backgroundColor, forKey: .backgroundColor)
+        try container.encodeIfPresent(columnCount, forKey: .columnCount)
+        try container.encodeIfPresent(fit, forKey: .fit)
+        try container.encodeIfPresent(fontFamily, forKey: .fontFamily)
+        try container.encodeIfPresent(fontSize, forKey: .fontSize)
+        try container.encodeIfPresent(fontWeight, forKey: .fontWeight)
+        try container.encodeIfPresent(hyphens, forKey: .hyphens)
+        try container.encodeIfPresent(blendImages, forKey: .blendImages)
+        try container.encodeIfPresent(darkenImages, forKey: .darkenImages)
+        try container.encodeIfPresent(invertImages, forKey: .invertImages)
+        try container.encodeIfPresent(invertGaiji, forKey: .invertGaiji)
+        try container.encodeIfPresent(language, forKey: .language)
+        try container.encodeIfPresent(letterSpacing, forKey: .letterSpacing)
+        try container.encodeIfPresent(ligatures, forKey: .ligatures)
+        try container.encodeIfPresent(lineLength, forKey: .lineLength)
+        try container.encodeIfPresent(lineHeight, forKey: .lineHeight)
+        try container.encodeIfPresent(noRuby, forKey: .noRuby)
+        try container.encodeIfPresent(offsetFirstPage, forKey: .offsetFirstPage)
+        try container.encodeIfPresent(pageMargins, forKey: .pageMargins)
+        try container.encodeIfPresent(paragraphIndent, forKey: .paragraphIndent)
+        try container.encodeIfPresent(paragraphSpacing, forKey: .paragraphSpacing)
+        try container.encodeIfPresent(readingProgression, forKey: .readingProgression)
+        try container.encodeIfPresent(scroll, forKey: .scroll)
+        try container.encodeIfPresent(spread, forKey: .spread)
+        try container.encodeIfPresent(textAlign, forKey: .textAlign)
+        try container.encodeIfPresent(textColor, forKey: .textColor)
+        try container.encodeIfPresent(textNormalization, forKey: .textNormalization)
+        try container.encodeIfPresent(theme, forKey: .theme)
+        try container.encodeIfPresent(verticalText, forKey: .verticalText)
+        try container.encodeIfPresent(wordSpacing, forKey: .wordSpacing)
+    }
+
+    /// Migrates the preferences serialized without a version, before the
+    /// Readium CSS v2 upgrade.
+    ///
+    /// The `typeScale` preference is dropped.
+    private mutating func migrateUnversioned(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: LegacyCodingKeys.self)
+
+        // `columnCount` was an enum of `auto`, `1` and `2`.
+        if let columnCount = container.decodeLeniently(String.self, forKey: .columnCount) {
+            self.columnCount = Int(columnCount).takeIf { $0 >= 1 }
+        }
+
+        // The image filters were applied only with the dark theme.
+        if theme == .dark {
+            switch container.decodeLeniently(String.self, forKey: .imageFilter) {
+            case "darken":
+                // The `darken` filter was `brightness(80%)`.
+                darkenImages = 0.2
+            case "invert":
+                invertImages = 1.0
+            default:
+                break
+            }
+        }
+
+        // These preferences were ignored while the publisher styles were
+        // enabled. An unset `publisherStyles` is ambiguous, as apps could
+        // change its default value, so they are kept in this case.
+        if container.decodeLeniently(Bool.self, forKey: .publisherStyles) == true {
+            hyphens = nil
+            letterSpacing = nil
+            ligatures = nil
+            lineHeight = nil
+            paragraphIndent = nil
+            paragraphSpacing = nil
+            textAlign = nil
+            wordSpacing = nil
+        }
+    }
+}
+
+private extension KeyedDecodingContainer {
+    /// Decodes the value for `key`, or returns `nil` if it is missing or
+    /// invalid.
+    func decodeLeniently<T: Decodable>(_ type: T.Type, forKey key: Key) -> T? {
+        try? decodeIfPresent(type, forKey: key)
+    }
+}

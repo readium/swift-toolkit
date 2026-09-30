@@ -123,6 +123,181 @@ enum EPUBPreferencesTests {
         }
     }
 
+    @Suite("Codable") struct Coding {
+        /// Every preference set to a non-default value.
+        private let allPreferences = EPUBPreferences(
+            backgroundColor: Color(hex: "#FF0000"),
+            columnCount: 2,
+            fit: .width,
+            fontFamily: "Literata",
+            fontSize: 1.4,
+            fontWeight: 1.5,
+            hyphens: true,
+            blendImages: true,
+            darkenImages: 0.3,
+            invertImages: 0.4,
+            invertGaiji: 0.5,
+            language: Language(code: .bcp47("fr")),
+            letterSpacing: 0.1,
+            ligatures: false,
+            lineLength: 1.2,
+            lineHeight: 1.6,
+            noRuby: true,
+            offsetFirstPage: true,
+            pageMargins: 1.5,
+            paragraphIndent: 1.1,
+            paragraphSpacing: 0.5,
+            readingProgression: .rtl,
+            scroll: true,
+            spread: .always,
+            textAlign: .justify,
+            textColor: Color(hex: "#00FF00"),
+            textNormalization: true,
+            theme: .sepia,
+            verticalText: true,
+            wordSpacing: 0.2
+        )
+
+        /// Keeps the round-trip test exhaustive.
+        ///
+        /// A stored property missing from the `Codable` implementation would
+        /// still pass the round-trip test if the fixture left it `nil`. This
+        /// test lists the stored properties with a `Mirror`, so it fails as
+        /// soon as a new property is added to `EPUBPreferences` without being
+        /// set in the fixture.
+        @Test("the round-trip fixture sets every preference")
+        func fixtureIsComplete() {
+            for child in Mirror(reflecting: allPreferences).children {
+                let value = Mirror(reflecting: child.value)
+                let isNil = value.displayStyle == .optional && value.children.isEmpty
+                #expect(!isNil, "\(child.label ?? "?") is not set in the fixture")
+            }
+        }
+
+        @Test("encodes and decodes every preference")
+        func roundTrip() throws {
+            let data = try JSONEncoder().encode(allPreferences)
+            #expect(try JSONDecoder().decode(EPUBPreferences.self, from: data) == allPreferences)
+        }
+
+        @Test("encodes the format version")
+        func encodesVersion() throws {
+            let data = try JSONEncoder().encode(EPUBPreferences(fontSize: 1.2))
+            let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+            #expect(json["version"] as? Int == 4)
+            #expect(json["fontSize"] as? Double == 1.2)
+            #expect(json.count == 2)
+        }
+
+        @Test("an invalid value drops only its preference", arguments: [#""version": 4"#, #""theme": "dark""#])
+        func invalidValue(other: String) throws {
+            let prefs = try decode(#"{"fontSize": "big", "lineHeight": 1.5, \#(other)}"#)
+            #expect(prefs.fontSize == nil)
+            #expect(prefs.lineHeight == 1.5)
+        }
+
+        @Test("decoded values are sanitized")
+        func sanitized() throws {
+            let prefs = try decode(#"{"version": 4, "columnCount": 0, "spread": "auto", "fontSize": -1}"#)
+            #expect(prefs.columnCount == nil)
+            #expect(prefs.spread == nil)
+            #expect(prefs.fontSize == 0)
+        }
+
+        @Test("a versioned payload is not migrated")
+        func versionedIsNotMigrated() throws {
+            let prefs = try decode(#"{"version": 4, "theme": "dark", "imageFilter": "invert", "publisherStyles": true, "lineHeight": 1.5}"#)
+            #expect(prefs.invertImages == nil)
+            #expect(prefs.lineHeight == 1.5)
+        }
+
+        @Test("migrates the 3.x column count", arguments: [
+            ("auto", nil),
+            ("1", 1),
+            ("2", 2),
+        ] as [(String, Int?)])
+        func legacyColumnCount(value: String, expected: Int?) throws {
+            let prefs = try decode(#"{"columnCount": "\#(value)", "fontSize": 1.2}"#)
+            #expect(prefs.columnCount == expected)
+            #expect(prefs.fontSize == 1.2)
+        }
+
+        @Test("migrates the 3.x image filters with the dark theme")
+        func legacyImageFilterDark() throws {
+            let darken = try decode(#"{"theme": "dark", "imageFilter": "darken"}"#)
+            #expect(darken.darkenImages == 0.2)
+            #expect(darken.invertImages == nil)
+
+            let invert = try decode(#"{"theme": "dark", "imageFilter": "invert"}"#)
+            #expect(invert.darkenImages == nil)
+            #expect(invert.invertImages == 1.0)
+        }
+
+        @Test("drops the 3.x image filters without the dark theme", arguments: [#""theme": "light","#, #""theme": "sepia","#, ""])
+        func legacyImageFilterNotDark(theme: String) throws {
+            for filter in ["darken", "invert"] {
+                let prefs = try decode(#"{\#(theme) "imageFilter": "\#(filter)"}"#)
+                #expect(prefs.darkenImages == nil)
+                #expect(prefs.invertImages == nil)
+            }
+        }
+
+        @Test("drops the preferences ignored with the 3.x publisher styles")
+        func legacyPublisherStylesOn() throws {
+            let prefs = try decode(threeXPayload(publisherStyles: true))
+            #expect(prefs == EPUBPreferences(
+                columnCount: 2,
+                fontSize: 1.2,
+                theme: .dark
+            ))
+        }
+
+        @Test("keeps the preferences when the 3.x publisher styles are off or unset", arguments: [false, nil])
+        func legacyPublisherStylesOffOrUnset(publisherStyles: Bool?) throws {
+            let prefs = try decode(threeXPayload(publisherStyles: publisherStyles))
+            #expect(prefs == EPUBPreferences(
+                columnCount: 2,
+                fontSize: 1.2,
+                hyphens: true,
+                letterSpacing: 0.1,
+                ligatures: false,
+                lineHeight: 2.0,
+                paragraphIndent: 1.0,
+                paragraphSpacing: 0.5,
+                textAlign: .justify,
+                theme: .dark,
+                wordSpacing: 0.2
+            ))
+        }
+
+        /// A payload serialized by the 3.x toolkit, with the preferences
+        /// ignored while the publisher styles were enabled.
+        private func threeXPayload(publisherStyles: Bool?) -> String {
+            let publisherStyles = publisherStyles.map { #""publisherStyles": \#($0),"# } ?? ""
+            return #"""
+            {
+                \#(publisherStyles)
+                "columnCount": "2",
+                "fontSize": 1.2,
+                "hyphens": true,
+                "letterSpacing": 0.1,
+                "ligatures": false,
+                "lineHeight": 2.0,
+                "paragraphIndent": 1.0,
+                "paragraphSpacing": 0.5,
+                "textAlign": "justify",
+                "theme": "dark",
+                "typeScale": 1.2,
+                "wordSpacing": 0.2
+            }
+            """#
+        }
+
+        private func decode(_ json: String) throws -> EPUBPreferences {
+            try JSONDecoder().decode(EPUBPreferences.self, from: Data(json.utf8))
+        }
+    }
+
     /// These tests write to `UserDefaults.standard`, so they must not run
     /// concurrently.
     @Suite("Legacy preferences", .serialized) struct Legacy {

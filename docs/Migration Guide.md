@@ -58,6 +58,17 @@ The publisher styles are observed as long as the related preferences are unset. 
  )
 ```
 
+### Saved `EPUBPreferences`
+
+`EPUBPreferences` saved as JSON with a previous version of the toolkit are migrated when decoded, so you don't need to migrate them yourself.
+
+* `columnCount`: `"auto"` becomes `nil`, `"1"` and `"2"` become `1` and `2`.
+* `imageFilter`: with the dark theme, `"darken"` becomes `darkenImages = 0.2` and `"invert"` becomes `invertImages = 1.0`. With another theme, the filter is dropped, as it was not applied.
+* `publisherStyles`: when `true`, the preferences it disabled (`hyphens`, `letterSpacing`, `ligatures`, `lineHeight`, `paragraphIndent`, `paragraphSpacing`, `textAlign` and `wordSpacing`) are dropped, as they now apply as soon as they are set. When `false` or missing, they are kept. If your app kept the default `EPUBDefaults.publisherStyles` (`true`), these preferences saved without an explicit `publisherStyles` were ignored and will now be applied.
+* `typeScale` is dropped.
+
+The decoding is also more lenient: an invalid value drops only its preference, instead of failing to decode all of them.
+
 ### Audio session changes
 
 #### Custom `AudioSessionManaging` implementations
