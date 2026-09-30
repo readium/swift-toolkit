@@ -409,6 +409,11 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         fatalError()
     }
 
+    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    public var imageFilter: AnyEnumPreference<ImageFilter?> {
+        fatalError()
+    }
+
     /// Direction of the reading progression across resources.
     ///
     /// This can be changed to influence directly the layout (e.g. LTR or RTL).

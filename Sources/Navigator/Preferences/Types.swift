@@ -99,6 +99,12 @@ public enum ColumnCount: String, Codable, Hashable, Sendable {
     case two = "2"
 }
 
+@available(*, unavailable, message: "Use darkenImages or invertImages instead")
+public enum ImageFilter: String, Codable, Hashable, Sendable {
+    case darken
+    case invert
+}
+
 /// Text alignment in a reflowable document.
 public enum TextAlignment: String, Codable, Hashable, Sendable {
     /// Align the text in the center of the page.

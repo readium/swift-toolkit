@@ -32,12 +32,18 @@ To support arbitrary column counts natively via Readium CSS v2, `columnCount` ha
 
 To support precise CSS filtering of images via Readium CSS v2, `EPUBPreferences.imageFilter` has been replaced with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The old `ImageFilter` enum is removed.
 
+`darkenImages` and `invertImages` take a percentage from `0.0` to `1.0`. To get the same rendering as the previous filters:
+
 ```diff
--var preferences = EPUBPreferences()
 -preferences.imageFilter = .darken
-+var preferences = EPUBPreferences()
-+preferences.darkenImages = 0.8
++preferences.darkenImages = 0.2
+-preferences.imageFilter = .invert
++preferences.invertImages = 1.0
 ```
+
+The previous filters were applied only with the dark theme, while the new preferences are applied with any theme. To keep the previous behavior, set them only when `theme` is `.dark`.
+
+`EPUBPreferencesEditor.imageFilter` is replaced with `darkenImages`, an `AnyRangePreference<Double>`, and `invertImages`, an `AnyPreference<Bool>` toggling the inversion between `0.0` and `1.0`.
 
 ### `EPUBPreferences` publisher styles
 

@@ -226,6 +226,11 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         fatalError()
     }
 
+    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    public var imageFilter: ImageFilter? {
+        fatalError()
+    }
+
     /// Returns a new `EPUBPreferences` with the publication-specific preferences
     /// removed.
     public func filterSharedPreferences() -> EPUBPreferences {

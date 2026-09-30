@@ -56,6 +56,11 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         fatalError()
     }
 
+    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    public var imageFilter: ImageFilter? {
+        fatalError()
+    }
+
     let cssLayout: CSSLayout
 
     public init(
@@ -312,6 +317,11 @@ public struct EPUBDefaults: Sendable {
 
     @available(*, unavailable, message: "Not available in Readium CSS v2")
     public var typeScale: Double? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    public var imageFilter: ImageFilter? {
         fatalError()
     }
 }
