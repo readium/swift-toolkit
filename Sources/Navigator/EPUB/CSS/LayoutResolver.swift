@@ -45,7 +45,7 @@ final class LayoutResolver {
         layout(
             scroll: settings.scroll,
             verticalText: settings.verticalText,
-            columnCount: settings.columnCount == 0 ? nil : settings.columnCount,
+            columnCount: settings.columnCount,
             optimalLineLength: settings.lineLength,
             minimalLineLength: nil,
             maximalLineLength: nil,

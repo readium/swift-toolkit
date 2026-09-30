@@ -17,14 +17,16 @@ Readium CSS has been upgraded to version 2. If you configure custom Reading Syst
 
 ### `EPUBPreferences` Column Count
 
-To support arbitrary integers natively via Readium CSS v2, `EPUBPreferences.columnCount` has been changed from a `ColumnCount` enum to an `Int`. The old `ColumnCount` enum is removed.
+To support arbitrary column counts natively via Readium CSS v2, `columnCount` has been changed from a `ColumnCount` enum to an `Int?`. The old `ColumnCount` enum is removed. Use `nil` for an automatic number of columns, depending on the viewport size. Values lower than `1` are ignored.
 
 ```diff
--var preferences = EPUBPreferences()
 -preferences.columnCount = .auto
-+var preferences = EPUBPreferences()
-+preferences.columnCount = 0 // 0 maps to auto
++preferences.columnCount = nil
+-preferences.columnCount = .two
++preferences.columnCount = 2
 ```
+
+`EPUBPreferencesEditor.columnCount` is now an `AnyEnumPreference<Int?>` supporting the values `nil` (auto), `1` and `2`.
 
 ### `EPUBPreferences` Image Filters
 

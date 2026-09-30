@@ -92,6 +92,13 @@ public enum Theme: String, Codable, Hashable, Sendable {
     private static let sepiaBackgroundColor = Color(hex: "#faf4e8")!
 }
 
+@available(*, unavailable, message: "Use an Int? instead, where nil means an automatic number of columns")
+public enum ColumnCount: String, Codable, Hashable, Sendable {
+    case auto
+    case one = "1"
+    case two = "2"
+}
+
 /// Text alignment in a reflowable document.
 public enum TextAlignment: String, Codable, Hashable, Sendable {
     /// Align the text in the center of the page.

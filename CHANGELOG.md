@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Changes in the EPUB navigator preferences, following the upgrade to Readium CSS v2.
     * `CSSRSProperties.maxLineLength` is deprecated in favor of `defaultLineLength` to match Readium CSS v2, [see the migration guide](docs/Migration%20Guide.md).
-    * Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int` to support arbitrary column counts. The `ColumnCount` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
+    * Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int?` to support arbitrary column counts, where `nil` means an automatic number of columns. The `ColumnCount` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
     * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The `ImageFilter` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
     * Removed the `publisherStyles` preference. Readium CSS v2 applies the user settings as soon as they are set, [see the migration guide](docs/Migration%20Guide.md).
     * Removed the `typeScale` preference, as the type scale user setting is no longer available in Readium CSS v2.

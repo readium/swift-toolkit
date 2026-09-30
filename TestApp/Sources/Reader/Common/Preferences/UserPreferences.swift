@@ -320,7 +320,7 @@ struct UserPreferences<
     @ViewBuilder func reflowableUserPreferences(
         commit: @escaping () -> Void,
         backgroundColor: AnyPreference<ReadiumNavigator.Color>? = nil,
-        columnCount: AnyRangePreference<Int>? = nil,
+        columnCount: AnyEnumPreference<Int?>? = nil,
         fontFamily: AnyPreference<FontFamily?>? = nil,
         fontSize: AnyRangePreference<Double>? = nil,
         fontWeight: AnyRangePreference<Double>? = nil,
@@ -396,10 +396,13 @@ struct UserPreferences<
             }
 
             if let columnCount = columnCount {
-                stepperRow(
+                pickerRow(
                     title: "Columns",
                     preference: columnCount,
-                    commit: commit
+                    commit: commit,
+                    formatValue: { v in
+                        v.map { String($0) } ?? "Auto"
+                    }
                 )
             }
 

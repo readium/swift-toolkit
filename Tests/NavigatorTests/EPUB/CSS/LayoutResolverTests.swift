@@ -206,7 +206,7 @@ struct LayoutResolverTests {
     @Test func layoutWithEPUBSettings() {
         let settings = EPUBSettings(
             backgroundColor: nil,
-            columnCount: 0, // auto
+            columnCount: nil,
             fit: .auto,
             fontFamily: nil,
             fontSize: 1.0,

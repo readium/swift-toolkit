@@ -12,9 +12,7 @@ import ReadiumShared
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var backgroundColor: Color?
-    /// Number of reflowable columns to display (one-page view or two-page spread).
-    /// `0` means automatic column count.
-    public var columnCount: Int
+    public var columnCount: Int?
     public var fit: Fit
     public var fontFamily: FontFamily?
     public var fontSize: Double
@@ -62,7 +60,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 
     public init(
         backgroundColor: Color?,
-        columnCount: Int,
+        columnCount: Int?,
         fit: Fit,
         fontFamily: FontFamily?,
         fontSize: Double,
@@ -161,7 +159,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             scroll = true
         }
 
-        let columnCount = preferences.columnCount ?? defaults.columnCount ?? 0
+        let columnCount = preferences.columnCount ?? defaults.columnCount
         let fit = preferences.fit ?? defaults.fit ?? .auto
         let fontSize = preferences.fontSize ?? defaults.fontSize ?? 1.0
         let fontWeight = preferences.fontWeight ?? defaults.fontWeight
@@ -280,7 +278,7 @@ public struct EPUBDefaults: Sendable {
         textNormalization: Bool? = nil,
         wordSpacing: Double? = nil
     ) {
-        self.columnCount = columnCount
+        self.columnCount = columnCount.takeIf { $0 >= 1 }
         self.fit = fit
         self.fontSize = fontSize
         self.fontWeight = fontWeight

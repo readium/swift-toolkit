@@ -76,7 +76,7 @@ extension ReadiumCSS {
             break
         }
 
-        let colCount: Int = resolvedLayout?.colCount ?? settings.columnCount
+        let colCount: Int? = resolvedLayout?.colCount ?? settings.columnCount
         let lineLength: CSSLength? = resolvedLayout.map { CSSPxLength($0.lineLength / settings.fontSize) }
             ?? CSSPercentLength(settings.lineLength)
 
