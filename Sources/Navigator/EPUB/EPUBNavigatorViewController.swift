@@ -426,7 +426,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         // We may need to refresh the spreads in this situation. Unfortunately,
         // the `viewWillTransition(to:with:)` API is called before we receive
         // the `didBecomeActive` notification, so we cannot rely on it here.
-        viewModel.viewSizeWillChange(view.bounds.size)
+        viewModel.viewSizeWillChange(view.bounds.size, insets: view.safeAreaInsets)
 
         if needsReloadSpreadsOnActive {
             needsReloadSpreadsOnActive = false
@@ -481,14 +481,28 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        viewModel.viewSizeWillChange(view.bounds.size)
+        viewModel.viewSizeWillChange(view.bounds.size, insets: view.safeAreaInsets)
+    }
+
+    override open func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if isActive {
+            viewModel.viewSizeWillChange(view.bounds.size, insets: view.safeAreaInsets)
+        }
+    }
+
+    override open func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        if isActive {
+            viewModel.safeAreaInsetsDidChange(view.safeAreaInsets)
+        }
     }
 
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
         if isActive {
-            viewModel.viewSizeWillChange(size)
+            viewModel.viewSizeWillChange(size, insets: view.safeAreaInsets)
         }
     }
 

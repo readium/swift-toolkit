@@ -100,3 +100,52 @@ public final class ProxyRangePreference<Value: Comparable & Sendable>: ProxyPref
         set(progressionStrategy.decrement(currentValue))
     }
 }
+
+public final class ProxyOptionalRangePreference<Bound: Comparable & Sendable>: ProxyPreference<Bound?>, OptionalRangePreference {
+    public let supportedRange: ClosedRange<Bound>
+    public let defaultValue: Bound
+    private let progressionStrategy: AnyProgressionStrategy<Bound>
+    private let valueFormatter: (Bound) -> String
+
+    init(
+        value: @escaping () -> Bound??,
+        effectiveValue: @escaping () -> Bound?,
+        isEffective: @escaping () -> Bool,
+        set: @escaping (Bound??) -> Void,
+        supportedRange: ClosedRange<Bound>,
+        defaultValue: Bound,
+        progressionStrategy: AnyProgressionStrategy<Bound>,
+        format: @escaping (Bound) -> String
+    ) {
+        precondition(supportedRange.contains(defaultValue))
+        self.supportedRange = supportedRange
+        self.defaultValue = defaultValue
+        self.progressionStrategy = progressionStrategy
+        valueFormatter = format
+        super.init(value: value, effectiveValue: effectiveValue, isEffective: isEffective, set: set)
+    }
+
+    override public func set(_ value: Bound??) {
+        if let value = value ?? nil {
+            super.set(value.clamped(to: supportedRange))
+        } else {
+            super.set(nil)
+        }
+    }
+
+    public func format(value: Bound) -> String {
+        valueFormatter(value)
+    }
+
+    public func increment() {
+        set(progressionStrategy.increment(currentValue))
+    }
+
+    public func decrement() {
+        set(progressionStrategy.decrement(currentValue))
+    }
+
+    private var currentValue: Bound {
+        (value ?? effectiveValue) ?? defaultValue
+    }
+}

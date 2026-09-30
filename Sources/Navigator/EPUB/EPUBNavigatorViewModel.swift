@@ -281,13 +281,28 @@ enum EPUBScriptScope {
 
     private(set) var spreadEnabled: Bool = false
     private var viewSize: CGSize?
+    private var safeAreaInsets: UIEdgeInsets = .zero
+    private let layoutResolver = LayoutResolver()
 
-    func viewSizeWillChange(_ newSize: CGSize) {
-        guard viewSize != newSize else {
+    func viewSizeWillChange(_ newSize: CGSize, insets: UIEdgeInsets? = nil) {
+        let insetsChanged = insets != nil && insets != safeAreaInsets
+        guard viewSize != newSize || insetsChanged else {
             return
         }
         viewSize = newSize
+        if let insets = insets {
+            safeAreaInsets = insets
+        }
         updateSpread()
+        updateCSS(with: settings, commitNow: true)
+    }
+
+    func safeAreaInsetsDidChange(_ insets: UIEdgeInsets) {
+        guard safeAreaInsets != insets else {
+            return
+        }
+        safeAreaInsets = insets
+        updateCSS(with: settings, commitNow: true)
     }
 
     private func updateSpread() {
@@ -343,7 +358,15 @@ enum EPUBScriptScope {
 
     private func updateCSS(with settings: EPUBSettings, commitNow: Bool) {
         let previous = css
-        css.update(with: settings)
+        let layout = viewSize.flatMap { size -> LayoutResolver.Layout? in
+            guard size.width > 0, size.height > 0 else { return nil }
+            return layoutResolver.layout(
+                settings: settings,
+                viewportSize: size,
+                safeAreaInsets: safeAreaInsets
+            )
+        }
+        css.update(with: settings, resolvedLayout: layout, safeAreaInsets: safeAreaInsets)
 
         // HTML resources in the cache have the CSS already injected at the time
         // they were first served. Evict them so that any future resource load

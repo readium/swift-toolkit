@@ -4,6 +4,71 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Readium CSS v2 properties
+
+Readium CSS has been upgraded to version 2. If you configure custom Reading System properties via `CSSRSProperties`, note that `maxLineLength` is deprecated in favor of `defaultLineLength`:
+
+```diff
+-CSSRSProperties(maxLineLength: CSSRemLength(40))
++CSSRSProperties(defaultLineLength: CSSRemLength(40))
+```
+
+`CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, and `typeScale` are also removed, as these properties don't exist in Readium CSS v2.
+
+### `EPUBPreferences` Column Count
+
+To support arbitrary column counts natively via Readium CSS v2, `columnCount` has been changed from a `ColumnCount` enum to an `Int?`. The old `ColumnCount` enum is removed. Use `nil` for an automatic number of columns, depending on the viewport size. Values lower than `1` are ignored.
+
+```diff
+-preferences.columnCount = .auto
++preferences.columnCount = nil
+-preferences.columnCount = .two
++preferences.columnCount = 2
+```
+
+`EPUBPreferencesEditor.columnCount` is now an `AnyEnumPreference<Int?>` supporting the values `nil` (auto), `1` and `2`.
+
+### `EPUBPreferences` Image Filters
+
+To support precise CSS filtering of images via Readium CSS v2, `EPUBPreferences.imageFilter` has been replaced with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The old `ImageFilter` enum is removed.
+
+`darkenImages` and `invertImages` take a percentage from `0.0` to `1.0`. To get the same rendering as the previous filters:
+
+```diff
+-preferences.imageFilter = .darken
++preferences.darkenImages = 0.2
+-preferences.imageFilter = .invert
++preferences.invertImages = 1.0
+```
+
+The previous filters were applied only with the dark theme, while the new preferences are applied with any theme. To keep the previous behavior, set them only when `theme` is `.dark`.
+
+`EPUBPreferencesEditor.imageFilter` is replaced with `darkenImages`, an `AnyRangePreference<Double>`, and `invertImages`, an `AnyPreference<Bool>` toggling the inversion between `0.0` and `1.0`.
+
+### `EPUBPreferences` publisher styles
+
+Readium CSS v2 no longer requires a flag to apply the user settings, so the `publisherStyles` preference is removed from `EPUBPreferences` and associated types.
+
+The publisher styles are observed as long as the related preferences are unset. Preferences such as `textAlign`, `lineHeight`, or `wordSpacing` take effect as soon as they are set, so you can remove any toggle for the publisher styles from your user interface. To restore the publisher styles, reset these preferences to `nil` (e.g. with `editor.textAlign.clear()`).
+
+```diff
+ let preferences = EPUBPreferences(
+-    publisherStyles: false,
+     textAlign: .justify
+ )
+```
+
+### Saved `EPUBPreferences`
+
+`EPUBPreferences` saved as JSON with a previous version of the toolkit are migrated when decoded, so you don't need to migrate them yourself.
+
+* `columnCount`: `"auto"` becomes `nil`, `"1"` and `"2"` become `1` and `2`.
+* `imageFilter`: with the dark theme, `"darken"` becomes `darkenImages = 0.2` and `"invert"` becomes `invertImages = 1.0`. With another theme, the filter is dropped, as it was not applied.
+* `publisherStyles`: when `true`, the preferences it disabled (`hyphens`, `letterSpacing`, `ligatures`, `lineHeight`, `paragraphIndent`, `paragraphSpacing`, `textAlign` and `wordSpacing`) are dropped, as they now apply as soon as they are set. When `false` or missing, they are kept. If your app kept the default `EPUBDefaults.publisherStyles` (`true`), these preferences saved without an explicit `publisherStyles` were ignored and will now be applied.
+* `typeScale` is dropped.
+
+The decoding is also more lenient: an invalid value drops only its preference, instead of failing to decode all of them.
+
 ### Audio session changes
 
 #### Custom `AudioSessionManaging` implementations

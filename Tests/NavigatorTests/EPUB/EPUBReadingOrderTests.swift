@@ -152,7 +152,7 @@ enum EPUBReadingOrderTests {
 
             #expect(result.index == 1)
             #expect(result.locator.href.string == "p1.jpg")
-            #expect(result.locator.mediaType == .jpeg)
+            #expect(result.locator.mediaType.matches(.jpeg))
             #expect(result.locator.locations.fragments.isEmpty)
             #expect(result.locator.locations.otherLocations.isEmpty)
             #expect(result.locator.locations.progression == 0.5)
@@ -177,7 +177,7 @@ enum EPUBReadingOrderTests {
 
             #expect(result.index == 1)
             #expect(result.locator.href.string == "p1.xhtml")
-            #expect(result.locator.mediaType == .xhtml)
+            #expect(result.locator.mediaType.matches(.xhtml))
             #expect(result.locator.locations.progression == 0)
         }
 

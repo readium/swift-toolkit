@@ -6,9 +6,10 @@
 
 @testable import ReadiumNavigator
 import ReadiumShared
-import XCTest
+import Testing
+import UIKit
 
-class ReadiumCSSTests: XCTestCase {
+struct ReadiumCSSTests {
     let baseURL = HTTPURL(string: "https://readium/assets")!
 
     let viewportMeta = HTMLInjection.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0")
@@ -38,7 +39,7 @@ class ReadiumCSSTests: XCTestCase {
         </html>
         """
 
-    func testInjectionsWithoutAnyStyle() {
+    @Test func injectionsWithoutAnyStyle() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: CSSRSProperties(),
@@ -46,9 +47,8 @@ class ReadiumCSSTests: XCTestCase {
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
-            try css.injections(for: html),
-            [
+        #expect(
+            try css.injections(for: html) == [
                 viewportMeta,
                 cssBefore(),
                 cssDefault(),
@@ -61,7 +61,7 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectionsWithPublicationStyles() {
+    @Test func injectionsWithPublicationStyles() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: CSSRSProperties(),
@@ -69,8 +69,8 @@ class ReadiumCSSTests: XCTestCase {
             baseURL: baseURL
         )
 
-        XCTAssertFalse(
-            try css.injections(for: """
+        #expect(
+            try !css.injections(for: """
             <?xml version="1.0" encoding="utf-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
                 <head>
@@ -82,8 +82,8 @@ class ReadiumCSSTests: XCTestCase {
             """).contains(cssDefault())
         )
 
-        XCTAssertFalse(
-            try css.injections(for: """
+        #expect(
+            try !css.injections(for: """
             <?xml version="1.0" encoding="utf-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
                 <head>
@@ -95,8 +95,8 @@ class ReadiumCSSTests: XCTestCase {
             """).contains(cssDefault())
         )
 
-        XCTAssertFalse(
-            try css.injections(for: """
+        #expect(
+            try !css.injections(for: """
             <?xml version="1.0" encoding="utf-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
                 <head>
@@ -110,7 +110,7 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectionsWithReadiumCSSProperties() {
+    @Test func injectionsWithReadiumCSSProperties() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(),
             rsProperties: CSSRSProperties(
@@ -124,9 +124,8 @@ class ReadiumCSSTests: XCTestCase {
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
-            try css.injections(for: html),
-            [
+        #expect(
+            try css.injections(for: html) == [
                 viewportMeta,
                 cssBefore(),
                 cssDefault(),
@@ -145,7 +144,7 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectRTLDirStylesheets() {
+    @Test func injectRTLDirStylesheets() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(stylesheets: .rtl),
             rsProperties: CSSRSProperties(),
@@ -153,9 +152,8 @@ class ReadiumCSSTests: XCTestCase {
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
-            try css.injections(for: html),
-            [
+        #expect(
+            try css.injections(for: html) == [
                 viewportMeta,
                 cssBefore(folder: "rtl/"),
                 cssDefault(folder: "rtl/"),
@@ -168,7 +166,7 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectCJKHorizontalStylesheets() {
+    @Test func injectCJKHorizontalStylesheets() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(stylesheets: .cjkHorizontal),
             rsProperties: CSSRSProperties(),
@@ -176,9 +174,8 @@ class ReadiumCSSTests: XCTestCase {
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
-            try css.injections(for: html),
-            [
+        #expect(
+            try css.injections(for: html) == [
                 viewportMeta,
                 cssBefore(folder: "cjk-horizontal/"),
                 cssDefault(folder: "cjk-horizontal/"),
@@ -191,7 +188,7 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectCJKVerticalStylesheets() {
+    @Test func injectCJKVerticalStylesheets() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(stylesheets: .cjkVertical),
             rsProperties: CSSRSProperties(),
@@ -199,9 +196,8 @@ class ReadiumCSSTests: XCTestCase {
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
-            try css.injections(for: html),
-            [
+        #expect(
+            try css.injections(for: html) == [
                 viewportMeta,
                 cssBefore(folder: "cjk-vertical/"),
                 cssDefault(folder: "cjk-vertical/"),
@@ -212,14 +208,14 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectLangAttributes() {
+    @Test func injectLangAttributes() throws {
         let language = Language(code: .bcp47("en"))
         let css = ReadiumCSS(
             layout: CSSLayout(language: language),
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
+        #expect(
             try css.injections(for: """
             <?xml version="1.0" encoding="utf-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
@@ -228,8 +224,7 @@ class ReadiumCSSTests: XCTestCase {
                 </head>
                 <body></body>
             </html>
-            """),
-            [
+            """) == [
                 viewportMeta,
                 cssBefore(),
                 cssDefault(),
@@ -244,13 +239,13 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectLangAttributesWhenOneExistsOnHTMLTag() {
+    @Test func injectLangAttributesWhenOneExistsOnHTMLTag() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(language: Language(code: .bcp47("en"))),
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
+        #expect(
             try css.injections(for: """
             <?xml version="1.0" encoding="utf-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
@@ -259,8 +254,7 @@ class ReadiumCSSTests: XCTestCase {
                 </head>
                 <body></body>
             </html>
-            """),
-            [
+            """) == [
                 viewportMeta,
                 cssBefore(),
                 cssDefault(),
@@ -273,13 +267,13 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectLangAttributesCopiesTheOneFromBodyTag() {
+    @Test func injectLangAttributesCopiesTheOneFromBodyTag() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(language: Language(code: .bcp47("en"))),
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
+        #expect(
             try css.injections(for: """
             <?xml version="1.0" encoding="utf-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
@@ -288,8 +282,7 @@ class ReadiumCSSTests: XCTestCase {
                 </head>
                 <body lang="fr"></body>
             </html>
-            """),
-            [
+            """) == [
                 viewportMeta,
                 cssBefore(),
                 cssDefault(),
@@ -305,15 +298,14 @@ class ReadiumCSSTests: XCTestCase {
 
     // MARK: - langInjections(for:) via injections(for:)
 
-    func testNoLangInjectionWhenNoLanguageSet() {
+    @Test func noLangInjectionWhenNoLanguageSet() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(),
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
-            try css.injections(for: html),
-            [
+        #expect(
+            try css.injections(for: html) == [
                 viewportMeta,
                 cssBefore(),
                 cssDefault(),
@@ -326,14 +318,14 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testLangInjectionFallsBackToLayoutLangWhenBodyLangIsEmpty() {
+    @Test func langInjectionFallsBackToLayoutLangWhenBodyLangIsEmpty() throws {
         let language = Language(code: .bcp47("en"))
         let css = ReadiumCSS(
             layout: CSSLayout(language: language),
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
+        #expect(
             try css.injections(for: """
             <?xml version="1.0" encoding="utf-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
@@ -342,8 +334,7 @@ class ReadiumCSSTests: XCTestCase {
                 </head>
                 <body lang=""></body>
             </html>
-            """),
-            [
+            """) == [
                 viewportMeta,
                 cssBefore(),
                 cssDefault(),
@@ -358,13 +349,13 @@ class ReadiumCSSTests: XCTestCase {
         )
     }
 
-    func testInjectDirAttributeWhenAlreadyPresent() {
+    @Test func injectDirAttributeWhenAlreadyPresent() throws {
         let css = ReadiumCSS(
             layout: CSSLayout(language: Language(code: .bcp47("en"))),
             baseURL: baseURL
         )
 
-        XCTAssertEqual(
+        #expect(
             try css.inject(in: """
             <?xml version="1.0" encoding="utf-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml">
@@ -373,8 +364,7 @@ class ReadiumCSSTests: XCTestCase {
                 </head>
                 <body dir="rtl" lang="fr"></body>
             </html>
-            """),
-            """
+            """) == """
             <?xml version="1.0" encoding="utf-8"?>
             <html xml:lang="fr" dir="ltr" style="" xmlns="http://www.w3.org/1999/xhtml">
                 <head><link rel="stylesheet" href="https://readium/assets/ReadiumCSS-before.css" type="text/css"/>
@@ -383,6 +373,74 @@ class ReadiumCSSTests: XCTestCase {
                 <body dir="ltr" lang="fr"></body>
             </html>
             """
+        )
+    }
+
+    @Test @MainActor func updateWithSettingsComputesPageGutter() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(pageMargins: 1.5),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        css.update(with: settings)
+
+        #expect(
+            css.userProperties.cssProperties()["--RS__pageGutter"] == "30.00000px"
+        )
+    }
+
+    @Test @MainActor func updateWithScrollSettingsComputesScrollPadding() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(pageMargins: 1.5, scroll: true),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        css.update(with: settings)
+
+        #expect(
+            css.userProperties.cssProperties()["--RS__scrollPaddingLeft"] == "30.00000px"
+        )
+        #expect(
+            css.userProperties.cssProperties()["--RS__scrollPaddingRight"] == "30.00000px"
+        )
+    }
+
+    @Test @MainActor func updateWithLayoutAppliesColCountAndLineLength() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(fontSize: 2.0),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        let layout = LayoutResolver.Layout(colCount: 2, lineLength: 640.0)
+        css.update(with: settings, resolvedLayout: layout)
+
+        #expect(
+            css.userProperties.cssProperties()["--USER__colCount"] == "2"
+        )
+        #expect(
+            css.userProperties.cssProperties()["--USER__lineLength"] == "320.00000px"
+        )
+    }
+
+    @Test @MainActor func updateWithLayoutAndScrollSettingsComputesScrollPaddingFromInsets() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(scroll: true),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        let insets = UIEdgeInsets(top: 44, left: 20, bottom: 34, right: 25)
+        let layout = LayoutResolver.Layout(colCount: 1, lineLength: 500.0)
+        css.update(with: settings, resolvedLayout: layout, safeAreaInsets: insets)
+
+        #expect(
+            css.userProperties.cssProperties()["--RS__scrollPaddingTop"] == "44.00000px"
+        )
+        #expect(
+            css.userProperties.cssProperties()["--RS__scrollPaddingBottom"] == "34.00000px"
         )
     }
 }

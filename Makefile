@@ -8,6 +8,7 @@ help:
 	  \t\t\tUse 'lcp=<url>' to enable LCP.\n\
 	  podspecs\t\tGenerate the CocoaPods podspecs\n\
 	  scripts\t\tBundle the Navigator EPUB scripts\n\
+	  \t\t\tUse 'minify=true' to minify CSS assets.\n\
 	  test\t\t\tRun unit tests\n\
 	  \t\t\tUse 'only=<target>' to run a single test target.\n\
 	  lint-format\t\tVerify formatting\n\
@@ -65,7 +66,7 @@ scripts:
 	pnpm run lint && \
 	pnpm run typecheck && \
 	pnpm run test && \
-	pnpm run bundle
+	MINIFY_CSS=$(minify) pnpm run bundle
 
 .PHONY: update-scripts
 update-scripts:

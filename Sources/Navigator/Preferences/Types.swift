@@ -92,14 +92,14 @@ public enum Theme: String, Codable, Hashable, Sendable {
     private static let sepiaBackgroundColor = Color(hex: "#faf4e8")!
 }
 
-/// Number of columns displayed in a reflowable document.
+@available(*, unavailable, message: "Use an Int? instead, where nil means an automatic number of columns")
 public enum ColumnCount: String, Codable, Hashable, Sendable {
     case auto
     case one = "1"
     case two = "2"
 }
 
-/// Filter used to render images in a reflowable document.
+@available(*, unavailable, message: "Use darkenImages or invertImages instead")
 public enum ImageFilter: String, Codable, Hashable, Sendable {
     case darken
     case invert
