@@ -287,6 +287,57 @@ This view uses the `increment()` and `decrement()` range helpers of `RangePrefer
 
 The current value is displayed after formatting it with the `RangePreference.format(value:)` helper. This will automatically format the value to a human-readable string, such as a percentage or a value with units (e.g. 30px).
 
+### View for an `OptionalRangePreference<Value>`
+
+An `OptionalRangePreference<Value>` is a `Preference<Value?>` whose value is either `nil` or in a range, such as an optional limit where `nil` means "no limit". It can be represented as a toggle to set the preference to `nil`, next to a stepper for the value.
+
+```swift
+@ViewBuilder func optionalStepperRow<V: Comparable>(
+    title: String,
+    disableTitle: String,
+    preference: AnyOptionalRangePreference<V>,
+    commit: @escaping () -> Void
+) -> some View {
+    let value = preference.value ?? preference.effectiveValue
+
+    VStack {
+        Toggle(disableTitle, isOn: Binding(
+            get: { value == nil },
+            set: { isDisabled in
+                preference.set(isDisabled ? nil : preference.defaultValue)
+                commit()
+            }
+        ))
+
+        Stepper(
+            onIncrement: {
+                preference.increment()
+                commit()
+            },
+            onDecrement: {
+                preference.decrement()
+                commit()
+            }
+        ) {
+            HStack {
+                Text(title)
+
+                Spacer()
+
+                Text(preference.format(value: value ?? preference.defaultValue))
+                    .font(.caption)
+            }
+        }
+        .disabled(value == nil)
+    }
+}
+```
+
+`defaultValue` is the value used when both the preference and its effective value are `nil`. The `increment()` and `decrement()` helpers start from it, and the example above uses it when the toggle is turned off.
+
+> [!NOTE]
+> Setting the preference to `nil` unsets it, so the Navigator falls back on its default setting. If the default is not `nil`, the preference can't be disabled.
+
 ### View for an `EnumPreference<Value>`
 
 An `EnumPreference<Value>` is a preference accepting a closed set of values. This is a great candidate to use a [`Picker`](https://developer.apple.com/documentation/swiftui/picker) view with different styles depending on the value set.

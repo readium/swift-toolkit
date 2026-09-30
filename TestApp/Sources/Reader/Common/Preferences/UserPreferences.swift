@@ -765,6 +765,42 @@ struct UserPreferences<
         }
     }
 
+    /// Component for an `OptionalRangePreference` with a `Toggle` to set it
+    /// to `nil`, and a `Stepper` to modify its value.
+    func optionalStepperRow<V: Comparable>(
+        title: String,
+        disableTitle: String,
+        preference: AnyOptionalRangePreference<V>,
+        commit: @escaping () -> Void
+    ) -> some View {
+        let value = preference.value ?? preference.effectiveValue
+
+        return preferenceRow(
+            isActive: preference.isEffective,
+            onClear: { preference.clear(); commit() }
+        ) {
+            VStack {
+                Toggle(disableTitle, isOn: Binding(
+                    get: { value == nil },
+                    set: { isDisabled in
+                        preference.set(isDisabled ? nil : preference.defaultValue)
+                        commit()
+                    }
+                ))
+
+                HStack(spacing: 4) {
+                    Stepper(title,
+                            onIncrement: { preference.increment(); commit() },
+                            onDecrement: { preference.decrement(); commit() })
+
+                    Text(preference.format(value: value ?? preference.defaultValue))
+                        .font(.caption)
+                }
+                .disabled(value == nil)
+            }
+        }
+    }
+
     /// Component for a `Preference` holding a `Language` value.
     func languageRow(
         title: String,

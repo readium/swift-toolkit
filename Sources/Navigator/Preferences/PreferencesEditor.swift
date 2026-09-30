@@ -260,4 +260,43 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
             format: format
         ).eraseToAnyPreference()
     }
+
+    func optionalRangePreference<Bound: Comparable & Sendable>(
+        preference prefKP: WritableKeyPath<Preferences, Bound?>,
+        setting settingKP: KeyPath<Settings, Bound?>,
+        defaultValue: Bound,
+        isEffective: @escaping (State) -> Bool,
+        supportedRange: ClosedRange<Bound>,
+        progressionStrategy: AnyProgressionStrategy<Bound>,
+        format: @escaping (Bound) -> String
+    ) -> AnyOptionalRangePreference<Bound> {
+        ProxyOptionalRangePreference(
+            value: { [weak self] in
+                // Returns `.none` instead of `.some(nil)` when unset.
+                guard let value = self?.preferences[keyPath: prefKP] else {
+                    return nil
+                }
+                return value
+            },
+            effectiveValue: { [weak self] in
+                self?.state.settings[keyPath: settingKP]
+            },
+            isEffective: { [weak self] in
+                guard let self = self else {
+                    return false
+                }
+                return isEffective(self.state)
+            },
+            set: { [weak self] value in
+                guard let self = self else {
+                    return
+                }
+                self.edit { $0[keyPath: prefKP] = value ?? nil }
+            },
+            supportedRange: supportedRange,
+            defaultValue: defaultValue,
+            progressionStrategy: progressionStrategy,
+            format: format
+        ).eraseToAnyPreference()
+    }
 }
