@@ -234,7 +234,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Duration in seconds in the current resource.
     private var resourceDuration: Double? {
-        loadedAssetDuration ?? publication.readingOrder[resourceIndex].duration
+        loadedAssetDuration ?? readingOrder[resourceIndex].duration
     }
 
     /// Total duration in the publication.
@@ -249,6 +249,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         pendingSeek?.time ?? player.currentTime().secondsOrZero
     }
 
+    /// Whether the current resource failed to load.
+    private var hasFailedItem: Bool {
+        player.currentItem?.status == .failed
+    }
+
     /// Pending request to start the playback, reset once the player plays.
     private var pendingPlayTask: Task<Void, Never>? {
         willSet {
@@ -261,6 +266,12 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         guard pendingSeek == nil else {
             // The playback resumes once the seek completes.
             setPendingSeekResumesPlayback(true)
+            return
+        }
+        if hasFailedItem, let location = currentLocation {
+            // A failed player item never recovers on its own: the resource is
+            // loaded again, and the jump carries the playback request.
+            Task { await go(to: location, requestingPlayback: true) }
             return
         }
         playNow()
@@ -282,7 +293,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             if player.currentItem == nil {
                 if let location = initialLocation {
                     await go(to: location)
-                } else if let link = publication.readingOrder.first {
+                } else if let link = readingOrder.first {
                     await go(to: link)
                 }
             }
@@ -347,10 +358,13 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Pauses the player for a new seek to `time`, superseding any seek in
     /// progress.
     ///
+    /// The playback resumes once the seek completes if it was already
+    /// requested, or if the seek requests it with `requestingPlayback`.
+    ///
     /// Returns the ID of the new seek.
-    private func beginSeek(to time: Double) -> Int {
+    private func beginSeek(to time: Double, requestingPlayback: Bool = false) -> Int {
         lastSeekID += 1
-        pendingSeek = PendingSeek(id: lastSeekID, time: time, resumesPlayback: isPlaybackRequested)
+        pendingSeek = PendingSeek(id: lastSeekID, time: time, resumesPlayback: requestingPlayback || isPlaybackRequested)
         // A pending play would start the player during the seek otherwise.
         // The request is carried by `resumesPlayback` instead.
         pendingPlayTask = nil
@@ -496,9 +510,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 }
 
                 if self.shouldPlayNextResource() {
-                    if await self.goForward() {
-                        self.play()
-                    }
+                    await self.goForward(requestingPlayback: true)
                 }
             }
         }
@@ -523,7 +535,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
                 log(.error, "Failed to load the player item: \(String(describing: itemError))")
-                guard let href = self.publication.readingOrder[self.resourceIndex].url().relativeURL else {
+                guard let href = self.readingOrder[self.resourceIndex].url().relativeURL else {
                     return
                 }
                 let error: ReadError = itemError.flatMap { .wrap($0) }
@@ -572,7 +584,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     private func makeLocator(forTime time: Double) -> Locator {
-        let link = publication.readingOrder[resourceIndex]
+        let link = readingOrder[resourceIndex]
 
         var progression: Double?
         if let duration = resourceDuration, duration > 0 {
@@ -668,21 +680,35 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public private(set) var currentLocation: Locator?
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
-        guard let newResourceIndex = publication.readingOrder.firstIndexWithHREF(locator.href) else {
+        await go(to: locator, requestingPlayback: false)
+    }
+
+    /// Jumps to `locator`.
+    ///
+    /// - Parameter requestingPlayback: Requests the playback to start once
+    ///   the jump completes, like `play()` would. When false, the playback
+    ///   resumes only if it was already requested. Either way, a `pause()`
+    ///   during the jump cancels it.
+    private func go(to locator: Locator, requestingPlayback: Bool) async -> Bool {
+        guard let newResourceIndex = readingOrder.firstIndexWithHREF(locator.href) else {
             return false
         }
-        let link = publication.readingOrder[newResourceIndex]
+        let link = readingOrder[newResourceIndex]
 
         // Sets the target right away, so that notifications sent before the
         // seek don't report the start of the new resource. It may be
         // approximated from the progression until the exact duration of the
         // resource is known.
-        let seekID = beginSeek(to: time(for: locator, duration: link.duration))
+        let seekID = beginSeek(
+            to: time(for: locator, duration: link.duration),
+            requestingPlayback: requestingPlayback
+        )
 
         do {
             currentLocation = locator
-            // Loads resource
-            if player.currentItem == nil || resourceIndex != newResourceIndex {
+            // Loads the resource. A resource which failed to load is loaded
+            // again, as a failed player item never recovers on its own.
+            if player.currentItem == nil || resourceIndex != newResourceIndex || hasFailedItem {
                 log(.info, "Starts playing \(link.href)")
                 let asset = try mediaLoader.makeAsset(for: link)
                 player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
@@ -740,38 +766,46 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
+        await go(to: link, requestingPlayback: false)
+    }
+
+    private func go(to link: Link, requestingPlayback: Bool) async -> Bool {
         guard let locator = publication.locator(for: link) else {
             return false
         }
-        return await go(to: locator, options: options)
+        return await go(to: locator, requestingPlayback: requestingPlayback)
     }
 
     /// Indicates whether the navigator can go to the next content portion
     /// (e.g. page or audiobook resource).
     public var canGoForward: Bool {
-        publication.readingOrder.indices.contains(resourceIndex + 1)
+        readingOrder.indices.contains(resourceIndex + 1)
     }
 
     /// Indicates whether the navigator can go to the next content portion
     /// (e.g. page or audiobook resource).
     public var canGoBackward: Bool {
-        publication.readingOrder.indices.contains(resourceIndex - 1)
+        readingOrder.indices.contains(resourceIndex - 1)
     }
 
     public func goForward(options: NavigatorGoOptions) async -> Bool {
-        await goToResourceIndex(resourceIndex + 1, options: options)
-    }
-
-    public func goBackward(options: NavigatorGoOptions) async -> Bool {
-        await goToResourceIndex(resourceIndex - 1, options: options)
+        await goForward(requestingPlayback: false)
     }
 
     @discardableResult
-    private func goToResourceIndex(_ index: Int, options: NavigatorGoOptions) async -> Bool {
-        guard publication.readingOrder.indices ~= index else {
+    private func goForward(requestingPlayback: Bool) async -> Bool {
+        await goToResourceIndex(resourceIndex + 1, requestingPlayback: requestingPlayback)
+    }
+
+    public func goBackward(options: NavigatorGoOptions) async -> Bool {
+        await goToResourceIndex(resourceIndex - 1)
+    }
+
+    private func goToResourceIndex(_ index: Int, requestingPlayback: Bool = false) async -> Bool {
+        guard readingOrder.indices ~= index else {
             return false
         }
-        return await go(to: publication.readingOrder[index], options: options)
+        return await go(to: readingOrder[index], requestingPlayback: requestingPlayback)
     }
 
     // MARK: - Configurable
