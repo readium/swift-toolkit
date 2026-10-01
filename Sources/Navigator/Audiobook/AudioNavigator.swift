@@ -54,7 +54,8 @@ public struct MediaPlaybackInfo: Sendable {
     /// Called when the playback updates.
     func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo)
 
-    /// Called when the navigator finished playing the current resource.
+    /// Called when the navigator reached the end of the current resource, by
+    /// playing or seeking up to it.
     /// Returns whether the next resource should be played. Default is true.
     func navigator(_ navigator: AudioNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool
 
@@ -254,6 +255,29 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         player.currentItem?.status == .failed
     }
 
+    /// Whether the playback reached the end of the current resource, by
+    /// playing or seeking up to it, without moving on to the next one.
+    ///
+    /// Reset by any seek or jump.
+    private var hasReachedEndOfResource = false
+
+    /// Location to jump to before playing, when the player cannot play from
+    /// its current position.
+    private var locationToPlayFrom: Locator? {
+        if hasFailedItem {
+            // A failed player item never recovers on its own, so the resource
+            // is loaded again.
+            return currentLocation
+        }
+        if hasReachedEndOfResource {
+            // Moves on to the next resource, or restarts from the beginning
+            // of the publication after the last one.
+            let index = canGoForward ? resourceIndex + 1 : 0
+            return publication.locator(for: readingOrder[index])
+        }
+        return nil
+    }
+
     /// Pending request to start the playback, reset once the player plays.
     private var pendingPlayTask: Task<Void, Never>? {
         willSet {
@@ -262,16 +286,23 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     /// Resumes or start the playback.
+    ///
+    /// After the end of a resource, the playback moves on to the next one, or
+    /// restarts from the beginning of the publication after the last one. A
+    /// resource which failed to load is loaded again.
     public func play() {
+        if let location = locationToPlayFrom {
+            pendingPlayTask = Task { @MainActor in
+                guard !Task.isCancelled else {
+                    return
+                }
+                await go(to: location, requestingPlayback: true)
+            }
+            return
+        }
         guard pendingSeek == nil else {
             // The playback resumes once the seek completes.
             setPendingSeekResumesPlayback(true)
-            return
-        }
-        if hasFailedItem, let location = currentLocation {
-            // A failed player item never recovers on its own: the resource is
-            // loaded again, and the jump carries the playback request.
-            Task { await go(to: location, requestingPlayback: true) }
             return
         }
         playNow()
@@ -336,10 +367,45 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     /// Seeks to the given time in the current resource.
+    ///
+    /// Seeking up to the end of the resource ends it, like playing up to it.
     public func seek(to time: Double) async {
+        if let duration = resourceDuration, duration > 0, time >= duration {
+            await seekToEndOfResource(at: duration)
+            return
+        }
+
         let seekID = beginSeek(to: time)
         await seekPlayer(to: time, seekID: seekID)
         await endSeek(seekID)
+    }
+
+    /// Seeks to the end of the current resource, at `duration`.
+    ///
+    /// The playback moves on to the next resource if the delegate allows it.
+    /// Otherwise, it is held at the end of the resource, where the player
+    /// cannot play, until `play()` moves on.
+    private func seekToEndOfResource(at duration: Double) async {
+        guard await !continueToNextResource(requestingPlayback: false) else {
+            return
+        }
+
+        let seekID = beginSeek(to: duration)
+        pendingSeek?.resumesPlayback = false
+        hasReachedEndOfResource = true
+        await seekPlayer(to: duration, seekID: seekID)
+        await endSeek(seekID)
+    }
+
+    /// Moves on to the next resource after reaching the end of the current
+    /// one, if the delegate allows it.
+    ///
+    /// Returns whether the navigator moved on to the next resource.
+    private func continueToNextResource(requestingPlayback: Bool) async -> Bool {
+        guard shouldPlayNextResource() else {
+            return false
+        }
+        return await goForward(requestingPlayback: requestingPlayback)
     }
 
     /// Updates whether the pending seek resumes the playback, notifying the
@@ -363,6 +429,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     ///
     /// Returns the ID of the new seek.
     private func beginSeek(to time: Double, requestingPlayback: Bool = false) -> Int {
+        hasReachedEndOfResource = false
         lastSeekID += 1
         pendingSeek = PendingSeek(id: lastSeekID, time: time, resumesPlayback: requestingPlayback || isPlaybackRequested)
         // A pending play would start the player during the seek otherwise.
@@ -509,8 +576,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                     continue
                 }
 
-                if self.shouldPlayNextResource() {
-                    await self.goForward(requestingPlayback: true)
+                if await !self.continueToNextResource(requestingPlayback: true) {
+                    self.hasReachedEndOfResource = true
                 }
             }
         }

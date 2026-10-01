@@ -21,6 +21,11 @@ All notable changes to this project will be documented in this file. Take a look
     * `end(with:)` takes the `AudioSessionUser` instead of an `AudioSessionToken`, which is removed.
 * `NowPlayingInfo.Media.chapterNumber` moved to `NowPlayingInfo.Playback.chapterNumber`, [see the migration guide](docs/Migration%20Guide.md).
 
+#### Navigator
+
+* `AudioNavigator.play()` now moves on after the end of a resource, instead of doing nothing: it plays the next resource, or restarts from the beginning of the publication after the last one.
+* Seeking up to the end of a resource with `AudioNavigator.seek(to:)` or `seek(by:)` now ends it, like playing up to it. `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is called, and the playback is paused at the end of the resource when it returns `false` or after the last resource.
+
 ### Fixed
 
 #### Navigator
