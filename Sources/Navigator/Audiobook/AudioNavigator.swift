@@ -255,10 +255,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         player.currentItem?.status == .failed
     }
 
-    /// Whether the playback reached the end of the current resource, by
-    /// playing or seeking up to it, without moving on to the next one.
+    /// Whether the playback is at the end of the current resource, reached by
+    /// playing or seeking up to it.
     ///
-    /// Reset by any seek or jump.
+    /// Reset by any seek or jump, including the one moving on to the next
+    /// resource.
     private var hasReachedEndOfResource = false
 
     /// Location to jump to before playing, when the player cannot play from
@@ -382,30 +383,23 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Seeks to the end of the current resource, at `duration`.
     ///
-    /// The playback moves on to the next resource if the delegate allows it.
-    /// Otherwise, it is held at the end of the resource, where the player
-    /// cannot play, until `play()` moves on.
+    /// The navigator moves on to the next resource if the delegate allows it,
+    /// resuming the playback if it was requested. Otherwise, the playback is
+    /// held at the end of the resource until `play()` moves on.
     private func seekToEndOfResource(at duration: Double) async {
-        guard await !continueToNextResource(requestingPlayback: false) else {
+        // The seek begins before asking the delegate, so that it is given the
+        // playback info at the end of the resource. The jump to the next
+        // resource supersedes it, keeping its playback request.
+        let seekID = beginSeek(to: duration)
+        if shouldPlayNextResource(), await goForward() {
             return
         }
 
-        let seekID = beginSeek(to: duration)
-        pendingSeek?.resumesPlayback = false
+        // The player cannot play from the end of a resource.
+        pause()
         hasReachedEndOfResource = true
         await seekPlayer(to: duration, seekID: seekID)
         await endSeek(seekID)
-    }
-
-    /// Moves on to the next resource after reaching the end of the current
-    /// one, if the delegate allows it.
-    ///
-    /// Returns whether the navigator moved on to the next resource.
-    private func continueToNextResource(requestingPlayback: Bool) async -> Bool {
-        guard shouldPlayNextResource() else {
-            return false
-        }
-        return await goForward(requestingPlayback: requestingPlayback)
     }
 
     /// Updates whether the pending seek resumes the playback, notifying the
@@ -576,8 +570,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                     continue
                 }
 
-                if await !self.continueToNextResource(requestingPlayback: true) {
-                    self.hasReachedEndOfResource = true
+                // The player paused itself at the end of the resource, so
+                // `play()` is needed to move on to the next one.
+                self.hasReachedEndOfResource = true
+                if self.shouldPlayNextResource(), self.canGoForward {
+                    self.play()
                 }
             }
         }
@@ -833,14 +830,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     public func go(to link: Link, options: NavigatorGoOptions) async -> Bool {
-        await go(to: link, requestingPlayback: false)
-    }
-
-    private func go(to link: Link, requestingPlayback: Bool) async -> Bool {
         guard let locator = publication.locator(for: link) else {
             return false
         }
-        return await go(to: locator, requestingPlayback: requestingPlayback)
+        return await go(to: locator, options: options)
     }
 
     /// Indicates whether the navigator can go to the next content portion
@@ -856,23 +849,19 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     }
 
     public func goForward(options: NavigatorGoOptions) async -> Bool {
-        await goForward(requestingPlayback: false)
-    }
-
-    @discardableResult
-    private func goForward(requestingPlayback: Bool) async -> Bool {
-        await goToResourceIndex(resourceIndex + 1, requestingPlayback: requestingPlayback)
+        await goToResourceIndex(resourceIndex + 1, options: options)
     }
 
     public func goBackward(options: NavigatorGoOptions) async -> Bool {
-        await goToResourceIndex(resourceIndex - 1)
+        await goToResourceIndex(resourceIndex - 1, options: options)
     }
 
-    private func goToResourceIndex(_ index: Int, requestingPlayback: Bool = false) async -> Bool {
+    @discardableResult
+    private func goToResourceIndex(_ index: Int, options: NavigatorGoOptions) async -> Bool {
         guard readingOrder.indices ~= index else {
             return false
         }
-        return await go(to: readingOrder[index], requestingPlayback: requestingPlayback)
+        return await go(to: readingOrder[index], options: options)
     }
 
     // MARK: - Configurable
