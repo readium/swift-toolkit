@@ -42,7 +42,7 @@ enum AudioNavigatorTests {
             #expect(audiobook.navigator.playbackInfo.resourceIndex == lastTrackIndex)
         }
 
-        @Test("playing up to the end of the last resource ends the playback", .timeLimit(.minutes(1)))
+        @Test("playing up to the end of the last resource ends the playback")
         func playToEndOfLastResource() async {
             // Given a position shortly before the end of the last resource.
             await audiobook.goShortlyBeforeEnd()
@@ -135,7 +135,7 @@ enum AudioNavigatorTests {
             #expect(audiobook.states.last == .paused)
         }
 
-        @Test("playing restarts from the beginning of the publication", .timeLimit(.minutes(1)))
+        @Test("playing restarts from the beginning of the publication")
         func play() async throws {
             // When playing.
             audiobook.navigator.play()
@@ -164,7 +164,7 @@ enum AudioNavigatorTests {
             #expect(audiobook.shouldPlayNextResourceCalls == [0, 1])
         }
 
-        @Test("is not called after playing the last resource", .timeLimit(.minutes(1)))
+        @Test("is not called after playing the last resource")
         func notCalledAfterPlayingLastResource() async {
             // Given a position shortly before the end of the last resource.
             await audiobook.goShortlyBeforeEnd()
@@ -175,6 +175,75 @@ enum AudioNavigatorTests {
 
             // Then the delegate was never asked.
             #expect(audiobook.shouldPlayNextResourceCalls.isEmpty)
+        }
+    }
+
+    @Suite("Waiting for the audio session") @MainActor struct WaitingForAudioSession {
+        private let audioSession = SuspendingAudioSessionManager()
+        private let audiobook: Audiobook
+
+        /// Given an audiobook opened at its second resource, with an audio
+        /// session which is not ready yet.
+        init() {
+            audiobook = Audiobook(audioSession: audioSession, initialResourceIndex: 1)
+        }
+
+        @Test("playing is reported as loading at the initial location")
+        func play() async throws {
+            // When playing.
+            audiobook.navigator.play()
+
+            // Then the playback is loading at the initial location.
+            #expect(audiobook.navigator.state == .loading)
+            let loading = try #require(await audiobook.waitForPlayback { $0.state == .loading })
+            #expect(loading.resourceIndex == 1)
+            #expect(loading.time == 0)
+
+            // When the audio session is ready.
+            audioSession.resume()
+
+            // Then the initial resource is playing.
+            let playing = try #require(await audiobook.waitForPlayback { $0.state == .playing })
+            #expect(playing.resourceIndex == 1)
+            audiobook.navigator.pause()
+        }
+
+        @Test("pausing cancels the pending play")
+        func pause() async throws {
+            // When playing, then pausing.
+            audiobook.navigator.play()
+            audiobook.navigator.pause()
+
+            // Then the playback is paused.
+            #expect(audiobook.navigator.state == .paused)
+            #expect(audiobook.states.last == .paused)
+
+            // When the audio session is ready.
+            audioSession.resume()
+            try await Task.sleep(nanoseconds: 200_000_000)
+
+            // Then the playback is still paused.
+            #expect(audiobook.navigator.state == .paused)
+            #expect(!audiobook.states.contains(.playing))
+        }
+
+        @Test("toggling the playback cancels the pending play")
+        func playPause() async throws {
+            // When playing, then toggling the playback.
+            audiobook.navigator.play()
+            audiobook.navigator.playPause()
+
+            // Then the playback is paused.
+            #expect(audiobook.navigator.state == .paused)
+            #expect(audiobook.states.last == .paused)
+
+            // When the audio session is ready.
+            audioSession.resume()
+            try await Task.sleep(nanoseconds: 200_000_000)
+
+            // Then the playback was not requested again.
+            #expect(audiobook.navigator.state == .paused)
+            #expect(!audiobook.states.contains(.playing))
         }
     }
 }
@@ -204,25 +273,34 @@ private let publicationDuration = Double(trackCount) * trackDuration
     /// the next one.
     private(set) var shouldPlayNextResourceCalls: [Int] = []
 
-    init() {
+    /// - Parameter initialResourceIndex: Index in the reading order of the
+    ///   resource the navigator starts from, instead of the first one.
+    init(
+        audioSession: any AudioSessionManaging = NoopAudioSessionManager(),
+        initialResourceIndex: Int? = nil
+    ) {
         (playbacks, playbacksContinuation) = AsyncStream.makeStream()
 
         let hrefs = (1 ... trackCount).map { "track\($0).wav" }
         let track = WAV.silence(duration: trackDuration)
+        let publication = Publication(
+            manifest: Manifest(
+                metadata: Metadata(conformsTo: [.audiobook], title: "Audiobook"),
+                readingOrder: hrefs.map {
+                    Link(href: $0, mediaType: .wav, duration: trackDuration)
+                }
+            ),
+            container: DataContainer(
+                entries: Dictionary(uniqueKeysWithValues: hrefs.map { (AnyURL(string: $0)!, track) })
+            )
+        )
 
         navigator = AudioNavigator(
-            publication: Publication(
-                manifest: Manifest(
-                    metadata: Metadata(conformsTo: [.audiobook], title: "Audiobook"),
-                    readingOrder: hrefs.map {
-                        Link(href: $0, mediaType: .wav, duration: trackDuration)
-                    }
-                ),
-                container: DataContainer(
-                    entries: Dictionary(uniqueKeysWithValues: hrefs.map { (AnyURL(string: $0)!, track) })
-                )
-            ),
-            audioSession: NoopAudioSessionManager()
+            publication: publication,
+            initialLocation: initialResourceIndex.flatMap {
+                publication.locator(for: publication.readingOrder[$0])
+            },
+            audioSession: audioSession
         )
         navigator.delegate = self
     }
@@ -239,14 +317,27 @@ private let publicationDuration = Double(trackCount) * trackDuration
         await navigator.seek(to: trackDuration - 0.3)
     }
 
-    /// Waits for the navigator to report a playback matching `condition`.
+    /// Waits for the navigator to report a playback matching `condition`, or
+    /// fails the test after `timeout` seconds.
     ///
     /// The playbacks reported before waiting are checked too.
     @discardableResult
-    func waitForPlayback(where condition: (MediaPlaybackInfo) -> Bool) async -> MediaPlaybackInfo? {
+    func waitForPlayback(
+        timeout: TimeInterval = 10,
+        sourceLocation: SourceLocation = #_sourceLocation,
+        where condition: (MediaPlaybackInfo) -> Bool
+    ) async -> MediaPlaybackInfo? {
+        // Finishing the stream ends the wait.
+        let timeoutTask = Task { [playbacksContinuation] in
+            try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+            playbacksContinuation.finish()
+        }
+        defer { timeoutTask.cancel() }
+
         for await playback in playbacks where condition(playback) {
             return playback
         }
+        Issue.record("Timed out waiting for the playback", sourceLocation: sourceLocation)
         return nil
     }
 

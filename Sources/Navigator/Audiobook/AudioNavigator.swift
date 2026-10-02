@@ -18,7 +18,8 @@ public enum MediaPlaybackState: Sendable {
     case paused
 
     /// The playback is requested but the player is not playing yet, as it is
-    /// buffering media data or completing a seek.
+    /// waiting for the audio session, buffering media data or completing a
+    /// seek.
     case loading
 
     /// The player is playing.
@@ -175,6 +176,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         self.durations = durations
         self.totalDuration = (totalDuration > 0) ? totalDuration : nil
 
+        // The playback info reports the initial location until the first
+        // resource is loaded.
+        resourceIndex = initialLocation
+            .flatMap { publication.readingOrder.firstIndexWithHREF($0.href) } ?? 0
+
         settings = AudioSettings(
             preferences: config.preferences,
             defaults: config.defaults
@@ -209,8 +215,15 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             // buffer waiting for data.
             return .loading
         }
-        if state == .paused, hasReachedEndOfPublication {
-            return .ended
+        if state == .paused {
+            if pendingPlayTask != nil {
+                // The player is paused until the audio session is ready, or
+                // until the jump moving on from the end of a resource.
+                return .loading
+            }
+            if hasReachedEndOfPublication {
+                return .ended
+            }
         }
         return state
     }
@@ -315,6 +328,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// the resource is known.
     public var currentTime: Double {
         guard let target = pendingSeek?.target else {
+            guard player.currentItem != nil else {
+                // Nothing is loaded yet: the playback will start from the
+                // initial location.
+                return initialLocation.map { time(for: $0, duration: resourceDuration) } ?? 0
+            }
             return player.currentTime().secondsOrZero
         }
         let time = target.timeFromStart(duration: resourceDuration)
@@ -376,14 +394,15 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 }
                 await go(to: location, requestingPlayback: true)
             }
-            return
-        }
-        guard pendingSeek == nil else {
+        } else if pendingSeek != nil {
             // The playback resumes once the seek completes.
             setPendingSeekResumesPlayback(true)
             return
+        } else {
+            playNow()
         }
-        playNow()
+        // The pending play is reported as `.loading`.
+        playbackDidChange()
     }
 
     /// Starts the playback, even during a seek.
@@ -421,9 +440,14 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         // interruption (e.g. with Siri) would be ignored when it ends.
         isPausedByInterruption = false
         // A pending play or seek would resume the playback otherwise.
+        let hadPendingPlay = pendingPlayTask != nil
         pendingPlayTask = nil
         player.pause()
         setPendingSeekResumesPlayback(false)
+        if hadPendingPlay {
+            // The player doesn't report a pause when it was not playing yet.
+            playbackDidChange()
+        }
     }
 
     /// Stops the playback and ends the audio session.
@@ -895,6 +919,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     public private(set) var currentLocation: Locator?
 
+    @discardableResult
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
         await go(to: locator, requestingPlayback: false)
     }
@@ -1053,7 +1078,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
         // We don't directly change `player.rate`, because it might be 0 when the player is paused. `settings.speed`
         // is actually the default speed while playing.
-        if state.playsWhenReady {
+        if player.timeControlStatus != .paused {
             player.rate = Float(settings.speed)
         }
     }
