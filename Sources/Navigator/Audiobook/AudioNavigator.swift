@@ -10,9 +10,39 @@ import ReadiumShared
 
 /// Status of a played media resource.
 public enum MediaPlaybackState: Sendable {
+    /// The playback is paused, and `play()` resumes it.
+    ///
+    /// This includes a playback held at the end of a resource by
+    /// `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)`, in
+    /// which case `play()` moves on to the next resource.
     case paused
+
+    /// The playback is requested but the player is not playing yet, as it is
+    /// waiting for the audio session, buffering media data or completing a
+    /// seek.
     case loading
+
+    /// The player is playing.
     case playing
+
+    /// The playback reached the end of the publication, by playing or seeking
+    /// up to it.
+    ///
+    /// The player is paused at the end of the last resource. `play()` restarts
+    /// from the beginning of the publication.
+    case ended
+
+    /// Whether the player is playing, or will as soon as it is ready.
+    ///
+    /// Use it for example to choose between a play and a pause button.
+    public var playsWhenReady: Bool {
+        switch self {
+        case .loading, .playing:
+            true
+        case .paused, .ended:
+            false
+        }
+    }
 }
 
 /// Holds metadata about a played media resource.
@@ -57,6 +87,9 @@ public struct MediaPlaybackInfo: Sendable {
     /// Called when the navigator reached the end of the current resource, by
     /// playing or seeking up to it.
     /// Returns whether the next resource should be played. Default is true.
+    ///
+    /// This is not called after the last resource. The playback is reported
+    /// as `.ended` instead.
     func navigator(_ navigator: AudioNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool
 
     /// Called when the ranges of buffered media data change.
@@ -143,6 +176,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         self.durations = durations
         self.totalDuration = (totalDuration > 0) ? totalDuration : nil
 
+        // The playback info reports the initial location until the first
+        // resource is loaded.
+        resourceIndex = initialLocation
+            .flatMap { publication.readingOrder.firstIndexWithHREF($0.href) } ?? 0
+
         settings = AudioSettings(
             preferences: config.preferences,
             defaults: config.defaults
@@ -176,6 +214,16 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             // player reports `.playing` even when it is stalled on an empty
             // buffer waiting for data.
             return .loading
+        }
+        if state == .paused {
+            if pendingPlayTask != nil {
+                // The player is paused until the audio session is ready, or
+                // until the jump moving on from the end of a resource.
+                return .loading
+            }
+            if hasReachedEndOfPublication {
+                return .ended
+            }
         }
         return state
     }
@@ -280,10 +328,15 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// the resource is known.
     public var currentTime: Double {
         guard let target = pendingSeek?.target else {
+            guard player.currentItem != nil else {
+                // Nothing is loaded yet: the playback will start from the
+                // initial location.
+                return initialLocation.map { time(for: $0, duration: resourceDuration) } ?? 0
+            }
             return player.currentTime().secondsOrZero
         }
-        let time = target.timeFromStart(duration: resourceDuration)
-        return max(0, resourceDuration.map { min(time, $0) } ?? time)
+        let targetTime = target.timeFromStart(duration: resourceDuration)
+        return max(0, resourceDuration.map { min(targetTime, $0) } ?? targetTime)
     }
 
     /// Whether the current resource failed to load.
@@ -297,6 +350,12 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Reset by any seek or jump, including the one moving on to the next
     /// resource.
     private var hasReachedEndOfResource = false
+
+    /// Whether the playback is at the end of the last resource, reached by
+    /// playing or seeking up to it.
+    private var hasReachedEndOfPublication: Bool {
+        hasReachedEndOfResource && !canGoForward
+    }
 
     /// Location to jump to before playing, when the player cannot play from
     /// its current position.
@@ -335,14 +394,15 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 }
                 await go(to: location, requestingPlayback: true)
             }
-            return
-        }
-        guard pendingSeek == nil else {
+        } else if pendingSeek != nil {
             // The playback resumes once the seek completes.
             setPendingSeekResumesPlayback(true)
             return
+        } else {
+            playNow()
         }
-        playNow()
+        // The pending play is reported as `.loading`.
+        playbackDidChange()
     }
 
     /// Starts the playback, even during a seek.
@@ -380,9 +440,14 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         // interruption (e.g. with Siri) would be ignored when it ends.
         isPausedByInterruption = false
         // A pending play or seek would resume the playback otherwise.
+        let hadPendingPlay = pendingPlayTask != nil
         pendingPlayTask = nil
         player.pause()
         setPendingSeekResumesPlayback(false)
+        if hadPendingPlay {
+            // The player doesn't report a pause when it was not playing yet.
+            playbackDidChange()
+        }
     }
 
     /// Stops the playback and ends the audio session.
@@ -395,10 +460,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Toggles the playback.
     public func playPause() {
-        switch state {
-        case .loading, .playing:
+        if state.playsWhenReady {
             pause()
-        case .paused:
+        } else {
             play()
         }
     }
@@ -453,7 +517,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// the current resource.
     ///
     /// The navigator moves on to the next resource only if the delegate allows
-    /// it. Otherwise, the playback is held at the end of the resource.
+    /// it. Otherwise, or after the last resource, the playback is held at the
+    /// end of the resource.
     ///
     /// Returns the time from the start of the resource moved to, or nil if a
     /// newer seek superseded this one.
@@ -495,11 +560,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             // The delegate is given the playback info at the end of the
             // resource.
             pendingSeek?.target = .fromEnd(0)
-            guard shouldPlayNextResource(), canGoForward, loadResource(at: resourceIndex + 1) else {
+            guard shouldPlayNextResource(), loadResource(at: resourceIndex + 1) else {
                 // Holds the playback at the end of the current resource, until
                 // `play()` moves on.
-                pause()
                 hasReachedEndOfResource = true
+                pause()
 
                 return duration
             }
@@ -581,12 +646,22 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// should resume when it ends.
     private var isPausedByInterruption = false
 
+    /// Whether the media loader reported an error for the current player
+    /// item.
+    ///
+    /// Such an error makes the player item fail in turn, with an opaque
+    /// AVFoundation error which is not reported on top of its cause.
+    private var didReportLoadingError = false
+
     private lazy var mediaLoader: PublicationMediaLoader = {
         let loader = PublicationMediaLoader(publication: publication)
         loader.onLoadingError = { [weak self] href, error in
             Task { @MainActor in
-                guard let self = self, let href = href.relativeURL else {
+                guard let self = self else {
                     return
+                }
+                if href.isEquivalentTo(self.readingOrder[self.resourceIndex].url()) {
+                    self.didReportLoadingError = true
                 }
                 self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
             }
@@ -673,8 +748,12 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 // The player paused itself at the end of the resource, so
                 // `play()` is needed to move on to the next one.
                 self.hasReachedEndOfResource = true
-                if self.shouldPlayNextResource(), self.canGoForward {
+                if self.shouldPlayNextResource() {
                     self.play()
+                } else {
+                    // The player might have reported its pause before the
+                    // end of the resource was known.
+                    self.playbackDidChange()
                 }
             }
         }
@@ -699,9 +778,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
                 log(.error, "Failed to load the player item: \(String(describing: itemError))")
-                guard let href = self.readingOrder[self.resourceIndex].url().relativeURL else {
+                guard !self.didReportLoadingError else {
                     return
                 }
+                let href = self.readingOrder[self.resourceIndex].url()
                 let error: ReadError = itemError.flatMap { .wrap($0) }
                     ?? .decoding("The AVPlayerItem failed to load", cause: itemError)
                 self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
@@ -709,7 +789,14 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
     }
 
+    /// Returns whether to move on to the next resource at the end of the
+    /// current one.
+    ///
+    /// The delegate is asked only when there is a next resource.
     private func shouldPlayNextResource() -> Bool {
+        guard canGoForward else {
+            return false
+        }
         guard let delegate = delegate else {
             return true
         }
@@ -843,6 +930,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     public private(set) var currentLocation: Locator?
 
+    @discardableResult
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
         await go(to: locator, requestingPlayback: false)
     }
@@ -914,6 +1002,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             let asset = try mediaLoader.makeAsset(for: link)
             player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
             resourceIndex = index
+            didReportLoadingError = false
             loadAssetDuration()
             loadedTimeRangesTimer.fire()
             delegate?.navigator(self, loadedTimeRangesDidChange: [])
@@ -1001,7 +1090,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
         // We don't directly change `player.rate`, because it might be 0 when the player is paused. `settings.speed`
         // is actually the default speed while playing.
-        if state != .paused {
+        if player.timeControlStatus != .paused {
             player.rate = Float(settings.speed)
         }
     }

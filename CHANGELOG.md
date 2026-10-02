@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * `AudioNavigator.stop()` stops the playback and ends the audio session.
+* The `AudioNavigator` reports the new `MediaPlaybackState.ended` when the playback reaches the end of the publication, by playing or seeking up to it.
+* `MediaPlaybackState.playsWhenReady` indicates whether the player is playing or will as soon as it is ready, e.g. to choose between a play and a pause button.
 
 ### Changed
 
@@ -26,7 +28,9 @@ All notable changes to this project will be documented in this file. Take a look
 * `AudioNavigator.play()` now moves on after the end of a resource, instead of doing nothing: it plays the next resource, or restarts from the beginning of the publication after the last one.
 * Seeking with the `AudioNavigator` is no longer confined to the current resource.
     * `seek(by:)` moves over to the adjacent resources when skipping past the start or the end of the current one, instead of stopping at its bounds.
-    * Seeking up to the end of a resource with `seek(to:)` or `seek(by:)` ends it, like playing up to it. `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is called, and the playback is paused at the end of the resource when it returns `false` or after the last resource.
+    * Seeking up to the end of a resource with `seek(to:)` or `seek(by:)` ends it, like playing up to it. `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is called, and the playback is paused at the end of the resource when it returns `false`.
+* `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is no longer called after the last resource. Use the new `MediaPlaybackState.ended` to detect the end of the publication, [see the migration guide](docs/Migration%20Guide.md).
+* `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` takes an `AnyURL` instead of a `RelativeURL`, to report resources with an absolute HREF. Implementations must be updated or they are no longer called, [see the migration guide](docs/Migration%20Guide.md).
 
 ### Fixed
 
