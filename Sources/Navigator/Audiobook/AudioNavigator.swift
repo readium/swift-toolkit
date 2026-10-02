@@ -335,8 +335,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
             return player.currentTime().secondsOrZero
         }
-        let time = target.timeFromStart(duration: resourceDuration)
-        return max(0, resourceDuration.map { min(time, $0) } ?? time)
+        let targetTime = target.timeFromStart(duration: resourceDuration)
+        return max(0, resourceDuration.map { min(targetTime, $0) } ?? targetTime)
     }
 
     /// Whether the current resource failed to load.
