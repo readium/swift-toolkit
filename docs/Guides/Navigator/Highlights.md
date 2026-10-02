@@ -5,7 +5,7 @@ Highlighting lets users mark up passages in a publication for later reference - 
 **Readium is only responsible for *rendering* highlights over the publication content**. Persisting highlights to a database, and any UI around them (color pickers, annotation editors, highlight lists, etc.) are entirely the responsibility of your app. This guide assumes you already have a `Highlight` model and a repository to store and observe it.
 
 > [!NOTE]
-> Only `EPUBNavigatorViewController` implements `DecorableNavigator` today. Always check if a navigator implements `DecorableNavigator` before enabling decoration-dependent features to future-proof your code.
+> `EPUBNavigatorViewController` and `PDFNavigatorViewController` (iOS 16+) implement `DecorableNavigator` today. Always check if a navigator implements `DecorableNavigator` before enabling decoration-dependent features to future-proof your code. This guide uses the EPUB navigator in its examples, but the same workflow applies to PDF.
 
 ## Setting Up
 
