@@ -500,7 +500,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 // `play()` moves on.
                 pause()
                 hasReachedEndOfResource = true
-                
+
                 return duration
             }
             target = .fromStart(time - duration)
