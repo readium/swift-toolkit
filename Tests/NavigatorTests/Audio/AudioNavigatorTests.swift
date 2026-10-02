@@ -42,7 +42,7 @@ enum AudioNavigatorTests {
             #expect(audiobook.navigator.playbackInfo.resourceIndex == lastTrackIndex)
         }
 
-        @Test("playing up to the end of the last resource ends the playback")
+        @Test("playing up to the end of the last resource ends the playback", .requiresPlayback)
         func playToEndOfLastResource() async {
             // Given a position shortly before the end of the last resource.
             await audiobook.goShortlyBeforeEnd()
@@ -135,7 +135,7 @@ enum AudioNavigatorTests {
             #expect(audiobook.states.last == .paused)
         }
 
-        @Test("playing restarts from the beginning of the publication")
+        @Test("playing restarts from the beginning of the publication", .requiresPlayback)
         func play() async throws {
             // When playing.
             audiobook.navigator.play()
@@ -164,7 +164,7 @@ enum AudioNavigatorTests {
             #expect(audiobook.shouldPlayNextResourceCalls == [0, 1])
         }
 
-        @Test("is not called after playing the last resource")
+        @Test("is not called after playing the last resource", .requiresPlayback)
         func notCalledAfterPlayingLastResource() async {
             // Given a position shortly before the end of the last resource.
             await audiobook.goShortlyBeforeEnd()
@@ -188,7 +188,7 @@ enum AudioNavigatorTests {
             audiobook = Audiobook(audioSession: audioSession, initialResourceIndex: 1)
         }
 
-        @Test("playing is reported as loading at the initial location")
+        @Test("playing is reported as loading at the initial location", .requiresPlayback)
         func play() async throws {
             // When playing.
             audiobook.navigator.play()
@@ -284,6 +284,17 @@ enum AudioNavigatorTests {
             try await Task.sleep(nanoseconds: 500_000_000)
             #expect(audiobook.loadingFailures.count == 1)
         }
+    }
+}
+
+private extension Trait where Self == ConditionTrait {
+    /// Skips a test waiting for the player to actually play audio when running
+    /// on the CI, as the playback does not start on its runners.
+    static var requiresPlayback: Self {
+        .disabled(
+            if: ProcessInfo.processInfo.environment["CI"] != nil,
+            "The playback does not start on the CI runners"
+        )
     }
 }
 
