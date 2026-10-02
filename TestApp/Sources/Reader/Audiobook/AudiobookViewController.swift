@@ -274,7 +274,7 @@ struct AudiobookReader: View {
 
                     // Toggle play-pause.
                     IconButton(
-                        systemName: model.playback.state != .paused
+                        systemName: model.playback.state.playsWhenReady
                             ? "pause.fill"
                             : "play.fill"
                     ) {
