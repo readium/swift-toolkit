@@ -193,11 +193,36 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Seek in progress, pausing the player until it completes.
     private struct PendingSeek {
         let id: Int
-        /// Target time in the current resource, which may be approximate until
-        /// the player seeks.
-        var time: Double
+        /// Target in the current resource.
+        var target: ResourceTime
         /// Whether the playback resumes once the seek completes.
         var resumesPlayback: Bool
+    }
+
+    /// Time in a resource, relative to its start or to its end.
+    private enum ResourceTime {
+        case fromStart(Double)
+        case fromEnd(Double)
+
+        /// Returns this time moved by `delta` seconds.
+        func advanced(by delta: Double) -> ResourceTime {
+            switch self {
+            case let .fromStart(time): .fromStart(time + delta)
+            case let .fromEnd(time): .fromEnd(time + delta)
+            }
+        }
+
+        /// Returns the time from the start of a resource of the given
+        /// `duration`, which may be out of its bounds.
+        ///
+        /// A time relative to the end falls back on the start of the resource
+        /// when its duration is unknown.
+        func timeFromStart(duration: Double?) -> Double {
+            switch self {
+            case let .fromStart(time): time
+            case let .fromEnd(time): duration.map { $0 + time } ?? 0
+            }
+        }
     }
 
     private var pendingSeek: PendingSeek?
@@ -233,9 +258,13 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         durations[..<resourceIndex].reduce(0, +)
     }
 
-    /// Duration in seconds in the current resource.
+    /// Duration in seconds of the current resource, if known.
+    ///
+    /// It is approximated from `Link.duration` until the asset reports the
+    /// exact one.
     private var resourceDuration: Double? {
-        loadedAssetDuration ?? readingOrder[resourceIndex].duration
+        (loadedAssetDuration ?? readingOrder[resourceIndex].duration)
+            .flatMap { $0 > 0 ? $0 : nil }
     }
 
     /// Total duration in the publication.
@@ -246,8 +275,15 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
     /// Current time in the current resource, or the target of the seek in
     /// progress.
+    ///
+    /// The target of a seek may be approximate until the exact duration of
+    /// the resource is known.
     public var currentTime: Double {
-        pendingSeek?.time ?? player.currentTime().secondsOrZero
+        guard let target = pendingSeek?.target else {
+            return player.currentTime().secondsOrZero
+        }
+        let time = target.timeFromStart(duration: resourceDuration)
+        return max(0, resourceDuration.map { min(time, $0) } ?? time)
     }
 
     /// Whether the current resource failed to load.
@@ -371,35 +407,104 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     ///
     /// Seeking up to the end of the resource ends it, like playing up to it.
     public func seek(to time: Double) async {
-        if let duration = resourceDuration, duration > 0, time >= duration {
-            await seekToEndOfResource(at: duration)
+        // There is nothing to seek in until a first resource is loaded.
+        guard player.currentItem != nil else {
+            return
+        }
+        if let duration = resourceDuration, time >= duration {
+            // Seeks to the exact end, as `duration` may be approximate.
+            await seekAcrossResources(to: .fromEnd(0))
             return
         }
 
-        let seekID = beginSeek(to: time)
+        let seekID = beginSeek(to: .fromStart(time))
         await seekPlayer(to: time, seekID: seekID)
         await endSeek(seekID)
     }
 
-    /// Seeks to the end of the current resource, at `duration`.
+    /// Seeks relatively from the current time, moving over to the adjacent
+    /// resources when skipping past the start or the end of the current one.
     ///
-    /// The navigator moves on to the next resource if the delegate allows it,
-    /// resuming the playback if it was requested. Otherwise, the playback is
-    /// held at the end of the resource until `play()` moves on.
-    private func seekToEndOfResource(at duration: Double) async {
-        // The seek begins before asking the delegate, so that it is given the
-        // playback info at the end of the resource. The jump to the next
-        // resource supersedes it, keeping its playback request.
-        let seekID = beginSeek(to: duration)
-        if shouldPlayNextResource(), await goForward() {
+    /// Skipping past the end of a resource ends it, like playing up to it.
+    public func seek(by delta: Double) async {
+        // There is nothing to seek in until a first resource is loaded.
+        guard player.currentItem != nil else {
             return
         }
+        // `delta` is added to the target of the seek in progress, which is
+        // relative to the bounds of the resource, rather than to the current
+        // time approximated from it.
+        let target = pendingSeek?.target ?? .fromStart(currentTime)
+        await seekAcrossResources(to: target.advanced(by: delta))
+    }
 
-        // The player cannot play from the end of a resource.
-        pause()
-        hasReachedEndOfResource = true
-        await seekPlayer(to: duration, seekID: seekID)
+    /// Seeks to `target` in the current resource, moving over to the adjacent
+    /// resources while it is out of its bounds.
+    private func seekAcrossResources(to target: ResourceTime) async {
+        let seekID = beginSeek(to: target)
+        guard let time = await moveToResource(containing: target, seekID: seekID) else {
+            return
+        }
+        await seekPlayer(to: time, seekID: seekID)
         await endSeek(seekID)
+    }
+
+    /// Moves over to the resource containing `target`, which is relative to
+    /// the current resource.
+    ///
+    /// The navigator moves on to the next resource only if the delegate allows
+    /// it. Otherwise, the playback is held at the end of the resource.
+    ///
+    /// Returns the time from the start of the resource moved to, or nil if a
+    /// newer seek superseded this one.
+    private func moveToResource(containing target: ResourceTime, seekID: Int) async -> Double? {
+        var target = target
+
+        while true {
+            if case let .fromStart(time) = target, time <= 0 {
+                // The start of a resource is always in its bounds. Before it,
+                // the seek continues from the end of the previous resource.
+                guard time < 0, canGoBackward, loadResource(at: resourceIndex - 1) else {
+                    return 0
+                }
+                target = .fromEnd(time)
+            }
+
+            // `Link.duration` is only a hint, so the bounds of the resource
+            // require the exact duration reported by the asset. We wait for
+            // it if it is not loaded yet, reporting the approximate target in
+            // the meantime.
+            pendingSeek?.target = target
+            if loadedAssetDuration == nil {
+                locationDidChange()
+            }
+            let duration = await resolveResourceDuration()
+            guard pendingSeek?.id == seekID else {
+                return nil
+            }
+
+            let time = target.timeFromStart(duration: duration)
+            if time < 0 {
+                target = .fromStart(time)
+                continue
+            }
+            guard let duration, time >= duration else {
+                return time
+            }
+
+            // The delegate is given the playback info at the end of the
+            // resource.
+            pendingSeek?.target = .fromEnd(0)
+            guard shouldPlayNextResource(), canGoForward, loadResource(at: resourceIndex + 1) else {
+                // Holds the playback at the end of the current resource, until
+                // `play()` moves on.
+                pause()
+                hasReachedEndOfResource = true
+                
+                return duration
+            }
+            target = .fromStart(time - duration)
+        }
     }
 
     /// Updates whether the pending seek resumes the playback, notifying the
@@ -415,17 +520,17 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         playbackDidChange()
     }
 
-    /// Pauses the player for a new seek to `time`, superseding any seek in
+    /// Pauses the player for a new seek to `target`, superseding any seek in
     /// progress.
     ///
     /// The playback resumes once the seek completes if it was already
     /// requested, or if the seek requests it with `requestingPlayback`.
     ///
     /// Returns the ID of the new seek.
-    private func beginSeek(to time: Double, requestingPlayback: Bool = false) -> Int {
+    private func beginSeek(to target: ResourceTime, requestingPlayback: Bool = false) -> Int {
         hasReachedEndOfResource = false
         lastSeekID += 1
-        pendingSeek = PendingSeek(id: lastSeekID, time: time, resumesPlayback: requestingPlayback || isPlaybackRequested)
+        pendingSeek = PendingSeek(id: lastSeekID, target: target, resumesPlayback: requestingPlayback || isPlaybackRequested)
         // A pending play would start the player during the seek otherwise.
         // The request is carried by `resumesPlayback` instead.
         pendingPlayTask = nil
@@ -441,7 +546,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         guard pendingSeek?.id == seekID else {
             return false
         }
-        pendingSeek?.time = time
+        pendingSeek?.target = .fromStart(time)
         locationDidChange()
 
         return await player.seek(to: CMTime(seconds: time, preferredTimescale: 1000))
@@ -462,11 +567,6 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
         pendingSeek = nil
         locationDidChange()
-    }
-
-    /// Seeks relatively from the current time in the current resource.
-    public func seek(by delta: Double) async {
-        await seek(to: currentTime + delta)
     }
 
     private var timeControlStatusObserver: NSKeyValueObservation?
@@ -753,6 +853,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     ///   the jump completes, like `play()` would. When false, the playback
     ///   resumes only if it was already requested. Either way, a `pause()`
     ///   during the jump cancels it.
+    @discardableResult
     private func go(to locator: Locator, requestingPlayback: Bool) async -> Bool {
         guard let newResourceIndex = readingOrder.firstIndexWithHREF(locator.href) else {
             return false
@@ -764,50 +865,12 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         // approximated from the progression until the exact duration of the
         // resource is known.
         let seekID = beginSeek(
-            to: time(for: locator, duration: link.duration),
+            to: .fromStart(time(for: locator, duration: link.duration)),
             requestingPlayback: requestingPlayback
         )
 
-        do {
-            currentLocation = locator
-            // Loads the resource. A resource which failed to load is loaded
-            // again, as a failed player item never recovers on its own.
-            if player.currentItem == nil || resourceIndex != newResourceIndex || hasFailedItem {
-                log(.info, "Starts playing \(link.href)")
-                let asset = try mediaLoader.makeAsset(for: link)
-                player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
-                resourceIndex = newResourceIndex
-                loadAssetDuration()
-                loadedTimeRangesTimer.fire()
-                delegate?.navigator(self, loadedTimeRangesDidChange: [])
-            }
-
-            // `Link.duration` is only a hint, so converting a progression
-            // into a time requires the exact duration reported by the asset.
-            // We wait for it if it is not loaded yet.
-            var assetDuration = loadedAssetDuration
-            if
-                assetDuration == nil,
-                locator.locations.time?.begin == nil,
-                (locator.locations.progression ?? 0) > 0
-            {
-                assetDuration = await durationLoadTask?.value
-                if assetDuration == nil {
-                    log(.warning, "Asset duration unavailable, falling back on the approximate `Link.duration` to convert the progression")
-                }
-            }
-
-            let targetTime = time(for: locator, duration: assetDuration ?? link.duration)
-            let finished = await seekPlayer(to: targetTime, seekID: seekID)
-            if finished {
-                delegate?.navigator(self, didJumpTo: locator)
-            }
-
-            await endSeek(seekID)
-            return true
-
-        } catch {
-            log(.error, error)
+        currentLocation = locator
+        guard loadResource(at: newResourceIndex) else {
             // The playback doesn't resume after a failed jump.
             if pendingSeek?.id == seekID {
                 pendingSeek = nil
@@ -815,6 +878,66 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             }
             return false
         }
+
+        // `Link.duration` is only a hint, so converting a progression into a
+        // time requires the exact duration reported by the asset. We wait for
+        // it if it is not loaded yet.
+        let convertsProgression = locator.locations.time?.begin == nil
+            && (locator.locations.progression ?? 0) > 0
+        let duration = convertsProgression
+            ? await resolveResourceDuration()
+            : resourceDuration
+
+        let targetTime = time(for: locator, duration: duration)
+        let finished = await seekPlayer(to: targetTime, seekID: seekID)
+        if finished {
+            delegate?.navigator(self, didJumpTo: locator)
+        }
+
+        await endSeek(seekID)
+        return true
+    }
+
+    /// Loads the resource at `index` in the player, unless it is the current
+    /// one. A resource which failed to load is loaded again, as a failed
+    /// player item never recovers on its own.
+    ///
+    /// Returns whether the resource is loaded in the player.
+    private func loadResource(at index: Int) -> Bool {
+        guard player.currentItem == nil || resourceIndex != index || hasFailedItem else {
+            return true
+        }
+
+        let link = readingOrder[index]
+        do {
+            log(.info, "Loads \(link.href)")
+            let asset = try mediaLoader.makeAsset(for: link)
+            player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
+            resourceIndex = index
+            loadAssetDuration()
+            loadedTimeRangesTimer.fire()
+            delegate?.navigator(self, loadedTimeRangesDidChange: [])
+            return true
+        } catch {
+            log(.error, error)
+            return false
+        }
+    }
+
+    /// Returns the duration of the current resource, waiting for its asset
+    /// to report the exact one if it is not loaded yet.
+    ///
+    /// Falls back on the approximate `Link.duration` when the asset cannot
+    /// report its duration.
+    private func resolveResourceDuration() async -> Double? {
+        if loadedAssetDuration == nil, let task = durationLoadTask {
+            // A cancelled task means that another resource was loaded in the
+            // meantime, not that the duration is unavailable.
+            if await task.value == nil, !task.isCancelled {
+                log(.warning, "Asset duration unavailable, falling back on the approximate `Link.duration`")
+            }
+        }
+        return resourceDuration
     }
 
     /// Returns the time targeted by `locator` in its resource, converting its
