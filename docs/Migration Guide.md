@@ -4,6 +4,17 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Resource loading errors
+
+`NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` now takes an `AnyURL` instead of a `RelativeURL`.
+
+:warning: An implementation using the previous signature still compiles, but is no longer called. Update the type of the `href` parameter:
+
+```diff
+-func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {
++func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: AnyURL, withError error: ReadError) {
+```
+
 ### Audio Navigator
 
 #### End of the publication

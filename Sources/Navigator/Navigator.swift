@@ -128,7 +128,7 @@ public extension Navigator {
     func navigator(_ navigator: Navigator, shouldNavigateToNoteAt link: Link, content: String, referrer: String?) -> Bool
 
     /// Called when an error occurs while attempting to load a resource.
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError)
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: AnyURL, withError error: ReadError)
 }
 
 public extension NavigatorDelegate {
@@ -146,7 +146,7 @@ public extension NavigatorDelegate {
         true
     }
 
-    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {}
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: AnyURL, withError error: ReadError) {}
 }
 
 public enum NavigatorError: Error, Sendable {

@@ -646,12 +646,22 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// should resume when it ends.
     private var isPausedByInterruption = false
 
+    /// Whether the media loader reported an error for the current player
+    /// item.
+    ///
+    /// Such an error makes the player item fail in turn, with an opaque
+    /// AVFoundation error which is not reported on top of its cause.
+    private var didReportLoadingError = false
+
     private lazy var mediaLoader: PublicationMediaLoader = {
         let loader = PublicationMediaLoader(publication: publication)
         loader.onLoadingError = { [weak self] href, error in
             Task { @MainActor in
-                guard let self = self, let href = href.relativeURL else {
+                guard let self = self else {
                     return
+                }
+                if href.isEquivalentTo(self.readingOrder[self.resourceIndex].url()) {
+                    self.didReportLoadingError = true
                 }
                 self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
             }
@@ -768,9 +778,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
                 log(.error, "Failed to load the player item: \(String(describing: itemError))")
-                guard let href = self.readingOrder[self.resourceIndex].url().relativeURL else {
+                guard !self.didReportLoadingError else {
                     return
                 }
+                let href = self.readingOrder[self.resourceIndex].url()
                 let error: ReadError = itemError.flatMap { .wrap($0) }
                     ?? .decoding("The AVPlayerItem failed to load", cause: itemError)
                 self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
@@ -991,6 +1002,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             let asset = try mediaLoader.makeAsset(for: link)
             player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
             resourceIndex = index
+            didReportLoadingError = false
             loadAssetDuration()
             loadedTimeRangesTimer.fire()
             delegate?.navigator(self, loadedTimeRangesDidChange: [])

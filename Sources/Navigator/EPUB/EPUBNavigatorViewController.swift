@@ -1070,7 +1070,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
         withError error: ReadError
     ) {
         Task { @MainActor in
-            self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+            self.delegate?.navigator(self, didFailToLoadResourceAt: href.anyURL, withError: error)
         }
     }
 }

@@ -246,12 +246,82 @@ enum AudioNavigatorTests {
             #expect(!audiobook.states.contains(.playing))
         }
     }
+
+    @Suite("Failing to load a resource") @MainActor struct LoadingFailure {
+        @Test(
+            "is reported to the delegate with the HREF of the resource",
+            arguments: ["track.wav", "https://example.com/track.wav"]
+        )
+        func reported(href: String) async throws {
+            // Given an audiobook whose resource is missing from the container.
+            let audiobook = Audiobook(hrefs: [href], tracks: .missing)
+
+            // When playing.
+            audiobook.navigator.play()
+
+            // Then the failure is reported with the HREF of the resource.
+            let failure = try #require(await audiobook.waitForLoadingFailure())
+            #expect(failure.href.string == href)
+        }
+
+        @Test("is reported once, with the error which occurred while reading the resource")
+        func reportedWithReadError() async throws {
+            // Given an audiobook whose resource cannot be read.
+            let audiobook = Audiobook(
+                hrefs: ["https://example.com/track.wav"],
+                tracks: .failing(.access(.http(.security(nil))))
+            )
+
+            // When playing.
+            audiobook.navigator.play()
+
+            // Then the failure is reported with the read error.
+            let failure = try #require(await audiobook.waitForLoadingFailure())
+            #expect(failure.error.isHTTPSecurityError)
+
+            // And the failure of the player item it caused is not reported on
+            // top of it.
+            try await Task.sleep(nanoseconds: 500_000_000)
+            #expect(audiobook.loadingFailures.count == 1)
+        }
+    }
 }
 
 private let trackCount = 3
 private let trackDuration: Double = 2
 private let lastTrackIndex = trackCount - 1
 private let publicationDuration = Double(trackCount) * trackDuration
+
+/// How the tracks of an `Audiobook` are served by its container.
+private enum Tracks {
+    /// The tracks are silent audio files.
+    case silence
+    /// The tracks are missing from the container.
+    case missing
+    /// Reading the tracks fails with the given error.
+    case failing(ReadError)
+}
+
+/// A `Container` whose entries all fail to be read with `error`.
+private struct FailingContainer: Container {
+    let sourceURL: AbsoluteURL? = nil
+    let entries: Set<AnyURL>
+    let error: ReadError
+
+    subscript(url: any URLConvertible) -> Resource? {
+        entries.contains(url.anyURL.normalized) ? FailureResource(error: error) : nil
+    }
+}
+
+private extension ReadError {
+    var isHTTPSecurityError: Bool {
+        if case .access(.http(.security)) = self {
+            true
+        } else {
+            false
+        }
+    }
+}
 
 /// An audiobook of `trackCount` silent tracks played by a real
 /// `AudioNavigator`, recording the events sent to its delegate.
@@ -273,16 +343,40 @@ private let publicationDuration = Double(trackCount) * trackDuration
     /// the next one.
     private(set) var shouldPlayNextResourceCalls: [Int] = []
 
+    typealias LoadingFailure = (href: AnyURL, error: ReadError)
+
+    /// Resources which failed to load, as reported by the navigator.
+    private(set) var loadingFailures: [LoadingFailure] = []
+
+    /// Loading failures reported by the navigator, buffered until they are
+    /// waited for.
+    private let loadingFailuresStream: AsyncStream<LoadingFailure>
+    private let loadingFailuresContinuation: AsyncStream<LoadingFailure>.Continuation
+
     /// - Parameter initialResourceIndex: Index in the reading order of the
     ///   resource the navigator starts from, instead of the first one.
+    /// - Parameter hrefs: HREFs of the tracks in the reading order.
+    /// - Parameter tracks: How the tracks are served by the container.
     init(
         audioSession: any AudioSessionManaging = NoopAudioSessionManager(),
-        initialResourceIndex: Int? = nil
+        initialResourceIndex: Int? = nil,
+        hrefs: [String] = (1 ... trackCount).map { "track\($0).wav" },
+        tracks: Tracks = .silence
     ) {
         (playbacks, playbacksContinuation) = AsyncStream.makeStream()
+        (loadingFailuresStream, loadingFailuresContinuation) = AsyncStream.makeStream()
 
-        let hrefs = (1 ... trackCount).map { "track\($0).wav" }
-        let track = WAV.silence(duration: trackDuration)
+        let urls = hrefs.map { AnyURL(string: $0)! }
+        let container: any Container = switch tracks {
+        case .silence:
+            DataContainer(
+                entries: Dictionary(uniqueKeysWithValues: urls.map { ($0, WAV.silence(duration: trackDuration)) })
+            )
+        case .missing:
+            DataContainer(entries: [:])
+        case let .failing(error):
+            FailingContainer(entries: Set(urls), error: error)
+        }
         let publication = Publication(
             manifest: Manifest(
                 metadata: Metadata(conformsTo: [.audiobook], title: "Audiobook"),
@@ -290,9 +384,7 @@ private let publicationDuration = Double(trackCount) * trackDuration
                     Link(href: $0, mediaType: .wav, duration: trackDuration)
                 }
             ),
-            container: DataContainer(
-                entries: Dictionary(uniqueKeysWithValues: hrefs.map { (AnyURL(string: $0)!, track) })
-            )
+            container: container
         )
 
         navigator = AudioNavigator(
@@ -341,6 +433,28 @@ private let publicationDuration = Double(trackCount) * trackDuration
         return nil
     }
 
+    /// Waits for the navigator to report a resource which failed to load, or
+    /// fails the test after `timeout` seconds.
+    ///
+    /// The failures reported before waiting are checked too.
+    func waitForLoadingFailure(
+        timeout: TimeInterval = 10,
+        sourceLocation: SourceLocation = #_sourceLocation
+    ) async -> LoadingFailure? {
+        // Finishing the stream ends the wait.
+        let timeoutTask = Task { [loadingFailuresContinuation] in
+            try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+            loadingFailuresContinuation.finish()
+        }
+        defer { timeoutTask.cancel() }
+
+        for await failure in loadingFailuresStream {
+            return failure
+        }
+        Issue.record("Timed out waiting for a loading failure", sourceLocation: sourceLocation)
+        return nil
+    }
+
     func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo) {
         states.append(info.state)
         playbacksContinuation.yield(info)
@@ -352,4 +466,9 @@ private let publicationDuration = Double(trackCount) * trackDuration
     }
 
     func navigator(_ navigator: Navigator, presentError error: NavigatorError) {}
+
+    func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: AnyURL, withError error: ReadError) {
+        loadingFailures.append((href, error))
+        loadingFailuresContinuation.yield((href, error))
+    }
 }
