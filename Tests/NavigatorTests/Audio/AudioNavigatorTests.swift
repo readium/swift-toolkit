@@ -247,6 +247,55 @@ enum AudioNavigatorTests {
         }
     }
 
+    @Suite("Jumping to a temporal locator") @MainActor struct TemporalLocator {
+        private let audiobook = Audiobook()
+
+        @Test("seeks to the start of its temporal fragment", arguments: [
+            ("t=1", 1),
+            ("t=1.25", 1.25),
+            ("t=npt:0:00:01", 1),
+            ("t=00:01.5&track=audio", 1.5),
+            ("t=0.5,1.5", 0.5),
+            ("t=,1.5", 0),
+        ] as [(String, Double)])
+        func seeksToStart(fragment: String, expected: Double) async {
+            // When jumping to a locator with a temporal fragment.
+            await audiobook.go(toResourceAt: 1, fragments: [fragment], progression: 0.9)
+
+            // Then the playback is at the start of the fragment, which wins
+            // over the progression.
+            #expect(audiobook.navigator.playbackInfo.resourceIndex == 1)
+            #expect(abs(audiobook.navigator.playbackInfo.time - expected) < 0.1)
+        }
+
+        @Test("falls back on the progression without a valid temporal fragment", arguments: [
+            "t=1:30",
+            "t=10,",
+            "start=1",
+        ])
+        func fallsBackOnProgression(fragment: String) async {
+            // When jumping to a locator whose temporal fragment is invalid.
+            await audiobook.go(toResourceAt: 1, fragments: [fragment], progression: 0.5)
+
+            // Then the playback is at the progression.
+            #expect(audiobook.navigator.playbackInfo.resourceIndex == 1)
+            #expect(abs(audiobook.navigator.playbackInfo.time - trackDuration * 0.5) < 0.1)
+        }
+
+        @Test("the current location has a temporal position at the playback time")
+        func currentLocation() async throws {
+            // When jumping to a locator with a temporal fragment.
+            await audiobook.go(toResourceAt: 1, fragments: ["t=1.25"])
+
+            // Then the current location is a position at the playback time.
+            let locations = try #require(audiobook.navigator.currentLocation?.locations)
+            let temporal = try #require(locations.temporal)
+            #expect(temporal == .position(TemporalPosition(time: audiobook.navigator.playbackInfo.time)!))
+            #expect(abs(temporal.start - 1.25) < 0.1)
+            #expect(locations.fragments == [temporal.fragment.rawValue])
+        }
+    }
+
     @Suite("Failing to load a resource") @MainActor struct LoadingFailure {
         @Test(
             "is reported to the delegate with the HREF of the resource",
@@ -411,6 +460,17 @@ private extension ReadError {
     /// Jumps to the start of the resource at `index` in the reading order.
     func goToResource(at index: Int) async {
         #expect(await navigator.go(to: navigator.readingOrder[index]))
+    }
+
+    /// Jumps to a locator in the resource at `index` in the reading order.
+    func go(toResourceAt index: Int, fragments: [String], progression: Double? = nil) async {
+        let link = navigator.readingOrder[index]
+        let locator = Locator(
+            href: link.url(),
+            mediaType: .wav,
+            locations: .init(fragments: fragments, progression: progression)
+        )
+        #expect(await navigator.go(to: locator))
     }
 
     /// Jumps shortly before the end of the last resource, so that playing

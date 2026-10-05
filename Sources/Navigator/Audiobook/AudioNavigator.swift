@@ -837,6 +837,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private func makeLocator(forTime time: Double) -> Locator {
         let link = readingOrder[resourceIndex]
 
+        let fragment = TemporalPosition(time: time)
+            .flatMap { TemporalSelector.position($0).fragment.percentDecoded }
+
         var progression: Double?
         if let duration = resourceDuration, duration > 0 {
             progression = resourceDuration.map { time / max($0, 1) }
@@ -852,7 +855,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             mediaType: link.mediaType ?? MediaType("audio/*")!,
             title: link.title,
             locations: Locator.Locations(
-                fragments: ["t=\(time)"],
+                fragments: fragment.map { [$0] } ?? [],
                 progression: progression,
                 totalProgression: totalProgression
             )
