@@ -136,10 +136,14 @@ enum UnknownAbsoluteURLTests {
             #expect(UnknownAbsoluteURL(string: "opds://foo/bar?param=quz%20baz")?.removingQuery() == UnknownAbsoluteURL(string: "opds://foo/bar"))
         }
 
-        @Test("fragment is percent-decoded")
+        @Test("fragment is kept percent-encoded")
         func fragment() {
             #expect(UnknownAbsoluteURL(string: "opds://foo/bar")?.fragment == nil)
-            #expect(UnknownAbsoluteURL(string: "opds://foo/bar#quz%20baz")?.fragment == "quz baz")
+            #expect(UnknownAbsoluteURL(string: "opds://foo/bar#")?.fragment == nil)
+            #expect(UnknownAbsoluteURL(string: "opds://foo/bar#quz%20baz")?.fragment == URLFragment(rawValue: "quz%20baz"))
+            #expect(UnknownAbsoluteURL(string: "opds://foo/bar#quz%20baz")?.fragment?.percentDecoded == "quz baz")
+            // An encoded delimiter is not mistaken for a delimiter.
+            #expect(UnknownAbsoluteURL(string: "opds://foo/bar#id=a%26t%3D5&t=10")?.fragment?.rawValue == "id=a%26t%3D5&t=10")
         }
 
         @Test("removingFragment removes the fragment component")
@@ -156,8 +160,12 @@ enum UnknownAbsoluteURLTests {
             #expect(UnknownAbsoluteURL(string: "opds://foo/bar#old")?.replacingFragment("new").string == "opds://foo/bar#new")
             // Removing via nil matches removingFragment().
             #expect(UnknownAbsoluteURL(string: "opds://foo/bar#quz%20baz")?.replacingFragment(nil) == UnknownAbsoluteURL(string: "opds://foo/bar"))
-            // Fragment is percent-encoded.
-            #expect(UnknownAbsoluteURL(string: "opds://foo/bar")?.replacingFragment("quz baz").string == "opds://foo/bar#quz%20baz")
+            // Fragment is written percent-encoded, as is.
+            #expect(UnknownAbsoluteURL(string: "opds://foo/bar")?.replacingFragment("quz%20baz").string == "opds://foo/bar#quz%20baz")
+            #expect(UnknownAbsoluteURL(string: "opds://foo/bar")?.replacingFragment("id=a%26b&t=10").string == "opds://foo/bar#id=a%26b&t=10")
+            #expect(UnknownAbsoluteURL(string: "opds://foo/bar")?.replacingFragment(URLFragment(percentDecoded: "quz baz")).string == "opds://foo/bar#quz%20baz")
+            // The fragment round-trips.
+            #expect(UnknownAbsoluteURL(string: "opds://foo/bar")?.replacingFragment("id=a%26b&t=10").fragment == "id=a%26b&t=10")
         }
     }
 

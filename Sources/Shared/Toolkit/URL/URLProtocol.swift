@@ -120,9 +120,11 @@ public extension URLProtocol {
         }
     }
 
-    /// Returns the decoded fragment portion of this URL, if there's any.
+    /// Returns the fragment portion of this URL, if there's any.
+    ///
+    /// The fragment is kept percent-encoded, see ``URLFragment``.
     var fragment: URLFragment? {
-        url.fragment?.removingPercentEncoding
+        url.fragment
             .flatMap { URLFragment(rawValue: $0) }
     }
 
@@ -135,7 +137,7 @@ public extension URLProtocol {
     /// value, or removing it when `fragment` is `nil`.
     func replacingFragment(_ fragment: URLFragment?) -> Self {
         let fragment = fragment?.rawValue
-        if let url = url.copy({ $0.fragment = fragment }) {
+        if let url = url.copy({ $0.percentEncodedFragment = fragment }) {
             return Self(url: url)!
         } else {
             var base = string.components(separatedBy: "#").first ?? string

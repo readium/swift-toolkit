@@ -196,8 +196,9 @@ enum AnyURLTests {
             #expect(AnyURL(string: "foo/bar#old")?.replacingFragment("new").string == "foo/bar#new")
             // Removing via nil matches removingFragment().
             #expect(AnyURL(string: "foo/bar#quz%20baz")?.replacingFragment(nil) == AnyURL(string: "foo/bar"))
-            // Fragment is percent-encoded.
-            #expect(AnyURL(string: "foo/bar")?.replacingFragment("quz baz").string == "foo/bar#quz%20baz")
+            // Fragment is written percent-encoded, as is.
+            #expect(AnyURL(string: "foo/bar")?.replacingFragment("quz%20baz").string == "foo/bar#quz%20baz")
+            #expect(AnyURL(string: "foo/bar")?.replacingFragment(URLFragment(percentDecoded: "quz baz")).string == "foo/bar#quz%20baz")
         }
     }
 }

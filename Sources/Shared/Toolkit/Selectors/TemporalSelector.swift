@@ -96,21 +96,12 @@ public extension TemporalSelector {
     /// Fragment format: `t=[npt:][start][,end]`, possibly among other
     /// dimensions separated by `&`. The last valid temporal dimension wins.
     ///
-    /// The fragment must be percent-decoded, as returned by
-    /// ``URLProtocol/fragment``.
-    ///
     /// - https://www.w3.org/TR/media-frags/#naming-time
     init?(fragment: URLFragment) {
-        let selector = fragment.rawValue
-            .split(separator: "&", omittingEmptySubsequences: true)
+        let selector = fragment.parameters(named: "t")
             .reversed()
             .lazy
-            .compactMap { dimension -> TemporalSelector? in
-                guard dimension.hasPrefix("t=") else {
-                    return nil
-                }
-                return TemporalSelector(nptValue: dimension.dropFirst(2))
-            }
+            .compactMap { TemporalSelector(nptValue: $0) }
             .first
 
         guard let selector = selector else {
@@ -120,8 +111,8 @@ public extension TemporalSelector {
     }
 
     /// Parses the value of a temporal dimension, e.g. `npt:10,20`.
-    private init?(nptValue: Substring) {
-        var value = nptValue
+    private init?(nptValue: String) {
+        var value = nptValue[...]
         if value.hasPrefix("npt:") {
             value = value.dropFirst(4)
         }

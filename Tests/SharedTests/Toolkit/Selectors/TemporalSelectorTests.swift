@@ -16,10 +16,6 @@ private func clip(_ start: TimeInterval, _ end: TimeInterval) -> TemporalSelecto
     .clip(TemporalClip(start: start, end: end)!)
 }
 
-private func selector(_ fragment: String) -> TemporalSelector? {
-    URLFragment(rawValue: fragment).flatMap(TemporalSelector.init(fragment:))
-}
-
 enum TemporalSelectorTests {
     struct Validity {
         @Test("a position accepts a finite time which is not negative")
@@ -135,12 +131,23 @@ enum TemporalSelectorTests {
             ("t=10&t=invalid", position(10)),
             ("t=10&t=", position(10)),
             ("t=10&&", position(10)),
+            // Names and values are percent-decoded after splitting.
+            ("t=%31%30", position(10)),
+            ("%74=10", position(10)),
+            ("t=10%2C20", clip(10, 20)),
+            ("t=npt%3A01%3A30", position(90)),
+            ("t=10&id=a%26t%3D5", position(10)),
+            ("id=caf%C3%A9&t=10", position(10)),
+            // A pair which is not valid UTF-8 is skipped.
+            ("id=%FF&t=10", position(10)),
+            ("t=10&t=%FF", position(10)),
             // A clip which is not valid is skipped like any invalid dimension.
             ("t=1,2&t=5,3", clip(1, 2)),
             ("t=10&t=20,10", position(10)),
         ] as [(String, TemporalSelector)])
-        func accepted(fragment: String, expected: TemporalSelector) {
-            #expect(selector(fragment) == expected)
+        func accepted(fragment: String, expected: TemporalSelector) throws {
+            let fragment = try #require(URLFragment(rawValue: fragment))
+            #expect(TemporalSelector(fragment: fragment) == expected)
         }
 
         @Test("rejected fragments", arguments: [
@@ -160,9 +167,10 @@ enum TemporalSelectorTests {
             "t=NPT:10",
             "t=npt:npt:10",
             "t=10,npt:20",
-            // Percent-encoded
-            "t=%31%30",
-            "t=10%2C20",
+            // An encoded delimiter is not a delimiter.
+            "id=a%26t%3D5",
+            "id=a%26t=5",
+            "t%3D10",
             // Seconds
             "t=-5",
             "t=+5",
@@ -173,9 +181,11 @@ enum TemporalSelectorTests {
             "t=.5",
             "t=1.2.3",
             "t=1.-5",
-            "t= 10",
+            "t=%2010",
+            "t=10%20",
             "t=10s",
-            "t=١٠",
+            // Arabic-Indic digits
+            "t=%D9%A1%D9%A0",
             "t=" + String(repeating: "9", count: 400),
             // Clock forms
             "t=1:30",
@@ -204,8 +214,9 @@ enum TemporalSelectorTests {
             "t=10,abc",
             "t=abc,20",
         ])
-        func rejected(fragment: String) {
-            #expect(selector(fragment) == nil)
+        func rejected(fragment: String) throws {
+            let fragment = try #require(URLFragment(rawValue: fragment))
+            #expect(TemporalSelector(fragment: fragment) == nil)
         }
 
         @Test("temporalSelector parses the fragment")
