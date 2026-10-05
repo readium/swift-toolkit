@@ -970,7 +970,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         // `Link.duration` is only a hint, so converting a progression into a
         // time requires the exact duration reported by the asset. We wait for
         // it if it is not loaded yet.
-        let convertsProgression = locator.locations.time?.begin == nil
+        let convertsProgression = locator.locations.temporal == nil
             && (locator.locations.progression ?? 0) > 0
         let duration = convertsProgression
             ? await resolveResourceDuration()
@@ -1032,8 +1032,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// Returns the time targeted by `locator` in its resource, converting its
     /// progression with the given resource `duration`.
     private func time(for locator: Locator, duration: Double?) -> Double {
-        if let begin = locator.locations.time?.begin {
-            return begin
+        if let start = locator.locations.temporal?.start {
+            return start
         }
         guard let progression = locator.locations.progression, progression > 0 else {
             return 0

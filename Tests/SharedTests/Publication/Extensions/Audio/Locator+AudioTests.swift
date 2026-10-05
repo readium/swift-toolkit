@@ -5,39 +5,64 @@
 //
 
 @testable import ReadiumShared
-import XCTest
+import Testing
 
-class LocatorLocationsAudioTests: XCTestCase {
-    func testNoFragment() {
-        XCTAssertNil(Locator.Locations().time)
+struct LocatorLocationsAudioTests {
+    private func position(_ time: Double) -> TemporalSelector {
+        .position(TemporalPosition(time: time)!)
     }
 
-    func testMalformedFragment() {
-        XCTAssertNil(Locator.Locations(fragments: ["t=one"]).time)
+    private func clip(_ start: Double, _ end: Double) -> TemporalSelector {
+        .clip(TemporalClip(start: start, end: end)!)
     }
 
-    func testValidFragments() {
-        continueAfterFailure = false
-        for beginStr in ["", "1", "1.0", "1.1"] {
-            for endStr in ["", ",", ",1", ",1.0", ",1.1"] {
-                let val = beginStr + endStr
-                if val == "" || val == "," {
-                    continue
-                }
-                let locations = Locator.Locations(fragments: ["t=\(val)"])
-                let time = locations.time
-                switch time {
-                case let .begin(begin):
-                    XCTAssertEqual(begin, Double(beginStr))
-                case let .end(end):
-                    XCTAssertEqual(end, Double(endStr.removingPrefix(",")))
-                case let .interval(begin, end):
-                    XCTAssertEqual(begin, Double(beginStr))
-                    XCTAssertEqual(end, Double(endStr.removingPrefix(",")))
-                case nil:
-                    XCTAssertNotNil(time)
-                }
-            }
-        }
+    @Test func temporalIsNilWhenNoFragments() {
+        #expect(Locator.Locations().temporal == nil)
+    }
+
+    @Test func temporalIsNilForUnrelatedFragment() {
+        #expect(Locator.Locations(fragments: ["page=5"]).temporal == nil)
+        #expect(Locator.Locations(fragments: ["section", "start=10"]).temporal == nil)
+    }
+
+    @Test func temporalIsNilForMalformedFragment() {
+        #expect(Locator.Locations(fragments: ["t=one"]).temporal == nil)
+        #expect(Locator.Locations(fragments: ["t="]).temporal == nil)
+        #expect(Locator.Locations(fragments: ["t"]).temporal == nil)
+        #expect(Locator.Locations(fragments: ["t=10,"]).temporal == nil)
+        #expect(Locator.Locations(fragments: [""]).temporal == nil)
+    }
+
+    @Test func temporalIsParsedFromPosition() {
+        #expect(Locator.Locations(fragments: ["t=0"]).temporal == position(0))
+        #expect(Locator.Locations(fragments: ["t=71.5"]).temporal == position(71.5))
+        #expect(Locator.Locations(fragments: ["t=npt:0:02:00"]).temporal == position(120))
+    }
+
+    @Test func temporalIsParsedFromClip() {
+        #expect(Locator.Locations(fragments: ["t=10,20"]).temporal == clip(10, 20))
+        #expect(Locator.Locations(fragments: ["t=,20"]).temporal == clip(0, 20))
+        #expect(Locator.Locations(fragments: ["t=1.1,1.5"]).temporal == clip(1.1, 1.5))
+    }
+
+    @Test func temporalIsParsedFromCompoundFragment() {
+        #expect(Locator.Locations(fragments: ["t=10&track=audio"]).temporal == position(10))
+        #expect(Locator.Locations(fragments: ["track=audio&t=10,20"]).temporal == clip(10, 20))
+    }
+
+    @Test func temporalIsParsedFromFragmentWithCharactersToEncode() {
+        #expect(Locator.Locations(fragments: ["track=café noir&t=10"]).temporal == position(10))
+        #expect(Locator.Locations(fragments: ["id=100%&t=10"]).temporal == position(10))
+    }
+
+    @Test func temporalIgnoresOtherFragments() {
+        let locations = Locator.Locations(fragments: ["page=3", "t=10", "section"])
+        #expect(locations.temporal == position(10))
+    }
+
+    @Test func temporalReturnsLastValidWhenMultipleFragments() {
+        #expect(Locator.Locations(fragments: ["t=5", "t=10"]).temporal == position(10))
+        #expect(Locator.Locations(fragments: ["t=5", "t=10", "t=one"]).temporal == position(10))
+        #expect(Locator.Locations(fragments: ["t=5&t=7", "page=2"]).temporal == position(7))
     }
 }

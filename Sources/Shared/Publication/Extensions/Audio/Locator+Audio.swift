@@ -8,68 +8,25 @@ import Foundation
 
 /// Audio extensions for `Locator.Locations`.
 public extension Locator.Locations {
-    enum TimeFragment: Equatable, Sendable {
-        case begin(Double)
-        case end(Double)
-        case interval(Double, Double)
-
-        init?(begin: Double?, end: Double?) {
-            switch (begin, end) {
-            case let (.some(begin), .some(end)):
-                self = .interval(begin, end)
-            case let (.some(begin), .none):
-                self = .begin(begin)
-            case let (.none, .some(end)):
-                self = .end(end)
-            case (.none, .none):
-                return nil
-            }
-        }
-
-        public var begin: Double? {
-            switch self {
-            case let .begin(begin):
-                return begin
-            case let .interval(begin, _):
-                return begin
-            default:
-                return nil
-            }
-        }
-
-        public var end: Double? {
-            switch self {
-            case let .end(end):
-                return end
-            case let .interval(_, end):
-                return end
-            default:
-                return nil
-            }
-        }
+    /// The temporal dimension of the media fragments, if there is any.
+    ///
+    /// When several fragments have a valid temporal dimension, the last one
+    /// wins.
+    ///
+    /// - https://www.w3.org/TR/media-frags/#naming-time
+    var temporal: TemporalSelector? {
+        fragments
+            .reversed()
+            .lazy
+            .compactMap { URLFragment(percentDecoded: $0)?.temporalSelector }
+            .first
     }
 
-    private static let timeFragmentRegex = try! NSRegularExpression(pattern: #"t=([^,]*),?([^,]*)"#)
+    @available(*, unavailable, message: "Use `TemporalSelector` instead.")
+    enum TimeFragment {}
 
-    /// The Temporal Dimension media fragment, if it exists.
-    /// https://www.w3.org/TR/media-frags/#media-fragment-syntax
+    @available(*, unavailable, message: "Use `temporal` instead, e.g. `temporal?.start` to get the beginning.")
     var time: TimeFragment? {
-        for fragment in fragments {
-            let range = NSRange(fragment.startIndex ..< fragment.endIndex, in: fragment)
-            if let match = Self.timeFragmentRegex.firstMatch(in: fragment, range: range) {
-                let group1NSRange = match.range(at: 1)
-                let group2NSRange = match.range(at: 2)
-                var begin: Double?
-                var end: Double?
-                if group1NSRange.location != NSNotFound, let group1Range = Range(group1NSRange, in: fragment) {
-                    begin = Double(fragment[group1Range])
-                }
-                if group2NSRange.location != NSNotFound, let group2Range = Range(group2NSRange, in: fragment) {
-                    end = Double(fragment[group2Range])
-                }
-                return TimeFragment(begin: begin, end: end)
-            }
-        }
-        return nil
+        fatalError()
     }
 }
