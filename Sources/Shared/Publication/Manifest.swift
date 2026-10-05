@@ -178,7 +178,7 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
     /// Returns `nil` if the resource is not found in the manifest.
     public func locator(for link: Link) -> Locator? {
         let originalHREF = link.url()
-        let fragment = originalHREF.fragment
+        let fragment = originalHREF.fragment?.rawValue
         let href = originalHREF.removingFragment()
 
         guard

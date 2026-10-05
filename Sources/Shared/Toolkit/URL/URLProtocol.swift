@@ -121,8 +121,9 @@ public extension URLProtocol {
     }
 
     /// Returns the decoded fragment portion of this URL, if there's any.
-    var fragment: String? {
-        url.fragment?.orNilIfEmpty()?.removingPercentEncoding
+    var fragment: URLFragment? {
+        url.fragment?.removingPercentEncoding
+            .flatMap { URLFragment(rawValue: $0) }
     }
 
     /// Creates a copy of this URL after removing its fragment portion.
@@ -132,12 +133,13 @@ public extension URLProtocol {
 
     /// Creates a copy of this URL after replacing its fragment with the given
     /// value, or removing it when `fragment` is `nil`.
-    func replacingFragment(_ fragment: String?) -> Self {
+    func replacingFragment(_ fragment: URLFragment?) -> Self {
+        let fragment = fragment?.rawValue
         if let url = url.copy({ $0.fragment = fragment }) {
             return Self(url: url)!
         } else {
             var base = string.components(separatedBy: "#").first ?? string
-            if let fragment = fragment, !fragment.isEmpty {
+            if let fragment = fragment {
                 base += "#" + fragment
             }
             return Self(string: base) ?? self
