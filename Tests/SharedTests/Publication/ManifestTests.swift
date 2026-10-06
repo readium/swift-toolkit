@@ -332,6 +332,21 @@ struct ManifestTests {
             )
         }
 
+        /// The fragment of the link is kept percent-encoded.
+        @Test("link with a percent-encoded fragment", arguments: [
+            "caf%C3%A9",
+            "t=10&track=a%26b",
+        ])
+        func linkWithPercentEncodedFragment(fragment: String) throws {
+            let sut = makeManifest(readingOrder: [
+                Link(href: "/href", mediaType: .html, title: "Resource"),
+            ])
+
+            let locator = try #require(sut.locator(for: Link(href: "/href#\(fragment)")))
+            #expect(locator.href.string == "/href")
+            #expect(locator.locations.fragments.map(\.rawValue) == [fragment])
+        }
+
         /// The link's title is used when the resource itself has none.
         @Test func fallsBackOnLinkTitle() {
             let sut = makeManifest(readingOrder: [

@@ -257,8 +257,8 @@ enum AudioNavigatorTests {
             ("t=00:01.5&track=audio", 1.5),
             ("t=0.5,1.5", 0.5),
             ("t=,1.5", 0),
-        ] as [(String, Double)])
-        func seeksToStart(fragment: String, expected: Double) async {
+        ] as [(URLFragment, Double)])
+        func seeksToStart(fragment: URLFragment, expected: Double) async {
             // When jumping to a locator with a temporal fragment.
             await audiobook.go(toResourceAt: 1, fragments: [fragment], progression: 0.9)
 
@@ -272,8 +272,8 @@ enum AudioNavigatorTests {
             "t=1:30",
             "t=10,",
             "start=1",
-        ])
-        func fallsBackOnProgression(fragment: String) async {
+        ] as [URLFragment])
+        func fallsBackOnProgression(fragment: URLFragment) async {
             // When jumping to a locator whose temporal fragment is invalid.
             await audiobook.go(toResourceAt: 1, fragments: [fragment], progression: 0.5)
 
@@ -292,7 +292,7 @@ enum AudioNavigatorTests {
             let temporal = try #require(locations.temporal)
             #expect(temporal == .position(TemporalPosition(time: audiobook.navigator.playbackInfo.time)!))
             #expect(abs(temporal.start - 1.25) < 0.1)
-            #expect(locations.fragments == [temporal.fragment.rawValue])
+            #expect(locations.fragments == [temporal.fragment])
         }
     }
 
@@ -463,7 +463,7 @@ private extension ReadError {
     }
 
     /// Jumps to a locator in the resource at `index` in the reading order.
-    func go(toResourceAt index: Int, fragments: [String], progression: Double? = nil) async {
+    func go(toResourceAt index: Int, fragments: [URLFragment], progression: Double? = nil) async {
         let link = navigator.readingOrder[index]
         let locator = Locator(
             href: link.url(),

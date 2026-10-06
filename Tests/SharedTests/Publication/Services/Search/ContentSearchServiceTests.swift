@@ -104,7 +104,7 @@ enum ContentSearchServiceTests {
 
             #expect(results.count == elementCount)
             #expect(results.allSatisfy { $0.text.highlight == "夜灯" })
-            #expect(results.map(\.locations.fragments) == (0 ..< elementCount).map { ["e\($0)s1"] })
+            #expect(results.map(\.locations.fragments) == (0 ..< elementCount).map { [URLFragment(rawValue: "e\($0)s1")!] })
         }
     }
 }
@@ -121,7 +121,7 @@ private func search(query: String, elements segmentTexts: [[String]]) async thro
             role: .body,
             segments: texts.enumerated().map { segmentIndex, text in
                 TextContentElement.Segment(
-                    locator: locator.copy(locations: { $0.fragments = ["e\(elementIndex)s\(segmentIndex)"] }),
+                    locator: locator.copy(locations: { $0.fragments = [URLFragment(rawValue: "e\(elementIndex)s\(segmentIndex)")!] }),
                     text: text
                 )
             }

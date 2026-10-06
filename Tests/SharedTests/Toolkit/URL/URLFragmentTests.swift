@@ -199,5 +199,54 @@ enum URLFragmentTests {
             #expect(fragment.parameters(named: "track") == ["audio"])
             #expect(fragment.parameters(named: "id") == [])
         }
+
+        @Test("init(parameters:) joins the pairs in order")
+        func initParameters() {
+            let fragment = URLFragment(parameters: [
+                Parameter(name: "t", value: "10,20"),
+                Parameter(name: "track", value: "audio"),
+                Parameter(name: "t", value: "30"),
+            ])
+            #expect(fragment?.rawValue == "t=10,20&track=audio&t=30")
+        }
+
+        @Test("init(parameters:) percent-encodes the names and values", arguments: [
+            (Parameter(name: "track", value: "a&b"), "track=a%26b"),
+            (Parameter(name: "track", value: "a=b"), "track=a%3Db"),
+            (Parameter(name: "a&b=c", value: "1"), "a%26b%3Dc=1"),
+            (Parameter(name: "id", value: "100%"), "id=100%25"),
+            (Parameter(name: "id", value: "%20"), "id=%2520"),
+            (Parameter(name: "id", value: "a#b"), "id=a%23b"),
+            (Parameter(name: "track", value: "café noir"), "track=caf%C3%A9%20noir"),
+            (Parameter(name: "café", value: "1"), "caf%C3%A9=1"),
+            // A plus sign is kept, because it is not read as a space.
+            (Parameter(name: "track", value: "a+b"), "track=a+b"),
+            // An empty name or value is kept.
+            (Parameter(name: "t", value: ""), "t="),
+            (Parameter(name: "", value: "10"), "=10"),
+        ])
+        func initParametersPercentEncodes(parameter: Parameter, expected: String) {
+            #expect(URLFragment(parameters: [parameter])?.rawValue == expected)
+        }
+
+        @Test("init(parameters:) rejects an empty list")
+        func initParametersEmpty() {
+            #expect(URLFragment(parameters: []) == nil)
+        }
+
+        @Test("parameters round-trip", arguments: [
+            [
+                Parameter(name: "id", value: "a&t=5"),
+                Parameter(name: "a=b&c", value: "café ☕️"),
+            ],
+            [
+                Parameter(name: "id", value: "100% #1 [a|b] {c} <d> \"e\" \\ ^ `"),
+                Parameter(name: "%20", value: "%26"),
+                Parameter(name: "track", value: "a+b"),
+            ],
+        ])
+        func roundTrip(parameters: [Parameter]) {
+            #expect(URLFragment(parameters: parameters)?.parameters == parameters)
+        }
     }
 }
