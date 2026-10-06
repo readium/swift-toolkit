@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file. Take a look
     * `start(with:isPlaying:)` is now `async`, and returns when the audio session is ready to play.
     * `end(with:)` takes the `AudioSessionUser` instead of an `AudioSessionToken`, which is removed.
 * `NowPlayingInfo.Media.chapterNumber` moved to `NowPlayingInfo.Playback.chapterNumber`, [see the migration guide](docs/Migration%20Guide.md).
+* `Locator.Locations.fragments` is now an array of `URLFragment`, percent-encoded in memory and in the JSON. Locators serialized by previous versions are still readable, [see the migration guide](docs/Migration%20Guide.md).
 
 #### Navigator
 
