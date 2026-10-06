@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed seeking with the `AudioNavigator`:
     * The target of a seek in progress is reported as the current time, instead of the old position until the seek completes.
     * The playback is reported as `.loading` instead of `.paused` during a seek, when it resumes afterwards.
+* [#632](https://github.com/readium/swift-toolkit/issues/632) Fixed EPUB fixed-layout decorations being drawn on the facing page of a spread.
 
 
 ## [4.0.0-alpha.2] - 2026-09-18

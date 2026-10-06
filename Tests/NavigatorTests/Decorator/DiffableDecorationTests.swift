@@ -87,4 +87,28 @@ struct DiffableDecorationTests {
             Issue.record("Expected add change for decoration 5")
         }
     }
+
+    @Test func javascriptForOneHREFOmitsTheFacingPage() throws {
+        var left = makeDecoration(id: "bookmarkLeft", href: "/left.xhtml", style: .highlight(isActive: false))
+        left.locator.locations.cssSelector = "body"
+        var right = makeDecoration(id: "bookmarkRight", href: "/right.xhtml", style: .highlight(isActive: false))
+        right.locator.locations.cssSelector = "body"
+
+        let styles = HTMLDecorationTemplate.defaultTemplates()
+        let decorations = [left, right]
+
+        let leftChanges = decorations
+            .filter { $0.locator.href.isEquivalentTo(left.locator.href) }
+            .map { DecorationChange.add($0) }
+        let leftScript = try #require(leftChanges.javascript(forGroup: "bookmarks", styles: styles))
+        #expect(leftScript.contains("bookmarkLeft"))
+        #expect(!leftScript.contains("bookmarkRight"))
+
+        let rightChanges = decorations
+            .filter { $0.locator.href.isEquivalentTo(right.locator.href) }
+            .map { DecorationChange.add($0) }
+        let rightScript = try #require(rightChanges.javascript(forGroup: "bookmarks", styles: styles))
+        #expect(rightScript.contains("bookmarkRight"))
+        #expect(!rightScript.contains("bookmarkLeft"))
+    }
 }
