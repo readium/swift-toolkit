@@ -46,10 +46,3 @@ struct LocatorLocationsPDFTests {
         #expect(Locator.Locations(fragments: ["%70age=%35"]).page == 5)
     }
 }
-
-struct URLFragmentPDFTests {
-    @Test("page(_:) creates a page fragment")
-    func page() {
-        #expect(URLFragment.page(42).rawValue == "page=42")
-    }
-}

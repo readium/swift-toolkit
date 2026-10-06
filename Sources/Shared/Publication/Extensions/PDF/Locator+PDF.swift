@@ -21,14 +21,3 @@ public extension Locator.Locations {
             .first
     }
 }
-
-/// PDF extensions for `URLFragment`.
-public extension URLFragment {
-    /// Creates a `page=N` fragment targeting the page with the given 1-based
-    /// `number` in a PDF document.
-    ///
-    /// - https://www.rfc-editor.org/rfc/rfc8118#section-3
-    static func page(_ number: Int) -> URLFragment {
-        URLFragment(rawValue: "page=\(number)")!
-    }
-}
