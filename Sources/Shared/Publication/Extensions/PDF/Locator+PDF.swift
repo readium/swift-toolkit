@@ -16,7 +16,6 @@ public extension Locator.Locations {
     var page: Int? {
         fragments
             .lazy
-            .compactMap { URLFragment(percentDecoded: $0) }
             .flatMap { $0.parameters(named: "page") }
             .compactMap { Int($0) }
             .first

@@ -134,8 +134,12 @@ public struct Locator: Hashable, Sendable, CustomStringConvertible, Loggable, JS
     /// Properties are mutable for convenience when making a copy, but the `locations` property
     /// is immutable in `Locator`, for safety.
     public struct Locations: Hashable, Sendable, Loggable, WarningLogger, JSONValueDecodable, JSONObjectEncodable {
-        /// Contains one or more fragment in the resource referenced by the `Locator`.
-        public var fragments: [String]
+        /// Contains one or more fragment in the resource referenced by the
+        /// `Locator`.
+        ///
+        /// A fragment is percent-encoded and does not include the `#` prefix,
+        /// e.g. `caf%C3%A9` or `t=10&track=a%26b`. See ``URLFragment``.
+        public var fragments: [URLFragment]
         /// Progression in the resource expressed as a percentage (between 0 and 1).
         public var progression: Double?
         /// Progression in the publication expressed as a percentage (between 0 and 1).
@@ -146,7 +150,7 @@ public struct Locator: Hashable, Sendable, CustomStringConvertible, Loggable, JS
         /// Additional locations for extensions.
         public var otherLocations: [String: JSONValue]
 
-        public init(fragments: [String] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: [String: JSONValue] = [:]) {
+        public init(fragments: [URLFragment] = [], progression: Double? = nil, totalProgression: Double? = nil, position: Int? = nil, otherLocations: [String: JSONValue] = [:]) {
             self.fragments = fragments
             self.progression = progression
             self.totalProgression = totalProgression
@@ -162,9 +166,19 @@ public struct Locator: Hashable, Sendable, CustomStringConvertible, Loggable, JS
                 warnings?.log("Invalid Locations object", model: Self.self, source: json)
                 throw JSONError.parsing(Self.self)
             }
-            var fragments: [String] = jsonObject.pop("fragments")?.decode() ?? []
+            var fragmentStrings: [String] = jsonObject.pop("fragments")?.decode() ?? []
             if let fragment = jsonObject.pop("fragment")?.string {
-                fragments.append(fragment)
+                fragmentStrings.append(fragment)
+            }
+            // For backward compatibility, a fragment may start with `#` or
+            // may not be percent-encoded. It is then encoded as a whole.
+            let fragments = fragmentStrings.compactMap { string -> URLFragment? in
+                let string = string.hasPrefix("#") ? String(string.dropFirst()) : string
+                guard let fragment = URLFragment(rawValue: string) ?? URLFragment(percentDecoded: string) else {
+                    warnings?.log("Invalid fragment ignored: \(string)", model: Self.self, source: json, severity: .minor)
+                    return nil
+                }
+                return fragment
             }
             self.init(
                 fragments: fragments,
@@ -181,7 +195,7 @@ public struct Locator: Hashable, Sendable, CustomStringConvertible, Loggable, JS
 
         public var jsonObject: [String: JSONValue] {
             .init([
-                "fragments": fragments.orNullIfEmpty,
+                "fragments": fragments.map(\.rawValue).orNullIfEmpty,
                 "progression": progression,
                 "totalProgression": totalProgression,
                 "position": position,
