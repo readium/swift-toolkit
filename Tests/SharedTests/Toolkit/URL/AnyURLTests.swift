@@ -76,6 +76,7 @@ enum AnyURLTests {
             #expect(try base.resolve(#require(AnyURL(string: "../quz/baz")))?.string == "http://example.com/quz/baz")
             #expect(try base.resolve(#require(AnyURL(string: "/quz/baz")))?.string == "http://example.com/quz/baz")
             #expect(try base.resolve(#require(AnyURL(string: "#fragment")))?.string == "http://example.com/foo/bar#fragment")
+            #expect(try base.resolve(#require(AnyURL(string: "quz?q=a%26b#id=a%26t%3D5&t=10")))?.string == "http://example.com/foo/quz?q=a%26b#id=a%26t%3D5&t=10")
             #expect(try base.resolve(#require(AnyURL(string: "file:///foo/bar")))?.string == "file:///foo/bar")
 
             // With trailing slash

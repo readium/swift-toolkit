@@ -8,14 +8,6 @@ import Foundation
 @testable import ReadiumShared
 import Testing
 
-private func position(_ time: TimeInterval) -> TemporalSelector {
-    .position(TemporalPosition(time: time)!)
-}
-
-private func clip(_ start: TimeInterval, _ end: TimeInterval) -> TemporalSelector {
-    .clip(TemporalClip(start: start, end: end)!)
-}
-
 enum TemporalSelectorTests {
     struct Validity {
         @Test("a position accepts a finite time which is not negative")
@@ -67,83 +59,75 @@ enum TemporalSelectorTests {
 
     struct Start {
         @Test("start is the time of a position")
-        func position() {
-            #expect(ReadiumSharedTests.position(71.5).start == 71.5)
+        func startOfPosition() {
+            #expect(TemporalSelector(position: 71.5).start == 71.5)
         }
 
         @Test("start is the start of a clip")
-        func clip() {
-            #expect(ReadiumSharedTests.clip(10, 20).start == 10)
-        }
-
-        @Test("isAtStart is true only for a position at 0")
-        func isAtStart() {
-            #expect(ReadiumSharedTests.position(0).isAtStart)
-            #expect(!ReadiumSharedTests.position(0.001).isAtStart)
-            #expect(!ReadiumSharedTests.clip(0, 20).isAtStart)
-            #expect(!ReadiumSharedTests.clip(10, 20).isAtStart)
+        func startOfClip() {
+            #expect(TemporalSelector(start: 10, end: 20).start == 10)
         }
     }
 
     struct Parsing {
         @Test("accepted fragments", arguments: [
             // Seconds
-            ("t=0", position(0)),
-            ("t=71", position(71)),
-            ("t=71.5", position(71.5)),
-            ("t=10.0", position(10)),
-            ("t=10.", position(10)),
-            ("t=0.001", position(0.001)),
-            ("t=007", position(7)),
+            ("t=0", TemporalSelector(position: 0)),
+            ("t=71", TemporalSelector(position: 71)),
+            ("t=71.5", TemporalSelector(position: 71.5)),
+            ("t=10.0", TemporalSelector(position: 10)),
+            ("t=10.", TemporalSelector(position: 10)),
+            ("t=0.001", TemporalSelector(position: 0.001)),
+            ("t=007", TemporalSelector(position: 7)),
             // `npt:` prefix
-            ("t=npt:10", position(10)),
-            ("t=npt:10,20", clip(10, 20)),
-            ("t=npt:0:01:30.5", position(90.5)),
-            ("t=npt:,20", clip(0, 20)),
+            ("t=npt:10", TemporalSelector(position: 10)),
+            ("t=npt:10,20", TemporalSelector(start: 10, end: 20)),
+            ("t=npt:0:01:30.5", TemporalSelector(position: 90.5)),
+            ("t=npt:,20", TemporalSelector(start: 0, end: 20)),
             // Clock forms
-            ("t=01:30", position(90)),
-            ("t=01:30.5", position(90.5)),
-            ("t=59:59", position(3599)),
-            ("t=1:30:00", position(5400)),
-            ("t=0:02:00", position(120)),
-            ("t=0:01:30.5", position(90.5)),
-            ("t=100:00:00", position(360_000)),
-            ("t=00:00", position(0)),
-            ("t=00:00:00", position(0)),
-            ("t=01:30.", position(90)),
+            ("t=01:30", TemporalSelector(position: 90)),
+            ("t=01:30.5", TemporalSelector(position: 90.5)),
+            ("t=59:59", TemporalSelector(position: 3599)),
+            ("t=1:30:00", TemporalSelector(position: 5400)),
+            ("t=0:02:00", TemporalSelector(position: 120)),
+            ("t=0:01:30.5", TemporalSelector(position: 90.5)),
+            ("t=100:00:00", TemporalSelector(position: 360_000)),
+            ("t=00:00", TemporalSelector(position: 0)),
+            ("t=00:00:00", TemporalSelector(position: 0)),
+            ("t=01:30.", TemporalSelector(position: 90)),
             // A clock form is the same time as its seconds form.
-            ("t=01:01.029", position(61.029)),
-            ("t=01:01.096", position(61.096)),
-            ("t=1:01:01.154", position(3661.154)),
+            ("t=01:01.029", TemporalSelector(position: 61.029)),
+            ("t=01:01.096", TemporalSelector(position: 61.096)),
+            ("t=1:01:01.154", TemporalSelector(position: 3661.154)),
             // Clips
-            ("t=10,20", clip(10, 20)),
-            ("t=10.0,20.0", clip(10, 20)),
-            ("t=,20", clip(0, 20)),
-            ("t=0,20", clip(0, 20)),
-            ("t=01:00,01:30", clip(60, 90)),
-            ("t=10,0:01:00", clip(10, 60)),
-            ("t=10.,20", clip(10, 20)),
+            ("t=10,20", TemporalSelector(start: 10, end: 20)),
+            ("t=10.0,20.0", TemporalSelector(start: 10, end: 20)),
+            ("t=,20", TemporalSelector(start: 0, end: 20)),
+            ("t=0,20", TemporalSelector(start: 0, end: 20)),
+            ("t=01:00,01:30", TemporalSelector(start: 60, end: 90)),
+            ("t=10,0:01:00", TemporalSelector(start: 10, end: 60)),
+            ("t=10.,20", TemporalSelector(start: 10, end: 20)),
             // Several dimensions
-            ("t=10&track=audio", position(10)),
-            ("track=audio&t=10", position(10)),
-            ("xywh=0,0,10,10&t=10,20&track=audio", clip(10, 20)),
-            ("t=5&t=10", position(10)),
-            ("t=10&t=invalid", position(10)),
-            ("t=10&t=", position(10)),
-            ("t=10&&", position(10)),
+            ("t=10&track=audio", TemporalSelector(position: 10)),
+            ("track=audio&t=10", TemporalSelector(position: 10)),
+            ("xywh=0,0,10,10&t=10,20&track=audio", TemporalSelector(start: 10, end: 20)),
+            ("t=5&t=10", TemporalSelector(position: 10)),
+            ("t=10&t=invalid", TemporalSelector(position: 10)),
+            ("t=10&t=", TemporalSelector(position: 10)),
+            ("t=10&&", TemporalSelector(position: 10)),
             // Names and values are percent-decoded after splitting.
-            ("t=%31%30", position(10)),
-            ("%74=10", position(10)),
-            ("t=10%2C20", clip(10, 20)),
-            ("t=npt%3A01%3A30", position(90)),
-            ("t=10&id=a%26t%3D5", position(10)),
-            ("id=caf%C3%A9&t=10", position(10)),
+            ("t=%31%30", TemporalSelector(position: 10)),
+            ("%74=10", TemporalSelector(position: 10)),
+            ("t=10%2C20", TemporalSelector(start: 10, end: 20)),
+            ("t=npt%3A01%3A30", TemporalSelector(position: 90)),
+            ("t=10&id=a%26t%3D5", TemporalSelector(position: 10)),
+            ("id=caf%C3%A9&t=10", TemporalSelector(position: 10)),
             // A pair which is not valid UTF-8 is skipped.
-            ("id=%FF&t=10", position(10)),
-            ("t=10&t=%FF", position(10)),
+            ("id=%FF&t=10", TemporalSelector(position: 10)),
+            ("t=10&t=%FF", TemporalSelector(position: 10)),
             // A clip which is not valid is skipped like any invalid dimension.
-            ("t=1,2&t=5,3", clip(1, 2)),
-            ("t=10&t=20,10", position(10)),
+            ("t=1,2&t=5,3", TemporalSelector(start: 1, end: 2)),
+            ("t=10&t=20,10", TemporalSelector(position: 10)),
         ] as [(String, TemporalSelector)])
         func accepted(fragment: String, expected: TemporalSelector) throws {
             let fragment = try #require(URLFragment(rawValue: fragment))
@@ -221,73 +205,73 @@ enum TemporalSelectorTests {
 
         @Test("temporalSelector parses the fragment")
         func temporalSelector() {
-            #expect(URLFragment(rawValue: "t=10")?.temporalSelector == position(10))
+            #expect(URLFragment(rawValue: "t=10")?.temporalSelector == TemporalSelector(position: 10))
             #expect(URLFragment(rawValue: "page=2")?.temporalSelector == nil)
         }
     }
 
     struct Writing {
         @Test("written forms", arguments: [
-            (position(0), "t=0"),
-            (position(10), "t=10"),
-            (position(71), "t=71"),
-            (position(71.5), "t=71.5"),
-            (position(0.001), "t=0.001"),
-            (position(0.1 + 0.2), "t=0.30000000000000004"),
-            (position(3600), "t=3600"),
-            (position(123_456_789), "t=123456789"),
+            (TemporalSelector(position: 0), "t=0"),
+            (TemporalSelector(position: 10), "t=10"),
+            (TemporalSelector(position: 71), "t=71"),
+            (TemporalSelector(position: 71.5), "t=71.5"),
+            (TemporalSelector(position: 0.001), "t=0.001"),
+            (TemporalSelector(position: 0.1 + 0.2), "t=0.30000000000000004"),
+            (TemporalSelector(position: 3600), "t=3600"),
+            (TemporalSelector(position: 123_456_789), "t=123456789"),
             // Values for which the description of a `Double` uses an exponent.
-            (position(0.0001), "t=0.0001"),
-            (position(0.00001), "t=0.00001"),
-            (position(0.000012345), "t=0.000012345"),
-            (position(1e15), "t=1000000000000000"),
-            (position(1e16), "t=10000000000000000"),
-            (position(1.5e16), "t=15000000000000000"),
-            (position(1.2345678901234568e17), "t=123456789012345680"),
-            (clip(10, 20), "t=10,20"),
-            (clip(0, 20), "t=0,20"),
-            (clip(0, 5.123), "t=0,5.123"),
-            (clip(1.5, 1e16), "t=1.5,10000000000000000"),
+            (TemporalSelector(position: 0.0001), "t=0.0001"),
+            (TemporalSelector(position: 0.00001), "t=0.00001"),
+            (TemporalSelector(position: 0.000012345), "t=0.000012345"),
+            (TemporalSelector(position: 1e15), "t=1000000000000000"),
+            (TemporalSelector(position: 1e16), "t=10000000000000000"),
+            (TemporalSelector(position: 1.5e16), "t=15000000000000000"),
+            (TemporalSelector(position: 1.2345678901234568e17), "t=123456789012345680"),
+            (TemporalSelector(start: 10, end: 20), "t=10,20"),
+            (TemporalSelector(start: 0, end: 20), "t=0,20"),
+            (TemporalSelector(start: 0, end: 5.123), "t=0,5.123"),
+            (TemporalSelector(start: 1.5, end: 1e16), "t=1.5,10000000000000000"),
         ] as [(TemporalSelector, String)])
         func written(selector: TemporalSelector, expected: String) {
             #expect(selector.fragment.rawValue == expected)
         }
 
         @Test("a written fragment parses back to the same selector", arguments: [
-            position(0),
-            position(10),
-            position(71.5),
-            position(0.1 + 0.2),
-            position(1.0 / 3.0),
-            position(98.76543210987654),
-            position(4321.000000001),
-            position(0.00001),
-            position(1e-9),
-            position(9.999e-5),
-            position(1e-4),
-            position(9_007_199_254_740_992),
-            position(1e22),
-            position(1e23),
-            position(.leastNonzeroMagnitude),
-            position(.leastNormalMagnitude),
-            position(1e16),
-            position(1.2345678901234568e17),
-            position(.greatestFiniteMagnitude),
-            clip(10, 20),
-            clip(0, 20),
-            clip(1.0 / 3.0, 2.0 / 3.0),
-            clip(0.00001, 1e16),
-            clip(0.1, 0.1.nextUp),
+            TemporalSelector(position: 0),
+            TemporalSelector(position: 10),
+            TemporalSelector(position: 71.5),
+            TemporalSelector(position: 0.1 + 0.2),
+            TemporalSelector(position: 1.0 / 3.0),
+            TemporalSelector(position: 98.76543210987654),
+            TemporalSelector(position: 4321.000000001),
+            TemporalSelector(position: 0.00001),
+            TemporalSelector(position: 1e-9),
+            TemporalSelector(position: 9.999e-5),
+            TemporalSelector(position: 1e-4),
+            TemporalSelector(position: 9_007_199_254_740_992),
+            TemporalSelector(position: 1e22),
+            TemporalSelector(position: 1e23),
+            TemporalSelector(position: .leastNonzeroMagnitude),
+            TemporalSelector(position: .leastNormalMagnitude),
+            TemporalSelector(position: 1e16),
+            TemporalSelector(position: 1.2345678901234568e17),
+            TemporalSelector(position: .greatestFiniteMagnitude),
+            TemporalSelector(start: 10, end: 20),
+            TemporalSelector(start: 0, end: 20),
+            TemporalSelector(start: 1.0 / 3.0, end: 2.0 / 3.0),
+            TemporalSelector(start: 0.00001, end: 1e16),
+            TemporalSelector(start: 0.1, end: 0.1.nextUp),
         ])
         func roundTrip(selector: TemporalSelector) {
             #expect(TemporalSelector(fragment: selector.fragment) == selector)
         }
 
         @Test("a written fragment only contains plain decimal numbers", arguments: [
-            position(.leastNonzeroMagnitude),
-            position(.greatestFiniteMagnitude),
-            position(1.0 / 3.0),
-            clip(1e-9, 1e21),
+            TemporalSelector(position: .leastNonzeroMagnitude),
+            TemporalSelector(position: .greatestFiniteMagnitude),
+            TemporalSelector(position: 1.0 / 3.0),
+            TemporalSelector(start: 1e-9, end: 1e21),
         ])
         func plainDigits(selector: TemporalSelector) {
             #expect(selector.fragment.rawValue.hasPrefix("t="))

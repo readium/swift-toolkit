@@ -24,17 +24,8 @@ public enum TemporalSelector: Hashable, Sendable {
     /// Time to seek to, in seconds: the position's time, or the clip's start.
     public var start: TimeInterval {
         switch self {
-        case let .position(p): return p.time
-        case let .clip(c): return c.start
-        }
-    }
-
-    /// Returns `true` when this selector is a position at the beginning of the
-    /// media.
-    public var isAtStart: Bool {
-        switch self {
-        case let .position(p): return p.time == 0
-        case .clip: return false
+        case let .position(position): return position.time
+        case let .clip(clip): return clip.start
         }
     }
 }
@@ -155,18 +146,18 @@ public extension TemporalSelector {
     /// - https://www.w3.org/TR/media-frags/#naming-time
     var fragment: URLFragment {
         switch self {
-        case let .position(p):
-            return URLFragment(rawValue: "t=\(formatNPTSeconds(p.time))")!
-        case let .clip(c):
-            return URLFragment(rawValue: "t=\(formatNPTSeconds(c.start)),\(formatNPTSeconds(c.end))")!
+        case let .position(position):
+            return URLFragment(rawValue: "t=\(formatNPTSeconds(position.time))")!
+        case let .clip(clip):
+            return URLFragment(rawValue: "t=\(formatNPTSeconds(clip.start)),\(formatNPTSeconds(clip.end))")!
         }
     }
 }
 
 /// Parses a Normal Play Time, in one of the forms `ss[.fraction]`,
 /// `mm:ss[.fraction]` or `hh:mm:ss[.fraction]`.
-private func parseNPTTime(_ s: Substring) -> TimeInterval? {
-    let components = s.split(separator: ":", omittingEmptySubsequences: false)
+private func parseNPTTime(_ time: Substring) -> TimeInterval? {
+    let components = time.split(separator: ":", omittingEmptySubsequences: false)
     guard
         let last = components.last,
         let (integer, fraction) = splitNPTSeconds(last)
@@ -214,8 +205,8 @@ private func parseNPTTime(_ s: Substring) -> TimeInterval? {
 /// Splits seconds into their integer and fraction digits: `71`, `71.5`.
 ///
 /// The fraction is empty when there is none.
-private func splitNPTSeconds(_ s: Substring) -> (integer: Substring, fraction: Substring)? {
-    let parts = s.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
+private func splitNPTSeconds(_ seconds: Substring) -> (integer: Substring, fraction: Substring)? {
+    let parts = seconds.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
     let fraction = parts.count == 2 ? parts[1] : ""
     guard parts[0].isASCIIDigits, fraction.isEmpty || fraction.isASCIIDigits else {
         return nil
@@ -224,19 +215,19 @@ private func splitNPTSeconds(_ s: Substring) -> (integer: Substring, fraction: S
 }
 
 /// Parses two digits below 60.
-private func parseNPTSexagesimal(_ s: Substring) -> TimeInterval? {
-    guard s.count == 2, let value = parseNPTDigits(s), value < 60 else {
+private func parseNPTSexagesimal(_ digits: Substring) -> TimeInterval? {
+    guard digits.count == 2, let value = parseNPTDigits(digits), value < 60 else {
         return nil
     }
     return value
 }
 
 /// Parses one or more digits.
-private func parseNPTDigits(_ s: Substring) -> TimeInterval? {
-    guard s.isASCIIDigits else {
+private func parseNPTDigits(_ digits: Substring) -> TimeInterval? {
+    guard digits.isASCIIDigits else {
         return nil
     }
-    return TimeInterval(s)
+    return TimeInterval(digits)
 }
 
 /// Writes seconds with plain digits and a dot, without a sign or an exponent.

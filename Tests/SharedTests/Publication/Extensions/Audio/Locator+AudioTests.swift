@@ -8,61 +8,45 @@
 import Testing
 
 struct LocatorLocationsAudioTests {
-    private func position(_ time: Double) -> TemporalSelector {
-        .position(TemporalPosition(time: time)!)
+    @Test("temporal is nil without a valid temporal fragment", arguments: [
+        [],
+        [""],
+        // Unrelated fragments
+        ["page=5"],
+        ["section", "start=10"],
+        // Malformed fragments
+        ["t=one"],
+        ["t="],
+        ["t"],
+        ["t=10,"],
+    ] as [[String]])
+    func temporalIsNil(fragments: [String]) {
+        #expect(Locator.Locations(fragments: fragments).temporal == nil)
     }
 
-    private func clip(_ start: Double, _ end: Double) -> TemporalSelector {
-        .clip(TemporalClip(start: start, end: end)!)
-    }
-
-    @Test func temporalIsNilWhenNoFragments() {
-        #expect(Locator.Locations().temporal == nil)
-    }
-
-    @Test func temporalIsNilForUnrelatedFragment() {
-        #expect(Locator.Locations(fragments: ["page=5"]).temporal == nil)
-        #expect(Locator.Locations(fragments: ["section", "start=10"]).temporal == nil)
-    }
-
-    @Test func temporalIsNilForMalformedFragment() {
-        #expect(Locator.Locations(fragments: ["t=one"]).temporal == nil)
-        #expect(Locator.Locations(fragments: ["t="]).temporal == nil)
-        #expect(Locator.Locations(fragments: ["t"]).temporal == nil)
-        #expect(Locator.Locations(fragments: ["t=10,"]).temporal == nil)
-        #expect(Locator.Locations(fragments: [""]).temporal == nil)
-    }
-
-    @Test func temporalIsParsedFromPosition() {
-        #expect(Locator.Locations(fragments: ["t=0"]).temporal == position(0))
-        #expect(Locator.Locations(fragments: ["t=71.5"]).temporal == position(71.5))
-        #expect(Locator.Locations(fragments: ["t=npt:0:02:00"]).temporal == position(120))
-    }
-
-    @Test func temporalIsParsedFromClip() {
-        #expect(Locator.Locations(fragments: ["t=10,20"]).temporal == clip(10, 20))
-        #expect(Locator.Locations(fragments: ["t=,20"]).temporal == clip(0, 20))
-        #expect(Locator.Locations(fragments: ["t=1.1,1.5"]).temporal == clip(1.1, 1.5))
-    }
-
-    @Test func temporalIsParsedFromCompoundFragment() {
-        #expect(Locator.Locations(fragments: ["t=10&track=audio"]).temporal == position(10))
-        #expect(Locator.Locations(fragments: ["track=audio&t=10,20"]).temporal == clip(10, 20))
-    }
-
-    @Test func temporalIsParsedFromFragmentWithCharactersToEncode() {
-        #expect(Locator.Locations(fragments: ["track=café noir&t=10"]).temporal == position(10))
-        #expect(Locator.Locations(fragments: ["id=100%&t=10"]).temporal == position(10))
-    }
-
-    @Test func temporalIgnoresOtherFragments() {
-        let locations = Locator.Locations(fragments: ["page=3", "t=10", "section"])
-        #expect(locations.temporal == position(10))
-    }
-
-    @Test func temporalReturnsLastValidWhenMultipleFragments() {
-        #expect(Locator.Locations(fragments: ["t=5", "t=10"]).temporal == position(10))
-        #expect(Locator.Locations(fragments: ["t=5", "t=10", "t=one"]).temporal == position(10))
-        #expect(Locator.Locations(fragments: ["t=5&t=7", "page=2"]).temporal == position(7))
+    @Test("temporal is parsed from the fragments", arguments: [
+        // Position
+        (["t=0"], TemporalSelector(position: 0)),
+        (["t=71.5"], TemporalSelector(position: 71.5)),
+        (["t=npt:0:02:00"], TemporalSelector(position: 120)),
+        // Clip
+        (["t=10,20"], TemporalSelector(start: 10, end: 20)),
+        (["t=,20"], TemporalSelector(start: 0, end: 20)),
+        (["t=1.1,1.5"], TemporalSelector(start: 1.1, end: 1.5)),
+        // Compound fragment
+        (["t=10&track=audio"], TemporalSelector(position: 10)),
+        (["track=audio&t=10,20"], TemporalSelector(start: 10, end: 20)),
+        // Fragment with characters to percent-encode
+        (["track=café noir&t=10"], TemporalSelector(position: 10)),
+        (["id=100%&t=10"], TemporalSelector(position: 10)),
+        // Other fragments are ignored
+        (["page=3", "t=10", "section"], TemporalSelector(position: 10)),
+        // The last valid temporal fragment wins
+        (["t=5", "t=10"], TemporalSelector(position: 10)),
+        (["t=5", "t=10", "t=one"], TemporalSelector(position: 10)),
+        (["t=5&t=7", "page=2"], TemporalSelector(position: 7)),
+    ] as [([String], TemporalSelector)])
+    func temporal(fragments: [String], expected: TemporalSelector) {
+        #expect(Locator.Locations(fragments: fragments).temporal == expected)
     }
 }

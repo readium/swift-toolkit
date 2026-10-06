@@ -216,6 +216,10 @@ enum RelativeURLTests {
             #expect(try base.resolve(#require(RelativeURL(string: "/quz/baz"))) == RelativeURL(string: "/quz/baz"))
             #expect(try base.resolve(#require(RelativeURL(string: "#fragment"))) == RelativeURL(string: "foo/bar#fragment"))
 
+            // The query and fragment are kept percent-encoded.
+            #expect(try base.resolve(#require(RelativeURL(string: "quz?q=a%26b#id=a%26t%3D5&t=10")))?.string == "foo/quz?q=a%26b#id=a%26t%3D5&t=10")
+            #expect(try base.resolve(#require(RelativeURL(string: "#quz%20baz")))?.string == "foo/bar#quz%20baz")
+
             // With trailing slash
             base = try #require(RelativeURL(string: "foo/bar/"))
             #expect(try base.resolve(#require(RelativeURL(string: "quz/baz"))) == RelativeURL(string: "foo/bar/quz/baz"))

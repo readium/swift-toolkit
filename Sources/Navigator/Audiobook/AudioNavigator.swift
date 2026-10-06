@@ -855,7 +855,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             mediaType: link.mediaType ?? MediaType("audio/*")!,
             title: link.title,
             locations: Locator.Locations(
-                fragments: fragment.map { [$0] } ?? [],
+                fragments: Array(ofNotNil: fragment),
                 progression: progression,
                 totalProgression: totalProgression
             )

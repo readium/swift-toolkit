@@ -199,13 +199,9 @@ private struct SMILGuidedNavigationDocumentParsing {
     /// Parses a clip time rounded to the millisecond, ignoring a time which
     /// is negative or not a number.
     private func clipTime(_ value: String?) -> TimeInterval? {
-        guard
-            let time = value.flatMap({ SMILParser.parseClockValue($0) }),
-            time.isFinite, time >= 0
-        else {
-            return nil
-        }
-        return time.roundedToMilliseconds
+        value
+            .flatMap { SMILParser.parseClockValue($0) }
+            .flatMap { TemporalPosition(time: $0)?.time.roundedToMilliseconds }
     }
 
     /// Returns the selector for the given clip times: a clip when there is an
