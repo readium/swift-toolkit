@@ -838,7 +838,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         let link = readingOrder[resourceIndex]
 
         let fragment = TemporalPosition(time: time)
-            .flatMap { TemporalSelector.position($0).fragment.percentDecoded }
+            .map { TemporalSelector.position($0).fragment }
 
         var progression: Double?
         if let duration = resourceDuration, duration > 0 {

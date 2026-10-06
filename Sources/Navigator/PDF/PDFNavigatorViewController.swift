@@ -516,7 +516,7 @@ open class PDFNavigatorViewController:
             href: href,
             mediaType: readingOrderLink.mediaType ?? .pdf,
             locations: .init(
-                fragments: ["page=\(pageNumber)"]
+                fragments: [.page(pageNumber)]
             )
         )
     }

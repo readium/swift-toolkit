@@ -70,7 +70,7 @@ final class LCPDFPositionsService: PositionsService, Loggable, Sendable {
                 href: link.url(),
                 mediaType: link.mediaType ?? .pdf,
                 locations: .init(
-                    fragments: ["page=\(position)"],
+                    fragments: [.page(position)],
                     progression: progression,
                     totalProgression: totalProgression,
                     position: startPosition + position

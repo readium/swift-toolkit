@@ -74,7 +74,7 @@ final class AudioLocatorService: LocatorService {
 
         let positionInResource = positionInPublication - resourcePosition
         let fragment = TemporalPosition(time: positionInResource.roundedToMilliseconds)
-            .flatMap { TemporalSelector.position($0).fragment.percentDecoded }
+            .map { TemporalSelector.position($0).fragment }
 
         return Locator(
             href: link.url(),
