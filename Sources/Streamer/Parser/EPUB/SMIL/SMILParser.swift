@@ -180,45 +180,39 @@ private struct SMILGuidedNavigationDocumentParsing {
         )
     }
 
-    /// Builds a media URL with optional W3C Media Fragment times.
+    /// Builds a media URL with an optional W3C Media Fragment for the clip
+    /// times, rounded to the millisecond.
     ///
-    /// Format: `media.mp4#t=begin,end`
+    /// Format: `media.mp4#t=begin,end`, or `media.mp4#t=begin` without a
+    /// valid end.
     private func clipURL(src: String, clipBegin: String?, clipEnd: String?) -> AnyURL? {
         guard let base = resolveURL(src) else {
             return nil
         }
 
-        let begin = clipBegin.flatMap { SMILParser.parseClockValue($0) }
-        let end = clipEnd.flatMap { SMILParser.parseClockValue($0) }
-
-        guard begin != nil || end != nil else {
+        guard let selector = clipSelector(begin: clipTime(clipBegin), end: clipTime(clipEnd)) else {
             return base
         }
-
-        let beginStr = begin.map { formatSeconds($0) } ?? ""
-        let endStr = end.map { formatSeconds($0) } ?? ""
-
-        // Append a media fragment to the URL.
-        guard var components = URLComponents(url: base.url, resolvingAgainstBaseURL: false) else {
-            return base
-        }
-        components.fragment = "t=\(beginStr),\(endStr)"
-        return components.url.flatMap { AnyURL(url: $0) }
+        return base.replacingFragment(selector.fragment)
     }
 
-    /// Formats a seconds value, stripping the `.0` suffix for integers.
-    private func formatSeconds(_ seconds: TimeInterval) -> String {
-        if seconds == floor(seconds) {
-            return String(Int(seconds))
+    /// Parses a clip time rounded to the millisecond, ignoring a time which
+    /// is negative or not a number.
+    private func clipTime(_ value: String?) -> TimeInterval? {
+        value
+            .flatMap { SMILParser.parseClockValue($0) }
+            .flatMap { TemporalPosition(time: $0)?.time.roundedToMilliseconds }
+    }
+
+    /// Returns the selector for the given clip times: a clip when there is an
+    /// end after the beginning, otherwise a position at the beginning.
+    private func clipSelector(begin: TimeInterval?, end: TimeInterval?) -> TemporalSelector? {
+        if let end, let clip = TemporalClip(start: begin ?? 0, end: end) {
+            return .clip(clip)
         }
-        var result = String(format: "%.3f", seconds)
-        while result.last == "0" {
-            result.removeLast()
-        }
-        if result.last == "." {
-            result.removeLast()
-        }
-        return result
+        return begin
+            .flatMap { TemporalPosition(time: $0) }
+            .map { .position($0) }
     }
 
     /// Maps an `epub:type` attribute (space-separated tokens) to roles.

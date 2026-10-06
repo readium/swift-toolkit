@@ -1226,7 +1226,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
             guard
                 let url = AnyURL(string: href),
-                let id = url.fragment
+                let id = url.fragment?.percentDecoded
             else {
                 log(.warning, "Could not find hash in link \(href)")
                 return nil

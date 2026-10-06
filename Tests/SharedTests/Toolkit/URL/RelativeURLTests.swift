@@ -166,10 +166,14 @@ enum RelativeURLTests {
             #expect(RelativeURL(string: "foo/bar?param=quz%20baz")?.removingQuery() == RelativeURL(string: "foo/bar"))
         }
 
-        @Test("fragment is percent-decoded")
+        @Test("fragment is kept percent-encoded")
         func fragment() {
             #expect(RelativeURL(string: "foo/bar")?.fragment == nil)
-            #expect(RelativeURL(string: "foo/bar#quz%20baz")?.fragment == "quz baz")
+            #expect(RelativeURL(string: "foo/bar#")?.fragment == nil)
+            #expect(RelativeURL(string: "foo/bar#quz%20baz")?.fragment == URLFragment(rawValue: "quz%20baz"))
+            #expect(RelativeURL(string: "foo/bar#quz%20baz")?.fragment?.percentDecoded == "quz baz")
+            // An encoded delimiter is not mistaken for a delimiter.
+            #expect(RelativeURL(string: "foo/bar#id=a%26t%3D5&t=10")?.fragment?.rawValue == "id=a%26t%3D5&t=10")
         }
 
         @Test("removingFragment removes the fragment component")
@@ -186,8 +190,12 @@ enum RelativeURLTests {
             #expect(RelativeURL(string: "foo/bar#old")?.replacingFragment("new").string == "foo/bar#new")
             // Removing via nil matches removingFragment().
             #expect(RelativeURL(string: "foo/bar#quz%20baz")?.replacingFragment(nil) == RelativeURL(string: "foo/bar"))
-            // Fragment is percent-encoded.
-            #expect(RelativeURL(string: "foo/bar")?.replacingFragment("quz baz").string == "foo/bar#quz%20baz")
+            // Fragment is written percent-encoded, as is.
+            #expect(RelativeURL(string: "foo/bar")?.replacingFragment("quz%20baz").string == "foo/bar#quz%20baz")
+            #expect(RelativeURL(string: "foo/bar")?.replacingFragment("id=a%26b&t=10").string == "foo/bar#id=a%26b&t=10")
+            #expect(RelativeURL(string: "foo/bar")?.replacingFragment(URLFragment(percentDecoded: "quz baz")).string == "foo/bar#quz%20baz")
+            // The fragment round-trips.
+            #expect(RelativeURL(string: "foo/bar")?.replacingFragment("id=a%26b&t=10").fragment == "id=a%26b&t=10")
         }
     }
 
@@ -207,6 +215,10 @@ enum RelativeURLTests {
             #expect(try base.resolve(#require(RelativeURL(string: "../quz/baz"))) == RelativeURL(string: "quz/baz"))
             #expect(try base.resolve(#require(RelativeURL(string: "/quz/baz"))) == RelativeURL(string: "/quz/baz"))
             #expect(try base.resolve(#require(RelativeURL(string: "#fragment"))) == RelativeURL(string: "foo/bar#fragment"))
+
+            // The query and fragment are kept percent-encoded.
+            #expect(try base.resolve(#require(RelativeURL(string: "quz?q=a%26b#id=a%26t%3D5&t=10")))?.string == "foo/quz?q=a%26b#id=a%26t%3D5&t=10")
+            #expect(try base.resolve(#require(RelativeURL(string: "#quz%20baz")))?.string == "foo/bar#quz%20baz")
 
             // With trailing slash
             base = try #require(RelativeURL(string: "foo/bar/"))
