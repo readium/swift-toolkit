@@ -321,7 +321,14 @@ export function rangeFromLocator(locator) {
       }
 
       if (!element && locations.fragments) {
-        for (const htmlId of locations.fragments) {
+        for (const fragment of locations.fragments) {
+          // The fragments of a Locator are percent-encoded.
+          let htmlId;
+          try {
+            htmlId = decodeURIComponent(fragment);
+          } catch (e) {
+            continue;
+          }
           element = document.getElementById(htmlId);
           if (element) {
             break;

@@ -539,7 +539,7 @@ open class PDFNavigatorViewController:
             return nil
         }
 
-        let href = locator.href.replacingFragment(locator.locations.fragments.first.flatMap(URLFragment.init(percentDecoded:)))
+        let href = locator.href.replacingFragment(locator.locations.fragments.first)
         return Link(href: href.string, mediaType: locator.mediaType)
     }
 
