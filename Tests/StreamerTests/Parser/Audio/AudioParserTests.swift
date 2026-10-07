@@ -6,17 +6,17 @@
 
 import ReadiumShared
 @testable import ReadiumStreamer
-import XCTest
+import Testing
 
-class AudioParserTests: XCTestCase {
+struct AudioParserTests {
     let fixtures = Fixtures()
 
-    var parser: AudioParser!
+    let parser: AudioParser
 
-    var zabAsset: Asset!
-    var mp3Asset: Asset!
+    let zabAsset: Asset
+    let mp3Asset: Asset
 
-    override func setUp() async throws {
+    init() async throws {
         parser = AudioParser(assetRetriever: AssetRetriever(httpClient: DefaultHTTPClient()))
 
         zabAsset = try await .container(ZIPArchiveOpener().open(
@@ -30,56 +30,53 @@ class AudioParserTests: XCTestCase {
         ))
     }
 
-    func testRefusesNonAudioBased() async throws {
+    @Test func refusesNonAudioBased() async throws {
         let asset: Asset = try await .container(ZIPArchiveOpener().open(
             resource: FileResource(file: fixtures.url(for: "futuristic_tales.cbz")),
             format: Format(specifications: .zip, .informalComic, mediaType: .cbz, fileExtension: "cbz")
         ).get())
 
-        do {
-            _ = try await parser.parse(asset: asset, warnings: nil).get()
-        } catch PublicationParseError.formatNotSupported {
+        let result = await parser.parse(asset: asset, warnings: nil)
+
+        guard case .failure(.formatNotSupported) = result else {
+            Issue.record("Expected a formatNotSupported error, got \(result)")
             return
-        } catch {}
-
-        XCTFail("Expected an error")
+        }
     }
 
-    func testAcceptsZAB() async throws {
-        let result = try await parser.parse(asset: zabAsset, warnings: nil).get()
-        XCTAssertNotNil(result)
+    @Test func acceptsZAB() async throws {
+        _ = try await parser.parse(asset: zabAsset, warnings: nil).get()
     }
 
-    func testAcceptsMP3() async throws {
-        let result = try await parser.parse(asset: mp3Asset, warnings: nil).get()
-        XCTAssertNotNil(result)
+    @Test func acceptsMP3() async throws {
+        _ = try await parser.parse(asset: mp3Asset, warnings: nil).get()
     }
 
-    func testConformsToAudiobook() async throws {
+    @Test func conformsToAudiobook() async throws {
         let publication = try await parser.parse(asset: zabAsset, warnings: nil).get().build()
-        XCTAssertEqual(publication.metadata.conformsTo, [.audiobook])
+        #expect(publication.metadata.conformsTo == [.audiobook])
     }
 
     /// The reading order is sorted alphabetically, ignores Thumbs.db, hidden files and non-audio
     /// files.
-    func testReadingOrderIsSortedAlphabetically() async throws {
+    @Test func readingOrderIsSortedAlphabetically() async throws {
         let publication = try await parser.parse(asset: zabAsset, warnings: nil).get().build()
 
-        XCTAssertEqual(publication.readingOrder.map(\.href), [
+        #expect(publication.readingOrder.map(\.href) == [
             "Test%20Audiobook/gtr-jazz.mp3",
             "Test%20Audiobook/Latin.mp3",
             "Test%20Audiobook/vln-lin-cs.mp3",
         ])
     }
 
-    func testHasNoCover() async throws {
+    @Test func hasNoCover() async throws {
         let publication = try await parser.parse(asset: zabAsset, warnings: nil).get().build()
-        XCTAssertNil(publication.linkWithRel(.cover))
+        #expect(publication.linkWithRel(.cover) == nil)
     }
 
-    func testHasNoPositions() async throws {
+    @Test func hasNoPositions() async throws {
         let publication = try await parser.parse(asset: zabAsset, warnings: nil).get().build()
         let result = try await publication.positions().get()
-        XCTAssertEqual(result.count, 0)
+        #expect(result.count == 0)
     }
 }
