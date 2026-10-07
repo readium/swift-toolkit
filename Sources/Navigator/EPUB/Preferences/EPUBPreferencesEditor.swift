@@ -293,7 +293,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         rangePreference(
             preference: \.lineHeight,
             effectiveValue: { $0.settings.lineHeight },
-            defaultEffectiveValue: defaults.lineHeight ?? 1.2,
+            defaultEffectiveValue: defaults.lineHeight ?? 1.5,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
                     && $0.preferences.lineHeight != nil

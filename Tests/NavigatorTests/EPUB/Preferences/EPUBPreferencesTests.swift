@@ -211,6 +211,44 @@ enum EPUBPreferencesTests {
         }
     }
 
+    @Suite("lineHeight") struct LineHeight {
+        @Test("the setting is nil when unset, to observe the publisher styles")
+        func settingIsNilWhenUnset() {
+            #expect(settings().lineHeight == nil)
+        }
+
+        @Test("the editor uses the Readium CSS base line height when unset")
+        @MainActor func editorDefaultEffectiveValue() {
+            let editor = makeEditor()
+            #expect(editor.lineHeight.value == nil)
+            #expect(editor.lineHeight.effectiveValue == 1.5)
+            #expect(!editor.lineHeight.isEffective)
+        }
+
+        @Test("the editor increments from the Readium CSS base line height when unset")
+        @MainActor func editorIncrementsFromDefault() {
+            let editor = makeEditor()
+            editor.lineHeight.increment()
+            #expect(editor.preferences.lineHeight == 1.6)
+            #expect(editor.lineHeight.effectiveValue == 1.6)
+            #expect(editor.lineHeight.isEffective)
+        }
+
+        @Test("the editor decrements from the Readium CSS base line height when unset")
+        @MainActor func editorDecrementsFromDefault() {
+            let editor = makeEditor()
+            editor.lineHeight.decrement()
+            #expect(editor.preferences.lineHeight == 1.4)
+        }
+
+        @Test("the editor uses the defaults as effective value")
+        @MainActor func editorEffectiveValueFromDefaults() {
+            let editor = makeEditor(defaults: EPUBDefaults(lineHeight: 1.8))
+            #expect(editor.preferences.lineHeight == nil)
+            #expect(editor.lineHeight.effectiveValue == 1.8)
+        }
+    }
+
     @Suite("Codable") struct Coding {
         /// Every preference set to a non-default value.
         private let allPreferences = EPUBPreferences(
