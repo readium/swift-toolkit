@@ -42,7 +42,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed seeking with the `AudioNavigator`:
     * The target of a seek in progress is reported as the current time, instead of the old position until the seek completes.
     * The playback is reported as `.loading` instead of `.paused` during a seek, when it resumes afterwards.
-* Fixed a memory leak and stalled preloading in fixed-layout EPUBs (including CBZ/Divina) when a preloaded spread is evicted before it finished loading. The evicted spread and its web view are now released, and the next pages are preloaded.
+* Fixed a memory leak in `EPUBNavigatorViewController` when quickly turning the pages of a fixed-layout publication (contributed by [@deltakosh](https://github.com/readium/swift-toolkit/pull/917)).
 
 
 ## [4.0.0-alpha.2] - 2026-09-18
