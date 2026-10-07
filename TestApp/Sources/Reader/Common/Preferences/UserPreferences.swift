@@ -328,7 +328,7 @@ struct UserPreferences<
         fontSize: AnyRangePreference<Double>? = nil,
         fontWeight: AnyRangePreference<Double>? = nil,
         hyphens: AnyPreference<Bool>? = nil,
-        blendImages: AnyPreference<Bool?>? = nil,
+        blendImages: AnyPreference<Bool>? = nil,
         darkenImages: AnyRangePreference<Double>? = nil,
         invertImages: AnyPreference<Bool>? = nil,
         invertGaiji: AnyPreference<Bool>? = nil,
@@ -464,7 +464,7 @@ struct UserPreferences<
             if let blendImages = blendImages {
                 toggleRow(
                     title: "Blend Images",
-                    preference: blendImages.map(from: { $0 ?? false }, to: { $0 }).eraseToAnyPreference(),
+                    preference: blendImages,
                     commit: commit
                 )
             }

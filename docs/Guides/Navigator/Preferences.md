@@ -507,6 +507,8 @@ The `darkenImages`, `invertImages` and `invertGaiji` preferences are applied wit
 * `invertImages` inverts the colors of the images by the given percentage, from `0.0` to `1.0`.
 * `invertGaiji` inverts by the given percentage, from `0.0` to `1.0`, only the gaiji, which are the images used in Japanese publications for the characters missing from the fonts (`<img class="gaiji">`). They are usually black glyphs displayed among the text, which are hard to read on a dark background unless inverted. When `invertGaiji` is set, the gaiji ignore `darkenImages` and `invertImages`.
 
+`blendImages` is a toggle, off by default, which blends the images (`<img>` and `<svg>`) with the background color using `mix-blend-mode: multiply`. The white areas of the images take the color of the page, for example with a sepia theme. Like the other filters, it is applied with any theme, but it is meant for light backgrounds: multiplied with a dark background, the images become very dark.
+
 #### Language specific preferences
 
 Some preferences are not available for all languages and layout.

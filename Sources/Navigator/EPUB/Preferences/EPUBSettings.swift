@@ -18,7 +18,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var fontSize: Double
     public var fontWeight: Double?
     public var hyphens: Bool?
-    public var blendImages: Bool?
+    public var blendImages: Bool
     public var darkenImages: Double?
     public var invertImages: Double?
     public var invertGaiji: Double?
@@ -73,7 +73,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         fontSize: Double,
         fontWeight: Double?,
         hyphens: Bool?,
-        blendImages: Bool?,
+        blendImages: Bool,
         darkenImages: Double?,
         invertImages: Double?,
         invertGaiji: Double?,
@@ -175,7 +175,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let fontSize = preferences.fontSize ?? defaults.fontSize ?? 1.0
         let fontWeight = preferences.fontWeight ?? defaults.fontWeight
         let hyphens = preferences.hyphens ?? defaults.hyphens
-        let blendImages = preferences.blendImages ?? defaults.blendImages
+        let blendImages = preferences.blendImages ?? defaults.blendImages ?? false
         let darkenImages = preferences.darkenImages ?? defaults.darkenImages
         let invertImages = preferences.invertImages ?? defaults.invertImages
         let invertGaiji = preferences.invertGaiji ?? defaults.invertGaiji

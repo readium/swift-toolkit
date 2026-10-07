@@ -303,6 +303,78 @@ enum EPUBPreferencesTests {
         }
     }
 
+    @Suite("blendImages") struct BlendImages {
+        @Test("the setting is off when unset")
+        func settingIsOffWhenUnset() {
+            #expect(settings().blendImages == false)
+        }
+
+        @Test("the setting falls back on the defaults")
+        func settingFallsBackOnDefaults() {
+            #expect(settings(defaults: EPUBDefaults(blendImages: true)).blendImages == true)
+        }
+
+        @Test("the preference takes precedence over the defaults")
+        func preferenceTakesPrecedence() {
+            #expect(
+                settings(
+                    preferences: EPUBPreferences(blendImages: false),
+                    defaults: EPUBDefaults(blendImages: true)
+                ).blendImages == false
+            )
+        }
+
+        @Test("ReadiumCSS blends the images with any theme", arguments: [Theme.light, .dark, .sepia])
+        @MainActor func cssBlendImages(theme: Theme) throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings(preferences: EPUBPreferences(blendImages: true, theme: theme)))
+            #expect(css.userProperties.cssProperties()["--USER__blendImages"] == "readium-blend-on")
+        }
+
+        @Test("ReadiumCSS doesn't blend the images when off or unset", arguments: [false, nil])
+        @MainActor func cssBlendImagesOff(blendImages: Bool?) throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings(preferences: EPUBPreferences(blendImages: blendImages)))
+            #expect(css.userProperties.cssProperties()["--USER__blendImages"] == .some(nil))
+        }
+
+        @Test("the editor preference is off when unset")
+        @MainActor func editorDefaultEffectiveValue() {
+            let editor = makeEditor()
+            #expect(editor.blendImages.value == nil)
+            #expect(editor.blendImages.effectiveValue == false)
+            #expect(editor.blendImages.isEffective)
+        }
+
+        @Test("the editor sets and clears the preference")
+        @MainActor func editorSetAndClear() {
+            let editor = makeEditor()
+            editor.blendImages.set(true)
+            #expect(editor.blendImages.value == true)
+            #expect(editor.blendImages.effectiveValue == true)
+            #expect(editor.preferences.blendImages == true)
+
+            editor.blendImages.clear()
+            #expect(editor.preferences.blendImages == nil)
+            #expect(editor.blendImages.effectiveValue == false)
+        }
+
+        @Test("the editor uses the defaults as effective value")
+        @MainActor func editorEffectiveValueFromDefaults() {
+            let editor = makeEditor(defaults: EPUBDefaults(blendImages: true))
+            #expect(editor.preferences.blendImages == nil)
+            #expect(editor.blendImages.effectiveValue == true)
+        }
+
+        @Test("the editor toggles from the defaults when unset")
+        @MainActor func editorTogglesFromDefaults() {
+            let editor = makeEditor(defaults: EPUBDefaults(blendImages: true))
+            editor.blendImages.toggle()
+            #expect(editor.preferences.blendImages == false)
+            #expect(editor.blendImages.effectiveValue == false)
+        }
+    }
+
     @Suite("image filters") struct ImageFilters {
         @Test("ReadiumCSS applies the image filters with any theme", arguments: [Theme.light, .dark, .sepia])
         @MainActor func cssImageFilters(theme: Theme) throws {

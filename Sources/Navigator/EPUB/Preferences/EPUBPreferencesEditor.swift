@@ -185,10 +185,11 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         )
 
     /// Blends the images with the background color.
-    public lazy var blendImages: AnyPreference<Bool?> =
+    public lazy var blendImages: AnyPreference<Bool> =
         preference(
             preference: \.blendImages,
             setting: \.blendImages,
+            defaultEffectiveValue: defaults.blendImages ?? false,
             isEffective: { [defaultLayout] _ in defaultLayout == .reflowable }
         )
 
