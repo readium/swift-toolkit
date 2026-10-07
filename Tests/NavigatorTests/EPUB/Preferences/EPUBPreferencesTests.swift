@@ -303,6 +303,43 @@ enum EPUBPreferencesTests {
         }
     }
 
+    @Suite("image filters") struct ImageFilters {
+        @Test("ReadiumCSS applies the image filters with any theme", arguments: [Theme.light, .dark, .sepia])
+        @MainActor func cssImageFilters(theme: Theme) throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings(preferences: EPUBPreferences(
+                darkenImages: 0.2,
+                invertImages: 1.0,
+                invertGaiji: 1.0,
+                theme: theme
+            )))
+
+            let props = css.userProperties.cssProperties()
+            #expect(props["--USER__darkenImages"] == "0.80000")
+            #expect(props["--USER__invertImages"] == "1.00000")
+            #expect(props["--USER__invertGaiji"] == "1.00000")
+        }
+
+        @Test("ReadiumCSS doesn't apply the image filters when unset", arguments: [Theme.light, .dark, .sepia])
+        @MainActor func cssImageFiltersUnset(theme: Theme) throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings(preferences: EPUBPreferences(theme: theme)))
+
+            let props = css.userProperties.cssProperties()
+            #expect(props["--USER__darkenImages"] == .some(nil))
+            #expect(props["--USER__invertImages"] == .some(nil))
+            #expect(props["--USER__invertGaiji"] == .some(nil))
+        }
+
+        @Test("the editor preferences are effective with any theme", arguments: [Theme.light, .dark, .sepia])
+        @MainActor func editorEffective(theme: Theme) {
+            let editor = makeEditor(preferences: EPUBPreferences(theme: theme))
+            #expect(editor.darkenImages.isEffective)
+            #expect(editor.invertImages.isEffective)
+            #expect(editor.invertGaiji.isEffective)
+        }
+    }
+
     @Suite("Codable") struct Coding {
         /// Every preference set to a non-default value.
         private let allPreferences = EPUBPreferences(

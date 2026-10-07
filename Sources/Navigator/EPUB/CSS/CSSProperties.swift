@@ -60,19 +60,13 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     public var blendImages: Bool?
 
     /// This will apply a brightness filter with the value it's given.
-    ///
-    /// Requires: appearance = Appearance.Night
     public var darkenImages: Double?
 
     /// This will apply an invert filter with the value it's given.
-    ///
-    /// Requires: appearance = Appearance.Night
     public var invertImages: Double?
 
     /// This will apply an invert filter with the value it's given,
     /// only to img class="gaiji".
-    ///
-    /// Requires: appearance = Appearance.Night
     public var invertGaiji: Double?
 
     /// The color for textual contents. It impacts all elements but headings and pre in the DOM.

@@ -499,9 +499,13 @@ The navigator computes the number of columns and the line length from the viewpo
 
 `minimalLineLength` and `maximalLineLength` are `AnyOptionalRangePreference<Double>` in the `EPUBPreferencesEditor`, see [the view for an `OptionalRangePreference`](#view-for-an-optionalrangepreferencevalue).
 
-#### Dark theme specific preferences
+#### Image filters
 
-The `darkenImages`, `invertImages`, and `invertGaiji` preferences are available only in dark mode (`theme = .dark`).
+The `darkenImages`, `invertImages` and `invertGaiji` preferences are applied with any theme, although they are typically used with a dark one (`theme = .dark` or a dark `backgroundColor`). To filter the images only with the dark theme, set these preferences when `theme` is `.dark` and clear them otherwise.
+
+* `darkenImages` reduces the brightness of the images by the given percentage, from `0.0` to `1.0`.
+* `invertImages` inverts the colors of the images by the given percentage, from `0.0` to `1.0`.
+* `invertGaiji` inverts by the given percentage, from `0.0` to `1.0`, only the gaiji, which are the images used in Japanese publications for the characters missing from the fonts (`<img class="gaiji">`). They are usually black glyphs displayed among the text, which are hard to read on a dark background unless inverted. When `invertGaiji` is set, the gaiji ignore `darkenImages` and `invertImages`.
 
 #### Language specific preferences
 
