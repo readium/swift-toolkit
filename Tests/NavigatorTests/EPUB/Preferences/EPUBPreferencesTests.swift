@@ -289,16 +289,7 @@ enum EPUBPreferencesTests {
 
         @Test("the editor preference is not effective without reflowable resources")
         @MainActor func editorNotEffectiveWithFixedLayout() {
-            let editor = EPUBPreferencesEditor(
-                initialPreferences: EPUBPreferences(ligatures: true),
-                publication: Publication(
-                    manifest: Manifest(
-                        metadata: Metadata(title: "Test", layout: .fixed),
-                        readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml)]
-                    )
-                ),
-                defaults: EPUBDefaults()
-            )
+            let editor = makeEditor(preferences: EPUBPreferences(ligatures: true), layout: .fixed)
             #expect(!editor.ligatures.isEffective)
         }
     }
@@ -409,6 +400,91 @@ enum EPUBPreferencesTests {
             #expect(editor.darkenImages.isEffective)
             #expect(editor.invertImages.isEffective)
             #expect(editor.invertGaiji.isEffective)
+        }
+    }
+
+    @Suite("noRuby") struct NoRuby {
+        @Test("the editor preference is effective with CJK languages", arguments: [
+            (false, CSSLayout.Stylesheets.cjkHorizontal),
+            (true, CSSLayout.Stylesheets.cjkVertical),
+        ])
+        @MainActor func editorEffectiveWithCJK(verticalText: Bool, stylesheets: CSSLayout.Stylesheets) {
+            let preferences = EPUBPreferences(
+                language: Language(code: .bcp47("ja")),
+                verticalText: verticalText
+            )
+            #expect(settings(preferences: preferences).cssLayout.stylesheets == stylesheets)
+
+            let editor = makeEditor(preferences: preferences)
+            #expect(editor.noRuby.isEffective)
+        }
+
+        @Test("the editor preference is not effective with LTR and RTL languages", arguments: ["en", "ar"])
+        @MainActor func editorNotEffectiveWithoutCJK(language: String) {
+            let editor = makeEditor(preferences: EPUBPreferences(language: Language(code: .bcp47(language))))
+            #expect(!editor.noRuby.isEffective)
+        }
+    }
+
+    /// `blendImages`, `darkenImages`, `invertImages`, `invertGaiji` and
+    /// `noRuby` depend on the layout of the resources in the reading order,
+    /// not on the default layout of the publication.
+    @Suite("image filters and noRuby with mixed layouts") struct MixedLayouts {
+        /// Japanese, as `noRuby` is effective only with CJK languages.
+        private let preferences = EPUBPreferences(language: Language(code: .bcp47("ja")))
+
+        @Test("effective in a reflowable publication")
+        @MainActor func reflowablePublication() {
+            let editor = makeEditor(preferences: preferences)
+            #expect(effectivePreferences(of: editor) == allPreferences)
+        }
+
+        @Test("effective in a fixed-layout publication containing a reflowable resource")
+        @MainActor func fixedLayoutPublicationWithReflowableResource() {
+            var reflowable = Link(href: "c2.xhtml", mediaType: .xhtml)
+            reflowable.properties.epubLayout = .reflowable
+
+            let editor = makeEditor(
+                preferences: preferences,
+                layout: .fixed,
+                readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml), reflowable]
+            )
+            #expect(editor.defaultLayout == .fixed)
+            #expect(effectivePreferences(of: editor) == allPreferences)
+        }
+
+        @Test("not effective in a fixed-layout publication")
+        @MainActor func fixedLayoutPublication() {
+            let editor = makeEditor(preferences: preferences, layout: .fixed)
+            #expect(effectivePreferences(of: editor) == [])
+        }
+
+        @Test("not effective in a reflowable publication containing only fixed-layout resources")
+        @MainActor func reflowablePublicationWithoutReflowableResource() {
+            var fixed = Link(href: "c1.xhtml", mediaType: .xhtml)
+            fixed.properties.epubLayout = .fixed
+
+            let editor = makeEditor(
+                preferences: preferences,
+                readingOrder: [fixed, Link(href: "p2.jpg", mediaType: .jpeg)]
+            )
+            #expect(editor.defaultLayout == .reflowable)
+            #expect(effectivePreferences(of: editor) == [])
+        }
+
+        private let allPreferences = ["blendImages", "darkenImages", "invertImages", "invertGaiji", "noRuby"]
+
+        /// Names of the preferences which are effective in the `editor`.
+        @MainActor private func effectivePreferences(of editor: EPUBPreferencesEditor) -> [String] {
+            [
+                ("blendImages", editor.blendImages.isEffective),
+                ("darkenImages", editor.darkenImages.isEffective),
+                ("invertImages", editor.invertImages.isEffective),
+                ("invertGaiji", editor.invertGaiji.isEffective),
+                ("noRuby", editor.noRuby.isEffective),
+            ]
+            .filter(\.1)
+            .map(\.0)
         }
     }
 
@@ -643,14 +719,16 @@ private func settings(
 
 @MainActor private func makeEditor(
     preferences: EPUBPreferences = EPUBPreferences(),
-    defaults: EPUBDefaults = EPUBDefaults()
+    defaults: EPUBDefaults = EPUBDefaults(),
+    layout: Layout? = nil,
+    readingOrder: [Link] = [Link(href: "c1.xhtml", mediaType: .xhtml)]
 ) -> EPUBPreferencesEditor {
     EPUBPreferencesEditor(
         initialPreferences: preferences,
         publication: Publication(
             manifest: Manifest(
-                metadata: Metadata(title: "Test"),
-                readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml)]
+                metadata: Metadata(title: "Test", layout: layout),
+                readingOrder: readingOrder
             )
         ),
         defaults: defaults

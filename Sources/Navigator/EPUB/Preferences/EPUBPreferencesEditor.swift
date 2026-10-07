@@ -185,33 +185,39 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         )
 
     /// Blends the images with the background color.
+    ///
+    /// Only effective when the publication contains reflowable resources.
     public lazy var blendImages: AnyPreference<Bool> =
         preference(
             preference: \.blendImages,
             setting: \.blendImages,
             defaultEffectiveValue: defaults.blendImages ?? false,
-            isEffective: { [defaultLayout] _ in defaultLayout == .reflowable }
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
     /// Darkens images by the given percentage.
+    ///
+    /// Only effective when the publication contains reflowable resources.
     public lazy var darkenImages: AnyRangePreference<Double> =
         rangePreference(
             preference: \.darkenImages,
             effectiveValue: { $0.settings.darkenImages ?? 0 },
             defaultEffectiveValue: 0,
-            isEffective: { [defaultLayout] _ in defaultLayout == .reflowable },
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
             supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
 
     /// Inverts gaiji images.
+    ///
+    /// Only effective when the publication contains reflowable resources.
     public lazy var invertGaiji: AnyPreference<Bool> =
         rangePreference(
             preference: \.invertGaiji,
             effectiveValue: { $0.settings.invertGaiji ?? 0 },
             defaultEffectiveValue: 0,
-            isEffective: { [defaultLayout] _ in defaultLayout == .reflowable },
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
             supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
@@ -223,12 +229,14 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         .eraseToAnyPreference()
 
     /// Inverts the color of images.
+    ///
+    /// Only effective when the publication contains reflowable resources.
     public lazy var invertImages: AnyPreference<Bool> =
         rangePreference(
             preference: \.invertImages,
             effectiveValue: { $0.settings.invertImages ?? 0 },
             defaultEffectiveValue: 0,
-            isEffective: { [defaultLayout] _ in defaultLayout == .reflowable },
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
             supportedRange: 0.0 ... 1.0,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
@@ -345,15 +353,15 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// Hiding/disabling ruby (furigana) annotations.
     ///
     /// Only effective when:
-    ///  - the publication is reflowable
+    ///  - the publication contains reflowable resources
     ///  - the layout is CJK horizontal or vertical
     public lazy var noRuby: AnyPreference<Bool> =
         preference(
             preference: \.noRuby,
             setting: \.noRuby,
             defaultEffectiveValue: defaults.noRuby ?? false,
-            isEffective: { [defaultLayout] in
-                defaultLayout == .reflowable
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
                     && [.cjkHorizontal, .cjkVertical].contains($0.settings.cssLayout.stylesheets)
             }
         )
