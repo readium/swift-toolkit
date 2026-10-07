@@ -1126,10 +1126,8 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             }
             .joined(separator: "\n")
 
-        // Each iframe has its own `readium` global, so templates and
-        // `setActivable()` are broadcast once. An empty href would also run
-        // any following script in every page of a fixed-layout spread, so
-        // decorations are applied per resource after this returns.
+        // The templates and activable groups are registered in every resource
+        // of the spread, as each one has its own `readium` instance.
         await spreadView.evaluateScript("(function() {\n\(script)\n})();")
 
         let links = spreadView.spread.readingOrderIndices
@@ -1145,6 +1143,9 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 guard let decorationsScript = decorations.javascript(forGroup: group, styles: config.decorationTemplates) else {
                     continue
                 }
+                // We evaluate the decorations only in their own resource,
+                // otherwise a fixed-layout spread would render them on both
+                // pages.
                 await spreadView.evaluateScript(decorationsScript, inHREF: href)
             }
         }
