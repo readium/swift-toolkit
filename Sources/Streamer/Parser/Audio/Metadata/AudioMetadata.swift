@@ -102,7 +102,7 @@ public struct AudioMetadata: Sendable, Hashable {
     /// `©day`, `TDRC` then `TYER`
     public var date: Date?
 
-    /// `©gen` then `gnre`, `TCON`
+    /// `©gen`, `TCON`
     public var genres: [String]
 
     /// `ldes`, `TXXX:DESCRIPTION`
