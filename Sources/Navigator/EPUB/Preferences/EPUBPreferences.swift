@@ -58,7 +58,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Space between letters.
     public var letterSpacing: Double?
 
-    /// Enable ligatures in Arabic.
+    /// Enable ligatures.
     public var ligatures: Bool?
 
     /// Leading line height.

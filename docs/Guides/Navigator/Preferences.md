@@ -514,7 +514,7 @@ Some preferences are not available for all languages and layout.
 | `letterSpacing`   | :white_check_mark: |                    |     |
 | `wordSpacing`     | :white_check_mark: |                    |     |
 | `hyphens`         | :white_check_mark: |                    |     |
-| `ligatures`       |                    | :white_check_mark: |     |
+| `ligatures`       | :white_check_mark: | :white_check_mark: |     |
 | `noRuby`          |                    |                    | :white_check_mark: |
 
 ### PDF

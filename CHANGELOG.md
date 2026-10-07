@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file. Take a look
     * Removed the `typeScale` preference, as the type scale user setting is no longer available in Readium CSS v2.
     * Removed `CSSUserProperties.fontOverride`, `advancedSettings`, and `pageMargins`, which don't exist in Readium CSS v2.
     * `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, to match the base line height of Readium CSS v2 for Latin scripts.
+    * `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones.
 
 ### Fixed
 

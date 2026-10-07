@@ -125,7 +125,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
     /// Enabling and disabling hyphenation. It impacts body, p, li, div and dd.
     public var bodyHyphens: CSSHyphens?
 
-    /// Enabling and disabling ligatures in Arabic (related to a11y).
+    /// Enabling and disabling ligatures (related to a11y).
     public var ligatures: CSSLigatures?
 
     // Accessibility

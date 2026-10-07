@@ -268,11 +268,11 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
-    /// Enable ligatures in Arabic.
+    /// Enable ligatures.
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - the layout is RTL
+    ///  - the layout is LTR or RTL
     public lazy var ligatures: AnyPreference<Bool> =
         preference(
             preference: \.ligatures,
@@ -280,7 +280,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             defaultEffectiveValue: defaults.ligatures ?? false,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && $0.settings.cssLayout.stylesheets == .rtl
+                    && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
                     && $0.preferences.ligatures != nil
             }
         )

@@ -249,6 +249,60 @@ enum EPUBPreferencesTests {
         }
     }
 
+    @Suite("ligatures") struct Ligatures {
+        @Test("the editor preference is effective with LTR and RTL languages", arguments: [
+            ("en", CSSLayout.Stylesheets.default),
+            ("ar", CSSLayout.Stylesheets.rtl),
+        ])
+        @MainActor func editorEffective(language: String, stylesheets: CSSLayout.Stylesheets) {
+            let preferences = EPUBPreferences(
+                language: Language(code: .bcp47(language)),
+                ligatures: true
+            )
+            #expect(settings(preferences: preferences).cssLayout.stylesheets == stylesheets)
+
+            let editor = makeEditor(preferences: preferences)
+            #expect(editor.ligatures.isEffective)
+        }
+
+        @Test("the editor preference is not effective with CJK languages", arguments: [
+            (false, CSSLayout.Stylesheets.cjkHorizontal),
+            (true, CSSLayout.Stylesheets.cjkVertical),
+        ])
+        @MainActor func editorNotEffectiveWithCJK(verticalText: Bool, stylesheets: CSSLayout.Stylesheets) {
+            let preferences = EPUBPreferences(
+                language: Language(code: .bcp47("ja")),
+                ligatures: true,
+                verticalText: verticalText
+            )
+            #expect(settings(preferences: preferences).cssLayout.stylesheets == stylesheets)
+
+            let editor = makeEditor(preferences: preferences)
+            #expect(!editor.ligatures.isEffective)
+        }
+
+        @Test("the editor preference is not effective when unset")
+        @MainActor func editorNotEffectiveWhenUnset() {
+            let editor = makeEditor()
+            #expect(!editor.ligatures.isEffective)
+        }
+
+        @Test("the editor preference is not effective without reflowable resources")
+        @MainActor func editorNotEffectiveWithFixedLayout() {
+            let editor = EPUBPreferencesEditor(
+                initialPreferences: EPUBPreferences(ligatures: true),
+                publication: Publication(
+                    manifest: Manifest(
+                        metadata: Metadata(title: "Test", layout: .fixed),
+                        readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml)]
+                    )
+                ),
+                defaults: EPUBDefaults()
+            )
+            #expect(!editor.ligatures.isEffective)
+        }
+    }
+
     @Suite("Codable") struct Coding {
         /// Every preference set to a non-default value.
         private let allPreferences = EPUBPreferences(
