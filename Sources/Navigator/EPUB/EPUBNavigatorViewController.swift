@@ -1126,6 +1126,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             }
             .joined(separator: "\n")
 
+        // The templates and activable groups are registered in every resource
+        // of the spread, as each one has its own `readium` instance.
+        await spreadView.evaluateScript("(function() {\n\(script)\n})();")
+
         let links = spreadView.spread.readingOrderIndices
             .compactMap { readingOrder.getOrNil($0) }
 
@@ -1139,11 +1143,12 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 guard let decorationsScript = decorations.javascript(forGroup: group, styles: config.decorationTemplates) else {
                     continue
                 }
-                script += decorationsScript
+                // We evaluate the decorations only in their own resource,
+                // otherwise a fixed-layout spread would render them on both
+                // pages.
+                await spreadView.evaluateScript(decorationsScript, inHREF: href)
             }
         }
-
-        await spreadView.evaluateScript("(function() {\n\(script)\n})();")
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent) {

@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed seeking with the `AudioNavigator`:
     * The target of a seek in progress is reported as the current time, instead of the old position until the seek completes.
     * The playback is reported as `.loading` instead of `.paused` during a seek, when it resumes afterwards.
+* [#632](https://github.com/readium/swift-toolkit/issues/632) Fixed decorations being duplicated on both pages when a fixed-layout EPUB is displayed as a two-page spread (contributed by [@mvanhorn](https://github.com/readium/swift-toolkit/pull/915)).
 * Fixed a memory leak in `EPUBNavigatorViewController` when quickly turning the pages of a fixed-layout publication (contributed by [@deltakosh](https://github.com/readium/swift-toolkit/pull/917)).
 
 

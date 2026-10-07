@@ -160,8 +160,8 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
         super.clear()
 
         // A spread removed before it finished loading will never emit
-        // `spreadLoaded`. Resume pending `go(to:)` callers so they don't keep
-        // this view alive and stall the pagination preloading queue.
+        // `spreadLoaded`. Resume pending `go(to:)` callers, otherwise they
+        // would never return and would keep this view alive.
         for continuation in goToContinuations {
             continuation.resume()
         }
