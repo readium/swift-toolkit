@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file. Take a look
 * `AudioNavigator.stop()` stops the playback and ends the audio session.
 * Upgraded Readium CSS to version 2.0.5.
     * Added the `noRuby` preference to allow hiding ruby (furigana) annotations in CJK publications.
-    * Added the `lineLength` preference, which behaves as a factor applied to the maximum width of the text column, offering finer control over text presentation than `pageMargins` (which solely handles the padding around the text).
+    * Added the `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences to control the line length of reflowable resources. The navigator uses them to choose the number of columns and to limit the width of the lines.
     * Added `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji` preferences for precise CSS filtering of images.
     * Added `CSSRSProperties.defaultLineLength`, `viewportWidth`, `scrollPaddingTop`, `scrollPaddingBottom`, `scrollPaddingLeft`, and `scrollPaddingRight` to configure Readium CSS v2 reading system properties.
     * Added optional CSS minification to the build scripts (`make scripts minify=true`).

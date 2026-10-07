@@ -204,9 +204,57 @@ struct LayoutResolverTests {
     // MARK: - EPUBSettings Overload
 
     @Test func layoutWithEPUBSettings() {
-        let settings = EPUBSettings(
+        let layout = resolver.layout(
+            settings: settings(),
+            systemFontScale: 1.0,
+            viewportSize: CGSize(width: 1400, height: 900)
+        )
+
+        #expect(layout.colCount == 2)
+        #expect(layout.lineLength == 640.0)
+    }
+
+    @Test func layoutWithEPUBSettingsUsesOptimalLineLengthAndPageMargins() {
+        let layout = resolver.layout(
+            settings: settings(optimalLineLength: 0.5, pageMargins: 2.0),
+            systemFontScale: 1.0,
+            viewportSize: CGSize(width: 1400, height: 900)
+        )
+
+        // optimal: 640 * 0.5 = 320, margins: 30 * 2 = 60
+        // floating colCount: (1400 - 381.8) / 320 = 3.2 -> 3
+        // lineLength = (1400 - 60 * 2 * 3) / 3 = 346.67
+        #expect(layout.colCount == 3)
+        #expect(abs(layout.lineLength - 346.667) < 0.001)
+    }
+
+    @Test func layoutWithEPUBSettingsUsesMinimalAndMaximalLineLengths() {
+        let layout = resolver.layout(
+            settings: settings(
+                columnCount: 2,
+                maximalLineLength: 1.0, // 740
+                minimalLineLength: 1.0 // 440
+            ),
+            systemFontScale: 1.0,
+            viewportSize: CGSize(width: 900, height: 600)
+        )
+
+        // 2 columns: (900 - 120) / 2 = 390 < 440, falls back to 1 column
+        // 1 column: 900 - 60 = 840, clamped to the maximal line length 740
+        #expect(layout.colCount == 1)
+        #expect(layout.lineLength == 740.0)
+    }
+
+    private func settings(
+        columnCount: Int? = nil,
+        maximalLineLength: Double? = nil,
+        minimalLineLength: Double? = nil,
+        optimalLineLength: Double = 1.0,
+        pageMargins: Double = 1.0
+    ) -> EPUBSettings {
+        EPUBSettings(
             backgroundColor: nil,
-            columnCount: nil,
+            columnCount: columnCount,
             fit: .auto,
             fontFamily: nil,
             fontSize: 1.0,
@@ -219,10 +267,12 @@ struct LayoutResolverTests {
             language: nil,
             letterSpacing: nil,
             ligatures: nil,
-            lineLength: 1.0,
             lineHeight: nil,
+            maximalLineLength: maximalLineLength,
+            minimalLineLength: minimalLineLength,
             offsetFirstPage: nil,
-            pageMargins: 1.0,
+            optimalLineLength: optimalLineLength,
+            pageMargins: pageMargins,
             paragraphIndent: nil,
             paragraphSpacing: nil,
             readingProgression: .ltr,
@@ -235,15 +285,6 @@ struct LayoutResolverTests {
             verticalText: false,
             wordSpacing: nil
         )
-
-        let layout = resolver.layout(
-            settings: settings,
-            systemFontScale: 1.0,
-            viewportSize: CGSize(width: 1400, height: 900)
-        )
-
-        #expect(layout.colCount == 2)
-        #expect(layout.lineLength == 640.0)
     }
 
     @Test func systemFontScaleScalesLineLengthAndMargins() {

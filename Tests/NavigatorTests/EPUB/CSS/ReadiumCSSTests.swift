@@ -376,35 +376,38 @@ struct ReadiumCSSTests {
         )
     }
 
-    @Test @MainActor func updateWithSettingsComputesPageGutter() {
+    @Test(arguments: [false, true])
+    @MainActor func updateDoesNotSetPageGutter(scroll: Bool) {
         var css = ReadiumCSS(baseURL: baseURL)
         let settings = EPUBSettings(
-            preferences: EPUBPreferences(pageMargins: 1.5),
+            preferences: EPUBPreferences(pageMargins: 1.5, scroll: scroll),
             defaults: EPUBDefaults(),
             metadata: Metadata(title: "Test")
         )
         css.update(with: settings)
+        #expect(css.userProperties.cssProperties()["--RS__pageGutter"] == nil)
 
-        #expect(
-            css.userProperties.cssProperties()["--RS__pageGutter"] == "30.00000px"
-        )
+        css.update(with: settings, resolvedLayout: LayoutResolver.Layout(colCount: 1, lineLength: 500.0))
+        #expect(css.userProperties.cssProperties()["--RS__pageGutter"] == nil)
     }
 
-    @Test @MainActor func updateWithScrollSettingsComputesScrollPadding() {
+    @Test(arguments: [false, true])
+    @MainActor func updateWithoutLayoutOmitsLayoutProperties(scroll: Bool) {
         var css = ReadiumCSS(baseURL: baseURL)
         let settings = EPUBSettings(
-            preferences: EPUBPreferences(pageMargins: 1.5, scroll: true),
+            preferences: EPUBPreferences(columnCount: 2, scroll: scroll),
             defaults: EPUBDefaults(),
             metadata: Metadata(title: "Test")
         )
-        css.update(with: settings)
+        css.update(with: settings, safeAreaInsets: UIEdgeInsets(top: 44, left: 20, bottom: 34, right: 25))
 
-        #expect(
-            css.userProperties.cssProperties()["--RS__scrollPaddingLeft"] == "30.00000px"
-        )
-        #expect(
-            css.userProperties.cssProperties()["--RS__scrollPaddingRight"] == "30.00000px"
-        )
+        let props = css.userProperties.cssProperties()
+        #expect(props["--USER__colCount"] == .some(nil))
+        #expect(props["--USER__lineLength"] == .some(nil))
+        #expect(props["--RS__scrollPaddingTop"] == nil)
+        #expect(props["--RS__scrollPaddingBottom"] == nil)
+        #expect(props["--RS__scrollPaddingLeft"] == nil)
+        #expect(props["--RS__scrollPaddingRight"] == nil)
     }
 
     @Test @MainActor func updateWithLayoutAppliesColCountAndLineLength() {

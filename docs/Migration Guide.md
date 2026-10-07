@@ -13,6 +13,8 @@ Readium CSS has been upgraded to version 2. If you configure custom Reading Syst
 +CSSRSProperties(defaultLineLength: CSSRemLength(40))
 ```
 
+However, the EPUB navigator now overrides it with the line length it computes, [see below](#epubpreferences-line-length-and-page-margins).
+
 `CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, and `typeScale` are also removed, as these properties don't exist in Readium CSS v2.
 
 ### `EPUBPreferences` Column Count
@@ -27,6 +29,10 @@ To support arbitrary column counts natively via Readium CSS v2, `columnCount` ha
 ```
 
 `EPUBPreferencesEditor.columnCount` is now an `AnyEnumPreference<Int?>` supporting the values `nil` (auto), `1` and `2`.
+
+### `EPUBPreferences` line length and page margins
+
+The EPUB navigator now computes the number of columns and the line length of reflowable resources from the viewport size and the new `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences. `pageMargins` is now a factor applied to the minimal margins on each side of the lines, which are larger when the line length is limited. See [the Preferences guide](Guides/Navigator/Preferences.md#line-length-and-margins) for details.
 
 ### `EPUBPreferences` Image Filters
 

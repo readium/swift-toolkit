@@ -25,10 +25,12 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
-    public var lineLength: Double
     public var lineHeight: Double?
+    public var maximalLineLength: Double?
+    public var minimalLineLength: Double?
     public var noRuby: Bool
     public var offsetFirstPage: Bool?
+    public var optimalLineLength: Double
     public var pageMargins: Double
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
@@ -78,10 +80,12 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         language: Language?,
         letterSpacing: Double?,
         ligatures: Bool?,
-        lineLength: Double,
         lineHeight: Double?,
+        maximalLineLength: Double?,
+        minimalLineLength: Double?,
         noRuby: Bool = false,
         offsetFirstPage: Bool?,
+        optimalLineLength: Double,
         pageMargins: Double,
         paragraphIndent: Double?,
         paragraphSpacing: Double?,
@@ -109,10 +113,12 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
-        self.lineLength = lineLength
         self.lineHeight = lineHeight
+        self.maximalLineLength = maximalLineLength
+        self.minimalLineLength = minimalLineLength
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
+        self.optimalLineLength = optimalLineLength
         self.pageMargins = pageMargins
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing
@@ -174,11 +180,13 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let invertImages = preferences.invertImages ?? defaults.invertImages
         let invertGaiji = preferences.invertGaiji ?? defaults.invertGaiji
         let letterSpacing = preferences.letterSpacing ?? defaults.letterSpacing
-        let lineLength = preferences.lineLength ?? defaults.lineLength ?? 1.0
         let ligatures = preferences.ligatures ?? defaults.ligatures
         let lineHeight = preferences.lineHeight ?? defaults.lineHeight
+        let maximalLineLength = preferences.maximalLineLength ?? defaults.maximalLineLength
+        let minimalLineLength = preferences.minimalLineLength ?? defaults.minimalLineLength
         let noRuby = preferences.noRuby ?? defaults.noRuby ?? false
         let offsetFirstPage = preferences.offsetFirstPage ?? defaults.offsetFirstPage
+        let optimalLineLength = preferences.optimalLineLength ?? defaults.optimalLineLength ?? 1.0
         let pageMargins = preferences.pageMargins ?? defaults.pageMargins ?? 1.0
         let paragraphIndent = preferences.paragraphIndent ?? defaults.paragraphIndent
         let paragraphSpacing = preferences.paragraphSpacing ?? defaults.paragraphSpacing
@@ -203,10 +211,12 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             language: language,
             letterSpacing: letterSpacing,
             ligatures: ligatures,
-            lineLength: lineLength,
             lineHeight: lineHeight,
+            maximalLineLength: maximalLineLength,
+            minimalLineLength: minimalLineLength,
             noRuby: noRuby,
             offsetFirstPage: offsetFirstPage,
+            optimalLineLength: optimalLineLength,
             pageMargins: pageMargins,
             paragraphIndent: paragraphIndent,
             paragraphSpacing: paragraphSpacing,
@@ -242,10 +252,12 @@ public struct EPUBDefaults: Sendable {
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
-    public var lineLength: Double?
     public var lineHeight: Double?
+    public var maximalLineLength: Double?
+    public var minimalLineLength: Double?
     public var noRuby: Bool?
     public var offsetFirstPage: Bool?
+    public var optimalLineLength: Double?
     public var pageMargins: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
@@ -269,10 +281,12 @@ public struct EPUBDefaults: Sendable {
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
-        lineLength: Double? = nil,
         lineHeight: Double? = nil,
+        maximalLineLength: Double? = nil,
+        minimalLineLength: Double? = nil,
         noRuby: Bool? = nil,
         offsetFirstPage: Bool? = nil,
+        optimalLineLength: Double? = nil,
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
@@ -295,10 +309,12 @@ public struct EPUBDefaults: Sendable {
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
-        self.lineLength = lineLength
         self.lineHeight = lineHeight
+        self.maximalLineLength = maximalLineLength.takeIf { $0 > 0 }
+        self.minimalLineLength = minimalLineLength.takeIf { $0 > 0 }
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
+        self.optimalLineLength = optimalLineLength.takeIf { $0 > 0 }
         self.pageMargins = pageMargins
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing

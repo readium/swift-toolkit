@@ -47,18 +47,11 @@ enum EPUBPreferencesTests {
             )
         }
 
-        @Test("ReadiumCSS doesn't emit a column count when auto and unresolved")
-        @MainActor func cssAuto() throws {
+        @Test("ReadiumCSS doesn't emit a column count before the layout is resolved", arguments: [nil, 2])
+        @MainActor func cssColumnCountUnresolved(columnCount: Int?) throws {
             var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
-            css.update(with: settings())
+            css.update(with: settings(preferences: EPUBPreferences(columnCount: columnCount)))
             #expect(css.userProperties.cssProperties()["--USER__colCount"] == .some(nil))
-        }
-
-        @Test("ReadiumCSS emits the column count when unresolved")
-        @MainActor func cssColumnCount() throws {
-            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
-            css.update(with: settings(preferences: EPUBPreferences(columnCount: 2)))
-            #expect(css.userProperties.cssProperties()["--USER__colCount"] == "2")
         }
 
         @Test("the editor supports auto, 1 and 2 columns")
@@ -94,32 +87,127 @@ enum EPUBPreferencesTests {
             let editor = makeEditor(preferences: EPUBPreferences(scroll: true))
             #expect(!editor.columnCount.isEffective)
         }
+    }
 
-        private func settings(
-            preferences: EPUBPreferences = EPUBPreferences(),
-            defaults: EPUBDefaults = EPUBDefaults()
-        ) -> EPUBSettings {
-            EPUBSettings(
-                preferences: preferences,
-                defaults: defaults,
-                metadata: Metadata(title: "Test")
+    @Suite("line length") struct LineLength {
+        @Test("preferences ignore values lower than or equal to 0", arguments: [0.0, -1.0])
+        func preferencesIgnoreInvalidValues(value: Double) {
+            let prefs = EPUBPreferences(
+                maximalLineLength: value,
+                minimalLineLength: value,
+                optimalLineLength: value
             )
+            #expect(prefs.maximalLineLength == nil)
+            #expect(prefs.minimalLineLength == nil)
+            #expect(prefs.optimalLineLength == nil)
         }
 
-        @MainActor private func makeEditor(
-            preferences: EPUBPreferences = EPUBPreferences(),
-            defaults: EPUBDefaults = EPUBDefaults()
-        ) -> EPUBPreferencesEditor {
-            EPUBPreferencesEditor(
-                initialPreferences: preferences,
-                publication: Publication(
-                    manifest: Manifest(
-                        metadata: Metadata(title: "Test"),
-                        readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml)]
-                    )
-                ),
-                defaults: defaults
+        @Test("defaults ignore values lower than or equal to 0", arguments: [0.0, -1.0])
+        func defaultsIgnoreInvalidValues(value: Double) {
+            let defaults = EPUBDefaults(
+                maximalLineLength: value,
+                minimalLineLength: value,
+                optimalLineLength: value
             )
+            #expect(defaults.maximalLineLength == nil)
+            #expect(defaults.minimalLineLength == nil)
+            #expect(defaults.optimalLineLength == nil)
+        }
+
+        @Test("the settings have an optimal line length and no limits when unset")
+        func settingsWhenUnset() {
+            let settings = settings()
+            #expect(settings.optimalLineLength == 1.0)
+            #expect(settings.minimalLineLength == nil)
+            #expect(settings.maximalLineLength == nil)
+        }
+
+        @Test("the settings fall back on the defaults")
+        func settingsFallBackOnDefaults() {
+            let settings = settings(defaults: EPUBDefaults(
+                maximalLineLength: 1.2,
+                minimalLineLength: 0.8,
+                optimalLineLength: 0.9
+            ))
+            #expect(settings.optimalLineLength == 0.9)
+            #expect(settings.minimalLineLength == 0.8)
+            #expect(settings.maximalLineLength == 1.2)
+        }
+
+        @Test("the preferences take precedence over the defaults")
+        func preferencesTakePrecedence() {
+            let settings = settings(
+                preferences: EPUBPreferences(
+                    maximalLineLength: 1.5,
+                    minimalLineLength: 0.6,
+                    optimalLineLength: 1.1
+                ),
+                defaults: EPUBDefaults(
+                    maximalLineLength: 1.2,
+                    minimalLineLength: 0.8,
+                    optimalLineLength: 0.9
+                )
+            )
+            #expect(settings.optimalLineLength == 1.1)
+            #expect(settings.minimalLineLength == 0.6)
+            #expect(settings.maximalLineLength == 1.5)
+        }
+
+        @Test("the editor preferences have the same range, starting from 100%")
+        @MainActor func editorRanges() {
+            let editor = makeEditor()
+            #expect(editor.optimalLineLength.supportedRange == 0.5 ... 2.0)
+            #expect(editor.optimalLineLength.effectiveValue == 1.0)
+            #expect(editor.minimalLineLength.supportedRange == 0.5 ... 2.0)
+            #expect(editor.minimalLineLength.defaultValue == 1.0)
+            #expect(editor.minimalLineLength.effectiveValue == nil)
+            #expect(editor.maximalLineLength.supportedRange == 0.5 ... 2.0)
+            #expect(editor.maximalLineLength.defaultValue == 1.0)
+            #expect(editor.maximalLineLength.effectiveValue == nil)
+        }
+
+        @Test("the editor sets and clears the line length limits")
+        @MainActor func editorSetAndClear() {
+            let editor = makeEditor()
+            editor.maximalLineLength.increment()
+            #expect(editor.preferences.maximalLineLength == 1.1)
+            #expect(editor.maximalLineLength.effectiveValue == 1.1)
+
+            editor.maximalLineLength.set(nil)
+            #expect(editor.preferences.maximalLineLength == nil)
+            #expect(editor.maximalLineLength.effectiveValue == nil)
+        }
+
+        @Test("with automatic columns, only the optimal and maximal line lengths are effective")
+        @MainActor func editorEffectiveWithAutoColumns() {
+            let editor = makeEditor()
+            #expect(editor.optimalLineLength.isEffective)
+            #expect(!editor.minimalLineLength.isEffective)
+            #expect(editor.maximalLineLength.isEffective)
+        }
+
+        @Test("with several columns, only the minimal and maximal line lengths are effective")
+        @MainActor func editorEffectiveWithSeveralColumns() {
+            let editor = makeEditor(preferences: EPUBPreferences(columnCount: 2))
+            #expect(!editor.optimalLineLength.isEffective)
+            #expect(editor.minimalLineLength.isEffective)
+            #expect(editor.maximalLineLength.isEffective)
+        }
+
+        @Test("with one column, only the maximal line length is effective")
+        @MainActor func editorEffectiveWithOneColumn() {
+            let editor = makeEditor(preferences: EPUBPreferences(columnCount: 1))
+            #expect(!editor.optimalLineLength.isEffective)
+            #expect(!editor.minimalLineLength.isEffective)
+            #expect(editor.maximalLineLength.isEffective)
+        }
+
+        @Test("in scroll mode, only the maximal line length is effective")
+        @MainActor func editorEffectiveWhenScrolling() {
+            let editor = makeEditor(preferences: EPUBPreferences(columnCount: 2, scroll: true))
+            #expect(!editor.optimalLineLength.isEffective)
+            #expect(!editor.minimalLineLength.isEffective)
+            #expect(editor.maximalLineLength.isEffective)
         }
     }
 
@@ -140,10 +228,12 @@ enum EPUBPreferencesTests {
             language: Language(code: .bcp47("fr")),
             letterSpacing: 0.1,
             ligatures: false,
-            lineLength: 1.2,
             lineHeight: 1.6,
+            maximalLineLength: 1.3,
+            minimalLineLength: 0.8,
             noRuby: true,
             offsetFirstPage: true,
+            optimalLineLength: 1.2,
             pageMargins: 1.5,
             paragraphIndent: 1.1,
             paragraphSpacing: 0.5,
@@ -337,4 +427,31 @@ enum EPUBPreferencesTests {
             return block()
         }
     }
+}
+
+private func settings(
+    preferences: EPUBPreferences = EPUBPreferences(),
+    defaults: EPUBDefaults = EPUBDefaults()
+) -> EPUBSettings {
+    EPUBSettings(
+        preferences: preferences,
+        defaults: defaults,
+        metadata: Metadata(title: "Test")
+    )
+}
+
+@MainActor private func makeEditor(
+    preferences: EPUBPreferences = EPUBPreferences(),
+    defaults: EPUBDefaults = EPUBDefaults()
+) -> EPUBPreferencesEditor {
+    EPUBPreferencesEditor(
+        initialPreferences: preferences,
+        publication: Publication(
+            manifest: Manifest(
+                metadata: Metadata(title: "Test"),
+                readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml)]
+            )
+        ),
+        defaults: defaults
+    )
 }

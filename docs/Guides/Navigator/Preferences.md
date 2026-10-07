@@ -289,27 +289,32 @@ The current value is displayed after formatting it with the `RangePreference.for
 
 ### View for an `OptionalRangePreference<Value>`
 
-An `OptionalRangePreference<Value>` is a `Preference<Value?>` whose value is either `nil` or in a range, such as an optional limit where `nil` means "no limit". It can be represented as a toggle to set the preference to `nil`, next to a stepper for the value.
+An `OptionalRangePreference<Value>` is a `Preference<Value?>` whose value is either `nil` or in a range, such as an optional limit where `nil` means "no limit". It can be represented as a toggle to enable it or set it to `nil`, next to a stepper for the value.
 
 ```swift
 @ViewBuilder func optionalStepperRow<V: Comparable>(
     title: String,
-    disableTitle: String,
     preference: AnyOptionalRangePreference<V>,
     commit: @escaping () -> Void
 ) -> some View {
     let value = preference.value ?? preference.effectiveValue
 
-    VStack {
-        Toggle(disableTitle, isOn: Binding(
-            get: { value == nil },
-            set: { isDisabled in
-                preference.set(isDisabled ? nil : preference.defaultValue)
+    HStack {
+        Text(title)
+
+        Spacer()
+
+        Toggle(title, isOn: Binding(
+            get: { value != nil },
+            set: { isEnabled in
+                preference.set(isEnabled ? preference.defaultValue : nil)
                 commit()
             }
         ))
+        .labelsHidden()
 
         Stepper(
+            title,
             onIncrement: {
                 preference.increment()
                 commit()
@@ -318,22 +323,18 @@ An `OptionalRangePreference<Value>` is a `Preference<Value?>` whose value is eit
                 preference.decrement()
                 commit()
             }
-        ) {
-            HStack {
-                Text(title)
-
-                Spacer()
-
-                Text(preference.format(value: value ?? preference.defaultValue))
-                    .font(.caption)
-            }
-        }
+        )
+        .labelsHidden()
         .disabled(value == nil)
+
+        Text(preference.format(value: value ?? preference.defaultValue))
+            .font(.caption)
+            .foregroundColor(value == nil ? .gray : nil)
     }
 }
 ```
 
-`defaultValue` is the value used when both the preference and its effective value are `nil`. The `increment()` and `decrement()` helpers start from it, and the example above uses it when the toggle is turned off.
+`defaultValue` is the value used when both the preference and its effective value are `nil`. The `increment()` and `decrement()` helpers start from it, and the example above uses it when the toggle is turned on.
 
 > [!NOTE]
 > Setting the preference to `nil` unsets it, so the Navigator falls back on its default setting. If the default is not `nil`, the preference can't be disabled.
@@ -443,10 +444,12 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `language`           | :white_check_mark: | :white_check_mark: |
 | `letterSpacing`      | :white_check_mark: |                    |
 | `ligatures`          | :white_check_mark: |                    |
-| `lineLength`         | :white_check_mark: |
 | `lineHeight`         | :white_check_mark: |                    |
+| `maximalLineLength`  | :white_check_mark: |                    |
+| `minimalLineLength`  | :white_check_mark: |                    |
 | `noRuby`             | :white_check_mark: |                    |
 | `offsetFirstPage`    |                    | :white_check_mark: |
+| `optimalLineLength`  | :white_check_mark: |                    |
 | `pageMargins`        | :white_check_mark: |                    |
 | `paragraphIndent`    | :white_check_mark: |                    |
 | `paragraphSpacing`   | :white_check_mark: |                    |
@@ -476,7 +479,25 @@ The following preferences are effective only when explicitly set. When unset, th
 
 #### Scroll vs paginated
 
-The `columnCount` preference is available only when in paginated mode (`scroll = false`).
+Some preferences are available only in paginated mode (`scroll = false`).
+
+| Preference          | Scroll             | Paginated                                                 |
+|---------------------|--------------------|-----------------------------------------------------------|
+| `columnCount`       |                    | :white_check_mark:                                        |
+| `optimalLineLength` |                    | :white_check_mark: (when `columnCount` is `nil`)          |
+| `minimalLineLength` |                    | :white_check_mark: (when `columnCount` is greater than 1) |
+| `maximalLineLength` | :white_check_mark: | :white_check_mark:                                        |
+
+#### Line length and margins
+
+The navigator computes the number of columns and the line length from the viewport size and these preferences:
+
+* `optimalLineLength` is a factor applied to the optimal line length (640 points). With `columnCount = nil`, it chooses the number of columns fitting in the viewport.
+* `minimalLineLength` is a factor applied to the minimal line length (440 points). With a `columnCount` greater than 1, fewer columns are displayed if the lines would be shorter. When `nil` (the default), the requested number of columns is always displayed.
+* `maximalLineLength` is a factor applied to the maximal line length (740 points). When `nil` (the default), the lines take all the available width.
+* `pageMargins` is a factor applied to the minimal margins on each side of the lines (30 points): left and right, or top and bottom with vertical text. The margins are larger when the line length is limited, and never smaller than the safe area insets.
+
+`minimalLineLength` and `maximalLineLength` are `AnyOptionalRangePreference<Double>` in the `EPUBPreferencesEditor`, see [the view for an `OptionalRangePreference`](#view-for-an-optionalrangepreferencevalue).
 
 #### Dark theme specific preferences
 

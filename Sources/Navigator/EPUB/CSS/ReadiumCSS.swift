@@ -37,27 +37,19 @@ extension ReadiumCSS {
                 ?? "",
         ]
 
-        let baseGutter = 20.0
-        let gutterString = String(format: "%.5fpx", baseGutter * settings.pageMargins)
-        overrides["--RS__pageGutter"] = gutterString
-
-        if settings.scroll {
-            if resolvedLayout != nil {
-                if settings.verticalText {
-                    overrides["--RS__scrollPaddingLeft"] = String(format: "%.5fpx", safeAreaInsets.left / settings.fontSize)
-                    overrides["--RS__scrollPaddingRight"] = String(format: "%.5fpx", safeAreaInsets.right / settings.fontSize)
-                } else {
-                    overrides["--RS__scrollPaddingTop"] = String(format: "%.5fpx", safeAreaInsets.top / settings.fontSize)
-                    overrides["--RS__scrollPaddingBottom"] = String(format: "%.5fpx", safeAreaInsets.bottom / settings.fontSize)
-                }
+        // The margins around the lines come from the resolved `lineLength`,
+        // so `--RS__pageGutter` is not set: `body` is `border-box`, so the
+        // gutter would be added to these margins.
+        //
+        // The scroll padding is divided by the font size to compensate the
+        // `zoom` applied by `--USER__fontSize`.
+        if settings.scroll, resolvedLayout != nil {
+            if settings.verticalText {
+                overrides["--RS__scrollPaddingLeft"] = String(format: "%.5fpx", safeAreaInsets.left / settings.fontSize)
+                overrides["--RS__scrollPaddingRight"] = String(format: "%.5fpx", safeAreaInsets.right / settings.fontSize)
             } else {
-                if settings.verticalText {
-                    overrides["--RS__scrollPaddingTop"] = gutterString
-                    overrides["--RS__scrollPaddingBottom"] = gutterString
-                } else {
-                    overrides["--RS__scrollPaddingLeft"] = gutterString
-                    overrides["--RS__scrollPaddingRight"] = gutterString
-                }
+                overrides["--RS__scrollPaddingTop"] = String(format: "%.5fpx", safeAreaInsets.top / settings.fontSize)
+                overrides["--RS__scrollPaddingBottom"] = String(format: "%.5fpx", safeAreaInsets.bottom / settings.fontSize)
             }
         }
 
@@ -76,14 +68,13 @@ extension ReadiumCSS {
             break
         }
 
-        let colCount: Int? = resolvedLayout?.colCount ?? settings.columnCount
-        let lineLength: CSSLength? = resolvedLayout.map { CSSPxLength($0.lineLength / settings.fontSize) }
-            ?? CSSPercentLength(settings.lineLength)
-
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            colCount: colCount,
-            lineLength: lineLength,
+            // The layout is resolved once the viewport size is known. The line
+            // length is divided by the font size to compensate the `zoom`
+            // applied by `--USER__fontSize`.
+            colCount: resolvedLayout?.colCount,
+            lineLength: resolvedLayout.map { CSSPxLength($0.lineLength / settings.fontSize) },
             appearance: {
                 switch settings.theme {
                 case .light: return nil

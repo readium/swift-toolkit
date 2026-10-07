@@ -32,6 +32,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     private let defaults: EPUBDefaults
 
+    private let lineLengthRange: ClosedRange<Double> = 0.5 ... 2.0
+    private let lineLengthStep: Double = 0.1
+
     /// Creates an editor for the given `publication`.
     ///
     /// - Parameters:
@@ -300,6 +303,44 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
+    /// Factor applied to the maximal line length. When unset and without a
+    /// default value, the lines take all the available width.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var maximalLineLength: AnyOptionalRangePreference<Double> =
+        optionalRangePreference(
+            preference: \.maximalLineLength,
+            setting: \.maximalLineLength,
+            defaultValue: 1.0,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
+            supportedRange: lineLengthRange,
+            progressionStrategy: .increment(lineLengthStep),
+            format: \.percentageString
+        )
+
+    /// Factor applied to the minimal line length, under which the number of
+    /// columns is reduced. When unset and without a default value, the
+    /// requested number of columns is always displayed.
+    ///
+    /// Only effective when:
+    ///  - the publication contains reflowable resources
+    ///  - `scroll` is off
+    ///  - `columnCount` is greater than 1
+    public lazy var minimalLineLength: AnyOptionalRangePreference<Double> =
+        optionalRangePreference(
+            preference: \.minimalLineLength,
+            setting: \.minimalLineLength,
+            defaultValue: 1.0,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && !$0.settings.scroll
+                    && ($0.settings.columnCount ?? 1) > 1
+            },
+            supportedRange: lineLengthRange,
+            progressionStrategy: .increment(lineLengthStep),
+            format: \.percentageString
+        )
+
     /// Hiding/disabling ruby (furigana) annotations.
     ///
     /// Only effective when:
@@ -335,19 +376,30 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             }
         )
 
-    /// Factor applied to the maximum line length. Defaults to 100%.
-    public lazy var lineLength: AnyRangePreference<Double> =
+    /// Factor applied to the optimal line length, used to choose the number
+    /// of columns. Defaults to 100%.
+    ///
+    /// Only effective when:
+    ///  - the publication contains reflowable resources
+    ///  - `scroll` is off
+    ///  - `columnCount` is `nil` (automatic)
+    public lazy var optimalLineLength: AnyRangePreference<Double> =
         rangePreference(
-            preference: \.lineLength,
-            setting: \.lineLength,
-            defaultEffectiveValue: defaults.lineLength ?? 1.0,
-            isEffective: { _ in true },
-            supportedRange: 0.0 ... 1.0,
-            progressionStrategy: .increment(0.1),
+            preference: \.optimalLineLength,
+            setting: \.optimalLineLength,
+            defaultEffectiveValue: defaults.optimalLineLength ?? 1.0,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && !$0.settings.scroll
+                    && $0.settings.columnCount == nil
+            },
+            supportedRange: lineLengthRange,
+            progressionStrategy: .increment(lineLengthStep),
             format: \.percentageString
         )
 
-    /// Factor applied to horizontal margins. Default to 1.
+    /// Factor applied to the minimal margins on each side of the lines (left
+    /// and right, or top and bottom with vertical text). Defaults to 1.
     ///
     /// Only effective when the publication contains reflowable resources.
     public lazy var pageMargins: AnyRangePreference<Double> =

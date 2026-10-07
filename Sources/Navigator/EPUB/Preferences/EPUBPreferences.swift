@@ -61,11 +61,30 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Enable ligatures in Arabic.
     public var ligatures: Bool?
 
-    /// The maximum line length.
-    public var lineLength: Double?
-
     /// Leading line height.
     public var lineHeight: Double?
+
+    /// Factor applied to the optimal line length of the reflowable resources,
+    /// used to determine the best number of columns automatically.
+    ///
+    /// It is used only in paginated mode, when `columnCount` is `nil`. Values
+    /// lower than or equal to `0` are ignored.
+    public var optimalLineLength: Double?
+
+    /// Factor applied to the maximal line length of the reflowable resources.
+    ///
+    /// When `nil` and without a default value, the lines take all the available
+    /// width. Values lower than or equal to `0` are ignored.
+    public var maximalLineLength: Double?
+
+    /// Factor applied to the minimal line length of the reflowable resources,
+    /// under which the number of columns is reduced.
+    ///
+    /// It is used only in paginated mode, when `columnCount` is greater than
+    /// 1. When `nil` and without a default value, the requested number of
+    /// columns is always displayed. Values lower than or equal to `0` are
+    /// ignored.
+    public var minimalLineLength: Double?
 
     /// Hiding/disabling ruby (furigana) annotations.
     public var noRuby: Bool?
@@ -76,7 +95,8 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// This is only effective if spreads are enabled.
     public var offsetFirstPage: Bool?
 
-    /// Factor applied to horizontal margins.
+    /// Factor applied to the minimal margins on each side of the lines (left
+    /// and right, or top and bottom with vertical text).
     public var pageMargins: Double?
 
     /// Text indentation for paragraphs.
@@ -132,10 +152,12 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
-        lineLength: Double? = nil,
         lineHeight: Double? = nil,
+        maximalLineLength: Double? = nil,
+        minimalLineLength: Double? = nil,
         noRuby: Bool? = nil,
         offsetFirstPage: Bool? = nil,
+        optimalLineLength: Double? = nil,
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
@@ -163,10 +185,12 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
-        self.lineLength = lineLength.map { max($0, 0) }
         self.lineHeight = lineHeight
+        self.maximalLineLength = maximalLineLength.takeIf { $0 > 0 }
+        self.minimalLineLength = minimalLineLength.takeIf { $0 > 0 }
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
+        self.optimalLineLength = optimalLineLength.takeIf { $0 > 0 }
         self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
@@ -197,10 +221,12 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
-            lineLength: other.lineLength ?? lineLength,
             lineHeight: other.lineHeight ?? lineHeight,
+            maximalLineLength: other.maximalLineLength ?? maximalLineLength,
+            minimalLineLength: other.minimalLineLength ?? minimalLineLength,
             noRuby: other.noRuby ?? noRuby,
             offsetFirstPage: other.offsetFirstPage ?? offsetFirstPage,
+            optimalLineLength: other.optimalLineLength ?? optimalLineLength,
             pageMargins: other.pageMargins ?? pageMargins,
             paragraphIndent: other.paragraphIndent ?? paragraphIndent,
             paragraphSpacing: other.paragraphSpacing ?? paragraphSpacing,
@@ -284,10 +310,12 @@ public extension EPUBPreferences {
         case language
         case letterSpacing
         case ligatures
-        case lineLength
         case lineHeight
+        case maximalLineLength
+        case minimalLineLength
         case noRuby
         case offsetFirstPage
+        case optimalLineLength
         case pageMargins
         case paragraphIndent
         case paragraphSpacing
@@ -332,10 +360,12 @@ public extension EPUBPreferences {
             language: container.decodeLeniently(Language.self, forKey: .language),
             letterSpacing: container.decodeLeniently(Double.self, forKey: .letterSpacing),
             ligatures: container.decodeLeniently(Bool.self, forKey: .ligatures),
-            lineLength: container.decodeLeniently(Double.self, forKey: .lineLength),
             lineHeight: container.decodeLeniently(Double.self, forKey: .lineHeight),
+            maximalLineLength: container.decodeLeniently(Double.self, forKey: .maximalLineLength),
+            minimalLineLength: container.decodeLeniently(Double.self, forKey: .minimalLineLength),
             noRuby: container.decodeLeniently(Bool.self, forKey: .noRuby),
             offsetFirstPage: container.decodeLeniently(Bool.self, forKey: .offsetFirstPage),
+            optimalLineLength: container.decodeLeniently(Double.self, forKey: .optimalLineLength),
             pageMargins: container.decodeLeniently(Double.self, forKey: .pageMargins),
             paragraphIndent: container.decodeLeniently(Double.self, forKey: .paragraphIndent),
             paragraphSpacing: container.decodeLeniently(Double.self, forKey: .paragraphSpacing),
@@ -372,10 +402,12 @@ public extension EPUBPreferences {
         try container.encodeIfPresent(language, forKey: .language)
         try container.encodeIfPresent(letterSpacing, forKey: .letterSpacing)
         try container.encodeIfPresent(ligatures, forKey: .ligatures)
-        try container.encodeIfPresent(lineLength, forKey: .lineLength)
         try container.encodeIfPresent(lineHeight, forKey: .lineHeight)
+        try container.encodeIfPresent(maximalLineLength, forKey: .maximalLineLength)
+        try container.encodeIfPresent(minimalLineLength, forKey: .minimalLineLength)
         try container.encodeIfPresent(noRuby, forKey: .noRuby)
         try container.encodeIfPresent(offsetFirstPage, forKey: .offsetFirstPage)
+        try container.encodeIfPresent(optimalLineLength, forKey: .optimalLineLength)
         try container.encodeIfPresent(pageMargins, forKey: .pageMargins)
         try container.encodeIfPresent(paragraphIndent, forKey: .paragraphIndent)
         try container.encodeIfPresent(paragraphSpacing, forKey: .paragraphSpacing)

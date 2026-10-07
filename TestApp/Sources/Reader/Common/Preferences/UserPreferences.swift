@@ -118,7 +118,10 @@ struct UserPreferences<
                             letterSpacing: editor.letterSpacing,
                             ligatures: editor.ligatures,
                             lineHeight: editor.lineHeight,
+                            maximalLineLength: editor.maximalLineLength,
+                            minimalLineLength: editor.minimalLineLength,
                             noRuby: editor.noRuby,
+                            optimalLineLength: editor.optimalLineLength,
                             pageMargins: editor.pageMargins,
                             paragraphIndent: editor.paragraphIndent,
                             paragraphSpacing: editor.paragraphSpacing,
@@ -333,7 +336,10 @@ struct UserPreferences<
         letterSpacing: AnyRangePreference<Double>? = nil,
         ligatures: AnyPreference<Bool>? = nil,
         lineHeight: AnyRangePreference<Double>? = nil,
+        maximalLineLength: AnyOptionalRangePreference<Double>? = nil,
+        minimalLineLength: AnyOptionalRangePreference<Double>? = nil,
         noRuby: AnyPreference<Bool>? = nil,
+        optimalLineLength: AnyRangePreference<Double>? = nil,
         pageMargins: AnyRangePreference<Double>? = nil,
         paragraphIndent: AnyRangePreference<Double>? = nil,
         paragraphSpacing: AnyRangePreference<Double>? = nil,
@@ -410,6 +416,30 @@ struct UserPreferences<
                 stepperRow(
                     title: "Page margins",
                     preference: pageMargins,
+                    commit: commit
+                )
+            }
+
+            if let optimalLineLength = optimalLineLength {
+                stepperRow(
+                    title: "Optimal line length",
+                    preference: optimalLineLength,
+                    commit: commit
+                )
+            }
+
+            if let minimalLineLength = minimalLineLength {
+                optionalStepperRow(
+                    title: "Minimal line length",
+                    preference: minimalLineLength,
+                    commit: commit
+                )
+            }
+
+            if let maximalLineLength = maximalLineLength {
+                optionalStepperRow(
+                    title: "Maximal line length",
+                    preference: maximalLineLength,
                     commit: commit
                 )
             }
@@ -759,17 +789,24 @@ struct UserPreferences<
                         onIncrement: onIncrement,
                         onDecrement: onDecrement)
 
-                Text(value)
-                    .font(.caption)
+                stepperValue(value)
             }
         }
     }
 
-    /// Component for an `OptionalRangePreference` with a `Toggle` to set it
-    /// to `nil`, and a `Stepper` to modify its value.
+    /// Value displayed next to a `Stepper`, with a minimum width so that the
+    /// controls don't move when the value changes.
+    func stepperValue(_ value: String) -> some View {
+        Text(value)
+            .font(.caption)
+            .monospacedDigit()
+            .frame(minWidth: 40, alignment: .trailing)
+    }
+
+    /// Component for an `OptionalRangePreference` with a `Toggle` to enable
+    /// it, and a `Stepper` to modify its value.
     func optionalStepperRow<V: Comparable>(
         title: String,
-        disableTitle: String,
         preference: AnyOptionalRangePreference<V>,
         commit: @escaping () -> Void
     ) -> some View {
@@ -779,24 +816,28 @@ struct UserPreferences<
             isActive: preference.isEffective,
             onClear: { preference.clear(); commit() }
         ) {
-            VStack {
-                Toggle(disableTitle, isOn: Binding(
-                    get: { value == nil },
-                    set: { isDisabled in
-                        preference.set(isDisabled ? nil : preference.defaultValue)
+            HStack(spacing: 4) {
+                Text(title)
+
+                Spacer()
+
+                Toggle(title, isOn: Binding(
+                    get: { value != nil },
+                    set: { isEnabled in
+                        preference.set(isEnabled ? preference.defaultValue : nil)
                         commit()
                     }
                 ))
+                .labelsHidden()
 
-                HStack(spacing: 4) {
-                    Stepper(title,
-                            onIncrement: { preference.increment(); commit() },
-                            onDecrement: { preference.decrement(); commit() })
+                Stepper(title,
+                        onIncrement: { preference.increment(); commit() },
+                        onDecrement: { preference.decrement(); commit() })
+                    .labelsHidden()
+                    .disabled(value == nil)
 
-                    Text(preference.format(value: value ?? preference.defaultValue))
-                        .font(.caption)
-                }
-                .disabled(value == nil)
+                stepperValue(preference.format(value: value ?? preference.defaultValue))
+                    .foregroundColor(value == nil ? .gray : nil)
             }
         }
     }
