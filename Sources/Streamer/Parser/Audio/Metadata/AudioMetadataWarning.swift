@@ -18,6 +18,10 @@ public enum AudioMetadataWarning: Warning, Hashable {
     /// negative or not finite. It was left out of the table of contents.
     case invalidChapterStart(href: AnyURL, title: String)
 
+    /// The metadata of the audio file at `href` could not be interpreted. The
+    /// file was kept in the reading order without its metadata.
+    case undecodableMetadata(href: AnyURL, reason: String)
+
     public var tag: String {
         "audio-metadata"
     }
@@ -28,6 +32,8 @@ public enum AudioMetadataWarning: Warning, Hashable {
             return "Ignored the invalid ISBN `\(isbn)` of \(href.string)"
         case let .invalidChapterStart(href: href, title: title):
             return "Ignored the chapter `\(title)` of \(href.string), its start time is invalid"
+        case let .undecodableMetadata(href: href, reason: reason):
+            return "Ignored the metadata of \(href.string), it could not be read: \(reason)"
         }
     }
 
