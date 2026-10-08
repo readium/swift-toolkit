@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file. Take a look
 * The `AudioNavigator` reports the new `MediaPlaybackState.ended` when the playback reaches the end of the publication, by playing or seeking up to it.
 * `MediaPlaybackState.playsWhenReady` indicates whether the player is playing or will as soon as it is ready, e.g. to choose between a play and a pause button.
 
+#### Streamer
+
+* Audio publications without a manifest, such as a standalone M4B or MP3 file or a container of audio files, now have a table of contents built from the chapters embedded in their audio files.
+* New `AudioMetadataReader` to customize how `AudioParser` reads the metadata of each audio file.
+
 ### Changed
 
 #### Shared
@@ -31,6 +36,10 @@ All notable changes to this project will be documented in this file. Take a look
     * Seeking up to the end of a resource with `seek(to:)` or `seek(by:)` ends it, like playing up to it. `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is called, and the playback is paused at the end of the resource when it returns `false`.
 * `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is no longer called after the last resource. Use the new `MediaPlaybackState.ended` to detect the end of the publication, [see the migration guide](docs/Migration%20Guide.md).
 * `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` takes an `AnyURL` instead of a `RelativeURL`, to report resources with an absolute HREF. Implementations must be updated or they are no longer called, [see the migration guide](docs/Migration%20Guide.md).
+
+#### Streamer
+
+* `AudioPublicationManifestAugmentor` is replaced by `AudioMetadataReader`, which reads the metadata of one audio file, [see the migration guide](docs/Migration%20Guide.md).
 
 ### Fixed
 
