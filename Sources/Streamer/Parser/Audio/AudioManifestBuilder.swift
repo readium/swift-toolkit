@@ -208,10 +208,3 @@ private extension [AudioMetadata] {
         }
     }
 }
-
-private extension Double {
-    /// Returns this number when it is finite and greater than 0.
-    func orNilIfNotPositive() -> Double? {
-        isFinite && self > 0 ? self : nil
-    }
-}
