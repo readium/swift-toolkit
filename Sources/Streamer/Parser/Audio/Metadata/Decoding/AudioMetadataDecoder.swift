@@ -172,7 +172,7 @@ private extension Substring {
     /// `TCON` frame: the index of a genre, `RX` for a remix or `CR` for a
     /// cover.
     var isID3GenreReference: Bool {
-        self == "RX" || self == "CR" || (!isEmpty && allSatisfy(("0" ... "9").contains))
+        self == "RX" || self == "CR" || (!isEmpty && allSatisfy { $0.isASCII && $0.isNumber })
     }
 }
 
