@@ -10,7 +10,6 @@ import Testing
 struct LocatorLocationsAudioTests {
     @Test("temporal is nil without a valid temporal fragment", arguments: [
         [],
-        [""],
         // Unrelated fragments
         ["page=5"],
         ["section", "start=10"],
@@ -19,8 +18,8 @@ struct LocatorLocationsAudioTests {
         ["t="],
         ["t"],
         ["t=10,"],
-    ] as [[String]])
-    func temporalIsNil(fragments: [String]) {
+    ] as [[URLFragment]])
+    func temporalIsNil(fragments: [URLFragment]) {
         #expect(Locator.Locations(fragments: fragments).temporal == nil)
     }
 
@@ -36,17 +35,14 @@ struct LocatorLocationsAudioTests {
         // Compound fragment
         (["t=10&track=audio"], TemporalSelector(position: 10)),
         (["track=audio&t=10,20"], TemporalSelector(start: 10, end: 20)),
-        // Fragment with characters to percent-encode
-        (["track=café noir&t=10"], TemporalSelector(position: 10)),
-        (["id=100%&t=10"], TemporalSelector(position: 10)),
         // Other fragments are ignored
         (["page=3", "t=10", "section"], TemporalSelector(position: 10)),
         // The last valid temporal fragment wins
         (["t=5", "t=10"], TemporalSelector(position: 10)),
         (["t=5", "t=10", "t=one"], TemporalSelector(position: 10)),
         (["t=5&t=7", "page=2"], TemporalSelector(position: 7)),
-    ] as [([String], TemporalSelector)])
-    func temporal(fragments: [String], expected: TemporalSelector) {
+    ] as [([URLFragment], TemporalSelector)])
+    func temporal(fragments: [URLFragment], expected: TemporalSelector) {
         #expect(Locator.Locations(fragments: fragments).temporal == expected)
     }
 }
