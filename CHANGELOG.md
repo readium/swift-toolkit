@@ -54,6 +54,7 @@ All notable changes to this project will be documented in this file. Take a look
     * The playback is reported as `.loading` instead of `.paused` during a seek, when it resumes afterwards.
 * [#632](https://github.com/readium/swift-toolkit/issues/632) Fixed decorations being duplicated on both pages when a fixed-layout EPUB is displayed as a two-page spread (contributed by [@mvanhorn](https://github.com/readium/swift-toolkit/pull/915)).
 * Fixed a memory leak in `EPUBNavigatorViewController` when quickly turning the pages of a fixed-layout publication (contributed by [@deltakosh](https://github.com/readium/swift-toolkit/pull/917)).
+* Fixed reflowable EPUBs being displayed as a single column on the iPhone Duo unfolded in landscape, by porting the [responsive columns fix of Readium CSS 1.1.2](https://github.com/readium/css/issues/247).
 
 
 ## [4.0.0-alpha.2] - 2026-09-18
