@@ -72,7 +72,7 @@ By default, the Navigator plays the next resource when it reaches the end of the
 Audio files embed their own metadata as tags (MP4 atoms and ID3 frames). When you open a ZIP or folder of audio files, or a standalone M4B or MP3 file, there is no manifest to describe the publication, so Readium reads these tags to build the `Publication`:
 
 * The **metadata**, following the [Readium audio metadata rules](https://github.com/readium/architecture/blob/master/streamer/parser/audio-metadata.md).
-* The **table of contents**, from the chapters embedded in each file.
+* The **table of contents**, from the chapters embedded in each file. Without any chapter, the titles of the files make the table of contents when at least two files have one.
 * The **cover**, from the first file holding one in reading order.
 
 Each link of the `readingOrder` holds the title, the duration and the bitrate of its audio file.

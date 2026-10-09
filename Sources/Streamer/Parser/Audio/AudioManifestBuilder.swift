@@ -24,6 +24,15 @@ struct AudioManifestBuilder {
     /// Builds the manifest from the given audio files, in reading order.
     func build(entries: [Entry], warnings: WarningLogger?) -> Manifest {
         let files = entries.compactMap(\.metadata)
+        let readingOrder = entries.map { entry in
+            Link(
+                href: entry.url.string,
+                mediaType: entry.format.mediaType,
+                title: entry.metadata?.title?.orNilIfBlank(),
+                bitrate: entry.metadata?.bitrate?.orNilIfNotPositive(),
+                duration: entry.metadata?.duration?.orNilIfNotPositive()
+            )
+        }
 
         return Manifest(
             metadata: Metadata(
@@ -42,16 +51,8 @@ struct AudioManifestBuilder {
                 duration: makeDuration(entries: entries),
                 belongsToSeries: files.series
             ),
-            readingOrder: entries.map { entry in
-                Link(
-                    href: entry.url.string,
-                    mediaType: entry.format.mediaType,
-                    title: entry.metadata?.title?.orNilIfBlank(),
-                    bitrate: entry.metadata?.bitrate?.orNilIfNotPositive(),
-                    duration: entry.metadata?.duration?.orNilIfNotPositive()
-                )
-            },
-            tableOfContents: makeTableOfContents(entries: entries, warnings: warnings)
+            readingOrder: readingOrder,
+            tableOfContents: makeTableOfContents(entries: entries, readingOrder: readingOrder, warnings: warnings)
         )
     }
 
@@ -88,17 +89,19 @@ struct AudioManifestBuilder {
         return total.orNilIfNotPositive()
     }
 
-    /// Returns the concatenation of the chapters of each file, or an empty
-    /// list when no file has a titled chapter.
+    /// Returns the concatenation of the chapters of each file.
+    ///
+    /// When no file has a titled chapter, the table of contents is made of
+    /// the titled files of the reading order instead.
     ///
     /// https://github.com/readium/architecture/blob/master/streamer/parser/audio-metadata.md#table-of-contents
-    private func makeTableOfContents(entries: [Entry], warnings: WarningLogger?) -> [Link] {
+    private func makeTableOfContents(entries: [Entry], readingOrder: [Link], warnings: WarningLogger?) -> [Link] {
         let chapters = entries.map { entry in
             makeLinks(for: entry.metadata?.chapters ?? [], of: entry, warnings: warnings)
         }
 
         guard chapters.contains(where: { !$0.isEmpty }) else {
-            return []
+            return readingOrder.tableOfContentsFromTitles
         }
 
         return zip(entries, chapters).flatMap { entry, chapters -> [Link] in

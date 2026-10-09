@@ -113,6 +113,13 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
                 // issues when serving the relative reading order resources.
                 manifest.links = manifest.links.filter { !$0.rels.contains(.self) }
 
+                // An audiobook often has no table of contents while its
+                // reading order links are titled. Use them instead, so that
+                // apps can offer a navigation between the resources.
+                if manifest.conforms(to: .audiobook), manifest.tableOfContents.isEmpty {
+                    manifest.tableOfContents = manifest.readingOrder.tableOfContentsFromTitles
+                }
+
                 return Publication.Builder(
                     manifest: manifest,
                     container: container,

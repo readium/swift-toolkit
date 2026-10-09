@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Streamer
 
 * Audio publications without a manifest, such as a standalone M4B or MP3 file or a container of audio files, now have a table of contents built from the chapters embedded in their audio files.
+* Audiobooks without a table of contents now get one from the titles of their reading order resources.
 * New `AudioMetadataReader` to customize how `AudioParser` reads the metadata of each audio file.
 
 ### Changed

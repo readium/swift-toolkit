@@ -377,14 +377,17 @@ enum AudioManifestBuilderTests {
             ("untitled chapters", [.init(start: 0), .init(title: " ", start: 10)]),
             ("titled chapters with an invalid start time", [.init(title: "Chapter 1", start: -1)]),
         ] as [(String, [AudioMetadata.Chapter])])
-        func isNotProducedWithoutAValidTitledChapter(rule: String, chapters: [AudioMetadata.Chapter]) {
+        func isMadeOfTheFileTitlesWithoutAValidTitledChapter(rule: String, chapters: [AudioMetadata.Chapter]) {
             let manifest = build(
                 AudioMetadata(title: "Part 1", duration: 10, chapters: chapters),
-                AudioMetadata(title: "Part 2", duration: 20)
+                AudioMetadata(duration: 15),
+                AudioMetadata(title: "Part 3", duration: 20)
             )
 
-            #expect(manifest.tableOfContents.isEmpty)
-            #expect(manifest.subcollections.isEmpty)
+            #expect(manifest.tableOfContents == [
+                Link(href: "1.mp3", title: "Part 1", duration: 10),
+                Link(href: "3.mp3", title: "Part 3", duration: 20),
+            ])
         }
 
         @Test func concatenatesTheChaptersOfEachFileFollowingTheReadingOrder() {
