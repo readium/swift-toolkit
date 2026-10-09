@@ -20,6 +20,15 @@ struct ReadiumCSS {
 }
 
 extension ReadiumCSS {
+    // Default colors of the Readium CSS stylesheets, used when the matching
+    // user colors are unset and the publication doesn't have its own.
+    static let defaultTextColor = Color(rawValue: 0x121212)
+    static let defaultBackgroundColor = Color(rawValue: 0xFFFFFF)
+    static let defaultLinkColor = Color(rawValue: 0x0000EE)
+    static let defaultVisitedColor = Color(rawValue: 0x551A8B)
+}
+
+extension ReadiumCSS {
     @MainActor
     mutating func update(
         with settings: EPUBSettings,
@@ -75,19 +84,14 @@ extension ReadiumCSS {
             // applied by `--USER__fontSize`.
             colCount: resolvedLayout?.colCount,
             lineLength: resolvedLayout.map { CSSPxLength($0.lineLength / settings.fontSize) },
-            appearance: {
-                switch settings.theme {
-                case .light: return nil
-                case .dark: return .night
-                case .sepia: return .sepia
-                }
-            }(),
             blendImages: settings.blendImages,
             darkenImages: settings.darkenImages.map { 1 - $0 },
             invertImages: settings.invertImages,
             invertGaiji: settings.invertGaiji,
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
+            linkColor: settings.linkColor.map { CSSIntColor($0.rawValue) },
+            visitedColor: settings.visitedColor.map { CSSIntColor($0.rawValue) },
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
             textAlign: {

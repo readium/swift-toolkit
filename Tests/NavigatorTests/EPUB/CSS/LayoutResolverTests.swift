@@ -268,6 +268,7 @@ struct LayoutResolverTests {
             letterSpacing: nil,
             ligatures: nil,
             lineHeight: nil,
+            linkColor: nil,
             maximalLineLength: maximalLineLength,
             minimalLineLength: minimalLineLength,
             offsetFirstPage: nil,
@@ -281,8 +282,8 @@ struct LayoutResolverTests {
             textAlign: nil,
             textColor: nil,
             textNormalization: false,
-            theme: .light,
             verticalText: false,
+            visitedColor: nil,
             wordSpacing: nil
         )
     }

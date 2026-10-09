@@ -15,7 +15,7 @@ Readium CSS has been upgraded to version 2. If you configure custom Reading Syst
 
 However, the EPUB navigator now overrides it with the line length it computes, [see below](#epubpreferences-line-length-and-page-margins).
 
-`CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, and `typeScale` are also removed, as these properties don't exist in Readium CSS v2.
+`CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, `typeScale`, and `appearance` (with the `CSSAppearance` enum) are also removed, as these properties don't exist in Readium CSS v2.
 
 ### `EPUBPreferences` Column Count
 
@@ -47,9 +47,35 @@ To support precise CSS filtering of images via Readium CSS v2, `EPUBPreferences.
 +preferences.invertImages = 1.0
 ```
 
-The previous filters were applied only with the dark theme, while the new preferences are applied with any theme. To keep the previous behavior, set them only when `theme` is `.dark`.
+The previous filters were applied only with the dark theme, while the new preferences are applied with any colors. To keep the previous behavior, set them only together with the colors of your dark theme, [see below](#epubpreferences-themes).
 
 `EPUBPreferencesEditor.imageFilter` is replaced with `darkenImages`, an `AnyRangePreference<Double>`, and `invertImages`, an `AnyPreference<Bool>` toggling the inversion between `0.0` and `1.0`.
+
+### `EPUBPreferences` themes
+
+Readium CSS v2 has no themes, so the `theme` preference is removed from `EPUBPreferences`, `EPUBSettings` and `EPUBPreferencesEditor`, as well as the `Theme` enum. A theme is now a set of color preferences that your app applies together: `textColor` and `backgroundColor`, plus the new `linkColor` and `visitedColor`.
+
+A color preference which is set overrides the colors of the publication. When unset, the colors of the publication are kept, so the previous `light` theme is the same as leaving the four colors unset.
+
+To rebuild a theme picker in your app, these are the colors of the previous themes:
+
+| Theme   | `textColor` | `backgroundColor` | `linkColor` | `visitedColor` |
+|---------|-------------|-------------------|-------------|----------------|
+| `light` | unset       | unset             | unset       | unset          |
+| `sepia` | `#121212`   | `#FAF4E8`         | unset       | unset          |
+| `dark`  | `#FEFEFE`   | `#000000`         | `#63CAFF`   | `#0099E5`      |
+
+```diff
+-preferences.theme = .dark
++preferences.textColor = Color(hex: "#FEFEFE")
++preferences.backgroundColor = Color(hex: "#000000")
++preferences.linkColor = Color(hex: "#63CAFF")
++preferences.visitedColor = Color(hex: "#0099E5")
+```
+
+See [the Preferences guide](Guides/Navigator/Preferences.md#colors-and-themes) for an example of theme picker built with the `EPUBPreferencesEditor`.
+
+The previous dark theme also inverted the gaiji (images used for the characters missing from the fonts in Japanese publications), unless the images were darkened. Set `invertGaiji` to `1.0` along with your dark colors to keep them readable. It inverted the title page images too, which is no longer possible.
 
 ### `EPUBPreferences` publisher styles
 
@@ -70,6 +96,7 @@ The publisher styles are observed as long as the related preferences are unset. 
 
 * `columnCount`: `"auto"` becomes `nil`, `"1"` and `"2"` become `1` and `2`.
 * `imageFilter`: with the dark theme, `"darken"` becomes `darkenImages = 0.2` and `"invert"` becomes `invertImages = 1.0`. With another theme, the filter is dropped, as it was not applied.
+* `theme`: `"dark"` and `"sepia"` become the colors listed [above](#epubpreferences-themes), and `"light"` is dropped. The colors which were saved along with the theme are kept, the theme only fills the missing ones. `"dark"` also sets `invertGaiji = 1.0`, unless `imageFilter` is `"darken"`.
 * `publisherStyles`: when `true`, the preferences it disabled (`hyphens`, `letterSpacing`, `ligatures`, `lineHeight`, `paragraphIndent`, `paragraphSpacing`, `textAlign` and `wordSpacing`) are dropped, as they now apply as soon as they are set. When `false` or missing, they are kept. If your app kept the default `EPUBDefaults.publisherStyles` (`true`), these preferences saved without an explicit `publisherStyles` were ignored and will now be applied.
 * `typeScale` is dropped.
 
@@ -798,7 +825,7 @@ Please refer to the following table for the correspondence between legacy settin
 
 | **Legacy**          | **New**                                                |
 |---------------------|--------------------------------------------------------|
-| `appearance`        | `theme`                                                |
+| `appearance`        | `theme` (replaced by the color preferences in 4.0)     |
 | `backgroundColor`   | `backgroundColor`                                      |
 | `columnCount`       | `columnCount` (reflowable) and `spread` (fixed-layout) |
 | `fontFamily`        | `fontFamily`                                           |

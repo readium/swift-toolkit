@@ -15,13 +15,14 @@ struct CSSUserPropertiesTests {
                 "--USER__view": nil,
                 "--USER__colCount": nil,
                 "--USER__lineLength": nil,
-                "--USER__appearance": nil,
                 "--USER__blendImages": nil,
                 "--USER__darkenImages": nil,
                 "--USER__invertImages": nil,
                 "--USER__invertGaiji": nil,
                 "--USER__textColor": nil,
                 "--USER__backgroundColor": nil,
+                "--USER__linkColor": nil,
+                "--USER__visitedColor": nil,
                 "--USER__fontFamily": nil,
                 "--USER__fontSize": nil,
                 "--USER__textAlign": nil,
@@ -44,13 +45,14 @@ struct CSSUserPropertiesTests {
                 view: .scroll,
                 colCount: 0,
                 lineLength: CSSPercentLength(42),
-                appearance: .night,
                 blendImages: true,
                 darkenImages: 0.8,
                 invertImages: 0.9,
                 invertGaiji: 0.95,
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
+                linkColor: CSSHexColor("#0000FF"),
+                visitedColor: CSSHexColor("#FF00FF"),
                 fontFamily: ["Times New"],
                 fontSize: CSSVMaxLength(2.3),
                 textAlign: .justify,
@@ -67,13 +69,14 @@ struct CSSUserPropertiesTests {
                 "--USER__view": "readium-scroll-on",
                 "--USER__colCount": "0",
                 "--USER__lineLength": "4200.00000%",
-                "--USER__appearance": "readium-night-on",
                 "--USER__blendImages": "readium-blend-on",
                 "--USER__darkenImages": "0.80000",
                 "--USER__invertImages": "0.90000",
                 "--USER__invertGaiji": "0.95000",
                 "--USER__textColor": "#FF0000",
                 "--USER__backgroundColor": "#00FF00",
+                "--USER__linkColor": "#0000FF",
+                "--USER__visitedColor": "#FF00FF",
                 "--USER__fontFamily": "\"Times New\"",
                 "--USER__fontSize": "2.30000vmax",
                 "--USER__textAlign": "justify",
@@ -126,13 +129,14 @@ struct CSSUserPropertiesTests {
                 view: .scroll,
                 colCount: 0,
                 lineLength: CSSPercentLength(42),
-                appearance: .night,
                 blendImages: true,
                 darkenImages: 0.8,
                 invertImages: 0.9,
                 invertGaiji: 0.95,
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
+                linkColor: CSSHexColor("#0000FF"),
+                visitedColor: CSSHexColor("#FF00FF"),
                 fontFamily: ["Times New", "Comic Sans"],
                 fontSize: CSSVMaxLength(2.3),
                 textAlign: .justify,
@@ -147,7 +151,6 @@ struct CSSUserPropertiesTests {
                 noRuby: true
             ).css() == """
             --USER__a11yNormalize: readium-a11y-on !important;
-            --USER__appearance: readium-night-on !important;
             --USER__backgroundColor: #00FF00 !important;
             --USER__blendImages: readium-blend-on !important;
             --USER__bodyHyphens: auto !important;
@@ -161,12 +164,14 @@ struct CSSUserPropertiesTests {
             --USER__ligatures: common-ligatures !important;
             --USER__lineHeight: 4.50000pt !important;
             --USER__lineLength: 4200.00000% !important;
+            --USER__linkColor: #0000FF !important;
             --USER__noRuby: readium-noRuby-on !important;
             --USER__paraIndent: 6.70000rem !important;
             --USER__paraSpacing: 5.60000pt !important;
             --USER__textAlign: justify !important;
             --USER__textColor: #FF0000 !important;
             --USER__view: readium-scroll-on !important;
+            --USER__visitedColor: #FF00FF !important;
             --USER__wordSpacing: 7.80000rem !important;
 
             """

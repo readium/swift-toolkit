@@ -59,37 +59,11 @@ public enum Fit: String, Codable, Hashable, Sendable {
     case width
 }
 
-/// Reader theme for reflowable documents.
+@available(*, unavailable, message: "Readium CSS v2 has no themes, use the textColor, backgroundColor, linkColor and visitedColor preferences instead")
 public enum Theme: String, Codable, Hashable, Sendable {
     case light
     case dark
     case sepia
-
-    public var contentColor: Color {
-        switch self {
-        case .light: return Theme.dayContentColor
-        case .dark: return Theme.nightContentColor
-        case .sepia: return Theme.sepiaContentColor
-        }
-    }
-
-    public var backgroundColor: Color {
-        switch self {
-        case .light: return Theme.dayBackgroundColor
-        case .dark: return Theme.nightBackgroundColor
-        case .sepia: return Theme.sepiaBackgroundColor
-        }
-    }
-
-    // https://github.com/readium/readium-css/blob/master/css/src/modules/ReadiumCSS-day_mode.css
-    private static let dayContentColor = Color(hex: "#121212")!
-    private static let dayBackgroundColor = Color(hex: "#FFFFFF")!
-    // https://github.com/readium/readium-css/blob/master/css/src/modules/ReadiumCSS-night_mode.css
-    private static let nightContentColor = Color(hex: "#FEFEFE")!
-    private static let nightBackgroundColor = Color(hex: "#000000")!
-    // https://github.com/readium/readium-css/blob/master/css/src/modules/ReadiumCSS-sepia_mode.css
-    private static let sepiaContentColor = Color(hex: "#121212")!
-    private static let sepiaBackgroundColor = Color(hex: "#faf4e8")!
 }
 
 @available(*, unavailable, message: "Use an Int? instead, where nil means an automatic number of columns")
@@ -164,6 +138,15 @@ public struct Color: RawRepresentable, Codable, Hashable, Sendable {
         let g = CGFloat((rawValue >> 8) & 0xFF) / 255
         let b = CGFloat(rawValue & 0xFF) / 255
         return UIColor(red: r, green: g, blue: b, alpha: 1.0)
+    }
+
+    /// Indicates whether the color is perceived as dark, according to its
+    /// luma.
+    var isDark: Bool {
+        let r = Double((rawValue >> 16) & 0xFF)
+        let g = Double((rawValue >> 8) & 0xFF)
+        let b = Double(rawValue & 0xFF)
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5
     }
 }
 

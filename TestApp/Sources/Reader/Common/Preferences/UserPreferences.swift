@@ -118,6 +118,7 @@ struct UserPreferences<
                             letterSpacing: editor.letterSpacing,
                             ligatures: editor.ligatures,
                             lineHeight: editor.lineHeight,
+                            linkColor: editor.linkColor,
                             maximalLineLength: editor.maximalLineLength,
                             minimalLineLength: editor.minimalLineLength,
                             noRuby: editor.noRuby,
@@ -130,8 +131,8 @@ struct UserPreferences<
                             textAlign: editor.textAlign,
                             textColor: editor.textColor,
                             textNormalization: editor.textNormalization,
-                            theme: editor.theme,
                             verticalText: editor.verticalText,
+                            visitedColor: editor.visitedColor,
                             wordSpacing: editor.wordSpacing
                         )
                     case .fixed:
@@ -336,6 +337,7 @@ struct UserPreferences<
         letterSpacing: AnyRangePreference<Double>? = nil,
         ligatures: AnyPreference<Bool>? = nil,
         lineHeight: AnyRangePreference<Double>? = nil,
+        linkColor: AnyPreference<ReadiumNavigator.Color>? = nil,
         maximalLineLength: AnyOptionalRangePreference<Double>? = nil,
         minimalLineLength: AnyOptionalRangePreference<Double>? = nil,
         noRuby: AnyPreference<Bool>? = nil,
@@ -348,8 +350,8 @@ struct UserPreferences<
         textAlign: AnyEnumPreference<ReadiumNavigator.TextAlignment?>? = nil,
         textColor: AnyPreference<ReadiumNavigator.Color>? = nil,
         textNormalization: AnyPreference<Bool>? = nil,
-        theme: AnyEnumPreference<Theme>? = nil,
         verticalText: AnyPreference<Bool>? = nil,
+        visitedColor: AnyPreference<ReadiumNavigator.Color>? = nil,
         wordSpacing: AnyRangePreference<Double>? = nil
     ) -> some View {
         NonEmptySection {
@@ -446,18 +448,19 @@ struct UserPreferences<
         }
 
         NonEmptySection {
-            if let theme = theme {
-                pickerRow(
+            if
+                let textColor = textColor,
+                let backgroundColor = backgroundColor,
+                let linkColor = linkColor,
+                let visitedColor = visitedColor
+            {
+                themeRow(
                     title: "Theme",
-                    preference: theme,
-                    commit: commit,
-                    formatValue: { v in
-                        switch v {
-                        case .light: return "Light"
-                        case .dark: return "Dark"
-                        case .sepia: return "Sepia"
-                        }
-                    }
+                    textColor: textColor,
+                    backgroundColor: backgroundColor,
+                    linkColor: linkColor,
+                    visitedColor: visitedColor,
+                    commit: commit
                 )
             }
 
@@ -505,6 +508,22 @@ struct UserPreferences<
                 colorRow(
                     title: "Background color",
                     preference: backgroundColor,
+                    commit: commit
+                )
+            }
+
+            if let linkColor = linkColor {
+                colorRow(
+                    title: "Link color",
+                    preference: linkColor,
+                    commit: commit
+                )
+            }
+
+            if let visitedColor = visitedColor {
+                colorRow(
+                    title: "Visited link color",
+                    preference: visitedColor,
                     commit: commit
                 )
             }
@@ -863,6 +882,61 @@ struct UserPreferences<
         )
     }
 
+    /// Component to select a `ReaderTheme`, which sets the color preferences
+    /// together.
+    ///
+    /// The selected theme is not stored: it is the one matching the current
+    /// color preferences, or "Custom" when there is none.
+    func themeRow(
+        title: String,
+        textColor: AnyPreference<ReadiumNavigator.Color>,
+        backgroundColor: AnyPreference<ReadiumNavigator.Color>,
+        linkColor: AnyPreference<ReadiumNavigator.Color>,
+        visitedColor: AnyPreference<ReadiumNavigator.Color>,
+        commit: @escaping () -> Void
+    ) -> some View {
+        let apply: (ReaderTheme) -> Void = { theme in
+            textColor.set(theme.textColor)
+            backgroundColor.set(theme.backgroundColor)
+            linkColor.set(theme.linkColor)
+            visitedColor.set(theme.visitedColor)
+            commit()
+        }
+
+        let selection = ReaderTheme.all.first { theme in
+            textColor.value == theme.textColor
+                && backgroundColor.value == theme.backgroundColor
+                && linkColor.value == theme.linkColor
+                && visitedColor.value == theme.visitedColor
+        }
+
+        // "Custom" is offered only when the colors match no theme.
+        var themes: [ReaderTheme?] = ReaderTheme.all
+        if selection == nil {
+            themes.append(nil)
+        }
+
+        return pickerRow(
+            title: title,
+            value: Binding(
+                get: { selection },
+                set: { theme in
+                    // `nil` is the "Custom" theme, which can't be selected.
+                    if let theme = theme {
+                        apply(theme)
+                    }
+                }
+            ),
+            values: themes,
+            isActive: textColor.isEffective
+                || backgroundColor.isEffective
+                || linkColor.isEffective
+                || visitedColor.isEffective,
+            onClear: { apply(.light) },
+            formatValue: { $0?.name ?? "Custom" }
+        )
+    }
+
     /// Component for a `Preference` holding a `Color` value.
     func colorRow(
         title: String,
@@ -928,6 +1002,38 @@ extension Preference {
             set: { set($0); onSet() }
         )
     }
+}
+
+/// A theme offered by the Test App.
+///
+/// The Readium toolkit has no themes: a theme is only a set of color
+/// preferences applied together. `nil` keeps the color of the publication.
+struct ReaderTheme: Hashable {
+    typealias Color = ReadiumNavigator.Color
+
+    var name: String
+    var textColor: Color?
+    var backgroundColor: Color?
+    var linkColor: Color?
+    var visitedColor: Color?
+
+    static let light = ReaderTheme(name: "Light")
+
+    static let sepia = ReaderTheme(
+        name: "Sepia",
+        textColor: Color(rawValue: 0x121212),
+        backgroundColor: Color(rawValue: 0xFAF4E8)
+    )
+
+    static let dark = ReaderTheme(
+        name: "Dark",
+        textColor: Color(rawValue: 0xFEFEFE),
+        backgroundColor: Color(rawValue: 0x000000),
+        linkColor: Color(rawValue: 0x63CAFF),
+        visitedColor: Color(rawValue: 0x0099E5)
+    )
+
+    static let all: [ReaderTheme] = [.light, .sepia, .dark]
 }
 
 /// A `Section` which is not rendered when its content is empty, for example

@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. Take a look
     * Added the `noRuby` preference to allow hiding ruby (furigana) annotations in CJK publications.
     * Added the `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences to control the line length of reflowable resources. The navigator uses them to choose the number of columns and to limit the width of the lines.
     * Added `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji` preferences for precise CSS filtering of images.
+    * Added the `linkColor` and `visitedColor` preferences to change the color of the hyperlinks, with the matching `CSSUserProperties`.
     * Added `CSSRSProperties.defaultLineLength`, `viewportWidth`, `scrollPaddingTop`, `scrollPaddingBottom`, `scrollPaddingLeft`, and `scrollPaddingRight` to configure Readium CSS v2 reading system properties.
     * Added optional CSS minification to the build scripts (`make scripts minify=true`).
 
@@ -32,10 +33,11 @@ All notable changes to this project will be documented in this file. Take a look
 * Changes in the EPUB navigator preferences, following the upgrade to Readium CSS v2.
     * `CSSRSProperties.maxLineLength` is deprecated in favor of `defaultLineLength` to match Readium CSS v2, [see the migration guide](docs/Migration%20Guide.md).
     * Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int?` to support arbitrary column counts, where `nil` means an automatic number of columns. The `ColumnCount` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
-    * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. Unlike `imageFilter`, they are applied with any theme, not only the dark one. The `ImageFilter` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
+    * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. Unlike `imageFilter`, which was applied only with the dark theme, they are applied with any colors. The `ImageFilter` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
+    * Removed the `theme` preference and the `Theme` enum, as Readium CSS v2 has no themes. Use the `textColor`, `backgroundColor`, `linkColor` and `visitedColor` preferences instead. An unset color keeps the one of the publication. A saved `theme` is migrated to these colors, [see the migration guide](docs/Migration%20Guide.md).
     * Removed the `publisherStyles` preference. Readium CSS v2 applies the user settings as soon as they are set, [see the migration guide](docs/Migration%20Guide.md).
     * Removed the `typeScale` preference, as the type scale user setting is no longer available in Readium CSS v2.
-    * Removed `CSSUserProperties.fontOverride`, `advancedSettings`, and `pageMargins`, which don't exist in Readium CSS v2.
+    * Removed `CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, and `appearance` (with `CSSAppearance`), which don't exist in Readium CSS v2.
     * `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, to match the base line height of Readium CSS v2 for Latin scripts.
     * `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones.
 

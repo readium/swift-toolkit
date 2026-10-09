@@ -257,8 +257,8 @@ enum EPUBScriptScope {
         settings.readingProgression
     }
 
-    var theme: Theme {
-        settings.theme
+    var backgroundColor: Color {
+        settings.effectiveBackgroundColor
     }
 
     var scroll: Bool {

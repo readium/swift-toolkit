@@ -53,9 +53,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
     // Appearance
 
-    /// This flag applies a reading mode (sepia or night).
-    public var appearance: CSSAppearance?
-
     /// Blends the images with the background color.
     public var blendImages: Bool?
 
@@ -76,6 +73,12 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 
     /// The background-color for the whole screen. To reset, remove the CSS variable.
     public var backgroundColor: CSSColor?
+
+    /// The color for hyperlinks. To reset, remove the CSS variable.
+    public var linkColor: CSSColor?
+
+    /// The color for visited hyperlinks. To reset, remove the CSS variable.
+    public var visitedColor: CSSColor?
 
     // Typography
 
@@ -137,13 +140,14 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         view: CSSView? = nil,
         colCount: Int? = nil,
         lineLength: CSSLength? = nil,
-        appearance: CSSAppearance? = nil,
         blendImages: Bool? = nil,
         darkenImages: Double? = nil,
         invertImages: Double? = nil,
         invertGaiji: Double? = nil,
         textColor: CSSColor? = nil,
         backgroundColor: CSSColor? = nil,
+        linkColor: CSSColor? = nil,
+        visitedColor: CSSColor? = nil,
         fontFamily: [String]? = nil,
         fontSize: CSSLength? = nil,
         textAlign: CSSTextAlign? = nil,
@@ -161,13 +165,14 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.view = view
         self.colCount = colCount
         self.lineLength = lineLength
-        self.appearance = appearance
         self.blendImages = blendImages
         self.darkenImages = darkenImages
         self.invertImages = invertImages
         self.invertGaiji = invertGaiji
         self.textColor = textColor
         self.backgroundColor = backgroundColor
+        self.linkColor = linkColor
+        self.visitedColor = visitedColor
         self.fontFamily = fontFamily
         self.fontSize = fontSize
         self.textAlign = textAlign
@@ -203,6 +208,11 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         fatalError()
     }
 
+    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    public var appearance: CSSAppearance? {
+        fatalError()
+    }
+
     public func cssProperties() -> [String: String?] {
         var props: [String: String?] = [:]
         // View mode
@@ -213,7 +223,6 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         props.putCSS(name: "--USER__lineLength", value: lineLength)
 
         // Appearance
-        props.putCSS(name: "--USER__appearance", value: appearance)
         props.putCSS(name: "--USER__blendImages", value: CSSFlag(name: "blend", isEnabled: blendImages))
         props.putCSS(name: "--USER__darkenImages", value: darkenImages)
         props.putCSS(name: "--USER__invertImages", value: invertImages)
@@ -222,6 +231,8 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         // Colors
         props.putCSS(name: "--USER__textColor", value: textColor)
         props.putCSS(name: "--USER__backgroundColor", value: backgroundColor)
+        props.putCSS(name: "--USER__linkColor", value: linkColor)
+        props.putCSS(name: "--USER__visitedColor", value: visitedColor)
 
         // Typography
         props.putCSS(name: "--USER__fontFamily", value: fontFamily)
@@ -653,13 +664,10 @@ public enum CSSColCount: String, CSSConvertible, Sendable {
     }
 }
 
-public enum CSSAppearance: String, CSSConvertible, Sendable {
+@available(*, unavailable, message: "Readium CSS v2 has no themes, use CSSUserProperties.textColor, backgroundColor, linkColor and visitedColor instead")
+public enum CSSAppearance: String, Sendable {
     case night = "readium-night-on"
     case sepia = "readium-sepia-on"
-
-    public func css() -> String? {
-        rawValue
-    }
 }
 
 public protocol CSSColor: CSSConvertible, Sendable {}

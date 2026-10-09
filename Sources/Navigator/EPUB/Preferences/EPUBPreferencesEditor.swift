@@ -76,15 +76,13 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// For fixed-layout resources, it applies to the navigator background
     /// but not the publication pages.
     ///
-    /// When unset, the current `theme` background color is effective.
+    /// When unset, the background color of the publication is kept. The
+    /// effective value is then the default one of Readium CSS.
     public lazy var backgroundColor: AnyPreference<Color> =
         preference(
             preference: \.backgroundColor,
-            effectiveValue: { [weak theme] in
-                $0.settings.backgroundColor
-                    ?? (theme?.value ?? theme?.effectiveValue)?.backgroundColor
-            },
-            defaultEffectiveValue: Theme.light.backgroundColor,
+            effectiveValue: { $0.settings.backgroundColor },
+            defaultEffectiveValue: ReadiumCSS.defaultBackgroundColor,
             isEffective: { $0.preferences.backgroundColor != nil }
         )
 
@@ -312,6 +310,23 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
         )
 
+    /// Color of the hyperlinks.
+    ///
+    /// When unset, the link color of the publication is kept. The effective
+    /// value is then the default one of Readium CSS.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var linkColor: AnyPreference<Color> =
+        preference(
+            preference: \.linkColor,
+            effectiveValue: { $0.settings.linkColor },
+            defaultEffectiveValue: ReadiumCSS.defaultLinkColor,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && $0.preferences.linkColor != nil
+            }
+        )
+
     /// Factor applied to the maximal line length. When unset and without a
     /// default value, the lines take all the available width.
     ///
@@ -475,6 +490,11 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         fatalError()
     }
 
+    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    public var theme: AnyEnumPreference<Theme> {
+        fatalError()
+    }
+
     /// Direction of the reading progression across resources.
     ///
     /// This can be changed to influence directly the layout (e.g. LTR or RTL).
@@ -533,16 +553,15 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     /// Default page text color.
     ///
-    /// When unset, the current `theme` text color is effective.
+    /// When unset, the text color of the publication is kept. The effective
+    /// value is then the default one of Readium CSS.
+    ///
     /// Only effective when the publication contains reflowable resources.
     public lazy var textColor: AnyPreference<Color> =
         preference(
             preference: \.textColor,
-            effectiveValue: { [weak theme] in
-                $0.settings.textColor
-                    ?? (theme?.value ?? theme?.effectiveValue)?.contentColor
-            },
-            defaultEffectiveValue: Theme.light.contentColor,
+            effectiveValue: { $0.settings.textColor },
+            defaultEffectiveValue: ReadiumCSS.defaultTextColor,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
                     && $0.preferences.textColor != nil
@@ -560,18 +579,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
-    /// Reader theme (light, dark, sepia).
-    ///
-    /// Only effective when the publication contains reflowable resources.
-    public lazy var theme: AnyEnumPreference<Theme> =
-        enumPreference(
-            preference: \.theme,
-            setting: \.theme,
-            defaultEffectiveValue: .light,
-            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
-            supportedValues: [.light, .dark, .sepia]
-        )
-
     /// Indicates whether the text should be laid out vertically. This is used
     /// for example with CJK languages. This setting is automatically derived
     /// from the language if no preference is given.
@@ -583,6 +590,23 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             setting: \.verticalText,
             defaultEffectiveValue: false,
             isEffective: { [layouts] _ in layouts.contains(.reflowable) }
+        )
+
+    /// Color of the visited hyperlinks.
+    ///
+    /// When unset, the visited link color of the publication is kept. The
+    /// effective value is then the default one of Readium CSS.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var visitedColor: AnyPreference<Color> =
+        preference(
+            preference: \.visitedColor,
+            effectiveValue: { $0.settings.visitedColor },
+            defaultEffectiveValue: ReadiumCSS.defaultVisitedColor,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && $0.preferences.visitedColor != nil
+            }
         )
 
     /// Space between words.

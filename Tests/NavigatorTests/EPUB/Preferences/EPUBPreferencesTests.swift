@@ -315,10 +315,10 @@ enum EPUBPreferencesTests {
             )
         }
 
-        @Test("ReadiumCSS blends the images with any theme", arguments: [Theme.light, .dark, .sepia])
-        @MainActor func cssBlendImages(theme: Theme) throws {
+        @Test("ReadiumCSS blends the images with any background color", arguments: [nil, Color(rawValue: 0x000000)])
+        @MainActor func cssBlendImages(backgroundColor: Color?) throws {
             var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
-            css.update(with: settings(preferences: EPUBPreferences(blendImages: true, theme: theme)))
+            css.update(with: settings(preferences: EPUBPreferences(backgroundColor: backgroundColor, blendImages: true)))
             #expect(css.userProperties.cssProperties()["--USER__blendImages"] == "readium-blend-on")
         }
 
@@ -367,14 +367,14 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("image filters") struct ImageFilters {
-        @Test("ReadiumCSS applies the image filters with any theme", arguments: [Theme.light, .dark, .sepia])
-        @MainActor func cssImageFilters(theme: Theme) throws {
+        @Test("ReadiumCSS applies the image filters with any background color", arguments: [nil, Color(rawValue: 0x000000)])
+        @MainActor func cssImageFilters(backgroundColor: Color?) throws {
             var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
             css.update(with: settings(preferences: EPUBPreferences(
+                backgroundColor: backgroundColor,
                 darkenImages: 0.2,
                 invertImages: 1.0,
-                invertGaiji: 1.0,
-                theme: theme
+                invertGaiji: 1.0
             )))
 
             let props = css.userProperties.cssProperties()
@@ -383,10 +383,10 @@ enum EPUBPreferencesTests {
             #expect(props["--USER__invertGaiji"] == "1.00000")
         }
 
-        @Test("ReadiumCSS doesn't apply the image filters when unset", arguments: [Theme.light, .dark, .sepia])
-        @MainActor func cssImageFiltersUnset(theme: Theme) throws {
+        @Test("ReadiumCSS doesn't apply the image filters when unset", arguments: [nil, Color(rawValue: 0x000000)])
+        @MainActor func cssImageFiltersUnset(backgroundColor: Color?) throws {
             var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
-            css.update(with: settings(preferences: EPUBPreferences(theme: theme)))
+            css.update(with: settings(preferences: EPUBPreferences(backgroundColor: backgroundColor)))
 
             let props = css.userProperties.cssProperties()
             #expect(props["--USER__darkenImages"] == .some(nil))
@@ -394,12 +394,157 @@ enum EPUBPreferencesTests {
             #expect(props["--USER__invertGaiji"] == .some(nil))
         }
 
-        @Test("the editor preferences are effective with any theme", arguments: [Theme.light, .dark, .sepia])
-        @MainActor func editorEffective(theme: Theme) {
-            let editor = makeEditor(preferences: EPUBPreferences(theme: theme))
+        @Test("the editor preferences are effective with any background color", arguments: [nil, Color(rawValue: 0x000000)])
+        @MainActor func editorEffective(backgroundColor: Color?) {
+            let editor = makeEditor(preferences: EPUBPreferences(backgroundColor: backgroundColor))
             #expect(editor.darkenImages.isEffective)
             #expect(editor.invertImages.isEffective)
             #expect(editor.invertGaiji.isEffective)
+        }
+    }
+
+    @Suite("colors") struct Colors {
+        private let red = Color(rawValue: 0xFF0000)
+        private let green = Color(rawValue: 0x00FF00)
+        private let blue = Color(rawValue: 0x0000FF)
+        private let yellow = Color(rawValue: 0xFFFF00)
+
+        @Test("the settings have no colors when unset, to keep the publication ones")
+        func settingsWhenUnset() {
+            let settings = settings()
+            #expect(settings.textColor == nil)
+            #expect(settings.backgroundColor == nil)
+            #expect(settings.linkColor == nil)
+            #expect(settings.visitedColor == nil)
+        }
+
+        @Test("the effective background color is white when unset")
+        func effectiveBackgroundColor() {
+            #expect(settings().effectiveBackgroundColor == Color(rawValue: 0xFFFFFF))
+            #expect(settings(preferences: EPUBPreferences(backgroundColor: red)).effectiveBackgroundColor == red)
+        }
+
+        @Test("ReadiumCSS emits no colors when unset")
+        @MainActor func cssColorsUnset() throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings())
+
+            let props = css.userProperties.cssProperties()
+            #expect(props["--USER__textColor"] == .some(nil))
+            #expect(props["--USER__backgroundColor"] == .some(nil))
+            #expect(props["--USER__linkColor"] == .some(nil))
+            #expect(props["--USER__visitedColor"] == .some(nil))
+            #expect(props["--USER__appearance"] == nil)
+        }
+
+        @Test("ReadiumCSS emits the colors which are set")
+        @MainActor func cssColors() throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings(preferences: EPUBPreferences(
+                backgroundColor: red,
+                linkColor: green,
+                textColor: blue,
+                visitedColor: yellow
+            )))
+
+            let props = css.userProperties.cssProperties()
+            #expect(props["--USER__backgroundColor"] == "#FF0000")
+            #expect(props["--USER__linkColor"] == "#00FF00")
+            #expect(props["--USER__textColor"] == "#0000FF")
+            #expect(props["--USER__visitedColor"] == "#FFFF00")
+        }
+
+        @Test("ReadiumCSS doesn't complete the colors when only one is set")
+        @MainActor func cssSingleColor() throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings(preferences: EPUBPreferences(backgroundColor: red)))
+
+            let props = css.userProperties.cssProperties()
+            #expect(props["--USER__backgroundColor"] == "#FF0000")
+            #expect(props["--USER__textColor"] == .some(nil))
+            #expect(props["--USER__linkColor"] == .some(nil))
+            #expect(props["--USER__visitedColor"] == .some(nil))
+        }
+
+        @Test("the editor uses the Readium CSS default colors when unset")
+        @MainActor func editorDefaultEffectiveValues() {
+            let editor = makeEditor()
+            #expect(editor.textColor.value == nil)
+            #expect(editor.textColor.effectiveValue == Color(rawValue: 0x121212))
+            #expect(editor.backgroundColor.value == nil)
+            #expect(editor.backgroundColor.effectiveValue == Color(rawValue: 0xFFFFFF))
+            #expect(editor.linkColor.value == nil)
+            #expect(editor.linkColor.effectiveValue == Color(rawValue: 0x0000EE))
+            #expect(editor.visitedColor.value == nil)
+            #expect(editor.visitedColor.effectiveValue == Color(rawValue: 0x551A8B))
+        }
+
+        @Test("the editor preferences are not effective when unset")
+        @MainActor func editorNotEffectiveWhenUnset() {
+            let editor = makeEditor()
+            #expect(!editor.textColor.isEffective)
+            #expect(!editor.backgroundColor.isEffective)
+            #expect(!editor.linkColor.isEffective)
+            #expect(!editor.visitedColor.isEffective)
+        }
+
+        @Test("the editor sets and clears the link colors")
+        @MainActor func editorSetAndClear() {
+            let editor = makeEditor()
+            editor.linkColor.set(green)
+            editor.visitedColor.set(yellow)
+            #expect(editor.preferences.linkColor == green)
+            #expect(editor.linkColor.effectiveValue == green)
+            #expect(editor.linkColor.isEffective)
+            #expect(editor.preferences.visitedColor == yellow)
+            #expect(editor.visitedColor.effectiveValue == yellow)
+            #expect(editor.visitedColor.isEffective)
+
+            editor.linkColor.clear()
+            editor.visitedColor.clear()
+            #expect(editor.preferences.linkColor == nil)
+            #expect(!editor.linkColor.isEffective)
+            #expect(editor.preferences.visitedColor == nil)
+            #expect(!editor.visitedColor.isEffective)
+        }
+
+        @Test("without reflowable resources, only the background color is effective")
+        @MainActor func editorEffectiveWithFixedLayout() {
+            let editor = makeEditor(
+                preferences: EPUBPreferences(
+                    backgroundColor: red,
+                    linkColor: green,
+                    textColor: blue,
+                    visitedColor: yellow
+                ),
+                layout: .fixed
+            )
+            #expect(editor.backgroundColor.isEffective)
+            #expect(!editor.textColor.isEffective)
+            #expect(!editor.linkColor.isEffective)
+            #expect(!editor.visitedColor.isEffective)
+        }
+
+        @Test("merging keeps the colors of the receiver which the other doesn't set")
+        func merging() {
+            let merged = EPUBPreferences(linkColor: green, visitedColor: yellow)
+                .merging(EPUBPreferences(linkColor: red))
+            #expect(merged.linkColor == red)
+            #expect(merged.visitedColor == yellow)
+        }
+
+        @Test("a color is dark according to its luma", arguments: [
+            (0x000000, true),
+            (0x121212, true),
+            (0x0000FF, true),
+            (0x7F7F7F, true),
+            (0x808080, false),
+            (0xFAF4E8, false),
+            (0xFFFF00, false),
+            (0xFFFFFF, false),
+        ])
+        func isDark(color: Int, expected: Bool) {
+            #expect(Color(rawValue: color).isDark == expected)
         }
     }
 
@@ -506,6 +651,7 @@ enum EPUBPreferencesTests {
             letterSpacing: 0.1,
             ligatures: false,
             lineHeight: 1.6,
+            linkColor: Color(hex: "#0000FF"),
             maximalLineLength: 1.3,
             minimalLineLength: 0.8,
             noRuby: true,
@@ -520,8 +666,8 @@ enum EPUBPreferencesTests {
             textAlign: .justify,
             textColor: Color(hex: "#00FF00"),
             textNormalization: true,
-            theme: .sepia,
             verticalText: true,
+            visitedColor: Color(hex: "#FF00FF"),
             wordSpacing: 0.2
         )
 
@@ -574,8 +720,61 @@ enum EPUBPreferencesTests {
         @Test("a versioned payload is not migrated")
         func versionedIsNotMigrated() throws {
             let prefs = try decode(#"{"version": 4, "theme": "dark", "imageFilter": "invert", "publisherStyles": true, "lineHeight": 1.5}"#)
-            #expect(prefs.invertImages == nil)
-            #expect(prefs.lineHeight == 1.5)
+            #expect(prefs == EPUBPreferences(lineHeight: 1.5))
+        }
+
+        @Test("migrates the 3.x dark theme to its colors")
+        func legacyThemeDark() throws {
+            let prefs = try decode(#"{"theme": "dark", "fontSize": 1.2}"#)
+            #expect(prefs == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x000000),
+                fontSize: 1.2,
+                invertGaiji: 1.0,
+                linkColor: Color(rawValue: 0x63CAFF),
+                textColor: Color(rawValue: 0xFEFEFE),
+                visitedColor: Color(rawValue: 0x0099E5)
+            ))
+        }
+
+        @Test("migrates the 3.x sepia theme to its colors, without link colors")
+        func legacyThemeSepia() throws {
+            let prefs = try decode(#"{"theme": "sepia", "fontSize": 1.2}"#)
+            #expect(prefs == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0xFAF4E8),
+                fontSize: 1.2,
+                textColor: Color(rawValue: 0x121212)
+            ))
+        }
+
+        @Test("migrates the 3.x light theme, or an invalid one, to no colors", arguments: [#""theme": "light","#, #""theme": "unknown","#, #""theme": 2,"#, ""])
+        func legacyThemeLight(theme: String) throws {
+            let prefs = try decode(#"{\#(theme) "fontSize": 1.2}"#)
+            #expect(prefs == EPUBPreferences(fontSize: 1.2))
+        }
+
+        @Test("the colors saved with a 3.x theme take precedence over its colors")
+        func legacyThemeWithExplicitColors() throws {
+            // Colors are serialized as packed integers.
+            let dark = try decode(#"{"theme": "dark", "textColor": 16711680}"#)
+            #expect(dark == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x000000),
+                invertGaiji: 1.0,
+                linkColor: Color(rawValue: 0x63CAFF),
+                textColor: Color(rawValue: 0xFF0000),
+                visitedColor: Color(rawValue: 0x0099E5)
+            ))
+
+            let sepia = try decode(#"{"theme": "sepia", "backgroundColor": 65280}"#)
+            #expect(sepia == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x00FF00),
+                textColor: Color(rawValue: 0x121212)
+            ))
+
+            let light = try decode(#"{"theme": "light", "textColor": 16711680, "backgroundColor": 65280}"#)
+            #expect(light == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x00FF00),
+                textColor: Color(rawValue: 0xFF0000)
+            ))
         }
 
         @Test("migrates the 3.x column count", arguments: [
@@ -589,15 +788,19 @@ enum EPUBPreferencesTests {
             #expect(prefs.fontSize == 1.2)
         }
 
-        @Test("migrates the 3.x image filters with the dark theme")
-        func legacyImageFilterDark() throws {
-            let darken = try decode(#"{"theme": "dark", "imageFilter": "darken"}"#)
-            #expect(darken.darkenImages == 0.2)
-            #expect(darken.invertImages == nil)
-
-            let invert = try decode(#"{"theme": "dark", "imageFilter": "invert"}"#)
-            #expect(invert.darkenImages == nil)
-            #expect(invert.invertImages == 1.0)
+        /// The dark theme inverted the gaiji, unless the images were
+        /// darkened.
+        @Test("migrates the 3.x image filters with the dark theme", arguments: [
+            (#""imageFilter": "darken""#, 0.2, nil, nil),
+            (#""imageFilter": "invert""#, nil, 1.0, 1.0),
+            (#""imageFilter": "unknown""#, nil, nil, 1.0),
+            (#""fontSize": 1.2"#, nil, nil, 1.0),
+        ] as [(String, Double?, Double?, Double?)])
+        func legacyImageFilterDark(filter: String, darkenImages: Double?, invertImages: Double?, invertGaiji: Double?) throws {
+            let prefs = try decode(#"{"theme": "dark", \#(filter)}"#)
+            #expect(prefs.darkenImages == darkenImages)
+            #expect(prefs.invertImages == invertImages)
+            #expect(prefs.invertGaiji == invertGaiji)
         }
 
         @Test("drops the 3.x image filters without the dark theme", arguments: [#""theme": "light","#, #""theme": "sepia","#, ""])
@@ -606,6 +809,7 @@ enum EPUBPreferencesTests {
                 let prefs = try decode(#"{\#(theme) "imageFilter": "\#(filter)"}"#)
                 #expect(prefs.darkenImages == nil)
                 #expect(prefs.invertImages == nil)
+                #expect(prefs.invertGaiji == nil)
             }
         }
 
@@ -613,9 +817,13 @@ enum EPUBPreferencesTests {
         func legacyPublisherStylesOn() throws {
             let prefs = try decode(threeXPayload(publisherStyles: true))
             #expect(prefs == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x000000),
                 columnCount: 2,
                 fontSize: 1.2,
-                theme: .dark
+                invertGaiji: 1.0,
+                linkColor: Color(rawValue: 0x63CAFF),
+                textColor: Color(rawValue: 0xFEFEFE),
+                visitedColor: Color(rawValue: 0x0099E5)
             ))
         }
 
@@ -623,16 +831,20 @@ enum EPUBPreferencesTests {
         func legacyPublisherStylesOffOrUnset(publisherStyles: Bool?) throws {
             let prefs = try decode(threeXPayload(publisherStyles: publisherStyles))
             #expect(prefs == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x000000),
                 columnCount: 2,
                 fontSize: 1.2,
                 hyphens: true,
+                invertGaiji: 1.0,
                 letterSpacing: 0.1,
                 ligatures: false,
                 lineHeight: 2.0,
+                linkColor: Color(rawValue: 0x63CAFF),
                 paragraphIndent: 1.0,
                 paragraphSpacing: 0.5,
                 textAlign: .justify,
-                theme: .dark,
+                textColor: Color(rawValue: 0xFEFEFE),
+                visitedColor: Color(rawValue: 0x0099E5),
                 wordSpacing: 0.2
             ))
         }
@@ -669,6 +881,7 @@ enum EPUBPreferencesTests {
     /// concurrently.
     @Suite("Legacy preferences", .serialized) struct Legacy {
         private let columnCountKey = "--USER__colCount"
+        private let appearanceKey = "--USER__appearance"
 
         @Test("migrates the auto column count to nil")
         func columnCountAuto() {
@@ -697,10 +910,89 @@ enum EPUBPreferencesTests {
             #expect(prefs.spread == .always)
         }
 
+        @Test("migrates the default appearance to no colors")
+        func appearanceDefault() {
+            let prefs = withLegacyValues([appearanceKey: 0]) {
+                EPUBPreferences.fromLegacyPreferences()
+            }
+            #expect(prefs == EPUBPreferences())
+        }
+
+        @Test("migrates the sepia appearance to its colors")
+        func appearanceSepia() {
+            let prefs = withLegacyValues([appearanceKey: 1]) {
+                EPUBPreferences.fromLegacyPreferences()
+            }
+            #expect(prefs == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0xFAF4E8),
+                textColor: Color(rawValue: 0x121212)
+            ))
+        }
+
+        @Test("migrates the night appearance to its colors")
+        func appearanceNight() {
+            let prefs = withLegacyValues([appearanceKey: 2]) {
+                EPUBPreferences.fromLegacyPreferences()
+            }
+            #expect(prefs == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x000000),
+                invertGaiji: 1.0,
+                linkColor: Color(rawValue: 0x63CAFF),
+                textColor: Color(rawValue: 0xFEFEFE),
+                visitedColor: Color(rawValue: 0x0099E5)
+            ))
+        }
+
+        @Test("the legacy colors take precedence over the appearance colors")
+        func appearanceWithExplicitColors() {
+            let night = withLegacyValues([
+                appearanceKey: 2,
+                "--USER__textColor": "#FF0000",
+            ]) {
+                EPUBPreferences.fromLegacyPreferences()
+            }
+            #expect(night == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x000000),
+                invertGaiji: 1.0,
+                linkColor: Color(rawValue: 0x63CAFF),
+                textColor: Color(rawValue: 0xFF0000),
+                visitedColor: Color(rawValue: 0x0099E5)
+            ))
+
+            let sepia = withLegacyValues([
+                appearanceKey: 1,
+                "--USER__backgroundColor": "#00FF00",
+            ]) {
+                EPUBPreferences.fromLegacyPreferences()
+            }
+            #expect(sepia == EPUBPreferences(
+                backgroundColor: Color(rawValue: 0x00FF00),
+                textColor: Color(rawValue: 0x121212)
+            ))
+        }
+
+        @Test("migrates the appearance with custom appearance values")
+        func appearanceCustomValues() {
+            let prefs = withLegacyValues([appearanceKey: 0]) {
+                EPUBPreferences.fromLegacyPreferences(appearanceValues: ["readium-night-on", "readium-default-on"])
+            }
+            #expect(prefs.backgroundColor == Color(rawValue: 0x000000))
+        }
+
         private func withLegacyColumnCount<T>(_ index: Int, _ block: () -> T) -> T {
+            withLegacyValues([columnCountKey: index], block)
+        }
+
+        private func withLegacyValues<T>(_ values: [String: Any], _ block: () -> T) -> T {
             let defaults = UserDefaults.standard
-            defaults.set(index, forKey: columnCountKey)
-            defer { defaults.removeObject(forKey: columnCountKey) }
+            for (key, value) in values {
+                defaults.set(value, forKey: key)
+            }
+            defer {
+                for key in values.keys {
+                    defaults.removeObject(forKey: key)
+                }
+            }
             return block()
         }
     }

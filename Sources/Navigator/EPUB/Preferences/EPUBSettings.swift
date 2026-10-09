@@ -26,6 +26,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
+    public var linkColor: Color?
     public var maximalLineLength: Double?
     public var minimalLineLength: Double?
     public var noRuby: Bool
@@ -40,12 +41,12 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var textAlign: TextAlignment?
     public var textColor: Color?
     public var textNormalization: Bool
-    public var theme: Theme
     public var verticalText: Bool
+    public var visitedColor: Color?
     public var wordSpacing: Double?
 
     public var effectiveBackgroundColor: Color {
-        backgroundColor ?? theme.backgroundColor
+        backgroundColor ?? ReadiumCSS.defaultBackgroundColor
     }
 
     @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
@@ -60,6 +61,11 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 
     @available(*, unavailable, message: "Use darkenImages or invertImages instead")
     public var imageFilter: ImageFilter? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    public var theme: Theme {
         fatalError()
     }
 
@@ -81,6 +87,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         letterSpacing: Double?,
         ligatures: Bool?,
         lineHeight: Double?,
+        linkColor: Color?,
         maximalLineLength: Double?,
         minimalLineLength: Double?,
         noRuby: Bool = false,
@@ -95,8 +102,8 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         textAlign: TextAlignment?,
         textColor: Color?,
         textNormalization: Bool,
-        theme: Theme,
         verticalText: Bool,
+        visitedColor: Color?,
         wordSpacing: Double?
     ) {
         self.backgroundColor = backgroundColor
@@ -114,6 +121,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
         self.lineHeight = lineHeight
+        self.linkColor = linkColor
         self.maximalLineLength = maximalLineLength
         self.minimalLineLength = minimalLineLength
         self.noRuby = noRuby
@@ -128,8 +136,8 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.textAlign = textAlign
         self.textColor = textColor
         self.textNormalization = textNormalization
-        self.theme = theme
         self.verticalText = verticalText
+        self.visitedColor = visitedColor
         self.wordSpacing = wordSpacing
         cssLayout = CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
     }
@@ -193,7 +201,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let spread = preferences.spread ?? defaults.spread ?? .auto
         let textAlign = preferences.textAlign ?? defaults.textAlign
         let textNormalization = preferences.textNormalization ?? defaults.textNormalization ?? false
-        let theme = preferences.theme ?? .light
         let wordSpacing = preferences.wordSpacing ?? defaults.wordSpacing
 
         self.init(
@@ -212,6 +219,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             letterSpacing: letterSpacing,
             ligatures: ligatures,
             lineHeight: lineHeight,
+            linkColor: preferences.linkColor,
             maximalLineLength: maximalLineLength,
             minimalLineLength: minimalLineLength,
             noRuby: noRuby,
@@ -226,8 +234,8 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             textAlign: textAlign,
             textColor: preferences.textColor,
             textNormalization: textNormalization,
-            theme: theme,
             verticalText: verticalText,
+            visitedColor: preferences.visitedColor,
             wordSpacing: wordSpacing
         )
     }

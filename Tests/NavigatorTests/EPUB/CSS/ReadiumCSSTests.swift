@@ -118,7 +118,7 @@ struct ReadiumCSSTests {
                 textColor: CSSHexColor("#FF0000")
             ),
             userProperties: CSSUserProperties(
-                appearance: .night,
+                linkColor: CSSHexColor("#0000FF"),
                 wordSpacing: CSSRemLength(20.0)
             ),
             baseURL: baseURL
@@ -134,7 +134,7 @@ struct ReadiumCSSTests {
                 .styleAttribute(on: .html, css: """
                 --RS__colGap: 40.00000px !important;
                 --RS__textColor: #FF0000 !important;
-                --USER__appearance: readium-night-on !important;
+                --USER__linkColor: #0000FF !important;
                 --USER__wordSpacing: 20.00000rem !important;
 
                 """),

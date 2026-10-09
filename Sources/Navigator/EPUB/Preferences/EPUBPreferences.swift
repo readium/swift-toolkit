@@ -12,6 +12,8 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     public static let empty: EPUBPreferences = .init()
 
     /// Default page background color.
+    ///
+    /// When `nil`, the background color of the publication is kept.
     public var backgroundColor: Color?
 
     /// Number of reflowable columns to display (one-page view or two-page
@@ -63,6 +65,11 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     /// Leading line height.
     public var lineHeight: Double?
+
+    /// Color of the hyperlinks.
+    ///
+    /// When `nil`, the link color of the publication is kept.
+    public var linkColor: Color?
 
     /// Factor applied to the optimal line length of the reflowable resources,
     /// used to determine the best number of columns automatically.
@@ -120,19 +127,23 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     public var textAlign: TextAlignment?
 
     /// Default page text color.
+    ///
+    /// When `nil`, the text color of the publication is kept.
     public var textColor: Color?
 
     /// Normalize text styles to increase accessibility.
     public var textNormalization: Bool?
-
-    /// Reader theme.
-    public var theme: Theme?
 
     /// Indicates whether the text should be laid out vertically.
     ///
     /// This is used for example with CJK languages. This setting is
     /// automatically derived from the language if no preference is given.
     public var verticalText: Bool?
+
+    /// Color of the visited hyperlinks.
+    ///
+    /// When `nil`, the visited link color of the publication is kept.
+    public var visitedColor: Color?
 
     /// Space between words.
     public var wordSpacing: Double?
@@ -153,6 +164,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
         lineHeight: Double? = nil,
+        linkColor: Color? = nil,
         maximalLineLength: Double? = nil,
         minimalLineLength: Double? = nil,
         noRuby: Bool? = nil,
@@ -167,8 +179,8 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         textAlign: TextAlignment? = nil,
         textColor: Color? = nil,
         textNormalization: Bool? = nil,
-        theme: Theme? = nil,
         verticalText: Bool? = nil,
+        visitedColor: Color? = nil,
         wordSpacing: Double? = nil
     ) {
         self.backgroundColor = backgroundColor
@@ -186,6 +198,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
+        self.linkColor = linkColor
         self.maximalLineLength = maximalLineLength.takeIf { $0 > 0 }
         self.minimalLineLength = minimalLineLength.takeIf { $0 > 0 }
         self.noRuby = noRuby
@@ -200,8 +213,8 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.textAlign = textAlign
         self.textColor = textColor
         self.textNormalization = textNormalization
-        self.theme = theme
         self.verticalText = verticalText
+        self.visitedColor = visitedColor
         self.wordSpacing = wordSpacing.map { max($0, 0) }
     }
 
@@ -222,6 +235,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
             lineHeight: other.lineHeight ?? lineHeight,
+            linkColor: other.linkColor ?? linkColor,
             maximalLineLength: other.maximalLineLength ?? maximalLineLength,
             minimalLineLength: other.minimalLineLength ?? minimalLineLength,
             noRuby: other.noRuby ?? noRuby,
@@ -236,25 +250,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             textAlign: other.textAlign ?? textAlign,
             textColor: other.textColor ?? textColor,
             textNormalization: other.textNormalization ?? textNormalization,
-            theme: other.theme ?? theme,
             verticalText: other.verticalText ?? verticalText,
+            visitedColor: other.visitedColor ?? visitedColor,
             wordSpacing: other.wordSpacing ?? wordSpacing
         )
-    }
-
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
-    public var publisherStyles: Bool? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
-    public var typeScale: Double? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
-    public var imageFilter: ImageFilter? {
-        fatalError()
     }
 
     /// Returns a new `EPUBPreferences` with the publication-specific preferences
@@ -285,7 +284,6 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 // MARK: - Codable
 
 public extension EPUBPreferences {
-
     /// Version of the serialization format, written in the `version` key.
     ///
     /// Preferences serialized before the Readium CSS v2 upgrade (toolkit 3.x)
@@ -311,6 +309,7 @@ public extension EPUBPreferences {
         case letterSpacing
         case ligatures
         case lineHeight
+        case linkColor
         case maximalLineLength
         case minimalLineLength
         case noRuby
@@ -325,24 +324,16 @@ public extension EPUBPreferences {
         case textAlign
         case textColor
         case textNormalization
-        case theme
         case verticalText
+        case visitedColor
         case wordSpacing
-    }
-
-    /// Keys of the preferences serialized without a version, which changed
-    /// or were removed.
-    private enum LegacyCodingKeys: String, CodingKey {
-        case columnCount
-        case imageFilter
-        case publisherStyles
     }
 
     /// Decodes the preferences leniently: an invalid value drops only its
     /// preference.
     ///
     /// Preferences serialized without a version are migrated from the
-    /// previous format.
+    /// previous format, see `EPUBPreferences+Legacy.swift`.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.init(
@@ -361,6 +352,7 @@ public extension EPUBPreferences {
             letterSpacing: container.decodeLeniently(Double.self, forKey: .letterSpacing),
             ligatures: container.decodeLeniently(Bool.self, forKey: .ligatures),
             lineHeight: container.decodeLeniently(Double.self, forKey: .lineHeight),
+            linkColor: container.decodeLeniently(Color.self, forKey: .linkColor),
             maximalLineLength: container.decodeLeniently(Double.self, forKey: .maximalLineLength),
             minimalLineLength: container.decodeLeniently(Double.self, forKey: .minimalLineLength),
             noRuby: container.decodeLeniently(Bool.self, forKey: .noRuby),
@@ -375,8 +367,8 @@ public extension EPUBPreferences {
             textAlign: container.decodeLeniently(TextAlignment.self, forKey: .textAlign),
             textColor: container.decodeLeniently(Color.self, forKey: .textColor),
             textNormalization: container.decodeLeniently(Bool.self, forKey: .textNormalization),
-            theme: container.decodeLeniently(Theme.self, forKey: .theme),
             verticalText: container.decodeLeniently(Bool.self, forKey: .verticalText),
+            visitedColor: container.decodeLeniently(Color.self, forKey: .visitedColor),
             wordSpacing: container.decodeLeniently(Double.self, forKey: .wordSpacing)
         )
 
@@ -403,6 +395,7 @@ public extension EPUBPreferences {
         try container.encodeIfPresent(letterSpacing, forKey: .letterSpacing)
         try container.encodeIfPresent(ligatures, forKey: .ligatures)
         try container.encodeIfPresent(lineHeight, forKey: .lineHeight)
+        try container.encodeIfPresent(linkColor, forKey: .linkColor)
         try container.encodeIfPresent(maximalLineLength, forKey: .maximalLineLength)
         try container.encodeIfPresent(minimalLineLength, forKey: .minimalLineLength)
         try container.encodeIfPresent(noRuby, forKey: .noRuby)
@@ -417,53 +410,13 @@ public extension EPUBPreferences {
         try container.encodeIfPresent(textAlign, forKey: .textAlign)
         try container.encodeIfPresent(textColor, forKey: .textColor)
         try container.encodeIfPresent(textNormalization, forKey: .textNormalization)
-        try container.encodeIfPresent(theme, forKey: .theme)
         try container.encodeIfPresent(verticalText, forKey: .verticalText)
+        try container.encodeIfPresent(visitedColor, forKey: .visitedColor)
         try container.encodeIfPresent(wordSpacing, forKey: .wordSpacing)
-    }
-
-    /// Migrates the preferences serialized without a version, before the
-    /// Readium CSS v2 upgrade.
-    ///
-    /// The `typeScale` preference is dropped.
-    private mutating func migrateUnversioned(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: LegacyCodingKeys.self)
-
-        // `columnCount` was an enum of `auto`, `1` and `2`.
-        if let columnCount = container.decodeLeniently(String.self, forKey: .columnCount) {
-            self.columnCount = Int(columnCount).takeIf { $0 >= 1 }
-        }
-
-        // The image filters were applied only with the dark theme.
-        if theme == .dark {
-            switch container.decodeLeniently(String.self, forKey: .imageFilter) {
-            case "darken":
-                // The `darken` filter was `brightness(80%)`.
-                darkenImages = 0.2
-            case "invert":
-                invertImages = 1.0
-            default:
-                break
-            }
-        }
-
-        // These preferences were ignored while the publisher styles were
-        // enabled. An unset `publisherStyles` is ambiguous, as apps could
-        // change its default value, so they are kept in this case.
-        if container.decodeLeniently(Bool.self, forKey: .publisherStyles) == true {
-            hyphens = nil
-            letterSpacing = nil
-            ligatures = nil
-            lineHeight = nil
-            paragraphIndent = nil
-            paragraphSpacing = nil
-            textAlign = nil
-            wordSpacing = nil
-        }
     }
 }
 
-private extension KeyedDecodingContainer {
+extension KeyedDecodingContainer {
     /// Decodes the value for `key`, or returns `nil` if it is missing or
     /// invalid.
     func decodeLeniently<T: Decodable>(_ type: T.Type, forKey key: Key) -> T? {

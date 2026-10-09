@@ -7,6 +7,8 @@
 import Foundation
 import ReadiumShared
 
+// MARK: - Legacy settings stored in the UserDefaults (2.x)
+
 public extension EPUBPreferences {
     // WARNING: String values must not contain any single or double quotes characters, otherwise it breaks the streamer's injection.
     private static let defaultAppearanceValues = ["readium-default-on", "readium-sepia-on", "readium-night-on"]
@@ -30,7 +32,7 @@ public extension EPUBPreferences {
     ) -> EPUBPreferences {
         let defaults = UserDefaults.standard
 
-        return EPUBPreferences(
+        var preferences = EPUBPreferences(
             backgroundColor: defaults.optString(for: .backgroundColor)
                 .flatMap { Color(hex: $0) },
             columnCount: defaults.optInt(for: .columnCount)
@@ -68,22 +70,31 @@ public extension EPUBPreferences {
                 .flatMap { TextAlignment(rawValue: $0) },
             textColor: defaults.optString(for: .textColor)
                 .flatMap { Color(hex: $0) },
-            theme: defaults.optInt(for: .appearance)
-                .flatMap { (appearanceValues ?? defaultAppearanceValues).getOrNil($0) }
-                .flatMap {
-                    switch $0 {
-                    case "readium-default-on":
-                        return .light
-                    case "readium-night-on":
-                        return .dark
-                    case "readium-sepia-on":
-                        return .sepia
-                    default:
-                        return nil
-                    }
-                },
             wordSpacing: defaults.optDouble(for: .wordSpacing)
         )
+
+        // The appearance is migrated to the color preferences (and the gaiji
+        // inversion of the night mode), as Readium CSS v2 has no themes. The
+        // legacy colors take precedence.
+        let theme: LegacyTheme? = defaults.optInt(for: .appearance)
+            .flatMap { (appearanceValues ?? defaultAppearanceValues).getOrNil($0) }
+            .flatMap {
+                switch $0 {
+                case "readium-default-on":
+                    return .light
+                case "readium-night-on":
+                    return .dark
+                case "readium-sepia-on":
+                    return .sepia
+                default:
+                    return nil
+                }
+            }
+        if let theme = theme {
+            preferences.applyLegacyTheme(theme)
+        }
+
+        return preferences
     }
 }
 
@@ -140,4 +151,138 @@ private enum ReadiumCSSName: String {
     case paragraphMargins = "--USER__paraSpacing"
     case textColor = "--USER__textColor"
     case backgroundColor = "--USER__backgroundColor"
+}
+
+// MARK: - Preferences serialized without a version (3.x)
+
+extension EPUBPreferences {
+    /// Keys of the preferences serialized without a version, which changed
+    /// or were removed.
+    private enum LegacyCodingKeys: String, CodingKey {
+        case columnCount
+        case imageFilter
+        case publisherStyles
+        case theme
+    }
+
+    /// Migrates the preferences serialized without a version, before the
+    /// Readium CSS v2 upgrade.
+    ///
+    /// The `typeScale` preference is dropped.
+    mutating func migrateUnversioned(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: LegacyCodingKeys.self)
+
+        // `columnCount` was an enum of `auto`, `1` and `2`.
+        if let columnCount = container.decodeLeniently(String.self, forKey: .columnCount) {
+            self.columnCount = Int(columnCount).takeIf { $0 >= 1 }
+        }
+
+        // `theme` was an enum of `light`, `dark` and `sepia`, and
+        // `imageFilter` an enum of `darken` and `invert`.
+        let theme = container.decodeLeniently(String.self, forKey: .theme)
+            .flatMap(LegacyTheme.init(rawValue:))
+        if let theme = theme {
+            applyLegacyTheme(
+                theme,
+                imageFilter: container.decodeLeniently(String.self, forKey: .imageFilter)
+            )
+        }
+
+        // These preferences were ignored while the publisher styles were
+        // enabled. An unset `publisherStyles` is ambiguous, as apps could
+        // change its default value, so they are kept in this case.
+        if container.decodeLeniently(Bool.self, forKey: .publisherStyles) == true {
+            hyphens = nil
+            letterSpacing = nil
+            ligatures = nil
+            lineHeight = nil
+            paragraphIndent = nil
+            paragraphSpacing = nil
+            textAlign = nil
+            wordSpacing = nil
+        }
+    }
+}
+
+// MARK: - Legacy themes
+
+/// Themes of the toolkit before the Readium CSS v2 upgrade, which has no
+/// themes anymore. They are migrated to the color preferences.
+enum LegacyTheme: String {
+    case light
+    case dark
+    case sepia
+}
+
+// Colors of the night and sepia modes of Readium CSS v1.
+private let nightTextColor = Color(rawValue: 0xFEFEFE)
+private let nightBackgroundColor = Color(rawValue: 0x000000)
+private let nightLinkColor = Color(rawValue: 0x63CAFF)
+private let nightVisitedColor = Color(rawValue: 0x0099E5)
+private let sepiaTextColor = Color(rawValue: 0x121212)
+private let sepiaBackgroundColor = Color(rawValue: 0xFAF4E8)
+
+extension EPUBPreferences {
+    /// Migrates the legacy `theme` to the preferences giving the rendering it
+    /// had with Readium CSS v1.
+    ///
+    /// The colors already set are kept, as they took precedence over the
+    /// theme. The light theme has no colors, it was the default rendering.
+    ///
+    /// - Parameter imageFilter: Legacy image filter (`darken` or `invert`),
+    ///   which was applied only with the dark theme.
+    mutating func applyLegacyTheme(_ theme: LegacyTheme, imageFilter: String? = nil) {
+        switch theme {
+        case .light:
+            break
+
+        case .dark:
+            textColor = textColor ?? nightTextColor
+            backgroundColor = backgroundColor ?? nightBackgroundColor
+            linkColor = linkColor ?? nightLinkColor
+            visitedColor = visitedColor ?? nightVisitedColor
+
+            // The dark theme inverted the gaiji, unless the images were
+            // darkened.
+            switch imageFilter {
+            case "darken":
+                // The `darken` filter was `brightness(80%)`.
+                darkenImages = 0.2
+            case "invert":
+                invertImages = 1.0
+                invertGaiji = 1.0
+            default:
+                invertGaiji = 1.0
+            }
+
+        case .sepia:
+            // The link colors of the sepia theme were the default ones.
+            textColor = textColor ?? sepiaTextColor
+            backgroundColor = backgroundColor ?? sepiaBackgroundColor
+        }
+    }
+}
+
+// MARK: - Removed preferences
+
+public extension EPUBPreferences {
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    var publisherStyles: Bool? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    var typeScale: Double? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    var imageFilter: ImageFilter? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    var theme: Theme? {
+        fatalError()
+    }
 }

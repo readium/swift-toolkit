@@ -90,7 +90,7 @@ The `defaults` are used as fallback values when the default Navigator settings a
 
 Although you could create and modify `Preferences` objects directly before submitting them to the Navigator, a `PreferenceEditor` can assist you by providing helpers for dealing with each preference type when building the user interface.
 
-`PreferencesEditor` implementations are specific to each Navigator, but they all provide `Preference<Value>` properties for every setting (e.g. theme or font size). 
+`PreferencesEditor` implementations are specific to each Navigator, but they all provide `Preference<Value>` properties for every setting (e.g. font size or text color). 
 
 ### `UserPreferences` view
 
@@ -402,7 +402,7 @@ The way you store user preferences can affect the available features. You could 
 
 * A unique set of preferences for each publication.
 * Preferences shared between publications with the same profile or media type (EPUB, PDF, etc.).
-* Global preferences shared with all publications (e.g. theme).
+* Global preferences shared with all publications (e.g. colors).
 * Several user setting profiles/themes that the user can switch between and modify independently.
 * Some settings that are not stored as JSON and will need to be reconstructed (e.g. the publication language).
 
@@ -445,6 +445,7 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `letterSpacing`      | :white_check_mark: |                    |
 | `ligatures`          | :white_check_mark: |                    |
 | `lineHeight`         | :white_check_mark: |                    |
+| `linkColor`          | :white_check_mark: |                    |
 | `maximalLineLength`  | :white_check_mark: |                    |
 | `minimalLineLength`  | :white_check_mark: |                    |
 | `noRuby`             | :white_check_mark: |                    |
@@ -459,22 +460,26 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `textAlign`          | :white_check_mark: |                    |
 | `textColor`          | :white_check_mark: |                    |
 | `textNormalization`  | :white_check_mark: |                    |
-| `theme`              | :white_check_mark: |                    |
 | `verticalText`       | :white_check_mark: |                    |
+| `visitedColor`       | :white_check_mark: |                    |
 | `wordSpacing`        | :white_check_mark: |                    |
 
 #### Unset preferences
 
 The following preferences are effective only when explicitly set. When unset, the publisher styles are observed.
 
+* `backgroundColor`
 * `fontWeight`
 * `hyphens` (also effective when `textAlign` is `.justify`)
 * `letterSpacing`
 * `ligatures`
 * `lineHeight`
+* `linkColor`
 * `paragraphIndent`
 * `paragraphSpacing`
 * `textAlign`
+* `textColor`
+* `visitedColor`
 * `wordSpacing`
 
 #### Scroll vs paginated
@@ -499,15 +504,61 @@ The navigator computes the number of columns and the line length from the viewpo
 
 `minimalLineLength` and `maximalLineLength` are `AnyOptionalRangePreference<Double>` in the `EPUBPreferencesEditor`, see [the view for an `OptionalRangePreference`](#view-for-an-optionalrangepreferencevalue).
 
+#### Colors and themes
+
+The EPUB navigator has no themes. Instead, it offers four color preferences: `textColor`, `backgroundColor`, `linkColor` and `visitedColor`.
+
+* A color which is set overrides the colors of the publication.
+* When a color is unset, the one of the publication is kept.
+* Each color is applied on its own. If you set only the `backgroundColor`, make sure the text of the publication remains readable, or set the `textColor` too.
+
+A theme is therefore a set of colors that your app applies together. For example, with the colors of the themes of the previous versions of the toolkit:
+
+```swift
+/// A set of colors applied together. `nil` keeps the color of the publication.
+struct ReaderTheme: Equatable {
+    typealias Color = ReadiumNavigator.Color
+
+    var textColor: Color?
+    var backgroundColor: Color?
+    var linkColor: Color?
+    var visitedColor: Color?
+
+    static let light = ReaderTheme()
+
+    static let sepia = ReaderTheme(
+        textColor: Color(hex: "#121212"),
+        backgroundColor: Color(hex: "#FAF4E8")
+    )
+
+    static let dark = ReaderTheme(
+        textColor: Color(hex: "#FEFEFE"),
+        backgroundColor: Color(hex: "#000000"),
+        linkColor: Color(hex: "#63CAFF"),
+        visitedColor: Color(hex: "#0099E5")
+    )
+}
+
+func apply(_ theme: ReaderTheme, to editor: EPUBPreferencesEditor) {
+    // Setting `nil` clears the preference.
+    editor.textColor.set(theme.textColor)
+    editor.backgroundColor.set(theme.backgroundColor)
+    editor.linkColor.set(theme.linkColor)
+    editor.visitedColor.set(theme.visitedColor)
+
+    // Then save and submit `editor.preferences` once.
+}
+```
+
 #### Image filters
 
-The `darkenImages`, `invertImages` and `invertGaiji` preferences are applied with any theme, although they are typically used with a dark one (`theme = .dark` or a dark `backgroundColor`). To filter the images only with the dark theme, set these preferences when `theme` is `.dark` and clear them otherwise.
+The `darkenImages`, `invertImages` and `invertGaiji` preferences are applied with any colors, although they are typically used with a dark `backgroundColor`. To filter the images only with your dark theme, set these preferences along with its colors and clear them otherwise.
 
 * `darkenImages` reduces the brightness of the images by the given percentage, from `0.0` to `1.0`.
 * `invertImages` inverts the colors of the images by the given percentage, from `0.0` to `1.0`.
 * `invertGaiji` inverts by the given percentage, from `0.0` to `1.0`, only the gaiji, which are the images used in Japanese publications for the characters missing from the fonts (`<img class="gaiji">`). They are usually black glyphs displayed among the text, which are hard to read on a dark background unless inverted. When `invertGaiji` is set, the gaiji ignore `darkenImages` and `invertImages`.
 
-`blendImages` is a toggle, off by default, which blends the images (`<img>` and `<svg>`) with the background color using `mix-blend-mode: multiply`. The white areas of the images take the color of the page, for example with a sepia theme. Like the other filters, it is applied with any theme, but it is meant for light backgrounds: multiplied with a dark background, the images become very dark.
+`blendImages` is a toggle, off by default, which blends the images (`<img>` and `<svg>`) with the background color using `mix-blend-mode: multiply`. The white areas of the images take the color of the page, for example with a sepia background. Like the other filters, it is applied with any colors, but it is meant for light backgrounds: multiplied with a dark background, the images become very dark.
 
 #### Language specific preferences
 
