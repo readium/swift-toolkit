@@ -192,7 +192,7 @@ body {
 
 /* Responsive columns */
 
-@media screen and (min-width: 60em), screen and (min-device-width: 36em) and (max-device-width: 47em) and (orientation: landscape) {
+@media screen and (min-width: 50em) and (min-height: 30em) and (orientation: landscape), screen and (horizontal-viewport-segments: 2) {
   :root {
     /* The size at which we want 2 columns to switch to 1 (depending on font-size) */
     --RS__colWidth: 20em; /* 20 * 16 = 320px but 20 * 28 = 560px so it will switch to 1 col @ 175% font-size (user-setting) on an iPad */
@@ -443,32 +443,26 @@ body {
 
 /* Number of columns = 1 | 2 */
 
-/* We still need to see if we allow users to force number of columns for all configs, currently it behaves as an "auto" setting */
+:root[style*="--USER__colCount: 1"],
+:root[style*="--USER__colCount:1"],
+:root[style*="--USER__colCount: 2"],
+:root[style*="--USER__colCount:2"] {
+  -webkit-column-count: var(--USER__colCount);
+  -moz-column-count: var(--USER__colCount);
+  column-count: var(--USER__colCount);
+}
 
-/* apply col setting except for mobile portrait */
+/* If one column, make sure we limit line-length */
+:root[style*="--USER__colCount: 1"],
+:root[style*="--USER__colCount:1"] {
+  --RS__maxLineLength: 40rem !important; /* This is the only way for the user setting to work in webkit… */
+  --RS__colWidth: 100vw;
+}
 
-@media screen and (min-width: 60em), screen and (min-device-width: 36em) and (max-device-width: 47em) and (orientation: landscape) {
-  :root[style*="--USER__colCount: 1"],
-  :root[style*="--USER__colCount:1"],
-  :root[style*="--USER__colCount: 2"],
-  :root[style*="--USER__colCount:2"] {
-    -webkit-column-count: var(--USER__colCount);
-    -moz-column-count: var(--USER__colCount);
-    column-count: var(--USER__colCount);
-  }
-
-  /* If one column, make sure we limit line-length */
-  :root[style*="--USER__colCount: 1"],
-  :root[style*="--USER__colCount:1"] {
-    --RS__maxLineLength: 40rem !important; /* This is the only way for the user setting to work in webkit… */
-    --RS__colWidth: 100vw;
-  }
-
-  /* If smartphone landscape, and 2 columns, col width the same as iPad landscape + desktop */
-  :root[style*="--USER__colCount: 2"],
-  :root[style*="--USER__colCount:2"] {
-    --RS__colWidth: auto; /* User explicitely tells he/she wants 2 columns, we reset floor value */
-  }
+/* If smartphone landscape, and 2 columns, col width the same as iPad landscape + desktop */
+:root[style*="--USER__colCount: 2"],
+:root[style*="--USER__colCount:2"] {
+  --RS__colWidth: auto; /* User explicitely tells he/she wants 2 columns, we reset floor value */
 }
 
 /* Readium CSS
