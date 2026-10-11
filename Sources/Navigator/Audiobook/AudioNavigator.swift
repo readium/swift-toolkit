@@ -653,8 +653,16 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     /// AVFoundation error which is not reported on top of its cause.
     private var didReportLoadingError = false
 
-    private lazy var mediaLoader: PublicationMediaLoader = {
-        let loader = PublicationMediaLoader(publication: publication)
+    private lazy var mediaLoader: ResourceAssetLoader = {
+        let loader = ResourceAssetLoader { [publication] href in
+            guard
+                let link = publication.linkWithHREF(href),
+                let resource = publication.get(link)
+            else {
+                return nil
+            }
+            return ResourceAssetLoader.Entry(href: link.url(), resource: resource, mediaType: link.mediaType)
+        }
         loader.onLoadingError = { [weak self] href, error in
             Task { @MainActor in
                 guard let self = self else {
@@ -1002,7 +1010,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         let link = readingOrder[index]
         do {
             log(.info, "Loads \(link.href)")
-            let asset = try mediaLoader.makeAsset(for: link)
+            let asset = try mediaLoader.makeAsset(for: link.url(relativeTo: publication.baseURL))
             player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
             resourceIndex = index
             didReportLoadingError = false

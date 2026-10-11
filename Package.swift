@@ -93,7 +93,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ReadiumNavigatorTests",
-            dependencies: ["ReadiumNavigator"],
+            dependencies: ["ReadiumNavigator", "TestPublications"],
             path: "Tests/NavigatorTests",
             exclude: [
                 "UITests",
@@ -129,7 +129,7 @@ let package = Package(
             ]
         ),
 
-        // Shared test publications used across multiple test targets.
+        // Shared test publications and helpers used across multiple test targets.
         .target(
             name: "TestPublications",
             path: "Tests/Publications",

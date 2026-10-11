@@ -324,9 +324,11 @@ enum AudioNavigatorTests {
             // When playing.
             audiobook.navigator.play()
 
-            // Then the failure is reported with the read error.
+            // Then the failure is reported with the read error and the HREF
+            // of the resource.
             let failure = try #require(await audiobook.waitForLoadingFailure())
             #expect(failure.error.isHTTPSecurityError)
+            #expect(failure.href.string == "https://example.com/track.wav")
 
             // And the failure of the player item it caused is not reported on
             // top of it.
