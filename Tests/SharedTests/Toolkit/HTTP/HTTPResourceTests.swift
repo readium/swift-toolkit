@@ -77,17 +77,59 @@ struct HTTPResourceTests {
         #expect(client.fetchCount == 1) // Should be cached
     }
 
-    @Test func headResponseFallbackOnMethodNotAllowed() async throws {
+    /// The server answered both requests without giving the length, which is
+    /// then unknown for good.
+    @Test(arguments: [
+        HTTPError.errorResponse(HTTPErrorResponse(status: .methodNotAllowed)),
+        .rangeNotSupported,
+    ])
+    func unknownLengthIsCachedWhenServerRefusesFallback(error: HTTPError) async throws {
         let client = MockHTTPClient()
         let resource = HTTPResource(url: url, client: client)
 
-        let response = HTTPErrorResponse(status: .methodNotAllowed)
-        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(response))
-        client.fetchResults["GET \(url.string)"] = .failure(.errorResponse(response))
+        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(HTTPErrorResponse(status: .methodNotAllowed)))
+        client.fetchResults["GET \(url.string)"] = .failure(error)
+
+        let length1 = await resource.estimatedLength()
+        try #expect(length1.get() == nil)
+        #expect(client.fetchCount == 2)
+
+        let length2 = await resource.estimatedLength()
+        try #expect(length2.get() == nil)
+        #expect(client.fetchCount == 2) // Should be cached
+    }
+
+    /// A request which was cancelled, or failed before the server answered,
+    /// tells nothing about the resource.
+    @Test(arguments: [HTTPError.cancelled, .offline(nil)])
+    func failedRequestsAreReportedAndNotCached(error: HTTPError) async throws {
+        let client = MockHTTPClient()
+        let resource = HTTPResource(url: url, client: client)
+
+        client.fetchResults["HEAD \(url.string)"] = .failure(error)
+        client.fetchResults["GET \(url.string)"] = .failure(error)
+
+        switch await (error, resource.estimatedLength()) {
+        case (.cancelled, .failure(.cancelled)), (.offline, .failure(.access(.http(.offline)))):
+            break
+        case let (_, result):
+            Issue.record("Unexpected result: \(result)")
+        }
+
+        // The next call asks the server again.
+        client.fetchResults["HEAD \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: .head),
+                url: url,
+                status: .ok,
+                headers: ["Content-Length": "1024"],
+                mediaType: .epub
+            ),
+            body: Data()
+        ))
 
         let length = await resource.estimatedLength()
-        try #expect(length.get() == nil)
-        #expect(client.fetchCount == 2)
+        try #expect(length.get() == 1024)
     }
 
     @Test func headResponseFallbackToRangeRequestSucceeds() async throws {
