@@ -260,7 +260,7 @@ private func fileAsset(_ fixture: String, mediaType: MediaType = .mp3) -> Asset 
     return .resource(ResourceAsset(
         resource: FileResource(file: file),
         format: Format(
-            specifications: mediaType == .mp3 ? .mp3 : .mp4,
+            specifications: mediaType.matches(.mp3) ? .mp3 : .mp4,
             mediaType: mediaType,
             fileExtension: file.pathExtension
         )

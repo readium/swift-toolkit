@@ -6,7 +6,7 @@
 
 import ReadiumShared
 import Testing
-import TestPublications
+import TestSupport
 
 struct FileResourceTests {
     private let file = FileURL(url: TestPublications.url(for: "childrens-literature.epub"))!
