@@ -8,6 +8,7 @@ import AVFoundation
 import Foundation
 @testable import ReadiumShared
 import Testing
+import TestSupport
 
 enum ResourceAssetLoaderTests {
     @Suite("HREF of an asset URL") struct AudioHREF {
@@ -43,7 +44,7 @@ enum ResourceAssetLoaderTests {
         func servesResolvedResource(hasEstimatedLength: Bool) async throws {
             // Given a loader resolving any HREF to a WAV resource, whose
             // length is known or not.
-            let resource = StubResource(.serving(silentWAV(duration: 1)), hasEstimatedLength: hasEstimatedLength)
+            let resource = StubResource(.serving(WAV.silence(duration: 1)), hasEstimatedLength: hasEstimatedLength)
             let resolvedHREFs = Recorder<String>()
             let loader = ResourceAssetLoader { href in
                 resolvedHREFs.append(href.string)
@@ -161,7 +162,7 @@ enum ResourceAssetLoaderTests {
             // Given an asset loaded from a resource too large to be delivered
             // before the player has what it needs, so that it abandons the
             // request running to the end of the resource.
-            let resource = StubResource(.serving(silentWAV(duration: 600)), hasEstimatedLength: true)
+            let resource = StubResource(.serving(WAV.silence(duration: 300)), hasEstimatedLength: true)
             let loader = ResourceAssetLoader(serving: resource)
             let asset = try loader.makeAsset(for: trackHREF)
             _ = try await asset.loadDuration()
@@ -357,30 +358,4 @@ private final class StubResource: Resource {
         await Task.detached { try? await Task.sleep(nanoseconds: Self.cancellationDelay) }.value
         return .failure(.cancelled)
     }
-}
-
-/// Returns a silent mono 8-bit PCM WAV file of the given `duration` in
-/// seconds, which takes 8 KB per second.
-private func silentWAV(duration: Int) -> Data {
-    func littleEndian<T: FixedWidthInteger>(_ value: T) -> Data {
-        withUnsafeBytes(of: value.littleEndian) { Data($0) }
-    }
-
-    let sampleRate: UInt32 = 8000
-    let dataSize = UInt32(duration) * sampleRate
-
-    var wav = Data("RIFF".utf8)
-    wav += littleEndian(36 + dataSize)
-    wav += Data("WAVEfmt ".utf8)
-    wav += littleEndian(UInt32(16)) // Chunk size
-    wav += littleEndian(UInt16(1)) // PCM
-    wav += littleEndian(UInt16(1)) // Mono
-    wav += littleEndian(sampleRate)
-    wav += littleEndian(sampleRate) // Byte rate
-    wav += littleEndian(UInt16(1)) // Block align
-    wav += littleEndian(UInt16(8)) // Bits per sample
-    wav += Data("data".utf8)
-    wav += littleEndian(dataSize)
-    wav += Data(repeating: 0x80, count: Int(dataSize))
-    return wav
 }

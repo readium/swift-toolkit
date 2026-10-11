@@ -8,6 +8,7 @@ import Foundation
 @testable import ReadiumNavigator
 import ReadiumShared
 import Testing
+import TestSupport
 
 enum AudioNavigatorTests {
     @Suite("Reaching the end of the publication") @MainActor struct EndOfPublication {
