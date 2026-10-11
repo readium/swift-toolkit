@@ -21,7 +21,12 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
     package struct Entry: Sendable {
         /// HREF identifying the resource.
         package let href: AnyURL
+
+        /// Resource read to serve the asset.
         package let resource: Resource
+
+        /// Media type of the resource, which gives the content type of the
+        /// asset. The file extension of the HREF is never used for it.
         package let mediaType: MediaType?
 
         package init(href: AnyURL, resource: Resource, mediaType: MediaType?) {
@@ -63,6 +68,21 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
         return asset
     }
 
+    /// Returns the normalized HREF of the resource served at the given asset
+    /// URL, or `nil` when it is not the URL of an asset created by
+    /// `makeAsset(for:)`.
+    static func href(forAssetURL assetURL: URL) -> AnyURL? {
+        guard let url = assetURL.anyURL.absoluteURL, url.scheme.rawValue.hasPrefix(schemePrefix) else {
+            return nil
+        }
+
+        // The URL can be either:
+        // * readium:relative/file.mp3
+        // * readiumfile:///directory/local-file.mp3
+        // * readiumhttp(s)://domain.com/external-file.mp3
+        return AnyURL(string: url.string.removingPrefix(schemePrefix).removingPrefix(":"))?.normalized
+    }
+
     // MARK: - Invalidation
 
     /// Whether `invalidate()` was called. The loader then refuses every
@@ -72,35 +92,29 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
     /// Cancels the in-flight requests and returns once their streams have
     /// stopped. The loader no longer serves any resource afterwards.
     package func invalidate() async {
-        let running: [CancellableRequest] = await withCheckedContinuation { continuation in
-            queue.async { [self] in
-                isInvalidated = true
-                requests = [:]
-                resources = [:]
+        let served = await queue.run { [self] in
+            isInvalidated = true
+            resources = [:]
 
-                // The tasks remove themselves from `runningRequests` when
-                // they end.
-                let running = Array(runningRequests.values)
-                for (_, task) in running {
-                    task.cancel()
-                }
-                continuation.resume(returning: running)
+            // The tasks remove themselves from `servedRequests` when they
+            // end.
+            let served = Array(servedRequests.values)
+            for request in served {
+                request.task.cancel()
             }
+            return served
         }
 
-        for (_, task) in running {
-            await task.value
+        for request in served {
+            await request.task.value
         }
 
         // A cancelled task leaves its request open. Failing it only now makes
         // sure that the task is done responding to it. A task which ended
         // before being cancelled finished its request already.
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            queue.async {
-                for (request, _) in running where !request.isFinished && !request.isCancelled {
-                    request.finishLoading(with: ReadError.cancelled)
-                }
-                continuation.resume()
+        await queue.run {
+            for request in served where !request.loadingRequest.isFinished && !request.loadingRequest.isCancelled {
+                request.loadingRequest.finishLoading(with: ReadError.cancelled)
             }
         }
     }
@@ -124,7 +138,9 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
         // routinely abandons its requests to issue new ones for the same
         // entry. Dropping the current resource would throw away its buffered
         // data and force re-downloading the beginning of the entry.
-        resources = resources.filter { requests[$0.key] != nil }
+        resources = resources.filter { href, _ in
+            servedRequests.values.contains { $0.openDataHREF == href }
+        }
 
         resources[href] = entry
         return entry
@@ -132,71 +148,60 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
 
     // MARK: - Requests Management
 
-    private typealias CancellableRequest = (request: AVAssetResourceLoadingRequest, task: Task<Void, Never>)
+    /// A loading request with the task serving it.
+    private struct ServedRequest {
+        let loadingRequest: AVAssetResourceLoadingRequest
+        let task: Task<Void, Never>
 
-    /// List of on-going data requests.
-    private var requests: [AnyURL: [CancellableRequest]] = [:]
+        /// HREF of the asset, for a data request which is still open: neither
+        /// finished nor abandoned by the player.
+        var openDataHREF: AnyURL?
+    }
 
-    /// Requests whose task did not end yet, for `invalidate()`.
+    /// Requests whose task did not end yet.
     ///
     /// A task can outlive its request: the stream of a data request abandoned
-    /// by the player only stops once it notices its cancellation. And the
-    /// task of a content information request is only cancelled by
-    /// `invalidate()`, as a resource usually caches its length for the next
-    /// requests.
-    private var runningRequests: [UUID: CancellableRequest] = [:]
+    /// by the player only stops once it notices its cancellation.
+    private var servedRequests: [UUID: ServedRequest] = [:]
 
     /// Serves `request` with `operation`, in a task tracked in
-    /// `runningRequests` until it ends.
+    /// `servedRequests` until it ends.
+    ///
+    /// - Parameter dataHREF: HREF of the asset for a data request, `nil` for
+    ///   a content information request.
     private func serve(
         _ request: AVAssetResourceLoadingRequest,
+        dataHREF: AnyURL? = nil,
         operation: @escaping @Sendable () async -> Void
-    ) -> Task<Void, Never> {
+    ) {
         dispatchPrecondition(condition: .onQueue(queue))
 
         let id = UUID()
         let task = Task { [self] in
             await operation()
             queue.async { [self] in
-                runningRequests.removeValue(forKey: id)
+                servedRequests.removeValue(forKey: id)
             }
         }
-        runningRequests[id] = (request, task)
-        return task
+        servedRequests[id] = ServedRequest(loadingRequest: request, task: task, openDataHREF: dataHREF)
     }
 
-    /// Adds a new data request.
-    private func registerRequest(_ request: AVAssetResourceLoadingRequest, task: Task<Void, Never>, for href: AnyURL) {
-        dispatchPrecondition(condition: .onQueue(queue))
-
-        var reqs: [CancellableRequest] = requests[href] ?? []
-        reqs.append((request, task))
-        requests[href] = reqs
-    }
-
-    /// Terminates and removes the given data request, cancelling it if
-    /// necessary.
+    /// Closes the given data request, cancelling its task if necessary.
+    ///
+    /// A content information request is left alone. Its task is only
+    /// cancelled by `invalidate()`, as a resource usually caches its length
+    /// for the next requests.
     private func finishRequest(_ request: AVAssetResourceLoadingRequest) {
         dispatchPrecondition(condition: .onQueue(queue))
 
-        guard
-            let href = request.request.url?.audioHREF,
-            var reqs = requests[href],
-            let index = reqs.firstIndex(where: { req, _ in req == request })
-        else {
+        guard let id = servedRequests.first(where: { $0.value.loadingRequest == request && $0.value.openDataHREF != nil })?.key else {
             return
         }
 
-        let req = reqs.remove(at: index)
-        req.task.cancel()
-
         // The resource is intentionally kept in `resources`, to reuse its
         // buffered data with the next loading requests for the same entry.
-        if reqs.isEmpty {
-            requests.removeValue(forKey: href)
-        } else {
-            requests[href] = reqs
-        }
+        servedRequests[id]?.task.cancel()
+        servedRequests[id]?.openDataHREF = nil
     }
 
     // MARK: - AVAssetResourceLoaderDelegate
@@ -204,7 +209,7 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
     package func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
         guard
             !isInvalidated,
-            let href = loadingRequest.request.url?.audioHREF,
+            let href = loadingRequest.request.url.flatMap(Self.href(forAssetURL:)),
             let entry = entry(forHREF: href)
         else {
             return false
@@ -232,7 +237,7 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
         of request: AVAssetResourceLoadingRequest,
         using entry: Entry
     ) {
-        _ = serve(request) { [self] in
+        serve(request) { [self] in
             infoRequest.isByteRangeAccessSupported = true
             infoRequest.contentType = entry.mediaType?.uti
 
@@ -270,7 +275,7 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
             range = UInt64(dataRequest.currentOffset) ..< (UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
         }
 
-        let task = serve(request) { [self] in
+        serve(request, dataHREF: requestHREF) { [self] in
             let result = await entry.resource.stream(
                 range: range,
                 consume: { dataRequest.respond(with: $0) }
@@ -294,8 +299,6 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
                 self?.finishRequest(request)
             }
         }
-
-        registerRequest(request, task: task, for: requestHREF)
     }
 
     private func report(_ error: ReadError, forHREF href: AnyURL) {
@@ -314,17 +317,14 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
 
 private let schemePrefix = "readium"
 
-extension URL {
-    var audioHREF: AnyURL? {
-        guard let url = anyURL.absoluteURL, url.scheme.rawValue.hasPrefix(schemePrefix) == true else {
-            return nil
+private extension DispatchQueue {
+    /// Runs `work` on the queue and returns its result.
+    func run<T>(_ work: @escaping @Sendable () -> T) async -> T {
+        await withCheckedContinuation { continuation in
+            async {
+                continuation.resume(returning: work())
+            }
         }
-
-        // The URL can be either:
-        // * readium:relative/file.mp3
-        // * readiumfile:///directory/local-file.mp3
-        // * readiumhttp(s)://domain.com/external-file.mp3
-        return AnyURL(string: url.string.removingPrefix(schemePrefix).removingPrefix(":"))?.normalized
     }
 }
 

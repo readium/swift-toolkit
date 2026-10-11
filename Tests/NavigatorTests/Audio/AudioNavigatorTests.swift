@@ -491,20 +491,13 @@ private extension ReadError {
     func waitForPlayback(
         timeout: TimeInterval = 10,
         sourceLocation: SourceLocation = #_sourceLocation,
-        where condition: (MediaPlaybackInfo) -> Bool
+        where condition: @escaping @Sendable (MediaPlaybackInfo) -> Bool
     ) async -> MediaPlaybackInfo? {
-        // Finishing the stream ends the wait.
-        let timeoutTask = Task { [playbacksContinuation] in
-            try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-            playbacksContinuation.finish()
+        guard let playback = await playbacks.first(within: timeout, where: condition) else {
+            Issue.record("Timed out waiting for the playback", sourceLocation: sourceLocation)
+            return nil
         }
-        defer { timeoutTask.cancel() }
-
-        for await playback in playbacks where condition(playback) {
-            return playback
-        }
-        Issue.record("Timed out waiting for the playback", sourceLocation: sourceLocation)
-        return nil
+        return playback
     }
 
     /// Waits for the navigator to report a resource which failed to load, or
@@ -515,18 +508,11 @@ private extension ReadError {
         timeout: TimeInterval = 10,
         sourceLocation: SourceLocation = #_sourceLocation
     ) async -> LoadingFailure? {
-        // Finishing the stream ends the wait.
-        let timeoutTask = Task { [loadingFailuresContinuation] in
-            try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-            loadingFailuresContinuation.finish()
+        guard let failure = await loadingFailuresStream.first(within: timeout) else {
+            Issue.record("Timed out waiting for a loading failure", sourceLocation: sourceLocation)
+            return nil
         }
-        defer { timeoutTask.cancel() }
-
-        for await failure in loadingFailuresStream {
-            return failure
-        }
-        Issue.record("Timed out waiting for a loading failure", sourceLocation: sourceLocation)
-        return nil
+        return failure
     }
 
     func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo) {

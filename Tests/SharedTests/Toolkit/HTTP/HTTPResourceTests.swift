@@ -10,6 +10,12 @@ import Testing
 
 struct HTTPResourceTests {
     private let url = HTTPURL(string: "http://example.com/book.epub")!
+    private let client = MockHTTPClient()
+    private let resource: HTTPResource
+
+    init() {
+        resource = HTTPResource(url: url, client: client)
+    }
 
     final class MockHTTPClient: HTTPClient {
         struct Response: Sendable {
@@ -40,8 +46,10 @@ struct HTTPResourceTests {
             if let result = _fetchResults.withLock({ $0[key] }) {
                 switch result {
                 case let .success(response):
-                    if let onReceiveResponse = onReceiveResponse {
-                        let _ = await onReceiveResponse(response.response)
+                    // The request is interrupted when the response is
+                    // refused, as `DefaultHTTPClient` does.
+                    if case let .failure(error) = await onReceiveResponse?(response.response) {
+                        return .failure(error)
                     }
                     _ = consume(response.body, 1.0)
                     return .success(response.response)
@@ -54,19 +62,7 @@ struct HTTPResourceTests {
     }
 
     @Test func headResponseIsCached() async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .ok,
-                headers: ["Content-Length": "1024"],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
+        respond(to: .head, headers: ["Content-Length": "1024"])
 
         let length1 = await resource.estimatedLength()
         try #expect(length1.get() == 1024)
@@ -81,14 +77,12 @@ struct HTTPResourceTests {
     /// then unknown for good.
     @Test(arguments: [
         HTTPError.errorResponse(HTTPErrorResponse(status: .methodNotAllowed)),
+        .errorResponse(HTTPErrorResponse(status: .notFound)),
         .rangeNotSupported,
     ])
     func unknownLengthIsCachedWhenServerRefusesFallback(error: HTTPError) async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(HTTPErrorResponse(status: .methodNotAllowed)))
-        client.fetchResults["GET \(url.string)"] = .failure(error)
+        fail(.head, with: .errorResponse(HTTPErrorResponse(status: .methodNotAllowed)))
+        fail(.get, with: error)
 
         let length1 = await resource.estimatedLength()
         try #expect(length1.get() == nil)
@@ -101,52 +95,33 @@ struct HTTPResourceTests {
 
     /// A request which was cancelled, or failed before the server answered,
     /// tells nothing about the resource.
-    @Test(arguments: [HTTPError.cancelled, .offline(nil)])
-    func failedRequestsAreReportedAndNotCached(error: HTTPError) async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
+    @Test(arguments: [
+        (HTTPError.cancelled, ReadError.cancelled),
+        (.offline(nil), .access(.http(.offline(nil)))),
+    ])
+    func failedRequestsAreReportedAndNotCached(error: HTTPError, expected: ReadError) async throws {
+        fail(.head, with: error)
+        fail(.get, with: error)
 
-        client.fetchResults["HEAD \(url.string)"] = .failure(error)
-        client.fetchResults["GET \(url.string)"] = .failure(error)
-
-        switch await (error, resource.estimatedLength()) {
-        case (.cancelled, .failure(.cancelled)), (.offline, .failure(.access(.http(.offline)))):
-            break
-        case let (_, result):
-            Issue.record("Unexpected result: \(result)")
-        }
+        #expect(await resource.estimatedLength() == .failure(expected))
+        #expect(await resource.properties() == .failure(expected))
 
         // The next call asks the server again.
-        client.fetchResults["HEAD \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .ok,
-                headers: ["Content-Length": "1024"],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
+        respond(to: .head, headers: ["Content-Length": "1024"])
 
         let length = await resource.estimatedLength()
         try #expect(length.get() == 1024)
     }
 
-    @Test func headResponseFallbackToRangeRequestSucceeds() async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .failure(.errorResponse(HTTPErrorResponse(status: .methodNotAllowed)))
-        client.fetchResults["GET \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url),
-                url: url,
-                status: .partialContent,
-                headers: ["Content-Range": "bytes 0-1/512"],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
+    /// The HEAD request is refused by the server, or failed before it
+    /// answered.
+    @Test(arguments: [
+        HTTPError.errorResponse(HTTPErrorResponse(status: .methodNotAllowed)),
+        .offline(nil),
+    ])
+    func headResponseFallbackToRangeRequestSucceeds(headError: HTTPError) async throws {
+        fail(.head, with: headError)
+        respond(to: .get, status: .partialContent, headers: ["Content-Range": "bytes 0-1/512"])
 
         let length = await resource.estimatedLength()
         try #expect(length.get() == 512)
@@ -154,19 +129,7 @@ struct HTTPResourceTests {
     }
 
     @Test func propertiesMediaTypeFromHeadResponse() async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .ok,
-                headers: [:],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
+        respond(to: .head)
 
         let props = try await resource.properties().get()
         #expect(props.mediaType == .epub)
@@ -174,114 +137,78 @@ struct HTTPResourceTests {
     }
 
     @Test func propertiesFilenameFromContentDisposition() async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .ok,
-                headers: ["Content-Disposition": "attachment; filename=\"moby-dick.epub\""],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
+        respond(to: .head, headers: ["Content-Disposition": "attachment; filename=\"moby-dick.epub\""])
 
         let props = try await resource.properties().get()
         #expect(props.filename == "moby-dick.epub")
     }
 
     @Test func streamWithRange() async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .ok,
-                headers: ["Content-Length": "100"],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
-
-        client.fetchResults["GET \(url.string)"] = try .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url),
-                url: url,
-                status: .partialContent,
-                headers: ["Content-Range": "bytes 0-9/100"],
-                mediaType: .epub
-            ),
-            body: #require("0123456789".data(using: .utf8))
-        ))
+        respond(to: .head, headers: ["Content-Length": "100"])
+        respond(
+            to: .get,
+            status: .partialContent,
+            headers: ["Content-Range": "bytes 0-9/100"],
+            body: Data("0123456789".utf8)
+        )
 
         let streamedData = Capture(Data())
         let result = await resource.stream(range: 0 ..< 10, consume: { chunk in streamedData.value.append(chunk) })
 
         try result.get()
-        #expect(streamedData.value == "0123456789".data(using: .utf8))
+        #expect(streamedData.value == Data("0123456789".utf8))
     }
 
     @Test func estimatedLengthFromContentRange() async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .partialContent,
-                headers: ["Content-Range": "bytes 0-1/1000"],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
+        respond(to: .head, status: .partialContent, headers: ["Content-Range": "bytes 0-1/1000"])
 
         let length = await resource.estimatedLength()
         try #expect(length.get() == 1000)
     }
 
     @Test func estimatedLengthUnknownWhenContentRangeSizeIsWildcard() async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .partialContent,
-                headers: [
-                    "Content-Range": "bytes 0-1/*",
-                    "Content-Length": "2",
-                ],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
+        respond(to: .head, status: .partialContent, headers: [
+            "Content-Range": "bytes 0-1/*",
+            "Content-Length": "2",
+        ])
 
         let length = await resource.estimatedLength()
         try #expect(length.get() == nil)
     }
 
     @Test func estimatedLengthFromContentLength() async throws {
-        let client = MockHTTPClient()
-        let resource = HTTPResource(url: url, client: client)
-
-        client.fetchResults["HEAD \(url.string)"] = .success(.init(
-            response: HTTPResponse(
-                request: HTTPRequest(url: url, method: .head),
-                url: url,
-                status: .ok,
-                headers: ["Content-Length": "2048"],
-                mediaType: .epub
-            ),
-            body: Data()
-        ))
+        respond(to: .head, headers: ["Content-Length": "2048"])
 
         let length = await resource.estimatedLength()
         try #expect(length.get() == 2048)
+    }
+}
+
+// MARK: - Helpers
+
+private extension HTTPResourceTests {
+    /// Makes the server answer the requests of `method` with the given
+    /// response.
+    func respond(
+        to method: HTTPRequest.Method,
+        status: HTTPStatus = .ok,
+        headers: [String: String] = [:],
+        body: Data = Data()
+    ) {
+        client.fetchResults["\(method.rawValue) \(url.string)"] = .success(.init(
+            response: HTTPResponse(
+                request: HTTPRequest(url: url, method: method),
+                url: url,
+                status: status,
+                headers: headers,
+                mediaType: .epub
+            ),
+            body: body
+        ))
+    }
+
+    /// Makes the requests of `method` fail with `error`.
+    func fail(_ method: HTTPRequest.Method, with error: HTTPError) {
+        client.fetchResults["\(method.rawValue) \(url.string)"] = .failure(error)
     }
 }
