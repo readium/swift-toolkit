@@ -44,6 +44,12 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Fixed
 
+#### Shared
+
+* Minizip adapter improvements:
+    * Seeking in the entry of a local ZIP package stored without compression no longer reads the entry again from its start.
+    * Fixed a crash when reading a corrupted compressed entry of a local ZIP package.
+
 #### Navigator
 
 * Fixed audio session interruptions:
