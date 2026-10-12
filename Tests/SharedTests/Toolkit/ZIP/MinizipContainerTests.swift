@@ -167,6 +167,7 @@ enum MinizipContainerTests {
             }
         }
 
+        @available(iOS 18.0, *)
         @Test func overlappingStreamsOfAStoredEntryInterleave() async throws {
             let resource = try await entry(LargeEntry.stored.rawValue)
             let data = LargeEntry.stored.data
@@ -211,6 +212,7 @@ enum MinizipContainerTests {
     }
 
     struct Closing {
+        @available(iOS 18.0, *)
         @Test func streamOfAStoredEntryEndsAfterClosing() async throws {
             let resource = try #require(try await entry(LargeEntry.stored.rawValue) as? MinizipResource)
 
@@ -292,8 +294,12 @@ private func streamChunks(
 /// Streams the given `resource`, holding the stream on its first chunk while
 /// `body` runs.
 ///
+/// The stream runs on its own thread, as holding it blocks its thread. On a
+/// thread of the cooperative pool, it could starve `body`.
+///
 /// `bodyEndedDuringStream` tells whether `body` ended while the stream was
 /// held, and not because the stream gave up waiting for it.
+@available(iOS 18.0, *)
 private func streamChunks<T>(
     of resource: Resource,
     holdingFirstChunkDuring body: () async -> T
@@ -301,21 +307,39 @@ private func streamChunks<T>(
     let (firstChunks, continuation) = AsyncStream<Void>.makeStream()
     let bodyEnded = DispatchSemaphore(value: 0)
     let bodyEndedDuringStream = Mutex(false)
-    let stream = Task {
+    let stream = Task(executorPreference: DispatchQueueTaskExecutor()) {
         await streamChunks(of: resource) { chunkCount in
             guard chunkCount == 1 else {
                 return
             }
             continuation.yield()
-            let waited = bodyEnded.wait(timeout: .now() + 5)
+            let waited = bodyEnded.wait(timeout: .now() + holdTimeout)
             bodyEndedDuringStream.withLock { $0 = (waited == .success) }
         }
     }
 
-    try #require(await firstChunks.first(within: 5) != nil)
+    try #require(await firstChunks.first(within: holdTimeout) != nil)
     let bodyResult = await body()
     bodyEnded.signal()
     let (result, chunks) = await stream.value
 
     return (result, chunks, bodyResult, bodyEndedDuringStream.withLock { $0 })
+}
+
+/// Only reached when the stream prevents `body` from running, generous to
+/// stand a busy machine.
+private let holdTimeout: TimeInterval = 30
+
+/// Runs the jobs of a task on a serial dispatch queue instead of the
+/// cooperative pool.
+@available(iOS 18.0, *)
+private final class DispatchQueueTaskExecutor: TaskExecutor {
+    private let queue = DispatchQueue(label: "org.readium.swift-toolkit.tests.task-executor")
+
+    func enqueue(_ job: consuming ExecutorJob) {
+        let job = UnownedJob(job)
+        queue.async {
+            job.runSynchronously(on: self.asUnownedTaskExecutor())
+        }
+    }
 }
