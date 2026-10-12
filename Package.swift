@@ -132,6 +132,7 @@ let package = Package(
         // Shared test publications and helpers used across multiple test targets.
         .target(
             name: "TestSupport",
+            dependencies: ["ReadiumShared"],
             path: "Tests/TestSupport",
             resources: [
                 .copy("Publications"),

@@ -31,13 +31,14 @@ enum AudioParserTests {
         let warnings = ListWarningLogger()
 
         init() async throws {
-            publication = try await AudioParser().parse(asset: zabAsset(), warnings: warnings).get().build()
+            publication = try await AudioParser().parse(asset: zabAsset("audiotest.zab"), warnings: warnings).get().build()
         }
 
         /// The reading order is sorted alphabetically, ignores Thumbs.db,
         /// hidden files and non-audio files.
         ///
-        /// The default reader does not read the entries of a ZIP archive.
+        /// The entries of `audiotest.zab` are compressed, and the default
+        /// reader does not read them.
         @Test func readingOrderIsSortedAlphabeticallyWithoutMetadataOrCover() {
             #expect(publication.readingOrder == [
                 Link(href: "Test%20Audiobook/gtr-jazz.mp3", mediaType: .mp3),
@@ -59,7 +60,7 @@ enum AudioParserTests {
     struct ReadingPolicy {
         @Test func readsNoEntryOfAPackageWhenDisabled() async throws {
             let reader = FakeAudioMetadataReader { _ in .success(AudioMetadata(title: "Title")) }
-            let parser = AudioParser(metadataReader: reader, readsContainerEntriesMetadata: false)
+            let parser = AudioParser(assetRetriever: assetRetriever, metadataReader: reader, readsContainerEntriesMetadata: false)
 
             let publication = try await withFolder(fileCount: 2) { folder in
                 try await parser.parse(asset: folder, warnings: nil).get().build()
@@ -77,7 +78,7 @@ enum AudioParserTests {
 
         @Test func alwaysReadsAStandaloneFile() async throws {
             let reader = FakeAudioMetadataReader { _ in .success(AudioMetadata(title: "Title")) }
-            let parser = AudioParser(metadataReader: reader, readsContainerEntriesMetadata: false)
+            let parser = AudioParser(assetRetriever: assetRetriever, metadataReader: reader, readsContainerEntriesMetadata: false)
 
             let publication = try await parser.parse(asset: fileAsset("audio/tagged.mp3"), warnings: nil).get().build()
 
@@ -85,13 +86,14 @@ enum AudioParserTests {
             #expect(publication.readingOrder == [Link(href: "publication.mp3", mediaType: .mp3, title: "Title")])
         }
 
-        /// A batch of four files asks for the covers only while none was
-        /// found, and the cover is the first one in reading order.
+        /// A batch of three files, the default, asks for the covers only
+        /// while none was found, and the cover is the first one in reading
+        /// order.
         @Test(arguments: [
             // In the first batch, which holds two of them.
-            ([3, 2], 4, 2),
+            ([3, 2], 3, 2),
             // In the second batch only.
-            ([6], 8, 6),
+            ([5], 6, 5),
             // In no file.
             ([], 10, nil),
         ] as [([Int], Int, Int?)])
@@ -114,12 +116,22 @@ enum AudioParserTests {
         /// Each read waits for the next one of its batch to complete, and the
         /// last one for the whole batch to have started. A deadline ends the
         /// waits when a batch does not run at the same time.
-        @Test func readsFourFilesAtATimeAndKeepsTheReadingOrder() async throws {
+        @Test(arguments: [
+            // Three files by default.
+            (nil, 3),
+            (4, 4),
+            (1, 1),
+            // One file at a time for a value below 1.
+            (0, 1),
+        ] as [(Int?, Int)])
+        func readsABatchOfFilesAtATimeAndKeepsTheReadingOrder(maxConcurrentMetadataReads: Int?, expectedBatchSize: Int) async throws {
+            let fileCount = 6
             let startedFiles = Mutex<Set<Int>>([])
             let completedFiles = Mutex<Set<Int>>([])
             let reader = FakeAudioMetadataReader { file in
                 startedFiles.withLock { _ = $0.insert(file) }
-                let batch = file <= 4 ? 1 ... 4 : 5 ... 6
+                let batchStart = (file - 1) / expectedBatchSize * expectedBatchSize + 1
+                let batch = batchStart ... min(batchStart + expectedBatchSize - 1, fileCount)
                 let deadline = Date().addingTimeInterval(5)
                 while Date() < deadline {
                     let canComplete = file == batch.upperBound
@@ -133,13 +145,16 @@ enum AudioParserTests {
                 completedFiles.withLock { _ = $0.insert(file) }
                 return file % 2 == 0 ? .failure(.reading(.decoding("Truncated"))) : .success(AudioMetadata(title: "Title \(file)"))
             }
+            let parser = maxConcurrentMetadataReads.map {
+                AudioParser(assetRetriever: assetRetriever, metadataReader: reader, maxConcurrentMetadataReads: $0)
+            } ?? AudioParser(metadataReader: reader)
             let warnings = ListWarningLogger()
 
-            let publication = try await withFolder(fileCount: 6) { folder in
-                try await AudioParser(metadataReader: reader).parse(asset: folder, warnings: warnings).get().build()
+            let publication = try await withFolder(fileCount: fileCount) { folder in
+                try await parser.parse(asset: folder, warnings: warnings).get().build()
             }
 
-            #expect(reader.maxConcurrentReadCount == 4)
+            #expect(reader.maxConcurrentReadCount == expectedBatchSize)
             #expect(publication.readingOrder.map(\.title) == ["Title 1", nil, "Title 3", nil, "Title 5", nil])
             #expect(warnings.audioMetadataWarnings == [2, 4, 6].map {
                 .undecodableMetadata(href: AnyURL(string: "\($0).mp3")!, reason: "DebugError(Truncated)")
@@ -170,13 +185,18 @@ enum AudioParserTests {
             #expect(warnings.audioMetadataWarnings == expectedWarnings)
         }
 
-        @Test func accessFailureFailsTheOpeningAndCancelsTheOtherReadsOfTheBatch() async throws {
+        /// The cancelled reads return a moment after their cancellation, as
+        /// a reader waiting for its streams to end.
+        @Test func accessFailureFailsTheOpeningOnceTheOtherReadsOfTheBatchAreCancelled() async throws {
             let reader = FakeAudioMetadataReader { file in
                 guard file != 2 else {
                     return .failure(.reading(.access(.fileSystem(.forbidden(nil)))))
                 }
-                // Returns when the task is cancelled.
+                // The sleep ends when the task is cancelled.
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
+                await withCheckedContinuation { continuation in
+                    DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) { continuation.resume() }
+                }
                 return .failure(.reading(.cancelled))
             }
 
@@ -188,8 +208,8 @@ enum AudioParserTests {
                 Issue.record("Expected a forbidden error, got \(result)")
                 return
             }
-            #expect(reader.cancelledFiles == [1, 3, 4])
-            #expect(reader.requests.keys.sorted() == ["1.mp3", "2.mp3", "3.mp3", "4.mp3"])
+            #expect(reader.cancelledFiles == [1, 3])
+            #expect(reader.requests.keys.sorted() == ["1.mp3", "2.mp3", "3.mp3"])
         }
     }
 
@@ -238,6 +258,26 @@ enum AudioParserTests {
             #expect(try await publication.coverBytes() == fixtures.data(at: "audio/cover.jpg"))
         }
 
+        /// `mixed.zab` holds `tagged.m4b`, which is not compressed, then
+        /// `tagged.mp3`, which is.
+        @Test func readsOnlyTheEntriesOfAPackageWhichAreNotCompressed() async throws {
+            let warnings = ListWarningLogger()
+
+            let publication = try await AudioParser().parse(asset: zabAsset("audio/mixed.zab"), warnings: warnings).get().build()
+
+            #expect(publication.metadata.title == "The Book")
+            #expect(publication.readingOrder.map(\.rounded) == [
+                Link(href: "tagged.m4b", mediaType: .mp4, title: "Part One", bitrate: 32, duration: 3),
+                Link(href: "tagged.mp3", mediaType: .mp3),
+            ])
+            #expect(publication.manifest.tableOfContents.map(\.rounded) == [
+                Link(href: "tagged.m4b#t=0", title: "Opening", duration: 1),
+                Link(href: "tagged.m4b#t=1", title: "Chapitre deux é", duration: 1.5),
+            ])
+            #expect(try await publication.coverBytes() == fixtures.data(at: "audio/cover.jpg"))
+            #expect(warnings.warnings.isEmpty)
+        }
+
         @Test func cancelledTaskFailsWithCancelled() async {
             let task = Task {
                 withUnsafeCurrentTask { $0?.cancel() }
@@ -256,10 +296,12 @@ enum AudioParserTests {
 // MARK: - Helpers
 
 private let fixtures = Fixtures()
+private let assetRetriever = AssetRetriever(httpClient: DefaultHTTPClient())
 
-private func zabAsset() async throws -> Asset {
+/// Asset of a ZAB fixture.
+private func zabAsset(_ fixture: String) async throws -> Asset {
     try await .container(ZIPArchiveOpener().open(
-        resource: FileResource(file: fixtures.url(for: "audiotest.zab")),
+        resource: FileResource(file: fixtures.url(for: fixture)),
         format: Format(specifications: .zip, .informalAudiobook, mediaType: .zab, fileExtension: "zab")
     ).get())
 }
@@ -320,7 +362,7 @@ private final class FakeAudioMetadataReader: AudioMetadataReader, @unchecked Sen
         lock.withLock { state.requests }
     }
 
-    /// Files whose read was cancelled.
+    /// Files whose read has returned after its cancellation.
     var cancelledFiles: Set<Int> {
         lock.withLock { state.cancelledFiles }
     }
@@ -352,15 +394,9 @@ private final class FakeAudioMetadataReader: AudioMetadataReader, @unchecked Sen
 }
 
 private extension AudioParser {
-    convenience init(
-        metadataReader: AudioMetadataReader = DefaultAudioMetadataReader(),
-        readsContainerEntriesMetadata: Bool = true
-    ) {
-        self.init(
-            assetRetriever: AssetRetriever(httpClient: DefaultHTTPClient()),
-            metadataReader: metadataReader,
-            readsContainerEntriesMetadata: readsContainerEntriesMetadata
-        )
+    /// Creates a parser with its default options.
+    convenience init(metadataReader: AudioMetadataReader = DefaultAudioMetadataReader()) {
+        self.init(assetRetriever: assetRetriever, metadataReader: metadataReader)
     }
 }
 

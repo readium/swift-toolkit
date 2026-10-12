@@ -154,7 +154,7 @@ enum ResourceAssetLoaderTests {
             let loader = ResourceAssetLoader(serving: resource)
             let asset = try loader.makeAsset(for: trackHREF)
             let loading = Task { try await asset.loadDuration() }
-            await resource.wait(for: .started)
+            #expect(await resource.wait(for: .started))
 
             // When invalidating the loader, while the stream only stops a
             // moment after its cancellation.
@@ -176,7 +176,7 @@ enum ResourceAssetLoaderTests {
             let loader = ResourceAssetLoader(serving: resource)
             let asset = try loader.makeAsset(for: trackHREF)
             _ = try await asset.loadDuration()
-            await resource.wait(for: .cancelled)
+            #expect(await resource.wait(for: .cancelled))
 
             // When invalidating the loader, while the stream only stops a
             // moment later.
@@ -275,130 +275,5 @@ private extension AVURLAsset {
         defer { timeoutTask.cancel() }
 
         return try await load(.duration)
-    }
-}
-
-/// A `Resource` with a scripted behavior, reporting what happens to its
-/// streams.
-///
-/// A stream whose task is cancelled stays active until
-/// `releaseCancelledStreams(after:)` lets it end, as a stream which is slow
-/// to notice its cancellation.
-private final class StubResource: Resource {
-    enum Behavior {
-        /// The streams deliver the given data in chunks of `chunkSize`, one
-        /// per millisecond.
-        case serving(Data)
-        /// The streams fail with the given error.
-        case failing(ReadError)
-        /// The streams deliver nothing until their task is cancelled.
-        case holding
-    }
-
-    enum StreamEvent {
-        case started
-        /// The stream noticed the cancellation of its task.
-        case cancelled
-    }
-
-    private static let chunkSize = 16384
-
-    private let behavior: Behavior
-    private let hasEstimatedLength: Bool
-
-    private let activeStreams = Mutex(0)
-    private let events: AsyncStream<StreamEvent>
-    private let eventsContinuation: AsyncStream<StreamEvent>.Continuation
-
-    /// Ends once the cancelled streams are released.
-    private let release: Task<Void, Never>
-    private let releaseContinuation: AsyncStream<Never>.Continuation
-
-    /// - Parameter hasEstimatedLength: Whether the length is known without
-    ///   reading the resource.
-    init(_ behavior: Behavior, hasEstimatedLength: Bool = true) {
-        self.behavior = behavior
-        self.hasEstimatedLength = hasEstimatedLength
-        (events, eventsContinuation) = AsyncStream.makeStream()
-
-        let (releases, releaseContinuation) = AsyncStream<Never>.makeStream()
-        self.releaseContinuation = releaseContinuation
-        release = Task {
-            for await _ in releases {}
-        }
-    }
-
-    let sourceURL: AbsoluteURL? = nil
-
-    /// Number of streams which did not end yet.
-    var activeStreamCount: Int {
-        activeStreams.withLock { $0 }
-    }
-
-    /// Waits until a stream reports `event`, or fails the test after ten
-    /// seconds.
-    func wait(for event: StreamEvent, sourceLocation: SourceLocation = #_sourceLocation) async {
-        if await events.first(within: 10, where: { $0 == event }) == nil {
-            Issue.record("Timed out waiting for a \(event) stream", sourceLocation: sourceLocation)
-        }
-    }
-
-    /// Lets the cancelled streams end, `delay` seconds from now.
-    func releaseCancelledStreams(after delay: TimeInterval) {
-        Task {
-            try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-            releaseContinuation.finish()
-        }
-    }
-
-    func estimatedLength() async -> ReadResult<UInt64?> {
-        guard hasEstimatedLength else {
-            return .success(nil)
-        }
-        return switch behavior {
-        case let .serving(data): .success(UInt64(data.count))
-        case .failing, .holding: .success(1024)
-        }
-    }
-
-    func properties() async -> ReadResult<ResourceProperties> {
-        .success(ResourceProperties())
-    }
-
-    func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
-        activeStreams.withLock { $0 += 1 }
-        defer { activeStreams.withLock { $0 -= 1 } }
-        eventsContinuation.yield(.started)
-
-        switch behavior {
-        case let .serving(data):
-            let start = Int(min(range?.lowerBound ?? 0, UInt64(data.count)))
-            let end = Int(min(range?.upperBound ?? .max, UInt64(data.count)))
-            for offset in stride(from: start, to: end, by: Self.chunkSize) {
-                if offset > start {
-                    try? await Task.sleep(nanoseconds: 1_000_000)
-                    if Task.isCancelled {
-                        return await cancelled()
-                    }
-                }
-                consume(data[offset ..< min(offset + Self.chunkSize, end)])
-            }
-            return .success(())
-
-        case let .failing(error):
-            return .failure(error)
-
-        case .holding:
-            // The sleep ends when the task is cancelled.
-            try? await Task.sleep(nanoseconds: 3_600_000_000_000)
-            return await cancelled()
-        }
-    }
-
-    /// Ends a cancelled stream once it is released.
-    private func cancelled() async -> ReadResult<Void> {
-        eventsContinuation.yield(.cancelled)
-        await release.value
-        return .failure(.cancelled)
     }
 }

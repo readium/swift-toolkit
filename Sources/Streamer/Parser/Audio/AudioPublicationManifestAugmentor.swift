@@ -16,7 +16,7 @@ public struct AudioPublicationAugmentedManifest: Sendable {}
 public final class AVAudioPublicationManifestAugmentor: Sendable {}
 
 public extension AudioParser {
-    @available(*, unavailable, message: "Use `init(assetRetriever:metadataReader:readsContainerEntriesMetadata:)` with an `AudioMetadataReader` instead.")
+    @available(*, unavailable, message: "Use `init(assetRetriever:metadataReader:)` with an `AudioMetadataReader` instead.")
     convenience init(assetRetriever: AssetRetriever, manifestAugmentor: AudioPublicationManifestAugmentor) {
         fatalError()
     }

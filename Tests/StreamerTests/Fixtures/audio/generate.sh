@@ -13,6 +13,8 @@
 #
 # The chapters of the MP3 files are written by mutagen, not by ffmpeg, which
 # writes a `CTOC` frame with a size that is invalid in ID3v2.4.
+#
+# `stored.zip` and `mixed.zab` are archives of the other fixtures.
 # =============================================================================
 
 set -euo pipefail
@@ -77,6 +79,7 @@ run_ffmpeg -f lavfi -i "sine=frequency=440:duration=1" -ac 1 -ar 8000 -map_metad
 "$PYTHON" - "$OUT" "$TMP" <<'EOF'
 import struct
 import sys
+import zipfile
 from pathlib import Path
 
 from mutagen.id3 import (
@@ -305,6 +308,26 @@ tag_mp3_v23(out / "tagged-v23.mp3")
 tag_mp3_nested_toc(out / "nested-toc.mp3")
 # Bytes which are not audio.
 (out / "garbage.mp3").write_bytes(bytes((i * 37 + 11) % 256 for i in range(4096)))
+
+
+def archive(name, entries):
+    """Writes an archive of fixtures, given as (file, compression method).
+
+    The `zip` tool does not fit, as it stores an entry that deflate does not
+    shrink.
+    """
+    with zipfile.ZipFile(out / name, "w") as file:
+        for entry, method in entries:
+            info = zipfile.ZipInfo(entry, date_time=(2026, 1, 1, 0, 0, 0))
+            info.compress_type = method
+            file.writestr(info, (out / entry).read_bytes())
+
+
+# Every audio fixture, stored without compression.
+audio = sorted(f.name for f in out.iterdir() if f.suffix in (".m4b", ".mp3", ".wav"))
+archive("stored.zip", [(name, zipfile.ZIP_STORED) for name in audio])
+# A stored file with chapters, followed by a compressed one.
+archive("mixed.zab", [("tagged.m4b", zipfile.ZIP_STORED), ("tagged.mp3", zipfile.ZIP_DEFLATED)])
 EOF
 
 ls -l "$OUT"

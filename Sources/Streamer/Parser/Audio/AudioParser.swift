@@ -19,29 +19,34 @@ public final class AudioParser: PublicationParser {
     private let assetRetriever: AssetRetriever
     private let metadataReader: AudioMetadataReader
     private let readsContainerEntriesMetadata: Bool
-
-    /// Number of audio files read at the same time.
-    private let metadataBatchSize = 4
+    private let maxConcurrentMetadataReads: Int
 
     /// - Parameters:
     ///   - assetRetriever: Sniffs the format of the files of a package.
     ///   - metadataReader: Reads the metadata embedded in each audio file.
-    ///     The default one only reads files of the file system, so the
-    ///     entries of a ZIP archive have no metadata.
+    ///     The default one does not read the compressed entries of an
+    ///     archive, so these files have no metadata in the publication.
     ///   - readsContainerEntriesMetadata: When false, the audio files of a
     ///     package are not opened: the publication has no title, table of
     ///     contents or cover, and its reading order holds only the HREF and
     ///     the media type of each file. Set to false to open a large package
     ///     faster, or to limit the number of requests sent when streaming a
     ///     remote audiobook package. A standalone audio file is always read.
+    ///   - maxConcurrentMetadataReads: Number of audio files of a package
+    ///     read at the same time. A larger value opens a package faster and
+    ///     uses more memory: while it reads a file, the default reader holds
+    ///     about twice the size of its metadata, cover included. A value
+    ///     below 1 reads the files one at a time.
     public init(
         assetRetriever: AssetRetriever,
         metadataReader: AudioMetadataReader = DefaultAudioMetadataReader(),
-        readsContainerEntriesMetadata: Bool = false
+        readsContainerEntriesMetadata: Bool = true,
+        maxConcurrentMetadataReads: Int = 3
     ) {
         self.assetRetriever = assetRetriever
         self.metadataReader = metadataReader
         self.readsContainerEntriesMetadata = readsContainerEntriesMetadata
+        self.maxConcurrentMetadataReads = max(1, maxConcurrentMetadataReads)
     }
 
     private let audioSpecifications: Set<FormatSpecification> = [
@@ -191,7 +196,8 @@ public final class AudioParser: PublicationParser {
         ))
     }
 
-    /// Reads the metadata of the given audio files, a batch at a time.
+    /// Reads the metadata of the given audio files, in batches of
+    /// `maxConcurrentMetadataReads` files.
     ///
     /// The metadata of a file is nil when it could not be read. A batch asks
     /// for the covers only while none was found, so the files of the batch
@@ -203,8 +209,8 @@ public final class AudioParser: PublicationParser {
     ) async -> ReadResult<[AudioMetadata?]> {
         var metadata: [AudioMetadata?] = []
 
-        for start in stride(from: 0, to: files.count, by: metadataBatchSize) {
-            let batch = files[start ..< min(start + metadataBatchSize, files.count)]
+        for start in stride(from: 0, to: files.count, by: maxConcurrentMetadataReads) {
+            let batch = files[start ..< min(start + maxConcurrentMetadataReads, files.count)]
             let includesCover = !metadata.contains { $0?.cover != nil }
 
             switch await readMetadata(ofBatch: batch, in: container, includesCover: includesCover) {
