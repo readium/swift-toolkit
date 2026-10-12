@@ -111,13 +111,23 @@ enum AudioParserTests {
             #expect(publication.linkWithRel(.cover)?.mediaType == expectedCover.map { _ in .png })
         }
 
-        /// Each read waits for the next one of its batch, which a deadline
-        /// allows when the four of them do not run at the same time.
+        /// Each read waits for the next one of its batch to complete, and the
+        /// last one for the whole batch to have started. A deadline ends the
+        /// waits when a batch does not run at the same time.
         @Test func readsFourFilesAtATimeAndKeepsTheReadingOrder() async throws {
+            let startedFiles = Mutex<Set<Int>>([])
             let completedFiles = Mutex<Set<Int>>([])
             let reader = FakeAudioMetadataReader { file in
+                startedFiles.withLock { _ = $0.insert(file) }
+                let batch = file <= 4 ? 1 ... 4 : 5 ... 6
                 let deadline = Date().addingTimeInterval(5)
-                while file % 4 != 0, file != 6, !completedFiles.withLock({ $0.contains(file + 1) }), Date() < deadline {
+                while Date() < deadline {
+                    let canComplete = file == batch.upperBound
+                        ? startedFiles.withLock { $0.isSuperset(of: batch) }
+                        : completedFiles.withLock { $0.contains(file + 1) }
+                    if canComplete {
+                        break
+                    }
                     try? await Task.sleep(nanoseconds: 1_000_000)
                 }
                 completedFiles.withLock { _ = $0.insert(file) }
