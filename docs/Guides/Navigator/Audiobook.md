@@ -92,6 +92,9 @@ Reading the tags opens every audio file of a container (e.g. ZIP file or folder)
 
 A container which is not read gives a publication without metadata, table of contents or cover. A standalone audio file is always read, even a remote one.
 
+> [!NOTE]
+> Reading or playing a remote audio file needs a server supporting HTTP byte range requests.
+
 To change the policy, create an `AudioParser` and give it to the `DefaultPublicationParser`.
 
 ```swift
