@@ -5,39 +5,48 @@
 //
 
 @testable import ReadiumShared
-import XCTest
+import Testing
 
-class LocatorLocationsAudioTests: XCTestCase {
-    func testNoFragment() {
-        XCTAssertNil(Locator.Locations().time)
+struct LocatorLocationsAudioTests {
+    @Test("temporal is nil without a valid temporal fragment", arguments: [
+        [],
+        [""],
+        // Unrelated fragments
+        ["page=5"],
+        ["section", "start=10"],
+        // Malformed fragments
+        ["t=one"],
+        ["t="],
+        ["t"],
+        ["t=10,"],
+    ] as [[String]])
+    func temporalIsNil(fragments: [String]) {
+        #expect(Locator.Locations(fragments: fragments).temporal == nil)
     }
 
-    func testMalformedFragment() {
-        XCTAssertNil(Locator.Locations(fragments: ["t=one"]).time)
-    }
-
-    func testValidFragments() {
-        continueAfterFailure = false
-        for beginStr in ["", "1", "1.0", "1.1"] {
-            for endStr in ["", ",", ",1", ",1.0", ",1.1"] {
-                let val = beginStr + endStr
-                if val == "" || val == "," {
-                    continue
-                }
-                let locations = Locator.Locations(fragments: ["t=\(val)"])
-                let time = locations.time
-                switch time {
-                case let .begin(begin):
-                    XCTAssertEqual(begin, Double(beginStr))
-                case let .end(end):
-                    XCTAssertEqual(end, Double(endStr.removingPrefix(",")))
-                case let .interval(begin, end):
-                    XCTAssertEqual(begin, Double(beginStr))
-                    XCTAssertEqual(end, Double(endStr.removingPrefix(",")))
-                case nil:
-                    XCTAssertNotNil(time)
-                }
-            }
-        }
+    @Test("temporal is parsed from the fragments", arguments: [
+        // Position
+        (["t=0"], TemporalSelector(position: 0)),
+        (["t=71.5"], TemporalSelector(position: 71.5)),
+        (["t=npt:0:02:00"], TemporalSelector(position: 120)),
+        // Clip
+        (["t=10,20"], TemporalSelector(start: 10, end: 20)),
+        (["t=,20"], TemporalSelector(start: 0, end: 20)),
+        (["t=1.1,1.5"], TemporalSelector(start: 1.1, end: 1.5)),
+        // Compound fragment
+        (["t=10&track=audio"], TemporalSelector(position: 10)),
+        (["track=audio&t=10,20"], TemporalSelector(start: 10, end: 20)),
+        // Fragment with characters to percent-encode
+        (["track=café noir&t=10"], TemporalSelector(position: 10)),
+        (["id=100%&t=10"], TemporalSelector(position: 10)),
+        // Other fragments are ignored
+        (["page=3", "t=10", "section"], TemporalSelector(position: 10)),
+        // The last valid temporal fragment wins
+        (["t=5", "t=10"], TemporalSelector(position: 10)),
+        (["t=5", "t=10", "t=one"], TemporalSelector(position: 10)),
+        (["t=5&t=7", "page=2"], TemporalSelector(position: 7)),
+    ] as [([String], TemporalSelector)])
+    func temporal(fragments: [String], expected: TemporalSelector) {
+        #expect(Locator.Locations(fragments: fragments).temporal == expected)
     }
 }

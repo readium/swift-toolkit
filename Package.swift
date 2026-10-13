@@ -47,7 +47,7 @@ let package = Package(
             name: "ReadiumSharedTests",
             dependencies: [
                 "ReadiumShared",
-                "TestPublications",
+                "TestSupport",
                 "SwiftSoup",
             ],
             path: "Tests/SharedTests",
@@ -69,7 +69,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ReadiumStreamerTests",
-            dependencies: ["ReadiumStreamer", "TestPublications"],
+            dependencies: ["ReadiumStreamer", "TestSupport"],
             path: "Tests/StreamerTests",
             resources: [
                 .copy("Fixtures"),
@@ -93,7 +93,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ReadiumNavigatorTests",
-            dependencies: ["ReadiumNavigator"],
+            dependencies: ["ReadiumNavigator", "TestSupport"],
             path: "Tests/NavigatorTests",
             exclude: [
                 "UITests",
@@ -129,10 +129,11 @@ let package = Package(
             ]
         ),
 
-        // Shared test publications used across multiple test targets.
+        // Shared test publications and helpers used across multiple test targets.
         .target(
-            name: "TestPublications",
-            path: "Tests/Publications",
+            name: "TestSupport",
+            dependencies: ["ReadiumShared"],
+            path: "Tests/TestSupport",
             resources: [
                 .copy("Publications"),
             ]

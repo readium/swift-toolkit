@@ -7,20 +7,66 @@
 import Foundation
 import ReadiumShared
 
-/// Parses an audiobook Publication from an unstructured archive format containing audio files,
-/// such as ZAB (Zipped Audio Book) or a simple ZIP.
+/// Parses an audiobook Publication from an unstructured archive format
+/// containing audio files, such as ZAB (Zipped Audio Book) or a simple ZIP.
 ///
 /// It can also work for a standalone audio file.
-public final class AudioParser: PublicationParser {
-    private let assetRetriever: AssetRetriever
-    private let manifestAugmentor: AudioPublicationManifestAugmentor
+///
+/// The metadata, the table of contents and the cover of the publication come
+/// from the tags of its audio files, which are read with an
+/// ``AudioMetadataReader``.
+public final class AudioParser: PublicationParser, Loggable {
+    /// Indicates when the audio entries of a package are opened to read their
+    /// metadata.
+    ///
+    /// The publication of a package whose entries are not read has no title,
+    /// table of contents or cover, and its reading order holds only the HREF
+    /// and the media type of each file.
+    public enum ContainerEntriesMetadataPolicy: Sendable {
+        /// Never. Opens a large package faster.
+        case never
 
+        /// Only for a package stored on the device: one whose
+        /// `Container.sourceURL` is a file URL.
+        ///
+        /// A remote package is not read, as each of its audio files takes
+        /// several requests, which can last minutes with a slow server.
+        /// Neither is a package without a source URL, such as a
+        /// `TransformingContainer`.
+        case localOnly
+
+        /// Always, including for a remote package.
+        case always
+    }
+
+    private let assetRetriever: AssetRetriever
+    private let metadataReader: AudioMetadataReader
+    private let containerEntriesMetadataPolicy: ContainerEntriesMetadataPolicy
+    private let maxConcurrentMetadataReads: Int
+
+    /// - Parameters:
+    ///   - assetRetriever: Sniffs the format of the files of a package.
+    ///   - metadataReader: Reads the metadata embedded in each audio file.
+    ///     The default one does not read the compressed entries of an
+    ///     archive, so these files have no metadata in the publication.
+    ///   - containerEntriesMetadataPolicy: Indicates when the audio entries of
+    ///     a package are opened to read their metadata. A standalone audio file
+    ///     is always read.
+    ///   - maxConcurrentMetadataReads: Number of audio entries of a package
+    ///     read at the same time. A larger value opens a package faster and
+    ///     uses more memory: while it reads a file, the default reader holds
+    ///     about twice the size of its metadata, cover included. A value
+    ///     below 1 reads the files one at a time.
     public init(
         assetRetriever: AssetRetriever,
-        manifestAugmentor: AudioPublicationManifestAugmentor = AVAudioPublicationManifestAugmentor()
+        metadataReader: AudioMetadataReader = DefaultAudioMetadataReader(),
+        containerEntriesMetadataPolicy: ContainerEntriesMetadataPolicy = .localOnly,
+        maxConcurrentMetadataReads: Int = 3
     ) {
         self.assetRetriever = assetRetriever
-        self.manifestAugmentor = manifestAugmentor
+        self.metadataReader = metadataReader
+        self.containerEntriesMetadataPolicy = containerEntriesMetadataPolicy
+        self.maxConcurrentMetadataReads = max(1, maxConcurrentMetadataReads)
     }
 
     private let audioSpecifications: Set<FormatSpecification> = [
@@ -59,7 +105,8 @@ public final class AudioParser: PublicationParser {
         return await makeBuilder(
             container: container,
             readingOrder: [(container.entry, asset.format)],
-            title: nil
+            readsMetadata: true,
+            warnings: warnings
         )
     }
 
@@ -76,9 +123,27 @@ public final class AudioParser: PublicationParser {
                 await makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
-                    title: nil
+                    readsMetadata: readsMetadata(of: asset.container),
+                    warnings: warnings
                 )
             }
+    }
+
+    /// Returns whether the policy lets the audio files of `container` be
+    /// read.
+    private func readsMetadata(of container: Container) -> Bool {
+        switch containerEntriesMetadataPolicy {
+        case .never:
+            return false
+        case .always:
+            return true
+        case .localOnly:
+            guard container.isStoredOnDevice else {
+                log(.debug, "The audio entries of the package are not read as it is not stored on the device, so the publication will have no metadata, table of contents or cover. Create the `AudioParser` with `containerEntriesMetadataPolicy: .always` to read them.")
+                return false
+            }
+            return true
+        }
     }
 
     private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
@@ -131,34 +196,111 @@ public final class AudioParser: PublicationParser {
     private func makeBuilder(
         container: Container,
         readingOrder: [(AnyURL, Format)],
-        title: String?
+        readsMetadata: Bool,
+        warnings: WarningLogger?
     ) async -> Result<Publication.Builder, PublicationParseError> {
         guard !readingOrder.isEmpty else {
             return .failure(.reading(.decoding("No audio resources found in the publication")))
         }
 
-        let manifest = Manifest(
-            metadata: Metadata(
-                conformsTo: [.audiobook],
-                title: title
-            ),
-            readingOrder: readingOrder.map { url, format in
-                Link(
-                    href: url.string,
-                    mediaType: format.mediaType
-                )
+        var metadata = [AudioMetadata?](repeating: nil, count: readingOrder.count)
+        if readsMetadata {
+            switch await readMetadata(of: readingOrder, in: container, warnings: warnings) {
+            case let .success(value):
+                metadata = value
+            case let .failure(error):
+                return .failure(.reading(error))
             }
+        }
+
+        let manifest = AudioManifestBuilder().build(
+            entries: zip(readingOrder, metadata).map { file, metadata in
+                AudioManifestBuilder.Entry(url: file.0, format: file.1, metadata: metadata)
+            },
+            warnings: warnings
         )
 
-        let augmented = await manifestAugmentor.augment(manifest, using: container)
+        // The cover is the first one in reading order.
+        let cover = metadata.lazy.compactMap { $0?.cover }.first
 
         return .success(Publication.Builder(
-            manifest: augmented.manifest,
+            manifest: manifest,
             container: container,
             servicesBuilder: .init(
-                cover: augmented.cover.map(GeneratedCoverService.makeFactory(cover:)),
+                cover: cover.map { EmbeddedCoverService.makeFactory(data: $0.data, mediaType: $0.mediaType) },
                 locator: AudioLocatorService.makeFactory()
             )
         ))
+    }
+
+    /// Reads the metadata of the given audio files, in batches of
+    /// `maxConcurrentMetadataReads` files.
+    ///
+    /// The metadata of a file is nil when it could not be read. A batch asks
+    /// for the covers only while none was found, so the files of the batch
+    /// holding the first cover may have one too.
+    private func readMetadata(
+        of files: [(AnyURL, Format)],
+        in container: Container,
+        warnings: WarningLogger?
+    ) async -> ReadResult<[AudioMetadata?]> {
+        var metadata: [AudioMetadata?] = []
+
+        for start in stride(from: 0, to: files.count, by: maxConcurrentMetadataReads) {
+            let batch = files[start ..< min(start + maxConcurrentMetadataReads, files.count)]
+            let includesCover = !metadata.contains { $0?.cover != nil }
+
+            switch await readMetadata(ofBatch: batch, in: container, includesCover: includesCover) {
+            case let .success(results):
+                // The warnings are logged in reading order.
+                for ((url, _), result) in zip(batch, results) {
+                    if case let .failure(.reading(.decoding(error))) = result {
+                        warnings?.log(AudioMetadataWarning.undecodableMetadata(href: url, reason: String(describing: error)))
+                    }
+                    metadata.append(try? result.get())
+                }
+            case let .failure(error):
+                return .failure(error)
+            }
+        }
+
+        return .success(metadata)
+    }
+
+    /// Reads the metadata of the given audio files at the same time.
+    ///
+    /// Returns the outcome of each file when the reader read it, does not
+    /// support it or cannot interpret its content. Any other error cancels
+    /// the remaining reads and is a failure.
+    private func readMetadata(
+        ofBatch batch: ArraySlice<(AnyURL, Format)>,
+        in container: Container,
+        includesCover: Bool
+    ) async -> ReadResult<[Result<AudioMetadata, AudioMetadataReadError>]> {
+        await withTaskGroup(of: (Int, Result<AudioMetadata, AudioMetadataReadError>).self) { group in
+            for (offset, (url, format)) in batch.enumerated() {
+                group.addTask { [metadataReader] in
+                    guard let resource = container[url] else {
+                        return (offset, .failure(.resourceNotSupported))
+                    }
+                    let request = AudioMetadataRequest(resource: resource, format: format, includesCover: includesCover)
+                    return await (offset, metadataReader.read(request))
+                }
+            }
+
+            var results = [Result<AudioMetadata, AudioMetadataReadError>](repeating: .failure(.resourceNotSupported), count: batch.count)
+            for await (offset, result) in group {
+                switch result {
+                case .success, .failure(.resourceNotSupported), .failure(.reading(.decoding)):
+                    results[offset] = result
+                case let .failure(.reading(error)):
+                    // The remaining reads of the batch are awaited before the
+                    // group returns.
+                    group.cancelAll()
+                    return .failure(error)
+                }
+            }
+            return .success(results)
+        }
     }
 }

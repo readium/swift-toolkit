@@ -83,6 +83,8 @@ let navigator = AudioNavigator(
 navigator.play()
 ```
 
+See the [Audiobook guide](Audiobook.md) to learn how to observe and control the playback.
+
 ## Navigating the contents of the publication
 
 The `Navigator` interface offers various `go` APIs for navigating the publication. For instance:

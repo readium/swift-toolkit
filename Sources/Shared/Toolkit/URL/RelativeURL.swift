@@ -66,8 +66,8 @@ public struct RelativeURL: URLProtocol, Hashable {
             return nil
         }
 
-        resolvedComponents.fragment = otherComponents.fragment
-        resolvedComponents.query = otherComponents.query
+        resolvedComponents.percentEncodedFragment = otherComponents.percentEncodedFragment
+        resolvedComponents.percentEncodedQuery = otherComponents.percentEncodedQuery
 
         guard var resolvedURL = resolvedComponents.url?.standardized else {
             return nil

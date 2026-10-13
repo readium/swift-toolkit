@@ -85,7 +85,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
                     configurable: navigator,
                     store: preferencesStore
                 ),
-                onClose: { [weak self] in
+                onClose: { [weak self = self] in
                     self?.dismiss(animated: true)
                 }
             )
@@ -193,7 +193,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
             chapterNumber: info.resourceIndex,
             duration: info.duration,
             elapsedTime: info.time,
-            rate: navigator.settings.speed
+            rate: info.state == .playing ? navigator.settings.speed : 0
         )
     }
 
@@ -274,7 +274,7 @@ struct AudiobookReader: View {
 
                     // Toggle play-pause.
                     IconButton(
-                        systemName: model.playback.state != .paused
+                        systemName: model.playback.state.playsWhenReady
                             ? "pause.fill"
                             : "play.fill"
                     ) {

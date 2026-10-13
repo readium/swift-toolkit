@@ -210,6 +210,23 @@ enum PDFResourceContentIteratorTests {
         }
     }
 
+    // The text extracted by PDFKit depends on the version of Xcode used to
+    // build the tests. The sample page texts match the output of Xcode 27,
+    // which ships with Swift 6.4.
+    #if compiler(>=6.4)
+        struct PDFKit {
+            @Test func iteratesTextExtractedByPDFKit() async throws {
+                let iter = makePDFKitIterator()
+                for expected in sampleElements {
+                    let result = try await iter.next()
+                    #expect(result?.equatable() == expected)
+                }
+                let result = try await iter.next()
+                #expect(result == nil)
+            }
+        }
+    #endif
+
     struct ErrorHandling {
         @Test func openDocumentErrorPropagates() async throws {
             struct TestError: Error {}
@@ -239,14 +256,18 @@ enum PDFResourceContentIteratorTests {
 
 private let baseLocator = Locator(href: "daisy-truncated.pdf", mediaType: .pdf)
 
-private let p2Text = "D A I S Y M I L L E R"
+private let p2Text = "D AISY M ILLER"
 private let p3Text = "DAISY MILLER\nBy Henry James"
 private let p4Text = "Daisy Miller"
-private let p5Text = "C O N T E N T S\nPA R T O N E\n1\nPA R T T W O\n1 7\nPA R T T H R E E\n3 6\nPA R T F O U R\n5 4"
-private let p6Text = "P A R T O N E"
+private let p5Text = "CONTENTS\nPART O NE\n1\nPART T WO\n17\nPART T HREE\n36\nPART F OUR\n54"
+private let p6Text = "PART ONE"
 private let p7Text = "At the little town of Vevey, in Switzerland, there is a particu-\nlarly comfortable hotel. There are, indeed, many hotels, for the\nentertainment of tourists is the business of the place, which, as\nmany travelers will remember, is seated upon the edge of a\nremarkably blue lake\u{2014}a lake that it behooves every tourist to\nvisit. The shore of the lake presents an unbroken array of estab-\nlishments of this order, of every category, from the \"grand hotel\u{201D}\nof the newest fashion, with a chalk-white front, a hundred bal-\nconies, and a dozen flags flying from its roof, to the little Swiss\npension of an elder day, with its name inscribed in German-look-\ning lettering upon a pink or yellow wall and an awkward sum-\nmerhouse in the angle of the garden. One of the hotels at Vevey,\nhowever, is famous, even classical, being distinguished from\nmany of its upstart neighbors by an air both of luxury and of\nmaturity. In this region, in the month of June, American travel-\ners are extremely numerous; it may be said, indeed, that Vevey\nassumes at this period some of the characteristics of an American\nwatering place. There are sights and sounds which evoke a\nvision, an echo, of Newport and Saratoga. There is a flitting\nhither and thither of \u{201C}stylish\u{201D} young girls, a rustling of muslin\nflounces, a rattle of dance music in the morning hours, a sound\nof high-pitched voices at all times. You receive an impression of\nthese things at the excellent inn of the \u{201C}Trois Couronnes\u{201D} and are\ntransported in fancy to the Ocean House or to Congress Hall.\nBut at the \u{201C}Trois Couronnes,\u{201D} it must be added, there are other\nfeatures that are much at variance with these suggestions: neat\nGerman waiters, who look like secretaries of legation; Russian\n2"
 private let p8Text = "princesses sitting in the garden; little Polish boys walking about\nheld by the hand, with their governors; a view of the sunny crest\nof the Dent du Midi and the picturesque towers of the Castle of\nChillon.\nI hardly know whether it was the analogies or the differences\nthat were uppermost in the mind of a young American, who,\ntwo or three years ago, sat in the garden of the \u{201C}Trois\nCouronnes,\u{201D} looking about him, rather idly, at some of the\ngraceful objects I have mentioned. It was a beautiful summer\nmorning, and in whatever fashion the young American looked at\nthings, they must have seemed to him charming. He had come\nfrom Geneva the day before by the little steamer, to see his aunt,\nwho was staying at the hotel\u{2014}Geneva having been for a long\ntime his place of residence. But his aunt had a headache\u{2014}his\naunt had almost always a headache\u{2014}and now she was shut up in\nher room, smelling camphor, so that he was at liberty to wander\nabout. He was some seven-and-twenty years of age; when his\nfriends spoke of him, they usually said that he was at Geneva\n\u{201C}studying.\u{201D}When his enemies spoke of him, they said\u{2014}but, after\nall, he had no enemies; he was an extremely amiable fellow, and\nuniversally liked.What I should say is, simply, that when certain\npersons spoke of him they affirmed that the reason of his spend-\ning so much time at Geneva was that he was extremely devoted\nto a lady who lived there\u{2014}a foreign lady\u{2014}a person older than\nhimself. Very few Americans\u{2014}indeed, I think none\u{2014}had ever\nseen this lady, about whom there were some singular stories. But\nWinterbourne had an old attachment for the little metropolis of\nCalvinism; he had been put to school there as a boy, and he had\nafterward gone to college there\u{2014}circumstances which had led\nto his forming a great many youthful friendships. Many of these\nhe had kept, and they were a source of great satisfaction to him.\nAfter knocking at his aunt\u{2019}s door and learning that she was\nD A I S Y M I L L E R\n3"
 private let p9Text = "Nevertheless, he went back to live at Geneva, whence there\ncontinue to come the most contradictory accounts of his\nmotives of sojourn: a report that he is \u{201C}studying\u{201D} hard—an inti-\nmation that he is much interested in a very clever foreign lady.\nThe End\nD A I S Y M I L L E R\n75"
+
+/// Text of each page of `daisy-truncated.pdf`, as extracted by PDFKit with
+/// Xcode 27. The first page is empty.
+private let samplePageTexts: [String?] = [nil, p2Text, p3Text, p4Text, p5Text, p6Text, p7Text, p8Text, p9Text]
 
 private func makeElement(
     pageNumber: Int,
@@ -301,13 +322,25 @@ private func makeIterator(
     positionOffset: Int = 0,
     totalProgressionRange: ClosedRange<Double>? = nil
 ) -> PDFResourceContentIterator {
+    // The text extracted by PDFKit changes between Xcode versions, so the page
+    // texts are served by a mock instead of the actual PDF.
+    let document = MockPDFDocument(texts: samplePageTexts)
+    return PDFResourceContentIterator(
+        openDocument: { document },
+        resourceInfo: { PDFResourceContentIterator.ResourceInfo(positionOffset: positionOffset, totalProgressionRange: totalProgressionRange) },
+        locator: startLocator ?? baseLocator
+    )
+}
+
+/// Iterates the actual `daisy-truncated.pdf` fixture with PDFKit.
+private func makePDFKitIterator() -> PDFResourceContentIterator {
     let data = Fixtures(path: "Publication/Services").data(at: "daisy-truncated.pdf")
     let resource = DataResource(data: data)
     let href = baseLocator.href
     return PDFResourceContentIterator(
         openDocument: { try await DefaultPDFDocumentFactory().open(resource: resource, at: href, password: nil) },
-        resourceInfo: { PDFResourceContentIterator.ResourceInfo(positionOffset: positionOffset, totalProgressionRange: totalProgressionRange) },
-        locator: startLocator ?? baseLocator
+        resourceInfo: { PDFResourceContentIterator.ResourceInfo(positionOffset: 0, totalProgressionRange: nil) },
+        locator: baseLocator
     )
 }
 

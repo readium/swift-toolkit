@@ -32,6 +32,36 @@
         <text src="chapter01.xhtml#id6"/>
         <audio src="audio.mp3" clipEnd="0:00:05.120"/>
       </par>
+      <!-- clipBegin after clipEnd -->
+      <par id="p7">
+        <text src="chapter01.xhtml#id7"/>
+        <audio src="audio.mp3" clipBegin="0:00:10.000" clipEnd="0:00:05.000"/>
+      </par>
+      <!-- clipBegin equal to clipEnd -->
+      <par id="p8">
+        <text src="chapter01.xhtml#id8"/>
+        <audio src="audio.mp3" clipBegin="0:00:05.000" clipEnd="0:00:05.000"/>
+      </par>
+      <!-- Negative clipBegin -->
+      <par id="p9">
+        <text src="chapter01.xhtml#id9"/>
+        <audio src="audio.mp3" clipBegin="-5" clipEnd="0:00:10.000"/>
+      </par>
+      <!-- clipEnd which is not a number -->
+      <par id="p10">
+        <text src="chapter01.xhtml#id10"/>
+        <audio src="audio.mp3" clipBegin="0:00:05.000" clipEnd="nan"/>
+      </par>
+      <!-- Clip times with more than millisecond precision -->
+      <par id="p11">
+        <text src="chapter01.xhtml#id11"/>
+        <audio src="audio.mp3" clipBegin="0:01:01.029" clipEnd="61.0296s"/>
+      </par>
+      <!-- Only a clipEnd of 0 -->
+      <par id="p12">
+        <text src="chapter01.xhtml#id12"/>
+        <audio src="audio.mp3" clipEnd="0"/>
+      </par>
     </seq>
   </body>
 </smil>

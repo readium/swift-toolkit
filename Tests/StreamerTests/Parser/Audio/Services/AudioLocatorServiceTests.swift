@@ -119,6 +119,36 @@ class AudioLocatorServiceTests: XCTestCase {
         withExtendedLifetime(publication) {}
     }
 
+    func testLocateProgressionRoundsTimeToMilliseconds() async {
+        let (publication, service) = makeService(readingOrder: [
+            Link(href: "l1", mediaType: .mp3, duration: 100),
+            Link(href: "l2", mediaType: .mp3, duration: 100),
+        ])
+
+        var result = await service.locate(progression: 0.4925)
+        XCTAssertEqual(
+            result,
+            Locator(href: "l1", mediaType: .mp3, locations: .init(
+                fragments: ["t=98.5"],
+                progression: 98.5 / 100.0,
+                totalProgression: 0.4925
+            ))
+        )
+
+        let third = 1.0 / 3.0
+        result = await service.locate(progression: third)
+        XCTAssertEqual(
+            result,
+            Locator(href: "l1", mediaType: .mp3, locations: .init(
+                fragments: ["t=66.667"],
+                progression: (third * 200) / 100.0,
+                totalProgression: third
+            ))
+        )
+
+        withExtendedLifetime(publication) {}
+    }
+
     func testLocateProgression() async {
         let (publication, service) = makeService(readingOrder: [
             Link(href: "l1", mediaType: .mp3, duration: 100),

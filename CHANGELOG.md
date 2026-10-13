@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * `AudioNavigator.stop()` stops the playback and ends the audio session.
+* The `AudioNavigator` reports the new `MediaPlaybackState.ended` when the playback reaches the end of the publication, by playing or seeking up to it.
+* `MediaPlaybackState.playsWhenReady` indicates whether the player is playing or will as soon as it is ready, e.g. to choose between a play and a pause button.
 * Upgraded Readium CSS to version 2.0.5.
     * Added the `noRuby` preference to allow hiding ruby (furigana) annotations in CJK publications.
     * Added the `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences to control the line length of reflowable resources. The navigator uses them to choose the number of columns and to limit the width of the lines.
@@ -17,6 +19,14 @@ All notable changes to this project will be documented in this file. Take a look
     * Added the `linkColor` and `visitedColor` preferences to change the color of the hyperlinks, with the matching `CSSUserProperties`.
     * Added `CSSRSProperties.defaultLineLength`, `viewportWidth`, `scrollPaddingTop`, `scrollPaddingBottom`, `scrollPaddingLeft`, and `scrollPaddingRight` to configure Readium CSS v2 reading system properties.
     * Added optional CSS minification to the build scripts (`make scripts minify=true`).
+
+#### Streamer
+
+* Audio publications without a manifest, such as a standalone M4B or MP3 file or a container of audio files, now have a table of contents built from the chapters embedded in their audio files.
+    * The metadata of the audio files of a ZIP or ZAB package is read too, when the package is stored on the device and its files are stored without compression, [see the user guide](docs/Guides/Navigator/Audiobook.md#metadata-of-audio-files).
+    * `AudioParser` has a new `containerEntriesMetadataPolicy` option, to read the audio files of a remote package or to open a package without reading them.
+* Audiobooks without a table of contents now get one from the titles of their reading order resources.
+* New `AudioMetadataReader` to customize how `AudioParser` reads the metadata of each audio file.
 
 ### Changed
 
@@ -40,14 +50,36 @@ All notable changes to this project will be documented in this file. Take a look
     * Removed `CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, and `appearance` (with `CSSAppearance`), which don't exist in Readium CSS v2.
     * `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, to match the base line height of Readium CSS v2 for Latin scripts.
     * `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones.
+* `AudioNavigator.play()` now moves on after the end of a resource, instead of doing nothing: it plays the next resource, or restarts from the beginning of the publication after the last one.
+* Seeking with the `AudioNavigator` is no longer confined to the current resource.
+    * `seek(by:)` moves over to the adjacent resources when skipping past the start or the end of the current one, instead of stopping at its bounds.
+    * Seeking up to the end of a resource with `seek(to:)` or `seek(by:)` ends it, like playing up to it. `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is called, and the playback is paused at the end of the resource when it returns `false`.
+* `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is no longer called after the last resource. Use the new `MediaPlaybackState.ended` to detect the end of the publication, [see the migration guide](docs/Migration%20Guide.md).
+* `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` takes an `AnyURL` instead of a `RelativeURL`, to report resources with an absolute HREF. Implementations must be updated or they are no longer called, [see the migration guide](docs/Migration%20Guide.md).
+
+#### Streamer
+
+* `AudioPublicationManifestAugmentor` is replaced by `AudioMetadataReader`, which reads the metadata of one audio file, [see the migration guide](docs/Migration%20Guide.md).
 
 ### Fixed
+
+#### Shared
+
+* Minizip adapter improvements:
+    * Seeking in the entry of a local ZIP package stored without compression no longer reads the entry again from its start.
+    * Fixed a crash when reading a corrupted compressed entry of a local ZIP package.
 
 #### Navigator
 
 * Fixed audio session interruptions:
     * The TTS pauses when an audio interruption begins, and resumes when it ends.
     * The audio navigator no longer resumes after an audio interruption if it was paused beforehand.
+* Fixed seeking with the `AudioNavigator`:
+    * The target of a seek in progress is reported as the current time, instead of the old position until the seek completes.
+    * The playback is reported as `.loading` instead of `.paused` during a seek, when it resumes afterwards.
+* [#632](https://github.com/readium/swift-toolkit/issues/632) Fixed decorations being duplicated on both pages when a fixed-layout EPUB is displayed as a two-page spread (contributed by [@mvanhorn](https://github.com/readium/swift-toolkit/pull/915)).
+* Fixed a memory leak in `EPUBNavigatorViewController` when quickly turning the pages of a fixed-layout publication (contributed by [@deltakosh](https://github.com/readium/swift-toolkit/pull/917)).
+* Fixed reflowable EPUBs being displayed as a single column on the iPhone Duo unfolded in landscape, by porting the [responsive columns fix of Readium CSS 1.1.2](https://github.com/readium/css/issues/247).
 
 
 ## [4.0.0-alpha.2] - 2026-09-18

@@ -21,6 +21,9 @@ env:
   arch: arm64
   commit_sha: ${{ github.sha }}
   DEVELOPER_DIR: /Applications/Xcode_26.4.app/Contents/Developer
+  # xcodebuild passes it as `CI` to the test runners, to skip the tests which
+  # cannot run on the GitHub runners.
+  TEST_RUNNER_CI: true
 
 jobs:
   build:

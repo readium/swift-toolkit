@@ -13,6 +13,18 @@ extension Locator {
     }
 }
 
+extension TemporalSelector {
+    /// Creates a position at the given valid `time`.
+    init(position time: TimeInterval) {
+        self = .position(TemporalPosition(time: time)!)
+    }
+
+    /// Creates a clip between the given valid times.
+    init(start: TimeInterval, end: TimeInterval) {
+        self = .clip(TemporalClip(start: start, end: end)!)
+    }
+}
+
 extension ContentElement {
     func equatable() -> AnyEquatableContentElement {
         AnyEquatableContentElement(self)
