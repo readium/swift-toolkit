@@ -58,27 +58,67 @@ enum AudioParserTests {
     /// With a reader recording its requests, on folders of files named
     /// `1.mp3`, `2.mp3` and so on.
     struct ReadingPolicy {
-        @Test func readsNoEntryOfAPackageWhenDisabled() async throws {
+        /// Only a package whose source is a file is stored on the device.
+        @Test(arguments: [
+            (.never, .file, false),
+            (.never, .remote, false),
+            (.localOnly, .file, true),
+            (.localOnly, .remote, false),
+            (.localOnly, .unknown, false),
+            (.always, .file, true),
+            (.always, .remote, true),
+            (.always, .unknown, true),
+        ] as [(AudioParser.ContainerEntriesMetadataPolicy, FolderSource, Bool)])
+        func readsTheEntriesOfAPackageFollowingThePolicy(
+            policy: AudioParser.ContainerEntriesMetadataPolicy,
+            source: FolderSource,
+            readsEntries: Bool
+        ) async throws {
             let reader = FakeAudioMetadataReader { _ in .success(AudioMetadata(title: "Title")) }
-            let parser = AudioParser(assetRetriever: assetRetriever, metadataReader: reader, readsContainerEntriesMetadata: false)
+            let parser = AudioParser(assetRetriever: assetRetriever, metadataReader: reader, containerEntriesMetadataPolicy: policy)
 
-            let publication = try await withFolder(fileCount: 2) { folder in
+            try await expectEntries(read: readsEntries, by: parser, reader: reader, source: source)
+        }
+
+        @Test(arguments: [(.file, true), (.remote, false)] as [(FolderSource, Bool)])
+        func readsOnlyTheEntriesOfALocalPackageByDefault(source: FolderSource, readsEntries: Bool) async throws {
+            let reader = FakeAudioMetadataReader { _ in .success(AudioMetadata(title: "Title")) }
+
+            try await expectEntries(read: readsEntries, by: AudioParser(metadataReader: reader), reader: reader, source: source)
+        }
+
+        /// Expects `parser` to read both files of a folder, or none of them:
+        /// the publication then has no title or table of contents, and its
+        /// reading order holds bare links.
+        private func expectEntries(
+            read readsEntries: Bool,
+            by parser: AudioParser,
+            reader: FakeAudioMetadataReader,
+            source: FolderSource
+        ) async throws {
+            let publication = try await withFolder(fileCount: 2, source: source) { folder in
                 try await parser.parse(asset: folder, warnings: nil).get().build()
             }
 
-            #expect(reader.requests.isEmpty)
+            #expect(reader.requests.keys.sorted() == (readsEntries ? ["1.mp3", "2.mp3"] : []))
+            #expect(publication.linkWithRel(.cover) == nil)
+
+            let title = readsEntries ? "Title" : nil
             #expect(publication.manifest == Manifest(
-                metadata: Metadata(conformsTo: [.audiobook]),
+                metadata: Metadata(conformsTo: [.audiobook], title: title),
                 readingOrder: [
-                    Link(href: "1.mp3", mediaType: .mp3),
-                    Link(href: "2.mp3", mediaType: .mp3),
-                ]
+                    Link(href: "1.mp3", mediaType: .mp3, title: title),
+                    Link(href: "2.mp3", mediaType: .mp3, title: title),
+                ],
+                tableOfContents: readsEntries
+                    ? [Link(href: "1.mp3", title: "Title"), Link(href: "2.mp3", title: "Title")]
+                    : []
             ))
         }
 
         @Test func alwaysReadsAStandaloneFile() async throws {
             let reader = FakeAudioMetadataReader { _ in .success(AudioMetadata(title: "Title")) }
-            let parser = AudioParser(assetRetriever: assetRetriever, metadataReader: reader, readsContainerEntriesMetadata: false)
+            let parser = AudioParser(assetRetriever: assetRetriever, metadataReader: reader, containerEntriesMetadataPolicy: .never)
 
             let publication = try await parser.parse(asset: fileAsset("audio/tagged.mp3"), warnings: nil).get().build()
 
@@ -319,9 +359,33 @@ private func fileAsset(_ fixture: String, mediaType: MediaType = .mp3) -> Asset 
     ))
 }
 
+/// Where the container of a folder reports to come from.
+enum FolderSource {
+    /// The folder on the device.
+    case file
+    /// An HTTP URL.
+    case remote
+    /// No source URL.
+    case unknown
+}
+
+/// A container reporting the given source URL.
+private struct SourcedContainer: Container {
+    let container: Container
+    let sourceURL: AbsoluteURL?
+
+    var entries: Set<AnyURL> {
+        container.entries
+    }
+
+    subscript(url: any URLConvertible) -> Resource? {
+        container[url]
+    }
+}
+
 /// Calls `body` with the asset of a temporary folder holding `fileCount` empty
 /// files, named `1.mp3`, `2.mp3` and so on.
-private func withFolder<T>(fileCount: Int, _ body: (Asset) async throws -> T) async throws -> T {
+private func withFolder<T>(fileCount: Int, source: FolderSource = .file, _ body: (Asset) async throws -> T) async throws -> T {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -330,10 +394,14 @@ private func withFolder<T>(fileCount: Int, _ body: (Asset) async throws -> T) as
         try Data().write(to: directory.appendingPathComponent("\(file).mp3"))
     }
 
-    return try await body(.container(ContainerAsset(
-        container: DirectoryContainer(directory: FileURL(url: directory)!),
-        format: .folder
-    )))
+    let folder = try await DirectoryContainer(directory: FileURL(url: directory)!)
+    let container: Container = switch source {
+    case .file: folder
+    case .remote: SourcedContainer(container: folder, sourceURL: HTTPURL(string: "https://example.com/audiobook.zab")!)
+    case .unknown: SourcedContainer(container: folder, sourceURL: nil)
+    }
+
+    return try await body(.container(ContainerAsset(container: container, format: .folder)))
 }
 
 /// A reader answering with `read`, which takes the number of a file named

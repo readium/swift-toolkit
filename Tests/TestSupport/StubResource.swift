@@ -81,7 +81,7 @@ public final class StubResource: Resource {
     /// Lets the cancelled streams end, `delay` seconds from now.
     public func releaseCancelledStreams(after delay: TimeInterval) {
         Task {
-            try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             releaseContinuation.finish()
         }
     }

@@ -15,10 +15,33 @@ import ReadiumShared
 /// The metadata, the table of contents and the cover of the publication come
 /// from the tags of its audio files, which are read with an
 /// ``AudioMetadataReader``.
-public final class AudioParser: PublicationParser {
+public final class AudioParser: PublicationParser, Loggable {
+    /// Indicates when the audio entries of a package are opened to read their
+    /// metadata.
+    ///
+    /// The publication of a package whose entries are not read has no title,
+    /// table of contents or cover, and its reading order holds only the HREF
+    /// and the media type of each file.
+    public enum ContainerEntriesMetadataPolicy: Sendable {
+        /// Never. Opens a large package faster.
+        case never
+
+        /// Only for a package stored on the device: one whose
+        /// `Container.sourceURL` is a file URL.
+        ///
+        /// A remote package is not read, as each of its audio files takes
+        /// several requests, which can last minutes with a slow server.
+        /// Neither is a package without a source URL, such as a
+        /// `TransformingContainer`.
+        case localOnly
+
+        /// Always, including for a remote package.
+        case always
+    }
+
     private let assetRetriever: AssetRetriever
     private let metadataReader: AudioMetadataReader
-    private let readsContainerEntriesMetadata: Bool
+    private let containerEntriesMetadataPolicy: ContainerEntriesMetadataPolicy
     private let maxConcurrentMetadataReads: Int
 
     /// - Parameters:
@@ -26,13 +49,10 @@ public final class AudioParser: PublicationParser {
     ///   - metadataReader: Reads the metadata embedded in each audio file.
     ///     The default one does not read the compressed entries of an
     ///     archive, so these files have no metadata in the publication.
-    ///   - readsContainerEntriesMetadata: When false, the audio files of a
-    ///     package are not opened: the publication has no title, table of
-    ///     contents or cover, and its reading order holds only the HREF and
-    ///     the media type of each file. Set to false to open a large package
-    ///     faster, or to limit the number of requests sent when streaming a
-    ///     remote audiobook package. A standalone audio file is always read.
-    ///   - maxConcurrentMetadataReads: Number of audio files of a package
+    ///   - containerEntriesMetadataPolicy: Indicates when the audio entries of
+    ///     a package are opened to read their metadata. A standalone audio file
+    ///     is always read.
+    ///   - maxConcurrentMetadataReads: Number of audio entries of a package
     ///     read at the same time. A larger value opens a package faster and
     ///     uses more memory: while it reads a file, the default reader holds
     ///     about twice the size of its metadata, cover included. A value
@@ -40,12 +60,12 @@ public final class AudioParser: PublicationParser {
     public init(
         assetRetriever: AssetRetriever,
         metadataReader: AudioMetadataReader = DefaultAudioMetadataReader(),
-        readsContainerEntriesMetadata: Bool = true,
+        containerEntriesMetadataPolicy: ContainerEntriesMetadataPolicy = .localOnly,
         maxConcurrentMetadataReads: Int = 3
     ) {
         self.assetRetriever = assetRetriever
         self.metadataReader = metadataReader
-        self.readsContainerEntriesMetadata = readsContainerEntriesMetadata
+        self.containerEntriesMetadataPolicy = containerEntriesMetadataPolicy
         self.maxConcurrentMetadataReads = max(1, maxConcurrentMetadataReads)
     }
 
@@ -103,10 +123,27 @@ public final class AudioParser: PublicationParser {
                 await makeBuilder(
                     container: asset.container,
                     readingOrder: readingOrder,
-                    readsMetadata: readsContainerEntriesMetadata,
+                    readsMetadata: readsMetadata(of: asset.container),
                     warnings: warnings
                 )
             }
+    }
+
+    /// Returns whether the policy lets the audio files of `container` be
+    /// read.
+    private func readsMetadata(of container: Container) -> Bool {
+        switch containerEntriesMetadataPolicy {
+        case .never:
+            return false
+        case .always:
+            return true
+        case .localOnly:
+            guard container.isStoredOnDevice else {
+                log(.debug, "The audio entries of the package are not read as it is not stored on the device, so the publication will have no metadata, table of contents or cover. Create the `AudioParser` with `containerEntriesMetadataPolicy: .always` to read them.")
+                return false
+            }
+            return true
+        }
     }
 
     private func makeReadingOrder(for container: Container) async -> Result<[(AnyURL, Format)], PublicationParseError> {
