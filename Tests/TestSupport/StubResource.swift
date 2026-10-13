@@ -73,9 +73,9 @@ public final class StubResource: Resource {
     }
 
     /// Waits until a stream reports `event`. Returns false when none did
-    /// after ten seconds.
+    /// after `TimeInterval.testTimeout`.
     public func wait(for event: StreamEvent) async -> Bool {
-        await events.first(within: 10, where: { $0 == event }) != nil
+        await events.first(within: .testTimeout, where: { $0 == event }) != nil
     }
 
     /// Lets the cancelled streams end, `delay` seconds from now.

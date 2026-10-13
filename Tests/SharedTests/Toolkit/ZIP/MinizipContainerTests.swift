@@ -198,7 +198,7 @@ enum MinizipContainerTests {
                     Thread.sleep(forTimeInterval: 0.05)
                 }
             }
-            try #require(await firstChunks.first(within: 5) != nil)
+            try #require(await firstChunks.first(within: .testTimeout) != nil)
             let second = await streamChunks(of: resource) { _ in deliveries.withLock { $0.append(2) } }
             let first = await firstStream
 
@@ -326,9 +326,8 @@ private func streamChunks<T>(
     return (result, chunks, bodyResult, bodyEndedDuringStream.withLock { $0 })
 }
 
-/// Only reached when the stream prevents `body` from running. Much longer than
-/// the stalls of a busy CI runner, which can exceed a minute.
-private let holdTimeout: TimeInterval = 5 * 60
+/// Only reached when the stream prevents `body` from running.
+private let holdTimeout: TimeInterval = .testTimeout
 
 /// Runs the jobs of a task on a serial dispatch queue instead of the
 /// cooperative pool.

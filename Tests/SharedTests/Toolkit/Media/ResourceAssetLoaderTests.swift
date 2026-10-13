@@ -264,7 +264,7 @@ private extension AVURLAsset {
     /// When the loader leaves a request unanswered, the test fails after
     /// `timeout` seconds instead of hanging.
     func loadDuration(
-        timeout: TimeInterval = 10,
+        timeout: TimeInterval = .testTimeout,
         sourceLocation: SourceLocation = #_sourceLocation
     ) async throws -> CMTime {
         let timeoutTask = Task {
