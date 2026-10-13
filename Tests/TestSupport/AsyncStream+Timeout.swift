@@ -6,6 +6,15 @@
 
 import Foundation
 
+public extension TimeInterval {
+    /// Time after which a test gives up waiting for an event which should
+    /// happen right away.
+    ///
+    /// Only reached when the test fails. Much longer than the stalls of a busy
+    /// CI runner, which can exceed a minute.
+    static let testTimeout: TimeInterval = 5 * 60
+}
+
 public extension AsyncStream where Element: Sendable {
     /// Returns the next element matching `condition`, or `nil` when none
     /// arrives within `timeout` seconds.

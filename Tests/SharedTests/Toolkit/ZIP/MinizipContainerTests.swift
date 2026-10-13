@@ -176,7 +176,7 @@ enum MinizipContainerTests {
                 await resource.read(range: 100 ..< 270_000)
             })
 
-            #expect(first.bodyEndedDuringStream)
+            #expect(first.bodyEndedDuringStream, "The stream blocked the overlapping read")
             #expect(try first.bodyResult.get() == data[100 ..< 270_000])
             try first.result.get()
             #expect(first.chunks.reduce(Data(), +) == data)
@@ -198,7 +198,7 @@ enum MinizipContainerTests {
                     Thread.sleep(forTimeInterval: 0.05)
                 }
             }
-            try #require(await firstChunks.first(within: 5) != nil)
+            try #require(await firstChunks.first(within: .testTimeout) != nil)
             let second = await streamChunks(of: resource) { _ in deliveries.withLock { $0.append(2) } }
             let first = await firstStream
 
@@ -220,7 +220,7 @@ enum MinizipContainerTests {
                 await resource.doClose()
             })
 
-            #expect(stream.bodyEndedDuringStream)
+            #expect(stream.bodyEndedDuringStream, "The stream blocked the closing")
             try stream.result.get()
             #expect(stream.chunks.reduce(Data(), +) == LargeEntry.stored.data)
         }
@@ -326,9 +326,8 @@ private func streamChunks<T>(
     return (result, chunks, bodyResult, bodyEndedDuringStream.withLock { $0 })
 }
 
-/// Only reached when the stream prevents `body` from running, generous to
-/// stand a busy machine.
-private let holdTimeout: TimeInterval = 30
+/// Only reached when the stream prevents `body` from running.
+private let holdTimeout: TimeInterval = .testTimeout
 
 /// Runs the jobs of a task on a serial dispatch queue instead of the
 /// cooperative pool.

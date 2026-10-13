@@ -12,9 +12,16 @@ import UniformTypeIdentifiers
 
 /// An ``AudioMetadataReader`` reading the metadata with AVFoundation.
 ///
-/// It only reads a resource stored as a file on the device: a standalone
-/// audio file, or a file of an exploded folder. Any other resource, such as a
-/// ZIP entry or a remote file, fails with `.resourceNotSupported`.
+/// It reads:
+/// - A resource stored as a file on the device, directly from the file.
+/// - Any other resource which can seek, such as the entry of an archive
+///   stored without compression or a remote file, through a resource loader.
+///   Reading a remote resource sends several requests.
+///
+/// The entry of an archive which is compressed fails with
+/// `.resourceNotSupported`. It cannot seek: reaching an offset means
+/// decompressing everything before it, while AVFoundation reads the end of a
+/// file before coming back to its start.
 ///
 /// It takes the values AVFoundation gives decoded and does not parse the atoms
 /// and the frames itself, except the Nero `chpl` atom.
@@ -22,21 +29,71 @@ public final class DefaultAudioMetadataReader: AudioMetadataReader {
     public init() {}
 
     public func read(_ request: AudioMetadataRequest) async -> Result<AudioMetadata, AudioMetadataReadError> {
-        guard let file = request.resource.sourceURL?.fileURL else {
-            return .failure(.resourceNotSupported)
-        }
+        let resource = request.resource
 
-        // AVFoundation does not tell a file which cannot be accessed from a
-        // file which cannot be interpreted.
-        if case let .failure(error) = await request.resource.estimatedLength() {
+        // AVFoundation does not tell a resource which cannot be accessed from
+        // a resource which cannot be interpreted.
+        if case let .failure(error) = await resource.estimatedLength() {
             return .failure(.reading(error))
         }
 
         // Precise timing (`AVURLAssetPreferPreciseDurationAndTimingKey`) is
-        // not requested, as it reads the whole of an MP3 file without a Xing
-        // header. The duration of such a file is an estimate.
-        let asset = AVURLAsset(url: file.url)
+        // never requested, as it reads the whole of an MP3 file without a
+        // Xing header. The duration of such a file is an estimate.
+        if let file = resource.sourceURL?.fileURL {
+            return await read(AVURLAsset(url: file.url), for: request)
+        }
 
+        // A compressed entry cannot seek.
+        switch await resource.properties() {
+        case let .success(properties):
+            guard properties.archive?.isEntryCompressed != true else {
+                return .failure(.resourceNotSupported)
+            }
+        case let .failure(error):
+            return .failure(.reading(error))
+        }
+
+        // The content type of the asset comes from the media type.
+        guard let mediaType = request.format.mediaType, mediaType.uti != nil else {
+            return .failure(.resourceNotSupported)
+        }
+
+        // The loader serves a single resource, whatever the HREF.
+        let loadingError = Mutex<ReadError?>(nil)
+        let loader = ResourceAssetLoader { href in
+            .init(href: href, resource: resource, mediaType: mediaType)
+        }
+        loader.onLoadingError = { _, error in
+            loadingError.withLock { $0 = $0 ?? error }
+        }
+        guard let asset = try? loader.makeAsset(for: assetHREF) else {
+            return .failure(.resourceNotSupported)
+        }
+
+        let result = await read(asset, for: request)
+
+        // AVFoundation does not always abandon its last request, whose stream
+        // would keep reading the resource after this method returned.
+        asset.cancelLoading()
+        await loader.invalidate()
+
+        // The error of the resource tells why the reading failed, which the
+        // one of AVFoundation does not. It is ignored after a success: a
+        // request that AVFoundation no longer needs may fail once it has
+        // read everything.
+        if case .failure = result, let error = loadingError.withLock({ $0 }) {
+            return .failure(.reading(error))
+        }
+        return result
+    }
+
+    /// HREF of the asset served by a resource loader.
+    private let assetHREF = AnyURL(string: "audio")!
+
+    /// Reads the metadata of the resource of `request`, which is served by
+    /// the given `asset`.
+    private func read(_ asset: AVURLAsset, for request: AudioMetadataRequest) async -> Result<AudioMetadata, AudioMetadataReadError> {
         do {
             return try await withTaskCancellationHandler {
                 try await .success(metadata(of: asset, includesCover: request.includesCover))

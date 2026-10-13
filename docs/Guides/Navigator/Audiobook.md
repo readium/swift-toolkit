@@ -77,9 +77,25 @@ Audio files embed their own metadata as tags (MP4 atoms and ID3 frames). When yo
 
 Each link of the `readingOrder` holds the title, the duration and the bitrate of its audio file.
 
-### Opening a container without reading its audio files
+Readium reads the audio files stored on the device, including the ones inside a ZIP or ZAB package. The audio files of a remote package are not read by default, as each one takes multiple requests.
 
-Reading the tags opens every audio file of a container (e.g. ZIP file or folder). To open a large container faster, or reduce the number of requests sent when opening a remote container, create an `AudioParser` with `readsContainerEntriesMetadata` set to `false` and give it to the `DefaultPublicationParser`. The publication then has no metadata, table of contents or cover. A standalone audio file is always read.
+> [!IMPORTANT]
+> The audio files of a package are only read when they are stored without compression. A compressed file is still played, but it has no title, duration or chapters, and gives no metadata or cover to the publication. Package your audiobooks without compression, for example with `zip -0`. Audio formats are already compressed, so this barely changes the size of the package.
+
+### Choosing when the audio files of a container are read
+
+Reading the tags opens every audio file of a container (e.g. ZIP file or folder). The `containerEntriesMetadataPolicy` of the `AudioParser` tells when to do it:
+
+* `.localOnly` (default) reads only a container stored on the device.
+* `.always` also reads a remote container. Each audio file takes several requests, so opening the publication can last minutes with a slow server.
+* `.never` reads no container, to open a large one faster.
+
+A container which is not read gives a publication without metadata, table of contents or cover. A standalone audio file is always read, even a remote one.
+
+> [!NOTE]
+> Reading or playing a remote audio file needs a server supporting HTTP byte range requests.
+
+To change the policy, create an `AudioParser` and give it to the `DefaultPublicationParser`.
 
 ```swift
 let publicationOpener = PublicationOpener(
@@ -90,7 +106,7 @@ let publicationOpener = PublicationOpener(
         additionalParsers: [
             AudioParser(
                 assetRetriever: assetRetriever,
-                readsContainerEntriesMetadata: false
+                containerEntriesMetadataPolicy: .always
             ),
         ]
     )
@@ -98,6 +114,11 @@ let publicationOpener = PublicationOpener(
 ```
 
 See the [Opening a publication guide](../Open%20Publication.md) for more information on the `PublicationOpener`.
+
+> [!NOTE]
+> A container is stored on the device when its `sourceURL` is a file URL. If you build your own `Container`, for example with a `TransformingContainer`, it has no source URL and is only read with `.always`.
+
+The audio files of a container are read three at a time. Set `maxConcurrentMetadataReads` on the `AudioParser` to change it: a larger value opens a container faster, and a smaller one uses less memory.
 
 ### Customizing the metadata
 

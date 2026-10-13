@@ -489,7 +489,7 @@ private extension ReadError {
     /// The playbacks reported before waiting are checked too.
     @discardableResult
     func waitForPlayback(
-        timeout: TimeInterval = 10,
+        timeout: TimeInterval = .testTimeout,
         sourceLocation: SourceLocation = #_sourceLocation,
         where condition: @escaping @Sendable (MediaPlaybackInfo) -> Bool
     ) async -> MediaPlaybackInfo? {
@@ -505,7 +505,7 @@ private extension ReadError {
     ///
     /// The failures reported before waiting are checked too.
     func waitForLoadingFailure(
-        timeout: TimeInterval = 10,
+        timeout: TimeInterval = .testTimeout,
         sourceLocation: SourceLocation = #_sourceLocation
     ) async -> LoadingFailure? {
         guard let failure = await loadingFailuresStream.first(within: timeout) else {
