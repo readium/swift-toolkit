@@ -1082,7 +1082,7 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
         withError error: ReadError
     ) {
         Task { @MainActor in
-            self.delegate?.navigator(self, didFailToLoadResourceAt: href, withError: error)
+            self.delegate?.navigator(self, didFailToLoadResourceAt: href.anyURL, withError: error)
         }
     }
 }
@@ -1138,6 +1138,10 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             }
             .joined(separator: "\n")
 
+        // The templates and activable groups are registered in every resource
+        // of the spread, as each one has its own `readium` instance.
+        await spreadView.evaluateScript("(function() {\n\(script)\n})();")
+
         let links = spreadView.spread.readingOrderIndices
             .compactMap { readingOrder.getOrNil($0) }
 
@@ -1151,11 +1155,12 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
                 guard let decorationsScript = decorations.javascript(forGroup: group, styles: config.decorationTemplates) else {
                     continue
                 }
-                script += decorationsScript
+                // We evaluate the decorations only in their own resource,
+                // otherwise a fixed-layout spread would render them on both
+                // pages.
+                await spreadView.evaluateScript(decorationsScript, inHREF: href)
             }
         }
-
-        await spreadView.evaluateScript("(function() {\n\(script)\n})();")
     }
 
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: PointerEvent) {
@@ -1238,7 +1243,7 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
             guard
                 let url = AnyURL(string: href),
-                let id = url.fragment
+                let id = url.fragment?.percentDecoded
             else {
                 log(.warning, "Could not find hash in link \(href)")
                 return nil

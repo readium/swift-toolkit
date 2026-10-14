@@ -4,208 +4,144 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Foundation
 @testable import ReadiumShared
-import XCTest
+import Testing
+
+enum ZIPFoundationContainerTests {
+    struct Opening {
+        @Test func failsWhenTheFileIsMissing() async {
+            let result = await ZIPFoundationContainer.make(resource: FileResource(file: fixtures.url(for: "unknown.zip")))
+            guard case .failure(.reading(.access(.fileSystem(.fileNotFound)))) = result else {
+                Issue.record("Expected a file not found error, got \(result)")
+                return
+            }
+        }
+
+        @Test func failsWhenTheFileIsNotAZIP() async {
+            let result = await ZIPFoundationContainer.make(resource: FileResource(file: fixtures.url(for: "not-a.zip")))
+            guard case .failure(.reading(.decoding)) = result else {
+                Issue.record("Expected .failure(.reading(.decoding)), got \(result)")
+                return
+            }
+        }
+    }
+
+    struct Entries {
+        @Test func listsTheFilesOfTheArchive() async throws {
+            let container = try await container(for: "test.zip")
+
+            #expect(
+                container.entries == Set([
+                    AnyURL(path: ".hidden")!,
+                    AnyURL(path: "A folder/Sub.folder%/file.txt")!,
+                    AnyURL(path: "A folder/wasteland-cover.jpg")!,
+                    AnyURL(path: "root.txt")!,
+                    AnyURL(path: "uncompressed.jpg")!,
+                    AnyURL(path: "uncompressed.txt")!,
+                    AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")!,
+                ])
+            )
+        }
+
+        @Test func unknownEntryIsNil() async throws {
+            let container = try await container(for: "test.zip")
+            #expect(container[AnyURL(path: "unknown")!] == nil)
+        }
+
+        @Test(arguments: [
+            (".hidden", false, 0, 0),
+            ("A folder/Sub.folder%/file.txt", false, 20, 20),
+            ("A folder/wasteland-cover.jpg", true, 82374, 103_477),
+            ("root.txt", false, 0, 0),
+            ("uncompressed.jpg", false, 279_551, 279_551),
+            ("uncompressed.txt", false, 30, 30),
+            ("A folder/Sub.folder%/file-compressed.txt", true, 8659, 29609),
+        ] as [(String, Bool, UInt64, UInt64)])
+        func exposesTheLengthAndProperties(path: String, isCompressed: Bool, length: UInt64, originalLength: UInt64) async throws {
+            let resource = try await entry(path)
+
+            #expect(try await resource.estimatedLength().get() == originalLength)
+
+            let properties = try await resource.properties().get()
+            #expect(properties.archive == ArchiveProperties(entryLength: length, isEntryCompressed: isCompressed))
+            #expect(properties.filename == RelativeURL(path: path)!.lastPathSegment)
+        }
+
+        /// Some archives (notably CBZ comics) carry spec-noncompliant entry
+        /// names with a leading slash (e.g. `/001.jpg`). APPNOTE 4.4.17.1
+        /// mandates entry names be relative, so they must be normalized to
+        /// slash-free relative URLs.
+        @Test func leadingSlashIsNormalized() async throws {
+            let container = try await container(for: "leading-slash.zip")
+
+            #expect(
+                container.entries == Set([
+                    AnyURL(path: "root.txt")!,
+                    AnyURL(path: "folder/file.txt")!,
+                    AnyURL(path: "normal.txt")!,
+                ])
+            )
+
+            let data = try await entry("root.txt", in: "leading-slash.zip").read().get()
+            #expect(String(data: data, encoding: .utf8) == "I am at the forged root.\n")
+        }
+    }
+
+    struct Reading {
+        @Test(arguments: LargeEntry.allCases)
+        fileprivate func readsTheWholeEntry(_ largeEntry: LargeEntry) async throws {
+            let data = try await entry(largeEntry.rawValue).read().get()
+            #expect(data == largeEntry.data)
+        }
+
+        @Test(arguments: [
+            ("A folder/Sub.folder%/file.txt", 14 ..< 20, " ZIP.\n"),
+            ("A folder/Sub.folder%/file-compressed.txt", 14 ..< 20, " ZIP.\n"),
+            // Out-of-range indexes must be clamped per the `Streamable`
+            // contract.
+            ("A folder/Sub.folder%/file.txt", 14 ..< 40, " ZIP.\n"),
+            ("A folder/Sub.folder%/file-compressed.txt", 29600 ..< 29700, "r ipsum.\n"),
+            ("A folder/Sub.folder%/file.txt", 100 ..< 200, ""),
+            ("A folder/Sub.folder%/file-compressed.txt", 40000 ..< 40100, ""),
+            (".hidden", 0 ..< 10, ""),
+        ] as [(String, Range<UInt64>, String)])
+        func readsARange(path: String, range: Range<UInt64>, expected: String) async throws {
+            let data = try await entry(path).read(range: range).get()
+            #expect(String(data: data, encoding: .utf8) == expected)
+        }
+
+        @Test(arguments: LargeEntry.allCases)
+        fileprivate func readsSeveralRangesOfTheSameEntry(_ largeEntry: LargeEntry) async throws {
+            let resource = try await entry(largeEntry.rawValue)
+            let data = largeEntry.data
+
+            for range in [60000 ..< 60100, 10 ..< 50, 100_000 ..< 103_477, 0 ..< 1, 40000 ..< 90000] as [Range<UInt64>] {
+                #expect(try await resource.read(range: range).get() == data[Int(range.lowerBound) ..< Int(range.upperBound)])
+            }
+        }
+    }
+}
+
+// MARK: - Helpers
 
 private let fixtures = Fixtures(path: "Archive")
 
-class ZIPFoundationContainerTests: XCTestCase {
-    private func container(for filename: String) async throws -> Container {
-        try await ZIPFoundationContainer.make(resource: FileResource(file: fixtures.url(for: filename))).get()
+/// The large entries of `test.zip`, whose content is also in the `exploded`
+/// directory.
+private enum LargeEntry: String, CaseIterable {
+    case stored = "uncompressed.jpg"
+    case deflated = "A folder/wasteland-cover.jpg"
+
+    var data: Data {
+        fixtures.data(at: "exploded/\(rawValue)")
     }
+}
 
-    func testOpenSuccess() async throws {
-        _ = try await container(for: "test.zip")
-    }
+private func container(for filename: String) async throws -> Container {
+    try await ZIPFoundationContainer.make(resource: FileResource(file: fixtures.url(for: filename))).get()
+}
 
-    func testOpenNotFound() async {
-        do {
-            _ = try await container(for: "unknown.zip")
-            XCTFail("Expected an error")
-        } catch {}
-    }
-
-    func testOpenNotAZIP() async {
-        do {
-            _ = try await container(for: "not-a.zip")
-            XCTFail("Expected an error")
-        } catch {}
-    }
-
-    func testGetNonExistingEntry() async throws {
-        let container = try await container(for: "test.zip")
-        XCTAssertNil(try container[XCTUnwrap(AnyURL(path: "unknown"))])
-    }
-
-    func testEntries() async throws {
-        let container = try await container(for: "test.zip")
-
-        XCTAssertEqual(
-            container.entries,
-            try Set([
-                XCTUnwrap(AnyURL(path: ".hidden")),
-                XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt")),
-                XCTUnwrap(AnyURL(path: "A folder/wasteland-cover.jpg")),
-                XCTUnwrap(AnyURL(path: "root.txt")),
-                XCTUnwrap(AnyURL(path: "uncompressed.jpg")),
-                XCTUnwrap(AnyURL(path: "uncompressed.txt")),
-                XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt")),
-            ])
-        )
-    }
-
-    func testResources() async throws {
-        let container = try await container(for: "test.zip")
-
-        try await AssertEntry(path: ".hidden", in: container, isCompressed: false, length: 0, originalLength: 0)
-        try await AssertEntry(path: "A folder/Sub.folder%/file.txt", in: container, isCompressed: false, length: 20, originalLength: 20)
-        try await AssertEntry(path: "A folder/wasteland-cover.jpg", in: container, isCompressed: true, length: 82374, originalLength: 103_477)
-        try await AssertEntry(path: "root.txt", in: container, isCompressed: false, length: 0, originalLength: 0)
-        try await AssertEntry(path: "uncompressed.jpg", in: container, isCompressed: false, length: 279_551, originalLength: 279_551)
-        try await AssertEntry(path: "uncompressed.txt", in: container, isCompressed: false, length: 30, originalLength: 30)
-        try await AssertEntry(path: "A folder/Sub.folder%/file-compressed.txt", in: container, isCompressed: true, length: 8659, originalLength: 29609)
-    }
-
-    func testReadCompressedEntry() async throws {
-        let container = try await container(for: "test.zip")
-        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
-        let data = try await entry.read().get()
-        let string = try XCTUnwrap(String(data: data, encoding: .utf8))
-        XCTAssertEqual(string.count, 29609)
-        XCTAssertTrue(string.hasPrefix("I'm inside\nthe ZIP."))
-    }
-
-    func testReadUncompressedEntry() async throws {
-        let container = try await container(for: "test.zip")
-        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
-        let data = try await entry.read().get()
-        XCTAssertNotNil(data)
-        XCTAssertEqual(
-            String(data: data, encoding: .utf8),
-            "I'm inside\nthe ZIP.\n"
-        )
-    }
-
-    func testReadUncompressedRange() async throws {
-        let container = try await container(for: "test.zip")
-        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
-        let data = try await entry.read(range: 14 ..< 20).get()
-        XCTAssertEqual(
-            String(data: data, encoding: .utf8),
-            " ZIP.\n"
-        )
-    }
-
-    func testReadCompressedRange() async throws {
-        let container = try await container(for: "test.zip")
-        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
-        let data = try await entry.read(range: 14 ..< 20).get()
-        XCTAssertEqual(
-            String(data: data, encoding: .utf8),
-            " ZIP.\n"
-        )
-    }
-
-    /// Out-of-range indexes must be clamped per the `Streamable` contract.
-    func testReadRangeOverlappingEndIsClamped() async throws {
-        let container = try await container(for: "test.zip")
-
-        let stored = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
-        var data = try await stored.read(range: 14 ..< 40).get()
-        XCTAssertEqual(
-            String(data: data, encoding: .utf8),
-            " ZIP.\n"
-        )
-
-        let compressed = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
-        data = try await compressed.read(range: 29600 ..< 29700).get()
-        XCTAssertEqual(data.count, 9)
-    }
-
-    /// Out-of-range indexes must be clamped per the `Streamable` contract.
-    func testReadRangePastEndReturnsEmptyData() async throws {
-        let container = try await container(for: "test.zip")
-
-        let stored = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file.txt"))])
-        var data = try await stored.read(range: 100 ..< 200).get()
-        XCTAssertEqual(data, Data())
-
-        let compressed = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/Sub.folder%/file-compressed.txt"))])
-        data = try await compressed.read(range: 40000 ..< 40100).get()
-        XCTAssertEqual(data, Data())
-    }
-
-    func testRandomCompressedRead() async throws {
-        for _ in 0 ..< 100 {
-            let container = try await container(for: "test.zip")
-            let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "A folder/wasteland-cover.jpg"))])
-            let length: UInt64 = 103_477
-            let lower = UInt64.random(in: 0 ..< length - 100)
-            let upper = UInt64.random(in: lower ..< length)
-            let range = lower ..< upper
-            _ = try await entry.read(range: range).get()
-        }
-    }
-
-    func testRandomStoredRead() async throws {
-        for _ in 0 ..< 100 {
-            let container = try await container(for: "test.zip")
-            let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "uncompressed.jpg"))])
-            let length: UInt64 = 279_551
-            let lower = UInt64.random(in: 0 ..< length - 100)
-            let upper = UInt64.random(in: lower ..< length)
-            let range = lower ..< upper
-            _ = try await entry.read(range: range).get()
-        }
-    }
-
-    /// Some archives (notably CBZ comics) carry spec-noncompliant entry names
-    /// with a leading slash (e.g. `/001.jpg`). APPNOTE 4.4.17.1 mandates entry
-    /// names be relative, so they must be normalized to slash-free relative
-    /// URLs.
-    func testEntriesWithLeadingSlashAreNormalized() async throws {
-        let container = try await container(for: "leading-slash.zip")
-
-        XCTAssertEqual(
-            container.entries,
-            try Set([
-                XCTUnwrap(AnyURL(path: "root.txt")),
-                XCTUnwrap(AnyURL(path: "folder/file.txt")),
-                XCTUnwrap(AnyURL(path: "normal.txt")),
-            ])
-        )
-    }
-
-    func testReadEntryWithLeadingSlash() async throws {
-        let container = try await container(for: "leading-slash.zip")
-        let entry = try XCTUnwrap(try container[XCTUnwrap(AnyURL(path: "root.txt"))])
-        let data = try await entry.read().get()
-        XCTAssertEqual(
-            String(data: data, encoding: .utf8),
-            "I am at the forged root.\n"
-        )
-    }
-
-    private func AssertEntry(
-        path: String,
-        in container: Container,
-        isCompressed: Bool,
-        length: UInt64,
-        originalLength: UInt64
-    ) async throws {
-        let resource = try XCTUnwrap(container[AnyURL(path: path)!])
-
-        let estimatedLength = try await resource.estimatedLength().get()
-        XCTAssertEqual(estimatedLength, originalLength)
-
-        let properties = try await resource.properties().get()
-        XCTAssertEqual(
-            properties.archive,
-            ArchiveProperties(
-                entryLength: length,
-                isEntryCompressed: isCompressed
-            )
-        )
-        XCTAssertEqual(properties.filename, RelativeURL(path: path)!.lastPathSegment)
-    }
+private func entry(_ path: String, in filename: String = "test.zip") async throws -> Resource {
+    try await #require(container(for: filename)[AnyURL(path: path)!])
 }

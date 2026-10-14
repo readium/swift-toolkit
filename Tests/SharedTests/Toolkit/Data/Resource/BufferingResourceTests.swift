@@ -5,7 +5,7 @@
 //
 
 @testable import ReadiumShared
-import TestPublications
+import TestSupport
 import XCTest
 
 class BufferingResourceTests: XCTestCase {

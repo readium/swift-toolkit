@@ -23,6 +23,12 @@ extension SingleResourceContainer {
 }
 
 extension Container {
+    /// Whether the container is known to be stored on the device: its source
+    /// is a file or a directory.
+    var isStoredOnDevice: Bool {
+        sourceURL?.fileURL != nil
+    }
+
     /// Returns the data of a resource at given `href`.
     func readData<T: URLConvertible>(at href: T) async throws -> Data? {
         guard let resource = self[href] else {

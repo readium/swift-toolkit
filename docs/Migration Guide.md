@@ -95,21 +95,67 @@ The publisher styles are observed as long as the related preferences are unset. 
 
 The decoding is also more lenient: an invalid value drops only its preference, instead of failing to decode all of them.
 
-### Audio session changes
+### Resource loading errors
 
-#### Custom `AudioSessionManaging` implementations
+`NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` now takes an `AnyURL` instead of a `RelativeURL`.
+
+:warning: An implementation using the previous signature still compiles, but is no longer called. Update the type of the `href` parameter:
+
+```diff
+-func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {
++func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: AnyURL, withError error: ReadError) {
+```
+
+### Audio Navigator
+
+#### End of the publication
+
+The `AudioNavigator` now reports the end of the publication with the new `MediaPlaybackState.ended`, when the playback reaches the end of the last resource by playing or seeking up to it. The player is paused, and `play()` restarts from the beginning of the publication.
+
+* Checks such as `state != .paused` are now true once the playback ended. To choose between a play and a pause button, use the new `MediaPlaybackState.playsWhenReady` instead.
+* `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is no longer called after the last resource, as there is no next resource to play. If you relied on it to detect the end of the publication, observe the playback state instead.
+
+```swift
+// Before
+func navigator(_ navigator: AudioNavigator, shouldPlayNextResource info: MediaPlaybackInfo) -> Bool {
+    if info.resourceIndex == navigator.readingOrder.count - 1 {
+        didReachEndOfPublication()
+    }
+    return true
+}
+
+// After
+func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybackInfo) {
+    if info.state == .ended {
+        didReachEndOfPublication()
+    }
+}
+```
+
+See the [Audiobook guide](Guides/Navigator/Audiobook.md#observing-the-playback) to learn how to observe and control the playback.
+
+#### Audio session changes
+
+##### Custom `AudioSessionManaging` implementations
 
 The audio session is now activated off the main thread, as it can block for a noticeable time.
 
 * `start(with:isPlaying:)` is now `async`. Return only once the audio session is ready to play, as callers start their engine right after.
 * `AudioSessionToken` is removed. `end(with:)` takes the `AudioSessionUser` instead. It may be called from the user's `deinit`, so don't retain the user or capture it in a `Task`.
 
-#### Handling audio interruptions in a custom `AudioSessionUser`
+##### Handling audio interruptions in a custom `AudioSessionUser`
 
 `AudioSessionUser.play()` is removed. The `AudioSession` used to call it when an interruption (e.g. a phone call) ended, even if the playback was paused before the interruption. Conformers now implement two hooks and decide themselves whether to resume:
 
 * `audioSessionInterruptionDidBegin()` is called when the interruption begins. Pause the playback if your engine doesn't pause on its own (`AVPlayer` does), and remember whether this interruption paused it.
 * `audioSessionInterruptionDidEnd(shouldResume:)` is called when it ends. Resume only if `shouldResume` is set and the interruption paused the playback. Forget the paused state in any case, and when the user pauses during the interruption (e.g. with Siri).
+
+### Audio metadata
+
+`AudioParser` now reads the tags of each audio file with an `AudioMetadataReader`. See the [Audiobook guide](Guides/Navigator/Audiobook.md#metadata-of-audio-files) to learn what is read and how to customize it.
+
+* `AudioPublicationManifestAugmentor`, `AudioPublicationAugmentedManifest` and `AVAudioPublicationManifestAugmentor` are removed. Implement an `AudioMetadataReader` instead, which returns the metadata of one audio file.
+* The metadata of an audio publication without a manifest is mapped from the tags with new rules. If you store the metadata of your publications, some values differ the next time a publication is opened. For example, the title is now the album, the album artists are the authors and no longer the illustrators, and the table of contents holds the chapters of the audio files.
 
 ### Now Playing chapter number
 

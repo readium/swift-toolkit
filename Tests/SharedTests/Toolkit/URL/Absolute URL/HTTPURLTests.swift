@@ -144,10 +144,14 @@ enum HTTPURLTests {
             #expect(HTTPURL(string: "http://foo/bar?param=quz%20baz")?.removingQuery() == HTTPURL(string: "http://foo/bar"))
         }
 
-        @Test("fragment is percent-decoded")
+        @Test("fragment is kept percent-encoded")
         func fragment() {
             #expect(HTTPURL(string: "http://foo/bar")?.fragment == nil)
-            #expect(HTTPURL(string: "http://foo/bar#quz%20baz")?.fragment == "quz baz")
+            #expect(HTTPURL(string: "http://foo/bar#")?.fragment == nil)
+            #expect(HTTPURL(string: "http://foo/bar#quz%20baz")?.fragment == URLFragment(rawValue: "quz%20baz"))
+            #expect(HTTPURL(string: "http://foo/bar#quz%20baz")?.fragment?.percentDecoded == "quz baz")
+            // An encoded delimiter is not mistaken for a delimiter.
+            #expect(HTTPURL(string: "http://foo/bar#id=a%26t%3D5&t=10")?.fragment?.rawValue == "id=a%26t%3D5&t=10")
         }
 
         @Test("removingFragment removes the fragment component")
@@ -164,8 +168,12 @@ enum HTTPURLTests {
             #expect(HTTPURL(string: "http://foo/bar#old")?.replacingFragment("new").string == "http://foo/bar#new")
             // Removing via nil matches removingFragment().
             #expect(HTTPURL(string: "http://foo/bar#quz%20baz")?.replacingFragment(nil) == HTTPURL(string: "http://foo/bar"))
-            // Fragment is percent-encoded.
-            #expect(HTTPURL(string: "http://foo/bar")?.replacingFragment("quz baz").string == "http://foo/bar#quz%20baz")
+            // Fragment is written percent-encoded, as is.
+            #expect(HTTPURL(string: "http://foo/bar")?.replacingFragment("quz%20baz").string == "http://foo/bar#quz%20baz")
+            #expect(HTTPURL(string: "http://foo/bar")?.replacingFragment("id=a%26b&t=10").string == "http://foo/bar#id=a%26b&t=10")
+            #expect(HTTPURL(string: "http://foo/bar")?.replacingFragment(URLFragment(percentDecoded: "quz baz")).string == "http://foo/bar#quz%20baz")
+            // The fragment round-trips.
+            #expect(HTTPURL(string: "http://foo/bar")?.replacingFragment("id=a%26b&t=10").fragment == "id=a%26b&t=10")
         }
     }
 

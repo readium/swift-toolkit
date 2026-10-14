@@ -61,7 +61,7 @@ enum SMILParserTests {
             // s1/p2: clipBegin=0:01:30.000
             let p2 = doc?.guided.first?.children[1]
             #expect(p2?.id == "p2")
-            #expect(p2?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=90,"))
+            #expect(p2?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=90"))
         }
 
         @Test func audioWithOnlyClipEnd() throws {
@@ -69,7 +69,7 @@ enum SMILParserTests {
             // s1/p3: clipEnd=0:00:11.000
             let p3 = doc?.guided.first?.children[2]
             #expect(p3?.id == "p3")
-            #expect(p3?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=,11"))
+            #expect(p3?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,11"))
         }
 
         @Test func audioWithoutClipTimes() throws {
@@ -82,18 +82,66 @@ enum SMILParserTests {
 
         @Test func audioClipEndTrailingZerosStripped() throws {
             let doc = try SMILParserTests.parse("audio-clip-times.smil")
-            // s1/p5: clipEnd=0:00:05.100 → "5.100" formatted, trailing zeros stripped → "5.1"
+            // s1/p5: clipEnd=0:00:05.100 → trailing zeros stripped → "5.1"
             let p5 = doc?.guided.first?.children[4]
             #expect(p5?.id == "p5")
-            #expect(p5?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=,5.1"))
+            #expect(p5?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,5.1"))
         }
 
         @Test func audioClipEndPartialTrailingZeroStripped() throws {
             let doc = try SMILParserTests.parse("audio-clip-times.smil")
-            // s1/p6: clipEnd=0:00:05.120 → "5.120" formatted, one trailing zero stripped → "5.12"
+            // s1/p6: clipEnd=0:00:05.120 → one trailing zero stripped → "5.12"
             let p6 = doc?.guided.first?.children[5]
             #expect(p6?.id == "p6")
-            #expect(p6?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=,5.12"))
+            #expect(p6?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,5.12"))
+        }
+
+        @Test func audioWithClipBeginAfterClipEnd() throws {
+            let doc = try SMILParserTests.parse("audio-clip-times.smil")
+            // s1/p7: clipBegin=0:00:10.000, clipEnd=0:00:05.000 → position at clipBegin
+            let p7 = doc?.guided.first?.children[6]
+            #expect(p7?.id == "p7")
+            #expect(p7?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=10"))
+        }
+
+        @Test func audioWithClipBeginEqualToClipEnd() throws {
+            let doc = try SMILParserTests.parse("audio-clip-times.smil")
+            // s1/p8: clipBegin=0:00:05.000, clipEnd=0:00:05.000 → position at clipBegin
+            let p8 = doc?.guided.first?.children[7]
+            #expect(p8?.id == "p8")
+            #expect(p8?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=5"))
+        }
+
+        @Test func audioWithNegativeClipBegin() throws {
+            let doc = try SMILParserTests.parse("audio-clip-times.smil")
+            // s1/p9: clipBegin=-5, clipEnd=0:00:10.000 → clipBegin is ignored
+            let p9 = doc?.guided.first?.children[8]
+            #expect(p9?.id == "p9")
+            #expect(p9?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=0,10"))
+        }
+
+        @Test func audioWithClipEndNotANumber() throws {
+            let doc = try SMILParserTests.parse("audio-clip-times.smil")
+            // s1/p10: clipBegin=0:00:05.000, clipEnd=nan → clipEnd is ignored
+            let p10 = doc?.guided.first?.children[9]
+            #expect(p10?.id == "p10")
+            #expect(p10?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=5"))
+        }
+
+        @Test func audioClipTimesRoundedToMilliseconds() throws {
+            let doc = try SMILParserTests.parse("audio-clip-times.smil")
+            // s1/p11: clipBegin=0:01:01.029, clipEnd=61.0296s
+            let p11 = doc?.guided.first?.children[10]
+            #expect(p11?.id == "p11")
+            #expect(p11?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3#t=61.029,61.03"))
+        }
+
+        @Test func audioWithOnlyClipEndAtZero() throws {
+            let doc = try SMILParserTests.parse("audio-clip-times.smil")
+            // s1/p12: clipEnd=0 → plain URL
+            let p12 = doc?.guided.first?.children[11]
+            #expect(p12?.id == "p12")
+            #expect(p12?.refs?.audio == AnyURL(string: "OEBPS/audio.mp3"))
         }
 
         @Test func videoWithBothClipTimes() throws {
@@ -109,7 +157,7 @@ enum SMILParserTests {
             // s1/p2: clipBegin=0:01:30.000
             let p2 = doc?.guided.first?.children[1]
             #expect(p2?.id == "p2")
-            #expect(p2?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=90,"))
+            #expect(p2?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=90"))
         }
 
         @Test func videoWithOnlyClipEnd() throws {
@@ -117,7 +165,7 @@ enum SMILParserTests {
             // s1/p3: clipEnd=0:00:11.000
             let p3 = doc?.guided.first?.children[2]
             #expect(p3?.id == "p3")
-            #expect(p3?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=,11"))
+            #expect(p3?.refs?.video == AnyURL(string: "OEBPS/video.mp4#t=0,11"))
         }
 
         @Test func videoWithoutClipTimes() throws {

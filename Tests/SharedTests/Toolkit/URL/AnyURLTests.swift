@@ -76,6 +76,7 @@ enum AnyURLTests {
             #expect(try base.resolve(#require(AnyURL(string: "../quz/baz")))?.string == "http://example.com/quz/baz")
             #expect(try base.resolve(#require(AnyURL(string: "/quz/baz")))?.string == "http://example.com/quz/baz")
             #expect(try base.resolve(#require(AnyURL(string: "#fragment")))?.string == "http://example.com/foo/bar#fragment")
+            #expect(try base.resolve(#require(AnyURL(string: "quz?q=a%26b#id=a%26t%3D5&t=10")))?.string == "http://example.com/foo/quz?q=a%26b#id=a%26t%3D5&t=10")
             #expect(try base.resolve(#require(AnyURL(string: "file:///foo/bar")))?.string == "file:///foo/bar")
 
             // With trailing slash
@@ -196,8 +197,9 @@ enum AnyURLTests {
             #expect(AnyURL(string: "foo/bar#old")?.replacingFragment("new").string == "foo/bar#new")
             // Removing via nil matches removingFragment().
             #expect(AnyURL(string: "foo/bar#quz%20baz")?.replacingFragment(nil) == AnyURL(string: "foo/bar"))
-            // Fragment is percent-encoded.
-            #expect(AnyURL(string: "foo/bar")?.replacingFragment("quz baz").string == "foo/bar#quz%20baz")
+            // Fragment is written percent-encoded, as is.
+            #expect(AnyURL(string: "foo/bar")?.replacingFragment("quz%20baz").string == "foo/bar#quz%20baz")
+            #expect(AnyURL(string: "foo/bar")?.replacingFragment(URLFragment(percentDecoded: "quz baz")).string == "foo/bar#quz%20baz")
         }
     }
 }

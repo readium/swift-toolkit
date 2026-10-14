@@ -133,7 +133,7 @@ class ReaderViewController<N: Navigator>: UIViewController,
         moduleDelegate?.presentError(error, from: self)
     }
 
-    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {
+    func navigator(_ navigator: any Navigator, didFailToLoadResourceAt href: AnyURL, withError error: ReadError) {
         log(.error, "Failed to load resource at \(href): \(error)")
     }
 
