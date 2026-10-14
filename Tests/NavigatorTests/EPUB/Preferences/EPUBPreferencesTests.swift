@@ -249,48 +249,58 @@ enum EPUBPreferencesTests {
         }
     }
 
-    @Suite("ligatures") struct Ligatures {
-        @Test("the editor preference is effective with LTR and RTL languages", arguments: [
-            ("en", CSSLayout.Stylesheets.default),
-            ("ar", CSSLayout.Stylesheets.rtl),
+    /// `letterSpacing`, `wordSpacing` and `ligatures` are effective only with
+    /// the stylesheets handling them.
+    @Suite("letterSpacing, wordSpacing and ligatures") struct SpacingAndLigatures {
+        private let preferences = EPUBPreferences(letterSpacing: 0.1, ligatures: true, wordSpacing: 0.1)
+
+        @Test("the editor preferences are effective with the stylesheets supporting them", arguments: [
+            ("en", false, CSSLayout.Stylesheets.default, ["letterSpacing", "wordSpacing", "ligatures"]),
+            ("ar", false, CSSLayout.Stylesheets.rtl, ["wordSpacing", "ligatures"]),
+            ("ja", false, CSSLayout.Stylesheets.cjkHorizontal, ["letterSpacing"]),
+            ("ja", true, CSSLayout.Stylesheets.cjkVertical, ["letterSpacing"]),
         ])
-        @MainActor func editorEffective(language: String, stylesheets: CSSLayout.Stylesheets) {
-            let preferences = EPUBPreferences(
-                language: Language(code: .bcp47(language)),
-                ligatures: true
-            )
+        @MainActor func editorEffective(language: String, verticalText: Bool, stylesheets: CSSLayout.Stylesheets, expected: [String]) {
+            var preferences = preferences
+            preferences.language = Language(code: .bcp47(language))
+            preferences.verticalText = verticalText
             #expect(settings(preferences: preferences).cssLayout.stylesheets == stylesheets)
 
             let editor = makeEditor(preferences: preferences)
-            #expect(editor.ligatures.isEffective)
+            #expect(effectivePreferences(of: editor) == expected)
         }
 
-        @Test("the editor preference is not effective with CJK languages", arguments: [
-            (false, CSSLayout.Stylesheets.cjkHorizontal),
-            (true, CSSLayout.Stylesheets.cjkVertical),
-        ])
-        @MainActor func editorNotEffectiveWithCJK(verticalText: Bool, stylesheets: CSSLayout.Stylesheets) {
-            let preferences = EPUBPreferences(
-                language: Language(code: .bcp47("ja")),
-                ligatures: true,
-                verticalText: verticalText
-            )
-            #expect(settings(preferences: preferences).cssLayout.stylesheets == stylesheets)
-
-            let editor = makeEditor(preferences: preferences)
-            #expect(!editor.ligatures.isEffective)
-        }
-
-        @Test("the editor preference is not effective when unset")
+        @Test("the editor preferences are not effective when unset")
         @MainActor func editorNotEffectiveWhenUnset() {
             let editor = makeEditor()
-            #expect(!editor.ligatures.isEffective)
+            #expect(effectivePreferences(of: editor) == [])
         }
 
-        @Test("the editor preference is not effective without reflowable resources")
+        @Test("the editor preferences are not effective without reflowable resources")
         @MainActor func editorNotEffectiveWithFixedLayout() {
-            let editor = makeEditor(preferences: EPUBPreferences(ligatures: true), layout: .fixed)
-            #expect(!editor.ligatures.isEffective)
+            let editor = makeEditor(preferences: preferences, layout: .fixed)
+            #expect(effectivePreferences(of: editor) == [])
+        }
+
+        @Test("the editor reads the ligatures as on when unset, unless the defaults say otherwise", arguments: [
+            (nil, true),
+            (false, false),
+        ])
+        @MainActor func editorLigaturesEffectiveValue(defaults: Bool?, expected: Bool) {
+            let editor = makeEditor(defaults: EPUBDefaults(ligatures: defaults))
+            #expect(editor.ligatures.value == nil)
+            #expect(editor.ligatures.effectiveValue == expected)
+        }
+
+        /// Names of the preferences which are effective in the `editor`.
+        @MainActor private func effectivePreferences(of editor: EPUBPreferencesEditor) -> [String] {
+            [
+                ("letterSpacing", editor.letterSpacing.isEffective),
+                ("wordSpacing", editor.wordSpacing.isEffective),
+                ("ligatures", editor.ligatures.isEffective),
+            ]
+            .filter(\.1)
+            .map(\.0)
         }
     }
 

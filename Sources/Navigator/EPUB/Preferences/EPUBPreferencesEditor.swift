@@ -259,7 +259,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - the layout is LTR
+    ///  - the layout is LTR or CJK
     public lazy var letterSpacing: AnyRangePreference<Double> =
         rangePreference(
             preference: \.letterSpacing,
@@ -267,7 +267,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             defaultEffectiveValue: defaults.letterSpacing ?? 0.0,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && $0.settings.cssLayout.stylesheets == .default
+                    && [.default, .cjkHorizontal, .cjkVertical].contains($0.settings.cssLayout.stylesheets)
                     && $0.preferences.letterSpacing != nil
             },
             supportedRange: 0.0 ... 1.0,
@@ -284,7 +284,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         preference(
             preference: \.ligatures,
             effectiveValue: { $0.settings.ligatures },
-            defaultEffectiveValue: defaults.ligatures ?? false,
+            defaultEffectiveValue: defaults.ligatures ?? true,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
                     && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
@@ -613,7 +613,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - the layout is LTR
+    ///  - the layout is LTR or RTL
     public lazy var wordSpacing: AnyRangePreference<Double> =
         rangePreference(
             preference: \.wordSpacing,
@@ -621,7 +621,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             defaultEffectiveValue: defaults.wordSpacing ?? 0.0,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && $0.settings.cssLayout.stylesheets == .default
+                    && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
                     && $0.preferences.wordSpacing != nil
             },
             supportedRange: 0.0 ... 1.0,

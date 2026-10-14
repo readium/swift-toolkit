@@ -568,8 +568,8 @@ Some preferences are not available for all languages and layout.
 |-------------------|--------------------|--------------------|-----|
 | `paragraphIndent` | :white_check_mark: | :white_check_mark: |     |
 | `textAlign`       | :white_check_mark: | :white_check_mark: |     |
-| `letterSpacing`   | :white_check_mark: |                    |     |
-| `wordSpacing`     | :white_check_mark: |                    |     |
+| `letterSpacing`   | :white_check_mark: |                    | :white_check_mark: |
+| `wordSpacing`     | :white_check_mark: | :white_check_mark: |     |
 | `hyphens`         | :white_check_mark: |                    |     |
 | `ligatures`       | :white_check_mark: | :white_check_mark: |     |
 | `noRuby`          |                    |                    | :white_check_mark: |
