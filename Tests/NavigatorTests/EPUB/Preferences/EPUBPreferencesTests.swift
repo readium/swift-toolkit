@@ -300,21 +300,6 @@ enum EPUBPreferencesTests {
             #expect(settings().blendImages == false)
         }
 
-        @Test("the setting falls back on the defaults")
-        func settingFallsBackOnDefaults() {
-            #expect(settings(defaults: EPUBDefaults(blendImages: true)).blendImages == true)
-        }
-
-        @Test("the preference takes precedence over the defaults")
-        func preferenceTakesPrecedence() {
-            #expect(
-                settings(
-                    preferences: EPUBPreferences(blendImages: false),
-                    defaults: EPUBDefaults(blendImages: true)
-                ).blendImages == false
-            )
-        }
-
         @Test("ReadiumCSS blends the images with any background color", arguments: [nil, Color(rawValue: 0x000000)])
         @MainActor func cssBlendImages(backgroundColor: Color?) throws {
             var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
@@ -348,47 +333,37 @@ enum EPUBPreferencesTests {
             editor.blendImages.clear()
             #expect(editor.preferences.blendImages == nil)
             #expect(editor.blendImages.effectiveValue == false)
-        }
 
-        @Test("the editor uses the defaults as effective value")
-        @MainActor func editorEffectiveValueFromDefaults() {
-            let editor = makeEditor(defaults: EPUBDefaults(blendImages: true))
-            #expect(editor.preferences.blendImages == nil)
-            #expect(editor.blendImages.effectiveValue == true)
-        }
-
-        @Test("the editor toggles from the defaults when unset")
-        @MainActor func editorTogglesFromDefaults() {
-            let editor = makeEditor(defaults: EPUBDefaults(blendImages: true))
             editor.blendImages.toggle()
-            #expect(editor.preferences.blendImages == false)
-            #expect(editor.blendImages.effectiveValue == false)
+            #expect(editor.preferences.blendImages == true)
         }
     }
 
     @Suite("image filters") struct ImageFilters {
+        @Test("the settings have no image filters when unset")
+        func settingsWhenUnset() {
+            let settings = settings()
+            #expect(settings.darkenImages == nil)
+            #expect(settings.invertImages == nil)
+            #expect(settings.invertGaiji == nil)
+        }
+
         @Test("ReadiumCSS applies the image filters with any background color", arguments: [nil, Color(rawValue: 0x000000)])
         @MainActor func cssImageFilters(backgroundColor: Color?) throws {
-            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
-            css.update(with: settings(preferences: EPUBPreferences(
+            let props = try cssProperties(EPUBPreferences(
                 backgroundColor: backgroundColor,
                 darkenImages: 0.2,
                 invertImages: 1.0,
                 invertGaiji: 1.0
-            )))
-
-            let props = css.userProperties.cssProperties()
+            ))
             #expect(props["--USER__darkenImages"] == "0.80000")
             #expect(props["--USER__invertImages"] == "1.00000")
             #expect(props["--USER__invertGaiji"] == "1.00000")
         }
 
-        @Test("ReadiumCSS doesn't apply the image filters when unset", arguments: [nil, Color(rawValue: 0x000000)])
-        @MainActor func cssImageFiltersUnset(backgroundColor: Color?) throws {
-            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
-            css.update(with: settings(preferences: EPUBPreferences(backgroundColor: backgroundColor)))
-
-            let props = css.userProperties.cssProperties()
+        @Test("ReadiumCSS doesn't apply the image filters when unset, at 0 or negative", arguments: [nil, 0.0, -0.5])
+        @MainActor func cssImageFiltersOff(value: Double?) throws {
+            let props = try cssProperties(EPUBPreferences(darkenImages: value, invertImages: value, invertGaiji: value))
             #expect(props["--USER__darkenImages"] == .some(nil))
             #expect(props["--USER__invertImages"] == .some(nil))
             #expect(props["--USER__invertGaiji"] == .some(nil))
@@ -400,6 +375,105 @@ enum EPUBPreferencesTests {
             #expect(editor.darkenImages.isEffective)
             #expect(editor.invertImages.isEffective)
             #expect(editor.invertGaiji.isEffective)
+        }
+
+        @Test("ReadiumCSS limits the image filters to 100%")
+        @MainActor func cssImageFiltersAboveMaximum() throws {
+            let props = try cssProperties(EPUBPreferences(darkenImages: 1.5, invertImages: 1.5, invertGaiji: 1.5))
+            #expect(props["--USER__darkenImages"] == "0.00000")
+            #expect(props["--USER__invertImages"] == "1.00000")
+            #expect(props["--USER__invertGaiji"] == "1.00000")
+        }
+
+        // `--USER__invertGaiji: 0` would replace the whole `filter` of the
+        // gaiji, which would not be filtered with the other images.
+        @Test("ReadiumCSS keeps the other filters on the gaiji when invertGaiji is toggled off")
+        @MainActor func cssInvertGaijiToggledOff() throws {
+            let editor = makeEditor(preferences: EPUBPreferences(darkenImages: 0.2, invertImages: 1.0, invertGaiji: 1.0))
+            editor.invertGaiji.toggle()
+            #expect(editor.preferences.invertGaiji == 0)
+
+            let props = try cssProperties(editor.preferences)
+            #expect(props["--USER__darkenImages"] == "0.80000")
+            #expect(props["--USER__invertImages"] == "1.00000")
+            #expect(props["--USER__invertGaiji"] == .some(nil))
+        }
+
+        @Test("ReadiumCSS doesn't darken the images when stepped down to 0%")
+        @MainActor func cssDarkenImagesSteppedDownToZero() throws {
+            let editor = makeEditor(preferences: EPUBPreferences(darkenImages: 1.0))
+            for _ in 0 ..< 10 {
+                editor.darkenImages.decrement()
+            }
+            // Repeated decrements of 0.1 leave a residue instead of an exact 0.
+            #expect(editor.darkenImages.format(value: try #require(editor.preferences.darkenImages)) == "0%")
+            #expect(try cssProperties(editor.preferences)["--USER__darkenImages"] == .some(nil))
+        }
+
+        @Test("the editor darkens the images by a percentage")
+        @MainActor func editorDarkenImages() {
+            let editor = makeEditor()
+            #expect(editor.darkenImages.value == nil)
+            #expect(editor.darkenImages.effectiveValue == 0)
+            #expect(editor.darkenImages.supportedRange == 0.0 ... 1.0)
+            #expect(editor.darkenImages.format(value: 0.5) == "50%")
+
+            // Steps from 0% when unset.
+            editor.darkenImages.decrement()
+            #expect(editor.preferences.darkenImages == 0)
+            editor.darkenImages.increment()
+            #expect(editor.preferences.darkenImages == 0.1)
+
+            editor.darkenImages.set(0.95)
+            editor.darkenImages.increment()
+            #expect(editor.preferences.darkenImages == 1.0)
+
+            editor.darkenImages.clear()
+            #expect(editor.preferences.darkenImages == nil)
+            #expect(editor.darkenImages.effectiveValue == 0)
+        }
+
+        @Test("the editor toggles the inversions between 0% and 100%")
+        @MainActor func editorInversionToggles() {
+            let editor = makeEditor()
+            for (filter, preference) in inversions(of: editor) {
+                #expect(filter.value == nil)
+                #expect(filter.effectiveValue == false)
+
+                filter.toggle()
+                #expect(editor.preferences[keyPath: preference] == 1.0)
+                filter.toggle()
+                #expect(editor.preferences[keyPath: preference] == 0.0)
+                #expect(filter.effectiveValue == false)
+
+                filter.clear()
+                #expect(editor.preferences[keyPath: preference] == nil)
+            }
+        }
+
+        @Test("the editor reads a partial inversion as on")
+        @MainActor func editorPartialInversion() {
+            let editor = makeEditor(preferences: EPUBPreferences(invertImages: 0.5, invertGaiji: 0.5))
+            for (filter, _) in inversions(of: editor) {
+                #expect(filter.value == true)
+                #expect(filter.effectiveValue == true)
+            }
+        }
+
+        @MainActor private func cssProperties(_ preferences: EPUBPreferences) throws -> [String: String?] {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings(preferences: preferences))
+            return css.userProperties.cssProperties()
+        }
+
+        /// The inversion toggles of the `editor`, with their preference.
+        @MainActor private func inversions(
+            of editor: EPUBPreferencesEditor
+        ) -> [(filter: AnyPreference<Bool>, preference: KeyPath<EPUBPreferences, Double?>)] {
+            [
+                (editor.invertImages, \.invertImages),
+                (editor.invertGaiji, \.invertGaiji),
+            ]
         }
     }
 

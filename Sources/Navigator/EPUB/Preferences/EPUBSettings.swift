@@ -183,10 +183,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let fontSize = preferences.fontSize ?? defaults.fontSize ?? 1.0
         let fontWeight = preferences.fontWeight ?? defaults.fontWeight
         let hyphens = preferences.hyphens ?? defaults.hyphens
-        let blendImages = preferences.blendImages ?? defaults.blendImages ?? false
-        let darkenImages = preferences.darkenImages ?? defaults.darkenImages
-        let invertImages = preferences.invertImages ?? defaults.invertImages
-        let invertGaiji = preferences.invertGaiji ?? defaults.invertGaiji
         let letterSpacing = preferences.letterSpacing ?? defaults.letterSpacing
         let ligatures = preferences.ligatures ?? defaults.ligatures
         let lineHeight = preferences.lineHeight ?? defaults.lineHeight
@@ -211,10 +207,10 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             fontSize: fontSize,
             fontWeight: fontWeight,
             hyphens: hyphens,
-            blendImages: blendImages,
-            darkenImages: darkenImages,
-            invertImages: invertImages,
-            invertGaiji: invertGaiji,
+            blendImages: preferences.blendImages ?? false,
+            darkenImages: preferences.darkenImages,
+            invertImages: preferences.invertImages,
+            invertGaiji: preferences.invertGaiji,
             language: language,
             letterSpacing: letterSpacing,
             ligatures: ligatures,
@@ -253,10 +249,6 @@ public struct EPUBDefaults: Sendable {
     public var fontSize: Double?
     public var fontWeight: Double?
     public var hyphens: Bool?
-    public var blendImages: Bool?
-    public var darkenImages: Double?
-    public var invertImages: Double?
-    public var invertGaiji: Double?
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
@@ -282,10 +274,6 @@ public struct EPUBDefaults: Sendable {
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         hyphens: Bool? = nil,
-        blendImages: Bool? = nil,
-        darkenImages: Double? = nil,
-        invertImages: Double? = nil,
-        invertGaiji: Double? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
@@ -310,10 +298,6 @@ public struct EPUBDefaults: Sendable {
         self.fontSize = fontSize
         self.fontWeight = fontWeight
         self.hyphens = hyphens
-        self.blendImages = blendImages
-        self.darkenImages = darkenImages
-        self.invertImages = invertImages
-        self.invertGaiji = invertGaiji
         self.language = language
         self.letterSpacing = letterSpacing
         self.ligatures = ligatures
@@ -344,7 +328,7 @@ public struct EPUBDefaults: Sendable {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    @available(*, unavailable, message: "The image filters have no default values anymore, use the darkenImages or invertImages preferences instead")
     public var imageFilter: ImageFilter? {
         fatalError()
     }

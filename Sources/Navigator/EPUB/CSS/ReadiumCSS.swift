@@ -85,9 +85,9 @@ extension ReadiumCSS {
             colCount: resolvedLayout?.colCount,
             lineLength: resolvedLayout.map { CSSPxLength($0.lineLength / settings.fontSize) },
             blendImages: settings.blendImages,
-            darkenImages: settings.darkenImages.map { 1 - $0 },
-            invertImages: settings.invertImages,
-            invertGaiji: settings.invertGaiji,
+            darkenImages: imageFilter(settings.darkenImages).map { 1 - $0 },
+            invertImages: imageFilter(settings.invertImages),
+            invertGaiji: imageFilter(settings.invertGaiji),
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
             linkColor: settings.linkColor.map { CSSIntColor($0.rawValue) },
@@ -114,6 +114,15 @@ extension ReadiumCSS {
             noRuby: settings.noRuby,
             overrides: overrides
         )
+    }
+
+    /// Returns the percentage of an image filter to emit, limited to 1.
+    ///
+    /// A filter at 0 is not emitted, as the presence of the property is enough
+    /// to trigger the Readium CSS rule. For example, `--USER__invertGaiji: 0`
+    /// would exclude the gaiji from the other image filters.
+    private func imageFilter(_ value: Double?) -> Double? {
+        value.takeIf { $0 >= 0.00001 }.map { min($0, 1) }
     }
 
     func resolveFontStack(of fontFamily: FontFamily) -> [String] {

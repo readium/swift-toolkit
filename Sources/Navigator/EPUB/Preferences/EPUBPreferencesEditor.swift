@@ -189,7 +189,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         preference(
             preference: \.blendImages,
             setting: \.blendImages,
-            defaultEffectiveValue: defaults.blendImages ?? false,
+            defaultEffectiveValue: false,
             isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
