@@ -18,7 +18,7 @@ public extension Locator.Locations {
         fragments
             .reversed()
             .lazy
-            .compactMap { URLFragment(percentDecoded: $0)?.temporalSelector }
+            .compactMap(\.temporalSelector)
             .first
     }
 

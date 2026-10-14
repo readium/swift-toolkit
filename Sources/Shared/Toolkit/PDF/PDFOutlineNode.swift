@@ -28,7 +28,7 @@ public struct PDFOutlineNode: Sendable {
     /// which the links are relative to.
     public func linkWithDocumentHREF<T: URLConvertible>(_ href: T) -> Link {
         Link(
-            href: "\(href.anyURL.string)#page=\(pageNumber)",
+            href: href.anyURL.replacingFragment(.page(pageNumber)).string,
             mediaType: .pdf,
             title: title,
             children: children.linksWithDocumentHREF(href)

@@ -339,7 +339,7 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         if locator.text.highlight != nil {
             return await scroll(toLocator: locator, animated: animated)
             // TODO: find the first fragment matching a tag ID (need a regex)
-        } else if let id = locator.locations.fragments.first, !id.isEmpty {
+        } else if let id = locator.locations.fragments.first?.percentDecoded {
             return await scroll(toTagID: id, animated: animated)
         } else {
             let progression = locator.locations.progression ?? 0
@@ -373,7 +373,10 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     /// Scrolls at the tag with ID `tagID`.
     @discardableResult
     private func scroll(toTagID tagID: String, animated: Bool) async -> Bool {
-        let result = await evaluateScript("readium.scrollToId(\'\(tagID)\', \(animated));")
+        guard let json = try? tagID.jsonString() else {
+            return false
+        }
+        let result = await evaluateScript("readium.scrollToId(\(json), \(animated));")
         switch result {
         case let .success(value):
             return (value as? Bool) ?? false
