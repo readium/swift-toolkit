@@ -7,16 +7,16 @@
 import Foundation
 
 /// Object that can be converted to raw CSS.
-public protocol CSSConvertible {
+protocol CSSConvertible {
     func css() -> String?
 }
 
 /// Holds a set of Readium CSS properties applied together.
-public protocol CSSProperties: CSSConvertible {
+protocol CSSProperties: CSSConvertible {
     func cssProperties() -> [String: String?]
 }
 
-public extension CSSProperties {
+extension CSSProperties {
     func css() -> String? {
         let props = cssProperties()
             .compactMapValues { $0 }
@@ -35,108 +35,108 @@ public extension CSSProperties {
 /// User settings properties.
 ///
 /// See https://readium.org/readium-css/docs/CSS19-api.html#user-settings
-public struct CSSUserProperties: CSSProperties, Sendable {
+struct CSSUserProperties: CSSProperties, Sendable {
     // View mode
 
     /// User view: paged or scrolled.
-    public var view: CSSView?
+    var view: CSSView?
 
     // Pagination
 
     /// The number of columns (column-count) the user wants displayed.
     ///
     /// To reset, change the value to 0.
-    public var colCount: Int?
+    var colCount: Int?
 
     /// The maximum line length.
-    public var lineLength: CSSLength?
+    var lineLength: CSSLength?
 
     // Appearance
 
     /// Blends the images with the background color.
-    public var blendImages: Bool?
+    var blendImages: Bool?
 
     /// This will apply a brightness filter with the value it's given.
-    public var darkenImages: Double?
+    var darkenImages: Double?
 
     /// This will apply an invert filter with the value it's given.
-    public var invertImages: Double?
+    var invertImages: Double?
 
     /// This will apply an invert filter with the value it's given,
     /// only to img class="gaiji".
-    public var invertGaiji: Double?
+    var invertGaiji: Double?
 
     /// The color for textual contents. It impacts all elements but headings and pre in the DOM.
     ///
     /// To reset, remove the CSS variable.
-    public var textColor: CSSColor?
+    var textColor: CSSColor?
 
     /// The background-color for the whole screen. To reset, remove the CSS variable.
-    public var backgroundColor: CSSColor?
+    var backgroundColor: CSSColor?
 
     /// The color for hyperlinks. To reset, remove the CSS variable.
-    public var linkColor: CSSColor?
+    var linkColor: CSSColor?
 
     /// The color for visited hyperlinks. To reset, remove the CSS variable.
-    public var visitedColor: CSSColor?
+    var visitedColor: CSSColor?
 
     // Typography
 
     /// The typeface (font-family) the user wants to read with. It impacts body, p, li, div, dt, dd
     /// and phrasing elements which don’t have a lang or xml:lang attribute.
-    public var fontFamily: [String]?
+    var fontFamily: [String]?
 
     /// Increasing and decreasing the root font-size. It will serve as a reference for the cascade.
-    public var fontSize: CSSLength?
+    var fontSize: CSSLength?
 
     /// The alignment (text-align) the user prefers. It impacts body, li, and p which are not
     /// children of blockquote and figcaption.
-    public var textAlign: CSSTextAlign?
+    var textAlign: CSSTextAlign?
 
     /// Increasing and decreasing leading (line-height). It impacts body, p, li and div.
     ///
     /// Recommended values: a range from 1 to 2. Increments are left to implementers’ judgment.
-    public var lineHeight: CSSLineHeight?
+    var lineHeight: CSSLineHeight?
 
     /// The vertical margins (margin-top and margin-bottom) for paragraphs.
     ///
     /// Recommended values: a range from 0 to 2rem. Increments are left to implementers’ judgment.
-    public var paraSpacing: CSSLength?
+    var paraSpacing: CSSLength?
 
     /// The text-indent for paragraphs.
     ///
     /// Recommended values: a range from 0 to 3rem. Increments are left to implementers’ judgment.
-    public var paraIndent: CSSRemLength?
+    var paraIndent: CSSRemLength?
 
     /// Increasing space between words (word-spacing, related to a11y).
     ///
     /// Recommended values: a range from 0 to 1rem. Increments are left to implementers’ judgment.
-    public var wordSpacing: CSSRemLength?
+    var wordSpacing: CSSRemLength?
 
     /// Increasing space between letters (letter-spacing, related to a11y).
     ///
     /// Recommended values: a range from 0 to 0.5rem. Increments are left to implementers’
     /// judgment.
-    public var letterSpacing: CSSRemLength?
+    var letterSpacing: CSSRemLength?
 
     /// Enabling and disabling hyphenation. It impacts body, p, li, div and dd.
-    public var bodyHyphens: CSSHyphens?
+    var bodyHyphens: CSSHyphens?
 
     /// Enabling and disabling ligatures (related to a11y).
-    public var ligatures: CSSLigatures?
+    var ligatures: CSSLigatures?
 
     // Accessibility
 
     /// It impacts font style, weight and variant, text decoration, super and subscripts.
-    public var a11yNormalize: Bool?
+    var a11yNormalize: Bool?
 
     /// Hiding/disabling ruby (furigana) annotations.
-    public var noRuby: Bool?
+    var noRuby: Bool?
 
     /// Additional overrides for extensions and adjustments.
-    public var overrides: [String: String?]
+    var overrides: [String: String?]
 
-    public init(
+    init(
         view: CSSView? = nil,
         colCount: Int? = nil,
         lineLength: CSSLength? = nil,
@@ -188,32 +188,7 @@ public struct CSSUserProperties: CSSProperties, Sendable {
         self.overrides = overrides
     }
 
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
-    public var pageMargins: Double? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2")
-    public var fontOverride: Bool? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2")
-    public var advancedSettings: Bool? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
-    public var typeScale: Double? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
-    public var appearance: CSSAppearance? {
-        fatalError()
-    }
-
-    public func cssProperties() -> [String: String?] {
+    func cssProperties() -> [String: String?] {
         var props: [String: String?] = [:]
         // View mode
         props.putCSS(name: "--USER__view", value: view)
@@ -258,164 +233,158 @@ public struct CSSUserProperties: CSSProperties, Sendable {
 /// Reading System properties.
 ///
 /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
-public struct CSSRSProperties: CSSProperties, Sendable {
+struct CSSRSProperties: CSSProperties, Sendable {
     // Pagination
 
     /// @param viewportWidth The optimal viewport width.
-    public var viewportWidth: CSSLength?
+    var viewportWidth: CSSLength?
 
     /// @param colWidth The optimal column’s width. It serves as a floor in our design.
-    public var colWidth: CSSLength?
+    var colWidth: CSSLength?
 
     /// @param colCount The optimal number of columns (depending on the columns’ width).
-    public var colCount: Int?
+    var colCount: Int?
 
     /// @param colGap The gap between columns. You must account for this gap when scrolling.
-    public var colGap: CSSAbsoluteLength?
+    var colGap: CSSAbsoluteLength?
 
     /// @param pageGutter The horizontal page margins.
-    public var pageGutter: CSSAbsoluteLength?
+    var pageGutter: CSSAbsoluteLength?
 
     /// @param scrollPaddingTop The default top padding for continuous scroll mode.
-    public var scrollPaddingTop: CSSLength?
+    var scrollPaddingTop: CSSLength?
 
     /// @param scrollPaddingBottom The default bottom padding for continuous scroll mode.
-    public var scrollPaddingBottom: CSSLength?
+    var scrollPaddingBottom: CSSLength?
 
     /// @param scrollPaddingLeft The default left padding for continuous scroll mode.
-    public var scrollPaddingLeft: CSSLength?
+    var scrollPaddingLeft: CSSLength?
 
     /// @param scrollPaddingRight The default right padding for continuous scroll mode.
-    public var scrollPaddingRight: CSSLength?
+    var scrollPaddingRight: CSSLength?
 
     // Vertical rhythm
 
     /// @param flowSpacing The default vertical margins for HTML5 flow content e.g. pre, figure,
     /// blockquote, etc.
-    public var flowSpacing: CSSLength?
+    var flowSpacing: CSSLength?
 
     /// @param paraSpacing The default vertical margins for paragraphs.
-    public var paraSpacing: CSSLength?
+    var paraSpacing: CSSLength?
 
     /// @param paraIndent The default text-indent for paragraphs.
-    public var paraIndent: CSSLength?
+    var paraIndent: CSSLength?
 
     // Safeguards
 
     /// @param defaultLineLength The optimal line-length. It must be set in rem in order to take :root’s
     /// font-size as a reference, whichever the body’s font-size might be.
-    public var defaultLineLength: CSSRemLength?
-
-    @available(*, deprecated, renamed: "defaultLineLength")
-    public var maxLineLength: CSSRemLength? {
-        get { defaultLineLength }
-        set { defaultLineLength = newValue }
-    }
+    var defaultLineLength: CSSRemLength?
 
     /// @param maxMediaWidth The max-width for media elements i.e. img, svg, audio and video.
-    public var maxMediaWidth: CSSLength?
+    var maxMediaWidth: CSSLength?
 
     /// @param maxMediaHeight The max-height for media elements i.e. img, svg, audio and video.
-    public var maxMediaHeight: CSSLength?
+    var maxMediaHeight: CSSLength?
 
     /// @param boxSizingMedia The box model (box-sizing) you want to use for media elements.
-    public var boxSizingMedia: CSSBoxSizing?
+    var boxSizingMedia: CSSBoxSizing?
 
     /// @param boxSizingTable The box model (box-sizing) you want to use for tables.
-    public var boxSizingTable: CSSBoxSizing?
+    var boxSizingTable: CSSBoxSizing?
 
     // Colors
 
     /// @param textColor The default color for body copy’s text.
-    public var textColor: CSSColor?
+    var textColor: CSSColor?
 
     /// @param backgroundColor The default background-color for pages.
-    public var backgroundColor: CSSColor?
+    var backgroundColor: CSSColor?
 
     /// @param selectionTextColor The color for selected text.
-    public var selectionTextColor: CSSColor?
+    var selectionTextColor: CSSColor?
 
     /// @param selectionBackgroundColor The background-color for selected text.
-    public var selectionBackgroundColor: CSSColor?
+    var selectionBackgroundColor: CSSColor?
 
     /// @param linkColor The default color for hyperlinks.
-    public var linkColor: CSSColor?
+    var linkColor: CSSColor?
 
     /// @param visitedColor The default color for visited hyperlinks.
-    public var visitedColor: CSSColor?
+    var visitedColor: CSSColor?
 
     /// @param primaryColor An optional primary accentuation color you could use for headings or any
     /// other element of your choice.
-    public var primaryColor: CSSColor?
+    var primaryColor: CSSColor?
 
     /// @param secondaryColor An optional secondary accentuation color you could use for any element
     /// of your choice.
-    public var secondaryColor: CSSColor?
+    var secondaryColor: CSSColor?
 
     // Typography
 
     /// @param typeScale The scale to be used for computing all elements’ font-size. Since those font
     /// sizes are computed dynamically, you can set a smaller type scale when the user sets one
     /// of the largest font sizes.
-    public var typeScale: Double?
+    var typeScale: Double?
 
     /// @param baseFontFamily The default typeface for body copy in case the ebook doesn’t have one
     /// declared. Please note some languages have a specific font-stack (japanese, hindi, etc.)
-    public var baseFontFamily: [String]?
+    var baseFontFamily: [String]?
 
     /// @param baseLineHeight The default line-height for body copy in case the ebook doesn’t have
     /// one declared.
-    public var baseLineHeight: CSSLineHeight?
+    var baseLineHeight: CSSLineHeight?
 
     // Default font-stacks
 
     /// @param oldStyleTf An old style serif font-stack relying on pre-installed fonts.
-    public var oldStyleTf: [String]?
+    var oldStyleTf: [String]?
 
     /// @param modernTf A modern serif font-stack relying on pre-installed fonts.
-    public var modernTf: [String]?
+    var modernTf: [String]?
 
     /// @param sansTf A neutral sans-serif font-stack relying on pre-installed fonts.
-    public var sansTf: [String]?
+    var sansTf: [String]?
 
     /// @param humanistTf A humanist sans-serif font-stack relying on pre-installed fonts.
-    public var humanistTf: [String]?
+    var humanistTf: [String]?
 
     /// @param monospaceTf A monospace font-stack relying on pre-installed fonts.
-    public var monospaceTf: [String]?
+    var monospaceTf: [String]?
 
     // Default font-stacks for Japanese publications
 
     /// @param serifJa A Mincho font-stack whose fonts with proportional latin characters are
     /// prioritized for horizontal writing.
-    public var serifJa: [String]?
+    var serifJa: [String]?
 
     /// @param sansSerifJa A Gothic font-stack whose fonts with proportional latin characters are
     /// prioritized for horizontal writing.
-    public var sansSerifJa: [String]?
+    var sansSerifJa: [String]?
 
     /// @param serifJaV A Mincho font-stack whose fonts with fixed-width latin characters are
     /// prioritized for vertical writing.
-    public var serifJaV: [String]?
+    var serifJaV: [String]?
 
     /// @param sansSerifJaV A Gothic font-stack whose fonts with fixed-width latin characters are
     /// prioritized for vertical writing.
-    public var sansSerifJaV: [String]?
+    var sansSerifJaV: [String]?
 
     // Default styles for unstyled publications
 
     /// @param compFontFamily The typeface for headings.
     /// The value can be another variable e.g. var(-RS__humanistTf).
-    public var compFontFamily: [String]?
+    var compFontFamily: [String]?
 
     /// @param codeFontFamily The typeface for code snippets.
     /// The value can be another variable e.g. var(-RS__monospaceTf).
-    public var codeFontFamily: [String]?
+    var codeFontFamily: [String]?
 
     /// Additional overrides for extensions and adjustments.
-    public var overrides: [String: String?]
+    var overrides: [String: String?]
 
-    public init(
+    init(
         viewportWidth: CSSLength? = nil,
         colWidth: CSSLength? = nil,
         colCount: Int? = nil,
@@ -499,89 +468,7 @@ public struct CSSRSProperties: CSSProperties, Sendable {
         self.overrides = overrides
     }
 
-    @available(*, deprecated, message: "Use init with defaultLineLength instead")
-    public init(
-        colWidth: CSSLength? = nil,
-        colCount: Int? = nil,
-        colGap: CSSAbsoluteLength? = nil,
-        pageGutter: CSSAbsoluteLength? = nil,
-        flowSpacing: CSSLength? = nil,
-        paraSpacing: CSSLength? = nil,
-        paraIndent: CSSLength? = nil,
-        maxLineLength: CSSRemLength?,
-        maxMediaWidth: CSSLength? = nil,
-        maxMediaHeight: CSSLength? = nil,
-        boxSizingMedia: CSSBoxSizing? = nil,
-        boxSizingTable: CSSBoxSizing? = nil,
-        textColor: CSSColor? = nil,
-        backgroundColor: CSSColor? = nil,
-        selectionTextColor: CSSColor? = nil,
-        selectionBackgroundColor: CSSColor? = nil,
-        linkColor: CSSColor? = nil,
-        visitedColor: CSSColor? = nil,
-        primaryColor: CSSColor? = nil,
-        secondaryColor: CSSColor? = nil,
-        typeScale: Double? = nil,
-        baseFontFamily: [String]? = nil,
-        baseLineHeight: CSSLineHeight? = nil,
-        oldStyleTf: [String]? = nil,
-        modernTf: [String]? = nil,
-        sansTf: [String]? = nil,
-        humanistTf: [String]? = nil,
-        monospaceTf: [String]? = nil,
-        serifJa: [String]? = nil,
-        sansSerifJa: [String]? = nil,
-        serifJaV: [String]? = nil,
-        sansSerifJaV: [String]? = nil,
-        compFontFamily: [String]? = nil,
-        codeFontFamily: [String]? = nil,
-        overrides: [String: String?] = [:]
-    ) {
-        self.init(
-            viewportWidth: nil,
-            colWidth: colWidth,
-            colCount: colCount,
-            colGap: colGap,
-            pageGutter: pageGutter,
-            scrollPaddingTop: nil,
-            scrollPaddingBottom: nil,
-            scrollPaddingLeft: nil,
-            scrollPaddingRight: nil,
-            flowSpacing: flowSpacing,
-            paraSpacing: paraSpacing,
-            paraIndent: paraIndent,
-            defaultLineLength: maxLineLength,
-            maxMediaWidth: maxMediaWidth,
-            maxMediaHeight: maxMediaHeight,
-            boxSizingMedia: boxSizingMedia,
-            boxSizingTable: boxSizingTable,
-            textColor: textColor,
-            backgroundColor: backgroundColor,
-            selectionTextColor: selectionTextColor,
-            selectionBackgroundColor: selectionBackgroundColor,
-            linkColor: linkColor,
-            visitedColor: visitedColor,
-            primaryColor: primaryColor,
-            secondaryColor: secondaryColor,
-            typeScale: typeScale,
-            baseFontFamily: baseFontFamily,
-            baseLineHeight: baseLineHeight,
-            oldStyleTf: oldStyleTf,
-            modernTf: modernTf,
-            sansTf: sansTf,
-            humanistTf: humanistTf,
-            monospaceTf: monospaceTf,
-            serifJa: serifJa,
-            sansSerifJa: sansSerifJa,
-            serifJaV: serifJaV,
-            sansSerifJaV: sansSerifJaV,
-            compFontFamily: compFontFamily,
-            codeFontFamily: codeFontFamily,
-            overrides: overrides
-        )
-    }
-
-    public func cssProperties() -> [String: String?] {
+    func cssProperties() -> [String: String?] {
         var props: [String: String?] = [:]
 
         // Pagination
@@ -645,39 +532,23 @@ public struct CSSRSProperties: CSSProperties, Sendable {
     }
 }
 
-public enum CSSView: String, CSSConvertible, Sendable {
+enum CSSView: String, CSSConvertible, Sendable {
     case paged = "readium-paged-on"
     case scroll = "readium-scroll-on"
 
-    public func css() -> String? {
+    func css() -> String? {
         rawValue
     }
 }
 
-public enum CSSColCount: String, CSSConvertible, Sendable {
-    case auto
-    case one = "1"
-    case two = "2"
+protocol CSSColor: CSSConvertible, Sendable {}
 
-    public func css() -> String? {
-        rawValue
-    }
-}
-
-@available(*, unavailable, message: "Readium CSS v2 has no themes, use CSSUserProperties.textColor, backgroundColor, linkColor and visitedColor instead")
-public enum CSSAppearance: String, Sendable {
-    case night = "readium-night-on"
-    case sepia = "readium-sepia-on"
-}
-
-public protocol CSSColor: CSSConvertible, Sendable {}
-
-public struct CSSRGBColor: CSSColor, Sendable {
+struct CSSRGBColor: CSSColor, Sendable {
     let red: Int
     let green: Int
     let blue: Int
 
-    public init(red: Int, green: Int, blue: Int) {
+    init(red: Int, green: Int, blue: Int) {
         precondition((0 ... 255).contains(red))
         precondition((0 ... 255).contains(green))
         precondition((0 ... 255).contains(blue))
@@ -686,240 +557,240 @@ public struct CSSRGBColor: CSSColor, Sendable {
         self.blue = blue
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         "rgb(\(red), \(green), \(blue))"
     }
 }
 
-public struct CSSHexColor: CSSColor, Sendable {
+struct CSSHexColor: CSSColor, Sendable {
     let color: String
 
-    public init(_ color: String) {
+    init(_ color: String) {
         self.color = color
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         color
     }
 }
 
-public struct CSSIntColor: CSSColor, Sendable {
+struct CSSIntColor: CSSColor, Sendable {
     let color: Int
 
-    public init(_ color: Int) {
+    init(_ color: Int) {
         self.color = color
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         String(format: "#%06X", 0xFFFFFF & color)
     }
 }
 
-public protocol CSSLength: CSSConvertible, Sendable {}
+protocol CSSLength: CSSConvertible, Sendable {}
 
-public protocol CSSAbsoluteLength: CSSLength {}
+protocol CSSAbsoluteLength: CSSLength {}
 
 /// Centimeters
-public struct CSSCmLength: CSSAbsoluteLength, Sendable {
-    public let value: Double
+struct CSSCmLength: CSSAbsoluteLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "cm")
     }
 }
 
 /// Millimeters
-public struct CSSMmLength: CSSAbsoluteLength, Sendable {
-    public let value: Double
+struct CSSMmLength: CSSAbsoluteLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "mm")
     }
 }
 
 /// Inches
-public struct CSSInLength: CSSAbsoluteLength, Sendable {
-    public let value: Double
+struct CSSInLength: CSSAbsoluteLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "in")
     }
 }
 
 /// Pixels
-public struct CSSPxLength: CSSAbsoluteLength, Sendable {
-    public let value: Double
+struct CSSPxLength: CSSAbsoluteLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "px")
     }
 }
 
 /// Points
-public struct CSSPtLength: CSSAbsoluteLength, Sendable {
-    public let value: Double
+struct CSSPtLength: CSSAbsoluteLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "pt")
     }
 }
 
 /// Picas
-public struct CSSPcLength: CSSAbsoluteLength, Sendable {
-    public let value: Double
+struct CSSPcLength: CSSAbsoluteLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "pc")
     }
 }
 
-public protocol CSSRelativeLength: CSSLength {}
+protocol CSSRelativeLength: CSSLength {}
 
 /// Relative to the font-size of the element.
-public struct CSSEmLength: CSSRelativeLength, Sendable {
-    public let value: Double
+struct CSSEmLength: CSSRelativeLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "em")
     }
 }
 
 /// Relative to the width of the "0" (zero).
-public struct CSSChLength: CSSRelativeLength, Sendable {
-    public let value: Double
+struct CSSChLength: CSSRelativeLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "ch")
     }
 }
 
 /// Relative to font-size of the root element.
-public struct CSSRemLength: CSSRelativeLength, Sendable {
-    public let value: Double
+struct CSSRemLength: CSSRelativeLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "rem")
     }
 }
 
 /// Relative to 1% of the width of the viewport.
-public struct CSSVwLength: CSSRelativeLength, Sendable {
-    public let value: Double
+struct CSSVwLength: CSSRelativeLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "vw")
     }
 }
 
 /// Relative to 1% of the height of the viewport.
-public struct CSSVhLength: CSSRelativeLength, Sendable {
-    public let value: Double
+struct CSSVhLength: CSSRelativeLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "vh")
     }
 }
 
 /// Relative to 1% of viewport's smaller dimension.
-public struct CSSVMinLength: CSSRelativeLength, Sendable {
-    public let value: Double
+struct CSSVMinLength: CSSRelativeLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "vmin")
     }
 }
 
 /// Relative to 1% of viewport's larger dimension.
-public struct CSSVMaxLength: CSSRelativeLength, Sendable {
-    public let value: Double
+struct CSSVMaxLength: CSSRelativeLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         value.css(unit: "vmax")
     }
 }
 
 /// Relative to the parent element.
-public struct CSSPercentLength: CSSRelativeLength, Sendable {
-    public let value: Double
+struct CSSPercentLength: CSSRelativeLength, Sendable {
+    let value: Double
 
-    public init(_ value: Double) {
+    init(_ value: Double) {
         self.value = value
     }
 
-    public func css() -> String? {
+    func css() -> String? {
         (value * 100).css(unit: "%")
     }
 }
 
-public enum CSSTextAlign: String, CSSConvertible, Sendable {
+enum CSSTextAlign: String, CSSConvertible, Sendable {
     case start
     case left
     case right
     case justify
 
-    public func css() -> String? {
+    func css() -> String? {
         rawValue
     }
 }
 
 /// Line height supports unitless numbers.
-public enum CSSLineHeight: CSSConvertible, Sendable {
+enum CSSLineHeight: CSSConvertible, Sendable {
     case length(CSSLength)
     case unitless(Double)
 
-    public func css() -> String? {
+    func css() -> String? {
         switch self {
         case let .length(length):
             return length.css()
@@ -929,29 +800,29 @@ public enum CSSLineHeight: CSSConvertible, Sendable {
     }
 }
 
-public enum CSSHyphens: String, CSSConvertible, Sendable {
+enum CSSHyphens: String, CSSConvertible, Sendable {
     case none
     case auto
 
-    public func css() -> String? {
+    func css() -> String? {
         rawValue
     }
 }
 
-public enum CSSLigatures: String, CSSConvertible, Sendable {
+enum CSSLigatures: String, CSSConvertible, Sendable {
     case none
     case common = "common-ligatures"
 
-    public func css() -> String? {
+    func css() -> String? {
         rawValue
     }
 }
 
-public enum CSSBoxSizing: String, CSSConvertible, Sendable {
+enum CSSBoxSizing: String, CSSConvertible, Sendable {
     case contentBox = "content-box"
     case borderBox = "border-box"
 
-    public func css() -> String? {
+    func css() -> String? {
         rawValue
     }
 }

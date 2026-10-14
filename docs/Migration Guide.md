@@ -4,18 +4,11 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
-### Readium CSS v2 properties
+### Readium CSS properties
 
-Readium CSS has been upgraded to version 2. If you configure custom Reading System properties via `CSSRSProperties`, note that `maxLineLength` is deprecated in favor of `defaultLineLength`:
+Readium CSS has been upgraded to version 2, and its properties are now internal to the EPUB navigator, which sets them from the EPUB preferences. `EPUBNavigatorViewController.Configuration.readiumCSSRSProperties` is removed, as well as the `CSSRSProperties` and `CSSUserProperties` types and the CSS value types they used (`CSSLength`, `CSSColor`, etc.).
 
-```diff
--CSSRSProperties(maxLineLength: CSSRemLength(40))
-+CSSRSProperties(defaultLineLength: CSSRemLength(40))
-```
-
-However, the EPUB navigator now overrides it with the line length it computes, [see below](#epubpreferences-line-length-and-page-margins).
-
-`CSSUserProperties.fontOverride`, `advancedSettings`, `pageMargins`, `typeScale`, and `appearance` (with the `CSSAppearance` enum) are also removed, as these properties don't exist in Readium CSS v2.
+If you customized the Readium CSS reading system properties, use the EPUB preferences or `EPUBDefaults` instead.
 
 ### `EPUBPreferences` Column Count
 

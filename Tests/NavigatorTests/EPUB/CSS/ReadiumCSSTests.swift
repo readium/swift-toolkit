@@ -376,6 +376,12 @@ struct ReadiumCSSTests {
         )
     }
 
+    @Test @MainActor func updateDisablesOverflow() {
+        var css = ReadiumCSS(baseURL: baseURL)
+        css.update(with: EPUBSettings(preferences: EPUBPreferences(), defaults: EPUBDefaults(), metadata: Metadata(title: "Test")))
+        #expect(css.rsProperties.cssProperties()["--RS__disableOverflow"] == "readium-noOverflow-on")
+    }
+
     @Test(arguments: [false, true])
     @MainActor func updateDoesNotSetPageGutter(scroll: Bool) {
         var css = ReadiumCSS(baseURL: baseURL)
@@ -385,10 +391,10 @@ struct ReadiumCSSTests {
             metadata: Metadata(title: "Test")
         )
         css.update(with: settings)
-        #expect(css.userProperties.cssProperties()["--RS__pageGutter"] == nil)
+        #expect(css.rsProperties.pageGutter == nil)
 
         css.update(with: settings, resolvedLayout: LayoutResolver.Layout(colCount: 1, lineLength: 500.0))
-        #expect(css.userProperties.cssProperties()["--RS__pageGutter"] == nil)
+        #expect(css.rsProperties.pageGutter == nil)
     }
 
     @Test(arguments: [false, true])
@@ -404,10 +410,11 @@ struct ReadiumCSSTests {
         let props = css.userProperties.cssProperties()
         #expect(props["--USER__colCount"] == .some(nil))
         #expect(props["--USER__lineLength"] == .some(nil))
-        #expect(props["--RS__scrollPaddingTop"] == nil)
-        #expect(props["--RS__scrollPaddingBottom"] == nil)
-        #expect(props["--RS__scrollPaddingLeft"] == nil)
-        #expect(props["--RS__scrollPaddingRight"] == nil)
+        let rsProps = css.rsProperties.cssProperties()
+        #expect(rsProps["--RS__scrollPaddingTop"] == .some(nil))
+        #expect(rsProps["--RS__scrollPaddingBottom"] == .some(nil))
+        #expect(rsProps["--RS__scrollPaddingLeft"] == .some(nil))
+        #expect(rsProps["--RS__scrollPaddingRight"] == .some(nil))
     }
 
     @Test @MainActor func updateWithLayoutAppliesColCountAndLineLength() {
@@ -440,10 +447,10 @@ struct ReadiumCSSTests {
         css.update(with: settings, resolvedLayout: layout, safeAreaInsets: insets)
 
         #expect(
-            css.userProperties.cssProperties()["--RS__scrollPaddingTop"] == "44.00000px"
+            css.rsProperties.cssProperties()["--RS__scrollPaddingTop"] == "44.00000px"
         )
         #expect(
-            css.userProperties.cssProperties()["--RS__scrollPaddingBottom"] == "34.00000px"
+            css.rsProperties.cssProperties()["--RS__scrollPaddingBottom"] == "34.00000px"
         )
     }
 }

@@ -119,11 +119,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// Additional font families which will be available in the preferences.
         public var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration]
 
-        /// Readium CSS reading system settings.
-        ///
-        /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
-        public var readiumCSSRSProperties: CSSRSProperties
-
         /// Logs the state changes when true.
         public var debugState: Bool
 
@@ -142,7 +137,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             preferredResourceVariant: EPUBResourceVariant = .default,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
-            readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
             debugState: Bool = false
         ) {
             self.preferences = preferences
@@ -155,8 +149,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.preferredResourceVariant = preferredResourceVariant
             self.decorationTemplates = decorationTemplates
             self.fontFamilyDeclarations = fontFamilyDeclarations
-            self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
+        }
+
+        @available(*, unavailable, message: "The Readium CSS properties are now internal to the navigator, use the EPUB preferences or EPUBDefaults instead")
+        public var readiumCSSRSProperties: Any {
+            fatalError()
         }
 
         func contentInset(for sizeClass: UIUserInterfaceSizeClass) -> EPUBContentInsets {

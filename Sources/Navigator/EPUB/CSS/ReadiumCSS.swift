@@ -38,13 +38,15 @@ extension ReadiumCSS {
         layout = settings.cssLayout
 
         var overrides: [String: String] = [
-            // See https://github.com/readium/css/issues/183
-            "--RS__disableOverflow": "readium-noOverflow-on",
-
             "font-weight": settings.fontWeight
                 .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
                 ?? "",
         ]
+
+        rsProperties = CSSRSProperties(overrides: [
+            // See https://github.com/readium/css/issues/183
+            "--RS__disableOverflow": "readium-noOverflow-on",
+        ])
 
         // The margins around the lines come from the resolved `lineLength`,
         // so `--RS__pageGutter` is not set: `body` is `border-box`, so the
@@ -53,12 +55,13 @@ extension ReadiumCSS {
         // The scroll padding is divided by the font size to compensate the
         // `zoom` applied by `--USER__fontSize`.
         if settings.scroll, resolvedLayout != nil {
+            let padding = { (inset: CGFloat) in CSSPxLength(inset / settings.fontSize) }
             if settings.verticalText {
-                overrides["--RS__scrollPaddingLeft"] = String(format: "%.5fpx", safeAreaInsets.left / settings.fontSize)
-                overrides["--RS__scrollPaddingRight"] = String(format: "%.5fpx", safeAreaInsets.right / settings.fontSize)
+                rsProperties.scrollPaddingLeft = padding(safeAreaInsets.left)
+                rsProperties.scrollPaddingRight = padding(safeAreaInsets.right)
             } else {
-                overrides["--RS__scrollPaddingTop"] = String(format: "%.5fpx", safeAreaInsets.top / settings.fontSize)
-                overrides["--RS__scrollPaddingBottom"] = String(format: "%.5fpx", safeAreaInsets.bottom / settings.fontSize)
+                rsProperties.scrollPaddingTop = padding(safeAreaInsets.top)
+                rsProperties.scrollPaddingBottom = padding(safeAreaInsets.bottom)
             }
         }
 

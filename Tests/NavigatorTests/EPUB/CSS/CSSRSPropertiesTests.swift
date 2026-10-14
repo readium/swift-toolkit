@@ -153,14 +153,4 @@ struct CSSRSPropertiesTests {
             ]
         )
     }
-
-    @Test func deprecatedMaxLineLength() {
-        var props = CSSRSProperties(maxLineLength: CSSRemLength(5.0))
-        #expect(props.defaultLineLength?.value == 5.0)
-        #expect(props.maxLineLength?.value == 5.0)
-
-        props.maxLineLength = CSSRemLength(6.0)
-        #expect(props.defaultLineLength?.value == 6.0)
-        #expect(props.cssProperties()["--RS__defaultLineLength"] == "6.00000rem")
-    }
 }

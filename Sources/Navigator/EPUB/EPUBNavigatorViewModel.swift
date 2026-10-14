@@ -137,7 +137,6 @@ enum EPUBScriptScope {
 
         css = ReadiumCSS(
             layout: CSSLayout(),
-            rsProperties: config.readiumCSSRSProperties,
             baseURL: assetsBaseURL.appendingPath("readium-css", isDirectory: true),
             fontFamilyDeclarations: config.fontFamilyDeclarations
         )
