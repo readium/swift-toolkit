@@ -770,6 +770,63 @@ struct DefaultHTTPClientTests {
             }
         }
 
+        @Test("Range request sends Accept-Encoding: identity to prevent transparent compression")
+        func rangeRequestSendsIdentityAcceptEncoding() async {
+            let receivedAcceptEncoding = Capture<String?>(nil)
+
+            let client = makeClient { request in
+                receivedAcceptEncoding.value = request.value(forHTTPHeaderField: "Accept-Encoding")
+                return .success(
+                    statusCode: 206,
+                    headers: ["Accept-Ranges": "bytes"],
+                    body: Data("partial".utf8)
+                )
+            }
+
+            var httpRequest = HTTPRequest(url: makeURL())
+            httpRequest.setRange(0 ..< 7)
+            _ = await client.fetch(httpRequest)
+
+            #expect(receivedAcceptEncoding.value == "identity")
+        }
+
+        @Test("Range request preserves a custom Accept-Encoding header")
+        func rangeRequestPreservesCustomAcceptEncoding() async {
+            let receivedAcceptEncoding = Capture<String?>(nil)
+
+            let client = makeClient { request in
+                receivedAcceptEncoding.value = request.value(forHTTPHeaderField: "Accept-Encoding")
+                return .success(
+                    statusCode: 206,
+                    headers: ["Accept-Ranges": "bytes"],
+                    body: Data("partial".utf8)
+                )
+            }
+
+            var httpRequest = HTTPRequest(url: makeURL(), headers: ["Accept-Encoding": "gzip"])
+            httpRequest.setRange(0 ..< 7)
+            _ = await client.fetch(httpRequest)
+
+            #expect(receivedAcceptEncoding.value == "gzip")
+        }
+
+        @Test("Regular request does not force the Accept-Encoding header")
+        func regularRequestDoesNotForceAcceptEncoding() async {
+            let receivedAcceptEncoding = Capture<String?>(nil)
+
+            let client = makeClient { request in
+                receivedAcceptEncoding.value = request.value(forHTTPHeaderField: "Accept-Encoding")
+                return .success()
+            }
+
+            _ = await client.fetch(HTTPRequest(url: makeURL()))
+
+            // `URLSession` may transparently add its own `Accept-Encoding`
+            // (e.g. gzip) at a lower level, so we only check that the client
+            // did not force the identity encoding.
+            #expect(receivedAcceptEncoding.value != "identity")
+        }
+
         @Test("Open-ended setRange omits upper bound in Range header")
         func openEndedRangeRequest() async {
             let receivedRange = Capture<String?>(nil)
