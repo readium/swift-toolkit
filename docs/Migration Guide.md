@@ -42,7 +42,7 @@ To support precise CSS filtering of images via Readium CSS v2, `EPUBPreferences.
 
 The previous filters were applied only with the dark theme, while the new preferences are applied with any colors. To keep the previous behavior, set them only together with the colors of your dark theme, [see below](#epubpreferences-themes).
 
-`EPUBPreferencesEditor.imageFilter` is replaced with `darkenImages`, an `AnyRangePreference<Double>`, and `invertImages`, an `AnyPreference<Bool>` toggling the inversion between `0.0` and `1.0`.
+`EPUBPreferencesEditor.imageFilter` is replaced with `blendImages` (`AnyPreference<Bool>`), `darkenImages` (`AnyRangePreference<Double>`), and `invertImages` and `invertGaiji` (`AnyPreference<Bool>`, toggling the inversion between `0.0` and `1.0`).
 
 ### `EPUBPreferences` themes
 
@@ -816,33 +816,33 @@ If you integrated the EPUB navigator from a previous version, follow these steps
 
 Please refer to the following table for the correspondence between legacy settings (from `UserSettings`) and new ones (`EPUBPreferences`).
 
-| **Legacy**          | **New**                                                |
-|---------------------|--------------------------------------------------------|
-| `appearance`        | `theme` (replaced by the color preferences in 4.0)     |
-| `backgroundColor`   | `backgroundColor`                                      |
-| `columnCount`       | `columnCount` (reflowable) and `spread` (fixed-layout) |
-| `fontFamily`        | `fontFamily`                                           |
-| `fontOverride`      | N/A (handled automatically)                            |
-| `fontSize`          | `fontSize`                                             |
-| `hyphens`           | `hyphens`                                              |
-| `letterSpacing`     | `letterSpacing`                                        |
-| `lineHeight`        | `lineHeight`                                           |
-| `pageMargins`       | `pageMargins`                                          |
-| `paragraphMargins`  | `paragraphSpacing`                                     |
-| `publisherDefaults` | `publisherStyles`                                      |
-| `textAlignment`     | `textAlign`                                            |
-| `textColor`         | `textColor`                                            |
-| `verticalScroll`    | `scroll`                                               |
-| `wordSpacing`       | `wordSpacing`                                          |
-| N/A                 | `fontWeight`                                           |
-| N/A                 | `imageFilter`                                          |
-| N/A                 | `language`                                             |
-| N/A                 | `ligatures`                                            |
-| N/A                 | `paragraphIndent`                                      |
-| N/A                 | `readingProgression`                                   |
-| N/A                 | `textNormalization`                                    |
-| N/A                 | `typeScale`                                            |
-| N/A                 | `verticalText`                                         |
+| **Legacy**          | **New**                                                         |
+|---------------------|-----------------------------------------------------------------|
+| `appearance`        | `theme` (replaced by the color preferences in 4.0)              |
+| `backgroundColor`   | `backgroundColor`                                               |
+| `columnCount`       | `columnCount` (reflowable) and `spread` (fixed-layout)          |
+| `fontFamily`        | `fontFamily`                                                    |
+| `fontOverride`      | N/A (handled automatically)                                     |
+| `fontSize`          | `fontSize`                                                      |
+| `hyphens`           | `hyphens`                                                       |
+| `letterSpacing`     | `letterSpacing`                                                 |
+| `lineHeight`        | `lineHeight`                                                    |
+| `pageMargins`       | `pageMargins`                                                   |
+| `paragraphMargins`  | `paragraphSpacing`                                              |
+| `publisherDefaults` | `publisherStyles` (removed in 4.0)                              |
+| `textAlignment`     | `textAlign`                                                     |
+| `textColor`         | `textColor`                                                     |
+| `verticalScroll`    | `scroll`                                                        |
+| `wordSpacing`       | `wordSpacing`                                                   |
+| N/A                 | `fontWeight`                                                    |
+| N/A                 | `imageFilter` (replaced by the image filter preferences in 4.0) |
+| N/A                 | `language`                                                      |
+| N/A                 | `ligatures`                                                     |
+| N/A                 | `paragraphIndent`                                               |
+| N/A                 | `readingProgression`                                            |
+| N/A                 | `textNormalization`                                             |
+| N/A                 | `typeScale` (removed in 4.0)                                    |
+| N/A                 | `verticalText`                                                  |
 
 ### Edge tap and keyboard navigation
 
