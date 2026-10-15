@@ -84,7 +84,7 @@ Readium reads the audio files stored on the device, including the ones inside a 
 
 ### Choosing when the audio files of a container are read
 
-Reading the tags opens every audio file of a container (e.g. ZIP file or folder). The `containerEntriesMetadataPolicy` of the `AudioParser` tells when to do it:
+Reading the tags opens every audio file of a container (e.g. ZIP file or folder). The `containerEntriesMetadataPolicy` of the `AudioParser.Configuration` tells when to do it:
 
 * `.localOnly` (default) reads only a container stored on the device.
 * `.always` also reads a remote container. Each audio file takes several requests, so opening the publication can last minutes with a slow server.
@@ -106,7 +106,7 @@ let publicationOpener = PublicationOpener(
         additionalParsers: [
             AudioParser(
                 assetRetriever: assetRetriever,
-                containerEntriesMetadataPolicy: .always
+                config: .init(containerEntriesMetadataPolicy: .always)
             ),
         ]
     )
@@ -118,7 +118,7 @@ See the [Opening a publication guide](../Open%20Publication.md) for more informa
 > [!NOTE]
 > A container is stored on the device when its `sourceURL` is a file URL. If you build your own `Container`, for example with a `TransformingContainer`, it has no source URL and is only read with `.always`.
 
-The audio files of a container are read three at a time. Set `maxConcurrentMetadataReads` on the `AudioParser` to change it: a larger value opens a container faster, and a smaller one uses less memory.
+The audio files of a container are read three at a time. Set `maxConcurrentMetadataReads` in the `AudioParser.Configuration` to change it: a larger value opens a container faster, and a smaller one uses less memory.
 
 ### Customizing the metadata
 

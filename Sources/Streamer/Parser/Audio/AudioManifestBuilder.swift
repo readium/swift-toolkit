@@ -12,6 +12,10 @@ import ReadiumShared
 ///
 /// https://github.com/readium/architecture/blob/master/streamer/parser/audio-metadata.md#aggregation
 struct AudioManifestBuilder {
+    /// Whether the titled files of the reading order make the table of
+    /// contents when no file has a titled chapter.
+    var generatesTableOfContentsFromReadingOrder: Bool = true
+
     /// An audio file of the publication.
     struct Entry {
         let url: AnyURL
@@ -92,7 +96,8 @@ struct AudioManifestBuilder {
     /// Returns the concatenation of the chapters of each file.
     ///
     /// When no file has a titled chapter, the table of contents is made of
-    /// the titled files of the reading order instead.
+    /// the titled files of the reading order instead, unless
+    /// `generatesTableOfContentsFromReadingOrder` is false.
     ///
     /// https://github.com/readium/architecture/blob/master/streamer/parser/audio-metadata.md#table-of-contents
     private func makeTableOfContents(entries: [Entry], readingOrder: [Link], warnings: WarningLogger?) -> [Link] {
@@ -101,7 +106,7 @@ struct AudioManifestBuilder {
         }
 
         guard chapters.contains(where: { !$0.isEmpty }) else {
-            return readingOrder.tableOfContentsFromTitles
+            return generatesTableOfContentsFromReadingOrder ? readingOrder.tableOfContentsFromTitles : []
         }
 
         return zip(entries, chapters).flatMap { entry, chapters -> [Link] in
