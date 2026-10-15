@@ -245,13 +245,20 @@ enum TimelineTests {
     }
 
     struct Equality {
-        @Test func positionsAreOrderedByIndexThenByOffset() {
-            let position = TimelinePosition(readingOrderIndex: 1, offset: .seconds(10))
+        @Test(arguments: [
+            (TimelineOffset.seconds(10), TimelineOffset.seconds(20)),
+            (.scroll(0.1), .scroll(0.2)),
+            (.page(1), .page(2)),
+        ])
+        func positionsAreOrderedByIndexThenByOffset(_ low: TimelineOffset, _ high: TimelineOffset) {
+            func position(_ index: Int, _ offset: TimelineOffset) -> TimelinePosition {
+                TimelinePosition(readingOrderIndex: index, offset: offset)
+            }
 
-            #expect(TimelinePosition(readingOrderIndex: 0, offset: .seconds(20)).isBefore(position))
-            #expect(position.isBefore(TimelinePosition(readingOrderIndex: 1, offset: .seconds(20))))
-            #expect(position.isBefore(TimelinePosition(readingOrderIndex: 2, offset: .seconds(0))))
-            #expect(!position.isBefore(position))
+            #expect(position(0, high).isBefore(position(1, low)))
+            #expect(position(1, low).isBefore(position(1, high)))
+            #expect(position(1, high).isBefore(position(2, low)))
+            #expect(!position(1, low).isBefore(position(1, low)))
         }
 
         @Test func itemsOfTimelinesBuiltFromTheSameNodesAreEqual() {
@@ -643,9 +650,9 @@ private extension [Timeline.Node] {
 
 private extension TimelineOffset {
     var seconds: TimeInterval {
-        switch self {
-        case let .seconds(seconds):
-            return seconds
+        guard case let .seconds(seconds) = self else {
+            fatalError("Expected an offset in seconds, got \(self)")
         }
+        return seconds
     }
 }

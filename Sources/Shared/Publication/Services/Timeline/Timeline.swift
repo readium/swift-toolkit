@@ -45,12 +45,12 @@ import Foundation
 @_spi(ExperimentalTimeline)
 public struct Timeline: Sendable {
     /// Source of a ``TimelineItem``.
-    package struct Node: Sendable {
-        package let title: TimelineItem.Title
-        package let link: Link
-        package let children: [Node]
+    public struct Node: Sendable {
+        public let title: TimelineItem.Title
+        public let link: Link
+        public let children: [Node]
 
-        package init(title: TimelineItem.Title, link: Link, children: [Node] = []) {
+        public init(title: TimelineItem.Title, link: Link, children: [Node] = []) {
             self.title = title
             self.link = link
             self.children = children
@@ -75,7 +75,7 @@ public struct Timeline: Sendable {
     /// of their starts.
     private let rangedIDs: [Int]
 
-    package init(nodes: [Node], resolver: any TimelinePositionResolver) {
+    public init(nodes: [Node], resolver: any TimelinePositionResolver) {
         // Flattens the nodes in pre-order.
         var flatNodes: [Node] = []
         var parentIDs: [Int?] = []

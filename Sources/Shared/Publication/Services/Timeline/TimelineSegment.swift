@@ -14,7 +14,7 @@ public struct TimelineSegment: Hashable, Sendable {
     public let start: TimelinePosition
 
     /// Exclusive end of the segment, or `nil` when it ends at the end of a
-    /// resource whose duration is unknown.
+    /// resource whose length is unknown.
     public let end: TimelinePosition?
 
     package init(item: TimelineItem, start: TimelinePosition, end: TimelinePosition?) {

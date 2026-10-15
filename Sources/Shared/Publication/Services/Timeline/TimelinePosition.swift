@@ -18,24 +18,24 @@ public struct TimelinePosition: Hashable, Sendable {
     /// Offset in the resource.
     public let offset: TimelineOffset
 
-    /// Offset from the start of the publication, or `nil` when the duration of
+    /// Offset from the start of the publication, or `nil` when the length of
     /// a preceding resource is unknown.
     public let totalOffset: TimelineOffset?
 
-    /// Progression in the resource, or `nil` when its duration is unknown.
+    /// Progression in the resource, or `nil` when its length is unknown.
     ///
     /// Between 0 and 1, unless the position is past the known end of the
     /// resource.
     public let progression: Double?
 
-    /// Progression in the publication, or `nil` when the duration of a
+    /// Progression in the publication, or `nil` when the length of a
     /// resource is unknown.
     ///
     /// Between 0 and 1, unless the position is past the known end of the
     /// publication.
     public let totalProgression: Double?
 
-    package init(
+    public init(
         readingOrderIndex: Int,
         offset: TimelineOffset,
         totalOffset: TimelineOffset? = nil,
@@ -57,8 +57,20 @@ public struct TimelinePosition: Hashable, Sendable {
 }
 
 /// An offset in a resource, or from the start of a publication.
+///
+/// A ``TimelinePositionResolver`` uses a single case for all the offsets of a
+/// resource. Comparing offsets of different cases is meaningless: they are
+/// ordered by case.
 @_spi(ExperimentalTimeline)
 public enum TimelineOffset: Comparable, Hashable, Sendable {
-    /// A time offset, in seconds.
+    /// A time offset in an audio or video resource, in seconds.
     case seconds(TimeInterval)
+
+    /// A progression in a scrollable resource such as an HTML document,
+    /// between 0 and 1.
+    case scroll(Double)
+
+    /// Index of a page in a paginated resource such as a PDF document or an
+    /// image, starting at 0.
+    case page(Int)
 }

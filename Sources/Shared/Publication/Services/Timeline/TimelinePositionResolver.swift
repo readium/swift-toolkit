@@ -10,7 +10,8 @@ import Foundation
 /// following the rules of its format.
 ///
 /// The same resolution is used to build a timeline and to query it.
-package protocol TimelinePositionResolver: Sendable {
+@_spi(ExperimentalTimeline)
+public protocol TimelinePositionResolver: Sendable {
     /// End of the publication, or `nil` when it is unknown.
     var end: TimelinePosition? { get }
 

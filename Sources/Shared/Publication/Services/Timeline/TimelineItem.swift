@@ -47,7 +47,7 @@ public struct TimelineItem: Identifiable, Hashable, Sendable {
     /// Exclusive end of the item.
     ///
     /// `nil` when the item has no ``start``, or when it ends at the end of a
-    /// publication whose last resource duration is unknown.
+    /// publication whose last resource length is unknown.
     public let end: TimelinePosition?
 
     /// Items of the nested table of contents entries, in order.
