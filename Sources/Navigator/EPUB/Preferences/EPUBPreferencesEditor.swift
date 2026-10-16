@@ -165,6 +165,26 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
+    /// Width of the glyphs as a percentage. Default to 100%.
+    ///
+    /// Only fonts with a width axis (`wdth`) support it, typically variable
+    /// fonts. It has no effect with the other fonts.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var fontWidth: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.fontWidth,
+            effectiveValue: { $0.settings.fontWidth },
+            defaultEffectiveValue: defaults.fontWidth ?? 1.0,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && $0.preferences.fontWidth != nil
+            },
+            supportedRange: 0.5 ... 2.5,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+
     /// Enable hyphenation for latin languages.
     ///
     /// Only effective when:

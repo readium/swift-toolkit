@@ -17,6 +17,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var fontFamily: FontFamily?
     public var fontSize: Double
     public var fontWeight: Double?
+    public var fontWidth: Double?
     public var hyphens: Bool?
     public var blendImages: Bool
     public var darkenImages: Double?
@@ -78,6 +79,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         fontFamily: FontFamily?,
         fontSize: Double,
         fontWeight: Double?,
+        fontWidth: Double?,
         hyphens: Bool?,
         blendImages: Bool,
         darkenImages: Double?,
@@ -112,6 +114,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.fontFamily = fontFamily
         self.fontSize = fontSize
         self.fontWeight = fontWeight
+        self.fontWidth = fontWidth
         self.hyphens = hyphens
         self.blendImages = blendImages
         self.darkenImages = darkenImages
@@ -182,6 +185,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let fit = preferences.fit ?? defaults.fit ?? .auto
         let fontSize = preferences.fontSize ?? defaults.fontSize ?? 1.0
         let fontWeight = preferences.fontWeight ?? defaults.fontWeight
+        let fontWidth = preferences.fontWidth ?? defaults.fontWidth
         let hyphens = preferences.hyphens ?? defaults.hyphens
         let letterSpacing = preferences.letterSpacing ?? defaults.letterSpacing
         let ligatures = preferences.ligatures ?? defaults.ligatures
@@ -206,6 +210,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             fontFamily: preferences.fontFamily,
             fontSize: fontSize,
             fontWeight: fontWeight,
+            fontWidth: fontWidth,
             hyphens: hyphens,
             blendImages: preferences.blendImages ?? false,
             darkenImages: preferences.darkenImages,
@@ -248,6 +253,7 @@ public struct EPUBDefaults: Sendable {
     public var fit: Fit?
     public var fontSize: Double?
     public var fontWeight: Double?
+    public var fontWidth: Double?
     public var hyphens: Bool?
     public var language: Language?
     public var letterSpacing: Double?
@@ -273,6 +279,7 @@ public struct EPUBDefaults: Sendable {
         fit: Fit? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
+        fontWidth: Double? = nil,
         hyphens: Bool? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
@@ -297,6 +304,7 @@ public struct EPUBDefaults: Sendable {
         self.fit = fit
         self.fontSize = fontSize
         self.fontWeight = fontWeight
+        self.fontWidth = fontWidth
         self.hyphens = hyphens
         self.language = language
         self.letterSpacing = letterSpacing

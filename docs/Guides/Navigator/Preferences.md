@@ -438,6 +438,7 @@ Bitmaps and SVG documents in the reading order are always rendered as fixed-layo
 | `fontFamily`         | :white_check_mark: |                    |
 | `fontSize`           | :white_check_mark: |                    |
 | `fontWeight`         | :white_check_mark: |                    |
+| `fontWidth`          | :white_check_mark: |                    |
 | `hyphens`            | :white_check_mark: |                    |
 | `blendImages`        | :white_check_mark: |                    |
 | `darkenImages`       | :white_check_mark: |                    |
@@ -472,6 +473,7 @@ The following preferences are effective only when explicitly set. When unset, th
 
 * `backgroundColor`
 * `fontWeight`
+* `fontWidth` (only fonts with a width axis support it, typically variable fonts)
 * `hyphens` (also effective when `textAlign` is `.justify`)
 * `letterSpacing`
 * `ligatures`

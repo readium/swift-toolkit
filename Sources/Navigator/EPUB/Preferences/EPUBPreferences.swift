@@ -39,6 +39,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Default boldness for the text.
     public var fontWeight: Double?
 
+    /// Width of the glyphs, for the fonts which support it (variable fonts
+    /// with a `wdth` axis).
+    public var fontWidth: Double?
+
     /// Enable hyphenation.
     public var hyphens: Bool?
 
@@ -155,6 +159,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
+        fontWidth: Double? = nil,
         hyphens: Bool? = nil,
         blendImages: Bool? = nil,
         darkenImages: Double? = nil,
@@ -189,6 +194,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
         self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
+        self.fontWidth = fontWidth?.clamped(to: 0.5 ... 2.5)
         self.hyphens = hyphens
         self.blendImages = blendImages
         self.darkenImages = darkenImages
@@ -226,6 +232,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
+            fontWidth: other.fontWidth ?? fontWidth,
             hyphens: other.hyphens ?? hyphens,
             blendImages: other.blendImages ?? blendImages,
             darkenImages: other.darkenImages ?? darkenImages,
@@ -300,6 +307,7 @@ public extension EPUBPreferences {
         case fontFamily
         case fontSize
         case fontWeight
+        case fontWidth
         case hyphens
         case blendImages
         case darkenImages
@@ -343,6 +351,7 @@ public extension EPUBPreferences {
             fontFamily: container.decodeLeniently(FontFamily.self, forKey: .fontFamily),
             fontSize: container.decodeLeniently(Double.self, forKey: .fontSize),
             fontWeight: container.decodeLeniently(Double.self, forKey: .fontWeight),
+            fontWidth: container.decodeLeniently(Double.self, forKey: .fontWidth),
             hyphens: container.decodeLeniently(Bool.self, forKey: .hyphens),
             blendImages: container.decodeLeniently(Bool.self, forKey: .blendImages),
             darkenImages: container.decodeLeniently(Double.self, forKey: .darkenImages),
@@ -386,6 +395,7 @@ public extension EPUBPreferences {
         try container.encodeIfPresent(fontFamily, forKey: .fontFamily)
         try container.encodeIfPresent(fontSize, forKey: .fontSize)
         try container.encodeIfPresent(fontWeight, forKey: .fontWeight)
+        try container.encodeIfPresent(fontWidth, forKey: .fontWidth)
         try container.encodeIfPresent(hyphens, forKey: .hyphens)
         try container.encodeIfPresent(blendImages, forKey: .blendImages)
         try container.encodeIfPresent(darkenImages, forKey: .darkenImages)

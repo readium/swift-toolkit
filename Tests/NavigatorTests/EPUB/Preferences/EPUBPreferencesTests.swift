@@ -249,6 +249,72 @@ enum EPUBPreferencesTests {
         }
     }
 
+    @Suite("fontWidth") struct FontWidth {
+        @Test("preferences limit the value to the supported range", arguments: [
+            (0.2, 0.5),
+            (1.3, 1.3),
+            (3.0, 2.5),
+        ])
+        func preferencesLimitValue(value: Double, expected: Double) {
+            #expect(EPUBPreferences(fontWidth: value).fontWidth == expected)
+        }
+
+        @Test("the setting resolves the preference, then the defaults", arguments: [
+            (nil, nil, nil),
+            (nil, 1.2, 1.2),
+            (1.5, 1.2, 1.5),
+        ] as [(Double?, Double?, Double?)])
+        func settingResolution(preference: Double?, defaults: Double?, expected: Double?) {
+            #expect(
+                settings(
+                    preferences: EPUBPreferences(fontWidth: preference),
+                    defaults: EPUBDefaults(fontWidth: defaults)
+                ).fontWidth == expected
+            )
+        }
+
+        @Test("ReadiumCSS emits the width as a percentage, or nothing when unset", arguments: [
+            (nil, nil),
+            (1.5, "150.00000%"),
+        ] as [(Double?, String?)])
+        @MainActor func css(fontWidth: Double?, expected: String?) throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            css.update(with: settings(preferences: EPUBPreferences(fontWidth: fontWidth)))
+            #expect(css.userProperties.cssProperties()["--USER__fontWidth"] == .some(expected))
+        }
+
+        @Test("the editor reads 100% when unset, unless the defaults say otherwise", arguments: [
+            (nil, 1.0),
+            (1.2, 1.2),
+        ] as [(Double?, Double)])
+        @MainActor func editorEffectiveValue(defaults: Double?, expected: Double) {
+            let editor = makeEditor(defaults: EPUBDefaults(fontWidth: defaults))
+            #expect(editor.fontWidth.value == nil)
+            #expect(editor.fontWidth.effectiveValue == expected)
+            #expect(!editor.fontWidth.isEffective)
+        }
+
+        @Test("the editor steps by 10% from 100%, within 50% and 250%, and is effective once set")
+        @MainActor func editorSteps() {
+            let editor = makeEditor()
+            #expect(editor.fontWidth.supportedRange == 0.5 ... 2.5)
+            #expect(editor.fontWidth.format(value: 1.5) == "150%")
+            editor.fontWidth.increment()
+            #expect(editor.preferences.fontWidth == 1.1)
+            #expect(editor.fontWidth.effectiveValue == 1.1)
+            #expect(editor.fontWidth.isEffective)
+            editor.fontWidth.clear()
+            editor.fontWidth.decrement()
+            #expect(editor.preferences.fontWidth == 0.9)
+        }
+
+        @Test("the editor preference is not effective without reflowable resources")
+        @MainActor func editorNotEffectiveWithFixedLayout() {
+            let editor = makeEditor(preferences: EPUBPreferences(fontWidth: 1.5), layout: .fixed)
+            #expect(!editor.fontWidth.isEffective)
+        }
+    }
+
     /// `letterSpacing`, `wordSpacing` and `ligatures` are effective only with
     /// the stylesheets handling them.
     @Suite("letterSpacing, wordSpacing and ligatures") struct SpacingAndLigatures {
@@ -730,6 +796,7 @@ enum EPUBPreferencesTests {
             fontFamily: "Literata",
             fontSize: 1.4,
             fontWeight: 1.5,
+            fontWidth: 1.3,
             hyphens: true,
             blendImages: true,
             darkenImages: 0.3,

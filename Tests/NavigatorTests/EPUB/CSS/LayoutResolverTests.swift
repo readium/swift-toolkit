@@ -259,6 +259,7 @@ struct LayoutResolverTests {
             fontFamily: nil,
             fontSize: 1.0,
             fontWeight: nil,
+            fontWidth: nil,
             hyphens: nil,
             blendImages: false,
             darkenImages: nil,

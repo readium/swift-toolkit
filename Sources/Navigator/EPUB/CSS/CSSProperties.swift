@@ -89,6 +89,10 @@ struct CSSUserProperties: CSSProperties, Sendable {
     /// Increasing and decreasing the root font-size. It will serve as a reference for the cascade.
     var fontSize: CSSLength?
 
+    /// The width (font-stretch) of the glyphs, for variable fonts with a
+    /// width axis. It impacts body.
+    var fontWidth: CSSPercentLength?
+
     /// The alignment (text-align) the user prefers. It impacts body, li, and p which are not
     /// children of blockquote and figcaption.
     var textAlign: CSSTextAlign?
@@ -150,6 +154,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
         visitedColor: CSSColor? = nil,
         fontFamily: [String]? = nil,
         fontSize: CSSLength? = nil,
+        fontWidth: CSSPercentLength? = nil,
         textAlign: CSSTextAlign? = nil,
         lineHeight: CSSLineHeight? = nil,
         paraSpacing: CSSLength? = nil,
@@ -175,6 +180,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
         self.visitedColor = visitedColor
         self.fontFamily = fontFamily
         self.fontSize = fontSize
+        self.fontWidth = fontWidth
         self.textAlign = textAlign
         self.lineHeight = lineHeight
         self.paraSpacing = paraSpacing
@@ -212,6 +218,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
         // Typography
         props.putCSS(name: "--USER__fontFamily", value: fontFamily)
         props.putCSS(name: "--USER__fontSize", value: fontSize)
+        props.putCSS(name: "--USER__fontWidth", value: fontWidth)
         props.putCSS(name: "--USER__textAlign", value: textAlign)
         props.putCSS(name: "--USER__lineHeight", value: lineHeight)
         props.putCSS(name: "--USER__paraSpacing", value: paraSpacing)

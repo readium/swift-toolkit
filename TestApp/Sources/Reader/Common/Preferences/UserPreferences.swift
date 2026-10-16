@@ -109,6 +109,7 @@ struct UserPreferences<
                             fontFamily: editor.fontFamily,
                             fontSize: editor.fontSize,
                             fontWeight: editor.fontWeight,
+                            fontWidth: editor.fontWidth,
                             hyphens: editor.hyphens,
                             blendImages: editor.blendImages,
                             darkenImages: editor.darkenImages,
@@ -328,6 +329,7 @@ struct UserPreferences<
         fontFamily: AnyPreference<FontFamily?>? = nil,
         fontSize: AnyRangePreference<Double>? = nil,
         fontWeight: AnyRangePreference<Double>? = nil,
+        fontWidth: AnyRangePreference<Double>? = nil,
         hyphens: AnyPreference<Bool>? = nil,
         blendImages: AnyPreference<Bool>? = nil,
         darkenImages: AnyRangePreference<Double>? = nil,
@@ -569,6 +571,14 @@ struct UserPreferences<
                 stepperRow(
                     title: "Font weight",
                     preference: fontWeight,
+                    commit: commit
+                )
+            }
+
+            if let fontWidth = fontWidth {
+                stepperRow(
+                    title: "Font width",
+                    preference: fontWidth,
                     commit: commit
                 )
             }
