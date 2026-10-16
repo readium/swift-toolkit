@@ -695,7 +695,11 @@ enum EPUBPreferencesTests {
 
             let editor = makeEditor(
                 preferences: preferences,
-                readingOrder: [fixed, Link(href: "p2.jpg", mediaType: .jpeg)]
+                readingOrder: [
+                    fixed,
+                    Link(href: "p2.jpg", mediaType: .jpeg),
+                    Link(href: "p3.svg", mediaType: .svg),
+                ]
             )
             #expect(editor.defaultLayout == .reflowable)
             #expect(effectivePreferences(of: editor) == [])

@@ -429,6 +429,8 @@ EPUB comes in two very different flavors: **reflowable** which allows a lot of c
 
 An EPUB can also mix both kinds of resources in a single publication. In this case, a preference is effective as soon as at least one resource of the matching kind is in the reading order, and it applies only to those resources. For example, `fontSize` is effective in a fixed-layout publication containing a reflowable chapter, but it changes only that chapter.
 
+Bitmaps and SVG documents in the reading order are always rendered as fixed-layout pages, even in a reflowable publication, so the fixed-layout preferences apply to them and the reflowable ones don't.
+
 | Setting              | Reflowable         | Fixed Layout       |
 |----------------------|--------------------|--------------------|
 | `backgroundColor`    | :white_check_mark: | :white_check_mark: |
