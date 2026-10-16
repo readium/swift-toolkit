@@ -302,12 +302,12 @@ public struct EPUBDefaults: Sendable {
     ) {
         self.columnCount = columnCount.takeIf { $0 >= 1 }
         self.fit = fit
-        self.fontSize = fontSize
-        self.fontWeight = fontWeight
-        self.fontWidth = fontWidth
+        self.fontSize = fontSize.map { max($0, 0) }
+        self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
+        self.fontWidth = fontWidth?.clamped(to: 0.5 ... 2.5)
         self.hyphens = hyphens
         self.language = language
-        self.letterSpacing = letterSpacing
+        self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
         self.maximalLineLength = maximalLineLength.takeIf { $0 > 0 }
@@ -315,15 +315,15 @@ public struct EPUBDefaults: Sendable {
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
         self.optimalLineLength = optimalLineLength.takeIf { $0 > 0 }
-        self.pageMargins = pageMargins
+        self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
-        self.paragraphSpacing = paragraphSpacing
+        self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = spread
         self.textAlign = textAlign
         self.textNormalization = textNormalization
-        self.wordSpacing = wordSpacing
+        self.wordSpacing = wordSpacing.map { max($0, 0) }
     }
 
     @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")

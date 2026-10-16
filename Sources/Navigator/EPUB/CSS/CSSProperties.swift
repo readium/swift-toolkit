@@ -89,6 +89,9 @@ struct CSSUserProperties: CSSProperties, Sendable {
     /// Increasing and decreasing the root font-size. It will serve as a reference for the cascade.
     var fontSize: CSSLength?
 
+    /// The weight (font-weight) of the text, from 1 to 1000.
+    var fontWeight: Int?
+
     /// The width (font-stretch) of the glyphs, for variable fonts with a
     /// width axis. It impacts body.
     var fontWidth: CSSPercentLength?
@@ -154,6 +157,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
         visitedColor: CSSColor? = nil,
         fontFamily: [String]? = nil,
         fontSize: CSSLength? = nil,
+        fontWeight: Int? = nil,
         fontWidth: CSSPercentLength? = nil,
         textAlign: CSSTextAlign? = nil,
         lineHeight: CSSLineHeight? = nil,
@@ -180,6 +184,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
         self.visitedColor = visitedColor
         self.fontFamily = fontFamily
         self.fontSize = fontSize
+        self.fontWeight = fontWeight
         self.fontWidth = fontWidth
         self.textAlign = textAlign
         self.lineHeight = lineHeight
@@ -218,6 +223,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
         // Typography
         props.putCSS(name: "--USER__fontFamily", value: fontFamily)
         props.putCSS(name: "--USER__fontSize", value: fontSize)
+        props.putCSS(name: "--USER__fontWeight", value: fontWeight)
         props.putCSS(name: "--USER__fontWidth", value: fontWidth)
         props.putCSS(name: "--USER__textAlign", value: textAlign)
         props.putCSS(name: "--USER__lineHeight", value: lineHeight)

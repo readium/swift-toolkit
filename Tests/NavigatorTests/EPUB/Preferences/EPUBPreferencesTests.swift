@@ -249,14 +249,47 @@ enum EPUBPreferencesTests {
         }
     }
 
+    @Suite("fontWeight") struct FontWeight {
+        @Test("preferences and defaults limit the value to the supported range", arguments: [
+            (-1.0, 0.0),
+            (1.5, 1.5),
+            (3.0, 2.5),
+        ])
+        func limitValue(value: Double, expected: Double) {
+            #expect(EPUBPreferences(fontWeight: value).fontWeight == expected)
+            #expect(EPUBDefaults(fontWeight: value).fontWeight == expected)
+        }
+
+        @Test("ReadiumCSS emits the weight as a factor of 400 limited to 1 ... 1000, or nothing when unset", arguments: [
+            (nil, nil),
+            (1.0, "400"),
+            (0.29, "116"),
+            (0.0, "1"),
+            (3.0, "1000"),
+            (.infinity, "1000"),
+            (.nan, nil),
+        ] as [(Double?, String?)])
+        @MainActor func css(fontWeight: Double?, expected: String?) throws {
+            var css = try ReadiumCSS(baseURL: #require(HTTPURL(string: "https://readium/")))
+            // Set on the settings, as the preferences are limited to 2.5.
+            var settings = settings()
+            settings.fontWeight = fontWeight
+            css.update(with: settings)
+            let props = css.userProperties.cssProperties()
+            #expect(props["--USER__fontWeight"] == .some(expected))
+            #expect(props["font-weight"] == nil)
+        }
+    }
+
     @Suite("fontWidth") struct FontWidth {
-        @Test("preferences limit the value to the supported range", arguments: [
+        @Test("preferences and defaults limit the value to the supported range", arguments: [
             (0.2, 0.5),
             (1.3, 1.3),
             (3.0, 2.5),
         ])
-        func preferencesLimitValue(value: Double, expected: Double) {
+        func limitValue(value: Double, expected: Double) {
             #expect(EPUBPreferences(fontWidth: value).fontWidth == expected)
+            #expect(EPUBDefaults(fontWidth: value).fontWidth == expected)
         }
 
         @Test("the setting resolves the preference, then the defaults", arguments: [
@@ -312,6 +345,28 @@ enum EPUBPreferencesTests {
         @MainActor func editorNotEffectiveWithFixedLayout() {
             let editor = makeEditor(preferences: EPUBPreferences(fontWidth: 1.5), layout: .fixed)
             #expect(!editor.fontWidth.isEffective)
+        }
+    }
+
+    @Suite("non-negative values") struct NonNegativeValues {
+        @Test("preferences and defaults replace negative values with 0", arguments: [
+            (-1.0, 0.0),
+            (0.5, 0.5),
+        ])
+        func limitValues(value: Double, expected: Double) {
+            let prefs = EPUBPreferences(fontSize: value, letterSpacing: value, pageMargins: value, paragraphSpacing: value, wordSpacing: value)
+            #expect(prefs.fontSize == expected)
+            #expect(prefs.letterSpacing == expected)
+            #expect(prefs.pageMargins == expected)
+            #expect(prefs.paragraphSpacing == expected)
+            #expect(prefs.wordSpacing == expected)
+
+            let defaults = EPUBDefaults(fontSize: value, letterSpacing: value, pageMargins: value, paragraphSpacing: value, wordSpacing: value)
+            #expect(defaults.fontSize == expected)
+            #expect(defaults.letterSpacing == expected)
+            #expect(defaults.pageMargins == expected)
+            #expect(defaults.paragraphSpacing == expected)
+            #expect(defaults.wordSpacing == expected)
         }
     }
 
@@ -788,20 +843,20 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("Codable") struct Coding {
-        /// Every preference set to a non-default value.
+        /// Every preference set to a distinct non-default value.
         private let allPreferences = EPUBPreferences(
             backgroundColor: Color(hex: "#FF0000"),
             columnCount: 2,
             fit: .width,
             fontFamily: "Literata",
             fontSize: 1.4,
-            fontWeight: 1.5,
-            fontWidth: 1.3,
+            fontWeight: 1.75,
+            fontWidth: 1.7,
             hyphens: true,
             blendImages: true,
             darkenImages: 0.3,
             invertImages: 0.4,
-            invertGaiji: 0.5,
+            invertGaiji: 0.6,
             language: Language(code: .bcp47("fr")),
             letterSpacing: 0.1,
             ligatures: false,
@@ -826,13 +881,13 @@ enum EPUBPreferencesTests {
             wordSpacing: 0.2
         )
 
-        /// Keeps the round-trip test exhaustive.
+        /// Keeps the round-trip and merging tests exhaustive.
         ///
-        /// A stored property missing from the `Codable` implementation would
-        /// still pass the round-trip test if the fixture left it `nil`. This
-        /// test lists the stored properties with a `Mirror`, so it fails as
-        /// soon as a new property is added to `EPUBPreferences` without being
-        /// set in the fixture.
+        /// A stored property missing from the `Codable` implementation or from
+        /// `merging(_:)` would still pass these tests if the fixture left it
+        /// `nil`. This test lists the stored properties with a `Mirror`, so it
+        /// fails as soon as a new property is added to `EPUBPreferences`
+        /// without being set in the fixture.
         @Test("the round-trip fixture sets every preference")
         func fixtureIsComplete() {
             for child in Mirror(reflecting: allPreferences).children {
@@ -846,6 +901,12 @@ enum EPUBPreferencesTests {
         func roundTrip() throws {
             let data = try JSONEncoder().encode(allPreferences)
             #expect(try JSONDecoder().decode(EPUBPreferences.self, from: data) == allPreferences)
+        }
+
+        @Test("merging keeps every preference of both sides")
+        func merging() {
+            #expect(EPUBPreferences().merging(allPreferences) == allPreferences)
+            #expect(allPreferences.merging(EPUBPreferences()) == allPreferences)
         }
 
         @Test("encodes the format version")

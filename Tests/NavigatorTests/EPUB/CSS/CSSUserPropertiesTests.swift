@@ -25,6 +25,7 @@ struct CSSUserPropertiesTests {
                 "--USER__visitedColor": nil,
                 "--USER__fontFamily": nil,
                 "--USER__fontSize": nil,
+                "--USER__fontWeight": nil,
                 "--USER__fontWidth": nil,
                 "--USER__textAlign": nil,
                 "--USER__lineHeight": nil,
@@ -56,6 +57,7 @@ struct CSSUserPropertiesTests {
                 visitedColor: CSSHexColor("#FF00FF"),
                 fontFamily: ["Times New"],
                 fontSize: CSSVMaxLength(2.3),
+                fontWeight: 600,
                 fontWidth: CSSPercentLength(1.25),
                 textAlign: .justify,
                 lineHeight: .length(CSSPtLength(4.5)),
@@ -81,6 +83,7 @@ struct CSSUserPropertiesTests {
                 "--USER__visitedColor": "#FF00FF",
                 "--USER__fontFamily": "\"Times New\"",
                 "--USER__fontSize": "2.30000vmax",
+                "--USER__fontWeight": "600",
                 "--USER__fontWidth": "125.00000%",
                 "--USER__textAlign": "justify",
                 "--USER__lineHeight": "4.50000pt",
@@ -142,6 +145,7 @@ struct CSSUserPropertiesTests {
                 visitedColor: CSSHexColor("#FF00FF"),
                 fontFamily: ["Times New", "Comic Sans"],
                 fontSize: CSSVMaxLength(2.3),
+                fontWeight: 600,
                 fontWidth: CSSPercentLength(1.25),
                 textAlign: .justify,
                 lineHeight: .length(CSSPtLength(4.5)),
@@ -162,6 +166,7 @@ struct CSSUserPropertiesTests {
             --USER__darkenImages: 0.80000 !important;
             --USER__fontFamily: "Times New", "Comic Sans" !important;
             --USER__fontSize: 2.30000vmax !important;
+            --USER__fontWeight: 600 !important;
             --USER__fontWidth: 125.00000% !important;
             --USER__invertGaiji: 0.95000 !important;
             --USER__invertImages: 0.90000 !important;

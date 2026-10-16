@@ -37,11 +37,7 @@ extension ReadiumCSS {
     ) {
         layout = settings.cssLayout
 
-        var overrides: [String: String] = [
-            "font-weight": settings.fontWeight
-                .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
-                ?? "",
-        ]
+        var overrides: [String: String] = [:]
 
         rsProperties = CSSRSProperties(overrides: [
             // See https://github.com/readium/css/issues/183
@@ -97,6 +93,10 @@ extension ReadiumCSS {
             visitedColor: settings.visitedColor.map { CSSIntColor($0.rawValue) },
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
+            fontWeight: settings.fontWeight
+                .map { Double(CSSStandardFontWeight.normal.rawValue) * $0 }
+                .takeIf { !$0.isNaN }
+                .map { Int($0.clamped(to: 1 ... 1000).rounded()) },
             fontWidth: settings.fontWidth.map { CSSPercentLength($0) },
             textAlign: {
                 switch settings.textAlign {
