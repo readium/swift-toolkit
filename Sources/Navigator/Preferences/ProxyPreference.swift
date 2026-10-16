@@ -91,13 +91,15 @@ public final class ProxyRangePreference<Value: Comparable & Sendable>: ProxyPref
     }
 
     public func increment() {
-        let currentValue = value ?? effectiveValue
         set(progressionStrategy.increment(currentValue))
     }
 
     public func decrement() {
-        let currentValue = value ?? effectiveValue
         set(progressionStrategy.decrement(currentValue))
+    }
+
+    private var currentValue: Value {
+        value ?? effectiveValue
     }
 }
 

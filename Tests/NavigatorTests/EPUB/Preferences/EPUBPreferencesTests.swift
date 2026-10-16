@@ -75,11 +75,11 @@ enum EPUBPreferencesTests {
             #expect(editor.preferences.columnCount == nil)
         }
 
-        @Test("the editor uses the defaults as effective value")
+        @Test("the editor uses the defaults as effective value when unset")
         @MainActor func editorEffectiveValueFromDefaults() {
-            let editor = makeEditor(defaults: EPUBDefaults(columnCount: 1))
-            #expect(editor.preferences.columnCount == nil)
-            #expect(editor.columnCount.effectiveValue == 1)
+            let editor = makeEditor(defaults: EPUBDefaults(columnCount: 2))
+            #expect(editor.columnCount.value == nil)
+            #expect(editor.columnCount.effectiveValue == 2)
         }
 
         @Test("the editor preference is not effective in scroll mode")

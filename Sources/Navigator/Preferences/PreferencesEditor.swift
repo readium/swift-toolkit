@@ -106,7 +106,11 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     ) -> AnyPreference<Value?> {
         ProxyPreference(
             value: { [weak self] in
-                self?.preferences[keyPath: prefKP]
+                // Returns `.none` instead of `.some(nil)` when unset.
+                guard let value = self?.preferences[keyPath: prefKP] else {
+                    return nil
+                }
+                return value
             },
             effectiveValue: { [weak self] in
                 self?.state.settings[keyPath: settingKP]
@@ -183,7 +187,11 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     ) -> AnyEnumPreference<Value?> {
         ProxyEnumPreference(
             value: { [weak self] in
-                self?.preferences[keyPath: prefKP]
+                // Returns `.none` instead of `.some(nil)` when unset.
+                guard let value = self?.preferences[keyPath: prefKP] else {
+                    return nil
+                }
+                return value
             },
             effectiveValue: { [weak self] in
                 self?.state.settings[keyPath: settingKP]
