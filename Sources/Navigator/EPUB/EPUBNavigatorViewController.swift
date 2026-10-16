@@ -119,11 +119,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// Additional font families which will be available in the preferences.
         public var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration]
 
-        /// Readium CSS reading system settings.
-        ///
-        /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
-        public var readiumCSSRSProperties: CSSRSProperties
-
         /// Logs the state changes when true.
         public var debugState: Bool
 
@@ -142,7 +137,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             preferredResourceVariant: EPUBResourceVariant = .default,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
-            readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
             debugState: Bool = false
         ) {
             self.preferences = preferences
@@ -155,8 +149,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.preferredResourceVariant = preferredResourceVariant
             self.decorationTemplates = decorationTemplates
             self.fontFamilyDeclarations = fontFamilyDeclarations
-            self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
+        }
+
+        @available(*, unavailable, message: "The Readium CSS properties are now internal to the navigator, use the EPUB preferences or EPUBDefaults instead")
+        public var readiumCSSRSProperties: Any {
+            fatalError()
         }
 
         func contentInset(for sizeClass: UIUserInterfaceSizeClass) -> EPUBContentInsets {
@@ -426,7 +424,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         // We may need to refresh the spreads in this situation. Unfortunately,
         // the `viewWillTransition(to:with:)` API is called before we receive
         // the `didBecomeActive` notification, so we cannot rely on it here.
-        viewModel.viewSizeWillChange(view.bounds.size)
+        viewModel.viewSizeWillChange(view.bounds.size, insets: view.safeAreaInsets)
 
         if needsReloadSpreadsOnActive {
             needsReloadSpreadsOnActive = false
@@ -481,14 +479,28 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        viewModel.viewSizeWillChange(view.bounds.size)
+        viewModel.viewSizeWillChange(view.bounds.size, insets: view.safeAreaInsets)
+    }
+
+    override open func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if isActive {
+            viewModel.viewSizeWillChange(view.bounds.size, insets: view.safeAreaInsets)
+        }
+    }
+
+    override open func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        if isActive {
+            viewModel.safeAreaInsetsDidChange(view.safeAreaInsets)
+        }
     }
 
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
         if isActive {
-            viewModel.viewSizeWillChange(size)
+            viewModel.viewSizeWillChange(size, insets: view.safeAreaInsets)
         }
     }
 

@@ -23,11 +23,11 @@ package extension Metadata {
 
     /// Resolves the EPUB layout of the given `link`.
     ///
-    /// A bitmap is always fixed-layout, as it cannot be reflowed. Otherwise,
-    /// the per-resource `Properties.epubLayout` override wins over the
-    /// publication default.
+    /// A bitmap or an SVG document is always fixed-layout, as it cannot be
+    /// reflowed. Otherwise, the per-resource `Properties.epubLayout` override
+    /// wins over the publication default.
     func epubLayout(of link: Link) -> EPUBLayout {
-        if link.mediaType?.isBitmap == true {
+        if let mediaType = link.mediaType, mediaType.isBitmap || mediaType.matches(.svg) {
             return .fixed
         }
 

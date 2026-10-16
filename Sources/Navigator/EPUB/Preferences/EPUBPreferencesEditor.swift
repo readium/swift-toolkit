@@ -32,6 +32,9 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     private let defaults: EPUBDefaults
 
+    private let lineLengthRange: ClosedRange<Double> = 0.5 ... 2.0
+    private let lineLengthStep: Double = 0.1
+
     /// Creates an editor for the given `publication`.
     ///
     /// - Parameters:
@@ -73,15 +76,13 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// For fixed-layout resources, it applies to the navigator background
     /// but not the publication pages.
     ///
-    /// When unset, the current `theme` background color is effective.
+    /// When unset, the background color of the publication is kept. The
+    /// effective value is then the default one of Readium CSS.
     public lazy var backgroundColor: AnyPreference<Color> =
         preference(
             preference: \.backgroundColor,
-            effectiveValue: { [weak theme] in
-                $0.settings.backgroundColor
-                    ?? (theme?.value ?? theme?.effectiveValue)?.backgroundColor
-            },
-            defaultEffectiveValue: Theme.light.backgroundColor,
+            effectiveValue: { $0.settings.backgroundColor },
+            defaultEffectiveValue: ReadiumCSS.defaultBackgroundColor,
             isEffective: { $0.preferences.backgroundColor != nil }
         )
 
@@ -91,16 +92,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     /// Only effective when:
     ///  - the publication contains reflowable resources
     ///  - `scroll` is off
-    public lazy var columnCount: AnyEnumPreference<ColumnCount> =
+    ///
+    /// `nil` means the number of columns is chosen automatically depending on
+    /// the viewport size.
+    public lazy var columnCount: AnyEnumPreference<Int?> =
         enumPreference(
             preference: \.columnCount,
             setting: \.columnCount,
-            defaultEffectiveValue: defaults.columnCount ?? .auto,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
                     && !$0.settings.scroll
             },
-            supportedValues: [.auto, .one, .two]
+            supportedValues: [nil, 1, 2]
         )
 
     /// Method for fitting the content within the viewport.
@@ -157,8 +160,28 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                 layouts.contains(.reflowable)
                     && $0.preferences.fontWeight != nil
             },
-            supportedRange: 0.0 ... 2.5,
+            supportedRange: EPUBPreferences.fontWeightRange,
             progressionStrategy: .increment(0.25),
+            format: \.percentageString
+        )
+
+    /// Width of the glyphs as a percentage. Default to 100%.
+    ///
+    /// Only fonts with a width axis (`wdth`) support it, typically variable
+    /// fonts. It has no effect with the other fonts.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var fontWidth: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.fontWidth,
+            effectiveValue: { $0.settings.fontWidth },
+            defaultEffectiveValue: defaults.fontWidth ?? 1.0,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && $0.preferences.fontWidth != nil
+            },
+            supportedRange: EPUBPreferences.fontWidthRange,
+            progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
 
@@ -166,7 +189,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - `publisherStyles` is off
     ///  - the layout is LTR
     public lazy var hyphens: AnyPreference<Bool> =
         preference(
@@ -176,26 +198,72 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
                     && $0.settings.cssLayout.stylesheets == .default
-                    && !$0.settings.publisherStyles
                     && ($0.preferences.hyphens != nil || $0.settings.textAlign == .justify)
             }
         )
 
-    /// Filter applied to images in dark theme.
+    /// Blends the images with the background color.
     ///
-    /// Only effective when:
-    ///  - the publication contains reflowable resources
-    ///  - the `theme` is set to `Theme.DARK`
-    public lazy var imageFilter: AnyEnumPreference<ImageFilter?> =
-        enumPreference(
-            preference: \.imageFilter,
-            setting: \.imageFilter,
-            isEffective: { [layouts] in
-                layouts.contains(.reflowable)
-                    && $0.settings.theme == .dark
-            },
-            supportedValues: [nil, .darken, .invert]
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var blendImages: AnyPreference<Bool> =
+        preference(
+            preference: \.blendImages,
+            setting: \.blendImages,
+            defaultEffectiveValue: false,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
+
+    /// Darkens images by the given percentage.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var darkenImages: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.darkenImages,
+            effectiveValue: { $0.settings.darkenImages ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+
+    /// Inverts gaiji images.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var invertGaiji: AnyPreference<Bool> =
+        rangePreference(
+            preference: \.invertGaiji,
+            effectiveValue: { $0.settings.invertGaiji ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+        .map(
+            from: { $0 > 0 },
+            to: { $0 ? 1.0 : 0.0 }
+        )
+        .eraseToAnyPreference()
+
+    /// Inverts the color of images.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var invertImages: AnyPreference<Bool> =
+        rangePreference(
+            preference: \.invertImages,
+            effectiveValue: { $0.settings.invertImages ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
+            supportedRange: 0.0 ... 1.0,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
+        )
+        .map(
+            from: { $0 > 0 },
+            to: { $0 ? 1.0 : 0.0 }
+        )
+        .eraseToAnyPreference()
 
     /// Language of the publication content.
     ///
@@ -211,8 +279,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - `publisherStyles` is off
-    ///  - the layout is LTR
+    ///  - the layout is LTR or CJK
     public lazy var letterSpacing: AnyRangePreference<Double> =
         rangePreference(
             preference: \.letterSpacing,
@@ -220,8 +287,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             defaultEffectiveValue: defaults.letterSpacing ?? 0.0,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && $0.settings.cssLayout.stylesheets == .default
-                    && !$0.settings.publisherStyles
+                    && [.default, .cjkHorizontal, .cjkVertical].contains($0.settings.cssLayout.stylesheets)
                     && $0.preferences.letterSpacing != nil
             },
             supportedRange: 0.0 ... 1.0,
@@ -229,21 +295,19 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
-    /// Enable ligatures in Arabic.
+    /// Enable ligatures.
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - `publisherStyles` is off
-    ///  - the layout is RTL
+    ///  - the layout is LTR or RTL
     public lazy var ligatures: AnyPreference<Bool> =
         preference(
             preference: \.ligatures,
             effectiveValue: { $0.settings.ligatures },
-            defaultEffectiveValue: defaults.ligatures ?? false,
+            defaultEffectiveValue: defaults.ligatures ?? true,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && $0.settings.cssLayout.stylesheets == .rtl
-                    && !$0.settings.publisherStyles
+                    && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
                     && $0.preferences.ligatures != nil
             }
         )
@@ -252,20 +316,89 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - `publisherStyles` is off
     public lazy var lineHeight: AnyRangePreference<Double> =
         rangePreference(
             preference: \.lineHeight,
             effectiveValue: { $0.settings.lineHeight },
-            defaultEffectiveValue: defaults.lineHeight ?? 1.2,
+            defaultEffectiveValue: defaults.lineHeight ?? 1.5,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && !$0.settings.publisherStyles
                     && $0.preferences.lineHeight != nil
             },
             supportedRange: 1.0 ... 2.0,
             progressionStrategy: .increment(0.1),
             format: { $0.formatDecimal(maximumFractionDigits: 5) }
+        )
+
+    /// Color of the hyperlinks.
+    ///
+    /// When unset, the link color of the publication is kept. The effective
+    /// value is then the default one of Readium CSS.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var linkColor: AnyPreference<Color> =
+        preference(
+            preference: \.linkColor,
+            effectiveValue: { $0.settings.linkColor },
+            defaultEffectiveValue: ReadiumCSS.defaultLinkColor,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && $0.preferences.linkColor != nil
+            }
+        )
+
+    /// Factor applied to the maximal line length. When unset and without a
+    /// default value, the lines take all the available width.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var maximalLineLength: AnyOptionalRangePreference<Double> =
+        optionalRangePreference(
+            preference: \.maximalLineLength,
+            setting: \.maximalLineLength,
+            defaultValue: 1.0,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
+            supportedRange: lineLengthRange,
+            progressionStrategy: .increment(lineLengthStep),
+            format: \.percentageString
+        )
+
+    /// Factor applied to the minimal line length, under which the number of
+    /// columns is reduced. When unset and without a default value, the
+    /// requested number of columns is always displayed.
+    ///
+    /// Only effective when:
+    ///  - the publication contains reflowable resources
+    ///  - `scroll` is off
+    ///  - `columnCount` is greater than 1
+    public lazy var minimalLineLength: AnyOptionalRangePreference<Double> =
+        optionalRangePreference(
+            preference: \.minimalLineLength,
+            setting: \.minimalLineLength,
+            defaultValue: 1.0,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && !$0.settings.scroll
+                    && ($0.settings.columnCount ?? 1) > 1
+            },
+            supportedRange: lineLengthRange,
+            progressionStrategy: .increment(lineLengthStep),
+            format: \.percentageString
+        )
+
+    /// Hiding/disabling ruby (furigana) annotations.
+    ///
+    /// Only effective when:
+    ///  - the publication contains reflowable resources
+    ///  - the layout is CJK horizontal or vertical
+    public lazy var noRuby: AnyPreference<Bool> =
+        preference(
+            preference: \.noRuby,
+            setting: \.noRuby,
+            defaultEffectiveValue: defaults.noRuby ?? false,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && [.cjkHorizontal, .cjkVertical].contains($0.settings.cssLayout.stylesheets)
+            }
         )
 
     /// Indicates whether the first page should be displayed alone and centered
@@ -287,7 +420,30 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             }
         )
 
-    /// Factor applied to horizontal margins. Default to 1.
+    /// Factor applied to the optimal line length, used to choose the number
+    /// of columns. Defaults to 100%.
+    ///
+    /// Only effective when:
+    ///  - the publication contains reflowable resources
+    ///  - `scroll` is off
+    ///  - `columnCount` is `nil` (automatic)
+    public lazy var optimalLineLength: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.optimalLineLength,
+            setting: \.optimalLineLength,
+            defaultEffectiveValue: defaults.optimalLineLength ?? 1.0,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && !$0.settings.scroll
+                    && $0.settings.columnCount == nil
+            },
+            supportedRange: lineLengthRange,
+            progressionStrategy: .increment(lineLengthStep),
+            format: \.percentageString
+        )
+
+    /// Factor applied to the minimal margins on each side of the lines (left
+    /// and right, or top and bottom with vertical text). Defaults to 1.
     ///
     /// Only effective when the publication contains reflowable resources.
     public lazy var pageMargins: AnyRangePreference<Double> =
@@ -305,7 +461,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - `publisherStyles` is off
     ///  - the layout is LTR or RTL
     public lazy var paragraphIndent: AnyRangePreference<Double> =
         rangePreference(
@@ -315,7 +470,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
                     && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
-                    && !$0.settings.publisherStyles
                     && $0.preferences.paragraphIndent != nil
             },
             supportedRange: 0.0 ... 3.0,
@@ -327,7 +481,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - `publisherStyles` is off
     public lazy var paragraphSpacing: AnyRangePreference<Double> =
         rangePreference(
             preference: \.paragraphSpacing,
@@ -335,7 +488,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             defaultEffectiveValue: defaults.paragraphSpacing ?? 0.0,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && !$0.settings.publisherStyles
                     && $0.preferences.paragraphSpacing != nil
             },
             supportedRange: 0.0 ... 2.0,
@@ -343,17 +495,25 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
-    /// Indicates whether the original publisher styles should be observed.
-    /// Many advanced settings require this to be off.
-    ///
-    /// Only effective when the publication contains reflowable resources.
-    public lazy var publisherStyles: AnyPreference<Bool> =
-        preference(
-            preference: \.publisherStyles,
-            setting: \.publisherStyles,
-            defaultEffectiveValue: defaults.publisherStyles ?? true,
-            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
-        )
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    public var publisherStyles: AnyPreference<Bool> {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    public var typeScale: AnyRangePreference<Double> {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    public var imageFilter: AnyEnumPreference<ImageFilter?> {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    public var theme: AnyEnumPreference<Theme> {
+        fatalError()
+    }
 
     /// Direction of the reading progression across resources.
     ///
@@ -398,7 +558,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - `publisherStyles` is off
     ///  - the layout is LTR or RTL
     public lazy var textAlign: AnyEnumPreference<TextAlignment?> =
         enumPreference(
@@ -407,7 +566,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
                     && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
-                    && !$0.settings.publisherStyles
                     && $0.preferences.textAlign != nil
             },
             supportedValues: [nil, .start, .left, .right, .justify]
@@ -415,16 +573,15 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     /// Default page text color.
     ///
-    /// When unset, the current `theme` text color is effective.
+    /// When unset, the text color of the publication is kept. The effective
+    /// value is then the default one of Readium CSS.
+    ///
     /// Only effective when the publication contains reflowable resources.
     public lazy var textColor: AnyPreference<Color> =
         preference(
             preference: \.textColor,
-            effectiveValue: { [weak theme] in
-                $0.settings.textColor
-                    ?? (theme?.value ?? theme?.effectiveValue)?.contentColor
-            },
-            defaultEffectiveValue: Theme.light.contentColor,
+            effectiveValue: { $0.settings.textColor },
+            defaultEffectiveValue: ReadiumCSS.defaultTextColor,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
                     && $0.preferences.textColor != nil
@@ -442,38 +599,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
-    /// Reader theme (light, dark, sepia).
-    ///
-    /// Only effective when the publication contains reflowable resources.
-    public lazy var theme: AnyEnumPreference<Theme> =
-        enumPreference(
-            preference: \.theme,
-            setting: \.theme,
-            defaultEffectiveValue: .light,
-            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
-            supportedValues: [.light, .dark, .sepia]
-        )
-
-    /// Scale applied to all element font sizes.
-    ///
-    /// Only effective when:
-    ///  - the publication contains reflowable resources
-    ///  - `publisherStyles` is off
-    public lazy var typeScale: AnyRangePreference<Double> =
-        rangePreference(
-            preference: \.typeScale,
-            effectiveValue: { $0.settings.typeScale },
-            defaultEffectiveValue: defaults.typeScale ?? 1.2,
-            isEffective: { [layouts] in
-                layouts.contains(.reflowable)
-                    && !$0.settings.publisherStyles
-                    && $0.preferences.typeScale != nil
-            },
-            supportedRange: 1.0 ... 2.0,
-            progressionStrategy: .steps(1.0, 1.067, 1.125, 1.2, 1.25, 1.333, 1.414, 1.5, 1.618),
-            format: { $0.formatDecimal(maximumFractionDigits: 5) }
-        )
-
     /// Indicates whether the text should be laid out vertically. This is used
     /// for example with CJK languages. This setting is automatically derived
     /// from the language if no preference is given.
@@ -487,11 +612,28 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
+    /// Color of the visited hyperlinks.
+    ///
+    /// When unset, the visited link color of the publication is kept. The
+    /// effective value is then the default one of Readium CSS.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var visitedColor: AnyPreference<Color> =
+        preference(
+            preference: \.visitedColor,
+            effectiveValue: { $0.settings.visitedColor },
+            defaultEffectiveValue: ReadiumCSS.defaultVisitedColor,
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && $0.preferences.visitedColor != nil
+            }
+        )
+
     /// Space between words.
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources
-    ///  - the layout is LTR
+    ///  - the layout is LTR or RTL
     public lazy var wordSpacing: AnyRangePreference<Double> =
         rangePreference(
             preference: \.wordSpacing,
@@ -499,8 +641,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             defaultEffectiveValue: defaults.wordSpacing ?? 0.0,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && $0.settings.cssLayout.stylesheets == .default
-                    && !$0.settings.publisherStyles
+                    && [.default, .rtl].contains($0.settings.cssLayout.stylesheets)
                     && $0.preferences.wordSpacing != nil
             },
             supportedRange: 0.0 ... 1.0,

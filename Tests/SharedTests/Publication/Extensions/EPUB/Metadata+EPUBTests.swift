@@ -115,15 +115,15 @@ enum MetadataEPUBTests {
             #expect(reflowableMetadata.epubLayout(of: fixedLink) == .fixed)
         }
 
-        @Test("of a bitmap link is fixed", arguments: [nil, Layout.reflowable, Layout.fixed])
-        func bitmapIsFixed(layout: Layout?) {
+        @Test("of a bitmap or SVG link is fixed", arguments: [MediaType.jpeg, .svg], [nil, Layout.reflowable, Layout.fixed])
+        func bitmapAndSVGAreFixed(mediaType: MediaType, layout: Layout?) {
             let metadata = Metadata(title: "Test", layout: layout)
-            #expect(metadata.epubLayout(of: Link(href: "page.jpg", mediaType: .jpeg)) == .fixed)
+            #expect(metadata.epubLayout(of: Link(href: "page", mediaType: mediaType)) == .fixed)
         }
 
-        @Test("of a bitmap link ignores a reflowable override")
-        func bitmapIgnoresReflowableOverride() {
-            var link = Link(href: "page.jpg", mediaType: .jpeg)
+        @Test("of a bitmap or SVG link ignores a reflowable override", arguments: [MediaType.jpeg, .svg])
+        func bitmapAndSVGIgnoreReflowableOverride(mediaType: MediaType) {
+            var link = Link(href: "page", mediaType: mediaType)
             link.properties.epubLayout = .reflowable
             let metadata = Metadata(title: "Test", layout: .reflowable)
             #expect(metadata.epubLayout(of: link) == .fixed)
