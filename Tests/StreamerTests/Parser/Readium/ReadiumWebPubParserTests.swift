@@ -6,6 +6,7 @@
 
 @_spi(ExperimentalTimeline) import ReadiumShared
 @testable import ReadiumStreamer
+@_spi(ExperimentalTimeline) import TestSupport
 import Testing
 
 enum ReadiumWebPubParserTests {
@@ -79,10 +80,10 @@ enum ReadiumWebPubParserTests {
                 expectedTimeline: []
             ),
             ManifestExample(
-                name: "other publication without a table of contents has none, and no timeline",
+                name: "other publication without a table of contents has none",
                 mediaType: "text/html",
                 expectedTOC: [],
-                expectedTimeline: nil
+                expectedTimeline: []
             ),
         ])
         func usesTheReadingOrderTitlesOfAnAudiobookWithoutOne(_ example: ManifestExample) async throws {
@@ -101,6 +102,27 @@ enum ReadiumWebPubParserTests {
             #expect(try await publication.timeline()?.outline == example.expectedTimeline)
         }
     }
+
+    struct Timelines {
+        @Test(arguments: [
+            ("audio/mpeg", "[]", "AudioTimelineService"),
+            ("text/html", "[]", "WebTimelineService"),
+            ("image/svg+xml", #"["https://readium.org/webpub-manifest/profiles/epub"]"#, "WebTimelineService"),
+            ("image/svg+xml", "[]", nil),
+            ("image/png", "[]", nil),
+            ("application/pdf", "[]", nil),
+        ] as [(String, String, String?)])
+        func serviceDependsOnTheProfileAndResources(mediaType: String, conformsTo: String, expected: String?) async throws {
+            let publication = try await parsePackage(manifest: """
+            {
+              "metadata": {"title": "Publication", "conformsTo": \(conformsTo)},
+              "readingOrder": [{"href": "part1", "type": "\(mediaType)"}]
+            }
+            """)
+
+            #expect(publication.findService(TimelineService.self).map { "\(type(of: $0))" } == expected)
+        }
+    }
 }
 
 // MARK: - Helpers
@@ -116,7 +138,7 @@ private func makeParser(generatesTableOfContentsFromReadingOrder: Bool = true) -
 }
 
 /// Parses a package holding only the given manifest.
-private func parsePackage(manifest: String, generatesTableOfContentsFromReadingOrder: Bool) async throws -> Publication {
+private func parsePackage(manifest: String, generatesTableOfContentsFromReadingOrder: Bool = true) async throws -> Publication {
     let asset: Asset = .container(ContainerAsset(
         container: SingleResourceContainer(
             resource: DataResource(string: manifest),

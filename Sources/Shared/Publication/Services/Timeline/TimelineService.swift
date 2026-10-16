@@ -48,3 +48,19 @@ public extension PublicationServicesBuilder {
         }
     }
 }
+
+// MARK: Table of Contents Helpers
+
+extension [Link] {
+    /// Nodes of the timeline of this table of contents. An untitled entry is
+    /// replaced by its children.
+    var timelineNodes: [Timeline.Node] {
+        flatMap { link -> [Timeline.Node] in
+            let children = link.children.timelineNodes
+            guard let title = link.title?.orNilIfBlank() else {
+                return children
+            }
+            return [Timeline.Node(title: .text(title), link: link, children: children)]
+        }
+    }
+}

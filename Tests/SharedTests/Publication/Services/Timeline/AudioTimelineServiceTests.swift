@@ -5,8 +5,8 @@
 //
 
 import Foundation
-@_spi(ExperimentalTimeline) import ReadiumShared
-@_spi(ExperimentalTimeline) @testable import ReadiumStreamer
+@_spi(ExperimentalTimeline) @testable import ReadiumShared
+@_spi(ExperimentalTimeline) import TestSupport
 import Testing
 
 enum AudioTimelineServiceTests {

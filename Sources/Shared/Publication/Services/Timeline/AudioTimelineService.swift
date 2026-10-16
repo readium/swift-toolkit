@@ -5,7 +5,6 @@
 //
 
 import Foundation
-@_spi(ExperimentalTimeline) import ReadiumShared
 
 /// Timeline service for audio publications, built from the table of contents
 /// of the publication and the durations of its reading order.
@@ -49,18 +48,5 @@ public final class AudioTimelineService: TimelineService {
     /// tries again.
     public func timeline() async throws(ReadError) -> Timeline {
         try await cache()
-    }
-}
-
-private extension [Link] {
-    /// Nodes of the timeline of this table of contents.
-    var timelineNodes: [Timeline.Node] {
-        flatMap { link -> [Timeline.Node] in
-            let children = link.children.timelineNodes
-            guard let title = link.title?.orNilIfBlank() else {
-                return children
-            }
-            return [Timeline.Node(title: .text(title), link: link, children: children)]
-        }
     }
 }

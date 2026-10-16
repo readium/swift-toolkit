@@ -7,6 +7,7 @@
 import Foundation
 @_spi(ExperimentalTimeline) import ReadiumShared
 @testable import ReadiumStreamer
+@_spi(ExperimentalTimeline) import TestSupport
 import Testing
 
 enum AudioParserTests {

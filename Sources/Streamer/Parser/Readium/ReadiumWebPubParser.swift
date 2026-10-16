@@ -179,6 +179,10 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
 
                         // FIXME: WebPositionsService from Kotlin?
 
+                        if manifest.conforms(to: .epub) || manifest.readingOrder.allAreHTML {
+                            $0.setTimelineServiceFactory(WebTimelineService.makeFactory())
+                        }
+
                         if manifest.readingOrder.allAreHTML {
                             $0.setSearchServiceFactory(ContentSearchService.makeFactory())
                             $0.setContentServiceFactory(DefaultContentService.makeFactory(

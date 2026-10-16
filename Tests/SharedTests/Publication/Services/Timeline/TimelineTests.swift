@@ -6,6 +6,7 @@
 
 import Foundation
 @_spi(ExperimentalTimeline) @testable import ReadiumShared
+@_spi(ExperimentalTimeline) import TestSupport
 import Testing
 
 /// Two fixtures are used.
@@ -619,20 +620,6 @@ private extension Timeline {
     /// All the items, in pre-order.
     var preOrderItems: [TimelineItem] {
         items.preOrder
-    }
-
-    /// One line per item, with its id, title and HREF, indented by depth.
-    var outline: [String] {
-        func lines(_ items: [TimelineItem], indent: String) -> [String] {
-            items.flatMap { item -> [String] in
-                guard case let .text(title) = item.title else {
-                    return []
-                }
-                return ["\(indent)\(item.id) \(title) → \(item.link.href)"]
-                    + lines(item.children, indent: indent + "  ")
-            }
-        }
-        return lines(items, indent: "")
     }
 }
 
