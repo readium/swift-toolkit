@@ -160,7 +160,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                 layouts.contains(.reflowable)
                     && $0.preferences.fontWeight != nil
             },
-            supportedRange: 0.0 ... 2.5,
+            supportedRange: EPUBPreferences.fontWeightRange,
             progressionStrategy: .increment(0.25),
             format: \.percentageString
         )
@@ -180,7 +180,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                 layouts.contains(.reflowable)
                     && $0.preferences.fontWidth != nil
             },
-            supportedRange: 0.5 ... 2.5,
+            supportedRange: EPUBPreferences.fontWidthRange,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )

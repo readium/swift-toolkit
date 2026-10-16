@@ -303,8 +303,8 @@ public struct EPUBDefaults: Sendable {
         self.columnCount = columnCount.takeIf { $0 >= 1 }
         self.fit = fit
         self.fontSize = fontSize.map { max($0, 0) }
-        self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
-        self.fontWidth = fontWidth?.clamped(to: 0.5 ... 2.5)
+        self.fontWeight = fontWeight?.clamped(to: EPUBPreferences.fontWeightRange)
+        self.fontWidth = fontWidth?.clamped(to: EPUBPreferences.fontWidthRange)
         self.hyphens = hyphens
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }

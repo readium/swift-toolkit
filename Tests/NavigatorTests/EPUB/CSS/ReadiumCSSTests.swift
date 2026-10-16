@@ -40,12 +40,7 @@ struct ReadiumCSSTests {
         """
 
     @Test func injectionsWithoutAnyStyle() throws {
-        let css = ReadiumCSS(
-            layout: CSSLayout(),
-            rsProperties: CSSRSProperties(),
-            userProperties: CSSUserProperties(),
-            baseURL: baseURL
-        )
+        let css = ReadiumCSS(baseURL: baseURL)
 
         #expect(
             try css.injections(for: html) == [
@@ -62,12 +57,7 @@ struct ReadiumCSSTests {
     }
 
     @Test func injectionsWithPublicationStyles() throws {
-        let css = ReadiumCSS(
-            layout: CSSLayout(),
-            rsProperties: CSSRSProperties(),
-            userProperties: CSSUserProperties(),
-            baseURL: baseURL
-        )
+        let css = ReadiumCSS(baseURL: baseURL)
 
         #expect(
             try !css.injections(for: """
@@ -112,7 +102,6 @@ struct ReadiumCSSTests {
 
     @Test func injectionsWithReadiumCSSProperties() throws {
         let css = ReadiumCSS(
-            layout: CSSLayout(),
             rsProperties: CSSRSProperties(
                 colGap: CSSPxLength(40.0),
                 textColor: CSSHexColor("#FF0000")
@@ -144,67 +133,27 @@ struct ReadiumCSSTests {
         )
     }
 
-    @Test func injectRTLDirStylesheets() throws {
-        let css = ReadiumCSS(
-            layout: CSSLayout(stylesheets: .rtl),
-            rsProperties: CSSRSProperties(),
-            userProperties: CSSUserProperties(),
-            baseURL: baseURL
-        )
+    /// The `dir` attributes are injected only with a horizontal direction.
+    @Test(arguments: [
+        (CSSLayout.Stylesheets.rtl, "rtl/", true),
+        (.cjkHorizontal, "cjk-horizontal/", false),
+        (.cjkVertical, "cjk-vertical/", nil),
+    ] as [(CSSLayout.Stylesheets, String, Bool?)])
+    func injectStylesheetsFromTheirFolder(stylesheets: CSSLayout.Stylesheets, folder: String, rtl: Bool?) throws {
+        let css = ReadiumCSS(layout: CSSLayout(stylesheets: stylesheets), baseURL: baseURL)
+        let dirAttributes: [HTMLInjection] = rtl.map {
+            [.dirAttribute(on: .html, rtl: $0), .dirAttribute(on: .body, rtl: $0)]
+        } ?? []
 
         #expect(
             try css.injections(for: html) == [
                 viewportMeta,
-                cssBefore(folder: "rtl/"),
-                cssDefault(folder: "rtl/"),
-                cssAfter(folder: "rtl/"),
+                cssBefore(folder: folder),
+                cssDefault(folder: folder),
+                cssAfter(folder: folder),
                 audioFix,
                 .styleAttribute(on: .html, css: ""),
-                .dirAttribute(on: .html, rtl: true),
-                .dirAttribute(on: .body, rtl: true),
-            ]
-        )
-    }
-
-    @Test func injectCJKHorizontalStylesheets() throws {
-        let css = ReadiumCSS(
-            layout: CSSLayout(stylesheets: .cjkHorizontal),
-            rsProperties: CSSRSProperties(),
-            userProperties: CSSUserProperties(),
-            baseURL: baseURL
-        )
-
-        #expect(
-            try css.injections(for: html) == [
-                viewportMeta,
-                cssBefore(folder: "cjk-horizontal/"),
-                cssDefault(folder: "cjk-horizontal/"),
-                cssAfter(folder: "cjk-horizontal/"),
-                audioFix,
-                .styleAttribute(on: .html, css: ""),
-                .dirAttribute(on: .html, rtl: false),
-                .dirAttribute(on: .body, rtl: false),
-            ]
-        )
-    }
-
-    @Test func injectCJKVerticalStylesheets() throws {
-        let css = ReadiumCSS(
-            layout: CSSLayout(stylesheets: .cjkVertical),
-            rsProperties: CSSRSProperties(),
-            userProperties: CSSUserProperties(),
-            baseURL: baseURL
-        )
-
-        #expect(
-            try css.injections(for: html) == [
-                viewportMeta,
-                cssBefore(folder: "cjk-vertical/"),
-                cssDefault(folder: "cjk-vertical/"),
-                cssAfter(folder: "cjk-vertical/"),
-                audioFix,
-                .styleAttribute(on: .html, css: ""),
-            ]
+            ] + dirAttributes
         )
     }
 
@@ -299,10 +248,7 @@ struct ReadiumCSSTests {
     // MARK: - langInjections(for:) via injections(for:)
 
     @Test func noLangInjectionWhenNoLanguageSet() throws {
-        let css = ReadiumCSS(
-            layout: CSSLayout(),
-            baseURL: baseURL
-        )
+        let css = ReadiumCSS(baseURL: baseURL)
 
         #expect(
             try css.injections(for: html) == [
@@ -376,10 +322,18 @@ struct ReadiumCSSTests {
         )
     }
 
-    @Test @MainActor func updateDisablesOverflow() {
-        var css = ReadiumCSS(baseURL: baseURL)
-        css.update(with: EPUBSettings(preferences: EPUBPreferences(), defaults: EPUBDefaults(), metadata: Metadata(title: "Test")))
-        #expect(css.rsProperties.cssProperties()["--RS__disableOverflow"] == "readium-noOverflow-on")
+    @Test @MainActor func updateResolvesTheFontFamilyAlternates() {
+        var css = ReadiumCSS(
+            baseURL: baseURL,
+            fontFamilyDeclarations: [
+                CSSFontFamilyDeclaration(fontFamily: "Literata", alternates: ["IA Writer Duospace"])
+                    .eraseToAnyHTMLFontFamilyDeclaration(),
+                CSSFontFamilyDeclaration(fontFamily: "IA Writer Duospace", alternates: [.serif])
+                    .eraseToAnyHTMLFontFamilyDeclaration(),
+            ]
+        )
+        css.update(with: EPUBSettings(preferences: EPUBPreferences(fontFamily: "Literata"), defaults: EPUBDefaults(), metadata: Metadata(title: "Test")))
+        #expect(css.userProperties.cssProperties()["--USER__fontFamily"] == #"Literata, "IA Writer Duospace", serif"#)
     }
 
     @Test(arguments: [false, true])

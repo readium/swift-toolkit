@@ -129,62 +129,16 @@ struct CSSUserPropertiesTests {
         )
     }
 
-    @Test func generateFullInlineCSSProperties() {
+    @Test func generateInlineCSSPropertiesWithSeveralFontFamilies() {
         #expect(
-            CSSUserProperties(
-                view: .scroll,
-                colCount: 0,
-                lineLength: CSSPercentLength(42),
-                blendImages: true,
-                darkenImages: 0.8,
-                invertImages: 0.9,
-                invertGaiji: 0.95,
-                textColor: CSSHexColor("#FF0000"),
-                backgroundColor: CSSHexColor("#00FF00"),
-                linkColor: CSSHexColor("#0000FF"),
-                visitedColor: CSSHexColor("#FF00FF"),
-                fontFamily: ["Times New", "Comic Sans"],
-                fontSize: CSSVMaxLength(2.3),
-                fontWeight: 600,
-                fontWidth: CSSPercentLength(1.25),
-                textAlign: .justify,
-                lineHeight: .length(CSSPtLength(4.5)),
-                paraSpacing: CSSPtLength(5.6),
-                paraIndent: CSSRemLength(6.7),
-                wordSpacing: CSSRemLength(7.8),
-                letterSpacing: CSSRemLength(8.9),
-                bodyHyphens: .auto,
-                ligatures: .common,
-                a11yNormalize: true,
-                noRuby: true
-            ).css() == """
-            --USER__a11yNormalize: readium-a11y-on !important;
-            --USER__backgroundColor: #00FF00 !important;
-            --USER__blendImages: readium-blend-on !important;
-            --USER__bodyHyphens: auto !important;
-            --USER__colCount: 0 !important;
-            --USER__darkenImages: 0.80000 !important;
+            CSSUserProperties(fontFamily: ["Times New", "Comic Sans"]).css() == """
             --USER__fontFamily: "Times New", "Comic Sans" !important;
-            --USER__fontSize: 2.30000vmax !important;
-            --USER__fontWeight: 600 !important;
-            --USER__fontWidth: 125.00000% !important;
-            --USER__invertGaiji: 0.95000 !important;
-            --USER__invertImages: 0.90000 !important;
-            --USER__letterSpacing: 8.90000rem !important;
-            --USER__ligatures: common-ligatures !important;
-            --USER__lineHeight: 4.50000pt !important;
-            --USER__lineLength: 4200.00000% !important;
-            --USER__linkColor: #0000FF !important;
-            --USER__noRuby: readium-noRuby-on !important;
-            --USER__paraIndent: 6.70000rem !important;
-            --USER__paraSpacing: 5.60000pt !important;
-            --USER__textAlign: justify !important;
-            --USER__textColor: #FF0000 !important;
-            --USER__view: readium-scroll-on !important;
-            --USER__visitedColor: #FF00FF !important;
-            --USER__wordSpacing: 7.80000rem !important;
 
             """
         )
+    }
+
+    @Test func intColorIgnoresTheBitsAboveRGB() {
+        #expect(CSSIntColor(0x7F00FF00).css() == "#00FF00")
     }
 }

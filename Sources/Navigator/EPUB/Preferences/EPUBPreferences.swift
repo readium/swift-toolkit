@@ -193,8 +193,8 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.fit = fit
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
-        self.fontWeight = fontWeight?.clamped(to: 0.0 ... 2.5)
-        self.fontWidth = fontWidth?.clamped(to: 0.5 ... 2.5)
+        self.fontWeight = fontWeight?.clamped(to: Self.fontWeightRange)
+        self.fontWidth = fontWidth?.clamped(to: Self.fontWidthRange)
         self.hyphens = hyphens
         self.blendImages = blendImages
         self.darkenImages = darkenImages
@@ -286,6 +286,13 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
             verticalText: verticalText
         )
     }
+}
+
+/// Supported ranges of the preferences, shared with `EPUBDefaults` and the
+/// `EPUBPreferencesEditor`.
+extension EPUBPreferences {
+    static let fontWeightRange: ClosedRange<Double> = 0.0 ... 2.5
+    static let fontWidthRange: ClosedRange<Double> = 0.5 ... 2.5
 }
 
 // MARK: - Codable
