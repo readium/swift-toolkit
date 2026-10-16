@@ -47,6 +47,7 @@ enum TimelineTests {
 
             #expect(timeline.items.isEmpty)
             #expect(timeline.locate(Locator(href: "t1", mediaType: .mp3)) == nil)
+            #expect(timeline.first() == nil)
             #expect(timeline.segments() == [])
             #expect(timeline.segments(in: url("t1")) == [])
         }
@@ -354,6 +355,31 @@ enum TimelineTests {
         }
     }
 
+    struct First {
+        @Test func isTheFirstRangedItemInPreOrder() {
+            // The outermost of Part 1 and Chapter 1, which share the first
+            // start.
+            #expect(main.timeline.first() == main["Part 1"])
+            #expect(first.timeline.first() == first["C"])
+        }
+
+        @Test func stopsAtTheMaxDepth() {
+            #expect(first.timeline.first(maxDepth: 1) == first["X"])
+        }
+
+        @Test func isNilWhenNoItemIsPlaced() {
+            let timeline = TimelineFixture(durations: [600], nodes: [node("R", "outside.mp3")]).timeline
+
+            #expect(timeline.first() == nil)
+        }
+
+        /// The first placed item is under a rangeless parent.
+        private let first = TimelineFixture(durations: [600, 300], nodes: [
+            node("R", "outside.mp3", [node("C", "t1")]),
+            node("X", "t2"),
+        ])
+    }
+
     struct PreviousAndNext {
         @Test func followThePreOrder() {
             let order = ["Chapter 1", "Chapter 2", "Part 2", "Chapter 3", "Chapter 4"].map { main[$0] }
@@ -387,6 +413,7 @@ enum TimelineTests {
         @Test(arguments: [0, -1])
         func maxDepthBelowOneReturnsNothing(maxDepth: Int) {
             #expect(main.locate("t1", 450, maxDepth: maxDepth) == nil)
+            #expect(main.timeline.first(maxDepth: maxDepth) == nil)
             #expect(main.timeline.previous(before: main["Chapter 2"], maxDepth: maxDepth) == nil)
             #expect(main.timeline.next(after: main["Chapter 2"], maxDepth: maxDepth) == nil)
             #expect(main.timeline.segments(maxDepth: maxDepth) == [])

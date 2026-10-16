@@ -184,6 +184,17 @@ public struct Timeline: Sendable {
         return itemID.map { allItems[$0] }
     }
 
+    /// Returns the first item with a range in pre-order, or `nil` when no
+    /// placed item is within `maxDepth`.
+    ///
+    /// - Parameter maxDepth: Skips the items deeper than this depth. The top
+    ///   level is 1.
+    public func first(maxDepth: Int? = nil) -> TimelineItem? {
+        rangedIDs
+            .first { isWithin($0, maxDepth: maxDepth) }
+            .map { allItems[$0] }
+    }
+
     /// Returns the item before `item` in pre-order, skipping the items
     /// without a range or sharing its start.
     ///
