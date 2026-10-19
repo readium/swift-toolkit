@@ -65,7 +65,7 @@ public final class AudioParser: PublicationParser, Loggable {
             generatesTableOfContentsFromReadingOrder: Bool = true
         ) {
             self.containerEntriesMetadataPolicy = containerEntriesMetadataPolicy
-            self.maxConcurrentMetadataReads = max(1, maxConcurrentMetadataReads)
+            self.maxConcurrentMetadataReads = maxConcurrentMetadataReads
             self.generatesTableOfContentsFromReadingOrder = generatesTableOfContentsFromReadingOrder
         }
     }
@@ -272,9 +272,10 @@ public final class AudioParser: PublicationParser, Loggable {
         warnings: WarningLogger?
     ) async -> ReadResult<[AudioMetadata?]> {
         var metadata: [AudioMetadata?] = []
+        let batchSize = max(1, config.maxConcurrentMetadataReads)
 
-        for start in stride(from: 0, to: files.count, by: config.maxConcurrentMetadataReads) {
-            let batch = files[start ..< min(start + config.maxConcurrentMetadataReads, files.count)]
+        for start in stride(from: 0, to: files.count, by: batchSize) {
+            let batch = files[start ..< min(start + batchSize, files.count)]
             let includesCover = !metadata.contains { $0?.cover != nil }
 
             switch await readMetadata(ofBatch: batch, in: container, includesCover: includesCover) {

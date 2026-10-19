@@ -9,7 +9,7 @@ import Foundation
 @_spi(ExperimentalTimeline) import TestSupport
 import Testing
 
-/// Two fixtures are used.
+/// Three fixtures are used.
 ///
 /// **Main**: tracks `t1` 600 s, `t2` 300 s and `t3` 900 s.
 ///
@@ -28,6 +28,15 @@ import Testing
 ///   - C → `t3`
 /// - X → `t1` (goes back)
 /// - B → `t3#t=200`
+///
+/// **Nested**: tracks `t1` 600 s and `t2` 300 s. A placed item is nested
+/// under a rangeless one.
+///
+/// - Part 1 → `t1`
+///   - Chapter 1 → `t1`
+///   - Chapter 2 → `outside.mp3` (not in the reading order)
+///     - Section → `t1#t=300`
+/// - Part 2 → `t2`
 enum TimelineTests {
     struct Building {
         @Test func idsArePreOrderIndexesAndItemsKeepTheNodes() {
@@ -363,6 +372,24 @@ enum TimelineTests {
             ])
         }
 
+        @Test func ancestorKeepsTheRangeOfADeeperItemUnderARangelessOne() {
+            #expect(nested.timeline.segments() == [
+                nested.segment("Chapter 1", (0, 0), (0, 300)),
+                nested.segment("Section", (0, 300), (1, 0)),
+                nested.segment("Part 2", (1, 0), (1, 300)),
+            ])
+            // `locate` returns Part 1 in `[t1 300, t2 0)`.
+            #expect(nested.timeline.segments(maxDepth: 2) == [
+                nested.segment("Chapter 1", (0, 0), (0, 300)),
+                nested.segment("Part 1", (0, 300), (1, 0)),
+                nested.segment("Part 2", (1, 0), (1, 300)),
+            ])
+            #expect(nested.timeline.segments(maxDepth: 1) == [
+                nested.segment("Part 1", (0, 0), (1, 0)),
+                nested.segment("Part 2", (1, 0), (1, 300)),
+            ])
+        }
+
         struct FixtureDepth: Sendable, CustomTestStringConvertible {
             let name: String
             let fixture: TimelineFixture
@@ -380,6 +407,8 @@ enum TimelineTests {
             FixtureDepth(name: "main at depth 1", fixture: main, maxDepth: 1),
             FixtureDepth(name: "sparse", fixture: sparse, maxDepth: nil),
             FixtureDepth(name: "sparse at depth 1", fixture: sparse, maxDepth: 1),
+            FixtureDepth(name: "nested", fixture: nested, maxDepth: nil),
+            FixtureDepth(name: "nested at depth 2", fixture: nested, maxDepth: 2),
         ])
         func labelsMatchLocate(_ example: FixtureDepth) {
             let fixture = example.fixture
@@ -439,6 +468,7 @@ enum TimelineTests {
 
 private let main = makeMain()
 private let sparse = makeSparse()
+private let nested = makeNested()
 
 private func makeMain() -> TimelineFixture {
     TimelineFixture(durations: [600, 300, 900], nodes: [
@@ -459,6 +489,16 @@ private func makeSparse() -> TimelineFixture {
         node("R", "outside.mp3", [node("C", "t3")]),
         node("X", "t1"),
         node("B", "t3#t=200"),
+    ])
+}
+
+private func makeNested() -> TimelineFixture {
+    TimelineFixture(durations: [600, 300], nodes: [
+        node("Part 1", "t1", [
+            node("Chapter 1", "t1"),
+            node("Chapter 2", "outside.mp3", [node("Section", "t1#t=300")]),
+        ]),
+        node("Part 2", "t2"),
     ])
 }
 

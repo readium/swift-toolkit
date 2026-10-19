@@ -37,6 +37,14 @@ struct PDFSelectorTests {
         )
     }
 
+    @Test("percent-encoded parameters")
+    func percentEncodedParameters() {
+        #expect(
+            PDFSelector(fragment: "page=%33&viewrect=10%2C20%2C100%2C50") ==
+                PDFSelector(page: 3, rect: PDFSelector.Rect(left: 10, top: 20, width: 100, height: 50))
+        )
+    }
+
     @Test("invalid: missing page")
     func invalidMissingPage() {
         #expect(PDFSelector(fragment: "viewrect=10,20,100,50") == nil)

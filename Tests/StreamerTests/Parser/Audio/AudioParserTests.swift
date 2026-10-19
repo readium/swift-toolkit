@@ -164,6 +164,7 @@ enum AudioParserTests {
             (1, 1),
             // One file at a time for a value below 1.
             (0, 1),
+            (-1, 1),
         ] as [(Int?, Int)])
         func readsABatchOfFilesAtATimeAndKeepsTheReadingOrder(maxConcurrentMetadataReads: Int?, expectedBatchSize: Int) async throws {
             let fileCount = 6

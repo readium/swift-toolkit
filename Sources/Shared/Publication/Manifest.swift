@@ -152,6 +152,7 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
         let links = [readingOrder, resources, links]
 
         return deepFind(href: href, in: links)
+            ?? deepFind(href: href.removingFragment(), in: links)
             ?? deepFind(href: href.removingQuery().removingFragment(), in: links)
     }
 

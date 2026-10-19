@@ -177,11 +177,7 @@ public struct Timeline: Sendable {
             return nil
         }
 
-        var itemID: Int? = rangedIDs[low - 1]
-        while let currentID = itemID, !isRanged(currentID) || !isWithin(currentID, maxDepth: maxDepth) {
-            itemID = parentIDs[currentID]
-        }
-        return itemID.map { allItems[$0] }
+        return labelID(of: rangedIDs[low - 1], maxDepth: maxDepth).map { allItems[$0] }
     }
 
     /// Returns the first item with a range in pre-order, or `nil` when no
@@ -253,21 +249,34 @@ public struct Timeline: Sendable {
     /// - Parameter maxDepth: Labels the segments with items no deeper than
     ///   this depth. The top level is 1.
     public func segments(maxDepth: Int? = nil) -> [TimelineSegment] {
-        let items = rangedIDs
-            .filter { isWithin($0, maxDepth: maxDepth) }
-            .map { allItems[$0] }
+        var segments: [TimelineSegment] = []
 
-        return items.enumerated().compactMap { index, item in
-            let start = item.start!
+        // Each ranged item starts an interval up to the next one, labelled
+        // like `locate` would in it.
+        for (index, rangedID) in rangedIDs.enumerated() {
+            guard let labelID = labelID(of: rangedID, maxDepth: maxDepth) else {
+                continue
+            }
+            let item = allItems[labelID]
+            let start = allItems[rangedID].start!
             var end = item.end
-            if index + 1 < items.count, let next = items[index + 1].start, end.map({ next.isBefore($0) }) ?? true {
+            if index + 1 < rangedIDs.count, let next = allItems[rangedIDs[index + 1]].start, end.map({ next.isBefore($0) }) ?? true {
                 end = next
             }
             guard end.map({ start.isBefore($0) }) ?? true else {
-                return nil
+                continue
             }
-            return TimelineSegment(item: item, start: start, end: end)
+
+            // The items of a subtree are consecutive in pre-order, so the
+            // intervals of a label are adjacent.
+            if let last = segments.last, last.item.id == labelID {
+                segments[segments.count - 1] = TimelineSegment(item: item, start: last.start, end: end)
+            } else {
+                segments.append(TimelineSegment(item: item, start: start, end: end))
+            }
         }
+
+        return segments
     }
 
     /// Returns the segments of ``segments(maxDepth:)`` in the reading order
@@ -304,6 +313,17 @@ public struct Timeline: Sendable {
     /// Returns whether `item` belongs to this timeline.
     private func contains(_ item: TimelineItem) -> Bool {
         allItems.indices.contains(item.id) && allItems[item.id] == item
+    }
+
+    /// Returns the ID of the item labelling the positions from the start of
+    /// the ranged item `itemID`: itself, or its closest ranged ancestor
+    /// within `maxDepth`.
+    private func labelID(of itemID: Int, maxDepth: Int?) -> Int? {
+        var labelID: Int? = itemID
+        while let currentID = labelID, !isRanged(currentID) || !isWithin(currentID, maxDepth: maxDepth) {
+            labelID = parentIDs[currentID]
+        }
+        return labelID
     }
 
     private func isRanged(_ itemID: Int) -> Bool {

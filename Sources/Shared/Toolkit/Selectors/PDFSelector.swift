@@ -66,17 +66,13 @@ public extension PDFSelector {
     ///
     /// - https://www.rfc-editor.org/rfc/rfc8118
     init?(fragment: URLFragment) {
-        let pairs = fragment.rawValue.components(separatedBy: "&")
         var pageValue: Int?
         var rectValue: Rect?
 
-        for pair in pairs {
-            let kv = pair.components(separatedBy: "=")
-            guard kv.count == 2 else { continue }
-            let key = kv[0]
-            let value = kv[1]
+        for parameter in fragment.parameters {
+            let value = parameter.value
 
-            switch key {
+            switch parameter.name {
             case "page":
                 guard let n = Int(value), n >= 1 else { return nil }
                 pageValue = n
