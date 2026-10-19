@@ -54,6 +54,9 @@ public final class AudioParser: PublicationParser, Loggable {
 
         /// When no file has a chapter, makes the table of contents from the
         /// titles of the files, if at least two of them are titled.
+        ///
+        /// When disabled, the experimental timeline of such a publication is
+        /// empty, instead of having one item per file.
         public var generatesTableOfContentsFromReadingOrder: Bool
 
         public init(

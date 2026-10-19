@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalSelectors) import ReadiumShared
 
 /// Builds the manifest of an audio publication from the metadata of its audio
 /// files.

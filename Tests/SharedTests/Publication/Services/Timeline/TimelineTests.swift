@@ -247,20 +247,30 @@ enum TimelineTests {
     }
 
     struct Equality {
+        struct OffsetPair: Sendable, CustomTestStringConvertible {
+            let name: String
+            let low: TimelineOffset
+            let high: TimelineOffset
+
+            var testDescription: String {
+                name
+            }
+        }
+
         @Test(arguments: [
-            (TimelineOffset.seconds(10), TimelineOffset.seconds(20)),
-            (.scroll(0.1), .scroll(0.2)),
-            (.page(1), .page(2)),
+            OffsetPair(name: "seconds", low: .seconds(10), high: .seconds(20)),
+            OffsetPair(name: "scroll", low: .scroll(0.1), high: .scroll(0.2)),
+            OffsetPair(name: "page", low: .page(1), high: .page(2)),
         ])
-        func positionsAreOrderedByIndexThenByOffset(_ low: TimelineOffset, _ high: TimelineOffset) {
+        func positionsAreOrderedByIndexThenByOffset(_ offsets: OffsetPair) {
             func position(_ index: Int, _ offset: TimelineOffset) -> TimelinePosition {
                 TimelinePosition(readingOrderIndex: index, offset: offset)
             }
 
-            #expect(position(0, high).isBefore(position(1, low)))
-            #expect(position(1, low).isBefore(position(1, high)))
-            #expect(position(1, high).isBefore(position(2, low)))
-            #expect(!position(1, low).isBefore(position(1, low)))
+            #expect(position(0, offsets.high).isBefore(position(1, offsets.low)))
+            #expect(position(1, offsets.low).isBefore(position(1, offsets.high)))
+            #expect(position(1, offsets.high).isBefore(position(2, offsets.low)))
+            #expect(!position(1, offsets.low).isBefore(position(1, offsets.low)))
         }
 
         @Test func itemsOfTimelinesBuiltFromTheSameNodesAreEqual() {

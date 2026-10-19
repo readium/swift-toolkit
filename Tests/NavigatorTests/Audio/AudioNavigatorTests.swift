@@ -6,7 +6,7 @@
 
 import Foundation
 @testable import ReadiumNavigator
-import ReadiumShared
+@_spi(ExperimentalSelectors) import ReadiumShared
 import Testing
 import TestSupport
 

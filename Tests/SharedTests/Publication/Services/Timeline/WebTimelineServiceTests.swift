@@ -42,19 +42,31 @@ struct WebTimelineServiceTests {
         #expect(timeline.items.map(\.end) == [position(3), nil, position(4), nil, position(4, 1), nil])
     }
 
-    @Test(arguments: [
-        ("cover.xhtml", 0.5, nil),
-        ("ch1a.xhtml", 0.9, "Chapter 1"),
-        ("ch1b.xhtml", 0.5, "Chapter 1"),
-        ("ch2.xhtml", 0, "Chapter 2"),
-        ("ch3.xhtml", 1, "Chapter 3"),
-        ("outside.xhtml", 0, nil),
-    ] as [(String, Double, String?)])
-    func locatesTheChapterOfTheResource(href: String, progression: Double, expected: String?) async throws {
-        let timeline = try await timeline()
-        let locator = Locator(href: AnyURL(string: href)!, mediaType: .xhtml, locations: .init(progression: progression))
+    struct ResourceChapter: Sendable, CustomTestStringConvertible {
+        let name: String
+        let href: String
+        let progression: Double
+        /// Title of the located item, `nil` for none.
+        let expected: String?
 
-        #expect(timeline.locate(locator)?.title == expected.map { .text($0) })
+        var testDescription: String {
+            name
+        }
+    }
+
+    @Test(arguments: [
+        ResourceChapter(name: "the cover is before the first chapter", href: "cover.xhtml", progression: 0.5, expected: nil),
+        ResourceChapter(name: "the resource of a chapter", href: "ch1a.xhtml", progression: 0.9, expected: "Chapter 1"),
+        ResourceChapter(name: "the second resource of a split chapter", href: "ch1b.xhtml", progression: 0.5, expected: "Chapter 1"),
+        ResourceChapter(name: "the start of a chapter with a fragment", href: "ch2.xhtml", progression: 0, expected: "Chapter 2"),
+        ResourceChapter(name: "the end of the last chapter", href: "ch3.xhtml", progression: 1, expected: "Chapter 3"),
+        ResourceChapter(name: "a resource outside the reading order", href: "outside.xhtml", progression: 0, expected: nil),
+    ])
+    func locatesTheChapterOfTheResource(_ example: ResourceChapter) async throws {
+        let timeline = try await timeline()
+        let locator = Locator(href: AnyURL(string: example.href)!, mediaType: .xhtml, locations: .init(progression: example.progression))
+
+        #expect(timeline.locate(locator)?.title == example.expected.map { .text($0) })
     }
 
     @Test func aSplitChapterCoversItsFollowingResources() async throws {

@@ -104,23 +104,45 @@ enum ReadiumWebPubParserTests {
     }
 
     struct Timelines {
+        struct ProfileExample: Sendable, CustomTestStringConvertible {
+            let name: String
+            /// Media type of the reading order resource.
+            let mediaType: String
+            /// JSON of the `conformsTo` of the manifest.
+            var conformsTo = "[]"
+            /// Whether the package is protected with LCP.
+            var isLCP = false
+            /// Type name of the expected timeline service, `nil` for none.
+            let expected: String?
+
+            var testDescription: String {
+                name
+            }
+        }
+
         @Test(arguments: [
-            ("audio/mpeg", "[]", "AudioTimelineService"),
-            ("text/html", "[]", "WebTimelineService"),
-            ("image/svg+xml", #"["https://readium.org/webpub-manifest/profiles/epub"]"#, "WebTimelineService"),
-            ("image/svg+xml", "[]", nil),
-            ("image/png", "[]", nil),
-            ("application/pdf", "[]", nil),
-        ] as [(String, String, String?)])
-        func serviceDependsOnTheProfileAndResources(mediaType: String, conformsTo: String, expected: String?) async throws {
+            ProfileExample(name: "audiobook", mediaType: "audio/mpeg", expected: "AudioTimelineService"),
+            ProfileExample(name: "HTML resources", mediaType: "text/html", expected: "WebTimelineService"),
+            ProfileExample(
+                name: "EPUB profile without HTML resources",
+                mediaType: "image/svg+xml",
+                conformsTo: #"["https://readium.org/webpub-manifest/profiles/epub"]"#,
+                expected: "WebTimelineService"
+            ),
+            ProfileExample(name: "SVG resources without the EPUB profile", mediaType: "image/svg+xml", expected: nil),
+            ProfileExample(name: "comic", mediaType: "image/png", expected: nil),
+            ProfileExample(name: "PDF", mediaType: "application/pdf", expected: nil),
+            ProfileExample(name: "LCP-protected PDF", mediaType: "application/pdf", isLCP: true, expected: "PDFTimelineService"),
+        ])
+        func serviceDependsOnTheProfileAndResources(_ example: ProfileExample) async throws {
             let publication = try await parsePackage(manifest: """
             {
-              "metadata": {"title": "Publication", "conformsTo": \(conformsTo)},
-              "readingOrder": [{"href": "part1", "type": "\(mediaType)"}]
+              "metadata": {"title": "Publication", "conformsTo": \(example.conformsTo)},
+              "readingOrder": [{"href": "part1", "type": "\(example.mediaType)"}]
             }
-            """)
+            """, isLCP: example.isLCP)
 
-            #expect(publication.findService(TimelineService.self).map { "\(type(of: $0))" } == expected)
+            #expect(publication.findService(TimelineService.self).map { "\(type(of: $0))" } == example.expected)
         }
     }
 }
@@ -133,18 +155,20 @@ private func makeParser(generatesTableOfContentsFromReadingOrder: Bool = true) -
     ReadiumWebPubParser(
         pdfFactory: DefaultPDFDocumentFactory(),
         httpClient: DefaultHTTPClient(),
-        config: .init(generatesTableOfContentsFromReadingOrder: generatesTableOfContentsFromReadingOrder)
+        config: .init(generatesAudiobookTableOfContentsFromReadingOrder: generatesTableOfContentsFromReadingOrder)
     )
 }
 
 /// Parses a package holding only the given manifest.
-private func parsePackage(manifest: String, generatesTableOfContentsFromReadingOrder: Bool = true) async throws -> Publication {
+private func parsePackage(manifest: String, generatesTableOfContentsFromReadingOrder: Bool = true, isLCP: Bool = false) async throws -> Publication {
     let asset: Asset = .container(ContainerAsset(
         container: SingleResourceContainer(
             resource: DataResource(string: manifest),
             at: AnyURL(string: "manifest.json")!
         ),
-        format: Format(specifications: .zip, .rpf, mediaType: .readiumWebPub, fileExtension: "webpub")
+        format: isLCP
+            ? Format(specifications: .zip, .rpf, .lcp, mediaType: .lcpProtectedPDF, fileExtension: "lcpdf")
+            : Format(specifications: .zip, .rpf, mediaType: .readiumWebPub, fileExtension: "webpub")
     ))
     return try await makeParser(generatesTableOfContentsFromReadingOrder: generatesTableOfContentsFromReadingOrder)
         .parse(asset: asset, warnings: nil).get().build()

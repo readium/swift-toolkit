@@ -27,14 +27,17 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
         /// When an audiobook has no table of contents, makes one from the
         /// titles of its reading order resources, if at least two of them are
         /// titled.
+        ///
+        /// When disabled, the experimental timeline of such an audiobook is
+        /// empty, instead of having one item per reading order resource.
         public var generatesAudiobookTableOfContentsFromReadingOrder: Bool
 
         public init(
             epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended,
-            generatesTableOfContentsFromReadingOrder: Bool = true
+            generatesAudiobookTableOfContentsFromReadingOrder: Bool = true
         ) {
             self.epubReflowablePositionsStrategy = epubReflowablePositionsStrategy
-            generatesAudiobookTableOfContentsFromReadingOrder = generatesTableOfContentsFromReadingOrder
+            self.generatesAudiobookTableOfContentsFromReadingOrder = generatesAudiobookTableOfContentsFromReadingOrder
         }
     }
 
@@ -169,6 +172,7 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
                             $0.setPDFDocumentServiceFactory(DefaultPDFDocumentService.makeFactory(factory: pdfFactory))
                             $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory())
                             $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory())
+                            $0.setTimelineServiceFactory(PDFTimelineService.makeFactory())
                             $0.setContentServiceFactory(DefaultContentService.makeFactory(
                                 resourceContentIteratorFactories: [
                                     PDFResourceContentIterator.Factory(),

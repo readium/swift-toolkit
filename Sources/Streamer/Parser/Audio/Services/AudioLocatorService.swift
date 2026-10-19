@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalSelectors) import ReadiumShared
 
 /// Locator service for audio publications.
 final class AudioLocatorService: LocatorService {

@@ -72,5 +72,8 @@ public enum TimelineOffset: Comparable, Hashable, Sendable {
 
     /// Index of a page in a paginated resource such as a PDF document or an
     /// image, starting at 0.
+    ///
+    /// As an offset, it counts the pages before it: a resource of N pages
+    /// ends at `.page(N)`.
     case page(Int)
 }

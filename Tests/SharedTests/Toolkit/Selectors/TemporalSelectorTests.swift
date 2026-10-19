@@ -5,7 +5,7 @@
 //
 
 import Foundation
-@testable import ReadiumShared
+@_spi(ExperimentalSelectors) @testable import ReadiumShared
 import Testing
 
 enum TemporalSelectorTests {

@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file. Take a look
     * The metadata of the audio files of a ZIP or ZAB package is read too, when the package is stored on the device and its files are stored without compression, [see the user guide](docs/Guides/Navigator/Audiobook.md#metadata-of-audio-files).
     * `AudioParser.Configuration.containerEntriesMetadataPolicy` reads the audio files of a remote package, or opens a package without reading them.
 * Audiobooks without a table of contents now get one from the titles of their reading order resources.
-    * `generatesTableOfContentsFromReadingOrder` in the configuration of `AudioParser` and `ReadiumWebPubParser` disables it.
+    * `AudioParser.Configuration.generatesTableOfContentsFromReadingOrder` and `ReadiumWebPubParser.Configuration.generatesAudiobookTableOfContentsFromReadingOrder` disable it.
 * New `AudioMetadataReader` to customize how `AudioParser` reads the metadata of each audio file.
 
 ### Changed
