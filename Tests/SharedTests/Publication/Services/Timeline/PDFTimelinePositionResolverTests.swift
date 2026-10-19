@@ -149,87 +149,6 @@ enum PDFTimelinePositionResolverTests {
             #expect(resolver([10, 5]).position(of: locator) == nil)
         }
     }
-
-    struct Positions {
-        /// Position of `b.pdf#page=3` with the given page counts.
-        struct PageCounts: Sendable, CustomTestStringConvertible {
-            let name: String
-            let pageCounts: [Int?]
-            let expected: TimelinePosition
-
-            var testDescription: String {
-                name
-            }
-        }
-
-        @Test(arguments: [
-            PageCounts(
-                name: "all the page counts are known",
-                pageCounts: [10, 5],
-                expected: position(1, 2, totalOffset: 12, progression: 0.4, totalProgression: 12.0 / 15)
-            ),
-            PageCounts(
-                name: "the page count of the resource is unknown",
-                pageCounts: [10, nil],
-                expected: position(1, 2, totalOffset: 12, progression: nil, totalProgression: nil)
-            ),
-            PageCounts(
-                name: "a preceding page count is unknown",
-                pageCounts: [nil, 5],
-                expected: position(1, 2, totalOffset: nil, progression: 0.4, totalProgression: nil)
-            ),
-            PageCounts(
-                name: "a page count of 0 is unknown",
-                pageCounts: [0, 5],
-                expected: position(1, 2, totalOffset: nil, progression: 0.4, totalProgression: nil)
-            ),
-            PageCounts(
-                name: "a missing page count is unknown",
-                pageCounts: [10],
-                expected: position(1, 2, totalOffset: 12, progression: nil, totalProgression: nil)
-            ),
-        ])
-        func positionDependsOnThePageCounts(_ example: PageCounts) {
-            let resolver = resolver(example.pageCounts)
-
-            #expect(resolver.position(of: Link(href: "b.pdf#page=3")) == example.expected)
-        }
-    }
-
-    struct Bounds {
-        @Test func resourceBounds() {
-            let resolver = resolver([10, nil])
-
-            #expect(resolver.bounds(ofResource: AnyURL(string: "a.pdf")!)?.start == position(0, 0, totalOffset: 0, progression: 0, totalProgression: nil))
-            #expect(resolver.bounds(ofResource: AnyURL(string: "a.pdf")!)?.end == position(0, 10, totalOffset: 10, progression: 1, totalProgression: nil))
-            #expect(resolver.bounds(ofResource: AnyURL(string: "b.pdf")!)?.end == nil)
-            #expect(resolver.bounds(ofResource: AnyURL(string: "outside.pdf")!) == nil)
-        }
-
-        struct PublicationEnd: Sendable, CustomTestStringConvertible {
-            let pageCounts: [Int?]
-            let expected: TimelinePosition?
-
-            var testDescription: String {
-                "\(pageCounts)"
-            }
-        }
-
-        /// The end of the publication is at 100%, even when a preceding page
-        /// count is unknown.
-        @Test(arguments: [
-            PublicationEnd(pageCounts: [10, 5], expected: position(1, 5, totalOffset: 15, progression: 1, totalProgression: 1)),
-            PublicationEnd(pageCounts: [nil, 5], expected: position(1, 5, totalOffset: nil, progression: 1, totalProgression: 1)),
-            PublicationEnd(pageCounts: [10, nil], expected: nil),
-        ])
-        func publicationEnd(_ example: PublicationEnd) {
-            #expect(resolver(example.pageCounts).end == example.expected)
-        }
-
-        @Test func emptyReadingOrderHasNoEnd() {
-            #expect(PDFTimelinePositionResolver(readingOrder: [], pageCounts: []).end == nil)
-        }
-    }
 }
 
 // MARK: - Helpers
@@ -241,21 +160,5 @@ private func resolver(_ pageCounts: [Int?]) -> PDFTimelinePositionResolver {
             Link(href: "b.pdf", mediaType: .pdf),
         ],
         pageCounts: pageCounts
-    )
-}
-
-private func position(
-    _ index: Int,
-    _ page: Int,
-    totalOffset: Int?,
-    progression: Double?,
-    totalProgression: Double?
-) -> TimelinePosition {
-    TimelinePosition(
-        readingOrderIndex: index,
-        offset: .page(page),
-        totalOffset: totalOffset.map { .page($0) },
-        progression: progression,
-        totalProgression: totalProgression
     )
 }

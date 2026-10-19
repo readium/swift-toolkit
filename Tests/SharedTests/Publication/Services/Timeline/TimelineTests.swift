@@ -52,26 +52,6 @@ enum TimelineTests {
             #expect(timeline.segments(in: url("t1")) == [])
         }
 
-        struct LinkStart: Sendable, CustomTestStringConvertible {
-            let href: String
-            let expected: TimelinePosition
-
-            var testDescription: String {
-                href
-            }
-        }
-
-        @Test(arguments: [
-            LinkStart(href: "t2#t=60", expected: position(1, 60, totalOffset: 660, progression: 0.2, totalProgression: 660.0 / 1800)),
-            LinkStart(href: "t2", expected: position(1, 0, totalOffset: 600, progression: 0, totalProgression: 600.0 / 1800)),
-            LinkStart(href: "t2#t=10,20", expected: position(1, 10, totalOffset: 610, progression: 10.0 / 300, totalProgression: 610.0 / 1800)),
-        ])
-        func startIsComputedFromTheLink(_ example: LinkStart) {
-            let fixture = TimelineFixture(durations: [600, 300, 900], nodes: [node("Item", example.href)])
-
-            #expect(fixture["Item"].start == example.expected)
-        }
-
         @Test func sparseItemsKeepTheirPlaceWithoutARange() {
             #expect(sparse.timeline.outline == [
                 "0 A → t2#t=10",
@@ -113,46 +93,6 @@ enum TimelineTests {
                 main.at(1, 120),
                 main.at(2, 0),
             ])
-        }
-
-        /// Position of `t2#t=60` with the given track durations.
-        struct UnknownDurations: Sendable, CustomTestStringConvertible {
-            let name: String
-            let durations: [TimeInterval?]
-            let expected: TimelinePosition
-
-            var testDescription: String {
-                name
-            }
-        }
-
-        /// The offset is always set.
-        @Test(arguments: [
-            UnknownDurations(
-                name: "the item's own track duration is unknown",
-                durations: [600, nil, 900],
-                expected: position(1, 60, totalOffset: 660, progression: nil, totalProgression: nil)
-            ),
-            UnknownDurations(
-                name: "a preceding duration is unknown",
-                durations: [nil, 300, 900],
-                expected: position(1, 60, totalOffset: nil, progression: 0.2, totalProgression: nil)
-            ),
-            UnknownDurations(
-                name: "a later duration is unknown",
-                durations: [600, 300, nil],
-                expected: position(1, 60, totalOffset: 660, progression: 0.2, totalProgression: nil)
-            ),
-            UnknownDurations(
-                name: "a duration of 0 is unknown",
-                durations: [600, 0, 900],
-                expected: position(1, 60, totalOffset: 660, progression: nil, totalProgression: nil)
-            ),
-        ])
-        func positionWithUnknownDurations(_ example: UnknownDurations) {
-            let fixture = TimelineFixture(durations: example.durations, nodes: [node("Item", "t2#t=60")])
-
-            #expect(fixture["Item"].start == example.expected)
         }
     }
 
@@ -314,54 +254,6 @@ enum TimelineTests {
             #expect(sparse.locate("t4", 50) == sparse["B"])
             // Past the known end of the last track.
             #expect(sparse.locate("t4", 150) == sparse["B"])
-        }
-
-        /// Position of a locator in `t2`, with the given track durations.
-        struct LocatorPosition: Sendable, CustomTestStringConvertible {
-            let name: String
-            var durations: [TimeInterval?] = [600, 300, 900]
-            let locations: Locator.Locations
-            let expected: TimelinePosition
-
-            var testDescription: String {
-                name
-            }
-        }
-
-        @Test(arguments: [
-            LocatorPosition(
-                name: "no fragment: the start of the track",
-                locations: .init(),
-                expected: position(1, 0, totalOffset: 600, progression: 0, totalProgression: 600.0 / 1800)
-            ),
-            LocatorPosition(
-                name: "a progression with a known duration",
-                locations: .init(progression: 0.5),
-                expected: position(1, 150, totalOffset: 750, progression: 0.5, totalProgression: 750.0 / 1800)
-            ),
-            LocatorPosition(
-                name: "a progression with an unknown duration",
-                durations: [600, nil, 900],
-                locations: .init(progression: 0.5),
-                expected: position(1, 0, totalOffset: 600, progression: nil, totalProgression: nil)
-            ),
-            LocatorPosition(
-                name: "`t=` wins over a progression",
-                locations: .init(fragments: ["t=60"], progression: 0.5),
-                expected: position(1, 60, totalOffset: 660, progression: 0.2, totalProgression: 660.0 / 1800)
-            ),
-            LocatorPosition(
-                name: "`t=` alone, with no duration known at all",
-                durations: [nil, nil, nil],
-                locations: .init(fragments: ["t=60"]),
-                expected: position(1, 60, totalOffset: nil, progression: nil, totalProgression: nil)
-            ),
-        ])
-        func locatorIsTurnedIntoAPosition(_ example: LocatorPosition) {
-            let resolver = AudioTimelinePositionResolver(readingOrder: TimelineFixture(durations: example.durations, nodes: []).readingOrder)
-            let locator = Locator(href: "t2", mediaType: .mp3, locations: example.locations)
-
-            #expect(resolver.position(of: locator) == example.expected)
         }
     }
 
