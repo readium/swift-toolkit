@@ -6,8 +6,8 @@
 
 import Foundation
 @_spi(ExperimentalTimeline) @testable import ReadiumShared
-@_spi(ExperimentalTimeline) import TestSupport
 import Testing
+@_spi(ExperimentalTimeline) import TestSupport
 
 /// Three fixtures are used.
 ///

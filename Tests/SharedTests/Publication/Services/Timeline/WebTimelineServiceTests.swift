@@ -6,8 +6,8 @@
 
 import Foundation
 @_spi(ExperimentalTimeline) @testable import ReadiumShared
-@_spi(ExperimentalTimeline) import TestSupport
 import Testing
+@_spi(ExperimentalTimeline) import TestSupport
 
 /// Reading order: `cover`, `ch1a`, `ch1b`, `ch2` and `ch3`, where Chapter 1 is
 /// split across `ch1a` and `ch1b`.

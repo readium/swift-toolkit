@@ -6,8 +6,8 @@
 
 @_spi(ExperimentalTimeline) import ReadiumShared
 @testable import ReadiumStreamer
-@_spi(ExperimentalTimeline) import TestSupport
 import Testing
+@_spi(ExperimentalTimeline) import TestSupport
 
 struct PDFParserTests {
     /// `outline.pdf` has 4 pages and this outline:

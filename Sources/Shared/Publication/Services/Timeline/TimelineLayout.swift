@@ -12,11 +12,15 @@ package protocol TimelineLength: AdditiveArithmetic, Comparable, Sendable {
 }
 
 extension Int: TimelineLength {
-    package var doubleValue: Double { Double(self) }
+    package var doubleValue: Double {
+        Double(self)
+    }
 }
 
 extension Double: TimelineLength {
-    package var doubleValue: Double { self }
+    package var doubleValue: Double {
+        self
+    }
 }
 
 /// Lays out the resources of a reading order one after the other on a
