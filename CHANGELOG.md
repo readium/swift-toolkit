@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Shared
+
+* New experimental `Publication.timeline()` API. A `Timeline` lays out the table of contents on the reading order, to answer questions such as "which chapter am I in?", "what's the next chapter?" or "how long is this chapter?". It is available for audiobooks, EPUB (limited support) and PDF.
+
 #### Navigator
 
 * `AudioNavigator.stop()` stops the playback and ends the audio session.
