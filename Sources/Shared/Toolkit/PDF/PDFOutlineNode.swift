@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct PDFOutlineNode: Sendable {
+public struct PDFOutlineNode: Equatable, Sendable {
     /// Title of this outline item.
     public let title: String?
 

@@ -56,6 +56,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Minizip adapter improvements:
     * Seeking in the entry of a local ZIP package stored without compression no longer reads the entry again from its start.
     * Fixed a crash when reading a corrupted compressed entry of a local ZIP package.
+* Fixed missing items in the table of contents of some PDFs, when their named destinations are declared as dictionaries.
 
 #### Navigator
 

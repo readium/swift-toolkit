@@ -48,7 +48,9 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
         self.resolve = resolve
     }
 
-    private let queue = DispatchQueue(label: "org.readium.swift-toolkit.ResourceAssetLoader")
+    /// Queue on which the requests are received and the loader state is
+    /// accessed.
+    let queue = DispatchQueue(label: "org.readium.swift-toolkit.ResourceAssetLoader")
 
     /// Creates a new `AVURLAsset` to serve the resource at the given `url`.
     package func makeAsset(for url: AnyURL, options: [String: Any]? = nil) throws -> AVURLAsset {
@@ -150,7 +152,7 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
 
     /// A loading request with the task serving it.
     private struct ServedRequest {
-        let loadingRequest: AVAssetResourceLoadingRequest
+        let loadingRequest: any AssetLoadingRequest
         let task: Task<Void, Never>
 
         /// HREF of the asset, for a data request which is still open: neither
@@ -170,7 +172,7 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
     /// - Parameter dataHREF: HREF of the asset for a data request, `nil` for
     ///   a content information request.
     private func serve(
-        _ request: AVAssetResourceLoadingRequest,
+        _ request: any AssetLoadingRequest,
         dataHREF: AnyURL? = nil,
         operation: @escaping @Sendable () async -> Void
     ) {
@@ -191,10 +193,10 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
     /// A content information request is left alone. Its task is only
     /// cancelled by `invalidate()`, as a resource usually caches its length
     /// for the next requests.
-    private func finishRequest(_ request: AVAssetResourceLoadingRequest) {
+    private func finishRequest(_ request: any AssetLoadingRequest) {
         dispatchPrecondition(condition: .onQueue(queue))
 
-        guard let id = servedRequests.first(where: { $0.value.loadingRequest == request && $0.value.openDataHREF != nil })?.key else {
+        guard let id = servedRequests.first(where: { $0.value.loadingRequest.id == request.id && $0.value.openDataHREF != nil })?.key else {
             return
         }
 
@@ -204,43 +206,43 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
         servedRequests[id]?.openDataHREF = nil
     }
 
-    // MARK: - AVAssetResourceLoaderDelegate
+    // MARK: - Loading Requests
 
-    package func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
+    /// Starts serving `request`, or returns false when the loader does not
+    /// serve its asset.
+    func load(_ request: any AssetLoadingRequest) -> Bool {
+        dispatchPrecondition(condition: .onQueue(queue))
+
         guard
             !isInvalidated,
-            let href = loadingRequest.request.url.flatMap(Self.href(forAssetURL:)),
+            let href = request.url.flatMap(Self.href(forAssetURL:)),
             let entry = entry(forHREF: href)
         else {
             return false
         }
 
-        // According to https://jaredsinclair.com/2016/09/03/implementing-avassetresourceload.html,
-        // we should not honor the `dataRequest` if there is a
-        // `contentInformationRequest`.
-        //
-        // > Warning: do not pass the two requested bytes of data to the loading
-        // > request’s dataRequest. This will lead to an undocumented bug where
-        // > no further loading requests will be made, stalling playback
-        // > indefinitely.
-        if let infoRequest = loadingRequest.contentInformationRequest {
-            fillInfo(infoRequest, of: loadingRequest, using: entry)
-        } else if let dataRequest = loadingRequest.dataRequest {
-            fillData(dataRequest, of: loadingRequest, using: entry, requestHREF: href)
+        switch request.kind {
+        case .contentInformation:
+            fillInfo(of: request, using: entry)
+        case let .data(offset, length, toEnd):
+            let range: Range<UInt64>? = (offset == 0 && toEnd)
+                ? nil
+                : UInt64(offset) ..< (UInt64(offset) + UInt64(length))
+            fillData(of: request, range: range, using: entry, requestHREF: href)
+        case nil:
+            break
         }
 
         return true
     }
 
-    private func fillInfo(
-        _ infoRequest: AVAssetResourceLoadingContentInformationRequest,
-        of request: AVAssetResourceLoadingRequest,
-        using entry: Entry
-    ) {
-        serve(request) { [self] in
-            infoRequest.isByteRangeAccessSupported = true
-            infoRequest.contentType = entry.mediaType?.uti
+    /// Stops serving `request`, abandoned by the player.
+    func cancel(_ request: any AssetLoadingRequest) {
+        finishRequest(request)
+    }
 
+    private func fillInfo(of request: any AssetLoadingRequest, using entry: Entry) {
+        serve(request) { [self] in
             let result = await entry.resource.length()
 
             // Only `invalidate()` cancels the task, and it fails the request
@@ -251,8 +253,8 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
 
             switch result {
             case let .success(length):
-                infoRequest.contentLength = Int64(length)
-                request.finishLoading()
+                request.setContentInformation(contentType: entry.mediaType?.uti, contentLength: Int64(length))
+                request.finishLoading(with: nil)
 
             case let .failure(error):
                 log(.error, error)
@@ -262,23 +264,18 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
         }
     }
 
+    /// - Parameter range: Range of the resource to serve, `nil` for the whole
+    ///   resource.
     private func fillData(
-        _ dataRequest: AVAssetResourceLoadingDataRequest,
-        of request: AVAssetResourceLoadingRequest,
+        of request: any AssetLoadingRequest,
+        range: Range<UInt64>?,
         using entry: Entry,
         requestHREF: AnyURL
     ) {
-        let range: Range<UInt64>?
-        if dataRequest.currentOffset == 0, dataRequest.requestsAllDataToEndOfResource {
-            range = nil
-        } else {
-            range = UInt64(dataRequest.currentOffset) ..< (UInt64(dataRequest.currentOffset) + UInt64(dataRequest.requestedLength))
-        }
-
         serve(request, dataHREF: requestHREF) { [self] in
             let result = await entry.resource.stream(
                 range: range,
-                consume: { dataRequest.respond(with: $0) }
+                consume: { request.respond(with: $0) }
             )
 
             // The player abandons data requests regularly, e.g. when seeking.
@@ -290,7 +287,7 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
             queue.async { [weak self] in
                 switch result {
                 case .success:
-                    request.finishLoading()
+                    request.finishLoading(with: nil)
                 case let .failure(error):
                     self?.report(error, forHREF: entry.href)
                     request.finishLoading(with: error)
@@ -310,8 +307,124 @@ package final class ResourceAssetLoader: NSObject, AVAssetResourceLoaderDelegate
         onLoadingError?(href, error)
     }
 
+    // MARK: - AVAssetResourceLoaderDelegate
+
+    package func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
+        load(AVFoundationLoadingRequest(loadingRequest))
+    }
+
     package func resourceLoader(_ resourceLoader: AVAssetResourceLoader, didCancel loadingRequest: AVAssetResourceLoadingRequest) {
-        finishRequest(loadingRequest)
+        cancel(AVFoundationLoadingRequest(loadingRequest))
+    }
+}
+
+/// A request of the player to a `ResourceAssetLoader`.
+///
+/// Abstracts `AVAssetResourceLoadingRequest`, to test the loader without
+/// AVFoundation.
+protocol AssetLoadingRequest: AnyObject, Sendable {
+    /// Identifies the request across the callbacks of the player.
+    var id: ObjectIdentifier { get }
+
+    /// URL of the requested asset.
+    var url: URL? { get }
+
+    /// What the player asks for, `nil` for nothing the loader serves.
+    var kind: AssetLoadingRequestKind? { get }
+
+    /// Whether the loader finished the request.
+    var isFinished: Bool { get }
+
+    /// Whether the player abandoned the request.
+    var isCancelled: Bool { get }
+
+    /// Answers a content information request.
+    func setContentInformation(contentType: String?, contentLength: Int64)
+
+    /// Delivers the next bytes of a data request.
+    func respond(with data: Data)
+
+    /// Finishes the request, with `error` when it failed.
+    func finishLoading(with error: (any Error)?)
+}
+
+/// What the player asks for in an `AssetLoadingRequest`.
+enum AssetLoadingRequestKind: Equatable {
+    /// The type and length of the resource.
+    case contentInformation
+
+    /// `length` bytes from `offset`, or every byte from `offset` when
+    /// `toEnd` is true.
+    case data(offset: Int64, length: Int, toEnd: Bool)
+}
+
+/// An `AVAssetResourceLoadingRequest` as an `AssetLoadingRequest`.
+///
+/// Unchecked, as the tasks of the loader respond to the request.
+private final class AVFoundationLoadingRequest: AssetLoadingRequest, @unchecked Sendable {
+    private let request: AVAssetResourceLoadingRequest
+
+    init(_ request: AVAssetResourceLoadingRequest) {
+        self.request = request
+    }
+
+    var id: ObjectIdentifier {
+        ObjectIdentifier(request)
+    }
+
+    var url: URL? {
+        request.request.url
+    }
+
+    var kind: AssetLoadingRequestKind? {
+        // According to https://jaredsinclair.com/2016/09/03/implementing-avassetresourceload.html,
+        // we should not honor the `dataRequest` if there is a
+        // `contentInformationRequest`.
+        //
+        // > Warning: do not pass the two requested bytes of data to the loading
+        // > request’s dataRequest. This will lead to an undocumented bug where
+        // > no further loading requests will be made, stalling playback
+        // > indefinitely.
+        if request.contentInformationRequest != nil {
+            return .contentInformation
+        }
+        guard let dataRequest = request.dataRequest else {
+            return nil
+        }
+        return .data(
+            offset: dataRequest.currentOffset,
+            length: dataRequest.requestedLength,
+            toEnd: dataRequest.requestsAllDataToEndOfResource
+        )
+    }
+
+    var isFinished: Bool {
+        request.isFinished
+    }
+
+    var isCancelled: Bool {
+        request.isCancelled
+    }
+
+    func setContentInformation(contentType: String?, contentLength: Int64) {
+        guard let infoRequest = request.contentInformationRequest else {
+            return
+        }
+        infoRequest.isByteRangeAccessSupported = true
+        infoRequest.contentType = contentType
+        infoRequest.contentLength = contentLength
+    }
+
+    func respond(with data: Data) {
+        request.dataRequest?.respond(with: data)
+    }
+
+    func finishLoading(with error: (any Error)?) {
+        if let error {
+            request.finishLoading(with: error)
+        } else {
+            request.finishLoading()
+        }
     }
 }
 
