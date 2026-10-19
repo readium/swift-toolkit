@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Shared
+
+* New experimental `Publication.timeline()` API. A `Timeline` lays out the table of contents on the reading order, to answer questions such as "which chapter am I in?", "what's the next chapter?" or "how long is this chapter?". It is available for audiobooks, EPUB (limited support) and PDF.
+
 #### Navigator
 
 * `AudioNavigator.stop()` stops the playback and ends the audio session.
@@ -17,8 +21,9 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Audio publications without a manifest, such as a standalone M4B or MP3 file or a container of audio files, now have a table of contents built from the chapters embedded in their audio files.
     * The metadata of the audio files of a ZIP or ZAB package is read too, when the package is stored on the device and its files are stored without compression, [see the user guide](docs/Guides/Navigator/Audiobook.md#metadata-of-audio-files).
-    * `AudioParser` has a new `containerEntriesMetadataPolicy` option, to read the audio files of a remote package or to open a package without reading them.
+    * `AudioParser.Configuration.containerEntriesMetadataPolicy` reads the audio files of a remote package, or opens a package without reading them.
 * Audiobooks without a table of contents now get one from the titles of their reading order resources.
+    * `AudioParser.Configuration.generatesTableOfContentsFromReadingOrder` and `ReadiumWebPubParser.Configuration.generatesAudiobookTableOfContentsFromReadingOrder` disable it.
 * New `AudioMetadataReader` to customize how `AudioParser` reads the metadata of each audio file.
 
 ### Changed

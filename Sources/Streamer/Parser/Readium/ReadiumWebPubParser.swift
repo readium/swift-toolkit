@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalTimeline) import ReadiumShared
 
 public enum ReadiumWebPubParserError: Error, Sendable {
     case parseFailure(url: URL, Error?)
@@ -19,20 +19,52 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
         case invalidManifest
     }
 
+    public struct Configuration: Sendable {
+        /// Strategy used to calculate the number of positions in a reflowable
+        /// resource of a web publication conforming to the EPUB profile.
+        public var epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
+
+        /// When an audiobook has no table of contents, makes one from the
+        /// titles of its reading order resources, if at least two of them are
+        /// titled.
+        ///
+        /// When disabled, the experimental timeline of such an audiobook is
+        /// empty, instead of having one item per reading order resource.
+        public var generatesAudiobookTableOfContentsFromReadingOrder: Bool
+
+        public init(
+            epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended,
+            generatesAudiobookTableOfContentsFromReadingOrder: Bool = true
+        ) {
+            self.epubReflowablePositionsStrategy = epubReflowablePositionsStrategy
+            self.generatesAudiobookTableOfContentsFromReadingOrder = generatesAudiobookTableOfContentsFromReadingOrder
+        }
+    }
+
     private let pdfFactory: PDFDocumentFactory?
     private let httpClient: HTTPClient
-    private let epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
+    private let config: Configuration
 
     /// - Parameters:
     ///   - pdfFactory: Factory used to open PDF documents, if available.
     ///   - httpClient: The HTTP client used to fetch remote resources.
-    ///   - epubReflowablePositionsStrategy: Strategy used to calculate
-    ///     the number of positions in a reflowable resource of a web publication
-    ///     conforming to the EPUB profile.
-    public init(pdfFactory: PDFDocumentFactory?, httpClient: HTTPClient, epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy = .recommended) {
+    public init(
+        pdfFactory: PDFDocumentFactory?,
+        httpClient: HTTPClient,
+        config: Configuration = .init()
+    ) {
         self.pdfFactory = pdfFactory
         self.httpClient = httpClient
-        self.epubReflowablePositionsStrategy = epubReflowablePositionsStrategy
+        self.config = config
+    }
+
+    @available(*, unavailable, message: "Set `epubReflowablePositionsStrategy` in the `config` instead.")
+    public convenience init(
+        pdfFactory: PDFDocumentFactory?,
+        httpClient: HTTPClient,
+        epubReflowablePositionsStrategy: EPUBPositionsService.ReflowableStrategy
+    ) {
+        fatalError()
     }
 
     public func parse(
@@ -116,7 +148,7 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
                 // An audiobook often has no table of contents while its
                 // reading order links are titled. Use them instead, so that
                 // apps can offer a navigation between the resources.
-                if manifest.conforms(to: .audiobook), manifest.tableOfContents.isEmpty {
+                if config.generatesAudiobookTableOfContentsFromReadingOrder, manifest.conforms(to: .audiobook), manifest.tableOfContents.isEmpty {
                     manifest.tableOfContents = manifest.readingOrder.tableOfContentsFromTitles
                 }
 
@@ -125,18 +157,22 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
                     container: container,
                     servicesBuilder: PublicationServicesBuilder(setup: {
                         if manifest.conforms(to: .epub) {
-                            $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: epubReflowablePositionsStrategy))
+                            $0.setPositionsServiceFactory(EPUBPositionsService.makeFactory(reflowableStrategy: config.epubReflowablePositionsStrategy))
 
                         } else if manifest.conforms(to: .divina) {
                             $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
 
                         } else if manifest.conforms(to: .audiobook) {
                             $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
+                            $0.setTimelineServiceFactory(AudioTimelineService.makeFactory(
+                                generatesFromReadingOrder: config.generatesAudiobookTableOfContentsFromReadingOrder
+                            ))
 
                         } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory {
                             $0.setPDFDocumentServiceFactory(DefaultPDFDocumentService.makeFactory(factory: pdfFactory))
                             $0.setTableOfContentsServiceFactory(LCPDFTableOfContentsService.makeFactory())
                             $0.setPositionsServiceFactory(LCPDFPositionsService.makeFactory())
+                            $0.setTimelineServiceFactory(PDFTimelineService.makeFactory())
                             $0.setContentServiceFactory(DefaultContentService.makeFactory(
                                 resourceContentIteratorFactories: [
                                     PDFResourceContentIterator.Factory(),
@@ -146,6 +182,10 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
                         }
 
                         // FIXME: WebPositionsService from Kotlin?
+
+                        if manifest.conforms(to: .epub) || manifest.readingOrder.allAreHTML {
+                            $0.setTimelineServiceFactory(WebTimelineService.makeFactory())
+                        }
 
                         if manifest.readingOrder.allAreHTML {
                             $0.setSearchServiceFactory(ContentSearchService.makeFactory())

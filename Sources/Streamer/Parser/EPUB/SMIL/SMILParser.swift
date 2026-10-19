@@ -6,7 +6,7 @@
 
 import Foundation
 import ReadiumFuzi
-import ReadiumShared
+@_spi(ExperimentalSelectors) import ReadiumShared
 
 /// Parses EPUB 3 SMIL Media Overlay documents and values into Readium models
 /// (e.g. ``GuidedNavigationDocument``).

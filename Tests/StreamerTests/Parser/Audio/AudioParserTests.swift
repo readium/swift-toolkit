@@ -5,9 +5,10 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalTimeline) import ReadiumShared
 @testable import ReadiumStreamer
 import Testing
+@_spi(ExperimentalTimeline) import TestSupport
 
 enum AudioParserTests {
     struct Formats {
@@ -75,7 +76,7 @@ enum AudioParserTests {
             readsEntries: Bool
         ) async throws {
             let reader = FakeAudioMetadataReader { _ in .success(AudioMetadata(title: "Title")) }
-            let parser = AudioParser(assetRetriever: assetRetriever, metadataReader: reader, containerEntriesMetadataPolicy: policy)
+            let parser = AudioParser(metadataReader: reader, config: .init(containerEntriesMetadataPolicy: policy))
 
             try await expectEntries(read: readsEntries, by: parser, reader: reader, source: source)
         }
@@ -118,7 +119,7 @@ enum AudioParserTests {
 
         @Test func alwaysReadsAStandaloneFile() async throws {
             let reader = FakeAudioMetadataReader { _ in .success(AudioMetadata(title: "Title")) }
-            let parser = AudioParser(assetRetriever: assetRetriever, metadataReader: reader, containerEntriesMetadataPolicy: .never)
+            let parser = AudioParser(metadataReader: reader, config: .init(containerEntriesMetadataPolicy: .never))
 
             let publication = try await parser.parse(asset: fileAsset("audio/tagged.mp3"), warnings: nil).get().build()
 
@@ -163,6 +164,7 @@ enum AudioParserTests {
             (1, 1),
             // One file at a time for a value below 1.
             (0, 1),
+            (-1, 1),
         ] as [(Int?, Int)])
         func readsABatchOfFilesAtATimeAndKeepsTheReadingOrder(maxConcurrentMetadataReads: Int?, expectedBatchSize: Int) async throws {
             let fileCount = 6
@@ -185,9 +187,10 @@ enum AudioParserTests {
                 completedFiles.withLock { _ = $0.insert(file) }
                 return file % 2 == 0 ? .failure(.reading(.decoding("Truncated"))) : .success(AudioMetadata(title: "Title \(file)"))
             }
-            let parser = maxConcurrentMetadataReads.map {
-                AudioParser(assetRetriever: assetRetriever, metadataReader: reader, maxConcurrentMetadataReads: $0)
-            } ?? AudioParser(metadataReader: reader)
+            let parser = AudioParser(
+                metadataReader: reader,
+                config: maxConcurrentMetadataReads.map { .init(maxConcurrentMetadataReads: $0) } ?? .init()
+            )
             let warnings = ListWarningLogger()
 
             let publication = try await withFolder(fileCount: fileCount) { folder in
@@ -250,6 +253,88 @@ enum AudioParserTests {
             }
             #expect(reader.cancelledFiles == [1, 3])
             #expect(reader.requests.keys.sorted() == ["1.mp3", "2.mp3", "3.mp3"])
+        }
+    }
+
+    /// With a reader giving each file a duration of 100 s, on folders of
+    /// files named `1.mp3`, `2.mp3` and so on.
+    struct TimelineGeneration {
+        struct Files: Sendable, CustomTestStringConvertible {
+            let name: String
+            var generatesTableOfContentsFromReadingOrder = true
+            let metadata: [AudioMetadata]
+            /// HREFs of the expected table of contents.
+            let expectedTOC: [String]
+            /// Outline of the expected timeline.
+            let expectedTimeline: [String]
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test(arguments: [
+            Files(
+                name: "files with chapters",
+                metadata: [
+                    AudioMetadata(chapters: [.init(title: "One", start: 0), .init(title: "Two", start: 50)]),
+                    AudioMetadata(chapters: [.init(title: "Three", start: 0)]),
+                ],
+                expectedTOC: ["1.mp3#t=0", "1.mp3#t=50", "2.mp3#t=0"],
+                expectedTimeline: ["0 One → 1.mp3#t=0", "1 Two → 1.mp3#t=50", "2 Three → 2.mp3#t=0"]
+            ),
+            Files(
+                name: "two titled files make the table of contents",
+                metadata: [AudioMetadata(), AudioMetadata(title: "Two"), AudioMetadata(), AudioMetadata(title: "Four")],
+                expectedTOC: ["2.mp3", "4.mp3"],
+                expectedTimeline: ["0 Two → 2.mp3", "1 Four → 4.mp3"]
+            ),
+            Files(
+                name: "a single titled file leaves the table of contents empty",
+                metadata: [AudioMetadata(title: "One"), AudioMetadata()],
+                expectedTOC: [],
+                expectedTimeline: ["0 One → 1.mp3", "1 #2 → 2.mp3"]
+            ),
+            Files(
+                name: "the option off disables both fallbacks",
+                generatesTableOfContentsFromReadingOrder: false,
+                metadata: [AudioMetadata(title: "One"), AudioMetadata(title: "Two")],
+                expectedTOC: [],
+                expectedTimeline: []
+            ),
+        ])
+        func timelineFollowsTheTableOfContents(_ example: Files) async throws {
+            let publication = try await parse(
+                example.metadata,
+                generatesTableOfContentsFromReadingOrder: example.generatesTableOfContentsFromReadingOrder
+            )
+
+            #expect(publication.manifest.tableOfContents.map(\.href) == example.expectedTOC)
+            #expect(try await publication.timeline()?.outline == example.expectedTimeline)
+        }
+
+        @Test func untitledFileBelongsToThePrecedingItem() async throws {
+            let publication = try await parse([AudioMetadata(), AudioMetadata(title: "Two"), AudioMetadata(), AudioMetadata(title: "Four")])
+            let timeline = try #require(await publication.timeline())
+
+            #expect(timeline.locate(Locator(href: AnyURL(string: "3.mp3")!, mediaType: .mp3)) == timeline.items[0])
+            #expect(timeline.locate(Locator(href: AnyURL(string: "1.mp3")!, mediaType: .mp3)) == nil)
+            #expect(timeline.segments(in: AnyURL(string: "1.mp3")!) == [])
+        }
+
+        /// Parses a folder of files having the given metadata, with a
+        /// duration of 100 s.
+        private func parse(_ files: [AudioMetadata], generatesTableOfContentsFromReadingOrder: Bool = true) async throws -> Publication {
+            let reader = FakeAudioMetadataReader { file in
+                var metadata = files[file - 1]
+                metadata.duration = 100
+                return .success(metadata)
+            }
+            let parser = AudioParser(metadataReader: reader, config: .init(generatesTableOfContentsFromReadingOrder: generatesTableOfContentsFromReadingOrder))
+
+            return try await withFolder(fileCount: files.count) { folder in
+                try await parser.parse(asset: folder, warnings: nil).get().build()
+            }
         }
     }
 
@@ -462,9 +547,12 @@ private final class FakeAudioMetadataReader: AudioMetadataReader, @unchecked Sen
 }
 
 private extension AudioParser {
-    /// Creates a parser with its default options.
-    convenience init(metadataReader: AudioMetadataReader = DefaultAudioMetadataReader()) {
-        self.init(assetRetriever: assetRetriever, metadataReader: metadataReader)
+    /// Creates a parser with the shared asset retriever.
+    convenience init(
+        metadataReader: AudioMetadataReader = DefaultAudioMetadataReader(),
+        config: Configuration = .init()
+    ) {
+        self.init(assetRetriever: assetRetriever, metadataReader: metadataReader, config: config)
     }
 }
 

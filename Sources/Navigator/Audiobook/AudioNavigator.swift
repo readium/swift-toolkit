@@ -6,7 +6,7 @@
 
 import AVFoundation
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalSelectors) import ReadiumShared
 
 /// Status of a played media resource.
 public enum MediaPlaybackState: Sendable {

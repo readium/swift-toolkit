@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalTimeline) import ReadiumShared
 
 /// Parses an audiobook Publication from an unstructured archive format
 /// containing audio files, such as ZAB (Zipped Audio Book) or a simple ZIP.
@@ -39,34 +39,54 @@ public final class AudioParser: PublicationParser, Loggable {
         case always
     }
 
+    public struct Configuration: Sendable {
+        /// Indicates when the audio entries of a package are opened to read
+        /// their metadata. A standalone audio file is always read.
+        public var containerEntriesMetadataPolicy: ContainerEntriesMetadataPolicy
+
+        /// Number of audio entries of a package read at the same time.
+        ///
+        /// A larger value opens a package faster and uses more memory: while
+        /// it reads a file, the default reader holds about twice the size of
+        /// its metadata, cover included. A value below 1 reads the files one
+        /// at a time.
+        public var maxConcurrentMetadataReads: Int
+
+        /// When no file has a chapter, makes the table of contents from the
+        /// titles of the files, if at least two of them are titled.
+        ///
+        /// When disabled, the experimental timeline of such a publication is
+        /// empty, instead of having one item per file.
+        public var generatesTableOfContentsFromReadingOrder: Bool
+
+        public init(
+            containerEntriesMetadataPolicy: ContainerEntriesMetadataPolicy = .localOnly,
+            maxConcurrentMetadataReads: Int = 3,
+            generatesTableOfContentsFromReadingOrder: Bool = true
+        ) {
+            self.containerEntriesMetadataPolicy = containerEntriesMetadataPolicy
+            self.maxConcurrentMetadataReads = maxConcurrentMetadataReads
+            self.generatesTableOfContentsFromReadingOrder = generatesTableOfContentsFromReadingOrder
+        }
+    }
+
     private let assetRetriever: AssetRetriever
     private let metadataReader: AudioMetadataReader
-    private let containerEntriesMetadataPolicy: ContainerEntriesMetadataPolicy
-    private let maxConcurrentMetadataReads: Int
+    private let config: Configuration
 
     /// - Parameters:
     ///   - assetRetriever: Sniffs the format of the files of a package.
     ///   - metadataReader: Reads the metadata embedded in each audio file.
     ///     The default one does not read the compressed entries of an
     ///     archive, so these files have no metadata in the publication.
-    ///   - containerEntriesMetadataPolicy: Indicates when the audio entries of
-    ///     a package are opened to read their metadata. A standalone audio file
-    ///     is always read.
-    ///   - maxConcurrentMetadataReads: Number of audio entries of a package
-    ///     read at the same time. A larger value opens a package faster and
-    ///     uses more memory: while it reads a file, the default reader holds
-    ///     about twice the size of its metadata, cover included. A value
-    ///     below 1 reads the files one at a time.
     public init(
         assetRetriever: AssetRetriever,
         metadataReader: AudioMetadataReader = DefaultAudioMetadataReader(),
-        containerEntriesMetadataPolicy: ContainerEntriesMetadataPolicy = .localOnly,
-        maxConcurrentMetadataReads: Int = 3
+        config: Configuration = .init()
     ) {
         self.assetRetriever = assetRetriever
         self.metadataReader = metadataReader
-        self.containerEntriesMetadataPolicy = containerEntriesMetadataPolicy
-        self.maxConcurrentMetadataReads = max(1, maxConcurrentMetadataReads)
+        self.config = config
     }
 
     private let audioSpecifications: Set<FormatSpecification> = [
@@ -132,14 +152,14 @@ public final class AudioParser: PublicationParser, Loggable {
     /// Returns whether the policy lets the audio files of `container` be
     /// read.
     private func readsMetadata(of container: Container) -> Bool {
-        switch containerEntriesMetadataPolicy {
+        switch config.containerEntriesMetadataPolicy {
         case .never:
             return false
         case .always:
             return true
         case .localOnly:
             guard container.isStoredOnDevice else {
-                log(.debug, "The audio entries of the package are not read as it is not stored on the device, so the publication will have no metadata, table of contents or cover. Create the `AudioParser` with `containerEntriesMetadataPolicy: .always` to read them.")
+                log(.debug, "The audio entries of the package are not read as it is not stored on the device, so the publication will have no metadata, table of contents or cover. Set `AudioParser.Configuration.containerEntriesMetadataPolicy` to `.always` to read them.")
                 return false
             }
             return true
@@ -213,7 +233,9 @@ public final class AudioParser: PublicationParser, Loggable {
             }
         }
 
-        let manifest = AudioManifestBuilder().build(
+        let manifest = AudioManifestBuilder(
+            generatesTableOfContentsFromReadingOrder: config.generatesTableOfContentsFromReadingOrder
+        ).build(
             entries: zip(readingOrder, metadata).map { file, metadata in
                 AudioManifestBuilder.Entry(url: file.0, format: file.1, metadata: metadata)
             },
@@ -228,7 +250,12 @@ public final class AudioParser: PublicationParser, Loggable {
             container: container,
             servicesBuilder: .init(
                 cover: cover.map { EmbeddedCoverService.makeFactory(data: $0.data, mediaType: $0.mediaType) },
-                locator: AudioLocatorService.makeFactory()
+                locator: AudioLocatorService.makeFactory(),
+                setup: { [config] in
+                    $0.setTimelineServiceFactory(AudioTimelineService.makeFactory(
+                        generatesFromReadingOrder: config.generatesTableOfContentsFromReadingOrder
+                    ))
+                }
             )
         ))
     }
@@ -245,9 +272,10 @@ public final class AudioParser: PublicationParser, Loggable {
         warnings: WarningLogger?
     ) async -> ReadResult<[AudioMetadata?]> {
         var metadata: [AudioMetadata?] = []
+        let batchSize = max(1, config.maxConcurrentMetadataReads)
 
-        for start in stride(from: 0, to: files.count, by: maxConcurrentMetadataReads) {
-            let batch = files[start ..< min(start + maxConcurrentMetadataReads, files.count)]
+        for start in stride(from: 0, to: files.count, by: batchSize) {
+            let batch = files[start ..< min(start + batchSize, files.count)]
             let includesCover = !metadata.contains { $0?.cover != nil }
 
             switch await readMetadata(ofBatch: batch, in: container, includesCover: includesCover) {

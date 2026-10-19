@@ -4,9 +4,10 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumShared
+@_spi(ExperimentalTimeline) import ReadiumShared
 @testable import ReadiumStreamer
 import Testing
+@_spi(ExperimentalTimeline) import TestSupport
 
 enum ReadiumWebPubParserTests {
     struct Formats {
@@ -44,41 +45,104 @@ enum ReadiumWebPubParserTests {
     }
 
     struct TableOfContents {
-        /// Each rule holds its name, the media type of the reading order, the
-        /// `toc` of the manifest and the expected table of contents.
+        struct ManifestExample: Sendable, CustomTestStringConvertible {
+            let name: String
+            /// Media type of the reading order resources.
+            var mediaType = "audio/mpeg"
+            /// JSON of the `toc` of the manifest.
+            var toc = "[]"
+            var generatesTableOfContentsFromReadingOrder = true
+            let expectedTOC: [Link]
+            /// Outline of the expected timeline, `nil` for no timeline.
+            let expectedTimeline: [String]?
+
+            var testDescription: String {
+                name
+            }
+        }
+
         @Test(arguments: [
-            (
-                "audiobook without a table of contents uses the reading order titles",
-                "audio/mpeg",
-                "[]",
-                [Link(href: "part1", title: "Part 1", duration: 10), Link(href: "part2", title: "Part 2")]
+            ManifestExample(
+                name: "audiobook without a table of contents uses the reading order titles",
+                expectedTOC: [Link(href: "part1", title: "Part 1", duration: 10), Link(href: "part2", title: "Part 2")],
+                expectedTimeline: ["0 Part 1 → part1", "1 Part 2 → part2"]
             ),
-            (
-                "audiobook keeps its table of contents",
-                "audio/mpeg",
-                #"[{"href": "part1#t=10", "title": "Chapter 1"}]"#,
-                [Link(href: "part1#t=10", title: "Chapter 1")]
+            ManifestExample(
+                name: "audiobook keeps its table of contents",
+                toc: #"[{"href": "part1#t=10", "title": "Chapter 1"}]"#,
+                expectedTOC: [Link(href: "part1#t=10", title: "Chapter 1")],
+                expectedTimeline: ["0 Chapter 1 → part1#t=10"]
             ),
-            (
-                "other publication without a table of contents has none",
-                "text/html",
-                "[]",
-                []
+            ManifestExample(
+                name: "the option off disables both fallbacks",
+                generatesTableOfContentsFromReadingOrder: false,
+                expectedTOC: [],
+                expectedTimeline: []
             ),
-        ] as [(String, String, String, [Link])])
-        func usesTheReadingOrderTitlesOfAnAudiobookWithoutOne(rule: String, mediaType: String, toc: String, expected: [Link]) async throws {
-            let manifest = try await parsePackage(manifest: """
+            ManifestExample(
+                name: "other publication without a table of contents has none",
+                mediaType: "text/html",
+                expectedTOC: [],
+                expectedTimeline: []
+            ),
+        ])
+        func usesTheReadingOrderTitlesOfAnAudiobookWithoutOne(_ example: ManifestExample) async throws {
+            let publication = try await parsePackage(manifest: """
             {
               "metadata": {"title": "Publication"},
               "readingOrder": [
-                {"href": "part1", "type": "\(mediaType)", "title": "Part 1", "duration": 10},
-                {"href": "part2", "type": "\(mediaType)", "title": "Part 2"}
+                {"href": "part1", "type": "\(example.mediaType)", "title": "Part 1", "duration": 10},
+                {"href": "part2", "type": "\(example.mediaType)", "title": "Part 2"}
               ],
-              "toc": \(toc)
+              "toc": \(example.toc)
             }
-            """)
+            """, generatesTableOfContentsFromReadingOrder: example.generatesTableOfContentsFromReadingOrder)
 
-            #expect(manifest.tableOfContents == expected)
+            #expect(publication.manifest.tableOfContents == example.expectedTOC)
+            #expect(try await publication.timeline()?.outline == example.expectedTimeline)
+        }
+    }
+
+    struct Timelines {
+        struct ProfileExample: Sendable, CustomTestStringConvertible {
+            let name: String
+            /// Media type of the reading order resource.
+            let mediaType: String
+            /// JSON of the `conformsTo` of the manifest.
+            var conformsTo = "[]"
+            /// Whether the package is protected with LCP.
+            var isLCP = false
+            /// Type name of the expected timeline service, `nil` for none.
+            let expected: String?
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test(arguments: [
+            ProfileExample(name: "audiobook", mediaType: "audio/mpeg", expected: "AudioTimelineService"),
+            ProfileExample(name: "HTML resources", mediaType: "text/html", expected: "WebTimelineService"),
+            ProfileExample(
+                name: "EPUB profile without HTML resources",
+                mediaType: "image/svg+xml",
+                conformsTo: #"["https://readium.org/webpub-manifest/profiles/epub"]"#,
+                expected: "WebTimelineService"
+            ),
+            ProfileExample(name: "SVG resources without the EPUB profile", mediaType: "image/svg+xml", expected: nil),
+            ProfileExample(name: "comic", mediaType: "image/png", expected: nil),
+            ProfileExample(name: "PDF", mediaType: "application/pdf", expected: nil),
+            ProfileExample(name: "LCP-protected PDF", mediaType: "application/pdf", isLCP: true, expected: "PDFTimelineService"),
+        ])
+        func serviceDependsOnTheProfileAndResources(_ example: ProfileExample) async throws {
+            let publication = try await parsePackage(manifest: """
+            {
+              "metadata": {"title": "Publication", "conformsTo": \(example.conformsTo)},
+              "readingOrder": [{"href": "part1", "type": "\(example.mediaType)"}]
+            }
+            """, isLCP: example.isLCP)
+
+            #expect(publication.findService(TimelineService.self).map { "\(type(of: $0))" } == example.expected)
         }
     }
 }
@@ -87,18 +151,25 @@ enum ReadiumWebPubParserTests {
 
 private let fixtures = Fixtures()
 
-private func makeParser() -> ReadiumWebPubParser {
-    ReadiumWebPubParser(pdfFactory: DefaultPDFDocumentFactory(), httpClient: DefaultHTTPClient())
+private func makeParser(generatesTableOfContentsFromReadingOrder: Bool = true) -> ReadiumWebPubParser {
+    ReadiumWebPubParser(
+        pdfFactory: DefaultPDFDocumentFactory(),
+        httpClient: DefaultHTTPClient(),
+        config: .init(generatesAudiobookTableOfContentsFromReadingOrder: generatesTableOfContentsFromReadingOrder)
+    )
 }
 
 /// Parses a package holding only the given manifest.
-private func parsePackage(manifest: String) async throws -> Manifest {
+private func parsePackage(manifest: String, generatesTableOfContentsFromReadingOrder: Bool = true, isLCP: Bool = false) async throws -> Publication {
     let asset: Asset = .container(ContainerAsset(
         container: SingleResourceContainer(
             resource: DataResource(string: manifest),
             at: AnyURL(string: "manifest.json")!
         ),
-        format: Format(specifications: .zip, .rpf, mediaType: .readiumWebPub, fileExtension: "webpub")
+        format: isLCP
+            ? Format(specifications: .zip, .rpf, .lcp, mediaType: .lcpProtectedPDF, fileExtension: "lcpdf")
+            : Format(specifications: .zip, .rpf, mediaType: .readiumWebPub, fileExtension: "webpub")
     ))
-    return try await makeParser().parse(asset: asset, warnings: nil).get().build().manifest
+    return try await makeParser(generatesTableOfContentsFromReadingOrder: generatesTableOfContentsFromReadingOrder)
+        .parse(asset: asset, warnings: nil).get().build()
 }

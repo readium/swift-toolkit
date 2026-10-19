@@ -14,6 +14,7 @@ public extension Locator.Locations {
     /// wins.
     ///
     /// - https://www.w3.org/TR/media-frags/#naming-time
+    @_spi(ExperimentalSelectors)
     var temporal: TemporalSelector? {
         fragments
             .reversed()
