@@ -15,6 +15,20 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 +func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: AnyURL, withError error: ReadError) {
 ```
 
+### Percent-encoded locator fragments
+
+The fragments of a `Locator` are now percent-encoded, like the fragment of a URL. A fragment can be structured, for example `t=10&track=a%26b`, and decoding it as a whole loses the difference between a delimiter and its encoded form.
+
+`Locator.Locations.fragments` is therefore an array of `URLFragment` instead of `String`:
+
+```diff
+ // Reading a fragment as a string, such as an HTML ID.
+-let id = locator.locations.fragments.first
++let id = locator.locations.fragments.first?.percentDecoded
+```
+
+There is nothing to migrate for the locators you stored, the JSON written by previous versions is still readable. However, a locator saved by this version may hold a fragment that an older version of your app reads as is, without decoding it. Only the fragments with non-ASCII or reserved characters are concerned,  which older versions of the Readium toolkit did not produce anyways.
+
 ### Audio Navigator
 
 #### End of the publication
