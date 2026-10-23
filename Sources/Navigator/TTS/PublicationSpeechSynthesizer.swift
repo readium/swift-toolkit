@@ -43,12 +43,27 @@ public final class PublicationSpeechSynthesizer: Loggable {
         /// Identifier for the voice used to speak the utterances.
         public var voiceIdentifier: String?
 
+        /// Multiplier of the normal speaking speed of the engine (1.0).
+        ///
+        /// The speed is approximate, and the engine clamps the values outside
+        /// its supported range.
+        public var speed: Double
+
+        /// Multiplier of the normal voice pitch of the engine (1.0).
+        ///
+        /// The engine clamps the values outside its supported range.
+        public var pitch: Double
+
         public init(
             defaultLanguage: Language? = nil,
-            voiceIdentifier: String? = nil
+            voiceIdentifier: String? = nil,
+            speed: Double = 1.0,
+            pitch: Double = 1.0
         ) {
             self.defaultLanguage = defaultLanguage
             self.voiceIdentifier = voiceIdentifier
+            self.speed = speed
+            self.pitch = pitch
         }
     }
 
@@ -101,8 +116,15 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Current configuration of the `PublicationSpeechSynthesizer`.
     ///
-    /// Changes are not immediate, they will be applied for the next utterance.
-    public var config: Configuration
+    /// Changing it while playing restarts the current utterance from its
+    /// beginning, with the new configuration.
+    public var config: Configuration {
+        didSet {
+            if oldValue != config {
+                restartSpokenUtterance()
+            }
+        }
+    }
 
     public weak var delegate: PublicationSpeechSynthesizerDelegate?
 
@@ -166,6 +188,15 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     private var currentTask: Task<Void, Never>?
 
+    /// Whether the `currentTask` is speaking the utterance of the current
+    /// state, rather than e.g. loading the next one.
+    private var isSpeaking = false
+
+    private func cancelCurrentTask() {
+        currentTask?.cancel()
+        isSpeaking = false
+    }
+
     private lazy var engine: TTSEngine = engineFactory()
 
     /// List of synthesizer voices supported by the TTS engine.
@@ -189,7 +220,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
-        currentTask?.cancel()
+        cancelCurrentTask()
         publicationIterator = publication.content(from: startLocator)?.iterator()
         currentTask = Task {
             await playNextUtterance(.forward)
@@ -201,7 +232,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     /// Use `start()` to restart it.
     public func stop() {
         isPausedByInterruption = false
-        currentTask?.cancel()
+        cancelCurrentTask()
         state = .stopped
         publicationIterator = nil
         audioSessionUser.end()
@@ -218,7 +249,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     }
 
     private func pausePlayback() {
-        currentTask?.cancel()
+        cancelCurrentTask()
         if case let .playing(utterance, range: _) = state {
             state = .paused(utterance)
         }
@@ -226,7 +257,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Resumes an utterance interrupted with `pause()`.
     public func resume() {
-        currentTask?.cancel()
+        cancelCurrentTask()
         if case let .paused(utterance) = state {
             currentTask = Task {
                 await play(utterance)
@@ -245,7 +276,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Skips to the previous utterance.
     public func previous() {
-        currentTask?.cancel()
+        cancelCurrentTask()
         currentTask = Task {
             await playNextUtterance(.backward)
         }
@@ -253,9 +284,21 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Skips to the next utterance.
     public func next() {
-        currentTask?.cancel()
+        cancelCurrentTask()
         currentTask = Task {
             await playNextUtterance(.forward)
+        }
+    }
+
+    /// Restarts the utterance being spoken from its beginning, e.g. to apply a
+    /// new `config`.
+    private func restartSpokenUtterance() {
+        guard isSpeaking, case let .playing(utterance, range: _) = state else {
+            return
+        }
+        cancelCurrentTask()
+        currentTask = Task {
+            await play(utterance)
         }
     }
 
@@ -271,7 +314,11 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Plays the next utterance in the given `direction`.
     private func playNextUtterance(_ direction: Direction) async {
-        guard let utterance = await nextUtterance(direction) else {
+        let utterance = await nextUtterance(direction)
+        guard !Task.isCancelled else {
+            return
+        }
+        guard let utterance else {
             state = .stopped
             return
         }
@@ -284,18 +331,21 @@ public final class PublicationSpeechSynthesizer: Loggable {
         // an interruption which deactivated it. Not needed between utterances.
         if !state.isPlaying {
             await audioSessionUser.start(isPlaying: false)
-            guard !Task.isCancelled else {
-                return
-            }
+        }
+        guard !Task.isCancelled else {
+            return
         }
 
         state = .playing(utterance, range: nil)
+        isSpeaking = true
 
         let result = await engine.speak(
             TTSUtterance(
                 text: utterance.text,
                 delay: 0,
-                voiceOrLanguage: voiceOrLanguage(for: utterance)
+                voiceOrLanguage: voiceOrLanguage(for: utterance),
+                speed: config.speed,
+                pitch: config.pitch
             ),
             onSpeakRange: { [weak self] range in
                 guard let self = self else {
@@ -322,6 +372,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
         guard !Task.isCancelled else {
             return
         }
+        isSpeaking = false
 
         switch result {
         case .success:

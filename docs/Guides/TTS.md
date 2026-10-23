@@ -59,7 +59,7 @@ When pairing the `PublicationSpeechSynthesizer` with a `Navigator`, you can use 
 
 The `PublicationSpeechSynthesizer` offers some options to configure the TTS engine. Note that the support of each configuration option depends on the TTS engine used.
 
-Update the configuration by setting it directly. The configuration is not applied right away but for the next utterance.
+Update the configuration by setting it directly. When the synthesizer is playing, the current utterance restarts from its beginning with the new configuration.
 
 ```swift
 synthesizer.config.defaultLanguage = Language("fr")
@@ -83,6 +83,20 @@ Users do not expect to see all available voices at all time, as they depend on t
 let voicesByLanguage: [Language: [TTSVoice]] =
     Dictionary(grouping: synthesizer.availableVoices, by: \.language)
 ```
+
+### Speed
+
+The `speed` setting is a multiplier of the normal speaking speed of the engine, which is `1.0`. The resulting speed is approximate, and the engine clamps the values outside of its supported range.
+
+With the default `AVTTSEngine`, use speeds from `0.5` to `4.0`. Compact voices only play a limited set of speeds, so close values may sound the same.
+
+```swift
+synthesizer.config.speed = 1.5
+```
+
+### Pitch
+
+The `pitch` setting is a multiplier of the normal voice pitch of the engine, which is `1.0`. The engine clamps the values outside of its supported range, which is `0.5` to `2.0` with `AVTTSEngine`.
 
 ## Synchronizing the TTS with a Navigator
 

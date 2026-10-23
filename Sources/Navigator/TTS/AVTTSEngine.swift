@@ -17,14 +17,33 @@ public protocol AVTTSEngineDelegate: AnyObject, Sendable {
 /// Implementation of a `TTSEngine` using Apple AVFoundation's `AVSpeechSynthesizer`.
 @MainActor
 public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
-    /// Range of valid values for an AVUtterance rate.
+    /// Speed multiplier measured for each AVUtterance rate, relative to `AVSpeechUtteranceDefaultSpeechRate`.
     ///
-    /// > The speech rate is a decimal representation within the range of `AVSpeechUtteranceMinimumSpeechRate` and
-    /// > `AVSpeechUtteranceMaximumSpeechRate`. Lower values correspond to slower speech, and higher values correspond to
-    /// > faster speech. The default value is `AVSpeechUtteranceDefaultSpeechRate`.
-    /// > https://developer.apple.com/documentation/avfaudio/avspeechutterance/1619708-rate
-    private static let avRateRange =
-        Double(AVSpeechUtteranceMinimumSpeechRate) ... Double(AVSpeechUtteranceMaximumSpeechRate)
+    /// The speed is not linear with the rate. It was measured with the duration of the same text spoken at each rate.
+    ///
+    /// - The curve is the same for all the voices and languages, within 0.1x. Compact voices round the rate to
+    ///   discrete speeds, while enhanced voices follow a smooth curve. Siri voices are slower above 2.8x, up to 3.5x.
+    private static let avRateSpeeds: [(rate: Float, speed: Double)] = [
+        (0.00, 0.56), (0.05, 0.60), (0.10, 0.65), (0.15, 0.69), (0.20, 0.74),
+        (0.25, 0.78), (0.30, 0.82), (0.35, 0.86), (0.40, 0.92), (0.45, 0.97),
+        (0.50, 1.00), (0.55, 1.30), (0.60, 1.58), (0.65, 1.88), (0.70, 2.18),
+        (0.75, 2.48), (0.80, 2.85), (0.85, 3.09), (0.90, 3.46), (0.95, 3.62),
+        (1.00, 3.93),
+    ]
+
+    /// Returns the AVUtterance rate interpolated from `avRateSpeeds` for the given speed multiplier.
+    private static func avRate(forSpeed speed: Double) -> Float {
+        guard let upperIndex = avRateSpeeds.firstIndex(where: { speed <= $0.speed }) else {
+            return AVSpeechUtteranceMaximumSpeechRate
+        }
+        guard upperIndex > 0 else {
+            return AVSpeechUtteranceMinimumSpeechRate
+        }
+        let lower = avRateSpeeds[upperIndex - 1]
+        let upper = avRateSpeeds[upperIndex]
+        let fraction = (speed - lower.speed) / (upper.speed - lower.speed)
+        return lower.rate + (upper.rate - lower.rate) * Float(fraction)
+    }
 
     /// Range of valid values for an AVUtterance pitch.
     ///
@@ -132,8 +151,8 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
 
     private func taskUtterance(with task: SpeechTask) -> TaskUtterance {
         let utter = TaskUtterance(task: task)
-//        utter.rate = rateMultiplierToAVRate(task.utterance.rateMultiplier)
-//        utter.pitchMultiplier = Float(task.utterance.pitchMultiplier)
+        utter.rate = Self.avRate(forSpeed: task.utterance.speed)
+        utter.pitchMultiplier = Float(task.utterance.pitch.clamped(to: Self.avPitchRange))
         utter.preUtteranceDelay = task.utterance.delay
         utter.voice = voice(for: task.utterance)
         delegate?.avTTSEngine(self, didCreateUtterance: utter)
@@ -281,15 +300,18 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
                 startEngine(with: next)
             } else {
                 state = .stopped
+                next?.finish()
             }
 
             current.finish()
 
-        case let (.stopping(current, queued: _), .play(next)):
+        case let (.stopping(current, queued: queued), .play(next)):
             state = .stopping(current, queued: next)
+            queued?.finish()
 
-        case let (.stopping(current, queued: _), .stop(toStop)) where current == toStop:
+        case let (.stopping(current, queued: queued), .stop(toStop)) where queued == toStop:
             state = .stopping(current, queued: nil)
+            toStop.finish()
 
         default:
             break
