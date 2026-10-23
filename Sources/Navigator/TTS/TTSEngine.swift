@@ -54,6 +54,16 @@ public struct TTSUtterance: Sendable {
     /// language will be used.
     public let voiceOrLanguage: Either<TTSVoice, Language>
 
+    /// Multiplier of the normal speaking speed of the engine (1.0).
+    ///
+    /// The speed is approximate, and the engine clamps the values outside its supported range.
+    public let speed: Double
+
+    /// Multiplier of the normal voice pitch of the engine (1.0).
+    ///
+    /// The engine clamps the values outside its supported range.
+    public let pitch: Double
+
     public var language: Language {
         switch voiceOrLanguage {
         case let .left(voice):
