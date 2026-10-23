@@ -71,6 +71,34 @@ public protocol RangePreference: Preference where Value: Comparable {
     func format(value: Value) -> String
 }
 
+/// A `Preference` whose values must be `nil` or in a `ClosedRange` of
+/// `Bound`.
+///
+/// A user interface can represent it with a toggle to set the preference to
+/// `nil` (for example to disable a limit), and a stepper for the value.
+public protocol OptionalRangePreference: Preference where Value == Bound? {
+    associatedtype Bound: Comparable & Sendable
+
+    /// Supported range for the non-nil values.
+    var supportedRange: ClosedRange<Bound> { get }
+
+    /// Value used as a starting point when the preference and its effective
+    /// value are `nil`, for example to increment it or to display it in a
+    /// disabled stepper.
+    var defaultValue: Bound { get }
+
+    /// Increment the preference value from its current value, its effective
+    /// value or `defaultValue`.
+    func increment()
+
+    /// Decrement the preference value from its current value, its effective
+    /// value or `defaultValue`.
+    func decrement()
+
+    /// Format `value` in a way suitable for display, including unit if relevant.
+    func format(value: Bound) -> String
+}
+
 // MARK: - Type erasers
 
 public extension Preference {
@@ -167,6 +195,51 @@ public final class AnyRangePreference<Value: Comparable>: AnyPreference<Value>, 
     }
 
     public func format(value: Value) -> String {
+        _format(value)
+    }
+}
+
+public extension OptionalRangePreference {
+    /// Wraps this `OptionalRangePreference` with a type eraser.
+    func eraseToAnyPreference() -> AnyOptionalRangePreference<Bound> {
+        AnyOptionalRangePreference(optionalRangePreference: self)
+    }
+}
+
+/// A type-erasing `OptionalRangePreference` object.
+public final class AnyOptionalRangePreference<Bound: Comparable & Sendable>: AnyPreference<Bound?>, OptionalRangePreference {
+    public var supportedRange: ClosedRange<Bound> {
+        _supportedRange()
+    }
+
+    public var defaultValue: Bound {
+        _defaultValue()
+    }
+
+    private let _supportedRange: () -> ClosedRange<Bound>
+    private let _defaultValue: () -> Bound
+    private let _increment: () -> Void
+    private let _decrement: () -> Void
+    private let _format: (Bound) -> String
+
+    public init<P: OptionalRangePreference>(optionalRangePreference: P) where P.Bound == Bound {
+        _supportedRange = { optionalRangePreference.supportedRange }
+        _defaultValue = { optionalRangePreference.defaultValue }
+        _increment = optionalRangePreference.increment
+        _decrement = optionalRangePreference.decrement
+        _format = optionalRangePreference.format(value:)
+        super.init(preference: optionalRangePreference)
+    }
+
+    public func increment() {
+        _increment()
+    }
+
+    public func decrement() {
+        _decrement()
+    }
+
+    public func format(value: Bound) -> String {
         _format(value)
     }
 }

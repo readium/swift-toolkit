@@ -6,6 +6,7 @@
 
 import Foundation
 import ReadiumShared
+import UIKit
 
 struct ReadiumCSS {
     var layout: CSSLayout = .init()
@@ -19,34 +20,84 @@ struct ReadiumCSS {
 }
 
 extension ReadiumCSS {
-    mutating func update(with settings: EPUBSettings) {
+    // Default colors of the Readium CSS stylesheets, used when the matching
+    // user colors are unset and the publication doesn't have its own.
+    static let defaultTextColor = Color(rawValue: 0x121212)
+    static let defaultBackgroundColor = Color(rawValue: 0xFFFFFF)
+    static let defaultLinkColor = Color(rawValue: 0x0000EE)
+    static let defaultVisitedColor = Color(rawValue: 0x551A8B)
+}
+
+extension ReadiumCSS {
+    @MainActor
+    mutating func update(
+        with settings: EPUBSettings,
+        resolvedLayout: LayoutResolver.Layout? = nil,
+        safeAreaInsets: UIEdgeInsets = .zero
+    ) {
         layout = settings.cssLayout
+
+        var overrides: [String: String] = [:]
+
+        rsProperties = CSSRSProperties(overrides: [
+            // See https://github.com/readium/css/issues/183
+            "--RS__disableOverflow": "readium-noOverflow-on",
+        ])
+
+        // The margins around the lines come from the resolved `lineLength`,
+        // so `--RS__pageGutter` is not set: `body` is `border-box`, so the
+        // gutter would be added to these margins.
+        //
+        // The scroll padding is divided by the font size to compensate the
+        // `zoom` applied by `--USER__fontSize`.
+        if settings.scroll, resolvedLayout != nil {
+            let padding = { (inset: CGFloat) in CSSPxLength(inset / settings.fontSize) }
+            if settings.verticalText {
+                rsProperties.scrollPaddingLeft = padding(safeAreaInsets.left)
+                rsProperties.scrollPaddingRight = padding(safeAreaInsets.right)
+            } else {
+                rsProperties.scrollPaddingTop = padding(safeAreaInsets.top)
+                rsProperties.scrollPaddingBottom = padding(safeAreaInsets.bottom)
+            }
+        }
+
+        // Applies WebKit patches, ideally:
+        // - iOS patch for iOS and iPadOS when the site is requested as mobile.
+        // - iPadOSPatch for iPadOS when the site is requested as desktop.
+        // - Nothing if MacOS.
+        //
+        // See https://github.com/readium/css/issues/189
+        switch UIDevice.current.userInterfaceIdiom {
+        case .pad:
+            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
+        case .phone:
+            overrides["--USER__iOSPatch"] = "readium-iOSPatch-on"
+        default:
+            break
+        }
+
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            colCount: {
-                switch settings.columnCount {
-                case .auto: return .auto
-                case .one: return .one
-                case .two: return .two
-                }
-            }(),
-            pageMargins: settings.pageMargins,
-            appearance: {
-                switch settings.theme {
-                case .light: return nil
-                case .dark: return .night
-                case .sepia: return .sepia
-                }
-            }(),
-            darkenImages: settings.imageFilter == .darken,
-            invertImages: settings.imageFilter == .invert,
+            // The layout is resolved once the viewport size is known. The line
+            // length is divided by the font size to compensate the `zoom`
+            // applied by `--USER__fontSize`.
+            colCount: resolvedLayout?.colCount,
+            lineLength: resolvedLayout.map { CSSPxLength($0.lineLength / settings.fontSize) },
+            blendImages: settings.blendImages,
+            darkenImages: imageFilter(settings.darkenImages).map { 1 - $0 },
+            invertImages: imageFilter(settings.invertImages),
+            invertGaiji: imageFilter(settings.invertGaiji),
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
-            fontOverride: settings.fontFamily != nil || settings.textNormalization,
+            linkColor: settings.linkColor.map { CSSIntColor($0.rawValue) },
+            visitedColor: settings.visitedColor.map { CSSIntColor($0.rawValue) },
             fontFamily: settings.fontFamily.map(resolveFontStack),
             fontSize: CSSPercentLength(settings.fontSize),
-            advancedSettings: !settings.publisherStyles,
-            typeScale: settings.typeScale,
+            fontWeight: settings.fontWeight
+                .map { Double(CSSStandardFontWeight.normal.rawValue) * $0 }
+                .takeIf { !$0.isNaN }
+                .map { Int($0.clamped(to: 1 ... 1000).rounded()) },
+            fontWidth: settings.fontWidth.map { CSSPercentLength($0) },
             textAlign: {
                 switch settings.textAlign {
                 case .justify: return .justify
@@ -64,12 +115,18 @@ extension ReadiumCSS {
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
-            overrides: [
-                "font-weight": settings.fontWeight
-                    .map { String(format: "%.0f", (Double(CSSStandardFontWeight.normal.rawValue) * $0).clamped(to: 1 ... 1000)) }
-                    ?? "",
-            ]
+            noRuby: settings.noRuby,
+            overrides: overrides
         )
+    }
+
+    /// Returns the percentage of an image filter to emit, limited to 1.
+    ///
+    /// A filter at 0 is not emitted, as the presence of the property is enough
+    /// to trigger the Readium CSS rule. For example, `--USER__invertGaiji: 0`
+    /// would exclude the gaiji from the other image filters.
+    private func imageFilter(_ value: Double?) -> Double? {
+        value.takeIf { $0 >= 0.00001 }.map { min($0, 1) }
     }
 
     func resolveFontStack(of fontFamily: FontFamily) -> [String] {

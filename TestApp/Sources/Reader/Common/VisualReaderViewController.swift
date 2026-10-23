@@ -463,13 +463,13 @@ extension HTMLDecorationTemplate {
             element: { decoration in
                 let config = decoration.style.config as? PageListConfig
 
-                // Using `var(--RS__backgroundColor)` is a trick to use the
-                // same background color as the Readium theme. If we don't set
-                // it directly inline in the HTML, it might be forced
-                // transparent by Readium CSS.
+                // Using the Readium CSS variables is a trick to use the same
+                // background color as the page: the user color if set, or the
+                // default one. If we don't set it directly inline in the HTML,
+                // it might be forced transparent by Readium CSS.
                 return """
                     <div>
-                        <span class="\(className)" style="background-color: var(--RS__backgroundColor) !important">
+                        <span class="\(className)" style="background-color: var(--USER__backgroundColor, var(--RS__backgroundColor)) !important">
                             \(config?.label ?? "")
                         </span>
                     </div>

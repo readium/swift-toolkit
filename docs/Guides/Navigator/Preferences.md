@@ -17,7 +17,7 @@ For instance: "font size" is a **setting**, and the application can submit the f
 let preferences = EPUBPreferences(
     fontFamily: .serif,
     fontSize: 2.0,
-    publisherStyles: false
+    textAlign: .justify
 )
 
 // 2. Submit the preferences, the Navigator will update its settings and the presentation.
@@ -38,7 +38,7 @@ let editor = epubNavigator.editor(of: preferences)
 // 2. Modify the preferences through the editor.
 editor.fontFamily.set(.serif)
 editor.fontSize.increment()
-editor.publisherStyles.toggle()
+editor.hyphens.toggle()
 
 // 3. Submit the edited preferences.
 epubNavigator.submitPreferences(editor.preferences)
@@ -48,11 +48,11 @@ epubNavigator.submitPreferences(editor.preferences)
 
 Preferences are low-level technical properties. While some of them can be exposed directly to the user, such as the font size, others should not be displayed as-is.
 
-For instance, in EPUB, we can simulate two pages side by side using the `columnCount` (`auto`, `1`, `2`) property for reflowable resources, and the `spread` (`auto`, `never`, `always`) property for fixed-layout publications. Rather than displaying both of these settings with all of their possible values in the user interface, you might prefer to show a single switch button to enable a dual-page mode, which will set both settings appropriately.
+For instance, in EPUB, we can simulate two pages side by side using the `columnCount` property (`nil` for automatic, `1`, `2`) for reflowable resources, and the `spread` (`auto`, `never`, `always`) property for fixed-layout publications. Rather than displaying both of these settings with all of their possible values in the user interface, you might prefer to show a single switch button to enable a dual-page mode, which will set both settings appropriately.
 
 ### Inactive settings
 
-A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the word spacing setting requires the publisher styles to be disabled in order to take effect.
+A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the word spacing setting is effective only with a left-to-right layout.
 
 You can check if a setting is effective for a set of preferences using the `PreferencesEditor`:
 
@@ -90,7 +90,7 @@ The `defaults` are used as fallback values when the default Navigator settings a
 
 Although you could create and modify `Preferences` objects directly before submitting them to the Navigator, a `PreferenceEditor` can assist you by providing helpers for dealing with each preference type when building the user interface.
 
-`PreferencesEditor` implementations are specific to each Navigator, but they all provide `Preference<Value>` properties for every setting (e.g. theme or font size). 
+`PreferencesEditor` implementations are specific to each Navigator, but they all provide `Preference<Value>` properties for every setting (e.g. font size or text color). 
 
 ### `UserPreferences` view
 
@@ -287,6 +287,58 @@ This view uses the `increment()` and `decrement()` range helpers of `RangePrefer
 
 The current value is displayed after formatting it with the `RangePreference.format(value:)` helper. This will automatically format the value to a human-readable string, such as a percentage or a value with units (e.g. 30px).
 
+### View for an `OptionalRangePreference<Value>`
+
+An `OptionalRangePreference<Value>` is a `Preference<Value?>` whose value is either `nil` or in a range, such as an optional limit where `nil` means "no limit". It can be represented as a toggle to enable it or set it to `nil`, next to a stepper for the value.
+
+```swift
+@ViewBuilder func optionalStepperRow<V: Comparable>(
+    title: String,
+    preference: AnyOptionalRangePreference<V>,
+    commit: @escaping () -> Void
+) -> some View {
+    let value = preference.value ?? preference.effectiveValue
+
+    HStack {
+        Text(title)
+
+        Spacer()
+
+        Toggle(title, isOn: Binding(
+            get: { value != nil },
+            set: { isEnabled in
+                preference.set(isEnabled ? preference.defaultValue : nil)
+                commit()
+            }
+        ))
+        .labelsHidden()
+
+        Stepper(
+            title,
+            onIncrement: {
+                preference.increment()
+                commit()
+            },
+            onDecrement: {
+                preference.decrement()
+                commit()
+            }
+        )
+        .labelsHidden()
+        .disabled(value == nil)
+
+        Text(preference.format(value: value ?? preference.defaultValue))
+            .font(.caption)
+            .foregroundColor(value == nil ? .gray : nil)
+    }
+}
+```
+
+`defaultValue` is the value used when both the preference and its effective value are `nil`. The `increment()` and `decrement()` helpers start from it, and the example above uses it when the toggle is turned on.
+
+> [!NOTE]
+> Setting the preference to `nil` unsets it, so the Navigator falls back on its default setting. If the default is not `nil`, the preference can't be disabled.
+
 ### View for an `EnumPreference<Value>`
 
 An `EnumPreference<Value>` is a preference accepting a closed set of values. This is a great candidate to use a [`Picker`](https://developer.apple.com/documentation/swiftui/picker) view with different styles depending on the value set.
@@ -350,7 +402,7 @@ The way you store user preferences can affect the available features. You could 
 
 * A unique set of preferences for each publication.
 * Preferences shared between publications with the same profile or media type (EPUB, PDF, etc.).
-* Global preferences shared with all publications (e.g. theme).
+* Global preferences shared with all publications (e.g. colors).
 * Several user setting profiles/themes that the user can switch between and modify independently.
 * Some settings that are not stored as JSON and will need to be reconstructed (e.g. the publication language).
 
@@ -377,6 +429,8 @@ EPUB comes in two very different flavors: **reflowable** which allows a lot of c
 
 An EPUB can also mix both kinds of resources in a single publication. In this case, a preference is effective as soon as at least one resource of the matching kind is in the reading order, and it applies only to those resources. For example, `fontSize` is effective in a fixed-layout publication containing a reflowable chapter, but it changes only that chapter.
 
+Bitmaps and SVG documents in the reading order are always rendered as fixed-layout pages, even in a reflowable publication, so the fixed-layout preferences apply to them and the reflowable ones don't.
+
 | Setting              | Reflowable         | Fixed Layout       |
 |----------------------|--------------------|--------------------|
 | `backgroundColor`    | :white_check_mark: | :white_check_mark: |
@@ -384,48 +438,131 @@ An EPUB can also mix both kinds of resources in a single publication. In this ca
 | `fontFamily`         | :white_check_mark: |                    |
 | `fontSize`           | :white_check_mark: |                    |
 | `fontWeight`         | :white_check_mark: |                    |
+| `fontWidth`          | :white_check_mark: |                    |
 | `hyphens`            | :white_check_mark: |                    |
-| `imageFilter`        | :white_check_mark: |                    |
+| `blendImages`        | :white_check_mark: |                    |
+| `darkenImages`       | :white_check_mark: |                    |
+| `invertImages`       | :white_check_mark: |                    |
+| `invertGaiji`        | :white_check_mark: |                    |
 | `language`           | :white_check_mark: | :white_check_mark: |
 | `letterSpacing`      | :white_check_mark: |                    |
 | `ligatures`          | :white_check_mark: |                    |
 | `lineHeight`         | :white_check_mark: |                    |
+| `linkColor`          | :white_check_mark: |                    |
+| `maximalLineLength`  | :white_check_mark: |                    |
+| `minimalLineLength`  | :white_check_mark: |                    |
+| `noRuby`             | :white_check_mark: |                    |
+| `offsetFirstPage`    |                    | :white_check_mark: |
+| `optimalLineLength`  | :white_check_mark: |                    |
 | `pageMargins`        | :white_check_mark: |                    |
 | `paragraphIndent`    | :white_check_mark: |                    |
 | `paragraphSpacing`   | :white_check_mark: |                    |
-| `publisherStyles`    | :white_check_mark: |                    |
 | `readingProgression` | :white_check_mark: | :white_check_mark: |
 | `scroll`             | :white_check_mark: |                    |
 | `spread`             |                    | :white_check_mark: |
 | `textAlign`          | :white_check_mark: |                    |
 | `textColor`          | :white_check_mark: |                    |
 | `textNormalization`  | :white_check_mark: |                    |
-| `theme`              | :white_check_mark: |                    |
-| `typeScale`          | :white_check_mark: |                    |
 | `verticalText`       | :white_check_mark: |                    |
+| `visitedColor`       | :white_check_mark: |                    |
 | `wordSpacing`        | :white_check_mark: |                    |
 
-#### Publisher styles
+#### Unset preferences
 
-The following advanced preferences require `publisherStyles` to be explicitly set to `false`. Make sure you convey this in your user interface.
+The following preferences are effective only when explicitly set. When unset, the publisher styles are observed.
 
-* `hyphens`
+* `backgroundColor`
+* `fontWeight`
+* `fontWidth` (only fonts with a width axis support it, typically variable fonts)
+* `hyphens` (also effective when `textAlign` is `.justify`)
 * `letterSpacing`
 * `ligatures`
 * `lineHeight`
+* `linkColor`
 * `paragraphIndent`
 * `paragraphSpacing`
 * `textAlign`
-* `typeScale`
+* `textColor`
+* `visitedColor`
 * `wordSpacing`
 
 #### Scroll vs paginated
 
-The `columnCount` preference is available only when in paginated mode (`scroll = false`).
+Some preferences are available only in paginated mode (`scroll = false`).
 
-#### Dark theme specific preferences
+| Preference          | Scroll             | Paginated                                                 |
+|---------------------|--------------------|-----------------------------------------------------------|
+| `columnCount`       |                    | :white_check_mark:                                        |
+| `optimalLineLength` |                    | :white_check_mark: (when `columnCount` is `nil`)          |
+| `minimalLineLength` |                    | :white_check_mark: (when `columnCount` is greater than 1) |
+| `maximalLineLength` | :white_check_mark: | :white_check_mark:                                        |
 
-The `imageFilter` preference is available only in dark mode (`theme = .dark`).
+#### Line length and margins
+
+The navigator computes the number of columns and the line length from the viewport size and these preferences:
+
+* `optimalLineLength` is a factor applied to the optimal line length (640 points). With `columnCount = nil`, it chooses the number of columns fitting in the viewport.
+* `minimalLineLength` is a factor applied to the minimal line length (440 points). With a `columnCount` greater than 1, fewer columns are displayed if the lines would be shorter. When `nil` (the default), the requested number of columns is always displayed.
+* `maximalLineLength` is a factor applied to the maximal line length (740 points). When `nil` (the default), the lines take all the available width.
+* `pageMargins` is a factor applied to the minimal margins on each side of the lines (30 points): left and right, or top and bottom with vertical text. The margins are larger when the line length is limited, and never smaller than the safe area insets.
+
+`minimalLineLength` and `maximalLineLength` are `AnyOptionalRangePreference<Double>` in the `EPUBPreferencesEditor`, see [the view for an `OptionalRangePreference`](#view-for-an-optionalrangepreferencevalue).
+
+#### Colors and themes
+
+The EPUB navigator has no themes. Instead, it offers four color preferences: `textColor`, `backgroundColor`, `linkColor` and `visitedColor`.
+
+* A color which is set overrides the colors of the publication.
+* When a color is unset, the one of the publication is kept.
+* Each color is applied on its own. If you set only the `backgroundColor`, make sure the text of the publication remains readable, or set the `textColor` too.
+
+A theme is therefore a set of colors that your app applies together. For example, with the colors of the themes of the previous versions of the toolkit:
+
+```swift
+/// A set of colors applied together. `nil` keeps the color of the publication.
+struct ReaderTheme: Equatable {
+    typealias Color = ReadiumNavigator.Color
+
+    var textColor: Color?
+    var backgroundColor: Color?
+    var linkColor: Color?
+    var visitedColor: Color?
+
+    static let light = ReaderTheme()
+
+    static let sepia = ReaderTheme(
+        textColor: Color(hex: "#121212"),
+        backgroundColor: Color(hex: "#FAF4E8")
+    )
+
+    static let dark = ReaderTheme(
+        textColor: Color(hex: "#FEFEFE"),
+        backgroundColor: Color(hex: "#000000"),
+        linkColor: Color(hex: "#63CAFF"),
+        visitedColor: Color(hex: "#0099E5")
+    )
+}
+
+func apply(_ theme: ReaderTheme, to editor: EPUBPreferencesEditor) {
+    // Setting `nil` clears the preference.
+    editor.textColor.set(theme.textColor)
+    editor.backgroundColor.set(theme.backgroundColor)
+    editor.linkColor.set(theme.linkColor)
+    editor.visitedColor.set(theme.visitedColor)
+
+    // Then save and submit `editor.preferences` once.
+}
+```
+
+#### Image filters
+
+The `darkenImages`, `invertImages` and `invertGaiji` preferences are applied with any colors, although they are typically used with a dark `backgroundColor`. To filter the images only with your dark theme, set these preferences along with its colors and clear them otherwise.
+
+* `darkenImages` reduces the brightness of the images by the given percentage, from `0.0` to `1.0`.
+* `invertImages` inverts the colors of the images by the given percentage, from `0.0` to `1.0`.
+* `invertGaiji` inverts by the given percentage, from `0.0` to `1.0`, only the gaiji, which are the images used in Japanese publications for the characters missing from the fonts (`<img class="gaiji">`). They are usually black glyphs displayed among the text, which are hard to read on a dark background unless inverted. When `invertGaiji` is above `0.0`, the gaiji ignore `darkenImages` and `invertImages`.
+
+`blendImages` is a toggle, off by default, which blends the images (`<img>` and `<svg>`) with the background color using `mix-blend-mode: multiply`. The white areas of the images take the color of the page, for example with a sepia background. Like the other filters, it is applied with any colors, but it is meant for light backgrounds: multiplied with a dark background, the images become very dark.
 
 #### Language specific preferences
 
@@ -435,10 +572,11 @@ Some preferences are not available for all languages and layout.
 |-------------------|--------------------|--------------------|-----|
 | `paragraphIndent` | :white_check_mark: | :white_check_mark: |     |
 | `textAlign`       | :white_check_mark: | :white_check_mark: |     |
-| `letterSpacing`   | :white_check_mark: |                    |     |
-| `wordSpacing`     | :white_check_mark: |                    |     |
+| `letterSpacing`   | :white_check_mark: |                    | :white_check_mark: |
+| `wordSpacing`     | :white_check_mark: | :white_check_mark: |     |
 | `hyphens`         | :white_check_mark: |                    |     |
-| `ligatures`       |                    | :white_check_mark: |     |
+| `ligatures`       | :white_check_mark: | :white_check_mark: |     |
+| `noRuby`          |                    |                    | :white_check_mark: |
 
 ### PDF
 

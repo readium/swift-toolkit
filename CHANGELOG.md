@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * `AudioNavigator.stop()` stops the playback and ends the audio session.
+* Upgraded Readium CSS to version 2.0.5.
+    * Added the `noRuby` preference to allow hiding ruby (furigana) annotations in CJK publications.
+    * Added the `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences to control the line length of reflowable resources. The navigator uses them to choose the number of columns and to limit the width of the lines.
+    * Added `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji` preferences for precise CSS filtering of images.
+    * Added the `linkColor` and `visitedColor` preferences to change the color of the hyperlinks.
+    * Added the `fontWidth` preference to change the width of the glyphs, with the fonts supporting it (variable fonts with a width axis).
+    * Added optional CSS minification to the build scripts (`make scripts minify=true`).
 * The `AudioNavigator` reports the new `MediaPlaybackState.ended` when the playback reaches the end of the publication, by playing or seeking up to it.
 * `MediaPlaybackState.playsWhenReady` indicates whether the player is playing or will as soon as it is ready, e.g. to choose between a play and a pause button.
 * `PublicationSpeechSynthesizer.Configuration` has new `speed` and `pitch` properties, [see the user guide](docs/Guides/TTS.md#speed).
@@ -39,6 +46,16 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Navigator
 
+* Removed `EPUBNavigatorViewController.Configuration.readiumCSSRSProperties`. The Readium CSS properties (`CSSRSProperties`, `CSSUserProperties` and the CSS value types) are now internal to the navigator. Use the EPUB preferences or `EPUBDefaults` instead, [see the migration guide](docs/Migration%20Guide.md).
+* Changes in the EPUB navigator preferences, following the upgrade to Readium CSS v2.
+    * Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int?` to support arbitrary column counts, where `nil` means an automatic number of columns. The `ColumnCount` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
+    * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. Unlike `imageFilter`, which was applied only with the dark theme, they are applied with any colors. The `ImageFilter` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
+    * Removed the `theme` preference and the `Theme` enum, as Readium CSS v2 has no themes. Use the `textColor`, `backgroundColor`, `linkColor` and `visitedColor` preferences instead. An unset color keeps the one of the publication. A saved `theme` is migrated to these colors, [see the migration guide](docs/Migration%20Guide.md).
+    * Removed the `publisherStyles` preference. Readium CSS v2 applies the user settings as soon as they are set, [see the migration guide](docs/Migration%20Guide.md).
+    * Removed the `typeScale` preference, as the type scale user setting is no longer available in Readium CSS v2.
+    * `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, to match the base line height of Readium CSS v2 for Latin scripts.
+    * `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. When unset, its `effectiveValue` is `true`, as the ligatures are rendered by default.
+    * `EPUBPreferencesEditor.letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages, as supported by Readium CSS v2.
 * `AudioNavigator.play()` now moves on after the end of a resource, instead of doing nothing: it plays the next resource, or restarts from the beginning of the publication after the last one.
 * Seeking with the `AudioNavigator` is no longer confined to the current resource.
     * `seek(by:)` moves over to the adjacent resources when skipping past the start or the end of the current one, instead of stopping at its bounds.
@@ -70,7 +87,6 @@ All notable changes to this project will be documented in this file. Take a look
     * The playback is reported as `.loading` instead of `.paused` during a seek, when it resumes afterwards.
 * [#632](https://github.com/readium/swift-toolkit/issues/632) Fixed decorations being duplicated on both pages when a fixed-layout EPUB is displayed as a two-page spread (contributed by [@mvanhorn](https://github.com/readium/swift-toolkit/pull/915)).
 * Fixed a memory leak in `EPUBNavigatorViewController` when quickly turning the pages of a fixed-layout publication (contributed by [@deltakosh](https://github.com/readium/swift-toolkit/pull/917)).
-* Fixed reflowable EPUBs being displayed as a single column on the iPhone Duo unfolded in landscape, by porting the [responsive columns fix of Readium CSS 1.1.2](https://github.com/readium/css/issues/247).
 
 
 ## [4.0.0-alpha.2] - 2026-09-18

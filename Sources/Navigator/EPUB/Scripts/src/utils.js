@@ -36,7 +36,10 @@ window.addEventListener(
         onScroll();
       });
     });
-    observer.observe(document.body);
+    // SVG documents have no body.
+    if (document.body) {
+      observer.observe(document.body);
+    }
   },
   false
 );

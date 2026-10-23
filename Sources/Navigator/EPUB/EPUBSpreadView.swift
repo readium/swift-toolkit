@@ -738,12 +738,9 @@ extension EPUBSpreadView: UIGestureRecognizerDelegate {
 
 private extension EPUBSpreadView {
     func updateActivityIndicator() {
-        switch viewModel.theme {
-        case .dark:
-            createActivityIndicator(color: .white)
-        default:
-            createActivityIndicator(color: .systemGray)
-        }
+        createActivityIndicator(
+            color: viewModel.backgroundColor.isDark ? .white : .systemGray
+        )
     }
 
     func createActivityIndicator(color: UIColor) {

@@ -4,6 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import { isSVGDocument, parseSVGPageSize } from "./svg-page-size";
+
 // Page layout types.
 export const PageType = {
   SINGLE: "single",
@@ -44,13 +46,25 @@ export function FixedPage(iframeId, pageType) {
   var _viewport = _iframe.closest(".viewport");
 
   function onLoad() {
-    // Parses the page size from the viewport meta tag of the loaded resource,
-    // or extracts natural dimensions from images loaded directly in the iframe.
-    // As a fallback, we consider that the page spans the size of the viewport.
-    _pageSize =
-      parsePageSizeFromViewportMetaTag() ??
-      parsePageSizeFromEmbeddedImage() ??
-      _viewportSize;
+    var doc = _iframe.contentWindow.document;
+    if (isSVGDocument(doc)) {
+      // Reads the page size from the root of the SVG document, which is
+      // resized to fill the page, as its own `width` and `height` may differ
+      // from its `viewBox`, which then scales the content to the page.
+      _pageSize = parseSVGPageSize(doc) ?? _viewportSize;
+      doc.documentElement.setAttribute("width", "100%");
+      doc.documentElement.setAttribute("height", "100%");
+    } else {
+      // Parses the page size from the viewport meta tag of the loaded
+      // resource, or extracts natural dimensions from images loaded directly
+      // in the iframe.
+      // As a fallback, we consider that the page spans the size of the
+      // viewport.
+      _pageSize =
+        parsePageSizeFromViewportMetaTag() ??
+        parsePageSizeFromEmbeddedImage() ??
+        _viewportSize;
+    }
 
     layoutPage();
   }
