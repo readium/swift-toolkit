@@ -300,15 +300,18 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
                 startEngine(with: next)
             } else {
                 state = .stopped
+                next?.finish()
             }
 
             current.finish()
 
-        case let (.stopping(current, queued: _), .play(next)):
+        case let (.stopping(current, queued: queued), .play(next)):
             state = .stopping(current, queued: next)
+            queued?.finish()
 
-        case let (.stopping(current, queued: _), .stop(toStop)) where current == toStop:
+        case let (.stopping(current, queued: queued), .stop(toStop)) where queued == toStop:
             state = .stopping(current, queued: nil)
+            toStop.finish()
 
         default:
             break
