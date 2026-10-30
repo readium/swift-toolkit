@@ -25,6 +25,38 @@ enum TimelineLayoutTests {
         }
     }
 
+    struct LengthBetweenPositions {
+        struct Example: Sendable, CustomTestStringConvertible {
+            let name: String
+            var lengths: [Int?] = [10, 5, 20]
+            let start: TimelinePosition
+            let end: TimelinePosition
+            let expected: Int?
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test(arguments: [
+            Example(name: "in the same resource", start: at(1, 1), end: at(1, 4), expected: 3),
+            Example(name: "across resources", start: at(0, 8), end: at(2, 3), expected: 10),
+            Example(name: "an unknown length before the start does not matter", lengths: [nil, 5, 20], start: at(1, 1), end: at(2, 3), expected: 7),
+            Example(name: "an unknown length of the end resource does not matter", lengths: [10, 5, nil], start: at(1, 1), end: at(2, 3), expected: 7),
+            Example(name: "an unknown length in between", lengths: [10, nil, 20], start: at(0, 8), end: at(2, 3), expected: nil),
+            Example(name: "a start past the known length of its resource", start: at(0, 12), end: at(1, 1), expected: nil),
+            Example(name: "the end is before the start", start: at(1, 4), end: at(1, 1), expected: nil),
+            Example(name: "an offset is not a whole length", start: at(1, 1.5), end: at(1, 4), expected: nil),
+        ])
+        func lengthBetweenPositions(_ example: Example) {
+            #expect(layout(example.lengths).length(from: example.start, to: example.end) == example.expected)
+        }
+
+        private static func at(_ index: Int, _ offset: Double) -> TimelinePosition {
+            TimelinePosition(readingOrderIndex: index, offset: offset)
+        }
+    }
+
     struct Index {
         @Test func indexIgnoresTheFragment() {
             let layout = layout()

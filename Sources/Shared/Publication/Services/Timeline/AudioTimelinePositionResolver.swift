@@ -52,4 +52,10 @@ package struct AudioTimelinePositionResolver: TimelinePositionResolver {
     package func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
         layout.bounds(ofResource: href)
     }
+
+    package func length(from start: TimelinePosition, to end: TimelinePosition?) -> TimelineLength? {
+        end
+            .flatMap { layout.length(from: start, to: $0) }
+            .map { .duration($0) }
+    }
 }

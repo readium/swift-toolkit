@@ -178,8 +178,11 @@ enum TimelineTests {
                 node("D", "t2#t=400"),
             ])
 
+            // B's length is unknown, as `t1` is longer than its duration.
+            #expect(fixture["B"].length == nil)
             // D starts past the end of the publication.
             #expect(fixture["D"].end == fixture.at(1, 400))
+            #expect(fixture["D"].length == .duration(0))
             #expect(fixture.timeline.segments() == [
                 fixture.segment("A", (0, 0), (0, 700)),
                 fixture.segment("B", (0, 700), (1, 0)),
@@ -192,6 +195,28 @@ enum TimelineTests {
             #expect(fixture.timeline.segments(in: url("t2")) == [
                 fixture.segment("C", (1, 0), (1, 300)),
             ])
+        }
+    }
+
+    struct Lengths {
+        @Test func lengthGoesFromTheStartToTheEnd() {
+            #expect(main.timeline.preOrderItems.map(\.length) == [660, 300, 360, 1140, 180, 900].map { .duration($0) })
+        }
+
+        @Test func rangelessItemsHaveNoLength() {
+            #expect(sparse.timeline.preOrderItems.map(\.length) == [.duration(290), nil, .duration(200), nil, .duration(800)])
+        }
+
+        /// One continues past `t1`, whose duration is unknown, and Three has
+        /// no end.
+        @Test func lengthIsUnknownPastAnUnknownDurationOrWithoutAnEnd() {
+            let fixture = TimelineFixture(durations: [nil, 300, nil], nodes: [
+                node("One", "t1"),
+                node("Two", "t2"),
+                node("Three", "t3"),
+            ])
+
+            #expect(fixture.timeline.items.map(\.length) == [nil, .duration(300), nil])
         }
     }
 

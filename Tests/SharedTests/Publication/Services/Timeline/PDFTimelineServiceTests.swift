@@ -31,6 +31,7 @@ struct PDFTimelineServiceTests {
         #expect(segments.map { $0.end?.readingOrderIndex } == [0, 1, 1])
         #expect(segments.map { $0.end?.offset } == [2, 1, 5])
         #expect(timeline.items[1].end?.totalProgression == 1)
+        #expect(timeline.items.map(\.length) == [.pages(11), .pages(4)])
     }
 
     /// Without positions, the pages are still placed, but the end of the

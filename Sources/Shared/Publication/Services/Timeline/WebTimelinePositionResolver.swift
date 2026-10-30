@@ -73,6 +73,11 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         readingOrder.firstIndexWithHREF(href).map { (start(ofResourceAt: $0), end(ofResourceAt: $0)) }
     }
 
+    /// The lengths of the resources are unknown.
+    package func length(from start: TimelinePosition, to end: TimelinePosition?) -> TimelineLength? {
+        nil
+    }
+
     private func start(ofResourceAt index: Int) -> TimelinePosition {
         TimelinePosition(readingOrderIndex: index, offset: 0)
     }

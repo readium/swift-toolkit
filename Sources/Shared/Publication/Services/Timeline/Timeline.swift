@@ -126,16 +126,18 @@ public struct Timeline: Sendable {
         // in pre-order.
         var allItems = [TimelineItem?](repeating: nil, count: flatNodes.count)
         for (nodeID, node) in flatNodes.enumerated().reversed() {
+            let start = starts[nodeID]
+            let end = start.flatMap { start in
+                // An item can start past the known end of the publication.
+                nextStarts[subtreeEnds[nodeID]] ?? resolver.end.map { $0.isBefore(start) ? start : $0 }
+            }
             allItems[nodeID] = TimelineItem(
                 id: nodeID,
                 title: node.title,
                 link: node.link,
-                start: starts[nodeID],
-                end: starts[nodeID].flatMap { start in
-                    // An item can start past the known end of the
-                    // publication.
-                    nextStarts[subtreeEnds[nodeID]] ?? resolver.end.map { $0.isBefore(start) ? start : $0 }
-                },
+                start: start,
+                end: end,
+                length: start.flatMap { resolver.length(from: $0, to: end) },
                 children: childIDs[nodeID].map { allItems[$0]! }
             )
         }

@@ -62,6 +62,12 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
         layout.bounds(ofResource: href)
     }
 
+    package func length(from start: TimelinePosition, to end: TimelinePosition?) -> TimelineLength? {
+        end
+            .flatMap { layout.length(from: start, to: $0) }
+            .map { .pages($0) }
+    }
+
     /// Page index in the resource at `index` of the given 1-based position in
     /// the publication, or `nil` when it is outside the resource or the
     /// preceding page counts are unknown.

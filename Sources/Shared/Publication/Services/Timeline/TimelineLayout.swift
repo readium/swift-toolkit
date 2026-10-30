@@ -6,18 +6,23 @@
 
 import Foundation
 
-/// A length of a resource on a timeline, such as a duration or a page count.
-package protocol TimelineLength: AdditiveArithmetic, Comparable, Sendable {
+/// A numeric type a timeline is measured in, such as `Double` seconds or
+/// `Int` pages.
+package protocol TimelineScalar: AdditiveArithmetic, Comparable, Sendable {
+    /// Creates a scalar from the offset of a position, or `nil` when it
+    /// cannot be represented exactly.
+    init?(exactly source: Double)
+
     var doubleValue: Double { get }
 }
 
-extension Int: TimelineLength {
+extension Int: TimelineScalar {
     package var doubleValue: Double {
         Double(self)
     }
 }
 
-extension Double: TimelineLength {
+extension Double: TimelineScalar {
     package var doubleValue: Double {
         self
     }
@@ -27,21 +32,21 @@ extension Double: TimelineLength {
 /// timeline, from their lengths.
 ///
 /// A missing or non-positive length is unknown.
-package struct TimelineLayout<Length: TimelineLength>: Sendable {
+package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
     private let readingOrder: [Link]
 
     /// Length of each reading order resource.
-    private let lengths: [Length?]
+    private let lengths: [Scalar?]
 
     /// Offset of each reading order resource from the start of the
     /// publication, `nil` when a preceding length is unknown.
-    private let startOffsets: [Length?]
+    private let startOffsets: [Scalar?]
 
     /// Length of the publication, `nil` when a length is unknown.
-    private let totalLength: Length?
+    private let totalLength: Scalar?
 
     /// Turns an offset from the start of the publication into a coordinate.
-    private let makeCoordinate: @Sendable (Length) -> TimelineCoordinate
+    private let makeCoordinate: @Sendable (Scalar) -> TimelineCoordinate
 
     /// - Parameters:
     ///   - lengths: Length of each reading order resource, by index.
@@ -49,8 +54,8 @@ package struct TimelineLayout<Length: TimelineLength>: Sendable {
     ///     into a coordinate, such as `TimelineCoordinate.time`.
     package init(
         readingOrder: [Link],
-        lengths: [Length?],
-        coordinate: @escaping @Sendable (Length) -> TimelineCoordinate
+        lengths: [Scalar?],
+        coordinate: @escaping @Sendable (Scalar) -> TimelineCoordinate
     ) {
         self.readingOrder = readingOrder
         makeCoordinate = coordinate
@@ -58,8 +63,8 @@ package struct TimelineLayout<Length: TimelineLength>: Sendable {
             lengths.getOrNil(index).flatMap { $0 }.flatMap { $0 > .zero ? $0 : nil }
         }
 
-        var startOffsets: [Length?] = []
-        var total: Length? = .zero
+        var startOffsets: [Scalar?] = []
+        var total: Scalar? = .zero
         for length in self.lengths {
             startOffsets.append(total)
             total = total.flatMap { total in length.map { total + $0 } }
@@ -69,13 +74,13 @@ package struct TimelineLayout<Length: TimelineLength>: Sendable {
     }
 
     /// Length of the resource at `index`, `nil` when it is unknown.
-    package func length(ofResourceAt index: Int) -> Length? {
+    package func length(ofResourceAt index: Int) -> Scalar? {
         lengths[index]
     }
 
     /// Offset of the resource at `index` from the start of the publication,
     /// `nil` when a preceding length is unknown.
-    package func startOffset(ofResourceAt index: Int) -> Length? {
+    package func startOffset(ofResourceAt index: Int) -> Scalar? {
         startOffsets[index]
     }
 
@@ -104,7 +109,7 @@ package struct TimelineLayout<Length: TimelineLength>: Sendable {
     }
 
     /// Position at `offset` in the resource at `index`.
-    package func position(at index: Int, offset: Length) -> TimelinePosition {
+    package func position(at index: Int, offset: Scalar) -> TimelinePosition {
         let totalOffset = startOffsets[index].map { $0 + offset }
 
         return TimelinePosition(
@@ -116,6 +121,35 @@ package struct TimelineLayout<Length: TimelineLength>: Sendable {
                 totalLength.map { totalOffset.doubleValue / $0.doubleValue }
             }
         )
+    }
+
+    /// Length between `start` and `end`, or `nil` when the length of a
+    /// resource between them is unknown, or `end` is before `start`.
+    ///
+    /// A `start` past the known length of its resource, when `end` is in a
+    /// later resource, shows that this length is wrong: it is unknown too.
+    ///
+    /// Unlike the coordinates, it does not depend on the lengths of the
+    /// resources before `start`.
+    package func length(from start: TimelinePosition, to end: TimelinePosition) -> Scalar? {
+        guard
+            !end.isBefore(start),
+            let startOffset = Scalar(exactly: start.offset),
+            var length = Scalar(exactly: end.offset)
+        else {
+            return nil
+        }
+        length -= startOffset
+        for index in start.readingOrderIndex ..< end.readingOrderIndex {
+            guard
+                let resourceLength = lengths[index],
+                index > start.readingOrderIndex || startOffset <= resourceLength
+            else {
+                return nil
+            }
+            length += resourceLength
+        }
+        return length
     }
 
     /// End of the reading order resource at `index`, or `nil` when its
