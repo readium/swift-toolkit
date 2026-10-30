@@ -13,6 +13,8 @@ import Foundation
 /// is placed at the start of the resource. A locator resolves to its resource
 /// and progression only, so a fixed-layout resource is like a reflowable one
 /// that is never scrolled. Each resource ends at a progression of 1.
+///
+/// The offset of a position is its progression in its resource.
 package struct WebTimelinePositionResolver: TimelinePositionResolver {
     private let readingOrder: [Link]
 
@@ -63,7 +65,7 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         }
         return TimelinePosition(
             readingOrderIndex: index,
-            offset: .scroll(locator.locations.progression ?? 0)
+            offset: locator.locations.progression ?? 0
         )
     }
 
@@ -72,10 +74,10 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     }
 
     private func start(ofResourceAt index: Int) -> TimelinePosition {
-        TimelinePosition(readingOrderIndex: index, offset: .scroll(0))
+        TimelinePosition(readingOrderIndex: index, offset: 0)
     }
 
     private func end(ofResourceAt index: Int) -> TimelinePosition {
-        TimelinePosition(readingOrderIndex: index, offset: .scroll(1))
+        TimelinePosition(readingOrderIndex: index, offset: 1)
     }
 }

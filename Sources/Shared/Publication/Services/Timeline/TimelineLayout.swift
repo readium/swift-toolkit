@@ -40,20 +40,20 @@ package struct TimelineLayout<Length: TimelineLength>: Sendable {
     /// Length of the publication, `nil` when a length is unknown.
     private let totalLength: Length?
 
-    /// Turns a length into an offset of the timeline.
-    private let makeOffset: @Sendable (Length) -> TimelineOffset
+    /// Turns an offset from the start of the publication into a coordinate.
+    private let makeCoordinate: @Sendable (Length) -> TimelineCoordinate
 
     /// - Parameters:
     ///   - lengths: Length of each reading order resource, by index.
-    ///   - offset: Turns a length into an offset of the timeline, such as
-    ///     `TimelineOffset.seconds`.
+    ///   - coordinate: Turns an offset from the start of the publication
+    ///     into a coordinate, such as `TimelineCoordinate.time`.
     package init(
         readingOrder: [Link],
         lengths: [Length?],
-        offset: @escaping @Sendable (Length) -> TimelineOffset
+        coordinate: @escaping @Sendable (Length) -> TimelineCoordinate
     ) {
         self.readingOrder = readingOrder
-        makeOffset = offset
+        makeCoordinate = coordinate
         self.lengths = readingOrder.indices.map { index in
             lengths.getOrNil(index).flatMap { $0 }.flatMap { $0 > .zero ? $0 : nil }
         }
@@ -109,8 +109,8 @@ package struct TimelineLayout<Length: TimelineLength>: Sendable {
 
         return TimelinePosition(
             readingOrderIndex: index,
-            offset: makeOffset(offset),
-            totalOffset: totalOffset.map(makeOffset),
+            offset: offset.doubleValue,
+            coordinate: totalOffset.map(makeCoordinate),
             progression: lengths[index].map { offset.doubleValue / $0.doubleValue },
             totalProgression: totalOffset.flatMap { totalOffset in
                 totalLength.map { totalOffset.doubleValue / $0.doubleValue }
@@ -132,7 +132,7 @@ package struct TimelineLayout<Length: TimelineLength>: Sendable {
             return TimelinePosition(
                 readingOrderIndex: index,
                 offset: end.offset,
-                totalOffset: end.totalOffset,
+                coordinate: end.coordinate,
                 progression: end.progression,
                 totalProgression: 1
             )

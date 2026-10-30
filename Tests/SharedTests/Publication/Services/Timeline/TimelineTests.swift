@@ -55,7 +55,7 @@ enum TimelineTests {
             let timeline = TimelineFixture(durations: [600, 300, 900], nodes: []).timeline
 
             #expect(timeline.items.isEmpty)
-            #expect(timeline.locate(Locator(href: "t1", mediaType: .mp3)) == nil)
+            #expect(timeline.item(containing: Locator(href: "t1", mediaType: .mp3)) == nil)
             #expect(timeline.first() == nil)
             #expect(timeline.segments() == [])
             #expect(timeline.segments(in: url("t1")) == [])
@@ -107,7 +107,7 @@ enum TimelineTests {
 
     struct Ends {
         @Test func itemEndsAtTheNextRangedItemAfterItsSubtree() {
-            let publicationEnd = position(2, 900, totalOffset: 1800, progression: 1, totalProgression: 1)
+            let publicationEnd = position(2, 900, time: 1800, progression: 1, totalProgression: 1)
 
             #expect(main.timeline.preOrderItems.map(\.end) == [
                 // Part 1 ends where Chapter 2 does.
@@ -158,7 +158,7 @@ enum TimelineTests {
             PublicationEnd(
                 name: "an earlier duration is unknown but the last one is known",
                 durations: [nil, 300, 900],
-                expected: position(2, 900, totalOffset: nil, progression: 1, totalProgression: 1)
+                expected: position(2, 900, time: nil, progression: 1, totalProgression: 1)
             ),
         ])
         func endOfThePublication(_ example: PublicationEnd) {
@@ -196,30 +196,17 @@ enum TimelineTests {
     }
 
     struct Equality {
-        struct OffsetPair: Sendable, CustomTestStringConvertible {
-            let name: String
-            let low: TimelineOffset
-            let high: TimelineOffset
-
-            var testDescription: String {
-                name
-            }
-        }
-
-        @Test(arguments: [
-            OffsetPair(name: "seconds", low: .seconds(10), high: .seconds(20)),
-            OffsetPair(name: "scroll", low: .scroll(0.1), high: .scroll(0.2)),
-            OffsetPair(name: "page", low: .page(1), high: .page(2)),
-        ])
-        func positionsAreOrderedByIndexThenByOffset(_ offsets: OffsetPair) {
-            func position(_ index: Int, _ offset: TimelineOffset) -> TimelinePosition {
-                TimelinePosition(readingOrderIndex: index, offset: offset)
+        /// The coordinates are ignored.
+        @Test func positionsAreOrderedByIndexThenByOffset() {
+            func position(_ index: Int, _ offset: Double, _ coordinate: TimelineCoordinate? = nil) -> TimelinePosition {
+                TimelinePosition(readingOrderIndex: index, offset: offset, coordinate: coordinate)
             }
 
-            #expect(position(0, offsets.high).isBefore(position(1, offsets.low)))
-            #expect(position(1, offsets.low).isBefore(position(1, offsets.high)))
-            #expect(position(1, offsets.high).isBefore(position(2, offsets.low)))
-            #expect(!position(1, offsets.low).isBefore(position(1, offsets.low)))
+            #expect(position(0, 20).isBefore(position(1, 10)))
+            #expect(position(1, 10).isBefore(position(1, 20)))
+            #expect(position(1, 20).isBefore(position(2, 10)))
+            #expect(!position(1, 10).isBefore(position(1, 10)))
+            #expect(position(1, 10, .page(9)).isBefore(position(1, 20, .page(1))))
         }
 
         @Test func itemsOfTimelinesBuiltFromTheSameNodesAreEqual() {
@@ -238,31 +225,38 @@ enum TimelineTests {
         }
     }
 
-    struct Locate {
+    struct ItemContaining {
         @Test func returnsTheDeepestItemContainingTheLocator() {
-            #expect(main.locate("t1", 450) == main["Chapter 2"])
+            #expect(main.item(containing: "t1", 450) == main["Chapter 2"])
             // Part 2's gap.
-            #expect(main.locate("t2", 90) == main["Part 2"])
+            #expect(main.item(containing: "t2", 90) == main["Part 2"])
             // A start shared by Part 1 and Chapter 1.
-            #expect(main.locate("t1", 0) == main["Chapter 1"])
+            #expect(main.item(containing: "t1", 0) == main["Chapter 1"])
         }
 
         @Test func stopsAtTheMaxDepth() {
-            #expect(main.locate("t2", 200, maxDepth: 1) == main["Part 2"])
-            #expect(main.locate("t2", 200, maxDepth: 5) == main["Chapter 3"])
+            #expect(main.item(containing: "t2", 200, maxDepth: 1) == main["Part 2"])
+            #expect(main.item(containing: "t2", 200, maxDepth: 5) == main["Chapter 3"])
             // R is rangeless.
-            #expect(sparse.locate("t3", 100, maxDepth: 1) == nil)
+            #expect(sparse.item(containing: "t3", 100, maxDepth: 1) == nil)
         }
 
         @Test func coverageOfASparseTimeline() {
-            #expect(sparse.locate("t1", 300) == nil)
+            #expect(sparse.item(containing: "t1", 300) == nil)
             // Before A.
-            #expect(sparse.locate("t2", 5) == nil)
-            #expect(sparse.locate("outside.mp3") == nil)
+            #expect(sparse.item(containing: "t2", 5) == nil)
+            #expect(sparse.item(containing: "outside.mp3") == nil)
             // Not referenced by the TOC.
-            #expect(sparse.locate("t4", 50) == sparse["B"])
+            #expect(sparse.item(containing: "t4", 50) == sparse["B"])
             // Past the known end of the last track.
-            #expect(sparse.locate("t4", 150) == sparse["B"])
+            #expect(sparse.item(containing: "t4", 150) == sparse["B"])
+        }
+    }
+
+    struct Position {
+        @Test func resolvesTheLocator() {
+            #expect(main.timeline.position(of: Locator(href: "t2", mediaType: .mp3, locations: .init(fragments: ["t=60"]))) == main.at(1, 60))
+            #expect(main.timeline.position(of: Locator(href: "outside.mp3", mediaType: .mp3)) == nil)
         }
     }
 
@@ -323,7 +317,7 @@ enum TimelineTests {
 
         @Test(arguments: [0, -1])
         func maxDepthBelowOneReturnsNothing(maxDepth: Int) {
-            #expect(main.locate("t1", 450, maxDepth: maxDepth) == nil)
+            #expect(main.item(containing: "t1", 450, maxDepth: maxDepth) == nil)
             #expect(main.timeline.first(maxDepth: maxDepth) == nil)
             #expect(main.timeline.previous(before: main["Chapter 2"], maxDepth: maxDepth) == nil)
             #expect(main.timeline.next(after: main["Chapter 2"], maxDepth: maxDepth) == nil)
@@ -365,7 +359,8 @@ enum TimelineTests {
                 sparse.segment("C", (2, 0), (2, 200)),
                 sparse.segment("B", (2, 200), (3, 100)),
             ])
-            // `[t3 0, t3 200)` has no segment, as `locate` returns nil there.
+            // `[t3 0, t3 200)` has no segment, as `item(containing:)` returns
+            // nil there.
             #expect(sparse.timeline.segments(maxDepth: 1) == [
                 sparse.segment("A", (1, 10), (2, 0)),
                 sparse.segment("B", (2, 200), (3, 100)),
@@ -378,7 +373,7 @@ enum TimelineTests {
                 nested.segment("Section", (0, 300), (1, 0)),
                 nested.segment("Part 2", (1, 0), (1, 300)),
             ])
-            // `locate` returns Part 1 in `[t1 300, t2 0)`.
+            // `item(containing:)` returns Part 1 in `[t1 300, t2 0)`.
             #expect(nested.timeline.segments(maxDepth: 2) == [
                 nested.segment("Chapter 1", (0, 0), (0, 300)),
                 nested.segment("Part 1", (0, 300), (1, 0)),
@@ -400,8 +395,8 @@ enum TimelineTests {
             }
         }
 
-        /// `locate` returns the item of a segment at its start and 1 ms before
-        /// its end.
+        /// `item(containing:)` returns the item of a segment at its start and
+        /// 1 ms before its end.
         @Test(arguments: [
             FixtureDepth(name: "main", fixture: main, maxDepth: nil),
             FixtureDepth(name: "main at depth 1", fixture: main, maxDepth: 1),
@@ -410,11 +405,11 @@ enum TimelineTests {
             FixtureDepth(name: "nested", fixture: nested, maxDepth: nil),
             FixtureDepth(name: "nested at depth 2", fixture: nested, maxDepth: 2),
         ])
-        func labelsMatchLocate(_ example: FixtureDepth) {
+        func labelsMatchItemContaining(_ example: FixtureDepth) {
             let fixture = example.fixture
             for segment in fixture.timeline.segments(maxDepth: example.maxDepth) {
-                #expect(fixture.locate(segment.start, maxDepth: example.maxDepth) == segment.item)
-                #expect(fixture.locate(segment.end!, by: -0.001, maxDepth: example.maxDepth) == segment.item)
+                #expect(fixture.item(containing: segment.start, maxDepth: example.maxDepth) == segment.item)
+                #expect(fixture.item(containing: segment.end!, by: -0.001, maxDepth: example.maxDepth) == segment.item)
             }
         }
     }
@@ -513,14 +508,14 @@ private func url(_ string: String) -> AnyURL {
 private func position(
     _ index: Int,
     _ offset: TimeInterval,
-    totalOffset: TimeInterval?,
+    time: TimeInterval?,
     progression: Double?,
     totalProgression: Double?
 ) -> TimelinePosition {
     TimelinePosition(
         readingOrderIndex: index,
-        offset: .seconds(offset),
-        totalOffset: totalOffset.map { .seconds($0) },
+        offset: offset,
+        coordinate: time.map { .time($0) },
         progression: progression,
         totalProgression: totalProgression
     )
@@ -551,13 +546,13 @@ struct TimelineFixture: Sendable {
     /// durations are known.
     func at(_ index: Int, _ offset: TimeInterval) -> TimelinePosition {
         let durations = durations.map { $0! }
-        let totalOffset = durations[..<index].reduce(0, +) + offset
+        let time = durations[..<index].reduce(0, +) + offset
         return position(
             index,
             offset,
-            totalOffset: totalOffset,
+            time: time,
             progression: offset / durations[index],
-            totalProgression: totalOffset / durations.reduce(0, +)
+            totalProgression: time / durations.reduce(0, +)
         )
     }
 
@@ -567,21 +562,21 @@ struct TimelineFixture: Sendable {
         TimelineSegment(item: self[title], start: at(start.0, start.1), end: at(end.0, end.1))
     }
 
-    func locate(_ href: String, _ offset: TimeInterval? = nil, maxDepth: Int? = nil) -> TimelineItem? {
+    func item(containing href: String, _ offset: TimeInterval? = nil, maxDepth: Int? = nil) -> TimelineItem? {
         let fragments = offset.map { ["t=\($0)"] } ?? []
-        return timeline.locate(Locator(href: href, mediaType: .mp3, locations: .init(fragments: fragments)), maxDepth: maxDepth)
+        return timeline.item(containing: Locator(href: href, mediaType: .mp3, locations: .init(fragments: fragments)), maxDepth: maxDepth)
     }
 
-    /// Locates the position moved by `delta` seconds, possibly in the
-    /// previous track.
-    func locate(_ position: TimelinePosition, by delta: TimeInterval = 0, maxDepth: Int? = nil) -> TimelineItem? {
+    /// Returns the item containing the position moved by `delta` seconds,
+    /// possibly in the previous track.
+    func item(containing position: TimelinePosition, by delta: TimeInterval = 0, maxDepth: Int? = nil) -> TimelineItem? {
         var index = position.readingOrderIndex
-        var offset = position.offset.seconds + delta
+        var offset = position.offset + delta
         if offset < 0 {
             index -= 1
             offset += durations[index]!
         }
-        return locate("t\(index + 1)", offset, maxDepth: maxDepth)
+        return item(containing: "t\(index + 1)", offset, maxDepth: maxDepth)
     }
 }
 
@@ -601,14 +596,5 @@ private extension [TimelineItem] {
 private extension [Timeline.Node] {
     var preOrder: [Timeline.Node] {
         flatMap { [$0] + $0.children.preOrder }
-    }
-}
-
-private extension TimelineOffset {
-    var seconds: TimeInterval {
-        guard case let .seconds(seconds) = self else {
-            fatalError("Expected an offset in seconds, got \(self)")
-        }
-        return seconds
     }
 }

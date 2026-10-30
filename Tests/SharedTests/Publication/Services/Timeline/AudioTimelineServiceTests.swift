@@ -81,7 +81,7 @@ enum AudioTimelineServiceTests {
 
             #expect(timeline.items.map(\.link) == readingOrder)
             #expect(timeline.items.map { $0.start?.readingOrderIndex } == [0, 1, 2])
-            #expect(timeline.items.map { $0.start?.offset } == [.seconds(0), .seconds(0), .seconds(0)])
+            #expect(timeline.items.map { $0.start?.offset } == [0, 0, 0])
         }
 
         @Test func customServiceIsUsed() async throws {

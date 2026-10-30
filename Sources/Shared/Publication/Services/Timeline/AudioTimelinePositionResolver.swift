@@ -9,6 +9,8 @@ import Foundation
 /// Resolves the locations of an audio publication into positions on its
 /// timeline, from the durations of its reading order.
 ///
+/// The offset of a position is in seconds.
+///
 /// A missing or non-positive duration is unknown.
 package struct AudioTimelinePositionResolver: TimelinePositionResolver {
     private let layout: TimelineLayout<TimeInterval>
@@ -17,7 +19,7 @@ package struct AudioTimelinePositionResolver: TimelinePositionResolver {
         layout = TimelineLayout(
             readingOrder: readingOrder,
             lengths: readingOrder.map(\.duration),
-            offset: TimelineOffset.seconds
+            coordinate: TimelineCoordinate.time
         )
     }
 

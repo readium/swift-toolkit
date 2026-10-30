@@ -66,7 +66,7 @@ struct WebTimelineServiceTests {
         let timeline = try await timeline()
         let locator = Locator(href: AnyURL(string: example.href)!, mediaType: .xhtml, locations: .init(progression: example.progression))
 
-        #expect(timeline.locate(locator)?.title == example.expected.map { .text($0) })
+        #expect(timeline.item(containing: locator)?.title == example.expected.map { .text($0) })
     }
 
     @Test func aSplitChapterCoversItsFollowingResources() async throws {
@@ -95,7 +95,7 @@ struct WebTimelineServiceTests {
         let locator = Locator(href: AnyURL(string: "ch1a.xhtml")!, mediaType: .xhtml)
 
         #expect(timeline.items[0].start == position(1))
-        #expect(timeline.locate(locator) == timeline.items[0])
+        #expect(timeline.item(containing: locator) == timeline.items[0])
     }
 
     @Test func readsTheTableOfContentsService() async throws {
@@ -155,7 +155,7 @@ private func timeline(
 }
 
 private func position(_ index: Int, _ progression: Double = 0) -> TimelinePosition {
-    TimelinePosition(readingOrderIndex: index, offset: .scroll(progression))
+    TimelinePosition(readingOrderIndex: index, offset: progression)
 }
 
 private struct StubTableOfContentsService: TableOfContentsService {

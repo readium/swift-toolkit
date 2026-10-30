@@ -35,7 +35,7 @@ enum TimelineLayoutTests {
     }
 
     struct Positions {
-        /// Position at page 2 of `b` with the given lengths.
+        /// Position at the offset 2 of `b` with the given lengths.
         struct PositionLengths: Sendable, CustomTestStringConvertible {
             let name: String
             let lengths: [Int?]
@@ -50,22 +50,22 @@ enum TimelineLayoutTests {
             PositionLengths(
                 name: "all the lengths are known",
                 lengths: [10, 5, 20],
-                expected: position(1, 2, totalOffset: 12, progression: 0.4, totalProgression: 12.0 / 35)
+                expected: position(1, 2, page: 13, progression: 0.4, totalProgression: 12.0 / 35)
             ),
             PositionLengths(
                 name: "the length of the resource is unknown",
                 lengths: [10, nil, 20],
-                expected: position(1, 2, totalOffset: 12, progression: nil, totalProgression: nil)
+                expected: position(1, 2, page: 13, progression: nil, totalProgression: nil)
             ),
             PositionLengths(
                 name: "a preceding length is unknown",
                 lengths: [nil, 5, 20],
-                expected: position(1, 2, totalOffset: nil, progression: 0.4, totalProgression: nil)
+                expected: position(1, 2, page: nil, progression: 0.4, totalProgression: nil)
             ),
             PositionLengths(
                 name: "a later length is unknown",
                 lengths: [10, 5, nil],
-                expected: position(1, 2, totalOffset: 12, progression: 0.4, totalProgression: nil)
+                expected: position(1, 2, page: 13, progression: 0.4, totalProgression: nil)
             ),
         ])
         func positionDependsOnTheLengths(_ example: PositionLengths) {
@@ -77,8 +77,8 @@ enum TimelineLayoutTests {
         @Test func resourceBounds() {
             let layout = layout([10, 5, nil])
 
-            #expect(layout.bounds(ofResource: AnyURL(string: "a")!)?.start == position(0, 0, totalOffset: 0, progression: 0, totalProgression: nil))
-            #expect(layout.bounds(ofResource: AnyURL(string: "b")!)?.end == position(1, 5, totalOffset: 15, progression: 1, totalProgression: nil))
+            #expect(layout.bounds(ofResource: AnyURL(string: "a")!)?.start == position(0, 0, page: 1, progression: 0, totalProgression: nil))
+            #expect(layout.bounds(ofResource: AnyURL(string: "b")!)?.end == position(1, 5, page: 16, progression: 1, totalProgression: nil))
             #expect(layout.bounds(ofResource: AnyURL(string: "c")!)?.end == nil)
             #expect(layout.bounds(ofResource: AnyURL(string: "outside")!) == nil)
         }
@@ -95,8 +95,8 @@ enum TimelineLayoutTests {
         /// The end of the publication is at 100%, even when a preceding length
         /// is unknown.
         @Test(arguments: [
-            PublicationEnd(lengths: [10, 5, 20], expected: position(2, 20, totalOffset: 35, progression: 1, totalProgression: 1)),
-            PublicationEnd(lengths: [nil, 5, 20], expected: position(2, 20, totalOffset: nil, progression: 1, totalProgression: 1)),
+            PublicationEnd(lengths: [10, 5, 20], expected: position(2, 20, page: 36, progression: 1, totalProgression: 1)),
+            PublicationEnd(lengths: [nil, 5, 20], expected: position(2, 20, page: nil, progression: 1, totalProgression: 1)),
             PublicationEnd(lengths: [10, 5, nil], expected: nil),
         ])
         func publicationEnd(_ example: PublicationEnd) {
@@ -104,7 +104,7 @@ enum TimelineLayoutTests {
         }
 
         @Test func emptyReadingOrderHasNoEnd() {
-            #expect(TimelineLayout<Int>(readingOrder: [], lengths: [], offset: TimelineOffset.page).end == nil)
+            #expect(TimelineLayout<Int>(readingOrder: [], lengths: [], coordinate: { .page($0 + 1) }).end == nil)
         }
     }
 }
@@ -115,21 +115,21 @@ private func layout(_ lengths: [Int?] = [10, 5, 20]) -> TimelineLayout<Int> {
     TimelineLayout(
         readingOrder: [Link(href: "a"), Link(href: "b"), Link(href: "c")],
         lengths: lengths,
-        offset: TimelineOffset.page
+        coordinate: { .page($0 + 1) }
     )
 }
 
 private func position(
     _ index: Int,
-    _ page: Int,
-    totalOffset: Int?,
+    _ offset: Int,
+    page: Int?,
     progression: Double?,
     totalProgression: Double?
 ) -> TimelinePosition {
     TimelinePosition(
         readingOrderIndex: index,
-        offset: .page(page),
-        totalOffset: totalOffset.map { .page($0) },
+        offset: Double(offset),
+        coordinate: page.map { .page($0) },
         progression: progression,
         totalProgression: totalProgression
     )

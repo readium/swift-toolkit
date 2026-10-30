@@ -9,6 +9,9 @@ import Foundation
 /// Resolves the locations of a PDF publication into positions on its
 /// timeline, from the page count of each document in its reading order.
 ///
+/// The offset of a position is the index of its page in its document,
+/// starting at 0. The end of a document is at its page count.
+///
 /// A page from a link or a locator is clamped to the pages of its document,
 /// when its page count is known. A missing or non-positive page count is
 /// unknown.
@@ -21,7 +24,7 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
         layout = TimelineLayout(
             readingOrder: readingOrder,
             lengths: pageCounts,
-            offset: TimelineOffset.page
+            coordinate: { .page($0 + 1) }
         )
     }
 

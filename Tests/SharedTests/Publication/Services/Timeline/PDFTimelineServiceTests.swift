@@ -27,9 +27,9 @@ struct PDFTimelineServiceTests {
         ])
         let segments = timeline.segments()
         #expect(segments.map(\.start.readingOrderIndex) == [0, 0, 1])
-        #expect(segments.map(\.start.offset) == [.page(0), .page(2), .page(1)])
+        #expect(segments.map(\.start.offset) == [0, 2, 1])
         #expect(segments.map { $0.end?.readingOrderIndex } == [0, 1, 1])
-        #expect(segments.map { $0.end?.offset } == [.page(2), .page(1), .page(5)])
+        #expect(segments.map { $0.end?.offset } == [2, 1, 5])
         #expect(timeline.items[1].end?.totalProgression == 1)
     }
 
@@ -39,7 +39,7 @@ struct PDFTimelineServiceTests {
         let timeline = try await timeline(positions: nil)
 
         #expect(timeline.items.map { $0.start?.readingOrderIndex } == [0, 1])
-        #expect(timeline.items.map { $0.start?.offset } == [.page(0), .page(1)])
+        #expect(timeline.items.map { $0.start?.offset } == [0, 1])
         #expect(timeline.items[1].end == nil)
     }
 
@@ -61,7 +61,7 @@ struct PDFTimelineServiceTests {
             Issue.record("Expected a decoding error, got \(String(describing: error))")
             return
         }
-        #expect(try await publication.timeline()?.items[1].end?.offset == .page(5))
+        #expect(try await publication.timeline()?.items[1].end?.offset == 5)
         withExtendedLifetime(publication) {}
     }
 

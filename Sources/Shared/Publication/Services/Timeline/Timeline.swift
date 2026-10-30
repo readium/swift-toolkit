@@ -35,7 +35,7 @@ import Foundation
 ///
 /// ```swift
 /// func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-///     let chapter = timeline.locate(locator, maxDepth: 1)
+///     let chapter = timeline.item(containing: locator, maxDepth: 1)
 ///     if chapter?.id != currentChapter?.id {
 ///         currentChapter = chapter
 ///         updateHeader()
@@ -154,10 +154,10 @@ public struct Timeline: Sendable {
     ///
     /// - Parameter maxDepth: Returns an ancestor of the deepest item, no
     ///   deeper than this depth. The top level is 1.
-    public func locate(_ locator: Locator, maxDepth: Int? = nil) -> TimelineItem? {
+    public func item(containing locator: Locator, maxDepth: Int? = nil) -> TimelineItem? {
         guard
             maxDepth.map({ $0 >= 1 }) ?? true,
-            let position = resolver.position(of: locator)
+            let position = position(of: locator)
         else {
             return nil
         }
@@ -178,6 +178,12 @@ public struct Timeline: Sendable {
         }
 
         return labelID(of: rangedIDs[low - 1], maxDepth: maxDepth).map { allItems[$0] }
+    }
+
+    /// Returns the position of `locator` on the timeline, or `nil` when it is
+    /// outside the reading order.
+    public func position(of locator: Locator) -> TimelinePosition? {
+        resolver.position(of: locator)
     }
 
     /// Returns the first item with a range in pre-order, or `nil` when no
@@ -243,7 +249,7 @@ public struct Timeline: Sendable {
     /// Returns consecutive segments covering the timeline, each labelled with
     /// the deepest item playing in it.
     ///
-    /// The item of a segment is the one returned by ``locate(_:maxDepth:)``
+    /// The item of a segment is the one returned by ``item(containing:maxDepth:)``
     /// in it.
     ///
     /// - Parameter maxDepth: Labels the segments with items no deeper than
@@ -252,7 +258,7 @@ public struct Timeline: Sendable {
         var segments: [TimelineSegment] = []
 
         // Each ranged item starts an interval up to the next one, labelled
-        // like `locate` would in it.
+        // like `item(containing:)` would in it.
         for (index, rangedID) in rangedIDs.enumerated() {
             guard let labelID = labelID(of: rangedID, maxDepth: maxDepth) else {
                 continue
