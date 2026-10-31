@@ -93,6 +93,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
         public var readiumCSSRSProperties: CSSRSProperties
 
+        /// Whether publication JavaScript may run. Readium user scripts and
+        /// application JavaScript evaluation remain available when false.
+        public var allowsContentJavaScript: Bool
+
         /// Logs the state changes when true.
         public var debugState: Bool
 
@@ -110,6 +114,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
             readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
+            allowsContentJavaScript: Bool = true,
             debugState: Bool = false
         ) {
             self.preferences = preferences
@@ -122,6 +127,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.decorationTemplates = decorationTemplates
             self.fontFamilyDeclarations = fontFamilyDeclarations
             self.readiumCSSRSProperties = readiumCSSRSProperties
+            self.allowsContentJavaScript = allowsContentJavaScript
             self.debugState = debugState
         }
 

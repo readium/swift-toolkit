@@ -12,6 +12,7 @@ schemes:
     test:
       targets:
         - NavigatorUITests
+        - ContentJavaScriptTests
 targets:
   NavigatorTestHost:
     type: application
@@ -47,3 +48,18 @@ targets:
       INFOPLIST_FILE: NavigatorUITests/Info.plist
       PRODUCT_BUNDLE_IDENTIFIER: org.readium.test.NavigatorUITests
       TEST_TARGET_NAME: NavigatorTestHost
+
+  ContentJavaScriptTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 15.0
+    sources:
+      - ContentJavaScriptTests
+    dependencies:
+      - target: NavigatorTestHost
+      - package: Readium
+        product: ReadiumNavigator
+      - package: Readium
+        product: ReadiumShared
+    settings:
+      GENERATE_INFOPLIST_FILE: YES

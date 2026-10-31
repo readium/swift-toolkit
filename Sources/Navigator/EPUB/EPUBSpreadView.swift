@@ -72,6 +72,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         self.animatedLoad = animatedLoad
 
         let config = WKWebViewConfiguration()
+        config.defaultWebpagePreferences.allowsContentJavaScript = viewModel.config.allowsContentJavaScript
         config.setURLSchemeHandler(viewModel.server, forURLScheme: viewModel.server.scheme)
         config.mediaTypesRequiringUserActionForPlayback = .all
 
