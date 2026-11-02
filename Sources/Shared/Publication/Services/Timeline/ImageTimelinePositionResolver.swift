@@ -39,9 +39,7 @@ package struct ImageTimelinePositionResolver: TimelinePositionResolver {
         layout.bounds(ofResource: href)
     }
 
-    package func length(from start: TimelinePosition, to end: TimelinePosition?) -> TimelineLength? {
-        end
-            .flatMap { layout.length(from: start, to: $0) }
-            .map { .pages($0) }
+    package func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
+        layout.length(from: start, to: end).map { .pages($0) }
     }
 }

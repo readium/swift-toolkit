@@ -99,9 +99,8 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         readingOrder.firstIndexWithHREF(href).map { (start(ofResourceAt: $0), end(ofResourceAt: $0)) }
     }
 
-    package func length(from start: TimelinePosition, to end: TimelinePosition?) -> TimelineLength? {
+    package func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
         guard
-            let end,
             let start = countingPositions(start),
             let end = countingPositions(end)
         else {

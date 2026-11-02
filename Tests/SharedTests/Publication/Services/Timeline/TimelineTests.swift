@@ -285,6 +285,12 @@ enum TimelineTests {
         }
     }
 
+    struct Length {
+        @Test func measuresTheResolverLengthBetweenTwoPositions() {
+            #expect(main.timeline.length(from: main.at(0, 500), to: main.at(1, 60)) == .duration(160))
+        }
+    }
+
     struct First {
         @Test func isTheFirstRangedItemInPreOrder() {
             // The outermost of Part 1 and Chapter 1, which share the first

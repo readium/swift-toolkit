@@ -47,6 +47,7 @@ enum TimelineLayoutTests {
             Example(name: "a start past the known length of its resource", start: at(0, 12), end: at(1, 1), expected: nil),
             Example(name: "the end is before the start", start: at(1, 4), end: at(1, 1), expected: nil),
             Example(name: "an offset is not a whole length", start: at(1, 1.5), end: at(1, 4), expected: nil),
+            Example(name: "a position outside the reading order", start: at(1, 1), end: at(3, 0), expected: nil),
         ])
         func lengthBetweenPositions(_ example: Example) {
             #expect(layout(example.lengths).length(from: example.start, to: example.end) == example.expected)

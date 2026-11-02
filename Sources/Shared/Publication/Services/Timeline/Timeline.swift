@@ -137,7 +137,7 @@ public struct Timeline: Sendable {
                 link: node.link,
                 start: start,
                 end: end,
-                length: start.flatMap { resolver.length(from: $0, to: end) },
+                length: start.flatMap { start in end.flatMap { resolver.length(from: start, to: $0) } },
                 children: childIDs[nodeID].map { allItems[$0]! }
             )
         }
@@ -186,6 +186,13 @@ public struct Timeline: Sendable {
     /// outside the reading order.
     public func position(of locator: Locator) -> TimelinePosition? {
         resolver.position(of: locator)
+    }
+
+    /// Returns the length between `start` and `end`, such as the positions left
+    /// until the end of a chapter, or `nil` when `end` is before `start`, or
+    /// when the length of a resource between them is unknown.
+    public func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
+        resolver.length(from: start, to: end)
     }
 
     /// Returns the first item with a range in pre-order, or `nil` when no

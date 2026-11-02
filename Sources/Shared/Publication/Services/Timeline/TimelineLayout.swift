@@ -73,9 +73,10 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
         totalLength = total
     }
 
-    /// Length of the resource at `index`, `nil` when it is unknown.
+    /// Length of the resource at `index`, `nil` when it is unknown or outside
+    /// the reading order.
     package func length(ofResourceAt index: Int) -> Scalar? {
-        lengths[index]
+        lengths.getOrNil(index) ?? nil
     }
 
     /// Offset of the resource at `index` from the start of the publication,
@@ -124,7 +125,8 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
     }
 
     /// Length between `start` and `end`, or `nil` when the length of a
-    /// resource between them is unknown, or `end` is before `start`.
+    /// resource between them is unknown, `end` is before `start`, or one of
+    /// them is outside the reading order.
     ///
     /// A `start` past the known length of its resource, when `end` is in a
     /// later resource, shows that this length is wrong: it is unknown too.
@@ -133,6 +135,8 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
     /// resources before `start`.
     package func length(from start: TimelinePosition, to end: TimelinePosition) -> Scalar? {
         guard
+            lengths.indices.contains(start.readingOrderIndex),
+            lengths.indices.contains(end.readingOrderIndex),
             !end.isBefore(start),
             let startOffset = Scalar(exactly: start.offset),
             var length = Scalar(exactly: end.offset)

@@ -114,7 +114,7 @@ enum WebTimelinePositionResolverTests {
             let name: String
             var positionCounts: [Int?] = [4, 2, 4]
             let start: TimelinePosition
-            let end: TimelinePosition?
+            let end: TimelinePosition
             let expected: Int?
 
             var testDescription: String {
@@ -129,7 +129,6 @@ enum WebTimelinePositionResolverTests {
             LengthExample(name: "an unknown count before the start does not matter", positionCounts: [nil, 2, 4], start: at(1, 0), end: at(2, 1), expected: 6),
             LengthExample(name: "an unknown count after the end does not matter", positionCounts: [4, 2, nil], start: at(0, 0), end: at(2, 0), expected: 6),
             LengthExample(name: "an unknown count in between", positionCounts: [4, nil, 4], start: at(0, 0), end: at(2, 0), expected: nil),
-            LengthExample(name: "no end", start: at(0, 0), end: nil, expected: nil),
         ])
         func lengthIsCountedInPositions(_ example: LengthExample) {
             #expect(resolver(example.positionCounts).length(from: example.start, to: example.end) == example.expected.map { .positions($0) })
