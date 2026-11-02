@@ -19,6 +19,8 @@ import Testing
 /// - Notes 1 → `ch1b` (goes back)
 /// - Chapter 3 → `ch3`
 /// - Appendix → `outside` (not in the reading order)
+///
+/// The publication has no positions, unless a test gives some.
 struct WebTimelineServiceTests {
     @Test func untitledEntriesAreReplacedByTheirChildren() async throws {
         let timeline = try await timeline()
@@ -40,6 +42,28 @@ struct WebTimelineServiceTests {
 
         #expect(timeline.items.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
         #expect(timeline.items.map(\.end) == [position(3), nil, position(4), nil, position(4, 1), nil])
+    }
+
+    /// `cover`, `ch1a`, `ch1b`, `ch2` and `ch3` have 1, 3, 2, 4 and 5
+    /// positions.
+    @Test func itemsAreMeasuredInPositions() async throws {
+        let timeline = try await timeline(positions: { _ in
+            InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
+        })
+
+        #expect(timeline.items.map { $0.start?.coordinate } == [.position(2), nil, .position(7), nil, .position(11), nil])
+        #expect(timeline.items.map(\.length) == [.positions(5), nil, .positions(4), nil, .positions(5), nil])
+        #expect(timeline.items[4].end?.coordinate == .position(16))
+        #expect(timeline.items[4].end?.totalProgression == 1)
+    }
+
+    /// Without positions, the items are still placed.
+    @Test(arguments: [nil, FailingPositionsService()])
+    func itemsAreNotMeasuredWithoutPositions(_ service: FailingPositionsService?) async throws {
+        let timeline = try await timeline(positions: service.map { service in { _ in service } })
+
+        #expect(timeline.items.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
+        #expect(timeline.items.map(\.length) == [nil, nil, nil, nil, nil, nil])
     }
 
     struct ResourceChapter: Sendable, CustomTestStringConvertible {
@@ -123,12 +147,13 @@ struct WebTimelineServiceTests {
 
 private func timeline(
     layout: Layout? = nil,
-    tocService: TableOfContentsServiceFactory? = nil
+    tocService: TableOfContentsServiceFactory? = nil,
+    positions: PositionsServiceFactory? = nil
 ) async throws -> Timeline {
     let publication = Publication(
         manifest: Manifest(
             metadata: Metadata(title: "", layout: layout),
-            readingOrder: ["cover", "ch1a", "ch1b", "ch2", "ch3"].map {
+            readingOrder: resources.map {
                 Link(href: "\($0).xhtml", mediaType: .xhtml)
             },
             tableOfContents: [
@@ -147,6 +172,9 @@ private func timeline(
             if let tocService {
                 $0.setTableOfContentsServiceFactory(tocService)
             }
+            if let positions {
+                $0.setPositionsServiceFactory(positions)
+            }
         })
     )
     let timeline = try #require(await publication.timeline())
@@ -154,8 +182,18 @@ private func timeline(
     return timeline
 }
 
+private let resources = ["cover", "ch1a", "ch1b", "ch2", "ch3"]
+
+/// Position without positions.
 private func position(_ index: Int, _ progression: Double = 0) -> TimelinePosition {
-    TimelinePosition(readingOrderIndex: index, offset: progression)
+    TimelinePosition(readingOrderIndex: index, offset: progression, progression: progression)
+}
+
+/// The given number of positions in each resource.
+private func positions(_ counts: [Int]) -> [[Locator]] {
+    zip(resources, counts).map { resource, count in
+        (0 ..< count).map { _ in Locator(href: AnyURL(string: "\(resource).xhtml")!, mediaType: .xhtml) }
+    }
 }
 
 private struct StubTableOfContentsService: TableOfContentsService {

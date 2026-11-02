@@ -52,7 +52,7 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
         let locations = locator.locations
         let page = locations.page.flatMap { $0 >= 1 ? $0 - 1 : nil }
             ?? pageFromPosition(locations.position, at: index)
-            ?? pageFromProgression(locations.progression, at: index)
+            ?? locations.progression.flatMap { layout.unit(at: $0, inResourceAt: index) }
             ?? 0
 
         return layout.position(at: index, offset: clamped(page, at: index))
@@ -83,19 +83,6 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
             return nil
         }
         return page
-    }
-
-    /// Page index in the resource at `index` of the given progression in the
-    /// resource, or `nil` when its page count is unknown.
-    private func pageFromProgression(_ progression: Double?, at index: Int) -> Int? {
-        guard
-            let progression,
-            let pageCount = layout.length(ofResourceAt: index)
-        else {
-            return nil
-        }
-        let page = (min(max(0, progression), 1) * Double(pageCount)).rounded(.down)
-        return Int(page)
     }
 
     /// Clamps `page` to the pages of the resource at `index`.

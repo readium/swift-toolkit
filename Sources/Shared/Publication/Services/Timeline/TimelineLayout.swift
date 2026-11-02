@@ -43,7 +43,7 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
     private let startOffsets: [Scalar?]
 
     /// Length of the publication, `nil` when a length is unknown.
-    private let totalLength: Scalar?
+    package let totalLength: Scalar?
 
     /// Turns an offset from the start of the publication into a coordinate.
     private let makeCoordinate: @Sendable (Scalar) -> TimelineCoordinate
@@ -172,5 +172,20 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
             )
         }
         return end
+    }
+}
+
+extension TimelineLayout where Scalar == Int {
+    /// Index of the page or position at `progression` in the resource at
+    /// `index`, starting at 0, or `nil` when its length is unknown.
+    ///
+    /// The progression is clamped between 0 and 1. A progression of 1 is the
+    /// last page or position of the resource.
+    package func unit(at progression: Double, inResourceAt index: Int) -> Int? {
+        guard let length = lengths[index] else {
+            return nil
+        }
+        let unit = Int((min(max(0, progression), 1) * Double(length)).rounded(.down))
+        return min(unit, length - 1)
     }
 }

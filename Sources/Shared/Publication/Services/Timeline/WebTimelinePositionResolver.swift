@@ -14,9 +14,16 @@ import Foundation
 /// and progression only, so a fixed-layout resource is like a reflowable one
 /// that is never scrolled. Each resource ends at a progression of 1.
 ///
-/// The offset of a position is its progression in its resource.
+/// The offset of a position is its progression in its resource, and its
+/// coordinate a `.position` in the positions list of the publication. The
+/// coordinates, the lengths in `.positions` and the progressions in the
+/// publication are computed from the number of positions of each resource.
+/// A missing or non-positive count is unknown.
 package struct WebTimelinePositionResolver: TimelinePositionResolver {
     private let readingOrder: [Link]
+
+    /// Lays out the positions of the reading order resources.
+    private let layout: TimelineLayout<Int>
 
     /// First entry pointing to each reading order resource, by index.
     ///
@@ -24,10 +31,18 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     /// too, at the same start.
     private let firstEntries: [Int: Link]
 
-    /// - Parameter nodes: Nodes of the timeline, whose first entry pointing to
-    ///   each resource is placed.
-    package init(readingOrder: [Link], nodes: [Timeline.Node]) {
+    /// - Parameters:
+    ///   - positionCounts: Number of positions of each reading order resource,
+    ///     by index.
+    ///   - nodes: Nodes of the timeline, whose first entry pointing to each
+    ///     resource is placed.
+    package init(readingOrder: [Link], positionCounts: [Int?], nodes: [Timeline.Node]) {
         self.readingOrder = readingOrder
+        layout = TimelineLayout(
+            readingOrder: readingOrder,
+            lengths: positionCounts,
+            coordinate: { .position($0 + 1) }
+        )
 
         var firstEntries: [Int: Link] = [:]
         func record(_ nodes: [Timeline.Node]) {
@@ -59,30 +74,93 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         return start(ofResourceAt: index)
     }
 
+    /// The progression is clamped between 0 and 1. The coordinate is the
+    /// position of the locator in the publication when it is in its
+    /// resource, else the position at its progression.
     package func position(of locator: Locator) -> TimelinePosition? {
         guard let index = readingOrder.firstIndexWithHREF(locator.href) else {
             return nil
         }
-        return TimelinePosition(
-            readingOrderIndex: index,
-            offset: locator.locations.progression ?? 0
-        )
+        let progression = min(max(0, locator.locations.progression ?? 0), 1)
+        return position(at: index, progression: progression) { positionsBefore in
+            let count = layout.length(ofResourceAt: index)
+            if
+                let position = locator.locations.position,
+                position > positionsBefore,
+                count.map({ position <= positionsBefore + $0 }) ?? true
+            {
+                return position
+            }
+            return layout.unit(at: progression, inResourceAt: index).map { positionsBefore + $0 + 1 }
+        }
     }
 
     package func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
         readingOrder.firstIndexWithHREF(href).map { (start(ofResourceAt: $0), end(ofResourceAt: $0)) }
     }
 
-    /// The lengths of the resources are unknown.
     package func length(from start: TimelinePosition, to end: TimelinePosition?) -> TimelineLength? {
-        nil
+        guard
+            let end,
+            let start = countingPositions(start),
+            let end = countingPositions(end)
+        else {
+            return nil
+        }
+        return layout.length(from: start, to: end).map { .positions($0) }
     }
 
     private func start(ofResourceAt index: Int) -> TimelinePosition {
-        TimelinePosition(readingOrderIndex: index, offset: 0)
+        position(at: index, progression: 0) { $0 + 1 }
     }
 
+    /// The coordinate of the end is one past the last position of the
+    /// resource.
     private func end(ofResourceAt index: Int) -> TimelinePosition {
-        TimelinePosition(readingOrderIndex: index, offset: 1)
+        position(at: index, progression: 1) { positionsBefore in
+            layout.length(ofResourceAt: index).map { positionsBefore + $0 + 1 }
+        }
+    }
+
+    /// Position at `progression` in the resource at `index`.
+    ///
+    /// - Parameter coordinate: Returns the 1-based position in the
+    ///   publication from the number of positions before the resource, or
+    ///   `nil` when it is unknown.
+    private func position(
+        at index: Int,
+        progression: Double,
+        coordinate: (_ positionsBefore: Int) -> Int?
+    ) -> TimelinePosition {
+        let positionsBefore = layout.startOffset(ofResourceAt: index)
+        let count = layout.length(ofResourceAt: index)
+
+        return TimelinePosition(
+            readingOrderIndex: index,
+            offset: progression,
+            coordinate: positionsBefore.flatMap(coordinate).map { .position($0) },
+            progression: progression,
+            totalProgression: layout.totalLength.flatMap { total in
+                positionsBefore.flatMap { positionsBefore in
+                    count.map { (Double(positionsBefore) + progression * Double($0)) / Double(total) }
+                }
+            }
+        )
+    }
+
+    /// Returns `position` with an offset counted in positions instead of a
+    /// progression, or `nil` when the number of positions of its resource is
+    /// unknown.
+    ///
+    /// The start of a resource does not depend on its number of positions.
+    private func countingPositions(_ position: TimelinePosition) -> TimelinePosition? {
+        let index = position.readingOrderIndex
+        guard position.offset > 0 else {
+            return TimelinePosition(readingOrderIndex: index, offset: 0)
+        }
+        guard let count = layout.length(ofResourceAt: index) else {
+            return nil
+        }
+        return TimelinePosition(readingOrderIndex: index, offset: (position.offset * Double(count)).rounded(.down))
     }
 }
