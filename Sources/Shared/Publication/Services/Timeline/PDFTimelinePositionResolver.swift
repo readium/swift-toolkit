@@ -52,7 +52,7 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
         let locations = locator.locations
         let page = locations.page.flatMap { $0 >= 1 ? $0 - 1 : nil }
             ?? pageFromPosition(locations.position, at: index)
-            ?? locations.progression.flatMap { layout.unit(at: $0, inResourceAt: index) }
+            ?? locations.progression.flatMap { layout.offset(atProgression: $0, inResourceAt: index) }
             ?? 0
 
         return layout.position(at: index, offset: clamped(page, at: index))

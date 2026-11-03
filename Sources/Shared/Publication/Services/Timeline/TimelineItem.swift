@@ -81,7 +81,8 @@ public struct TimelineItem: Identifiable, Hashable, Sendable {
     }
 }
 
-/// Length of a ``TimelineItem``, in the natural unit of its publication.
+/// Length on a ``Timeline``, such as of a ``TimelineItem`` or between two
+/// positions, in the natural unit of its publication.
 @_spi(ExperimentalTimeline)
 public enum TimelineLength: Hashable, Sendable {
     /// Duration, in seconds.

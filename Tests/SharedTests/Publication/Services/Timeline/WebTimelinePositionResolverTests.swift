@@ -134,6 +134,31 @@ enum WebTimelinePositionResolverTests {
             #expect(resolver(example.positionCounts).length(from: example.start, to: example.end) == example.expected.map { .positions($0) })
         }
 
+        /// From a locator in `c`, at positions 7 to 10, to the end of `c`.
+        @Test(arguments: [
+            (Locator.Locations(progression: 0.6), 2),
+            (Locator.Locations(progression: 0, position: 9), 2),
+            (Locator.Locations(progression: 1), 1),
+        ])
+        func lengthFromALocatorAgreesWithItsCoordinate(_ locations: Locator.Locations, _ expected: Int) throws {
+            let resolver = resolver()
+            let start = try #require(resolver.position(of: locator("c", locations)))
+            let end = try #require(resolver.bounds(ofResource: AnyURL(string: "c")!)?.end)
+
+            #expect(start.coordinate == .position(11 - expected))
+            #expect(end.coordinate == .position(11))
+            #expect(resolver.length(from: start, to: end) == .positions(expected))
+        }
+
+        /// The coordinates are read before the progressions.
+        @Test func lengthIsUnknownWhenTheEndIsBeforeTheStartByTheirCoordinates() throws {
+            let resolver = resolver()
+            let start = try #require(resolver.position(of: locator("c", .init(progression: 0.1, position: 10))))
+            let end = try #require(resolver.position(of: locator("c", .init(progression: 0.5))))
+
+            #expect(resolver.length(from: start, to: end) == nil)
+        }
+
         private static func at(_ index: Int, _ progression: Double) -> TimelinePosition {
             TimelinePosition(readingOrderIndex: index, offset: progression)
         }

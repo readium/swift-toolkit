@@ -43,7 +43,7 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
     private let startOffsets: [Scalar?]
 
     /// Length of the publication, `nil` when a length is unknown.
-    package let totalLength: Scalar?
+    private let totalLength: Scalar?
 
     /// Turns an offset from the start of the publication into a coordinate.
     private let makeCoordinate: @Sendable (Scalar) -> TimelineCoordinate
@@ -80,9 +80,24 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
     }
 
     /// Offset of the resource at `index` from the start of the publication,
-    /// `nil` when a preceding length is unknown.
+    /// `nil` when a preceding length is unknown or it is outside the reading
+    /// order.
     package func startOffset(ofResourceAt index: Int) -> Scalar? {
-        startOffsets[index]
+        startOffsets.getOrNil(index) ?? nil
+    }
+
+    /// Progression in the publication at `progression` in the resource at
+    /// `index`, or `nil` when the length of a resource up to it, or of the
+    /// publication, is unknown.
+    package func totalProgression(at progression: Double, inResourceAt index: Int) -> Double? {
+        guard
+            let totalLength,
+            let startOffset = startOffset(ofResourceAt: index),
+            let length = length(ofResourceAt: index)
+        else {
+            return nil
+        }
+        return (startOffset.doubleValue + progression * length.doubleValue) / totalLength.doubleValue
     }
 
     /// Index of the reading order resource at `href`, ignoring its fragment.
@@ -180,16 +195,16 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
 }
 
 extension TimelineLayout where Scalar == Int {
-    /// Index of the page or position at `progression` in the resource at
+    /// Offset of the page or position at `progression` in the resource at
     /// `index`, starting at 0, or `nil` when its length is unknown.
     ///
     /// The progression is clamped between 0 and 1. A progression of 1 is the
     /// last page or position of the resource.
-    package func unit(at progression: Double, inResourceAt index: Int) -> Int? {
-        guard let length = lengths[index] else {
+    package func offset(atProgression progression: Double, inResourceAt index: Int) -> Int? {
+        guard let length = length(ofResourceAt: index) else {
             return nil
         }
-        let unit = Int((min(max(0, progression), 1) * Double(length)).rounded(.down))
-        return min(unit, length - 1)
+        let offset = Int((min(max(0, progression), 1) * Double(length)).rounded(.down))
+        return min(offset, length - 1)
     }
 }

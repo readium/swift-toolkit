@@ -91,7 +91,7 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
             {
                 return position
             }
-            return layout.unit(at: progression, inResourceAt: index).map { positionsBefore + $0 + 1 }
+            return layout.offset(atProgression: progression, inResourceAt: index).map { positionsBefore + $0 + 1 }
         }
     }
 
@@ -131,19 +131,12 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         progression: Double,
         coordinate: (_ positionsBefore: Int) -> Int?
     ) -> TimelinePosition {
-        let positionsBefore = layout.startOffset(ofResourceAt: index)
-        let count = layout.length(ofResourceAt: index)
-
-        return TimelinePosition(
+        TimelinePosition(
             readingOrderIndex: index,
             offset: progression,
-            coordinate: positionsBefore.flatMap(coordinate).map { .position($0) },
+            coordinate: layout.startOffset(ofResourceAt: index).flatMap(coordinate).map { .position($0) },
             progression: progression,
-            totalProgression: layout.totalLength.flatMap { total in
-                positionsBefore.flatMap { positionsBefore in
-                    count.map { (Double(positionsBefore) + progression * Double($0)) / Double(total) }
-                }
-            }
+            totalProgression: layout.totalProgression(at: progression, inResourceAt: index)
         )
     }
 
@@ -151,9 +144,17 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     /// progression, or `nil` when the number of positions of its resource is
     /// unknown.
     ///
-    /// The start of a resource does not depend on its number of positions.
+    /// The offset is read from the coordinate when it is known, so that a
+    /// length agrees with the coordinates, else from the progression. The
+    /// start of a resource does not depend on its number of positions.
     private func countingPositions(_ position: TimelinePosition) -> TimelinePosition? {
         let index = position.readingOrderIndex
+        if
+            case let .position(coordinate) = position.coordinate,
+            let positionsBefore = layout.startOffset(ofResourceAt: index)
+        {
+            return TimelinePosition(readingOrderIndex: index, offset: Double(coordinate - positionsBefore - 1))
+        }
         guard position.offset > 0 else {
             return TimelinePosition(readingOrderIndex: index, offset: 0)
         }
