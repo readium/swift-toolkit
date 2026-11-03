@@ -318,6 +318,15 @@ enum TimelineTests {
         }
     }
 
+    struct BoundsOfResource {
+        @Test func areTheBoundsOfTheResourceIgnoringTheFragment() throws {
+            let bounds = try #require(main.timeline.bounds(ofResource: url("t2#t=60")))
+            #expect(bounds.start == main.at(1, 0))
+            #expect(bounds.end == main.at(1, 300))
+            #expect(main.timeline.bounds(ofResource: url("outside.mp3")) == nil)
+        }
+    }
+
     struct First {
         @Test func isTheFirstRangedItemInPreOrder() {
             // The outermost of Part 1 and Chapter 1, which share the first

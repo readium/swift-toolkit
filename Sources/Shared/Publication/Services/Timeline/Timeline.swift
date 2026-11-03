@@ -213,6 +213,17 @@ public struct Timeline: Sendable {
         resolver.length(from: start, to: end)
     }
 
+    /// Returns the start and end of the reading order resource at `href`,
+    /// ignoring its fragment, or `nil` when it is not in the reading order.
+    /// The end is `nil` when it is unknown.
+    ///
+    /// Use it to measure what is left of the current resource with
+    /// ``length(from:to:)``, such as before the first item, where there is no
+    /// segment.
+    public func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
+        resolver.bounds(ofResource: href)
+    }
+
     /// Returns the first item with a range in pre-order, or `nil` when no
     /// placed item is within `maxDepth`.
     ///
@@ -317,7 +328,7 @@ public struct Timeline: Sendable {
     ///
     /// Empty when `href` is not in the reading order.
     public func segments(in href: any URLConvertible, maxDepth: Int? = nil) -> [TimelineSegment] {
-        guard let (resourceStart, resourceEnd) = resolver.bounds(ofResource: href) else {
+        guard let (resourceStart, resourceEnd) = bounds(ofResource: href) else {
             return []
         }
         let index = resourceStart.readingOrderIndex
