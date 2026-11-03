@@ -32,6 +32,18 @@ struct ImageTimelineServiceTests {
         #expect(timeline.item(containing: locator) == timeline.items[0])
     }
 
+    /// The pages match the positions list of the publication.
+    @Test func pagesAreThePositionsOfThePublication() async throws {
+        let publication = makePublication()
+        let timeline = try #require(await publication.timeline())
+
+        let positions = try await publication.positions().get()
+        #expect(positions.count == 3)
+        for locator in positions {
+            #expect(timeline.position(of: locator)?.coordinate == locator.locations.position.map { .page($0) })
+        }
+    }
+
     @Test func failsOnceThePublicationIsDeallocated() async {
         let service = ImageTimelineService(publication: Weak())
 
@@ -58,6 +70,7 @@ private func makePublication() -> Publication {
             ]
         ),
         servicesBuilder: PublicationServicesBuilder(setup: {
+            $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: .jpeg))
             $0.setTimelineServiceFactory(ImageTimelineService.makeFactory())
         })
     )

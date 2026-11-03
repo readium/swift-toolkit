@@ -34,6 +34,18 @@ struct PDFTimelineServiceTests {
         #expect(timeline.items.map(\.length) == [.pages(11), .pages(4)])
     }
 
+    /// The pages match the positions list of the publication.
+    @Test func pagesAreThePositionsOfThePublication() async throws {
+        let positionsByReadingOrder = positions([10, 5])
+        let timeline = try await timeline(positions: { _ in
+            InMemoryPositionsService(positionsByReadingOrder: positionsByReadingOrder)
+        })
+
+        for locator in positionsByReadingOrder.flatMap(\.self) {
+            #expect(timeline.position(of: locator)?.coordinate == locator.locations.position.map { .page($0) })
+        }
+    }
+
     /// Without positions, the pages are still placed, but the end of the
     /// publication and the lengths are unknown.
     @Test(arguments: [nil, FailingPositionsService()])
@@ -95,11 +107,16 @@ private func timeline(toc: [Link]? = nil, positions: PositionsServiceFactory?) a
     return timeline
 }
 
-/// One position per page of each resource.
+/// One position per page of each resource, numbered across the resources.
 private func positions(_ pageCounts: [Int]) -> [[Locator]] {
     pageCounts.enumerated().map { index, pageCount in
-        (0 ..< pageCount).map { _ in
-            Locator(href: AnyURL(string: index == 0 ? "a.pdf" : "b.pdf")!, mediaType: .pdf)
+        let previousPageCount = pageCounts[..<index].reduce(0, +)
+        return (1 ... pageCount).map { page in
+            Locator(
+                href: AnyURL(string: index == 0 ? "a.pdf" : "b.pdf")!,
+                mediaType: .pdf,
+                locations: .init(fragments: ["page=\(page)"], position: previousPageCount + page)
+            )
         }
     }
 }

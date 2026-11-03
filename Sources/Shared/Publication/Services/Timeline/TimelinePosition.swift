@@ -73,9 +73,11 @@ public enum TimelineCoordinate: Hashable, Sendable {
     /// Time from the start of the publication, in seconds.
     case time(TimeInterval)
 
-    /// Page number, starting at 1.
+    /// Page number, starting at 1, in a publication where each position is a
+    /// page, such as a PDF, a comic or a fixed-layout EPUB.
     case page(Int)
 
-    /// Position in the positions list of the publication, starting at 1.
+    /// Position in the positions list of the publication, starting at 1, as
+    /// in ``Locator/Locations/position``.
     case position(Int)
 }

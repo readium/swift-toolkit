@@ -57,6 +57,26 @@ struct WebTimelineServiceTests {
         #expect(timeline.items[4].end?.totalProgression == 1)
     }
 
+    /// The positions of a fixed-layout publication are pages.
+    @Test func fixedLayoutItemsAreMeasuredInPages() async throws {
+        let timeline = try await timeline(layout: .fixed, positions: { _ in
+            InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
+        })
+
+        #expect(timeline.items.map { $0.start?.coordinate } == [.page(2), nil, .page(7), nil, .page(11), nil])
+        #expect(timeline.items.map(\.length) == [.pages(5), nil, .pages(4), nil, .pages(5), nil])
+    }
+
+    /// A reflowable resource has several positions, which are not pages.
+    @Test func fixedLayoutWithAReflowableResourceIsMeasuredInPositions() async throws {
+        let timeline = try await timeline(layout: .fixed, reflowableResources: ["ch2"], positions: { _ in
+            InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
+        })
+
+        #expect(timeline.items[0].start?.coordinate == .position(2))
+        #expect(timeline.items[0].length == .positions(5))
+    }
+
     /// Without positions, the items are still placed.
     @Test(arguments: [nil, FailingPositionsService()])
     func itemsAreNotMeasuredWithoutPositions(_ service: FailingPositionsService?) async throws {
@@ -147,6 +167,7 @@ struct WebTimelineServiceTests {
 
 private func timeline(
     layout: Layout? = nil,
+    reflowableResources: Set<String> = [],
     tocService: TableOfContentsServiceFactory? = nil,
     positions: PositionsServiceFactory? = nil
 ) async throws -> Timeline {
@@ -154,7 +175,11 @@ private func timeline(
         manifest: Manifest(
             metadata: Metadata(title: "", layout: layout),
             readingOrder: resources.map {
-                Link(href: "\($0).xhtml", mediaType: .xhtml)
+                Link(
+                    href: "\($0).xhtml",
+                    mediaType: .xhtml,
+                    properties: reflowableResources.contains($0) ? Properties(["layout": "reflowable"]) : Properties()
+                )
             },
             tableOfContents: [
                 Link(href: "ch1a.xhtml", children: [

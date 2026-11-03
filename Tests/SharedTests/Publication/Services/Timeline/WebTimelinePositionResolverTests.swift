@@ -150,6 +150,17 @@ enum WebTimelinePositionResolverTests {
             #expect(resolver.length(from: start, to: end) == .positions(expected))
         }
 
+        /// A page is read like a position.
+        @Test func lengthFromALocatorAgreesWithItsPage() throws {
+            let resolver = resolver(positionsArePages: true)
+            let start = try #require(resolver.position(of: locator("c", .init(progression: 0, position: 9))))
+            let end = try #require(resolver.bounds(ofResource: AnyURL(string: "c")!)?.end)
+
+            #expect(start.coordinate == .page(9))
+            #expect(end.coordinate == .page(11))
+            #expect(resolver.length(from: start, to: end) == .pages(2))
+        }
+
         /// The coordinates are read before the progressions.
         @Test func lengthIsUnknownWhenTheEndIsBeforeTheStartByTheirCoordinates() throws {
             let resolver = resolver()
@@ -167,11 +178,12 @@ enum WebTimelinePositionResolverTests {
 
 // MARK: - Helpers
 
-private func resolver(_ positionCounts: [Int?] = [4, 2, 4]) -> WebTimelinePositionResolver {
+private func resolver(_ positionCounts: [Int?] = [4, 2, 4], positionsArePages: Bool = false) -> WebTimelinePositionResolver {
     let readingOrder = ["a", "b", "c"].map { Link(href: $0, mediaType: .xhtml) }
     return WebTimelinePositionResolver(
         readingOrder: readingOrder,
         positionCounts: positionCounts,
+        positionsArePages: positionsArePages,
         nodes: readingOrder.map { Timeline.Node(title: .text($0.href), link: Link(href: $0.href)) }
     )
 }

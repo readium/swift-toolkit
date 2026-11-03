@@ -15,7 +15,7 @@ import Foundation
 /// located in all of them.
 ///
 /// The coordinates and lengths are counted in the positions of the
-/// publication.
+/// publication, as pages when all its resources have a fixed layout.
 @_spi(ExperimentalTimeline)
 public final class WebTimelineService: TimelineService {
     public static func makeFactory() -> TimelineServiceFactory {
@@ -39,6 +39,10 @@ public final class WebTimelineService: TimelineService {
                 resolver: WebTimelinePositionResolver(
                     readingOrder: publication.readingOrder,
                     positionCounts: positionCounts,
+                    // A fixed-layout resource has a single position.
+                    positionsArePages: publication.readingOrder.allSatisfy {
+                        publication.metadata.epubLayout(of: $0) == .fixed
+                    },
                     nodes: nodes
                 )
             )

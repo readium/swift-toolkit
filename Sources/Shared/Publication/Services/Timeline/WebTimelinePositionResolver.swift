@@ -15,15 +15,22 @@ import Foundation
 /// that is never scrolled. Each resource ends at a progression of 1.
 ///
 /// The offset of a position is its progression in its resource, and its
-/// coordinate a `.position` in the positions list of the publication. The
-/// coordinates, the lengths in `.positions` and the progressions in the
-/// publication are computed from the number of positions of each resource.
-/// A missing or non-positive count is unknown.
+/// coordinate a `.position` in the positions list of the publication, or a
+/// `.page` when the positions are pages. The coordinates, the lengths in
+/// `.positions` or `.pages` and the progressions in the publication are
+/// computed from the number of positions of each resource. A missing or
+/// non-positive count is unknown.
 package struct WebTimelinePositionResolver: TimelinePositionResolver {
     private let readingOrder: [Link]
 
     /// Lays out the positions of the reading order resources.
     private let layout: TimelineLayout<Int>
+
+    /// Whether each position is a page.
+    private let positionsArePages: Bool
+
+    /// Makes the coordinate of a 1-based position in the publication.
+    private let makeCoordinate: @Sendable (Int) -> TimelineCoordinate
 
     /// First entry pointing to each reading order resource, by index.
     ///
@@ -34,14 +41,21 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     /// - Parameters:
     ///   - positionCounts: Number of positions of each reading order resource,
     ///     by index.
+    ///   - positionsArePages: Whether each position is a page, as in a
+    ///     fixed-layout publication.
     ///   - nodes: Nodes of the timeline, whose first entry pointing to each
     ///     resource is placed.
-    package init(readingOrder: [Link], positionCounts: [Int?], nodes: [Timeline.Node]) {
+    package init(readingOrder: [Link], positionCounts: [Int?], positionsArePages: Bool = false, nodes: [Timeline.Node]) {
         self.readingOrder = readingOrder
+        self.positionsArePages = positionsArePages
+        let makeCoordinate: @Sendable (Int) -> TimelineCoordinate = positionsArePages
+            ? TimelineCoordinate.page
+            : TimelineCoordinate.position
+        self.makeCoordinate = makeCoordinate
         layout = TimelineLayout(
             readingOrder: readingOrder,
             lengths: positionCounts,
-            coordinate: { .position($0 + 1) }
+            coordinate: { makeCoordinate($0 + 1) }
         )
 
         var firstEntries: [Int: Link] = [:]
@@ -106,7 +120,7 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         else {
             return nil
         }
-        return layout.length(from: start, to: end).map { .positions($0) }
+        return layout.length(from: start, to: end).map { positionsArePages ? .pages($0) : .positions($0) }
     }
 
     private func start(ofResourceAt index: Int) -> TimelinePosition {
@@ -134,7 +148,7 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         TimelinePosition(
             readingOrderIndex: index,
             offset: progression,
-            coordinate: layout.startOffset(ofResourceAt: index).flatMap(coordinate).map { .position($0) },
+            coordinate: layout.startOffset(ofResourceAt: index).flatMap(coordinate).map(makeCoordinate),
             progression: progression,
             totalProgression: layout.totalProgression(at: progression, inResourceAt: index)
         )
@@ -149,10 +163,11 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     /// start of a resource does not depend on its number of positions.
     private func countingPositions(_ position: TimelinePosition) -> TimelinePosition? {
         let index = position.readingOrderIndex
-        if
-            case let .position(coordinate) = position.coordinate,
-            let positionsBefore = layout.startOffset(ofResourceAt: index)
-        {
+        let coordinate: Int? = switch position.coordinate {
+        case let .position(coordinate)?, let .page(coordinate)?: coordinate
+        case .time?, nil: nil
+        }
+        if let coordinate, let positionsBefore = layout.startOffset(ofResourceAt: index) {
             return TimelinePosition(readingOrderIndex: index, offset: Double(coordinate - positionsBefore - 1))
         }
         guard position.offset > 0 else {
