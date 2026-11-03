@@ -229,17 +229,21 @@ enum TimelineTests {
     }
 
     struct Equality {
-        /// The coordinates are ignored.
+        /// Unlike equality, the coordinates are ignored.
         @Test func positionsAreOrderedByIndexThenByOffset() {
             func position(_ index: Int, _ offset: Double, _ coordinate: TimelineCoordinate? = nil) -> TimelinePosition {
                 TimelinePosition(readingOrderIndex: index, offset: offset, coordinate: coordinate)
             }
 
             #expect(position(0, 20).isBefore(position(1, 10)))
+            #expect(!position(1, 10).isBefore(position(0, 20)))
             #expect(position(1, 10).isBefore(position(1, 20)))
-            #expect(position(1, 20).isBefore(position(2, 10)))
             #expect(!position(1, 10).isBefore(position(1, 10)))
             #expect(position(1, 10, .page(9)).isBefore(position(1, 20, .page(1))))
+
+            let (a, b) = (position(1, 10, .page(1)), position(1, 10, .page(2)))
+            #expect(a != b)
+            #expect(!a.isBefore(b) && !b.isBefore(a))
         }
 
         @Test func itemsOfTimelinesBuiltFromTheSameNodesAreEqual() {

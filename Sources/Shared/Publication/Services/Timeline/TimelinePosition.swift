@@ -55,7 +55,11 @@ public struct TimelinePosition: Hashable, Sendable {
 
     /// Returns whether this position comes before `other` on the timeline,
     /// ordering by reading order index, then by offset.
-    func isBefore(_ other: TimelinePosition) -> Bool {
+    ///
+    /// Unlike `==`, this ordering ignores the derived properties: two
+    /// positions can differ while neither comes before the other. This is why
+    /// `TimelinePosition` is not `Comparable`.
+    public func isBefore(_ other: TimelinePosition) -> Bool {
         (readingOrderIndex, offset) < (other.readingOrderIndex, other.offset)
     }
 }
