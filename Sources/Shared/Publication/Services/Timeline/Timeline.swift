@@ -182,6 +182,24 @@ public struct Timeline: Sendable {
         return labelID(of: rangedIDs[low - 1], maxDepth: maxDepth).map { allItems[$0] }
     }
 
+    /// Returns the segment of ``segments(maxDepth:)`` containing `locator`.
+    ///
+    /// Unlike the item, the segment ends where the next item starts, such as
+    /// the first child of a parent item. Use it to measure what is left of
+    /// the current chapter.
+    ///
+    /// - Parameter maxDepth: Labels the segment with an item no deeper than
+    ///   this depth. The top level is 1.
+    public func segment(containing locator: Locator, maxDepth: Int? = nil) -> TimelineSegment? {
+        guard
+            let item = item(containing: locator, maxDepth: maxDepth),
+            let position = position(of: locator)
+        else {
+            return nil
+        }
+        return segments(maxDepth: maxDepth).last { $0.item.id == item.id && !position.isBefore($0.start) }
+    }
+
     /// Returns the position of `locator` on the timeline, or `nil` when it is
     /// outside the reading order.
     public func position(of locator: Locator) -> TimelinePosition? {
@@ -282,8 +300,8 @@ public struct Timeline: Sendable {
                 continue
             }
 
-            // The items of a subtree are consecutive in pre-order, so the
-            // intervals of a label are adjacent.
+            // Merges the consecutive intervals of a label, such as those of
+            // the items deeper than `maxDepth`.
             if let last = segments.last, last.item.id == labelID {
                 segments[segments.count - 1] = TimelineSegment(item: item, start: last.start, end: end)
             } else {

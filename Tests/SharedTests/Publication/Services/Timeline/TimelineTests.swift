@@ -9,8 +9,6 @@ import Foundation
 import Testing
 @_spi(ExperimentalTimeline) import TestSupport
 
-/// Three fixtures are used.
-///
 /// **Main**: tracks `t1` 600 s, `t2` 300 s and `t3` 900 s.
 ///
 /// - Part 1 → `t1`
@@ -37,6 +35,14 @@ import Testing
 ///   - Chapter 2 → `outside.mp3` (not in the reading order)
 ///     - Section → `t1#t=300`
 /// - Part 2 → `t2`
+///
+/// **Split**: track `t1` 600 s. At depth 2, Chapter 1 splits the segments of
+/// Part.
+///
+/// - Part → `t1`
+///   - Chapter 1 → `t1#t=100`
+///   - Chapter 2 → `outside.mp3` (not in the reading order)
+///     - Section → `t1#t=300`
 enum TimelineTests {
     struct Building {
         @Test func idsArePreOrderIndexesAndItemsKeepTheNodes() {
@@ -195,6 +201,8 @@ enum TimelineTests {
             #expect(fixture.timeline.segments(in: url("t2")) == [
                 fixture.segment("C", (1, 0), (1, 300)),
             ])
+            // D has no segment.
+            #expect(fixture.segment(containing: "t2", 450) == nil)
         }
     }
 
@@ -275,6 +283,25 @@ enum TimelineTests {
             #expect(sparse.item(containing: "t4", 50) == sparse["B"])
             // Past the known end of the last track.
             #expect(sparse.item(containing: "t4", 150) == sparse["B"])
+        }
+    }
+
+    /// See also `labelsMatchItemAndSegmentContaining` in `Segments`.
+    struct SegmentContaining {
+        /// Part 2's segment ends at Chapter 3, unlike Part 2.
+        @Test func endsWhereTheNextItemStarts() {
+            #expect(main.segment(containing: "t2", 90) == main.segment("Part 2", (1, 60), (1, 120)))
+        }
+
+        @Test func isNilWithoutAnItem() {
+            // Before A.
+            #expect(sparse.segment(containing: "t2", 5) == nil)
+        }
+
+        /// Past the known end of the last track, the segment of B ends before
+        /// the locator.
+        @Test func pastTheKnownEndOfThePublication() {
+            #expect(sparse.segment(containing: "t4", 150) == sparse.segment("B", (2, 200), (3, 100)))
         }
     }
 
@@ -427,7 +454,7 @@ enum TimelineTests {
         }
 
         /// `item(containing:)` returns the item of a segment at its start and
-        /// 1 ms before its end.
+        /// 1 ms before its end, and `segment(containing:)` the segment.
         @Test(arguments: [
             FixtureDepth(name: "main", fixture: main, maxDepth: nil),
             FixtureDepth(name: "main at depth 1", fixture: main, maxDepth: 1),
@@ -435,12 +462,15 @@ enum TimelineTests {
             FixtureDepth(name: "sparse at depth 1", fixture: sparse, maxDepth: 1),
             FixtureDepth(name: "nested", fixture: nested, maxDepth: nil),
             FixtureDepth(name: "nested at depth 2", fixture: nested, maxDepth: 2),
+            FixtureDepth(name: "split at depth 2", fixture: split, maxDepth: 2),
         ])
-        func labelsMatchItemContaining(_ example: FixtureDepth) {
+        func labelsMatchItemAndSegmentContaining(_ example: FixtureDepth) {
             let fixture = example.fixture
             for segment in fixture.timeline.segments(maxDepth: example.maxDepth) {
-                #expect(fixture.item(containing: segment.start, maxDepth: example.maxDepth) == segment.item)
-                #expect(fixture.item(containing: segment.end!, by: -0.001, maxDepth: example.maxDepth) == segment.item)
+                for locator in [fixture.locator(at: segment.start), fixture.locator(at: segment.end!, by: -0.001)] {
+                    #expect(fixture.timeline.item(containing: locator, maxDepth: example.maxDepth) == segment.item)
+                    #expect(fixture.timeline.segment(containing: locator, maxDepth: example.maxDepth) == segment)
+                }
             }
         }
     }
@@ -495,6 +525,7 @@ enum TimelineTests {
 private let main = makeMain()
 private let sparse = makeSparse()
 private let nested = makeNested()
+private let split = makeSplit()
 
 private func makeMain() -> TimelineFixture {
     TimelineFixture(durations: [600, 300, 900], nodes: [
@@ -525,6 +556,15 @@ private func makeNested() -> TimelineFixture {
             node("Chapter 2", "outside.mp3", [node("Section", "t1#t=300")]),
         ]),
         node("Part 2", "t2"),
+    ])
+}
+
+private func makeSplit() -> TimelineFixture {
+    TimelineFixture(durations: [600], nodes: [
+        node("Part", "t1", [
+            node("Chapter 1", "t1#t=100"),
+            node("Chapter 2", "outside.mp3", [node("Section", "t1#t=300")]),
+        ]),
     ])
 }
 
@@ -594,20 +634,29 @@ struct TimelineFixture: Sendable {
     }
 
     func item(containing href: String, _ offset: TimeInterval? = nil, maxDepth: Int? = nil) -> TimelineItem? {
-        let fragments = offset.map { ["t=\($0)"] } ?? []
-        return timeline.item(containing: Locator(href: href, mediaType: .mp3, locations: .init(fragments: fragments)), maxDepth: maxDepth)
+        timeline.item(containing: locator(href, offset), maxDepth: maxDepth)
     }
 
-    /// Returns the item containing the position moved by `delta` seconds,
-    /// possibly in the previous track.
-    func item(containing position: TimelinePosition, by delta: TimeInterval = 0, maxDepth: Int? = nil) -> TimelineItem? {
+    func segment(containing href: String, _ offset: TimeInterval? = nil, maxDepth: Int? = nil) -> TimelineSegment? {
+        timeline.segment(containing: locator(href, offset), maxDepth: maxDepth)
+    }
+
+    /// Returns the locator at `offset` seconds in the track `href`.
+    func locator(_ href: String, _ offset: TimeInterval? = nil) -> Locator {
+        let fragments = offset.map { ["t=\($0)"] } ?? []
+        return Locator(href: href, mediaType: .mp3, locations: .init(fragments: fragments))
+    }
+
+    /// Returns the locator of the position moved by `delta` seconds, possibly
+    /// in the previous track.
+    func locator(at position: TimelinePosition, by delta: TimeInterval = 0) -> Locator {
         var index = position.readingOrderIndex
         var offset = position.offset + delta
         if offset < 0 {
             index -= 1
             offset += durations[index]!
         }
-        return item(containing: "t\(index + 1)", offset, maxDepth: maxDepth)
+        return locator("t\(index + 1)", offset)
     }
 }
 
