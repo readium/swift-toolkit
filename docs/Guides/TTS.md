@@ -82,7 +82,13 @@ synthesizer.config.voices = [
 ]
 ```
 
-Each utterance is spoken with the voice of its language, or of the default language, the publication language or the current one when it has none. The voice matching the language and its region comes first, then the one of its base language. Without a match, the engine uses its default voice for the language.
+Each utterance is spoken with the voice of its language, or of the default language, the publication language or the current one when it has none. The voice matching the language and its region comes first, then the one of its base language. The voices which are not installed are skipped. Without a match, the synthesizer uses the first voice of the base language ordered by `sorted()`.
+
+To show which voice speaks a language, for example in a voice picker, use `synthesizer.voice(for:)`. It returns `nil` when the engine picks the voice itself, with `prefersAssistiveTechnologyVoice` or when no voice is installed for the language.
+
+```swift
+let frenchVoice = synthesizer.voice(for: "fr")
+```
 
 #### Listing the voices
 

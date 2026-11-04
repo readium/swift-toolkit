@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. Take a look
 * `MediaPlaybackState.playsWhenReady` indicates whether the player is playing or will as soon as it is ready, e.g. to choose between a play and a pause button.
 * `PublicationSpeechSynthesizer.Configuration` has new `speed` and `pitch` properties, [see the user guide](docs/Guides/TTS.md#speed).
 * `PublicationSpeechSynthesizer.Configuration.voices` selects a voice per language, so that each utterance of a multilingual publication is spoken with the voice of its language, [see the user guide](docs/Guides/TTS.md#voice).
+* `PublicationSpeechSynthesizer.voice(for:)` returns the voice speaking a language, e.g. to show it in a voice picker.
 * `PublicationSpeechSynthesizer.Configuration.prefersAssistiveTechnologyVoice` speaks with the voice selected in the accessibility settings of the device.
 
 #### Streamer
@@ -48,6 +49,7 @@ All notable changes to this project will be documented in this file. Take a look
 * `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is no longer called after the last resource. Use the new `MediaPlaybackState.ended` to detect the end of the publication, [see the migration guide](docs/Migration%20Guide.md).
 * `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` takes an `AnyURL` instead of a `RelativeURL`, to report resources with an absolute HREF. Implementations must be updated or they are no longer called, [see the migration guide](docs/Migration%20Guide.md).
 * Changing `PublicationSpeechSynthesizer.config` while playing restarts the current utterance with the new configuration, instead of applying it from the next utterance.
+* An utterance whose language has no voice in `PublicationSpeechSynthesizer.Configuration.voices` is spoken with the best voice of its base language, instead of the default voice of the engine.
 
 #### Streamer
 
