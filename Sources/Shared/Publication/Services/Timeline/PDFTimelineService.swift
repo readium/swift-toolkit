@@ -29,7 +29,7 @@ public final class PDFTimelineService: TimelineService {
             }
 
             let nodes = try await publication.tableOfContents().get().timelineNodes
-            let pageCounts = try await publication.positionsByReadingOrder().get().map(\.count)
+            let pageCounts = await publication.positionsByReadingOrder().getOrNil()?.map(\.count) ?? []
             return Timeline(
                 nodes: nodes,
                 resolver: PDFTimelinePositionResolver(readingOrder: publication.readingOrder, pageCounts: pageCounts)

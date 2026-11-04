@@ -9,6 +9,9 @@ import Foundation
 /// Resolves the locations of a PDF publication into positions on its
 /// timeline, from the page count of each document in its reading order.
 ///
+/// The offset of a position is the index of its page in its document,
+/// starting at 0. The end of a document is at its page count.
+///
 /// A page from a link or a locator is clamped to the pages of its document,
 /// when its page count is known. A missing or non-positive page count is
 /// unknown.
@@ -21,7 +24,7 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
         layout = TimelineLayout(
             readingOrder: readingOrder,
             lengths: pageCounts,
-            offset: TimelineOffset.page
+            coordinate: { .page($0 + 1) }
         )
     }
 
@@ -49,7 +52,7 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
         let locations = locator.locations
         let page = locations.page.flatMap { $0 >= 1 ? $0 - 1 : nil }
             ?? pageFromPosition(locations.position, at: index)
-            ?? pageFromProgression(locations.progression, at: index)
+            ?? locations.progression.flatMap { layout.offset(atProgression: $0, inResourceAt: index) }
             ?? 0
 
         return layout.position(at: index, offset: clamped(page, at: index))
@@ -57,6 +60,10 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
 
     package func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
         layout.bounds(ofResource: href)
+    }
+
+    package func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
+        layout.length(from: start, to: end).map { .pages($0) }
     }
 
     /// Page index in the resource at `index` of the given 1-based position in
@@ -74,19 +81,6 @@ package struct PDFTimelinePositionResolver: TimelinePositionResolver {
             return nil
         }
         return page
-    }
-
-    /// Page index in the resource at `index` of the given progression in the
-    /// resource, or `nil` when its page count is unknown.
-    private func pageFromProgression(_ progression: Double?, at index: Int) -> Int? {
-        guard
-            let progression,
-            let pageCount = layout.length(ofResourceAt: index)
-        else {
-            return nil
-        }
-        let page = (min(max(0, progression), 1) * Double(pageCount)).rounded(.down)
-        return Int(page)
     }
 
     /// Clamps `page` to the pages of the resource at `index`.

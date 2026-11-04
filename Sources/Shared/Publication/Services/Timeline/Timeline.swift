@@ -35,7 +35,7 @@ import Foundation
 ///
 /// ```swift
 /// func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-///     let chapter = timeline.locate(locator, maxDepth: 1)
+///     let chapter = timeline.item(containing: locator, maxDepth: 1)
 ///     if chapter?.id != currentChapter?.id {
 ///         currentChapter = chapter
 ///         updateHeader()
@@ -126,16 +126,18 @@ public struct Timeline: Sendable {
         // in pre-order.
         var allItems = [TimelineItem?](repeating: nil, count: flatNodes.count)
         for (nodeID, node) in flatNodes.enumerated().reversed() {
+            let start = starts[nodeID]
+            let end = start.flatMap { start in
+                // An item can start past the known end of the publication.
+                nextStarts[subtreeEnds[nodeID]] ?? resolver.end.map { $0.isBefore(start) ? start : $0 }
+            }
             allItems[nodeID] = TimelineItem(
                 id: nodeID,
                 title: node.title,
                 link: node.link,
-                start: starts[nodeID],
-                end: starts[nodeID].flatMap { start in
-                    // An item can start past the known end of the
-                    // publication.
-                    nextStarts[subtreeEnds[nodeID]] ?? resolver.end.map { $0.isBefore(start) ? start : $0 }
-                },
+                start: start,
+                end: end,
+                length: start.flatMap { start in end.flatMap { resolver.length(from: start, to: $0) } },
                 children: childIDs[nodeID].map { allItems[$0]! }
             )
         }
@@ -154,10 +156,10 @@ public struct Timeline: Sendable {
     ///
     /// - Parameter maxDepth: Returns an ancestor of the deepest item, no
     ///   deeper than this depth. The top level is 1.
-    public func locate(_ locator: Locator, maxDepth: Int? = nil) -> TimelineItem? {
+    public func item(containing locator: Locator, maxDepth: Int? = nil) -> TimelineItem? {
         guard
             maxDepth.map({ $0 >= 1 }) ?? true,
-            let position = resolver.position(of: locator)
+            let position = position(of: locator)
         else {
             return nil
         }
@@ -178,6 +180,48 @@ public struct Timeline: Sendable {
         }
 
         return labelID(of: rangedIDs[low - 1], maxDepth: maxDepth).map { allItems[$0] }
+    }
+
+    /// Returns the segment of ``segments(maxDepth:)`` containing `locator`.
+    ///
+    /// Unlike the item, the segment ends where the next item starts, such as
+    /// the first child of a parent item. Use it to measure what is left of
+    /// the current chapter.
+    ///
+    /// - Parameter maxDepth: Labels the segment with an item no deeper than
+    ///   this depth. The top level is 1.
+    public func segment(containing locator: Locator, maxDepth: Int? = nil) -> TimelineSegment? {
+        guard
+            let item = item(containing: locator, maxDepth: maxDepth),
+            let position = position(of: locator)
+        else {
+            return nil
+        }
+        return segments(maxDepth: maxDepth).last { $0.item.id == item.id && !position.isBefore($0.start) }
+    }
+
+    /// Returns the position of `locator` on the timeline, or `nil` when it is
+    /// outside the reading order.
+    public func position(of locator: Locator) -> TimelinePosition? {
+        resolver.position(of: locator)
+    }
+
+    /// Returns the length between `start` and `end`, or `nil` when `end` is
+    /// before `start`, or when the length of a resource between them is
+    /// unknown.
+    public func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
+        resolver.length(from: start, to: end)
+    }
+
+    /// Returns the start and end of the reading order resource at `href`,
+    /// ignoring its fragment, or `nil` when it is not in the reading order.
+    /// The end is `nil` when it is unknown.
+    ///
+    /// Use it to measure what is left of the current resource with
+    /// ``length(from:to:)``, such as before the first item, where there is no
+    /// segment.
+    public func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
+        resolver.bounds(ofResource: href)
     }
 
     /// Returns the first item with a range in pre-order, or `nil` when no
@@ -243,7 +287,7 @@ public struct Timeline: Sendable {
     /// Returns consecutive segments covering the timeline, each labelled with
     /// the deepest item playing in it.
     ///
-    /// The item of a segment is the one returned by ``locate(_:maxDepth:)``
+    /// The item of a segment is the one returned by ``item(containing:maxDepth:)``
     /// in it.
     ///
     /// - Parameter maxDepth: Labels the segments with items no deeper than
@@ -252,7 +296,7 @@ public struct Timeline: Sendable {
         var segments: [TimelineSegment] = []
 
         // Each ranged item starts an interval up to the next one, labelled
-        // like `locate` would in it.
+        // like `item(containing:)` would in it.
         for (index, rangedID) in rangedIDs.enumerated() {
             guard let labelID = labelID(of: rangedID, maxDepth: maxDepth) else {
                 continue
@@ -267,8 +311,8 @@ public struct Timeline: Sendable {
                 continue
             }
 
-            // The items of a subtree are consecutive in pre-order, so the
-            // intervals of a label are adjacent.
+            // Merges the consecutive intervals of a label, such as those of
+            // the items deeper than `maxDepth`.
             if let last = segments.last, last.item.id == labelID {
                 segments[segments.count - 1] = TimelineSegment(item: item, start: last.start, end: end)
             } else {
@@ -284,7 +328,7 @@ public struct Timeline: Sendable {
     ///
     /// Empty when `href` is not in the reading order.
     public func segments(in href: any URLConvertible, maxDepth: Int? = nil) -> [TimelineSegment] {
-        guard let (resourceStart, resourceEnd) = resolver.bounds(ofResource: href) else {
+        guard let (resourceStart, resourceEnd) = bounds(ofResource: href) else {
             return []
         }
         let index = resourceStart.readingOrderIndex

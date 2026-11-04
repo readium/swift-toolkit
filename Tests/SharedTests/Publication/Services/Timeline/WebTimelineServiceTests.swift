@@ -19,6 +19,8 @@ import Testing
 /// - Notes 1 → `ch1b` (goes back)
 /// - Chapter 3 → `ch3`
 /// - Appendix → `outside` (not in the reading order)
+///
+/// The publication has no positions, unless a test gives some.
 struct WebTimelineServiceTests {
     @Test func untitledEntriesAreReplacedByTheirChildren() async throws {
         let timeline = try await timeline()
@@ -40,6 +42,48 @@ struct WebTimelineServiceTests {
 
         #expect(timeline.items.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
         #expect(timeline.items.map(\.end) == [position(3), nil, position(4), nil, position(4, 1), nil])
+    }
+
+    /// `cover`, `ch1a`, `ch1b`, `ch2` and `ch3` have 1, 3, 2, 4 and 5
+    /// positions.
+    @Test func itemsAreMeasuredInPositions() async throws {
+        let timeline = try await timeline(positions: { _ in
+            InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
+        })
+
+        #expect(timeline.items.map { $0.start?.coordinate } == [.position(2), nil, .position(7), nil, .position(11), nil])
+        #expect(timeline.items.map(\.length) == [.positions(5), nil, .positions(4), nil, .positions(5), nil])
+        #expect(timeline.items[4].end?.coordinate == .position(16))
+        #expect(timeline.items[4].end?.totalProgression == 1)
+    }
+
+    /// The positions of a fixed-layout publication are pages.
+    @Test func fixedLayoutItemsAreMeasuredInPages() async throws {
+        let timeline = try await timeline(layout: .fixed, positions: { _ in
+            InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
+        })
+
+        #expect(timeline.items.map { $0.start?.coordinate } == [.page(2), nil, .page(7), nil, .page(11), nil])
+        #expect(timeline.items.map(\.length) == [.pages(5), nil, .pages(4), nil, .pages(5), nil])
+    }
+
+    /// A reflowable resource has several positions, which are not pages.
+    @Test func fixedLayoutWithAReflowableResourceIsMeasuredInPositions() async throws {
+        let timeline = try await timeline(layout: .fixed, reflowableResources: ["ch2"], positions: { _ in
+            InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
+        })
+
+        #expect(timeline.items[0].start?.coordinate == .position(2))
+        #expect(timeline.items[0].length == .positions(5))
+    }
+
+    /// Without positions, the items are still placed.
+    @Test(arguments: [nil, FailingPositionsService()])
+    func itemsAreNotMeasuredWithoutPositions(_ service: FailingPositionsService?) async throws {
+        let timeline = try await timeline(positions: service.map { service in { _ in service } })
+
+        #expect(timeline.items.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
+        #expect(timeline.items.map(\.length) == [nil, nil, nil, nil, nil, nil])
     }
 
     struct ResourceChapter: Sendable, CustomTestStringConvertible {
@@ -66,7 +110,7 @@ struct WebTimelineServiceTests {
         let timeline = try await timeline()
         let locator = Locator(href: AnyURL(string: example.href)!, mediaType: .xhtml, locations: .init(progression: example.progression))
 
-        #expect(timeline.locate(locator)?.title == example.expected.map { .text($0) })
+        #expect(timeline.item(containing: locator)?.title == example.expected.map { .text($0) })
     }
 
     @Test func aSplitChapterCoversItsFollowingResources() async throws {
@@ -95,7 +139,7 @@ struct WebTimelineServiceTests {
         let locator = Locator(href: AnyURL(string: "ch1a.xhtml")!, mediaType: .xhtml)
 
         #expect(timeline.items[0].start == position(1))
-        #expect(timeline.locate(locator) == timeline.items[0])
+        #expect(timeline.item(containing: locator) == timeline.items[0])
     }
 
     @Test func readsTheTableOfContentsService() async throws {
@@ -123,13 +167,19 @@ struct WebTimelineServiceTests {
 
 private func timeline(
     layout: Layout? = nil,
-    tocService: TableOfContentsServiceFactory? = nil
+    reflowableResources: Set<String> = [],
+    tocService: TableOfContentsServiceFactory? = nil,
+    positions: PositionsServiceFactory? = nil
 ) async throws -> Timeline {
     let publication = Publication(
         manifest: Manifest(
             metadata: Metadata(title: "", layout: layout),
-            readingOrder: ["cover", "ch1a", "ch1b", "ch2", "ch3"].map {
-                Link(href: "\($0).xhtml", mediaType: .xhtml)
+            readingOrder: resources.map {
+                Link(
+                    href: "\($0).xhtml",
+                    mediaType: .xhtml,
+                    properties: reflowableResources.contains($0) ? Properties(["layout": "reflowable"]) : Properties()
+                )
             },
             tableOfContents: [
                 Link(href: "ch1a.xhtml", children: [
@@ -147,6 +197,9 @@ private func timeline(
             if let tocService {
                 $0.setTableOfContentsServiceFactory(tocService)
             }
+            if let positions {
+                $0.setPositionsServiceFactory(positions)
+            }
         })
     )
     let timeline = try #require(await publication.timeline())
@@ -154,8 +207,18 @@ private func timeline(
     return timeline
 }
 
+private let resources = ["cover", "ch1a", "ch1b", "ch2", "ch3"]
+
+/// Position without positions.
 private func position(_ index: Int, _ progression: Double = 0) -> TimelinePosition {
-    TimelinePosition(readingOrderIndex: index, offset: .scroll(progression))
+    TimelinePosition(readingOrderIndex: index, offset: progression, progression: progression)
+}
+
+/// The given number of positions in each resource.
+private func positions(_ counts: [Int]) -> [[Locator]] {
+    zip(resources, counts).map { resource, count in
+        (0 ..< count).map { _ in Locator(href: AnyURL(string: "\(resource).xhtml")!, mediaType: .xhtml) }
+    }
 }
 
 private struct StubTableOfContentsService: TableOfContentsService {

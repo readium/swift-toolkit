@@ -27,20 +27,35 @@ struct PDFTimelineServiceTests {
         ])
         let segments = timeline.segments()
         #expect(segments.map(\.start.readingOrderIndex) == [0, 0, 1])
-        #expect(segments.map(\.start.offset) == [.page(0), .page(2), .page(1)])
+        #expect(segments.map(\.start.offset) == [0, 2, 1])
         #expect(segments.map { $0.end?.readingOrderIndex } == [0, 1, 1])
-        #expect(segments.map { $0.end?.offset } == [.page(2), .page(1), .page(5)])
+        #expect(segments.map { $0.end?.offset } == [2, 1, 5])
         #expect(timeline.items[1].end?.totalProgression == 1)
+        #expect(timeline.items.map(\.length) == [.pages(11), .pages(4)])
+    }
+
+    /// The pages match the positions list of the publication.
+    @Test func pagesAreThePositionsOfThePublication() async throws {
+        let positionsByReadingOrder = positions([10, 5])
+        let timeline = try await timeline(positions: { _ in
+            InMemoryPositionsService(positionsByReadingOrder: positionsByReadingOrder)
+        })
+
+        for locator in positionsByReadingOrder.flatMap(\.self) {
+            #expect(timeline.position(of: locator)?.coordinate == locator.locations.position.map { .page($0) })
+        }
     }
 
     /// Without positions, the pages are still placed, but the end of the
-    /// publication is unknown.
-    @Test func pageCountsAreUnknownWithoutPositions() async throws {
-        let timeline = try await timeline(positions: nil)
+    /// publication and the lengths are unknown.
+    @Test(arguments: [nil, FailingPositionsService()])
+    func pageCountsAreUnknownWithoutPositions(_ service: FailingPositionsService?) async throws {
+        let timeline = try await timeline(positions: service.map { service in { _ in service } })
 
         #expect(timeline.items.map { $0.start?.readingOrderIndex } == [0, 1])
-        #expect(timeline.items.map { $0.start?.offset } == [.page(0), .page(1)])
+        #expect(timeline.items.map { $0.start?.offset } == [0, 1])
         #expect(timeline.items[1].end == nil)
+        #expect(timeline.items.map(\.length) == [nil, nil])
     }
 
     /// Unlike for an audiobook, no items are generated from the reading order.
@@ -48,21 +63,6 @@ struct PDFTimelineServiceTests {
         let timeline = try await timeline(toc: [], positions: nil)
 
         #expect(timeline.items.isEmpty)
-    }
-
-    @Test func positionsFailureIsThrownAndNotCached() async throws {
-        let service = FailingOncePositionsService(positions: positions([10, 5]))
-        let publication = makePublication(positions: { _ in service })
-
-        let error = await #expect(throws: ReadError.self) {
-            _ = try await publication.timeline()
-        }
-        guard case .decoding? = error else {
-            Issue.record("Expected a decoding error, got \(String(describing: error))")
-            return
-        }
-        #expect(try await publication.timeline()?.items[1].end?.offset == .page(5))
-        withExtendedLifetime(publication) {}
     }
 
     @Test func failsOnceThePublicationIsDeallocated() async {
@@ -80,8 +80,8 @@ struct PDFTimelineServiceTests {
 
 // MARK: - Helpers
 
-private func makePublication(toc: [Link]? = nil, positions: PositionsServiceFactory?) -> Publication {
-    Publication(
+private func timeline(toc: [Link]? = nil, positions: PositionsServiceFactory?) async throws -> Timeline {
+    let publication = Publication(
         manifest: Manifest(
             metadata: Metadata(title: ""),
             readingOrder: [
@@ -102,39 +102,21 @@ private func makePublication(toc: [Link]? = nil, positions: PositionsServiceFact
             }
         })
     )
-}
-
-private func timeline(toc: [Link]? = nil, positions: PositionsServiceFactory?) async throws -> Timeline {
-    let publication = makePublication(toc: toc, positions: positions)
     let timeline = try #require(await publication.timeline())
     withExtendedLifetime(publication) {}
     return timeline
 }
 
-/// One position per page of each resource.
+/// One position per page of each resource, numbered across the resources.
 private func positions(_ pageCounts: [Int]) -> [[Locator]] {
     pageCounts.enumerated().map { index, pageCount in
-        (0 ..< pageCount).map { _ in
-            Locator(href: AnyURL(string: index == 0 ? "a.pdf" : "b.pdf")!, mediaType: .pdf)
+        let previousPageCount = pageCounts[..<index].reduce(0, +)
+        return (1 ... pageCount).map { page in
+            Locator(
+                href: AnyURL(string: index == 0 ? "a.pdf" : "b.pdf")!,
+                mediaType: .pdf,
+                locations: .init(fragments: ["page=\(page)"], position: previousPageCount + page)
+            )
         }
-    }
-}
-
-/// Fails on the first call only.
-private final class FailingOncePositionsService: PositionsService, @unchecked Sendable {
-    private let positions: [[Locator]]
-    private let lock = NSLock()
-    private var calls = 0
-
-    init(positions: [[Locator]]) {
-        self.positions = positions
-    }
-
-    func positionsByReadingOrder() async -> ReadResult<[[Locator]]> {
-        let call = lock.withLock {
-            calls += 1
-            return calls
-        }
-        return call == 1 ? .failure(.decoding("Broken")) : .success(positions)
     }
 }

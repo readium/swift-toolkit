@@ -15,7 +15,7 @@ enum AudioTimelinePositionResolverTests {
         struct LinkOffset: Sendable, CustomTestStringConvertible {
             let href: String
             var readingOrderIndex = 1
-            let offset: TimelineOffset
+            let offset: Double
 
             var testDescription: String {
                 href
@@ -23,17 +23,21 @@ enum AudioTimelinePositionResolverTests {
         }
 
         @Test(arguments: [
-            LinkOffset(href: "t2#t=60", offset: .seconds(60)),
-            LinkOffset(href: "t2", offset: .seconds(0)),
-            LinkOffset(href: "t2#t=10,20", offset: .seconds(10)),
+            LinkOffset(href: "t2#t=60", offset: 60),
+            LinkOffset(href: "t2", offset: 0),
+            LinkOffset(href: "t2#t=10,20", offset: 10),
             // Past the known duration of the track, the offset is not clamped.
-            LinkOffset(href: "t3#t=1000", readingOrderIndex: 2, offset: .seconds(1000)),
+            LinkOffset(href: "t3#t=1000", readingOrderIndex: 2, offset: 1000),
         ])
         func linkIsTurnedIntoAnOffset(_ example: LinkOffset) throws {
             let position = try #require(resolver().position(of: Link(href: example.href)))
 
             #expect(position.readingOrderIndex == example.readingOrderIndex)
             #expect(position.offset == example.offset)
+        }
+
+        @Test func coordinateIsTheTimeFromTheStartOfThePublication() {
+            #expect(resolver().position(of: Link(href: "t2#t=60"))?.coordinate == .time(660))
         }
 
         @Test func linkOutsideTheReadingOrderHasNoPosition() {
@@ -47,7 +51,7 @@ enum AudioTimelinePositionResolverTests {
             let name: String
             var durations: [TimeInterval?] = [600, 300, 900]
             let locations: Locator.Locations
-            let offset: TimelineOffset
+            let offset: Double
 
             var testDescription: String {
                 name
@@ -58,35 +62,35 @@ enum AudioTimelinePositionResolverTests {
             LocatorOffset(
                 name: "a `t=` fragment wins over the progression",
                 locations: .init(fragments: ["t=60"], progression: 0.5),
-                offset: .seconds(60)
+                offset: 60
             ),
             LocatorOffset(
                 name: "a `t=` fragment with no duration known",
                 durations: [nil, nil, nil],
                 locations: .init(fragments: ["t=60"]),
-                offset: .seconds(60)
+                offset: 60
             ),
             LocatorOffset(
                 name: "a progression with a known duration",
                 locations: .init(progression: 0.5),
-                offset: .seconds(150)
+                offset: 150
             ),
             LocatorOffset(
                 name: "a progression is ignored when the duration is unknown",
                 durations: [600, nil, 900],
                 locations: .init(progression: 0.5),
-                offset: .seconds(0)
+                offset: 0
             ),
             LocatorOffset(
                 name: "a progression is ignored when the duration is 0",
                 durations: [600, 0, 900],
                 locations: .init(progression: 0.5),
-                offset: .seconds(0)
+                offset: 0
             ),
             LocatorOffset(
                 name: "no location is the start of the track",
                 locations: .init(),
-                offset: .seconds(0)
+                offset: 0
             ),
         ])
         func locatorIsTurnedIntoAnOffset(_ example: LocatorOffset) throws {

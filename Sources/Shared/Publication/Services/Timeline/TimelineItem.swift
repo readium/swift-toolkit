@@ -50,6 +50,12 @@ public struct TimelineItem: Identifiable, Hashable, Sendable {
     /// publication whose last resource length is unknown.
     public let end: TimelinePosition?
 
+    /// Length of the item, from its ``start`` to its ``end``.
+    ///
+    /// The length of a parent covers its children. `nil` when the item has
+    /// no ``end``, or when it continues past a resource of unknown length.
+    public let length: TimelineLength?
+
     /// Items of the nested table of contents entries, in order.
     ///
     /// Their ranges are inside the range of this item, which owns the gap
@@ -62,6 +68,7 @@ public struct TimelineItem: Identifiable, Hashable, Sendable {
         link: Link,
         start: TimelinePosition?,
         end: TimelinePosition?,
+        length: TimelineLength?,
         children: [TimelineItem]
     ) {
         self.id = id
@@ -69,6 +76,21 @@ public struct TimelineItem: Identifiable, Hashable, Sendable {
         self.link = link
         self.start = start
         self.end = end
+        self.length = length
         self.children = children
     }
+}
+
+/// Length on a ``Timeline``, such as of a ``TimelineItem`` or between two
+/// positions, in the natural unit of its publication.
+@_spi(ExperimentalTimeline)
+public enum TimelineLength: Hashable, Sendable {
+    /// Duration, in seconds.
+    case duration(TimeInterval)
+
+    /// Number of pages.
+    case pages(Int)
+
+    /// Number of positions in the positions list of the publication.
+    case positions(Int)
 }

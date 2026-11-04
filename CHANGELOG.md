@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
-* New experimental `Publication.timeline()` API. A `Timeline` lays out the table of contents on the reading order, to answer questions such as "which chapter am I in?", "what's the next chapter?" or "how long is this chapter?". It is available for audiobooks, EPUB (limited support) and PDF.
+* New experimental `Publication.timeline()` API. A `Timeline` lays out the table of contents on the reading order, to answer questions such as "which chapter am I in?", "what's the next chapter?" or "how long is this chapter?". It is available for audiobooks, EPUB (limited support), PDF and DiViNa.
 
 #### Navigator
 
@@ -71,6 +71,8 @@ All notable changes to this project will be documented in this file. Take a look
 * [#632](https://github.com/readium/swift-toolkit/issues/632) Fixed decorations being duplicated on both pages when a fixed-layout EPUB is displayed as a two-page spread (contributed by [@mvanhorn](https://github.com/readium/swift-toolkit/pull/915)).
 * Fixed a memory leak in `EPUBNavigatorViewController` when quickly turning the pages of a fixed-layout publication (contributed by [@deltakosh](https://github.com/readium/swift-toolkit/pull/917)).
 * Fixed reflowable EPUBs being displayed as a single column on the iPhone Duo unfolded in landscape, by porting the [responsive columns fix of Readium CSS 1.1.2](https://github.com/readium/css/issues/247).
+* `EPUBNavigatorViewController`'s current locator is now reported as soon as the current page is loaded, instead of waiting for the preloading of adjacent resources.
+* Fixed the `viewport` of `PDFNavigatorViewController` including the off-screen pages in paginated mode.
 
 
 ## [4.0.0-alpha.2] - 2026-09-18

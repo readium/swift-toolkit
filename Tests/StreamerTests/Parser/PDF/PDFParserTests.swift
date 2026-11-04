@@ -27,9 +27,9 @@ struct PDFParserTests {
             "  1 Chapter 1 → \(href)#page=2",
             "2 Chapter 2 → \(href)#page=4",
         ])
-        #expect(chapter1.end?.offset == .page(3))
-        #expect(chapter2.end?.offset == .page(4))
-        #expect(timeline.locate(Locator(href: href, mediaType: .pdf, locations: .init(fragments: ["page=3"]))) == chapter1)
+        #expect(chapter1.end?.offset == 3)
+        #expect(chapter2.end?.offset == 4)
+        #expect(timeline.item(containing: Locator(href: href, mediaType: .pdf, locations: .init(fragments: ["page=3"]))) == chapter1)
     }
 }
 

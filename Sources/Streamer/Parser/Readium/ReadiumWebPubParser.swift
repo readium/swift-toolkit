@@ -161,6 +161,7 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
 
                         } else if manifest.conforms(to: .divina) {
                             $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!))
+                            $0.setTimelineServiceFactory(ImageTimelineService.makeFactory())
 
                         } else if manifest.conforms(to: .audiobook) {
                             $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())

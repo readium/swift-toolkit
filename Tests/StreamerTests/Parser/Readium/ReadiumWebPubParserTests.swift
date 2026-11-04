@@ -130,7 +130,7 @@ enum ReadiumWebPubParserTests {
                 expected: "WebTimelineService"
             ),
             ProfileExample(name: "SVG resources without the EPUB profile", mediaType: "image/svg+xml", expected: nil),
-            ProfileExample(name: "comic", mediaType: "image/png", expected: nil),
+            ProfileExample(name: "comic", mediaType: "image/png", expected: "ImageTimelineService"),
             ProfileExample(name: "PDF", mediaType: "application/pdf", expected: nil),
             ProfileExample(name: "LCP-protected PDF", mediaType: "application/pdf", isLCP: true, expected: "PDFTimelineService"),
         ])

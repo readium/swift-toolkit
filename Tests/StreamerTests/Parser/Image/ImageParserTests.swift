@@ -4,7 +4,7 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumShared
+@_spi(ExperimentalTimeline) import ReadiumShared
 @testable import ReadiumStreamer
 import XCTest
 
@@ -64,6 +64,14 @@ class ImageParserTests: XCTestCase {
         let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
 
         XCTAssertEqual(publication.metadata.conformsTo, [.divina])
+    }
+
+    /// A CBZ has no table of contents.
+    func testTimelineIsEmpty() async throws {
+        let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
+
+        let timeline = try await publication.timeline()
+        XCTAssertEqual(timeline?.items, [])
     }
 
     /// The reading order is sorted alphabetically, ignores Thumbs.db, hidden files and non-bitmap

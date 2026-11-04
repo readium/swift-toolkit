@@ -317,8 +317,8 @@ enum AudioParserTests {
             let publication = try await parse([AudioMetadata(), AudioMetadata(title: "Two"), AudioMetadata(), AudioMetadata(title: "Four")])
             let timeline = try #require(await publication.timeline())
 
-            #expect(timeline.locate(Locator(href: AnyURL(string: "3.mp3")!, mediaType: .mp3)) == timeline.items[0])
-            #expect(timeline.locate(Locator(href: AnyURL(string: "1.mp3")!, mediaType: .mp3)) == nil)
+            #expect(timeline.item(containing: Locator(href: AnyURL(string: "3.mp3")!, mediaType: .mp3)) == timeline.items[0])
+            #expect(timeline.item(containing: Locator(href: AnyURL(string: "1.mp3")!, mediaType: .mp3)) == nil)
             #expect(timeline.segments(in: AnyURL(string: "1.mp3")!) == [])
         }
 

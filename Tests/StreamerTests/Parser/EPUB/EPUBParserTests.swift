@@ -19,8 +19,8 @@ struct EPUBParserTests {
 
         #expect(section.title == .text("SECTION IV FAIRY STORIES—MODERN FANTASTIC TALES"))
         #expect(timeline.segments().map(\.item) == [section])
-        #expect(timeline.locate(Locator(href: "EPUB/cover.xhtml", mediaType: .xhtml)) == nil)
-        #expect(timeline.locate(Locator(href: "EPUB/s04.xhtml", mediaType: .xhtml, locations: .init(progression: 0.8))) == section)
+        #expect(timeline.item(containing: Locator(href: "EPUB/cover.xhtml", mediaType: .xhtml)) == nil)
+        #expect(timeline.item(containing: Locator(href: "EPUB/s04.xhtml", mediaType: .xhtml, locations: .init(progression: 0.8))) == section)
     }
 }
 

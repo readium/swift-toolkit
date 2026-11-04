@@ -13,6 +13,9 @@ import Foundation
 /// the start of the resource. The other entries keep their place in the tree
 /// without a range. A chapter split across several resources is therefore
 /// located in all of them.
+///
+/// The coordinates and lengths are counted in the positions of the
+/// publication, as pages when all its resources have a fixed layout.
 @_spi(ExperimentalTimeline)
 public final class WebTimelineService: TimelineService {
     public static func makeFactory() -> TimelineServiceFactory {
@@ -30,9 +33,18 @@ public final class WebTimelineService: TimelineService {
             }
 
             let nodes = try await publication.tableOfContents().get().timelineNodes
+            let positionCounts = await publication.positionsByReadingOrder().getOrNil()?.map(\.count) ?? []
             return Timeline(
                 nodes: nodes,
-                resolver: WebTimelinePositionResolver(readingOrder: publication.readingOrder, nodes: nodes)
+                resolver: WebTimelinePositionResolver(
+                    readingOrder: publication.readingOrder,
+                    positionCounts: positionCounts,
+                    // A fixed-layout resource has a single position.
+                    positionsArePages: publication.readingOrder.allSatisfy {
+                        publication.metadata.epubLayout(of: $0) == .fixed
+                    },
+                    nodes: nodes
+                )
             )
         }
     }

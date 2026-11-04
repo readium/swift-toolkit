@@ -15,12 +15,16 @@ public struct TimelinePosition: Hashable, Sendable {
     /// Index of the resource in the reading order.
     public let readingOrderIndex: Int
 
-    /// Offset in the resource.
-    public let offset: TimelineOffset
+    /// Offset in the resource, in a unit chosen by the resolver, such as
+    /// seconds or a scroll progression.
+    ///
+    /// Only meaningful to compare positions of the same resource.
+    public let offset: Double
 
-    /// Offset from the start of the publication, or `nil` when the length of
-    /// a preceding resource is unknown.
-    public let totalOffset: TimelineOffset?
+    /// Where the position stands in the publication, in its natural unit.
+    ///
+    /// `nil` when the length of a preceding resource is unknown.
+    public let coordinate: TimelineCoordinate?
 
     /// Progression in the resource, or `nil` when its length is unknown.
     ///
@@ -37,43 +41,43 @@ public struct TimelinePosition: Hashable, Sendable {
 
     public init(
         readingOrderIndex: Int,
-        offset: TimelineOffset,
-        totalOffset: TimelineOffset? = nil,
+        offset: Double,
+        coordinate: TimelineCoordinate? = nil,
         progression: Double? = nil,
         totalProgression: Double? = nil
     ) {
         self.readingOrderIndex = readingOrderIndex
         self.offset = offset
-        self.totalOffset = totalOffset
+        self.coordinate = coordinate
         self.progression = progression
         self.totalProgression = totalProgression
     }
 
     /// Returns whether this position comes before `other` on the timeline,
     /// ordering by reading order index, then by offset.
-    func isBefore(_ other: TimelinePosition) -> Bool {
+    ///
+    /// Unlike `==`, this ordering ignores the derived properties: two
+    /// positions can differ while neither comes before the other. This is why
+    /// `TimelinePosition` is not `Comparable`.
+    public func isBefore(_ other: TimelinePosition) -> Bool {
         (readingOrderIndex, offset) < (other.readingOrderIndex, other.offset)
     }
 }
 
-/// An offset in a resource, or from the start of a publication.
+/// Where a position stands in a publication, in its natural unit.
 ///
-/// A ``TimelinePositionResolver`` uses a single case for all the offsets of a
-/// resource. Comparing offsets of different cases is meaningless: they are
-/// ordered by case.
+/// The end of an item or of the publication is exclusive: one past its last
+/// page or position, or the time where it stops.
 @_spi(ExperimentalTimeline)
-public enum TimelineOffset: Comparable, Hashable, Sendable {
-    /// A time offset in an audio or video resource, in seconds.
-    case seconds(TimeInterval)
+public enum TimelineCoordinate: Hashable, Sendable {
+    /// Time from the start of the publication, in seconds.
+    case time(TimeInterval)
 
-    /// A progression in a scrollable resource such as an HTML document,
-    /// between 0 and 1.
-    case scroll(Double)
-
-    /// Index of a page in a paginated resource such as a PDF document or an
-    /// image, starting at 0.
-    ///
-    /// As an offset, it counts the pages before it: a resource of N pages
-    /// ends at `.page(N)`.
+    /// Page number, starting at 1, in a publication where each position is a
+    /// page, such as a PDF, a comic or a fixed-layout EPUB.
     case page(Int)
+
+    /// Position in the positions list of the publication, starting at 1, as
+    /// in ``Locator/Locations/position``.
+    case position(Int)
 }
