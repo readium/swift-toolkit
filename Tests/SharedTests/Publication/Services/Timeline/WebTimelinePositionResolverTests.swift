@@ -65,13 +65,27 @@ enum WebTimelinePositionResolverTests {
             ))
         }
 
-        @Test(arguments: [(-1, 0, 0.6), (1e300, 1, 1)])
-        func progressionIsClamped(_ progression: Double, _ clamped: Double, _ totalProgression: Double) throws {
-            let position = try #require(resolver().position(of: locator("c", .init(progression: progression))))
+        struct ClampedProgression: Sendable, CustomTestStringConvertible {
+            let name: String
+            let progression: Double
+            let clamped: Double
+            let totalProgression: Double
 
-            #expect(position.offset == clamped)
-            #expect(position.progression == clamped)
-            #expect(position.totalProgression == totalProgression)
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test(arguments: [
+            ClampedProgression(name: "a negative progression", progression: -1, clamped: 0, totalProgression: 0.6),
+            ClampedProgression(name: "a progression past 1", progression: 1e300, clamped: 1, totalProgression: 1),
+        ])
+        func progressionIsClamped(_ example: ClampedProgression) throws {
+            let position = try #require(resolver().position(of: locator("c", .init(progression: example.progression))))
+
+            #expect(position.offset == example.clamped)
+            #expect(position.progression == example.clamped)
+            #expect(position.totalProgression == example.totalProgression)
         }
 
         /// The coordinates before the unknown count are known.
@@ -134,20 +148,30 @@ enum WebTimelinePositionResolverTests {
             #expect(resolver(example.positionCounts).length(from: example.start, to: example.end) == example.expected.map { .positions($0) })
         }
 
+        struct LocatorLength: Sendable, CustomTestStringConvertible {
+            let name: String
+            let locations: Locator.Locations
+            let expected: Int
+
+            var testDescription: String {
+                name
+            }
+        }
+
         /// From a locator in `c`, at positions 7 to 10, to the end of `c`.
         @Test(arguments: [
-            (Locator.Locations(progression: 0.6), 2),
-            (Locator.Locations(progression: 0, position: 9), 2),
-            (Locator.Locations(progression: 1), 1),
+            LocatorLength(name: "a progression", locations: .init(progression: 0.6), expected: 2),
+            LocatorLength(name: "a position", locations: .init(progression: 0, position: 9), expected: 2),
+            LocatorLength(name: "a progression of 1", locations: .init(progression: 1), expected: 1),
         ])
-        func lengthFromALocatorAgreesWithItsCoordinate(_ locations: Locator.Locations, _ expected: Int) throws {
+        func lengthFromALocatorAgreesWithItsCoordinate(_ example: LocatorLength) throws {
             let resolver = resolver()
-            let start = try #require(resolver.position(of: locator("c", locations)))
+            let start = try #require(resolver.position(of: locator("c", example.locations)))
             let end = try #require(resolver.bounds(ofResource: AnyURL(string: "c")!)?.end)
 
-            #expect(start.coordinate == .position(11 - expected))
+            #expect(start.coordinate == .position(11 - example.expected))
             #expect(end.coordinate == .position(11))
-            #expect(resolver.length(from: start, to: end) == .positions(expected))
+            #expect(resolver.length(from: start, to: end) == .positions(example.expected))
         }
 
         /// A page is read like a position.
@@ -169,10 +193,6 @@ enum WebTimelinePositionResolverTests {
 
             #expect(resolver.length(from: start, to: end) == nil)
         }
-
-        private static func at(_ index: Int, _ progression: Double) -> TimelinePosition {
-            TimelinePosition(readingOrderIndex: index, offset: progression)
-        }
     }
 }
 
@@ -190,4 +210,8 @@ private func resolver(_ positionCounts: [Int?] = [4, 2, 4], positionsArePages: B
 
 private func locator(_ href: String, _ locations: Locator.Locations) -> Locator {
     Locator(href: AnyURL(string: href)!, mediaType: .xhtml, locations: locations)
+}
+
+private func at(_ index: Int, _ progression: Double) -> TimelinePosition {
+    TimelinePosition(readingOrderIndex: index, offset: progression)
 }

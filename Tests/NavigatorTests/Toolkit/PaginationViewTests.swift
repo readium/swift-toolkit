@@ -25,22 +25,36 @@ import UIKit
         #expect(await delegate.nextEvent() == .update(index: 1, isCurrentPageLoading: false))
     }
 
+    struct UnsettledPage: Sendable, CustomTestStringConvertible {
+        let name: String
+        let index: Int
+        let location: PageLocation
+
+        var testDescription: String {
+            name
+        }
+    }
+
     /// A page which is not loaded yet, or goes to a locator, reports its
     /// progression after loading or scrolling, so the delegate is notified
     /// once all the pages are loaded.
     @Test(arguments: [
-        (2, PageLocation.start),
-        (1, PageLocation.locator(Locator(href: AnyURL(string: "1")!, mediaType: .xhtml))),
+        UnsettledPage(name: "a page not loaded yet", index: 2, location: .start),
+        UnsettledPage(
+            name: "a preloaded page going to a locator",
+            index: 1,
+            location: .locator(Locator(href: AnyURL(string: "1")!, mediaType: .xhtml))
+        ),
     ])
-    func otherPagesNotifyOnceAllThePagesAreLoaded(index: Int, location: PageLocation) async {
+    func otherPagesNotifyOnceAllThePagesAreLoaded(_ page: UnsettledPage) async {
         let (view, delegate) = await makePaginationView(pageCount: 4)
 
-        delegate.blockedIndexes = [index + 1]
-        _ = await view.goToIndex(index, location: location, options: .init(animated: false))
-        #expect(await delegate.nextEvent() == .loading(index: index + 1))
+        delegate.blockedIndexes = [page.index + 1]
+        _ = await view.goToIndex(page.index, location: page.location, options: .init(animated: false))
+        #expect(await delegate.nextEvent() == .loading(index: page.index + 1))
 
-        delegate.views[index + 1]?.finishLoading()
-        #expect(await delegate.nextEvent() == .update(index: index, isCurrentPageLoading: false))
+        delegate.views[page.index + 1]?.finishLoading()
+        #expect(await delegate.nextEvent() == .update(index: page.index, isCurrentPageLoading: false))
     }
 
     /// Coming back to a page before it moved again waits for its move, as

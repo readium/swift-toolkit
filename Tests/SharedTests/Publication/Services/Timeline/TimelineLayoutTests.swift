@@ -52,10 +52,6 @@ enum TimelineLayoutTests {
         func lengthBetweenPositions(_ example: Example) {
             #expect(layout(example.lengths).length(from: example.start, to: example.end) == example.expected)
         }
-
-        private static func at(_ index: Int, _ offset: Double) -> TimelinePosition {
-            TimelinePosition(readingOrderIndex: index, offset: offset)
-        }
     }
 
     struct Index {
@@ -150,6 +146,10 @@ private func layout(_ lengths: [Int?] = [10, 5, 20]) -> TimelineLayout<Int> {
         lengths: lengths,
         coordinate: { .page($0 + 1) }
     )
+}
+
+private func at(_ index: Int, _ offset: Double) -> TimelinePosition {
+    TimelinePosition(readingOrderIndex: index, offset: offset)
 }
 
 private func position(
