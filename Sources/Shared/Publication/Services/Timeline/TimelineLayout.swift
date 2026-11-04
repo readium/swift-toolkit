@@ -194,13 +194,13 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
     }
 }
 
-extension TimelineLayout where Scalar == Int {
+package extension TimelineLayout where Scalar == Int {
     /// Offset of the page or position at `progression` in the resource at
     /// `index`, starting at 0, or `nil` when its length is unknown.
     ///
     /// The progression is clamped between 0 and 1. A progression of 1 is the
     /// last page or position of the resource.
-    package func offset(atProgression progression: Double, inResourceAt index: Int) -> Int? {
+    func offset(atProgression progression: Double, inResourceAt index: Int) -> Int? {
         guard let length = length(ofResourceAt: index) else {
             return nil
         }
