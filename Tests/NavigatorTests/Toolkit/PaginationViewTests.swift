@@ -87,6 +87,26 @@ import UIKit
         #expect(await delegate.nextEvent() == .update(index: index, isCurrentPageLoading: false))
     }
 
+    /// Moving into a window while the current page loads, the first time
+    /// or after leaving it, notifies the delegate once the page is shown.
+    @Test(arguments: [false, true])
+    func movingIntoAWindowWaitsForTheCurrentPage(leavesTheWindow: Bool) async {
+        let (view, delegate) = await makePaginationView(pageCount: 3, blockedIndexes: [0])
+        // Removing the view itself from its superview would drop its pages.
+        let container = UIView(frame: view.frame)
+        container.addSubview(view)
+
+        let window = UIWindow(frame: view.frame)
+        window.addSubview(container)
+        if leavesTheWindow {
+            container.removeFromSuperview()
+            window.addSubview(container)
+        }
+        delegate.views[0]?.finishLoading()
+
+        #expect(await delegate.nextEvent() == .update(index: 0, isCurrentPageLoading: false))
+    }
+
     /// Moving to another page drops the pages left to load which are not
     /// preloaded anymore.
     @Test func movingDropsThePagesLeftToLoad() async {

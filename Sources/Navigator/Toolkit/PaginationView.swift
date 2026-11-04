@@ -173,8 +173,11 @@ final class PaginationView: UIView, Loggable {
 
         if window == nil {
             loadPagesTask?.cancel()
-        } else {
-            loadPages()
+        } else if let task = loadPagesTask, task.isCancelled {
+            // Resumes the loading stopped when leaving the window, once it
+            // finished loading its last view. A loading in progress, such as
+            // the first one before moving into the window, goes on.
+            loadPages(after: task)
         }
     }
 
@@ -250,9 +253,13 @@ final class PaginationView: UIView, Loggable {
         loadPages()
     }
 
-    private func loadPages() {
+    /// - Parameter previous: Loading to wait for before starting, such as a
+    ///   cancelled one still loading a view which the new loading would
+    ///   not notify about.
+    private func loadPages(after previous: Task<Void, Never>? = nil) {
         loadPagesTask?.cancel()
         loadPagesTask = Task { @MainActor in
+            await previous?.value
             // A cancelled task stops before taking the next view from the
             // queue, which the new task loads instead. Otherwise, it would
             // notify the delegate while the new task still loads the current
