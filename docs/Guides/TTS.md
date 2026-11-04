@@ -73,16 +73,38 @@ By default, `PublicationSpeechSynthesizer` will use any language explicitly set 
 
 ### Voice
 
-The `voice` setting can be used to change the synthetic voice used by the engine. To get the available list, use `synthesizer.availableVoices`.
-
-To restore a user-selected voice, persist the unique voice identifier returned by `voice.identifier`.
-
-Users do not expect to see all available voices at all time, as they depend on the selected language. You can group the voices by their language and filter them by the selected language using the following snippet.
+The `voices` setting selects the synthetic voice used by the engine for each language, with the `TTSVoice.ID` of the voice.
 
 ```swift
-let voicesByLanguage: [Language: [TTSVoice]] =
-    Dictionary(grouping: synthesizer.availableVoices, by: \.language)
+synthesizer.config.voices = [
+    "fr": voice.id,
+    "en-GB": TTSVoice.ID("com.apple.voice.compact.en-GB.Daniel"),
+]
 ```
+
+Each utterance is spoken with the voice of its language, or of the default language, the publication language or the current one when it has none. The voice matching the language and its region comes first, then the one of its base language. Without a match, the engine uses its default voice for the language.
+
+#### Listing the voices
+
+To get the voices supported by the engine, use `synthesizer.availableVoices`. Users do not expect to see all of them at all time, as they depend on the language. Filter them by language with `filterByLanguage(_:)` and order them with `sorted()`, which lists the regions of the device first, then the higher quality voices.
+
+```swift
+let frenchVoices = synthesizer.availableVoices
+    .filterByLanguage(Language("fr"))
+    .sorted()
+```
+
+#### Restoring the voices
+
+`TTSVoice.ID` is `Codable` and stable, so you can persist the voices selected by the user. To get back a voice from its `id`, for example to display its name, use `synthesizer.voice(withID:)`. It returns `nil` when the voice is no longer installed.
+
+```swift
+let name = synthesizer.voice(withID: id)?.name
+```
+
+#### Voice of the accessibility settings
+
+Set `prefersAssistiveTechnologyVoice` to speak each utterance with the voice selected by the user in the accessibility settings of the device for its language, instead of the `voices`.
 
 ### Speed
 

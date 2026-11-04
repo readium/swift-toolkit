@@ -12,14 +12,14 @@ class TTSVoiceTests: XCTestCase {
     private let displayLocale = Locale(identifier: "en-US")
 
     private func makeVoice(
-        identifier: String? = nil,
+        id: TTSVoice.ID? = nil,
         language: String,
         name: String? = nil,
         gender: TTSVoice.Gender = .female,
         quality: TTSVoice.Quality? = nil
     ) -> TTSVoice {
         TTSVoice(
-            identifier: identifier ?? "voice-\(language)",
+            id: id ?? TTSVoice.ID("voice-\(language)"),
             language: Language(code: .bcp47(language)),
             name: name ?? "Voice (\(language))",
             gender: gender,
@@ -80,29 +80,29 @@ class TTSVoiceTests: XCTestCase {
 
     func testFilterByLanguagePreservesOrder() {
         let voices = [
-            makeVoice(identifier: "voice-1", language: "en-GB"),
-            makeVoice(identifier: "voice-2", language: "fr-FR"),
-            makeVoice(identifier: "voice-3", language: "en-US"),
-            makeVoice(identifier: "voice-4", language: "en-CA"),
+            makeVoice(id: "voice-1", language: "en-GB"),
+            makeVoice(id: "voice-2", language: "fr-FR"),
+            makeVoice(id: "voice-3", language: "en-US"),
+            makeVoice(id: "voice-4", language: "en-CA"),
         ]
 
         let filtered = voices.filterByLanguage(Language(code: .bcp47("en")))
 
-        XCTAssertEqual(filtered.map(\.identifier), ["voice-1", "voice-3", "voice-4"])
+        XCTAssertEqual(filtered.map(\.id), ["voice-1", "voice-3", "voice-4"])
     }
 
     func testFilterByLanguageWithMultipleMatchesForSameRegion() {
         let voices = [
-            makeVoice(identifier: "voice-1", language: "en-US", name: "Voice 1"),
-            makeVoice(identifier: "voice-2", language: "en-US", name: "Voice 2"),
-            makeVoice(identifier: "voice-3", language: "en-GB", name: "Voice 3"),
-            makeVoice(identifier: "voice-4", language: "en-US", name: "Voice 4"),
+            makeVoice(id: "voice-1", language: "en-US", name: "Voice 1"),
+            makeVoice(id: "voice-2", language: "en-US", name: "Voice 2"),
+            makeVoice(id: "voice-3", language: "en-GB", name: "Voice 3"),
+            makeVoice(id: "voice-4", language: "en-US", name: "Voice 4"),
         ]
 
         let filtered = voices.filterByLanguage(Language(code: .bcp47("en-US")))
 
         XCTAssertEqual(filtered.count, 3)
-        XCTAssertEqual(filtered.map(\.identifier), ["voice-1", "voice-2", "voice-4"])
+        XCTAssertEqual(filtered.map(\.id), ["voice-1", "voice-2", "voice-4"])
     }
 
     // MARK: - Sorting by Language
@@ -299,19 +299,19 @@ class TTSVoiceTests: XCTestCase {
         let voices = [makeVoice(language: "en-US")]
         let sorted = voices.sorted()
         XCTAssertEqual(sorted.count, 1)
-        XCTAssertEqual(sorted[0].identifier, voices[0].identifier)
+        XCTAssertEqual(sorted[0].id, voices[0].id)
     }
 
     func testIdenticalVoicesPreserveStableOrder() {
         let voices = [
-            makeVoice(identifier: "voice-1", language: "en-US", name: "Same", gender: .female, quality: .high),
-            makeVoice(identifier: "voice-2", language: "en-US", name: "Same", gender: .female, quality: .high),
-            makeVoice(identifier: "voice-3", language: "en-US", name: "Same", gender: .female, quality: .high),
+            makeVoice(id: "voice-1", language: "en-US", name: "Same", gender: .female, quality: .high),
+            makeVoice(id: "voice-2", language: "en-US", name: "Same", gender: .female, quality: .high),
+            makeVoice(id: "voice-3", language: "en-US", name: "Same", gender: .female, quality: .high),
         ]
 
         let sorted = voices.sorted()
 
         // Swift's sort is stable, so order should be preserved for identical items
-        XCTAssertEqual(sorted.map(\.identifier), ["voice-1", "voice-2", "voice-3"])
+        XCTAssertEqual(sorted.map(\.id), ["voice-1", "voice-2", "voice-3"])
     }
 }

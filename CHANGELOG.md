@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file. Take a look
 * The `AudioNavigator` reports the new `MediaPlaybackState.ended` when the playback reaches the end of the publication, by playing or seeking up to it.
 * `MediaPlaybackState.playsWhenReady` indicates whether the player is playing or will as soon as it is ready, e.g. to choose between a play and a pause button.
 * `PublicationSpeechSynthesizer.Configuration` has new `speed` and `pitch` properties, [see the user guide](docs/Guides/TTS.md#speed).
+* `PublicationSpeechSynthesizer.Configuration.voices` selects a voice per language, so that each utterance of a multilingual publication is spoken with the voice of its language, [see the user guide](docs/Guides/TTS.md#voice).
+* `PublicationSpeechSynthesizer.Configuration.prefersAssistiveTechnologyVoice` speaks with the voice selected in the accessibility settings of the device.
 
 #### Streamer
 

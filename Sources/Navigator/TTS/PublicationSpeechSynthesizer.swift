@@ -40,8 +40,29 @@ public final class PublicationSpeechSynthesizer: Loggable {
         /// Language overriding the publication one.
         public var defaultLanguage: Language?
 
+        /// Identifiers of the voices used to speak the utterances, per
+        /// language.
+        ///
+        /// The voice of an utterance is looked up with its language, else the
+        /// `defaultLanguage`, the publication language or the current one.
+        /// The key matching its language and region comes first, then the
+        /// one of its base language, e.g. `en-US` then `en`. Without a match,
+        /// the engine uses its default voice for the language.
+        public var voices: [Language: TTSVoice.ID]
+
         /// Identifier for the voice used to speak the utterances.
-        public var voiceIdentifier: String?
+        @available(*, unavailable, message: "Use `voices` to select a voice per language")
+        public var voiceIdentifier: String? {
+            get { fatalError() }
+            set { fatalError() }
+        }
+
+        /// Whether the engine uses the voice selected by the user in the
+        /// accessibility settings of the device instead of the voice of
+        /// `voices`.
+        ///
+        /// Only the voice is affected, the `speed` and `pitch` still apply.
+        public var prefersAssistiveTechnologyVoice: Bool
 
         /// Multiplier of the normal speaking speed of the engine (1.0).
         ///
@@ -56,14 +77,24 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
         public init(
             defaultLanguage: Language? = nil,
-            voiceIdentifier: String? = nil,
+            voices: [Language: TTSVoice.ID] = [:],
+            prefersAssistiveTechnologyVoice: Bool = false,
             speed: Double = 1.0,
             pitch: Double = 1.0
         ) {
             self.defaultLanguage = defaultLanguage
-            self.voiceIdentifier = voiceIdentifier
+            self.voices = voices
+            self.prefersAssistiveTechnologyVoice = prefersAssistiveTechnologyVoice
             self.speed = speed
             self.pitch = pitch
+        }
+
+        @available(*, unavailable, message: "Use `voices` to select a voice per language")
+        public init(
+            defaultLanguage: Language? = nil,
+            voiceIdentifier: String?
+        ) {
+            fatalError()
         }
     }
 
@@ -204,15 +235,20 @@ public final class PublicationSpeechSynthesizer: Loggable {
         engine.availableVoices
     }
 
-    /// Returns the first voice with the given `identifier` supported by the TTS `engine`.
+    /// Returns the first voice with the given `id` supported by the TTS `engine`.
     ///
     /// This can be used to restore the user selected voice after storing it in the user defaults.
-    public func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
-        let voice = lastUsedVoice.takeIf { $0.identifier == identifier }
-            ?? engine.voiceWithIdentifier(identifier)
+    public func voice(withID id: TTSVoice.ID) -> TTSVoice? {
+        let voice = lastUsedVoice.takeIf { $0.id == id }
+            ?? engine.voice(withID: id)
 
         lastUsedVoice = voice
         return voice
+    }
+
+    @available(*, unavailable, renamed: "voice(withID:)")
+    public func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
+        fatalError()
     }
 
     /// Cache for the last requested voice, for performance.
@@ -339,13 +375,16 @@ public final class PublicationSpeechSynthesizer: Loggable {
         state = .playing(utterance, range: nil)
         isSpeaking = true
 
+        let language = language(of: utterance)
         let result = await engine.speak(
             TTSUtterance(
                 text: utterance.text,
                 delay: 0,
-                voiceOrLanguage: voiceOrLanguage(for: utterance),
+                language: language,
+                voice: configuredVoice(for: language),
                 speed: config.speed,
-                pitch: config.pitch
+                pitch: config.pitch,
+                prefersAssistiveTechnologyVoice: config.prefersAssistiveTechnologyVoice
             ),
             onSpeakRange: { [weak self] range in
                 guard let self = self else {
@@ -383,20 +422,23 @@ public final class PublicationSpeechSynthesizer: Loggable {
         }
     }
 
-    /// Returns the user selected voice if it's compatible with the utterance language. Otherwise, falls back on
-    /// the languages.
-    private func voiceOrLanguage(for utterance: Utterance) -> Either<TTSVoice, Language> {
-        if let voice = config.voiceIdentifier
-            .flatMap({ id in self.voiceWithIdentifier(id) })
-            .takeIf({ voice in utterance.language == nil || utterance.language?.removingRegion() == voice.language.removingRegion() })
-        {
-            return .left(voice)
-        } else {
-            return .right(utterance.language
-                ?? config.defaultLanguage
-                ?? publication.metadata.language
-                ?? Language.current)
-        }
+    /// Returns the language of the utterance, falling back on the default,
+    /// publication and current languages.
+    private func language(of utterance: Utterance) -> Language {
+        utterance.language
+            ?? config.defaultLanguage
+            ?? publication.metadata.language
+            ?? Language.current
+    }
+
+    /// Returns the installed voice of `config.voices` for `language`, matching
+    /// its region first, then its base language.
+    private func configuredVoice(for language: Language) -> TTSVoice? {
+        [language, language.removingRegion()]
+            .compactMap { config.voices[$0] }
+            .lazy
+            .compactMap { self.voice(withID: $0) }
+            .first
     }
 
     /// Gets the next utterance in the given `direction`, or null when reaching the beginning or the end.

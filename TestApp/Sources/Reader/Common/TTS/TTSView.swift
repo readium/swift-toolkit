@@ -80,14 +80,16 @@ struct TTSSettings: View {
                     choiceLabel: { $0?.localizedDescription() ?? "Default" }
                 )
 
-                picker(
-                    caption: "Voice",
-                    for: \.voiceIdentifier,
-                    choices: [nil] + settings.availableVoiceIds,
-                    choiceLabel: { id in
-                        id.flatMap { viewModel.voiceWithIdentifier($0)?.name } ?? "Default"
-                    }
-                )
+                if let language = settings.config.defaultLanguage {
+                    picker(
+                        caption: "Voice",
+                        for: \.voices[language],
+                        choices: [nil] + settings.availableVoiceIDs,
+                        choiceLabel: { id in
+                            id.flatMap { viewModel.voice(withID: $0)?.name } ?? "Default"
+                        }
+                    )
+                }
 
                 stepper(
                     for: \.speed,
