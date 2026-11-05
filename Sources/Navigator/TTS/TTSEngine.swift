@@ -16,8 +16,8 @@ public protocol TTSEngine: AnyObject {
     /// List of available synthesizer voices.
     var availableVoices: [TTSVoice] { get }
 
-    /// Returns the voice with given identifier, if it exists.
-    func voiceWithIdentifier(_ identifier: String) -> TTSVoice?
+    /// Returns the voice with the given `id`, if it exists.
+    func voice(withID id: TTSVoice.ID) -> TTSVoice?
 
     /// Synthesizes the given `utterance` and returns its status.
     ///
@@ -29,8 +29,13 @@ public protocol TTSEngine: AnyObject {
 }
 
 public extension TTSEngine {
+    func voice(withID id: TTSVoice.ID) -> TTSVoice? {
+        availableVoices.first { $0.id == id }
+    }
+
+    @available(*, unavailable, renamed: "voice(withID:)")
     func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
-        availableVoices.first { $0.identifier == identifier }
+        fatalError()
     }
 }
 
@@ -50,9 +55,17 @@ public struct TTSUtterance: Sendable {
     /// Delay before speaking the utterance, in seconds.
     public let delay: TimeInterval
 
-    /// Either an explicit voice or the language of the text. If a language is provided, the default voice for this
-    /// language will be used.
-    public let voiceOrLanguage: Either<TTSVoice, Language>
+    /// Language of the text.
+    public let language: Language
+
+    /// Voice selected to speak the text. When `nil`, the engine uses its
+    /// default voice for the `language`.
+    public let voice: TTSVoice?
+
+    @available(*, unavailable, message: "Use `voice` and `language` instead")
+    public var voiceOrLanguage: Either<TTSVoice, Language> {
+        fatalError()
+    }
 
     /// Multiplier of the normal speaking speed of the engine (1.0).
     ///
@@ -64,12 +77,30 @@ public struct TTSUtterance: Sendable {
     /// The engine clamps the values outside its supported range.
     public let pitch: Double
 
-    public var language: Language {
-        switch voiceOrLanguage {
-        case let .left(voice):
-            return voice.language
-        case let .right(language):
-            return language
-        }
+    /// Whether the engine uses the voice selected by the user in the
+    /// accessibility settings of the device for the `language`, instead of
+    /// `voice`.
+    ///
+    /// The engine may also apply the other settings of a running assistive
+    /// technology, such as the speaking rate and pitch of VoiceOver, instead
+    /// of `speed` and `pitch`.
+    public let prefersAssistiveTechnologyVoice: Bool
+
+    public init(
+        text: String,
+        delay: TimeInterval = 0,
+        language: Language,
+        voice: TTSVoice? = nil,
+        speed: Double = 1.0,
+        pitch: Double = 1.0,
+        prefersAssistiveTechnologyVoice: Bool = false
+    ) {
+        self.text = text
+        self.delay = delay
+        self.language = language
+        self.voice = voice
+        self.speed = speed
+        self.pitch = pitch
+        self.prefersAssistiveTechnologyVoice = prefersAssistiveTechnologyVoice
     }
 }

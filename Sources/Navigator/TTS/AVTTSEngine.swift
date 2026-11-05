@@ -85,8 +85,8 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
             }
             .map { TTSVoice(voice: $0) }
 
-    public func voiceWithIdentifier(_ id: String) -> TTSVoice? {
-        AVSpeechSynthesisVoice(identifier: id)
+    public func voice(withID id: TTSVoice.ID) -> TTSVoice? {
+        AVSpeechSynthesisVoice(identifier: id.rawValue)
             .map { TTSVoice(voice: $0) }
     }
 
@@ -155,6 +155,7 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
         utter.pitchMultiplier = Float(task.utterance.pitch.clamped(to: Self.avPitchRange))
         utter.preUtteranceDelay = task.utterance.delay
         utter.voice = voice(for: task.utterance)
+        utter.prefersAssistiveTechnologySettings = task.utterance.prefersAssistiveTechnologyVoice
         delegate?.avTTSEngine(self, didCreateUtterance: utter)
         return utter
     }
@@ -326,20 +327,25 @@ public final class AVTTSEngine: NSObject, TTSEngine, Loggable {
         synthesizer.stopSpeaking(at: .immediate)
     }
 
+    /// Returns the voice of the utterance, or the default one of its language.
+    ///
+    /// The voice of the accessibility settings is selected by the system for
+    /// the language of the voice, so the explicit voice is ignored.
     private func voice(for utterance: TTSUtterance) -> AVSpeechSynthesisVoice? {
-        switch utterance.voiceOrLanguage {
-        case let .left(voice):
-            return AVSpeechSynthesisVoice(identifier: voice.identifier)
-        case let .right(language):
-            return AVSpeechSynthesisVoice(language: language)
+        if
+            !utterance.prefersAssistiveTechnologyVoice,
+            let voice = utterance.voice.flatMap({ AVSpeechSynthesisVoice(identifier: $0.id.rawValue) })
+        {
+            return voice
         }
+        return AVSpeechSynthesisVoice(language: utterance.language)
     }
 }
 
 private extension TTSVoice {
     init(voice: AVSpeechSynthesisVoice) {
         self.init(
-            identifier: voice.identifier,
+            id: ID(voice.identifier),
             language: Language(code: .bcp47(voice.language)),
             name: voice.name,
             gender: Gender(voice: voice),

@@ -29,6 +29,21 @@ public struct Language: Hashable, Sendable, JSONValueDecodable, JSONValueEncodab
         public func removingRegion() -> Code {
             .bcp47(String(bcp47.prefix { $0 != "-" && $0 != "_" }))
         }
+
+        /// Two codes are equal regardless of their case, as BCP 47 tags are
+        /// case-insensitive, and of their separator, as the identifiers of
+        /// `Locale` use `_`, e.g. `en-US`, `en-us` and `en_US`.
+        public static func == (lhs: Code, rhs: Code) -> Bool {
+            lhs.normalized == rhs.normalized
+        }
+
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(normalized)
+        }
+
+        private var normalized: String {
+            bcp47.lowercased().replacingOccurrences(of: "_", with: "-")
+        }
     }
 
     public let code: Code
