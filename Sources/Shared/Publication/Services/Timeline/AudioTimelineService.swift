@@ -11,8 +11,8 @@ import Foundation
 @_spi(ExperimentalTimeline)
 public final class AudioTimelineService: TimelineService {
     /// - Parameter generatesFromReadingOrder: When the table of contents is
-    ///   empty, generates one item per reading order resource. Otherwise, the
-    ///   timeline is empty.
+    ///   empty or fails to load, generates one item per reading order
+    ///   resource. Otherwise, the timeline is empty.
     public static func makeFactory(generatesFromReadingOrder: Bool) -> TimelineServiceFactory {
         { context in
             AudioTimelineService(
@@ -30,7 +30,7 @@ public final class AudioTimelineService: TimelineService {
                 throw .unsupportedOperation(DebugError("The publication is no longer available"))
             }
 
-            var nodes = try await publication.tableOfContents().get().timelineNodes
+            var nodes = await publication.timelineNodes()
             if nodes.isEmpty, generatesFromReadingOrder {
                 nodes = publication.readingOrder.enumerated().map { index, link in
                     Timeline.Node(
@@ -44,8 +44,8 @@ public final class AudioTimelineService: TimelineService {
         }
     }
 
-    /// Builds the timeline once. A failure is not cached, so the next call
-    /// tries again.
+    /// Builds the timeline once, with an empty table of contents when it fails
+    /// to load.
     public func timeline() async throws(ReadError) -> Timeline {
         try await cache()
     }

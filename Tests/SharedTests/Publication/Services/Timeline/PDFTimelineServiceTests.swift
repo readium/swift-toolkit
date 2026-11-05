@@ -65,6 +65,13 @@ struct PDFTimelineServiceTests {
         #expect(timeline.items.isEmpty)
     }
 
+    @Test func tableOfContentsFailureGivesATimelineWithoutItems() async throws {
+        let timeline = try await timeline(tocService: { _ in FailingTableOfContentsService() }, positions: nil)
+
+        #expect(timeline.items.isEmpty)
+        #expect(timeline.segments().map(\.link.href) == ["a.pdf", "b.pdf"])
+    }
+
     @Test func failsOnceThePublicationIsDeallocated() async {
         let service = PDFTimelineService(publication: Weak())
 
@@ -80,7 +87,11 @@ struct PDFTimelineServiceTests {
 
 // MARK: - Helpers
 
-private func timeline(toc: [Link]? = nil, positions: PositionsServiceFactory?) async throws -> Timeline {
+private func timeline(
+    toc: [Link]? = nil,
+    tocService: TableOfContentsServiceFactory? = nil,
+    positions: PositionsServiceFactory?
+) async throws -> Timeline {
     let publication = Publication(
         manifest: Manifest(
             metadata: Metadata(title: ""),
@@ -97,6 +108,9 @@ private func timeline(toc: [Link]? = nil, positions: PositionsServiceFactory?) a
         ),
         servicesBuilder: PublicationServicesBuilder(setup: {
             $0.setTimelineServiceFactory(PDFTimelineService.makeFactory())
+            if let tocService {
+                $0.setTableOfContentsServiceFactory(tocService)
+            }
             if let positions {
                 $0.setPositionsServiceFactory(positions)
             }

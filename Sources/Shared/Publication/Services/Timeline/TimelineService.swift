@@ -51,6 +51,20 @@ public extension PublicationServicesBuilder {
 
 // MARK: Table of Contents Helpers
 
+extension Publication {
+    /// Nodes of the timeline of the table of contents, or none when it fails
+    /// to load, so that the segments still cover each resource.
+    func timelineNodes() async -> [Timeline.Node] {
+        switch await tableOfContents() {
+        case let .success(toc):
+            return toc.timelineNodes
+        case let .failure(error):
+            log(.warning, "Failed to read the table of contents of the timeline: \(error)")
+            return []
+        }
+    }
+}
+
 extension [Link] {
     /// Nodes of the timeline of this table of contents. An untitled entry is
     /// replaced by its children.

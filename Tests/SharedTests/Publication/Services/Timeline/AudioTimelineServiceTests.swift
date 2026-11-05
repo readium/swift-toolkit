@@ -84,10 +84,21 @@ enum AudioTimelineServiceTests {
             #expect(timeline.items.map { $0.start?.offset } == [0, 0, 0])
         }
 
+        @Test func tableOfContentsFailureGivesATimelineWithoutItems() async throws {
+            let timeline = try await timeline(
+                toc: [],
+                generatesFromReadingOrder: false,
+                tocService: { _ in StubTableOfContentsService(.failure(.decoding("Broken"))) }
+            )
+
+            #expect(timeline.items.isEmpty)
+            #expect(timeline.segments().map(\.link) == readingOrder)
+        }
+
         @Test func customServiceIsUsed() async throws {
             let timeline = try await timeline(
                 toc: [Link(href: "t1.mp3", title: "Manifest")],
-                tocService: { _ in StubTableOfContentsService { _ in .success([Link(href: "t2.mp3", title: "Custom")]) } }
+                tocService: { _ in StubTableOfContentsService(.success([Link(href: "t2.mp3", title: "Custom")])) }
             )
 
             #expect(timeline.outline == ["0 Custom → t2.mp3"])
@@ -95,24 +106,19 @@ enum AudioTimelineServiceTests {
     }
 
     struct Caching {
-        @Test func failureIsThrownAndNotCached() async throws {
-            let service = StubTableOfContentsService { call in
-                call == 1 ? .failure(.decoding("Broken")) : .success([Link(href: "t1.mp3", title: "Intro")])
-            }
+        @Test func tableOfContentsFailureIsNotRetried() async throws {
+            let service = StubTableOfContentsService(.failure(.decoding("Broken")))
             let publication = makePublication(tocService: { _ in service })
 
-            let error = await #expect(throws: ReadError.self) {
-                _ = try await publication.timeline()
-            }
-            if case .decoding? = error {} else {
-                Issue.record("Expected a decoding error, got \(String(describing: error))")
-            }
-            #expect(try await publication.timeline()?.outline == ["0 Intro → t1.mp3"])
+            _ = try await publication.timeline()
+            _ = try await publication.timeline()
+
+            #expect(service.callCount == 1)
             withExtendedLifetime(publication) {}
         }
 
         @Test func successIsCached() async throws {
-            let service = StubTableOfContentsService { _ in .success([Link(href: "t1.mp3", title: "Intro")]) }
+            let service = StubTableOfContentsService(.success([Link(href: "t1.mp3", title: "Intro")]))
             let publication = makePublication(tocService: { _ in service })
 
             let first = try await publication.timeline()?.items
@@ -184,13 +190,13 @@ private func timeline(
     return timeline
 }
 
-/// Answers with `toc`, which takes the number of the call, starting at 1.
+/// Answers with `toc` and counts the calls.
 private final class StubTableOfContentsService: TableOfContentsService, @unchecked Sendable {
-    private let toc: @Sendable (_ call: Int) -> ReadResult<[Link]>
+    private let toc: ReadResult<[Link]>
     private let lock = NSLock()
     private var calls = 0
 
-    init(_ toc: @escaping @Sendable (_ call: Int) -> ReadResult<[Link]>) {
+    init(_ toc: ReadResult<[Link]>) {
         self.toc = toc
     }
 
@@ -199,10 +205,7 @@ private final class StubTableOfContentsService: TableOfContentsService, @uncheck
     }
 
     func tableOfContents() async -> ReadResult<[Link]> {
-        let call = lock.withLock {
-            calls += 1
-            return calls
-        }
-        return toc(call)
+        lock.withLock { calls += 1 }
+        return toc
     }
 }

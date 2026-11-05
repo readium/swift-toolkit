@@ -155,6 +155,13 @@ struct WebTimelineServiceTests {
         #expect(timeline.outline == ["0 Custom → ch2.xhtml"])
     }
 
+    @Test func tableOfContentsFailureGivesATimelineWithoutItems() async throws {
+        let timeline = try await timeline(tocService: { _ in FailingTableOfContentsService() })
+
+        #expect(timeline.items.isEmpty)
+        #expect(timeline.segments().map(\.link.href) == resources.map { "\($0).xhtml" })
+    }
+
     @Test func failsOnceThePublicationIsDeallocated() async {
         let service = WebTimelineService(publication: Weak())
 

@@ -7,6 +7,7 @@
 import Foundation
 @_spi(ExperimentalTimeline) @testable import ReadiumShared
 import Testing
+@_spi(ExperimentalTimeline) import TestSupport
 
 /// Reading order: `a.jpg`, `b.jpg` and `c.jpg`.
 ///
@@ -44,6 +45,14 @@ struct ImageTimelineServiceTests {
         }
     }
 
+    @Test func tableOfContentsFailureGivesATimelineWithoutItems() async throws {
+        let publication = makePublication(tocService: { _ in FailingTableOfContentsService() })
+        let timeline = try #require(await publication.timeline())
+
+        #expect(timeline.items.isEmpty)
+        #expect(timeline.segments().map(\.link.href) == ["a.jpg", "b.jpg", "c.jpg"])
+    }
+
     @Test func failsOnceThePublicationIsDeallocated() async {
         let service = ImageTimelineService(publication: Weak())
 
@@ -59,7 +68,7 @@ struct ImageTimelineServiceTests {
 
 // MARK: - Helpers
 
-private func makePublication() -> Publication {
+private func makePublication(tocService: TableOfContentsServiceFactory? = nil) -> Publication {
     Publication(
         manifest: Manifest(
             metadata: Metadata(title: ""),
@@ -72,6 +81,9 @@ private func makePublication() -> Publication {
         servicesBuilder: PublicationServicesBuilder(setup: {
             $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: .jpeg))
             $0.setTimelineServiceFactory(ImageTimelineService.makeFactory())
+            if let tocService {
+                $0.setTableOfContentsServiceFactory(tocService)
+            }
         })
     )
 }

@@ -25,7 +25,7 @@ public final class ImageTimelineService: TimelineService {
                 throw .unsupportedOperation(DebugError("The publication is no longer available"))
             }
 
-            let nodes = try await publication.tableOfContents().get().timelineNodes
+            let nodes = await publication.timelineNodes()
             return Timeline(
                 nodes: nodes,
                 resolver: ImageTimelinePositionResolver(readingOrder: publication.readingOrder)
@@ -33,8 +33,8 @@ public final class ImageTimelineService: TimelineService {
         }
     }
 
-    /// Builds the timeline once. A failure is not cached, so the next call
-    /// tries again.
+    /// Builds the timeline once, with an empty table of contents when it fails
+    /// to load.
     public func timeline() async throws(ReadError) -> Timeline {
         try await cache()
     }
