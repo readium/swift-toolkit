@@ -86,31 +86,34 @@ private struct MinizipEntryMetadata {
     let compressedLength: UInt64?
 }
 
-private actor MinizipResource: Resource, Loggable {
+actor MinizipResource: Resource, Loggable {
     private let file: FileURL
     private let entryPath: String
     private let metadata: MinizipEntryMetadata
 
-    init(file: FileURL, entryPath: String, metadata: MinizipEntryMetadata) {
+    fileprivate init(file: FileURL, entryPath: String, metadata: MinizipEntryMetadata) {
         self.file = file
         self.entryPath = entryPath
         self.metadata = metadata
     }
 
     /// Closing is best-effort: the underlying file is closed asynchronously,
-    /// and in any case when this resource is deallocated (see
-    /// `MinizipFile.deinit`).
+    /// and in any case when this resource is deallocated.
     nonisolated func close() {
         Task { await doClose() }
     }
 
     func doClose() async {
         do {
-            try _zipFile?.getOrNil()?.close()
-            _zipFile = .failure(.unsupportedOperation(DebugError("The Minizip resource is already closed")))
+            if case let .success(.minizip(zipFile)) = _source {
+                try zipFile.close()
+            }
         } catch {
             log(.error, error)
         }
+        // A file handle is closed when it is released, once the streams
+        // reading from it have ended.
+        _source = .failure(.unsupportedOperation(DebugError("The Minizip resource is already closed")))
     }
 
     let sourceURL: AbsoluteURL? = nil
@@ -129,34 +132,83 @@ private actor MinizipResource: Resource, Loggable {
         })
     }
 
+    /// Streams the content of the entry in chunks.
+    ///
+    /// A stored entry is read directly in the archive: its streams are
+    /// independent, and reaching the start of the range costs nothing.
+    ///
+    /// Any other entry is read by Minizip, which holds a single position in
+    /// the archive and only moves forward: a range before this position is
+    /// reached by reading the entry again from its start. The stream therefore
+    /// runs until its end without suspending: another stream on the same entry
+    /// waits until this one ends or is cancelled.
     func stream(range: Range<UInt64>?, consume: @escaping @Sendable (Data) -> Void) async -> ReadResult<Void> {
         guard !Task.isCancelled else {
             return .failure(.cancelled)
         }
 
-        let range = range ?? 0 ..< metadata.length
+        let length = metadata.length
+        let range = (range ?? 0 ..< length).clamped(to: 0 ..< length)
+        guard !range.isEmpty else {
+            return .success(())
+        }
 
-        return await zipFile().flatMap { zipFile in
+        switch source() {
+        case let .success(.fileHandle(handle, dataRange: dataRange)):
+            let start = dataRange.lowerBound
+            return await handle.stream(
+                range: ((start + range.lowerBound) ..< (start + range.upperBound)).clamped(to: dataRange),
+                consume: consume
+            )
+
+        case let .success(.minizip(zipFile)):
             do {
                 try zipFile.openEntry(at: entryPath, offset: range.lowerBound)
-                try consume(zipFile.readFromCurrentOffset(length: UInt64(range.count)))
+                try zipFile.readFromCurrentOffset(length: UInt64(range.count)) { bytes, length in
+                    consume(Data(bytes: bytes, count: Int(length)))
+                }
                 return .success(())
             } catch {
                 return .failure(.wrap(error) ?? .decoding(error))
             }
+
+        case let .failure(error):
+            return .failure(error)
         }
     }
 
-    private var _zipFile: ReadResult<MinizipFile>?
-    private func zipFile() async -> ReadResult<MinizipFile> {
-        if _zipFile == nil {
-            if let zipFile = MinizipFile(url: file.url) {
-                _zipFile = .success(zipFile)
-            } else {
-                _zipFile = .failure(.decoding("Failed to open the ZIP file with Minizip"))
-            }
+    /// What reads the content of the entry.
+    private enum Source {
+        /// A file handle on the archive, for a stored entry whose data is at
+        /// the given range of the archive.
+        case fileHandle(FileHandle, dataRange: Range<UInt64>)
+        /// Minizip, for any other entry.
+        case minizip(MinizipFile)
+    }
+
+    private var _source: ReadResult<Source>?
+    private func source() -> ReadResult<Source> {
+        if _source == nil {
+            _source = makeSource()
         }
-        return _zipFile!
+        return _source!
+    }
+
+    private func makeSource() -> ReadResult<Source> {
+        guard let zipFile = MinizipFile(url: file.url) else {
+            return .failure(.decoding("Failed to open the ZIP file with Minizip"))
+        }
+
+        if
+            metadata.compressedLength == nil,
+            let dataRange = try? zipFile.dataRangeOfStoredEntry(at: entryPath),
+            let handle = try? FileHandle(forReadingFrom: file.url)
+        {
+            try? zipFile.close()
+            return .success(.fileHandle(handle, dataRange: dataRange))
+        }
+
+        return .success(.minizip(zipFile))
     }
 }
 
@@ -165,7 +217,6 @@ private final class MinizipFile {
     enum MinizipError: Error {
         case status(Int32)
         case noEntryOpened
-        case readFailed
     }
 
     /// Holds an entry's metadata.
@@ -263,6 +314,36 @@ private final class MinizipFile {
         }
     }
 
+    /// Returns the range in the archive file of the data of the stored entry
+    /// at `path`, which can be read directly from the file.
+    ///
+    /// Returns `nil` when the entry is not stored, or when the range cannot be
+    /// determined.
+    func dataRangeOfStoredEntry(at path: String) throws -> Range<UInt64>? {
+        try goToEntry(at: path)
+
+        var fileInfo = unz_file_info64()
+        try execute { unzGetCurrentFileInfo64(file, &fileInfo, nil, 0, nil, 0, nil, 0) }
+        var globalInfo = unz_global_info64()
+        try execute { unzGetGlobalInfo64(file, &globalInfo) }
+        guard
+            fileInfo.compression_method == 0,
+            // The data of an entry of a split archive may be in another file.
+            fileInfo.disk_num_start == globalInfo.number_disk_with_CD
+        else {
+            return nil
+        }
+
+        try execute { unzOpenCurrentFile(file) }
+        defer { unzCloseCurrentFile(file) }
+
+        let offset = unzGetCurrentFileZStreamPos64(file)
+        guard offset > 0 else {
+            return nil
+        }
+        return offset ..< offset + min(fileInfo.compressed_size, fileInfo.uncompressed_size)
+    }
+
     /// Opens the entry at the given `path` and file `offset`, to read its content.
     func openEntry(at path: String, offset: UInt64 = 0) throws {
         if let entry = openedEntry, entry.path == path, entry.offset <= offset {
@@ -293,30 +374,13 @@ private final class MinizipFile {
         // is compressed we need to read and discard the content from the start until we reach
         // the desired offset.
         try readFromCurrentOffset(length: offset) { _, _ in }
-
-        // For non-compressed entries, we can seek directly in the content.
-        // FIXME: https://github.com/readium/r2-shared-swift/issues/98
-//        return execute { return unzseek64(archive, offset, SEEK_CUR) }
-    }
-
-    /// Reads the given `length` of data at the current offset in the archive.
-    func readFromCurrentOffset(length: UInt64) throws -> Data {
-        guard length > 0 else {
-            return Data()
-        }
-
-        var data = Data(capacity: Int(length))
-        try readFromCurrentOffset(length: length) { bytes, length in
-            data.append(bytes, count: Int(length))
-        }
-        return data
     }
 
     typealias Consumer = (_ bytes: UnsafePointer<UInt8>, _ length: UInt64) -> Void
 
     /// Consumes the given `length` of data at the current offset in the archive.
     func readFromCurrentOffset(length: UInt64, consumer: Consumer) throws {
-        guard var entry = openedEntry else {
+        guard openedEntry != nil else {
             throw MinizipError.noEntryOpened
         }
         guard length > 0 else {
@@ -325,8 +389,7 @@ private final class MinizipFile {
 
         var totalBytesRead: UInt64 = 0
         defer {
-            entry.offset += totalBytesRead
-            openedEntry = entry
+            openedEntry?.offset += totalBytesRead
         }
 
         while totalBytesRead < length {
@@ -334,16 +397,18 @@ private final class MinizipFile {
 
             let bytesToRead = min(UInt64(bufferLength), length - totalBytesRead)
             var buffer = [CUnsignedChar](repeating: 0, count: Int(bytesToRead))
-            let bytesRead = UInt64(unzReadCurrentFile(file, &buffer, UInt32(bytesToRead)))
+            let bytesRead = unzReadCurrentFile(file, &buffer, UInt32(bytesToRead))
+            guard bytesRead >= 0 else {
+                // The position of Minizip in the entry is unknown after a
+                // failure, so the next read opens it again.
+                try? closeEntry()
+                throw MinizipError.status(bytesRead)
+            }
             if bytesRead == 0 {
                 break
             }
-            if bytesRead > 0 {
-                totalBytesRead += bytesRead
-                consumer(buffer, bytesRead)
-            } else {
-                throw MinizipError.readFailed
-            }
+            totalBytesRead += UInt64(bytesRead)
+            consumer(buffer, UInt64(bytesRead))
         }
     }
 

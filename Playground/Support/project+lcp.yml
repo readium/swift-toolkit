@@ -29,9 +29,9 @@ targets:
     sources:
       - path: ../Tests/LCPTests
         group: ReadiumLCPTests
-      - path: ../Tests/Publications/TestPublications.swift
+      - path: ../Tests/TestSupport/TestPublications.swift
         group: ReadiumLCPTests
-      - path: ../Tests/Publications/Publications
+      - path: ../Tests/TestSupport/Publications
         type: folder
         group: ReadiumLCPTests
     dependencies:

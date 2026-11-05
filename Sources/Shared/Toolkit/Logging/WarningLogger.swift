@@ -22,7 +22,7 @@ public protocol Warning: Sendable {
     /// For example `json`, `metadata`, etc.
     var tag: String { get }
 
-    /// Localized user-facing message describing the issue.
+    /// Debug message describing the issue.
     var message: String { get }
 
     /// Indicates the severity level of this warning.
@@ -69,8 +69,10 @@ extension WarningLogger {
 public final class ListWarningLogger: WarningLogger {
     private let _warnings = Mutex<[Warning]>([])
 
+    public init() {}
+
     /// The list of accumulated `Warning`s.
-    var warnings: [Warning] {
+    public var warnings: [Warning] {
         _warnings.withLock { $0 }
     }
 

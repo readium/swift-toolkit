@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalTimeline) import ReadiumShared
 
 /// Errors thrown during the parsing of the EPUB
 ///
@@ -72,7 +72,10 @@ public final class EPUBParser: PublicationParser {
                     ),
                     guidedNavigation: SMILGuidedNavigationService.makeFactory(),
                     positions: EPUBPositionsService.makeFactory(reflowableStrategy: reflowablePositionsStrategy),
-                    search: ContentSearchService.makeFactory()
+                    search: ContentSearchService.makeFactory(),
+                    setup: {
+                        $0.setTimelineServiceFactory(WebTimelineService.makeFactory())
+                    }
                 )
             ))
         } catch {

@@ -40,15 +40,62 @@ public final class PublicationSpeechSynthesizer: Loggable {
         /// Language overriding the publication one.
         public var defaultLanguage: Language?
 
+        /// Identifiers of the voices used to speak the utterances, per
+        /// language.
+        ///
+        /// An utterance is spoken with the voice of its language, else of the
+        /// `defaultLanguage`, the publication language or the current one.
+        /// See ``PublicationSpeechSynthesizer/voice(for:)`` for the voice
+        /// speaking a language.
+        public var voices: [Language: TTSVoice.ID]
+
         /// Identifier for the voice used to speak the utterances.
-        public var voiceIdentifier: String?
+        @available(*, unavailable, message: "Use `voices` to select a voice per language")
+        public var voiceIdentifier: String? {
+            get { fatalError() }
+            set { fatalError() }
+        }
+
+        /// Whether the engine uses the voice selected by the user in the
+        /// accessibility settings of the device instead of the voice of
+        /// `voices`.
+        ///
+        /// When an assistive technology such as VoiceOver is running, its
+        /// speaking rate and pitch may also take precedence over `speed` and
+        /// `pitch`, depending on the engine.
+        public var prefersAssistiveTechnologyVoice: Bool
+
+        /// Multiplier of the normal speaking speed of the engine (1.0).
+        ///
+        /// The speed is approximate, and the engine clamps the values outside
+        /// its supported range.
+        public var speed: Double
+
+        /// Multiplier of the normal voice pitch of the engine (1.0).
+        ///
+        /// The engine clamps the values outside its supported range.
+        public var pitch: Double
 
         public init(
             defaultLanguage: Language? = nil,
-            voiceIdentifier: String? = nil
+            voices: [Language: TTSVoice.ID] = [:],
+            prefersAssistiveTechnologyVoice: Bool = false,
+            speed: Double = 1.0,
+            pitch: Double = 1.0
         ) {
             self.defaultLanguage = defaultLanguage
-            self.voiceIdentifier = voiceIdentifier
+            self.voices = voices
+            self.prefersAssistiveTechnologyVoice = prefersAssistiveTechnologyVoice
+            self.speed = speed
+            self.pitch = pitch
+        }
+
+        @available(*, unavailable, message: "Use `voices` to select a voice per language")
+        public init(
+            defaultLanguage: Language? = nil,
+            voiceIdentifier: String?
+        ) {
+            fatalError()
         }
     }
 
@@ -101,8 +148,15 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Current configuration of the `PublicationSpeechSynthesizer`.
     ///
-    /// Changes are not immediate, they will be applied for the next utterance.
-    public var config: Configuration
+    /// Changing it while playing restarts the current utterance from its
+    /// beginning, with the new configuration.
+    public var config: Configuration {
+        didSet {
+            if oldValue != config {
+                restartSpokenUtterance()
+            }
+        }
+    }
 
     public weak var delegate: PublicationSpeechSynthesizerDelegate?
 
@@ -166,6 +220,15 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     private var currentTask: Task<Void, Never>?
 
+    /// Whether the `currentTask` is speaking the utterance of the current
+    /// state, rather than e.g. loading the next one.
+    private var isSpeaking = false
+
+    private func cancelCurrentTask() {
+        currentTask?.cancel()
+        isSpeaking = false
+    }
+
     private lazy var engine: TTSEngine = engineFactory()
 
     /// List of synthesizer voices supported by the TTS engine.
@@ -173,23 +236,50 @@ public final class PublicationSpeechSynthesizer: Loggable {
         engine.availableVoices
     }
 
-    /// Returns the first voice with the given `identifier` supported by the TTS `engine`.
+    /// Returns the first voice with the given `id` supported by the TTS
+    /// `engine`.
     ///
-    /// This can be used to restore the user selected voice after storing it in the user defaults.
-    public func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
-        let voice = lastUsedVoice.takeIf { $0.identifier == identifier }
-            ?? engine.voiceWithIdentifier(identifier)
-
-        lastUsedVoice = voice
+    /// This can be used to restore the user selected voice after storing it in
+    /// the user defaults.
+    public func voice(withID id: TTSVoice.ID) -> TTSVoice? {
+        if let voice = voicesByID[id] {
+            return voice
+        }
+        let voice = engine.voice(withID: id)
+        voicesByID[id] = voice
         return voice
     }
 
-    /// Cache for the last requested voice, for performance.
-    private var lastUsedVoice: TTSVoice?
+    /// Returns the voice speaking the utterances in `language`, e.g. to show
+    /// it in a voice picker.
+    ///
+    /// This is the voice of `config.voices` matching `language` and its
+    /// region first, then its base language, e.g. `en-US` then `en`. The
+    /// voices which are not installed are skipped. Without a match, this is
+    /// the first voice of the base language ordered by
+    /// ``TTSVoice/sorted(preferredRegions:displayLocale:)``.
+    ///
+    /// Returns `nil` when the engine picks the voice itself: with
+    /// `config.prefersAssistiveTechnologyVoice`, or when no voice is
+    /// installed for the base language.
+    public func voice(for language: Language) -> TTSVoice? {
+        guard !config.prefersAssistiveTechnologyVoice else {
+            return nil
+        }
+        return configuredVoice(for: language) ?? defaultVoice(for: language)
+    }
+
+    @available(*, unavailable, renamed: "voice(withID:)")
+    public func voiceWithIdentifier(_ identifier: String) -> TTSVoice? {
+        fatalError()
+    }
+
+    /// Cache of the voices found with `voice(withID:)`.
+    private var voicesByID: [TTSVoice.ID: TTSVoice] = [:]
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
-        currentTask?.cancel()
+        cancelCurrentTask()
         publicationIterator = publication.content(from: startLocator)?.iterator()
         currentTask = Task {
             await playNextUtterance(.forward)
@@ -201,7 +291,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     /// Use `start()` to restart it.
     public func stop() {
         isPausedByInterruption = false
-        currentTask?.cancel()
+        cancelCurrentTask()
         state = .stopped
         publicationIterator = nil
         audioSessionUser.end()
@@ -218,7 +308,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
     }
 
     private func pausePlayback() {
-        currentTask?.cancel()
+        cancelCurrentTask()
         if case let .playing(utterance, range: _) = state {
             state = .paused(utterance)
         }
@@ -226,7 +316,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Resumes an utterance interrupted with `pause()`.
     public func resume() {
-        currentTask?.cancel()
+        cancelCurrentTask()
         if case let .paused(utterance) = state {
             currentTask = Task {
                 await play(utterance)
@@ -245,7 +335,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Skips to the previous utterance.
     public func previous() {
-        currentTask?.cancel()
+        cancelCurrentTask()
         currentTask = Task {
             await playNextUtterance(.backward)
         }
@@ -253,9 +343,21 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Skips to the next utterance.
     public func next() {
-        currentTask?.cancel()
+        cancelCurrentTask()
         currentTask = Task {
             await playNextUtterance(.forward)
+        }
+    }
+
+    /// Restarts the utterance being spoken from its beginning, e.g. to apply a
+    /// new `config`.
+    private func restartSpokenUtterance() {
+        guard isSpeaking, case let .playing(utterance, range: _) = state else {
+            return
+        }
+        cancelCurrentTask()
+        currentTask = Task {
+            await play(utterance)
         }
     }
 
@@ -271,7 +373,11 @@ public final class PublicationSpeechSynthesizer: Loggable {
 
     /// Plays the next utterance in the given `direction`.
     private func playNextUtterance(_ direction: Direction) async {
-        guard let utterance = await nextUtterance(direction) else {
+        let utterance = await nextUtterance(direction)
+        guard !Task.isCancelled else {
+            return
+        }
+        guard let utterance else {
             state = .stopped
             return
         }
@@ -284,18 +390,24 @@ public final class PublicationSpeechSynthesizer: Loggable {
         // an interruption which deactivated it. Not needed between utterances.
         if !state.isPlaying {
             await audioSessionUser.start(isPlaying: false)
-            guard !Task.isCancelled else {
-                return
-            }
+        }
+        guard !Task.isCancelled else {
+            return
         }
 
         state = .playing(utterance, range: nil)
+        isSpeaking = true
 
+        let language = language(of: utterance)
         let result = await engine.speak(
             TTSUtterance(
                 text: utterance.text,
                 delay: 0,
-                voiceOrLanguage: voiceOrLanguage(for: utterance)
+                language: language,
+                voice: voice(for: language),
+                speed: config.speed,
+                pitch: config.pitch,
+                prefersAssistiveTechnologyVoice: config.prefersAssistiveTechnologyVoice
             ),
             onSpeakRange: { [weak self] range in
                 guard let self = self else {
@@ -322,6 +434,7 @@ public final class PublicationSpeechSynthesizer: Loggable {
         guard !Task.isCancelled else {
             return
         }
+        isSpeaking = false
 
         switch result {
         case .success:
@@ -332,21 +445,38 @@ public final class PublicationSpeechSynthesizer: Loggable {
         }
     }
 
-    /// Returns the user selected voice if it's compatible with the utterance language. Otherwise, falls back on
-    /// the languages.
-    private func voiceOrLanguage(for utterance: Utterance) -> Either<TTSVoice, Language> {
-        if let voice = config.voiceIdentifier
-            .flatMap({ id in self.voiceWithIdentifier(id) })
-            .takeIf({ voice in utterance.language == nil || utterance.language?.removingRegion() == voice.language.removingRegion() })
-        {
-            return .left(voice)
-        } else {
-            return .right(utterance.language
-                ?? config.defaultLanguage
-                ?? publication.metadata.language
-                ?? Language.current)
-        }
+    /// Returns the language of the utterance, falling back on the default,
+    /// publication and current languages.
+    private func language(of utterance: Utterance) -> Language {
+        utterance.language
+            ?? config.defaultLanguage
+            ?? publication.metadata.language
+            ?? Language.current
     }
+
+    /// Returns the installed voice of `config.voices` for `language`, matching
+    /// its region first, then its base language.
+    private func configuredVoice(for language: Language) -> TTSVoice? {
+        [language, language.removingRegion()]
+            .compactMap { config.voices[$0] }
+            .lazy
+            .compactMap { self.voice(withID: $0) }
+            .first
+    }
+
+    /// Returns the first voice of the base language of `language`, ordered by
+    /// `sorted()`.
+    private func defaultVoice(for language: Language) -> TTSVoice? {
+        let language = language.removingRegion()
+        if let voice = defaultVoices[language] {
+            return voice
+        }
+        let voice = availableVoices.filterByLanguage(language).sorted().first
+        defaultVoices[language] = .some(voice)
+        return voice
+    }
+
+    private var defaultVoices: [Language: TTSVoice?] = [:]
 
     /// Gets the next utterance in the given `direction`, or null when reaching the beginning or the end.
     private func nextUtterance(_ direction: Direction) async -> Utterance? {

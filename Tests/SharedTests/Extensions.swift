@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalSelectors) import ReadiumShared
 
 extension Locator {
     init(href: String, mediaType: MediaType, title: String? = nil, locations: Locations = .init(), text: Text = .init()) {

@@ -14,6 +14,7 @@ import Foundation
 /// dimension.
 ///
 /// - https://www.w3.org/TR/media-frags/#naming-time
+@_spi(ExperimentalSelectors)
 public enum TemporalSelector: Hashable, Sendable {
     /// A single point in time within the media stream.
     case position(TemporalPosition)
@@ -31,6 +32,7 @@ public enum TemporalSelector: Hashable, Sendable {
 }
 
 /// A single point in time within a media rendition.
+@_spi(ExperimentalSelectors)
 public struct TemporalPosition: Hashable, Sendable {
     /// Time offset from the start of the media rendition, in seconds.
     public let time: TimeInterval
@@ -45,6 +47,7 @@ public struct TemporalPosition: Hashable, Sendable {
 }
 
 /// A time range within a media rendition.
+@_spi(ExperimentalSelectors)
 public struct TemporalClip: Hashable, Sendable {
     /// Start of the clip, in seconds from the beginning of the media rendition.
     public let start: TimeInterval
@@ -80,6 +83,7 @@ private extension TimeInterval {
 
 // MARK: - Fragment
 
+@_spi(ExperimentalSelectors)
 public extension TemporalSelector {
     /// Creates a ``TemporalSelector`` from a URL fragment following the W3C
     /// Media Fragments URI specification (temporal dimension).
@@ -277,6 +281,7 @@ private extension Substring {
     }
 }
 
+@_spi(ExperimentalSelectors)
 public extension URLFragment {
     /// Parses the fragment as a ``TemporalSelector`` following the W3C Media
     /// Fragments URI specification.

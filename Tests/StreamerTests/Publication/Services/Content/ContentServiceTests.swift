@@ -8,7 +8,7 @@ import Foundation
 import ReadiumShared
 @testable import ReadiumStreamer
 import Testing
-import TestPublications
+import TestSupport
 
 enum ContentServiceTests {
     struct ReflowableEPUB {

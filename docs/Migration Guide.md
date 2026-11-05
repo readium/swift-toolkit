@@ -55,6 +55,8 @@ func navigator(_ navigator: AudioNavigator, playbackDidChange info: MediaPlaybac
 }
 ```
 
+See the [Audiobook guide](Guides/Navigator/Audiobook.md#observing-the-playback) to learn how to observe and control the playback.
+
 #### Audio session changes
 
 ##### Custom `AudioSessionManaging` implementations
@@ -71,6 +73,13 @@ The audio session is now activated off the main thread, as it can block for a no
 * `audioSessionInterruptionDidBegin()` is called when the interruption begins. Pause the playback if your engine doesn't pause on its own (`AVPlayer` does), and remember whether this interruption paused it.
 * `audioSessionInterruptionDidEnd(shouldResume:)` is called when it ends. Resume only if `shouldResume` is set and the interruption paused the playback. Forget the paused state in any case, and when the user pauses during the interruption (e.g. with Siri).
 
+### Audio metadata
+
+`AudioParser` now reads the tags of each audio file with an `AudioMetadataReader`. See the [Audiobook guide](Guides/Navigator/Audiobook.md#metadata-of-audio-files) to learn what is read and how to customize it.
+
+* `AudioPublicationManifestAugmentor`, `AudioPublicationAugmentedManifest` and `AVAudioPublicationManifestAugmentor` are removed. Implement an `AudioMetadataReader` instead, which returns the metadata of one audio file.
+* The metadata of an audio publication without a manifest is mapped from the tags with new rules. If you store the metadata of your publications, some values differ the next time a publication is opened. For example, the title is now the album, the album artists are the authors and no longer the illustrators, and the table of contents holds the chapters of the audio files.
+
 ### Now Playing chapter number
 
 `NowPlayingInfo.Media.chapterNumber` moved to `NowPlayingInfo.Playback.chapterNumber`. Setting a different `NowPlayingInfo.media` resets the `playback`, so updating the chapter number on the `media` used to discard the playback info (duration, elapsed time and rate).
@@ -86,9 +95,23 @@ nowPlaying.playback = NowPlayingInfo.Playback(chapterNumber: chapterNumber, dura
 
 For the same reason, we recommend setting the `media` once all its metadata is available, including the artwork, instead of updating it afterwards.
 
-`playbackDidChange` may be called several times while the playback is ended, so compare with the previous state if `didReachEndOfPublication()` must run only once.
+### Text-to-speech voices
 
-A playback held at the end of another resource, when `shouldPlayNextResource` returns `false`, is still reported as `.paused`.
+`PublicationSpeechSynthesizer.Configuration.voiceIdentifier` is replaced by `voices`, which selects a voice per language. A voice is identified by a `TTSVoice.ID` instead of a `String`.
+
+The voice used to apply to every utterance, whatever its language. It now only speaks the utterances of its language, and the other ones are spoken with the best voice of their language. To restore a voice identifier stored with the previous version, key it by the base language of the voice so that it applies to all its regions:
+
+```swift
+// Before
+synthesizer.config.voiceIdentifier = storedIdentifier
+
+// After
+if let voice = synthesizer.voice(withID: TTSVoice.ID(storedIdentifier)) {
+    synthesizer.config.voices[voice.language.removingRegion()] = voice.id
+}
+```
+
+See the [TTS guide](Guides/TTS.md#voice) to learn how the voice of an utterance is selected.
 
 
 ## 4.0.0-alpha.2

@@ -356,6 +356,10 @@ open class PDFNavigatorViewController:
     }
 
     @objc private func pageDidChange() {
+        // With a page view controller, the viewport follows the current
+        // page, which might change after the visible pages.
+        viewport = computeLocatorAndViewport().viewport
+
         if let locator = currentPosition {
             delegate?.navigator(self, locationDidChange: locator)
         }
@@ -636,7 +640,15 @@ open class PDFNavigatorViewController:
     /// `convert(_:from:)`, which maps page bounds into view coordinates
     /// accounting for both scroll position and zoom, and discard any pages
     /// that don't actually intersect the view's visible bounds.
+    ///
+    /// With a page view controller, used to paginate single pages,
+    /// `PDFView.visiblePages` also returns the pages it keeps loaded around
+    /// the current one, which is the only visible page.
     private func visiblePages(in pdfView: PDFDocumentView) -> [PDFPage] {
+        if pdfView.isUsingPageViewController {
+            return pdfView.currentPage.map { [$0] } ?? []
+        }
+
         var pages = pdfView.visiblePages
 
         if settings.scroll {

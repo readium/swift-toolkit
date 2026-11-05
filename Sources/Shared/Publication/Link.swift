@@ -232,8 +232,8 @@ public extension [Link] {
 
     /// Finds the index of the first link matching the given HREF.
     ///
-    /// Falls back to ignoring the query and fragment of `href`, to stay
-    /// consistent with `Manifest.linkWithHREF`.
+    /// Falls back to ignoring the fragment of `href`, then its query too, to
+    /// stay consistent with `Manifest.linkWithHREF`.
     func firstIndexWithHREF<T: URLConvertible>(_ href: T) -> Int? {
         let href = href.anyURL.normalized
 
@@ -242,6 +242,7 @@ public extension [Link] {
         }
 
         return index(matchingHREF: href.string)
+            ?? index(matchingHREF: href.removingFragment().string)
             ?? index(matchingHREF: href.removingQuery().removingFragment().string)
     }
 

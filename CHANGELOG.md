@@ -7,11 +7,28 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Added
 
+#### Shared
+
+* New experimental `Publication.timeline()` API. A `Timeline` lays out the table of contents on the reading order, to answer questions such as "which chapter am I in?", "what's the next chapter?" or "how long is this chapter?". It is available for audiobooks, EPUB (limited support), PDF and DiViNa.
+
 #### Navigator
 
 * `AudioNavigator.stop()` stops the playback and ends the audio session.
 * The `AudioNavigator` reports the new `MediaPlaybackState.ended` when the playback reaches the end of the publication, by playing or seeking up to it.
 * `MediaPlaybackState.playsWhenReady` indicates whether the player is playing or will as soon as it is ready, e.g. to choose between a play and a pause button.
+* `PublicationSpeechSynthesizer.Configuration` has new `speed` and `pitch` properties, [see the user guide](docs/Guides/TTS.md#speed).
+* `PublicationSpeechSynthesizer.Configuration.voices` selects a voice per language, so that each utterance of a multilingual publication is spoken with the voice of its language, [see the user guide](docs/Guides/TTS.md#voice).
+* `PublicationSpeechSynthesizer.voice(for:)` returns the voice speaking a language, e.g. to show it in a voice picker.
+* `PublicationSpeechSynthesizer.Configuration.prefersAssistiveTechnologyVoice` speaks with the voice selected in the accessibility settings of the device.
+
+#### Streamer
+
+* Audio publications without a manifest, such as a standalone M4B or MP3 file or a container of audio files, now have a table of contents built from the chapters embedded in their audio files.
+    * The metadata of the audio files of a ZIP or ZAB package is read too, when the package is stored on the device and its files are stored without compression, [see the user guide](docs/Guides/Navigator/Audiobook.md#metadata-of-audio-files).
+    * `AudioParser.Configuration.containerEntriesMetadataPolicy` reads the audio files of a remote package, or opens a package without reading them.
+* Audiobooks without a table of contents now get one from the titles of their reading order resources.
+    * `AudioParser.Configuration.generatesTableOfContentsFromReadingOrder` and `ReadiumWebPubParser.Configuration.generatesAudiobookTableOfContentsFromReadingOrder` disable it.
+* New `AudioMetadataReader` to customize how `AudioParser` reads the metadata of each audio file.
 
 ### Changed
 
@@ -32,8 +49,21 @@ All notable changes to this project will be documented in this file. Take a look
     * Seeking up to the end of a resource with `seek(to:)` or `seek(by:)` ends it, like playing up to it. `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is called, and the playback is paused at the end of the resource when it returns `false`.
 * `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is no longer called after the last resource. Use the new `MediaPlaybackState.ended` to detect the end of the publication, [see the migration guide](docs/Migration%20Guide.md).
 * `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` takes an `AnyURL` instead of a `RelativeURL`, to report resources with an absolute HREF. Implementations must be updated or they are no longer called, [see the migration guide](docs/Migration%20Guide.md).
+* Changing `PublicationSpeechSynthesizer.config` while playing restarts the current utterance with the new configuration, instead of applying it from the next utterance.
+* An utterance whose language has no voice in `PublicationSpeechSynthesizer.Configuration.voices` is spoken with the best voice of its base language, instead of the default voice of the engine.
+
+#### Streamer
+
+* `AudioPublicationManifestAugmentor` is replaced by `AudioMetadataReader`, which reads the metadata of one audio file, [see the migration guide](docs/Migration%20Guide.md).
 
 ### Fixed
+
+#### Shared
+
+* Minizip adapter improvements:
+    * Seeking in the entry of a local ZIP package stored without compression no longer reads the entry again from its start.
+    * Fixed a crash when reading a corrupted compressed entry of a local ZIP package.
+* Fixed missing items in the table of contents of some PDFs, when their named destinations are declared as dictionaries.
 
 #### Navigator
 
@@ -43,6 +73,11 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed seeking with the `AudioNavigator`:
     * The target of a seek in progress is reported as the current time, instead of the old position until the seek completes.
     * The playback is reported as `.loading` instead of `.paused` during a seek, when it resumes afterwards.
+* [#632](https://github.com/readium/swift-toolkit/issues/632) Fixed decorations being duplicated on both pages when a fixed-layout EPUB is displayed as a two-page spread (contributed by [@mvanhorn](https://github.com/readium/swift-toolkit/pull/915)).
+* Fixed a memory leak in `EPUBNavigatorViewController` when quickly turning the pages of a fixed-layout publication (contributed by [@deltakosh](https://github.com/readium/swift-toolkit/pull/917)).
+* Fixed reflowable EPUBs being displayed as a single column on the iPhone Duo unfolded in landscape, by porting the [responsive columns fix of Readium CSS 1.1.2](https://github.com/readium/css/issues/247).
+* `EPUBNavigatorViewController`'s current locator is now reported as soon as the current page is loaded, instead of waiting for the preloading of adjacent resources.
+* Fixed the `viewport` of `PDFNavigatorViewController` including the off-screen pages in paginated mode.
 
 
 ## [4.0.0-alpha.2] - 2026-09-18

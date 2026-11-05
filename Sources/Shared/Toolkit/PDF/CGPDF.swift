@@ -112,34 +112,6 @@ package extension CGPDFDocument {
         return UIImage(cgImage: cgImage)
     }
 
-    func tableOfContents() async throws -> [PDFOutlineNode] {
-        guard let outline = outline as? [String: Any] else {
-            return []
-        }
-
-        func node(from dictionary: [String: Any]) -> PDFOutlineNode? {
-            guard let pageNumber = dictionary[kCGPDFOutlineDestination as String] as? Int else {
-                return nil
-            }
-
-            return PDFOutlineNode(
-                title: dictionary[kCGPDFOutlineTitle as String] as? String,
-                pageNumber: pageNumber,
-                children: nodes(in: dictionary[kCGPDFOutlineChildren as String] as? [[String: Any]])
-            )
-        }
-
-        func nodes(in children: [[String: Any]]?) -> [PDFOutlineNode] {
-            guard let children = children else {
-                return []
-            }
-
-            return children.compactMap { node(from: $0) }
-        }
-
-        return nodes(in: outline[kCGPDFOutlineChildren as String] as? [[String: Any]])
-    }
-
     private func stringList(forKey key: String, in dictionary: CGPDFDictionaryRef?) -> [String] {
         guard let string = string(forKey: key, in: dictionary) else {
             return []

@@ -63,8 +63,8 @@ struct URLTests {
 
 **`@Suite` annotation rules:**
 - Omit `@Suite` entirely when the struct name already makes the suite's purpose clear. Swift Testing discovers it automatically.
-- Add `@Suite` only to attach a **trait** (`.serialized`, `.disabled("reason")`), not to customize the display name.
-- Specifically: `URLTests` does not need `@Suite`. `LocatorTests` does not need `@Suite`. Just write `struct URLTests {`.
+- Add `@Suite` to attach a **trait** (`.serialized`, `.disabled("reason")`), or to give a nested suite a display name which reads as a sentence with the ones of its tests (see [Display names](#display-names)).
+- A top-level suite never needs a display name: `URLTests` does not need `@Suite`. `LocatorTests` does not need `@Suite`. Just write `struct URLTests {`.
 
 **Naming:**
 - Top-level suite: `<TypeName>Tests` (e.g. `LocatorTests`, `URLTests`)
@@ -76,7 +76,7 @@ struct URLTests {
 // Basic
 @Test func returnsNilForInvalidInput() { ... }
 
-// Custom display name — only when the function name alone would be confusing
+// Custom display name — see "Display names" below
 @Test("Parsing a locator with a fragment") func parseWithFragment() { ... }
 
 // Parameterized — use instead of copying the same test body multiple times
@@ -86,6 +86,66 @@ func roundTrip(format: Format) throws { ... }
 // Async/throws — just mark the function
 @Test func fetchMetadata() async throws { ... }
 ```
+
+### Arguments with several values
+
+When each case of a parameterized test holds more than one value, declare a dedicated struct nested in the suite instead of using a tuple. Named fields don't need a comment to explain their order, and default values keep the cases short.
+
+The struct is `Sendable`. Give it a `name` and conform it to `CustomTestStringConvertible`, so that the test report shows the name of each case.
+
+```swift
+// ✅ Correct — a struct with named fields
+struct LocatorPosition: Sendable, CustomTestStringConvertible {
+    let name: String
+    var durations: [TimeInterval?] = [600, 300, 900]
+    let locations: Locator.Locations
+    let expected: TimelinePosition
+
+    var testDescription: String { name }
+}
+
+@Test(arguments: [
+    LocatorPosition(
+        name: "a progression with a known duration",
+        locations: .init(progression: 0.5),
+        expected: position(1, 150)
+    ),
+    LocatorPosition(
+        name: "a progression with an unknown duration",
+        durations: [600, nil, 900],
+        locations: .init(progression: 0.5),
+        expected: position(1, 0)
+    ),
+])
+func locatorIsTurnedIntoAPosition(_ example: LocatorPosition) { ... }
+
+// ❌ Wrong — a tuple whose values are only told apart by their position
+@Test(arguments: [
+    ([600, 300, 900], Locator.Locations(progression: 0.5), position(1, 150)),
+    ([600, nil, 900], Locator.Locations(progression: 0.5), position(1, 0)),
+] as [([TimeInterval?], Locator.Locations, TimelinePosition)])
+func locatorIsTurnedIntoAPosition(durations: [TimeInterval?], locations: Locator.Locations, expected: TimelinePosition) { ... }
+```
+
+A case holding a single value stays a plain argument, e.g. `@Test(arguments: [0, -1])`.
+
+### Display names
+
+A function name is enough for a simple test. When the behavior needs a sentence to be described, give display names to the nested suite and its tests, so that they read as one sentence in the test report. The suite names the subject and each test continues it, starting with a lowercase letter.
+
+```swift
+struct ResourceAssetLoaderTests {
+    @Suite("Invalidating the loader") struct Invalidation {
+        @Test("returns once the in-flight streams have stopped")
+        func stopsStreams() async throws { ... }
+
+        @Test("refuses the requests which follow, without resolving them")
+        func refusesRequests() async throws { ... }
+    }
+}
+```
+
+Use the same style for the whole file: either function names only, or sentences for every nested suite and test.
 
 ## Assertions
 
@@ -119,6 +179,29 @@ struct DatabaseTests {
         db = try await Database.makeInMemory()
     }
 }
+```
+
+## Waiting for asynchronous events
+
+Tests run in parallel on CI runners with few cores, which can freeze for more than a minute. A test which depends on timing fails there, even when it passes locally every time.
+
+- Wait for an event, never for a duration. Don't `Task.sleep` and hope the work is done. Use an `AsyncStream` with `first(within:)` from `TestSupport`, or `confirmation(...)`.
+- A timeout only exists to fail a broken test instead of hanging. Use `TimeInterval.testTimeout` from `TestSupport`, never a few seconds.
+- Don't write a test which passes by letting a wait expire, to prove that something did not happen. Wait for a later event instead, then check the state.
+- Don't block a thread of the cooperative pool (`Thread.sleep`, `DispatchSemaphore.wait`). When a test must hold a thread, run that part on its own dispatch queue.
+- Don't expect a value which depends on scheduling, such as the exact number of tasks running at once. Expect a bound (`<= 3`), or gate the tasks so the test controls the order.
+
+```swift
+// ✅ Good — waits for the event, the timeout is only reached on failure
+let (events, continuation) = AsyncStream<Event>.makeStream()
+sut.onEvent = { continuation.yield($0) }
+sut.start()
+#expect(await events.first(within: .testTimeout, where: { $0 == .started }) != nil)
+
+// ❌ Bad — fails on a busy runner
+sut.start()
+try await Task.sleep(nanoseconds: 500_000_000)
+#expect(sut.isStarted)
 ```
 
 ## Converting from XCTest — step by step
@@ -177,11 +260,12 @@ fileprivate func makeLocator(href: String = "/ch.html", progression: Double? = n
 
 1. Does every file start with `import Testing`? Zero `import XCTest`.
 2. Happy path, boundary conditions, and error cases covered?
-3. Similar tests collapsed into `@Test(arguments:)` parameterized tests?
+3. Similar tests collapsed into `@Test(arguments:)` parameterized tests, with a struct when a case holds several values?
 4. No `// MARK:` inside any suite type?
-5. No `@Suite` without a trait attached?
+5. No `@Suite` without a trait or a display name reading as a sentence with its tests?
 6. No `guard ... else { return }` — replaced with `!` or `try #require`?
 7. Three or more tests sharing setup? Extract a `fileprivate` helper.
+8. No sleep, short timeout or expectation which depends on scheduling?
 
 ## Traits and advanced features
 

@@ -79,10 +79,12 @@ public actor HTTPResource: Resource {
                 )
 
                 if _headResponse == nil, case let .failure(error) = rangeResult {
-                    if let error: ReadError = .wrap(error) {
-                        _headResponse = .failure(error)
-                    } else {
+                    switch error {
+                    case .errorResponse, .rangeNotSupported:
+                        // The server answered without providing the metadata.
                         _headResponse = .success(nil)
+                    default:
+                        return .failure(ReadError(error))
                     }
                 }
             }

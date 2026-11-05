@@ -91,6 +91,7 @@ Guides are available to help you make the most of the toolkit.
 * [Implementing Highlights](docs/Guides/Navigator/Highlights.md) – add and manage highlights in a publication
 * [Font families in the EPUB navigator](docs/Guides/Navigator/EPUB%20Fonts.md) – support custom font families with reflowable EPUB publications
 * [EPUB image preview](docs/Guides/Navigator/EPUB%20Image%20Preview.md) – detect tapped images and present an image detail view
+* [Playing audiobooks](docs/Guides/Navigator/Audiobook.md) – play an audiobook with the `AudioNavigator` and read the metadata of audio files
 
 ### DRM
 

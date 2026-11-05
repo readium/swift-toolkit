@@ -174,6 +174,14 @@ struct PublicationTests {
             #expect(publication.linkWithHREF(AnyURL(string: "l1#a")!)?.href == "l1#a")
             #expect(publication.linkWithHREF(AnyURL(string: "l2#b")!)?.href == "l2")
         }
+
+        @Test func ignoresAnchorOfHREFWithQuery() {
+            let publication = makePublication(links: [
+                Link(href: "l1?q=a"),
+            ])
+
+            #expect(publication.linkWithHREF(AnyURL(string: "l1?q=a#b")!)?.href == "l1?q=a")
+        }
     }
 
     struct LinkWithRel {

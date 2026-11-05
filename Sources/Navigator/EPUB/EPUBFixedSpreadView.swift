@@ -156,6 +156,18 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
 
     private var goToContinuations: [CheckedContinuation<Void, Never>] = []
 
+    override func clear() {
+        super.clear()
+
+        // A spread removed before it finished loading will never emit
+        // `spreadLoaded`. Resume pending `go(to:)` callers, otherwise they
+        // would never return and would keep this view alive.
+        for continuation in goToContinuations {
+            continuation.resume()
+        }
+        goToContinuations.removeAll()
+    }
+
     override func go(to location: PageLocation, animated: Bool) async {
         // Fixed layout resources are always fully visible so we don't use the
         // location.

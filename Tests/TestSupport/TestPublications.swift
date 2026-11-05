@@ -29,7 +29,7 @@ public enum TestPublications {
         let ext = components.count > 1 ? String(components[1]) : nil
 
         guard let url = bundle.url(forResource: name, withExtension: ext, subdirectory: "Publications") else {
-            fatalError("Test publication '\(filename)' not found in TestPublications bundle")
+            fatalError("Test publication '\(filename)' not found in TestSupport bundle")
         }
 
         return url

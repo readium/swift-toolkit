@@ -18,3 +18,4 @@ Learn about the architecture, configuration, and usage of the Readium Navigator.
 - <doc:Decorations>
 - <doc:EPUB-Fonts>
 - <doc:EPUB-Image-Preview>
+- <doc:Audiobook>

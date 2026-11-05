@@ -24,8 +24,9 @@ final class TTSViewModel: ObservableObject, Loggable {
         let config: PublicationSpeechSynthesizer.Configuration
         /// Languages supported by the synthesizer.
         let availableLanguages: [Language]
-        /// Voices supported by the synthesizer, for the selected language.
-        let availableVoiceIds: [String]
+        /// Voices supported by the synthesizer, for the base language of the
+        /// selected language.
+        let availableVoiceIDs: [TTSVoice.ID]
 
         @MainActor
         init(synthesizer: PublicationSpeechSynthesizer) {
@@ -34,8 +35,8 @@ final class TTSViewModel: ObservableObject, Loggable {
 
             config = synthesizer.config
             availableLanguages = voicesByLanguage.keys.sorted { $0.localizedDescription() < $1.localizedDescription() }
-            availableVoiceIds = synthesizer.config.defaultLanguage
-                .flatMap { voicesByLanguage[$0]?.map(\.identifier) }
+            availableVoiceIDs = synthesizer.config.defaultLanguage
+                .map { synthesizer.availableVoices.filterByLanguage($0.removingRegion()).sorted().map(\.id) }
                 ?? []
         }
     }
@@ -109,8 +110,8 @@ final class TTSViewModel: ObservableObject, Loggable {
         settings = Settings(synthesizer: synthesizer)
     }
 
-    func voiceWithIdentifier(_ id: String) -> TTSVoice? {
-        synthesizer.voiceWithIdentifier(id)
+    func voice(withID id: TTSVoice.ID) -> TTSVoice? {
+        synthesizer.voice(withID: id)
     }
 
     @objc func start() {

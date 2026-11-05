@@ -52,7 +52,7 @@ struct TTSControls: View {
                 TTSSettings(viewModel: viewModel)
                     .frame(
                         minWidth: 320, idealWidth: 400, maxWidth: nil,
-                        minHeight: 300, idealHeight: 300, maxHeight: nil,
+                        minHeight: 400, idealHeight: 400, maxHeight: nil,
                         alignment: .top
                     )
             }
@@ -80,13 +80,30 @@ struct TTSSettings: View {
                     choiceLabel: { $0?.localizedDescription() ?? "Default" }
                 )
 
-                picker(
-                    caption: "Voice",
-                    for: \.voiceIdentifier,
-                    choices: [nil] + settings.availableVoiceIds,
-                    choiceLabel: { id in
-                        id.flatMap { viewModel.voiceWithIdentifier($0)?.name } ?? "Default"
-                    }
+                if let language = settings.config.defaultLanguage {
+                    // The voice applies to all the regions of the language.
+                    picker(
+                        caption: "Voice",
+                        for: \.voices[language.removingRegion()],
+                        choices: [nil] + settings.availableVoiceIDs,
+                        choiceLabel: { id in
+                            id.flatMap { viewModel.voice(withID: $0)?.name } ?? "Default"
+                        }
+                    )
+                }
+
+                stepper(
+                    for: \.speed,
+                    range: 0.5 ... 3.5,
+                    step: 0.25,
+                    label: { "Speed: \($0.formatted())×" }
+                )
+
+                stepper(
+                    for: \.pitch,
+                    range: 0.5 ... 2.0,
+                    step: 0.25,
+                    label: { "Pitch: \($0.formatted())" }
                 )
             }
             .navigationTitle("Speech settings")
@@ -105,6 +122,18 @@ struct TTSSettings: View {
             ForEach(choices, id: \.self) {
                 Text(choiceLabel($0))
             }
+        }
+    }
+
+    private func stepper(
+        for keyPath: WritableKeyPath<Config, Double>,
+        range: ClosedRange<Double>,
+        step: Double,
+        label: @escaping (Double) -> String
+    ) -> some View {
+        let value = configBinding(for: keyPath)
+        return Stepper(value: value, in: range, step: step) {
+            Text(label(value.wrappedValue))
         }
     }
 
