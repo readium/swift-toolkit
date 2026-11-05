@@ -6,13 +6,20 @@
 
 import Foundation
 
-/// A range of a ``Timeline`` labelled with the ``TimelineItem`` containing it,
-/// if any.
+/// A part of a ``Timeline`` from the start of a ``TimelineTOCEntry`` to the
+/// start of the next one.
+///
+/// Outside any entry, such as before the first one or without a table of
+/// contents, a segment is a reading order resource instead, up to where the
+/// first entry starts.
+///
+/// The ``Timeline/segments(maxDepth:)`` follow each other from the start of
+/// the reading order to its end.
 @_spi(ExperimentalTimeline)
 public struct TimelineSegment: Hashable, Sendable {
-    /// Item located in the segment, or `nil` where there are none, such as
-    /// before the first one.
-    public let item: TimelineItem?
+    /// Entry of the table of contents located in the segment, or `nil` where
+    /// there are none, such as before the first one.
+    public let tocEntry: TimelineTOCEntry?
 
     /// Link to the start of the segment, to go there with
     /// `Navigator.go(to:)`.
@@ -24,8 +31,8 @@ public struct TimelineSegment: Hashable, Sendable {
     /// resource whose length is unknown.
     public let end: TimelinePosition?
 
-    package init(item: TimelineItem?, link: Link, start: TimelinePosition, end: TimelinePosition?) {
-        self.item = item
+    package init(tocEntry: TimelineTOCEntry?, link: Link, start: TimelinePosition, end: TimelinePosition?) {
+        self.tocEntry = tocEntry
         self.link = link
         self.start = start
         self.end = end

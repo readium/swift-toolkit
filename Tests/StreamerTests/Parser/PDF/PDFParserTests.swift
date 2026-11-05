@@ -19,8 +19,8 @@ struct PDFParserTests {
         let publication = try await parse("outline.pdf")
         let timeline = try #require(await publication.timeline())
         let href = publication.readingOrder[0].href
-        let chapter1 = timeline.items[0].children[0]
-        let chapter2 = timeline.items[1]
+        let chapter1 = timeline.toc.entries[0].children[0]
+        let chapter2 = timeline.toc.entries[1]
 
         #expect(timeline.outline == [
             "0 Part 1 → \(href)#page=1",

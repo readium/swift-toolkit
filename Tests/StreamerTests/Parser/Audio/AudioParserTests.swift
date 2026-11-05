@@ -313,13 +313,13 @@ enum AudioParserTests {
             #expect(try await publication.timeline()?.outline == example.expectedTimeline)
         }
 
-        @Test func untitledFileBelongsToThePrecedingItem() async throws {
+        @Test func untitledFileBelongsToThePrecedingEntry() async throws {
             let publication = try await parse([AudioMetadata(), AudioMetadata(title: "Two"), AudioMetadata(), AudioMetadata(title: "Four")])
             let timeline = try #require(await publication.timeline())
 
-            #expect(timeline.item(containing: Locator(href: AnyURL(string: "3.mp3")!, mediaType: .mp3)) == timeline.items[0])
+            #expect(timeline.item(containing: Locator(href: AnyURL(string: "3.mp3")!, mediaType: .mp3)) == timeline.toc.entries[0])
             #expect(timeline.item(containing: Locator(href: AnyURL(string: "1.mp3")!, mediaType: .mp3)) == nil)
-            #expect(timeline.segments(in: AnyURL(string: "1.mp3")!).map(\.item) == [nil])
+            #expect(timeline.segments(in: AnyURL(string: "1.mp3")!).map(\.tocEntry) == [nil])
         }
 
         /// Parses a folder of files having the given metadata, with a

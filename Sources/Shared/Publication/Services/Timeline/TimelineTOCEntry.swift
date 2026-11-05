@@ -6,61 +6,61 @@
 
 import Foundation
 
-/// An entry of a ``Timeline``, such as a chapter.
+/// An entry of the ``TimelineTOC``.
 ///
 /// As the ``id`` is a pre-order index, the same entry keeps its `id` in a
 /// timeline rebuilt from the same table of contents.
 @_spi(ExperimentalTimeline)
-public struct TimelineItem: Identifiable, Hashable, Sendable {
-    /// Title of an item.
+public struct TimelineTOCEntry: Identifiable, Hashable, Sendable {
+    /// Title of an entry.
     public enum Title: Hashable, Sendable {
         /// A title to display.
         case text(String)
 
-        /// No title. Holds the 1-based number of the item's resource in the
+        /// No title. Holds the 1-based number of the entry's resource in the
         /// reading order, to display a title such as "Track 3".
         ///
         /// It counts all the resources, not only the untitled ones.
         case number(Int)
     }
 
-    /// Index of the item in the pre-order traversal of its timeline, unique
-    /// within the timeline.
+    /// Index of the entry in the pre-order traversal of its table of
+    /// contents, unique within the timeline.
     public let id: Int
 
-    /// Title of the item.
+    /// Title of the entry.
     public let title: Title
 
-    /// Link of the table of contents entry, or of the reading order resource
-    /// for a generated item.
+    /// Link of the entry in the table of contents, or of the reading order
+    /// resource for a generated entry.
     ///
-    /// Use it to jump to the item with `Navigator.go(to:)`.
+    /// Use it to jump to the entry with `Navigator.go(to:)`.
     public let link: Link
 
-    /// Start of the item, or `nil` when it could not be placed on the
+    /// Start of the entry, or `nil` when it could not be placed on the
     /// timeline.
     ///
     /// For example, when it references a resource outside the reading order,
-    /// or starts before the previous item (going back).
+    /// or starts before the previous entry (going back).
     public let start: TimelinePosition?
 
-    /// Exclusive end of the item.
+    /// Exclusive end of the entry.
     ///
-    /// `nil` when the item has no ``start``, or when it ends at the end of a
+    /// `nil` when the entry has no ``start``, or when it ends at the end of a
     /// publication whose last resource length is unknown.
     public let end: TimelinePosition?
 
-    /// Length of the item, from its ``start`` to its ``end``.
+    /// Length of the entry, from its ``start`` to its ``end``.
     ///
-    /// The length of a parent covers its children. `nil` when the item has
+    /// The length of a parent covers its children. `nil` when the entry has
     /// no ``end``, or when it continues past a resource of unknown length.
     public let length: TimelineLength?
 
-    /// Items of the nested table of contents entries, in order.
+    /// Nested entries, in order.
     ///
-    /// Their ranges are inside the range of this item, which owns the gap
+    /// Their ranges are inside the range of this entry, which owns the gap
     /// before its first placed child.
-    public let children: [TimelineItem]
+    public let children: [TimelineTOCEntry]
 
     package init(
         id: Int,
@@ -69,7 +69,7 @@ public struct TimelineItem: Identifiable, Hashable, Sendable {
         start: TimelinePosition?,
         end: TimelinePosition?,
         length: TimelineLength?,
-        children: [TimelineItem]
+        children: [TimelineTOCEntry]
     ) {
         self.id = id
         self.title = title
@@ -81,7 +81,7 @@ public struct TimelineItem: Identifiable, Hashable, Sendable {
     }
 }
 
-/// Length on a ``Timeline``, such as of a ``TimelineItem`` or between two
+/// Length on a ``Timeline``, such as of a ``TimelineTOCEntry`` or between two
 /// positions, in the natural unit of its publication.
 ///
 /// Between two positions, it is negative when the second one is before the

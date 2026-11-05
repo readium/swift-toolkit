@@ -11,7 +11,7 @@ import Foundation
 @_spi(ExperimentalTimeline)
 public final class AudioTimelineService: TimelineService {
     /// - Parameter generatesFromReadingOrder: When the table of contents is
-    ///   empty or fails to load, generates one item per reading order
+    ///   empty or fails to load, generates one entry per reading order
     ///   resource. Otherwise, the timeline is empty.
     public static func makeFactory(generatesFromReadingOrder: Bool) -> TimelineServiceFactory {
         { context in

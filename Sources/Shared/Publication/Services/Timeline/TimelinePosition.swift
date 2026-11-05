@@ -66,7 +66,7 @@ public struct TimelinePosition: Hashable, Sendable {
 
 /// Where a position stands in a publication, in its natural unit.
 ///
-/// The end of an item or of the publication is exclusive: one past its last
+/// The end of an entry or of the publication is exclusive: one past its last
 /// page or position, or the time where it stops.
 @_spi(ExperimentalTimeline)
 public enum TimelineCoordinate: Hashable, Sendable {

@@ -18,9 +18,9 @@ struct ImageTimelineServiceTests {
         let publication = makePublication()
         let timeline = try #require(await publication.timeline())
 
-        #expect(timeline.items.map { $0.start?.coordinate } == [.page(1), .page(3)])
-        #expect(timeline.items.map(\.length) == [.pages(2), .pages(1)])
-        #expect(timeline.items[1].end?.coordinate == .page(4))
+        #expect(timeline.toc.entries.map { $0.start?.coordinate } == [.page(1), .page(3)])
+        #expect(timeline.toc.entries.map(\.length) == [.pages(2), .pages(1)])
+        #expect(timeline.toc.entries[1].end?.coordinate == .page(4))
 
         let locator = Locator(href: AnyURL(string: "b.jpg")!, mediaType: .jpeg, locations: .init(progression: 0.5))
         #expect(timeline.position(of: locator) == TimelinePosition(
@@ -30,7 +30,7 @@ struct ImageTimelineServiceTests {
             progression: 0,
             totalProgression: 1 / 3
         ))
-        #expect(timeline.item(containing: locator) == timeline.items[0])
+        #expect(timeline.item(containing: locator) == timeline.toc.entries[0])
     }
 
     /// The pages match the positions list of the publication.
@@ -45,11 +45,11 @@ struct ImageTimelineServiceTests {
         }
     }
 
-    @Test func tableOfContentsFailureGivesATimelineWithoutItems() async throws {
+    @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
         let publication = makePublication(tocService: { _ in FailingTableOfContentsService() })
         let timeline = try #require(await publication.timeline())
 
-        #expect(timeline.items.isEmpty)
+        #expect(timeline.toc.isEmpty)
         #expect(timeline.segments().map(\.link.href) == ["a.jpg", "b.jpg", "c.jpg"])
     }
 

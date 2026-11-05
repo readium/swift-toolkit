@@ -15,10 +15,10 @@ struct EPUBParserTests {
     @Test func timelinePlacesTheFirstEntryOfEachResource() async throws {
         let publication = try await parse("childrens-literature.epub")
         let timeline = try #require(await publication.timeline())
-        let section = try #require(timeline.items.first)
+        let section = try #require(timeline.toc.entries.first)
 
         #expect(section.title == .text("SECTION IV FAIRY STORIES—MODERN FANTASTIC TALES"))
-        #expect(timeline.segments().map(\.item) == [nil, nil, section])
+        #expect(timeline.segments().map(\.tocEntry) == [nil, nil, section])
         #expect(timeline.item(containing: Locator(href: "EPUB/cover.xhtml", mediaType: .xhtml)) == nil)
         #expect(timeline.item(containing: Locator(href: "EPUB/s04.xhtml", mediaType: .xhtml, locations: .init(progression: 0.8))) == section)
     }

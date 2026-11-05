@@ -15,7 +15,7 @@ import Testing
 ///   - Chapter 1 → `a.pdf#page=3`
 /// - Chapter 2 → `b.pdf#page=2`
 struct PDFTimelineServiceTests {
-    @Test func itemsArePlacedOnThePagesOfThePositions() async throws {
+    @Test func entriesArePlacedOnThePagesOfThePositions() async throws {
         let timeline = try await timeline(positions: { _ in
             InMemoryPositionsService(positionsByReadingOrder: positions([10, 5]))
         })
@@ -30,8 +30,8 @@ struct PDFTimelineServiceTests {
         #expect(segments.map(\.start.offset) == [0, 2, 1])
         #expect(segments.map { $0.end?.readingOrderIndex } == [0, 1, 1])
         #expect(segments.map { $0.end?.offset } == [2, 1, 5])
-        #expect(timeline.items[1].end?.totalProgression == 1)
-        #expect(timeline.items.map(\.length) == [.pages(11), .pages(4)])
+        #expect(timeline.toc.entries[1].end?.totalProgression == 1)
+        #expect(timeline.toc.entries.map(\.length) == [.pages(11), .pages(4)])
     }
 
     /// The pages match the positions list of the publication.
@@ -52,23 +52,23 @@ struct PDFTimelineServiceTests {
     func pageCountsAreUnknownWithoutPositions(_ service: FailingPositionsService?) async throws {
         let timeline = try await timeline(positions: service.map { service in { _ in service } })
 
-        #expect(timeline.items.map { $0.start?.readingOrderIndex } == [0, 1])
-        #expect(timeline.items.map { $0.start?.offset } == [0, 1])
-        #expect(timeline.items[1].end == nil)
-        #expect(timeline.items.map(\.length) == [nil, nil])
+        #expect(timeline.toc.entries.map { $0.start?.readingOrderIndex } == [0, 1])
+        #expect(timeline.toc.entries.map { $0.start?.offset } == [0, 1])
+        #expect(timeline.toc.entries[1].end == nil)
+        #expect(timeline.toc.entries.map(\.length) == [nil, nil])
     }
 
-    /// Unlike for an audiobook, no items are generated from the reading order.
+    /// Unlike for an audiobook, no entries are generated from the reading order.
     @Test func emptyTableOfContentsGivesAnEmptyTimeline() async throws {
         let timeline = try await timeline(toc: [], positions: nil)
 
-        #expect(timeline.items.isEmpty)
+        #expect(timeline.toc.isEmpty)
     }
 
-    @Test func tableOfContentsFailureGivesATimelineWithoutItems() async throws {
+    @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
         let timeline = try await timeline(tocService: { _ in FailingTableOfContentsService() }, positions: nil)
 
-        #expect(timeline.items.isEmpty)
+        #expect(timeline.toc.isEmpty)
         #expect(timeline.segments().map(\.link.href) == ["a.pdf", "b.pdf"])
     }
 

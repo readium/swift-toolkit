@@ -10,8 +10,7 @@ import Foundation
 public typealias TimelineServiceFactory = @Sendable (PublicationServiceContext) -> TimelineService?
 
 /// Provides the ``Timeline`` of a publication: its table of contents laid out
-/// on the reading order, where each entry becomes an item with a start and an
-/// end.
+/// on the reading order, where each entry gets a start and an end.
 ///
 /// Use it to find the chapter containing the current location, move to the
 /// previous or next chapter, or get the boundaries and duration of each

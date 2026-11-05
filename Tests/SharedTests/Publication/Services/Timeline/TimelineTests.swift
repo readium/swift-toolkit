@@ -27,7 +27,7 @@ import Testing
 /// - X → `t1` (goes back)
 /// - B → `t3#t=200`
 ///
-/// **Nested**: tracks `t1` 600 s and `t2` 300 s. A placed item is nested
+/// **Nested**: tracks `t1` 600 s and `t2` 300 s. A placed entry is nested
 /// under a rangeless one.
 ///
 /// - Part 1 → `t1`
@@ -45,7 +45,7 @@ import Testing
 ///     - Section → `t1#t=300`
 enum TimelineTests {
     struct Building {
-        @Test func idsArePreOrderIndexesAndItemsKeepTheNodes() {
+        @Test func idsArePreOrderIndexesAndEntriesKeepTheNodes() {
             #expect(main.timeline.outline == [
                 "0 Part 1 → t1",
                 "  1 Chapter 1 → t1",
@@ -54,16 +54,16 @@ enum TimelineTests {
                 "  4 Chapter 3 → t2#t=120",
                 "  5 Chapter 4 → t3",
             ])
-            #expect(main.timeline.preOrderItems.map(\.link) == main.nodes.preOrder.map(\.link))
+            #expect(main.timeline.preOrderEntries.map(\.link) == main.nodes.preOrder.map(\.link))
         }
 
-        @Test func emptyNodesGiveATimelineWithoutItems() {
-            #expect(noTOC.timeline.items.isEmpty)
+        @Test func emptyNodesGiveATimelineWithoutEntries() {
+            #expect(noTOC.timeline.toc.isEmpty)
             #expect(noTOC.item(containing: "t1") == nil)
             #expect(noTOC.timeline.first() == nil)
         }
 
-        @Test func sparseItemsKeepTheirPlaceWithoutARange() {
+        @Test func sparseEntriesKeepTheirPlaceWithoutARange() {
             #expect(sparse.timeline.outline == [
                 "0 A → t2#t=10",
                 "1 R → outside.mp3",
@@ -71,7 +71,7 @@ enum TimelineTests {
                 "3 X → t1",
                 "4 B → t3#t=200",
             ])
-            #expect(sparse.timeline.preOrderItems.map(\.start) == [
+            #expect(sparse.timeline.preOrderEntries.map(\.start) == [
                 sparse.at(1, 10),
                 // Outside the reading order.
                 nil,
@@ -94,8 +94,8 @@ enum TimelineTests {
             #expect(fixture["Child"].end == nil)
         }
 
-        @Test func itemsAreAllPlaced() {
-            #expect(main.timeline.preOrderItems.map(\.start) == [
+        @Test func entriesAreAllPlaced() {
+            #expect(main.timeline.preOrderEntries.map(\.start) == [
                 // Part 1 and Chapter 1 share a start.
                 main.at(0, 0),
                 main.at(0, 0),
@@ -108,10 +108,10 @@ enum TimelineTests {
     }
 
     struct Ends {
-        @Test func itemEndsAtTheNextRangedItemAfterItsSubtree() {
+        @Test func entryEndsAtTheNextRangedEntryAfterItsSubtree() {
             let publicationEnd = position(2, 900, time: 1800, progression: 1, totalProgression: 1)
 
-            #expect(main.timeline.preOrderItems.map(\.end) == [
+            #expect(main.timeline.preOrderEntries.map(\.end) == [
                 // Part 1 ends where Chapter 2 does.
                 main.at(1, 60),
                 // Chapter 1 ends at Chapter 2's start.
@@ -124,8 +124,8 @@ enum TimelineTests {
             ])
         }
 
-        @Test func endsSkipRangelessItems() {
-            #expect(sparse.timeline.preOrderItems.map(\.end) == [
+        @Test func endsSkipRangelessEntries() {
+            #expect(sparse.timeline.preOrderEntries.map(\.end) == [
                 sparse.at(2, 0),
                 nil,
                 sparse.at(2, 200),
@@ -205,11 +205,11 @@ enum TimelineTests {
 
     struct Lengths {
         @Test func lengthGoesFromTheStartToTheEnd() {
-            #expect(main.timeline.preOrderItems.map(\.length) == [660, 300, 360, 1140, 180, 900].map { .duration($0) })
+            #expect(main.timeline.preOrderEntries.map(\.length) == [660, 300, 360, 1140, 180, 900].map { .duration($0) })
         }
 
-        @Test func rangelessItemsHaveNoLength() {
-            #expect(sparse.timeline.preOrderItems.map(\.length) == [.duration(290), nil, .duration(200), nil, .duration(800)])
+        @Test func rangelessEntriesHaveNoLength() {
+            #expect(sparse.timeline.preOrderEntries.map(\.length) == [.duration(290), nil, .duration(200), nil, .duration(800)])
         }
 
         /// One continues past `t1`, whose duration is unknown, and Three has
@@ -221,7 +221,7 @@ enum TimelineTests {
                 node("Three", "t3"),
             ])
 
-            #expect(fixture.timeline.items.map(\.length) == [nil, .duration(300), nil])
+            #expect(fixture.timeline.toc.entries.map(\.length) == [nil, .duration(300), nil])
         }
     }
 
@@ -243,24 +243,17 @@ enum TimelineTests {
             #expect(!a.isBefore(b) && !b.isBefore(a))
         }
 
-        @Test func itemsOfTimelinesBuiltFromTheSameNodesAreEqual() {
+        @Test func entriesOfTimelinesBuiltFromTheSameNodesAreEqual() {
             let other = makeMain()
 
             #expect(main["Chapter 1"] == other["Chapter 1"])
             #expect(main["Chapter 1"].hashValue == other["Chapter 1"].hashValue)
             #expect(main["Chapter 1"] != main["Chapter 2"])
         }
-
-        /// C has the id of Chapter 2 in Main.
-        @Test func queriesIgnoreTheItemsOfAnotherTimeline() {
-            #expect(main.timeline.previous(before: sparse["C"]) == nil)
-            #expect(main.timeline.next(after: sparse["C"]) == nil)
-            #expect(main.timeline.ancestors(of: sparse["C"]) == [])
-        }
     }
 
     struct ItemContaining {
-        @Test func returnsTheDeepestItemContainingTheLocator() {
+        @Test func returnsTheDeepestEntryContainingTheLocator() {
             #expect(main.item(containing: "t1", 450) == main["Chapter 2"])
             // Part 2's gap.
             #expect(main.item(containing: "t2", 90) == main["Part 2"])
@@ -287,10 +280,10 @@ enum TimelineTests {
         }
     }
 
-    /// See also `labelsMatchItemAndSegmentContaining` in `Segments`.
+    /// See also `entriesMatchItemAndSegmentContaining` in `Segments`.
     struct SegmentContaining {
         /// Part 2's segment ends at Chapter 3, unlike Part 2.
-        @Test func endsWhereTheNextItemStarts() {
+        @Test func endsWhereTheNextEntryStarts() {
             #expect(main.segment(containing: "t2", 90) == main.segment("Part 2", (1, 60), (1, 120)))
         }
 
@@ -336,7 +329,7 @@ enum TimelineTests {
     }
 
     struct First {
-        @Test func isTheFirstRangedItemInPreOrder() {
+        @Test func isTheFirstRangedEntryInPreOrder() {
             // The outermost of Part 1 and Chapter 1, which share the first
             // start.
             #expect(main.timeline.first() == main["Part 1"])
@@ -347,13 +340,13 @@ enum TimelineTests {
             #expect(first.timeline.first(maxDepth: 1) == first["X"])
         }
 
-        @Test func isNilWhenNoItemIsPlaced() {
+        @Test func isNilWhenNoEntryIsPlaced() {
             let timeline = TimelineFixture(durations: [600], nodes: [node("R", "outside.mp3")]).timeline
 
             #expect(timeline.first() == nil)
         }
 
-        /// The first placed item is under a rangeless parent.
+        /// The first placed entry is under a rangeless parent.
         private let first = TimelineFixture(durations: [600, 300], nodes: [
             node("R", "outside.mp3", [node("C", "t1")]),
             node("X", "t2"),
@@ -363,20 +356,20 @@ enum TimelineTests {
     struct PreviousAndNext {
         @Test func followThePreOrder() {
             let order = ["Chapter 1", "Chapter 2", "Part 2", "Chapter 3", "Chapter 4"].map { main[$0] }
-            for (item, next) in zip(order, order.dropFirst()) {
-                #expect(main.timeline.next(after: item) == next)
-                #expect(main.timeline.previous(before: next) == item)
+            for (entry, next) in zip(order, order.dropFirst()) {
+                #expect(main.timeline.next(after: entry) == next)
+                #expect(main.timeline.previous(before: next) == entry)
             }
             #expect(main.timeline.previous(before: main["Part 1"]) == nil)
             #expect(main.timeline.next(after: main["Chapter 4"]) == nil)
         }
 
-        @Test func skipItemsWithTheSameStart() {
+        @Test func skipEntriesWithTheSameStart() {
             #expect(main.timeline.next(after: main["Part 1"]) == main["Chapter 2"])
             #expect(main.timeline.previous(before: main["Chapter 1"]) == nil)
         }
 
-        @Test func rangelessItemsUseTheirPlaceInThePreOrder() {
+        @Test func rangelessEntriesUseTheirPlaceInThePreOrder() {
             #expect(sparse.timeline.next(after: sparse["A"]) == sparse["C"])
             #expect(sparse.timeline.next(after: sparse["R"]) == sparse["C"])
             #expect(sparse.timeline.previous(before: sparse["X"]) == sparse["C"])
@@ -386,12 +379,12 @@ enum TimelineTests {
         @Test func stopAtTheMaxDepth() {
             #expect(main.timeline.next(after: main["Chapter 2"], maxDepth: 1) == main["Part 2"])
             // The containing part, as it compares with the start of the given
-            // item.
+            // entry.
             #expect(main.timeline.previous(before: main["Chapter 3"], maxDepth: 1) == main["Part 2"])
         }
 
         @Test(arguments: [0, -1])
-        func maxDepthBelowOneLabelsNothing(maxDepth: Int) {
+        func maxDepthBelowOneGivesNoEntry(maxDepth: Int) {
             #expect(main.item(containing: "t1", 450, maxDepth: maxDepth) == nil)
             #expect(main.timeline.first(maxDepth: maxDepth) == nil)
             #expect(main.timeline.previous(before: main["Chapter 2"], maxDepth: maxDepth) == nil)
@@ -401,16 +394,19 @@ enum TimelineTests {
         }
     }
 
-    struct Ancestors {
-        @Test func goFromTheTopLevelToTheParent() {
-            #expect(main.timeline.ancestors(of: main["Part 1"]) == [])
-            #expect(main.timeline.ancestors(of: main["Chapter 3"]) == [main["Part 2"]])
-            #expect(sparse.timeline.ancestors(of: sparse["C"]) == [sparse["R"]])
+    struct Path {
+        @Test func isTheEntryAloneAtTheTopLevel() {
+            #expect(main.timeline.toc.path(to: main["Part 1"]) == [main["Part 1"]])
+        }
+
+        /// Chapter 2 is not in the reading order.
+        @Test func goesFromTheTopLevelDownToTheEntryThroughTheUnplacedAncestors() {
+            #expect(nested.timeline.toc.path(to: nested["Section"]) == [nested["Part 1"], nested["Chapter 2"], nested["Section"]])
         }
     }
 
     struct Segments {
-        @Test func coverTheTimelineWithTheDeepestItems() {
+        @Test func coverTheTimelineWithTheDeepestEntries() {
             #expect(main.timeline.segments() == [
                 // Part 1's segment is empty.
                 main.segment("Chapter 1", (0, 0), (0, 300)),
@@ -428,8 +424,8 @@ enum TimelineTests {
             ])
         }
 
-        /// The tracks without item are not merged.
-        @Test func haveOneSegmentWithoutItemPerTrackWithoutTableOfContents() {
+        /// The tracks without entry are not merged.
+        @Test func haveOneSegmentWithoutEntryPerTrackWithoutTableOfContents() {
             #expect(noTOC.timeline.segments() == [
                 noTOC.segment(nil, (0, 0), (1, 0)),
                 noTOC.segment(nil, (1, 0), (2, 0)),
@@ -438,7 +434,7 @@ enum TimelineTests {
         }
 
         /// A starts partway into `t2`.
-        @Test func haveOneSegmentWithoutItemPerTrackBeforeTheFirstItem() {
+        @Test func haveOneSegmentWithoutEntryPerTrackBeforeTheFirstEntry() {
             #expect(sparse.timeline.segments() == [
                 sparse.segment(nil, (0, 0), (1, 0)),
                 sparse.segment(nil, (1, 0), (1, 10)),
@@ -451,7 +447,7 @@ enum TimelineTests {
         /// `item(containing:)` returns nil in `[t3 0, t3 200)`, where C is
         /// deeper than `maxDepth` under the rangeless R. Partway into a
         /// track, the segment links to C.
-        @Test func haveNoItemWhereOnlyADeeperItemUnderARangelessOneIsPlaced() {
+        @Test func haveNoEntryWhereOnlyADeeperEntryUnderARangelessOneIsPlaced() {
             #expect(sparse.timeline.segments(maxDepth: 1) == [
                 sparse.segment(nil, (0, 0), (1, 0)),
                 sparse.segment(nil, (1, 0), (1, 10)),
@@ -470,7 +466,7 @@ enum TimelineTests {
             ])
         }
 
-        @Test func ancestorKeepsTheRangeOfADeeperItemUnderARangelessOne() {
+        @Test func ancestorKeepsTheRangeOfADeeperEntryUnderARangelessOne() {
             #expect(nested.timeline.segments() == [
                 nested.segment("Chapter 1", (0, 0), (0, 300)),
                 nested.segment("Section", (0, 300), (1, 0)),
@@ -511,11 +507,11 @@ enum TimelineTests {
             FixtureDepth(name: "nested at depth 2", fixture: nested, maxDepth: 2),
             FixtureDepth(name: "split at depth 2", fixture: split, maxDepth: 2),
         ])
-        func labelsMatchItemAndSegmentContaining(_ example: FixtureDepth) {
+        func entriesMatchItemAndSegmentContaining(_ example: FixtureDepth) {
             let fixture = example.fixture
             for segment in fixture.timeline.segments(maxDepth: example.maxDepth) {
                 for locator in [fixture.locator(at: segment.start), fixture.locator(at: segment.end!, by: -0.001)] {
-                    #expect(fixture.timeline.item(containing: locator, maxDepth: example.maxDepth) == segment.item)
+                    #expect(fixture.timeline.item(containing: locator, maxDepth: example.maxDepth) == segment.tocEntry)
                     #expect(fixture.timeline.segment(containing: locator, maxDepth: example.maxDepth) == segment)
                 }
             }
@@ -553,7 +549,7 @@ enum TimelineTests {
         @Test func endIsNilWhenTheTrackDurationIsUnknown() {
             let fixture = TimelineFixture(durations: [600, nil, 900], nodes: makeMain().nodes)
 
-            #expect(fixture.timeline.segments(in: url("t2")).last?.item == fixture["Chapter 3"])
+            #expect(fixture.timeline.segments(in: url("t2")).last?.tocEntry == fixture["Chapter 3"])
             #expect(fixture.timeline.segments(in: url("t2")).last?.end == nil)
         }
 
@@ -660,9 +656,9 @@ struct TimelineFixture: Sendable {
         timeline = Timeline(nodes: nodes, resolver: AudioTimelinePositionResolver(readingOrder: readingOrder))
     }
 
-    /// Returns the item with the given title.
-    subscript(title: String) -> TimelineItem {
-        timeline.preOrderItems.first { $0.title == .text(title) }!
+    /// Returns the entry with the given title.
+    subscript(title: String) -> TimelineTOCEntry {
+        timeline.preOrderEntries.first { $0.title == .text(title) }!
     }
 
     /// Returns the position at `offset` in the track at `index`, when all the
@@ -679,27 +675,27 @@ struct TimelineFixture: Sendable {
         )
     }
 
-    /// Returns the segment of the item with the given title, or without
-    /// item, between the given track indexes and offsets.
+    /// Returns the segment of the entry with the given title, or without
+    /// entry, between the given track indexes and offsets.
     ///
-    /// - Parameter link: Defaults to the link of the item, or of the track
-    ///   of `start` without item.
+    /// - Parameter link: Defaults to the link of the entry, or of the track
+    ///   of `start` without entry.
     func segment(
         _ title: String?,
         _ start: (Int, TimeInterval),
         _ end: (Int, TimeInterval),
         link: Link? = nil
     ) -> TimelineSegment {
-        let item = title.map { self[$0] }
+        let entry = title.map { self[$0] }
         return TimelineSegment(
-            item: item,
-            link: link ?? item?.link ?? readingOrder[start.0],
+            tocEntry: entry,
+            link: link ?? entry?.link ?? readingOrder[start.0],
             start: at(start.0, start.1),
             end: at(end.0, end.1)
         )
     }
 
-    func item(containing href: String, _ offset: TimeInterval? = nil, maxDepth: Int? = nil) -> TimelineItem? {
+    func item(containing href: String, _ offset: TimeInterval? = nil, maxDepth: Int? = nil) -> TimelineTOCEntry? {
         timeline.item(containing: locator(href, offset), maxDepth: maxDepth)
     }
 
@@ -727,14 +723,14 @@ struct TimelineFixture: Sendable {
 }
 
 private extension Timeline {
-    /// All the items, in pre-order.
-    var preOrderItems: [TimelineItem] {
-        items.preOrder
+    /// All the entries, in pre-order.
+    var preOrderEntries: [TimelineTOCEntry] {
+        toc.entries.preOrder
     }
 }
 
-private extension [TimelineItem] {
-    var preOrder: [TimelineItem] {
+private extension [TimelineTOCEntry] {
+    var preOrder: [TimelineTOCEntry] {
         flatMap { [$0] + $0.children.preOrder }
     }
 }

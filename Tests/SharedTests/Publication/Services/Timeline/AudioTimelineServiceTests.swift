@@ -11,7 +11,7 @@ import Testing
 
 enum AudioTimelineServiceTests {
     struct TableOfContents {
-        @Test func itemsMirrorTheTableOfContents() async throws {
+        @Test func entriesMirrorTheTableOfContents() async throws {
             let toc = [
                 Link(href: "t1.mp3", title: "Intro"),
                 Link(href: "t2.mp3#t=10", title: "Chapter", children: [
@@ -21,13 +21,13 @@ enum AudioTimelineServiceTests {
 
             let timeline = try await timeline(toc: toc)
 
-            // `t3.mp3` gets no generated item.
+            // `t3.mp3` gets no generated entry.
             #expect(timeline.outline == [
                 "0 Intro → t1.mp3",
                 "1 Chapter → t2.mp3#t=10",
                 "  2 Section → t2.mp3#t=20",
             ])
-            #expect(timeline.items.map(\.link) == toc)
+            #expect(timeline.toc.entries.map(\.link) == toc)
         }
 
         struct TableOfContentsOutline: Sendable, CustomTestStringConvertible {
@@ -54,7 +54,7 @@ enum AudioTimelineServiceTests {
                 expected: ["0 One → t1.mp3#t=5", "1 Two → t2.mp3#t=5", "2 Three → t3.mp3"]
             ),
             TableOfContentsOutline(
-                name: "an empty table of contents generates one item per track",
+                name: "an empty table of contents generates one entry per track",
                 toc: [],
                 expected: ["0 One → t1.mp3", "1 #2 → t2.mp3", "2 #3 → t3.mp3"]
             ),
@@ -76,22 +76,22 @@ enum AudioTimelineServiceTests {
             #expect(timeline.outline == example.expected)
         }
 
-        @Test func generatedItemsLinkToTheStartOfEachTrack() async throws {
+        @Test func generatedEntriesLinkToTheStartOfEachTrack() async throws {
             let timeline = try await timeline(toc: [])
 
-            #expect(timeline.items.map(\.link) == readingOrder)
-            #expect(timeline.items.map { $0.start?.readingOrderIndex } == [0, 1, 2])
-            #expect(timeline.items.map { $0.start?.offset } == [0, 0, 0])
+            #expect(timeline.toc.entries.map(\.link) == readingOrder)
+            #expect(timeline.toc.entries.map { $0.start?.readingOrderIndex } == [0, 1, 2])
+            #expect(timeline.toc.entries.map { $0.start?.offset } == [0, 0, 0])
         }
 
-        @Test func tableOfContentsFailureGivesATimelineWithoutItems() async throws {
+        @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
             let timeline = try await timeline(
                 toc: [],
                 generatesFromReadingOrder: false,
                 tocService: { _ in StubTableOfContentsService(.failure(.decoding("Broken"))) }
             )
 
-            #expect(timeline.items.isEmpty)
+            #expect(timeline.toc.isEmpty)
             #expect(timeline.segments().map(\.link) == readingOrder)
         }
 
@@ -121,8 +121,8 @@ enum AudioTimelineServiceTests {
             let service = StubTableOfContentsService(.success([Link(href: "t1.mp3", title: "Intro")]))
             let publication = makePublication(tocService: { _ in service })
 
-            let first = try await publication.timeline()?.items
-            let second = try await publication.timeline()?.items
+            let first = try await publication.timeline()?.toc.entries
+            let second = try await publication.timeline()?.toc.entries
 
             #expect(first?.isEmpty == false)
             #expect(first == second)
