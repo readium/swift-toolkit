@@ -9,8 +9,8 @@ import Foundation
 
 @_spi(ExperimentalTimeline)
 public extension Timeline {
-    /// One line per entry of the table of contents, with its id, title and
-    /// HREF, indented by depth.
+    /// One line per entry of the table of contents, with its index, title
+    /// and HREF, indented by depth.
     ///
     /// An untitled entry shows its number, such as `#2`.
     var outline: [String] {
@@ -20,7 +20,7 @@ public extension Timeline {
                 case let .text(text): text
                 case let .number(number): "#\(number)"
                 }
-                return ["\(indent)\(entry.id) \(title) → \(entry.link.href)"]
+                return ["\(indent)\(entry.id.index) \(title) → \(entry.link.href)"]
                     + lines(entry.children, indent: indent + "  ")
             }
         }

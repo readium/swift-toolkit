@@ -45,7 +45,7 @@ import Testing
 ///     - Section → `t1#t=300`
 enum TimelineTests {
     struct Building {
-        @Test func idsArePreOrderIndexesAndEntriesKeepTheNodes() {
+        @Test func idsWrapPreOrderIndicesAndEntriesKeepTheNodes() {
             #expect(main.timeline.outline == [
                 "0 Part 1 → t1",
                 "  1 Chapter 1 → t1",

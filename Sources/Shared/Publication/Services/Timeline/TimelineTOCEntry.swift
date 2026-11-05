@@ -7,9 +7,6 @@
 import Foundation
 
 /// An entry of the ``TimelineTOC``.
-///
-/// As the ``id`` is a pre-order index, the same entry keeps its `id` in a
-/// timeline rebuilt from the same table of contents.
 @_spi(ExperimentalTimeline)
 public struct TimelineTOCEntry: Identifiable, Hashable, Sendable {
     /// Title of an entry.
@@ -24,9 +21,22 @@ public struct TimelineTOCEntry: Identifiable, Hashable, Sendable {
         case number(Int)
     }
 
-    /// Index of the entry in the pre-order traversal of its table of
-    /// contents, unique within the timeline.
-    public let id: Int
+    /// Identifier of an entry, unique within its timeline.
+    ///
+    /// The same entry keeps its ID in a timeline rebuilt from the same table
+    /// of contents.
+    public struct ID: Hashable, Sendable {
+        /// Index of the entry in the pre-order traversal of its table of
+        /// contents.
+        package let index: Int
+
+        package init(index: Int) {
+            self.index = index
+        }
+    }
+
+    /// Identifier of the entry.
+    public let id: ID
 
     /// Title of the entry.
     public let title: Title
@@ -63,7 +73,7 @@ public struct TimelineTOCEntry: Identifiable, Hashable, Sendable {
     public let children: [TimelineTOCEntry]
 
     package init(
-        id: Int,
+        id: ID,
         title: Title,
         link: Link,
         start: TimelinePosition?,

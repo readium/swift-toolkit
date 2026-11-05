@@ -66,9 +66,9 @@ public struct Timeline: Sendable {
     /// Depth of each entry, starting at 1 for the top level.
     private let depths: [Int]
 
-    /// IDs of the entries with a range, in pre-order, which is also the order
-    /// of their starts.
-    private let rangedIDs: [Int]
+    /// Indices of the entries with a range, in pre-order, which is also the
+    /// order of their starts.
+    private let rangedIndices: [Int]
 
     /// Start of each reading order resource.
     private let resourceStarts: [ResourceStart]
@@ -84,7 +84,7 @@ public struct Timeline: Sendable {
 
         /// Ranged entry starting the range, or `nil` at the start of a
         /// resource continuing the previous range.
-        let rangedID: Int?
+        let rangedIndex: Int?
 
         /// Link to the start, when the entry of the range does not start
         /// there: of the resource starting there, or else of the first
@@ -95,79 +95,79 @@ public struct Timeline: Sendable {
     public init(nodes: [Node], resolver: any TimelinePositionResolver) {
         // Flattens the nodes in pre-order.
         var flatNodes: [Node] = []
-        var parentIDs: [Int?] = []
+        var parentIndices: [Int?] = []
         var depths: [Int] = []
-        var childIDs: [[Int]] = []
-        // ID following the subtree of each node.
+        var childIndices: [[Int]] = []
+        // Index following the subtree of each node.
         var subtreeEnds: [Int] = []
 
         @discardableResult
-        func flatten(_ node: Node, parentID: Int?, depth: Int) -> Int {
-            let nodeID = flatNodes.count
+        func flatten(_ node: Node, parentIndex: Int?, depth: Int) -> Int {
+            let nodeIndex = flatNodes.count
             flatNodes.append(node)
-            parentIDs.append(parentID)
+            parentIndices.append(parentIndex)
             depths.append(depth)
-            childIDs.append([])
-            subtreeEnds.append(nodeID)
+            childIndices.append([])
+            subtreeEnds.append(nodeIndex)
             for child in node.children {
-                childIDs[nodeID].append(flatten(child, parentID: nodeID, depth: depth + 1))
+                childIndices[nodeIndex].append(flatten(child, parentIndex: nodeIndex, depth: depth + 1))
             }
-            subtreeEnds[nodeID] = flatNodes.count
-            return nodeID
+            subtreeEnds[nodeIndex] = flatNodes.count
+            return nodeIndex
         }
 
-        let topLevelIDs = nodes.map { flatten($0, parentID: nil, depth: 1) }
+        let topLevelIndices = nodes.map { flatten($0, parentIndex: nil, depth: 1) }
 
         // Places the nodes in pre-order. A node starting before the last
         // placed one is left without a range.
         var starts: [TimelinePosition?] = []
-        var rangedIDs: [Int] = []
-        for (nodeID, node) in flatNodes.enumerated() {
+        var rangedIndices: [Int] = []
+        for (nodeIndex, node) in flatNodes.enumerated() {
             var start = resolver.position(of: node.link)
-            if let lastID = rangedIDs.last, let lastStart = starts[lastID], let position = start, position.isBefore(lastStart) {
+            if let lastIndex = rangedIndices.last, let lastStart = starts[lastIndex], let position = start, position.isBefore(lastStart) {
                 start = nil
             }
             starts.append(start)
             if start != nil {
-                rangedIDs.append(nodeID)
+                rangedIndices.append(nodeIndex)
             }
         }
 
-        // Start of the first ranged entry from each ID.
+        // Start of the first ranged entry from each index.
         var nextStarts = [TimelinePosition?](repeating: nil, count: flatNodes.count + 1)
-        for nodeID in flatNodes.indices.reversed() {
-            nextStarts[nodeID] = starts[nodeID] ?? nextStarts[nodeID + 1]
+        for nodeIndex in flatNodes.indices.reversed() {
+            nextStarts[nodeIndex] = starts[nodeIndex] ?? nextStarts[nodeIndex + 1]
         }
 
         // Builds the entries from the leaves, as children follow their
         // parent in pre-order.
         var allEntries = [TimelineTOCEntry?](repeating: nil, count: flatNodes.count)
-        for (nodeID, node) in flatNodes.enumerated().reversed() {
-            let start = starts[nodeID]
+        for (nodeIndex, node) in flatNodes.enumerated().reversed() {
+            let start = starts[nodeIndex]
             let end = start.flatMap { start in
                 // An entry can start past the known end of the publication.
-                nextStarts[subtreeEnds[nodeID]] ?? resolver.end.map { $0.isBefore(start) ? start : $0 }
+                nextStarts[subtreeEnds[nodeIndex]] ?? resolver.end.map { $0.isBefore(start) ? start : $0 }
             }
-            allEntries[nodeID] = TimelineTOCEntry(
-                id: nodeID,
+            allEntries[nodeIndex] = TimelineTOCEntry(
+                id: TimelineTOCEntry.ID(index: nodeIndex),
                 title: node.title,
                 link: node.link,
                 start: start,
                 end: end,
                 length: start.flatMap { start in end.flatMap { resolver.length(from: start, to: $0) } },
-                children: childIDs[nodeID].map { allEntries[$0]! }
+                children: childIndices[nodeIndex].map { allEntries[$0]! }
             )
         }
 
         let builtEntries = allEntries.map { $0! }
         toc = TimelineTOC(
-            entries: topLevelIDs.map { builtEntries[$0] },
+            entries: topLevelIndices.map { builtEntries[$0] },
             allEntries: builtEntries,
-            parentIDs: parentIDs
+            parentIndices: parentIndices
         )
         self.resolver = resolver
         self.depths = depths
-        self.rangedIDs = rangedIDs
+        self.rangedIndices = rangedIndices
         // A duplicate HREF resolves to its first resource, which already
         // has a start.
         resourceStarts = resolver.readingOrder.enumerated().compactMap { index, link in
@@ -191,10 +191,10 @@ public struct Timeline: Sendable {
 
         // Index of the first ranged entry starting after the position.
         var low = 0
-        var high = rangedIDs.count
+        var high = rangedIndices.count
         while low < high {
             let middle = (low + high) / 2
-            if !position.isBefore(toc.allEntries[rangedIDs[middle]].start!) {
+            if !position.isBefore(toc.allEntries[rangedIndices[middle]].start!) {
                 low = middle + 1
             } else {
                 high = middle
@@ -204,7 +204,7 @@ public struct Timeline: Sendable {
             return nil
         }
 
-        return containingEntryID(from: rangedIDs[low - 1], maxDepth: maxDepth).map { toc.allEntries[$0] }
+        return containingEntryIndex(from: rangedIndices[low - 1], maxDepth: maxDepth).map { toc.allEntries[$0] }
     }
 
     /// Returns the segment of ``segments(maxDepth:)`` containing `locator`.
@@ -256,7 +256,7 @@ public struct Timeline: Sendable {
     /// - Parameter maxDepth: Skips the entries deeper than this depth. The
     ///   top level is 1.
     public func first(maxDepth: Int? = nil) -> TimelineTOCEntry? {
-        rangedIDs
+        rangedIndices
             .first { isWithin($0, maxDepth: maxDepth) }
             .map { toc.allEntries[$0] }
     }
@@ -269,10 +269,10 @@ public struct Timeline: Sendable {
     /// - Parameter maxDepth: Skips the entries deeper than this depth. The
     ///   top level is 1.
     public func previous(before entry: TimelineTOCEntry, maxDepth: Int? = nil) -> TimelineTOCEntry? {
-        rangedIDs.last { candidateID in
-            candidateID < entry.id
-                && isWithin(candidateID, maxDepth: maxDepth)
-                && entry.start.map { toc.allEntries[candidateID].start!.isBefore($0) } ?? true
+        rangedIndices.last { candidateIndex in
+            candidateIndex < entry.id.index
+                && isWithin(candidateIndex, maxDepth: maxDepth)
+                && entry.start.map { toc.allEntries[candidateIndex].start!.isBefore($0) } ?? true
         }
         .map { toc.allEntries[$0] }
     }
@@ -285,10 +285,10 @@ public struct Timeline: Sendable {
     /// - Parameter maxDepth: Skips the entries deeper than this depth. The
     ///   top level is 1.
     public func next(after entry: TimelineTOCEntry, maxDepth: Int? = nil) -> TimelineTOCEntry? {
-        rangedIDs.first { candidateID in
-            candidateID > entry.id
-                && isWithin(candidateID, maxDepth: maxDepth)
-                && entry.start.map { $0.isBefore(toc.allEntries[candidateID].start!) } ?? true
+        rangedIndices.first { candidateIndex in
+            candidateIndex > entry.id.index
+                && isWithin(candidateIndex, maxDepth: maxDepth)
+                && entry.start.map { $0.isBefore(toc.allEntries[candidateIndex].start!) } ?? true
         }
         .map { toc.allEntries[$0] }
     }
@@ -316,26 +316,26 @@ public struct Timeline: Sendable {
                 guard position.map({ !$0.isBefore(resourceStart.position) }) ?? true else {
                     return
                 }
-                breaks.append(Break(start: resourceStart.position, rangedID: nil, link: resourceStart.link))
+                breaks.append(Break(start: resourceStart.position, rangedIndex: nil, link: resourceStart.link))
                 resourceIndex += 1
             }
         }
-        for rangedID in rangedIDs {
-            let entry = toc.allEntries[rangedID]
+        for rangedIndex in rangedIndices {
+            let entry = toc.allEntries[rangedIndex]
             addResourceStarts(upTo: entry.start!)
             // Takes the link of a resource, or of a ranged entry, starting
             // there first.
             let link = breaks.last.flatMap { $0.start == entry.start ? $0.link : nil } ?? entry.link
-            breaks.append(Break(start: entry.start!, rangedID: rangedID, link: link))
+            breaks.append(Break(start: entry.start!, rangedIndex: rangedIndex, link: link))
         }
         addResourceStarts(upTo: nil)
 
         var segments: [TimelineSegment] = []
         // Entry of the current range.
-        var currentEntryID: Int?
+        var currentEntryIndex: Int?
         for (index, rangeBreak) in breaks.enumerated() {
-            if let rangedID = rangeBreak.rangedID {
-                currentEntryID = containingEntryID(from: rangedID, maxDepth: maxDepth)
+            if let rangedIndex = rangeBreak.rangedIndex {
+                currentEntryIndex = containingEntryIndex(from: rangedIndex, maxDepth: maxDepth)
             }
             let start = rangeBreak.start
             let end = index + 1 < breaks.count ? breaks[index + 1].start : resolver.end
@@ -348,12 +348,12 @@ public struct Timeline: Sendable {
             // a resource.
             if
                 let last = segments.last,
-                last.tocEntry?.id == currentEntryID,
-                currentEntryID != nil || last.start.readingOrderIndex == start.readingOrderIndex
+                last.tocEntry?.id.index == currentEntryIndex,
+                currentEntryIndex != nil || last.start.readingOrderIndex == start.readingOrderIndex
             {
                 segments[segments.count - 1] = TimelineSegment(tocEntry: last.tocEntry, link: last.link, start: last.start, end: end)
             } else {
-                let entry = currentEntryID.map { toc.allEntries[$0] }
+                let entry = currentEntryIndex.map { toc.allEntries[$0] }
                 let link = entry.flatMap { $0.start == start ? $0.link : nil } ?? rangeBreak.link
                 segments.append(TimelineSegment(tocEntry: entry, link: link, start: start, end: end))
             }
@@ -394,22 +394,22 @@ public struct Timeline: Sendable {
         }
     }
 
-    /// Returns the ID of the entry containing the positions from the start of
-    /// the ranged entry `entryID`: itself, or its closest ranged ancestor
-    /// within `maxDepth`.
-    private func containingEntryID(from entryID: Int, maxDepth: Int?) -> Int? {
-        var containingID: Int? = entryID
-        while let currentID = containingID, !isRanged(currentID) || !isWithin(currentID, maxDepth: maxDepth) {
-            containingID = toc.parentIDs[currentID]
+    /// Returns the index of the entry containing the positions from the start
+    /// of the ranged entry `entryIndex`: itself, or its closest ranged
+    /// ancestor within `maxDepth`.
+    private func containingEntryIndex(from entryIndex: Int, maxDepth: Int?) -> Int? {
+        var containingIndex: Int? = entryIndex
+        while let currentIndex = containingIndex, !isRanged(currentIndex) || !isWithin(currentIndex, maxDepth: maxDepth) {
+            containingIndex = toc.parentIndices[currentIndex]
         }
-        return containingID
+        return containingIndex
     }
 
-    private func isRanged(_ entryID: Int) -> Bool {
-        toc.allEntries[entryID].start != nil
+    private func isRanged(_ entryIndex: Int) -> Bool {
+        toc.allEntries[entryIndex].start != nil
     }
 
-    private func isWithin(_ entryID: Int, maxDepth: Int?) -> Bool {
-        maxDepth.map { depths[entryID] <= $0 } ?? true
+    private func isWithin(_ entryIndex: Int, maxDepth: Int?) -> Bool {
+        maxDepth.map { depths[entryIndex] <= $0 } ?? true
     }
 }

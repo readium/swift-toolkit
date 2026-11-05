@@ -20,11 +20,11 @@ public struct TimelineTOC: Sendable {
         entries.isEmpty
     }
 
-    /// All the entries, indexed by their ID.
+    /// All the entries, in pre-order.
     let allEntries: [TimelineTOCEntry]
 
-    /// ID of the parent of each entry.
-    let parentIDs: [Int?]
+    /// Index of the parent of each entry.
+    let parentIndices: [Int?]
 
     /// Returns the entries from the top level down to `entry` itself, such
     /// as the chapter and then the section for a section.
@@ -32,10 +32,10 @@ public struct TimelineTOC: Sendable {
     /// `entry` must be an entry of this table of contents.
     public func path(to entry: TimelineTOCEntry) -> [TimelineTOCEntry] {
         var path = [entry]
-        var parentID = parentIDs[entry.id]
-        while let id = parentID {
-            path.insert(allEntries[id], at: 0)
-            parentID = parentIDs[id]
+        var parentIndex = parentIndices[entry.id.index]
+        while let index = parentIndex {
+            path.insert(allEntries[index], at: 0)
+            parentIndex = parentIndices[index]
         }
         return path
     }
