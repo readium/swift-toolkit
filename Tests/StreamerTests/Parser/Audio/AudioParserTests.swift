@@ -319,7 +319,7 @@ enum AudioParserTests {
 
             #expect(timeline.item(containing: Locator(href: AnyURL(string: "3.mp3")!, mediaType: .mp3)) == timeline.items[0])
             #expect(timeline.item(containing: Locator(href: AnyURL(string: "1.mp3")!, mediaType: .mp3)) == nil)
-            #expect(timeline.segments(in: AnyURL(string: "1.mp3")!) == [])
+            #expect(timeline.segments(in: AnyURL(string: "1.mp3")!).map(\.item) == [nil])
         }
 
         /// Parses a folder of files having the given metadata, with a

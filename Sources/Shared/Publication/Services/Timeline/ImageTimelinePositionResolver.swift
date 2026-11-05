@@ -23,6 +23,10 @@ package struct ImageTimelinePositionResolver: TimelinePositionResolver {
         )
     }
 
+    package var readingOrder: [Link] {
+        layout.readingOrder
+    }
+
     package var end: TimelinePosition? {
         layout.end
     }

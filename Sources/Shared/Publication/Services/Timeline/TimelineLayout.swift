@@ -33,7 +33,7 @@ extension Double: TimelineScalar {
 ///
 /// A missing or non-positive length is unknown.
 package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
-    private let readingOrder: [Link]
+    package let readingOrder: [Link]
 
     /// Length of each reading order resource.
     private let lengths: [Scalar?]

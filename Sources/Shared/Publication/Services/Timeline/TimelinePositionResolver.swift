@@ -12,6 +12,9 @@ import Foundation
 /// The same resolution is used to build a timeline and to query it.
 @_spi(ExperimentalTimeline)
 public protocol TimelinePositionResolver: Sendable {
+    /// Reading order laid out on the timeline.
+    var readingOrder: [Link] { get }
+
     /// End of the publication, or `nil` when it is unknown.
     var end: TimelinePosition? { get }
 

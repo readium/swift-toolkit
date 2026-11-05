@@ -117,7 +117,12 @@ struct WebTimelineServiceTests {
         let timeline = try await timeline()
 
         #expect(timeline.segments(in: AnyURL(string: "ch1b.xhtml")!) == [
-            TimelineSegment(item: timeline.items[0], start: position(2), end: position(2, 1)),
+            TimelineSegment(
+                item: timeline.items[0],
+                link: Link(href: "ch1b.xhtml", mediaType: .xhtml),
+                start: position(2),
+                end: position(2, 1)
+            ),
         ])
     }
 

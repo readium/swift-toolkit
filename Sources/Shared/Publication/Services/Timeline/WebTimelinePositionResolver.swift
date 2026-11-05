@@ -21,7 +21,7 @@ import Foundation
 /// computed from the number of positions of each resource. A missing or
 /// non-positive count is unknown.
 package struct WebTimelinePositionResolver: TimelinePositionResolver {
-    private let readingOrder: [Link]
+    package let readingOrder: [Link]
 
     /// Lays out the positions of the reading order resources.
     private let layout: TimelineLayout<Int>

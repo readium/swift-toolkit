@@ -18,7 +18,7 @@ struct EPUBParserTests {
         let section = try #require(timeline.items.first)
 
         #expect(section.title == .text("SECTION IV FAIRY STORIES—MODERN FANTASTIC TALES"))
-        #expect(timeline.segments().map(\.item) == [section])
+        #expect(timeline.segments().map(\.item) == [nil, nil, section])
         #expect(timeline.item(containing: Locator(href: "EPUB/cover.xhtml", mediaType: .xhtml)) == nil)
         #expect(timeline.item(containing: Locator(href: "EPUB/s04.xhtml", mediaType: .xhtml, locations: .init(progression: 0.8))) == section)
     }
