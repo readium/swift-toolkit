@@ -29,7 +29,7 @@ struct PDFParserTests {
         ])
         #expect(chapter1.end?.offset == 3)
         #expect(chapter2.end?.offset == 4)
-        #expect(timeline.item(containing: Locator(href: href, mediaType: .pdf, locations: .init(fragments: ["page=3"]))) == chapter1)
+        #expect(timeline.segments().segment(containing: Locator(href: href, mediaType: .pdf, locations: .init(fragments: ["page=3"])))?.tocEntry == chapter1)
     }
 }
 

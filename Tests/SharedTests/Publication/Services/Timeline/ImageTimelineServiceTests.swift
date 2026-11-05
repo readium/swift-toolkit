@@ -30,7 +30,7 @@ struct ImageTimelineServiceTests {
             progression: 0,
             totalProgression: 1 / 3
         ))
-        #expect(timeline.item(containing: locator) == timeline.toc.entries[0])
+        #expect(timeline.segments().segment(containing: locator)?.tocEntry == timeline.toc.entries[0])
     }
 
     /// The pages match the positions list of the publication.

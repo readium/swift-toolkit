@@ -110,7 +110,7 @@ struct WebTimelineServiceTests {
         let timeline = try await timeline()
         let locator = Locator(href: AnyURL(string: example.href)!, mediaType: .xhtml, locations: .init(progression: example.progression))
 
-        #expect(timeline.item(containing: locator)?.title == example.expected)
+        #expect(timeline.segments().segment(containing: locator)?.tocEntry?.title == example.expected)
     }
 
     @Test func aSplitChapterCoversItsFollowingResources() async throws {
@@ -126,16 +126,11 @@ struct WebTimelineServiceTests {
         ])
     }
 
-    @Test func nextAndPreviousSkipTheUnplacedEntries() async throws {
+    @Test func segmentsSkipTheUnplacedEntries() async throws {
         let timeline = try await timeline()
-        let chapter1 = timeline.toc.entries[0]
-        let chapter2 = timeline.toc.entries[2]
-        let chapter3 = timeline.toc.entries[4]
+        let entries = timeline.toc.entries
 
-        #expect(timeline.next(after: chapter1) == chapter2)
-        #expect(timeline.next(after: chapter2) == chapter3)
-        #expect(timeline.previous(before: chapter3) == chapter2)
-        #expect(timeline.previous(before: chapter2) == chapter1)
+        #expect(timeline.segments().map(\.tocEntry) == [nil, entries[0], entries[2], entries[4]])
     }
 
     /// A fixed-layout locator usually has no progression.
@@ -144,7 +139,7 @@ struct WebTimelineServiceTests {
         let locator = Locator(href: AnyURL(string: "ch1a.xhtml")!, mediaType: .xhtml)
 
         #expect(timeline.toc.entries[0].start == position(1))
-        #expect(timeline.item(containing: locator) == timeline.toc.entries[0])
+        #expect(timeline.segments().segment(containing: locator)?.tocEntry == timeline.toc.entries[0])
     }
 
     @Test func readsTheTableOfContentsService() async throws {

@@ -317,9 +317,10 @@ enum AudioParserTests {
             let publication = try await parse([AudioMetadata(), AudioMetadata(title: "Two"), AudioMetadata(), AudioMetadata(title: "Four")])
             let timeline = try #require(await publication.timeline())
 
-            #expect(timeline.item(containing: Locator(href: AnyURL(string: "3.mp3")!, mediaType: .mp3)) == timeline.toc.entries[0])
-            #expect(timeline.item(containing: Locator(href: AnyURL(string: "1.mp3")!, mediaType: .mp3)) == nil)
-            #expect(timeline.segments().segments(in: AnyURL(string: "1.mp3")!).map(\.tocEntry) == [nil])
+            let segments = timeline.segments()
+
+            #expect(segments.segment(containing: Locator(href: AnyURL(string: "3.mp3")!, mediaType: .mp3))?.tocEntry == timeline.toc.entries[0])
+            #expect(segments.segments(in: AnyURL(string: "1.mp3")!).map(\.tocEntry) == [nil])
         }
 
         /// Parses a folder of files having the given metadata, with a

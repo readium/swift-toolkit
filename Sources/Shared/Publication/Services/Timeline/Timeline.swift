@@ -29,20 +29,6 @@ import Foundation
 /// The ``segments(maxDepth:)`` cover the reading order, including outside
 /// any entry, such as before the first one or in a publication without a
 /// table of contents.
-///
-/// To display the current chapter in a running header, locate the
-/// navigator's location each time it changes, and update the header when
-/// the `id` of the entry changes:
-///
-/// ```swift
-/// func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-///     let chapter = timeline.item(containing: locator, maxDepth: 1)
-///     if chapter?.id != currentChapter?.id {
-///         currentChapter = chapter
-///         updateHeader()
-///     }
-/// }
-/// ```
 @_spi(ExperimentalTimeline)
 public struct Timeline: Sendable {
     /// Source of a ``TimelineTOCEntry``.
@@ -176,43 +162,6 @@ public struct Timeline: Sendable {
         }
     }
 
-    /// Returns the deepest entry containing `locator`, or `nil` when it is
-    /// outside the reading order or before the first entry.
-    ///
-    /// - Parameter maxDepth: Returns an ancestor of the deepest entry, no
-    ///   deeper than this depth. The top level is 1.
-    public func item(containing locator: Locator, maxDepth: Int? = nil) -> TimelineTOCEntry? {
-        guard
-            maxDepth.map({ $0 >= 1 }) ?? true,
-            let position = position(of: locator)
-        else {
-            return nil
-        }
-
-        // Index of the first ranged entry starting after the position.
-        var low = 0
-        var high = rangedIndices.count
-        while low < high {
-            let middle = (low + high) / 2
-            if !position.isBefore(toc.allEntries[rangedIndices[middle]].start!) {
-                low = middle + 1
-            } else {
-                high = middle
-            }
-        }
-        guard low > 0 else {
-            return nil
-        }
-
-        return containingEntryIndex(from: rangedIndices[low - 1], maxDepth: maxDepth).map { toc.allEntries[$0] }
-    }
-
-    /// Returns the segment of ``segments(maxDepth:)`` containing `locator`,
-    /// as ``TimelineSegments/segment(containing:)``.
-    public func segment(containing locator: Locator, maxDepth: Int? = nil) -> TimelineSegment? {
-        segments(maxDepth: maxDepth).segment(containing: locator)
-    }
-
     /// Returns the position of `locator` on the timeline, or `nil` when it is
     /// outside the reading order.
     public func position(of locator: Locator) -> TimelinePosition? {
@@ -226,74 +175,20 @@ public struct Timeline: Sendable {
         resolver.length(from: start, to: end)
     }
 
-    /// Returns the start and end of the reading order resource at `href`,
-    /// ignoring its fragment, or `nil` when it is not in the reading order.
-    /// The end is `nil` when it is unknown.
-    ///
-    /// Use it to measure what is left of the current resource with
-    /// ``length(from:to:)``.
-    public func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
-        resolver.bounds(ofResource: href)
-    }
-
-    /// Returns the first entry with a range in pre-order, or `nil` when no
-    /// placed entry is within `maxDepth`.
-    ///
-    /// - Parameter maxDepth: Skips the entries deeper than this depth. The
-    ///   top level is 1.
-    public func first(maxDepth: Int? = nil) -> TimelineTOCEntry? {
-        rangedIndices
-            .first { isWithin($0, maxDepth: maxDepth) }
-            .map { toc.allEntries[$0] }
-    }
-
-    /// Returns the entry before `entry` in pre-order, skipping the entries
-    /// without a range or sharing its start.
-    ///
-    /// `entry` must be an entry of this timeline.
-    ///
-    /// - Parameter maxDepth: Skips the entries deeper than this depth. The
-    ///   top level is 1.
-    public func previous(before entry: TimelineTOCEntry, maxDepth: Int? = nil) -> TimelineTOCEntry? {
-        rangedIndices.last { candidateIndex in
-            candidateIndex < entry.id.index
-                && isWithin(candidateIndex, maxDepth: maxDepth)
-                && entry.start.map { toc.allEntries[candidateIndex].start!.isBefore($0) } ?? true
-        }
-        .map { toc.allEntries[$0] }
-    }
-
-    /// Returns the entry after `entry` in pre-order, skipping the entries
-    /// without a range or sharing its start.
-    ///
-    /// `entry` must be an entry of this timeline.
-    ///
-    /// - Parameter maxDepth: Skips the entries deeper than this depth. The
-    ///   top level is 1.
-    public func next(after entry: TimelineTOCEntry, maxDepth: Int? = nil) -> TimelineTOCEntry? {
-        rangedIndices.first { candidateIndex in
-            candidateIndex > entry.id.index
-                && isWithin(candidateIndex, maxDepth: maxDepth)
-                && entry.start.map { $0.isBefore(toc.allEntries[candidateIndex].start!) } ?? true
-        }
-        .map { toc.allEntries[$0] }
-    }
-
     /// Returns the segments covering the reading order, one after another.
     ///
     /// The entry of a segment is the deepest one containing its positions,
-    /// the one returned by ``item(containing:maxDepth:)``. Outside any entry,
-    /// such as before the first one, there is one segment without entry per
-    /// reading order resource.
+    /// within `maxDepth`. Outside any entry, such as before the first one,
+    /// there is one segment without entry per reading order resource.
     ///
     /// - Parameter maxDepth: Ignores the entries deeper than this depth: their
     ///   positions are in the segment of their closest ancestor within it.
     ///   The top level is 1.
     public func segments(maxDepth: Int? = nil) -> TimelineSegments {
         // Each ranged entry starts a range up to the next break, inside the
-        // entry `item(containing:)` would return in it. The start of each resource
-        // breaks the ranges too, so that a range without entry stays in its
-        // resource.
+        // deepest entry containing it within `maxDepth`. The start of each
+        // resource breaks the ranges too, so that a range without entry stays
+        // in its resource.
         var breaks: [Break] = []
         var resourceIndex = 0
         func addResourceStarts(upTo position: TimelinePosition?) {
@@ -346,12 +241,6 @@ public struct Timeline: Sendable {
         }
 
         return TimelineSegments(segments: segments, resolver: resolver)
-    }
-
-    /// Returns the segments of ``segments(maxDepth:)`` in the reading order
-    /// resource at `href`, as ``TimelineSegments/segments(in:)``.
-    public func segments(in href: any URLConvertible, maxDepth: Int? = nil) -> [TimelineSegment] {
-        segments(maxDepth: maxDepth).segments(in: href)
     }
 
     /// Returns the index of the entry containing the positions from the start
