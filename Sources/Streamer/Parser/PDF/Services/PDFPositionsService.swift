@@ -19,7 +19,7 @@ final class PDFPositionsService: PositionsService, Sendable {
                     href: link.url(),
                     mediaType: link.mediaType ?? .pdf,
                     locations: .init(
-                        fragments: ["page=\(position)"],
+                        fragments: [.page(position)],
                         progression: progression,
                         totalProgression: progression,
                         position: position
