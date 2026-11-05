@@ -116,7 +116,7 @@ struct WebTimelineServiceTests {
     @Test func aSplitChapterCoversItsFollowingResources() async throws {
         let timeline = try await timeline()
 
-        #expect(timeline.segments(in: AnyURL(string: "ch1b.xhtml")!) == [
+        #expect(timeline.segments().segments(in: AnyURL(string: "ch1b.xhtml")!) == [
             TimelineSegment(
                 tocEntry: timeline.toc.entries[0],
                 link: Link(href: "ch1b.xhtml", mediaType: .xhtml),

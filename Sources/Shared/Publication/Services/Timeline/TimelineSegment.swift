@@ -12,9 +12,6 @@ import Foundation
 /// Outside any entry, such as before the first one or without a table of
 /// contents, a segment is a reading order resource instead, up to where the
 /// first entry starts.
-///
-/// The ``Timeline/segments(maxDepth:)`` follow each other from the start of
-/// the reading order to its end.
 @_spi(ExperimentalTimeline)
 public struct TimelineSegment: Hashable, Sendable {
     /// Entry of the table of contents located in the segment, or `nil` where

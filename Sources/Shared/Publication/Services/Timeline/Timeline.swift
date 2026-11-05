@@ -207,24 +207,10 @@ public struct Timeline: Sendable {
         return containingEntryIndex(from: rangedIndices[low - 1], maxDepth: maxDepth).map { toc.allEntries[$0] }
     }
 
-    /// Returns the segment of ``segments(maxDepth:)`` containing `locator`.
-    ///
-    /// Unlike the entry, the segment ends where the next entry starts, such
-    /// as the first child of a parent entry. Use it to measure what is left of
-    /// the current chapter.
-    ///
-    /// `nil` when `locator` is outside the reading order. Past the end of
-    /// the last segment, such as past the known end of the publication, it
-    /// is the last segment.
-    ///
-    /// - Parameter maxDepth: Ignores the entries deeper than this depth: their
-    ///   positions are in the segment of their closest ancestor within it.
-    ///   The top level is 1.
+    /// Returns the segment of ``segments(maxDepth:)`` containing `locator`,
+    /// as ``TimelineSegments/segment(containing:)``.
     public func segment(containing locator: Locator, maxDepth: Int? = nil) -> TimelineSegment? {
-        guard let position = position(of: locator) else {
-            return nil
-        }
-        return segments(maxDepth: maxDepth).last { !position.isBefore($0.start) }
+        segments(maxDepth: maxDepth).segment(containing: locator)
     }
 
     /// Returns the position of `locator` on the timeline, or `nil` when it is
@@ -303,7 +289,7 @@ public struct Timeline: Sendable {
     /// - Parameter maxDepth: Ignores the entries deeper than this depth: their
     ///   positions are in the segment of their closest ancestor within it.
     ///   The top level is 1.
-    public func segments(maxDepth: Int? = nil) -> [TimelineSegment] {
+    public func segments(maxDepth: Int? = nil) -> TimelineSegments {
         // Each ranged entry starts a range up to the next break, inside the
         // entry `item(containing:)` would return in it. The start of each resource
         // breaks the ranges too, so that a range without entry stays in its
@@ -359,39 +345,13 @@ public struct Timeline: Sendable {
             }
         }
 
-        return segments
+        return TimelineSegments(segments: segments, resolver: resolver)
     }
 
     /// Returns the segments of ``segments(maxDepth:)`` in the reading order
-    /// resource at `href`, with positions clipped to the resource.
-    ///
-    /// Empty when `href` is not in the reading order.
+    /// resource at `href`, as ``TimelineSegments/segments(in:)``.
     public func segments(in href: any URLConvertible, maxDepth: Int? = nil) -> [TimelineSegment] {
-        guard let (resourceStart, resourceEnd) = bounds(ofResource: href) else {
-            return []
-        }
-        let index = resourceStart.readingOrderIndex
-
-        return segments(maxDepth: maxDepth).compactMap { segment in
-            guard
-                segment.start.readingOrderIndex <= index,
-                segment.end.map({ resourceStart.isBefore($0) }) ?? true
-            else {
-                return nil
-            }
-
-            let start = segment.start.isBefore(resourceStart) ? resourceStart : segment.start
-            // A segment can end past the known end of its resource.
-            let end = segment.end
-                .flatMap { $0.readingOrderIndex == index ? $0 : nil }
-                .map { end in resourceEnd.map { $0.isBefore(end) ? $0 : end } ?? end }
-                ?? resourceEnd
-            guard end.map({ start.isBefore($0) }) ?? true else {
-                return nil
-            }
-            let link = segment.start == start ? segment.link : resolver.readingOrder[index]
-            return TimelineSegment(tocEntry: segment.tocEntry, link: link, start: start, end: end)
-        }
+        segments(maxDepth: maxDepth).segments(in: href)
     }
 
     /// Returns the index of the entry containing the positions from the start
