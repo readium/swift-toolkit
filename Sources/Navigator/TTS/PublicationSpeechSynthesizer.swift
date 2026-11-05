@@ -60,7 +60,9 @@ public final class PublicationSpeechSynthesizer: Loggable {
         /// accessibility settings of the device instead of the voice of
         /// `voices`.
         ///
-        /// Only the voice is affected, the `speed` and `pitch` still apply.
+        /// When an assistive technology such as VoiceOver is running, its
+        /// speaking rate and pitch may also take precedence over `speed` and
+        /// `pitch`, depending on the engine.
         public var prefersAssistiveTechnologyVoice: Bool
 
         /// Multiplier of the normal speaking speed of the engine (1.0).

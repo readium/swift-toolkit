@@ -110,7 +110,7 @@ let name = synthesizer.voice(withID: id)?.name
 
 #### Voice of the accessibility settings
 
-Set `prefersAssistiveTechnologyVoice` to speak each utterance with the voice selected by the user in the accessibility settings of the device for its language, instead of the `voices`.
+Set `prefersAssistiveTechnologyVoice` to speak each utterance with the voice selected by the user in the accessibility settings of the device for its language, instead of the `voices`. When an assistive technology such as VoiceOver is running, its speaking rate and pitch may also take precedence over the `speed` and `pitch`.
 
 ### Speed
 

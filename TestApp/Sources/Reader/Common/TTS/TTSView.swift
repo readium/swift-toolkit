@@ -81,9 +81,10 @@ struct TTSSettings: View {
                 )
 
                 if let language = settings.config.defaultLanguage {
+                    // The voice applies to all the regions of the language.
                     picker(
                         caption: "Voice",
-                        for: \.voices[language],
+                        for: \.voices[language.removingRegion()],
                         choices: [nil] + settings.availableVoiceIDs,
                         choiceLabel: { id in
                             id.flatMap { viewModel.voice(withID: $0)?.name } ?? "Default"

@@ -9,7 +9,7 @@ import Foundation
 import ReadiumShared
 import Testing
 
-struct TTSVoiceTests {
+enum TTSVoiceTests {
     struct FilterByLanguage {
         @Test func filtersByBaseLanguage() {
             let voices = [

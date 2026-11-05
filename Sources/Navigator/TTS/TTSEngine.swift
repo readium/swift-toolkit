@@ -81,7 +81,9 @@ public struct TTSUtterance: Sendable {
     /// accessibility settings of the device for the `language`, instead of
     /// `voice`.
     ///
-    /// Only the voice is affected, the `speed` and `pitch` still apply.
+    /// The engine may also apply the other settings of a running assistive
+    /// technology, such as the speaking rate and pitch of VoiceOver, instead
+    /// of `speed` and `pitch`.
     public let prefersAssistiveTechnologyVoice: Bool
 
     public init(
