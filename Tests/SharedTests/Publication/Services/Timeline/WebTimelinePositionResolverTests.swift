@@ -145,7 +145,11 @@ enum WebTimelinePositionResolverTests {
             LengthExample(name: "an unknown count in between", positionCounts: [4, nil, 4], start: at(0, 0), end: at(2, 0), expected: nil),
         ])
         func lengthIsCountedInPositions(_ example: LengthExample) {
-            #expect(resolver(example.positionCounts).length(from: example.start, to: example.end) == example.expected.map { .positions($0) })
+            let resolver = resolver(example.positionCounts)
+
+            #expect(resolver.length(from: example.start, to: example.end) == example.expected.map { .positions($0) })
+            // The opposite, going backward.
+            #expect(resolver.length(from: example.end, to: example.start) == example.expected.map { .positions(-$0) })
         }
 
         struct LocatorLength: Sendable, CustomTestStringConvertible {
@@ -185,13 +189,15 @@ enum WebTimelinePositionResolverTests {
             #expect(resolver.length(from: start, to: end) == .pages(2))
         }
 
-        /// The coordinates are read before the progressions.
-        @Test func lengthIsUnknownWhenTheEndIsBeforeTheStartByTheirCoordinates() throws {
+        /// The coordinates are read before the progressions: the end at
+        /// position 9 is before the start at position 10.
+        @Test func lengthIsNegativeWhenTheEndIsBeforeTheStartByTheirCoordinates() throws {
             let resolver = resolver()
             let start = try #require(resolver.position(of: locator("c", .init(progression: 0.1, position: 10))))
             let end = try #require(resolver.position(of: locator("c", .init(progression: 0.5))))
 
-            #expect(resolver.length(from: start, to: end) == nil)
+            #expect(resolver.length(from: start, to: end) == .positions(-1))
+            #expect(resolver.length(from: end, to: start) == .positions(1))
         }
     }
 }

@@ -316,6 +316,14 @@ enum TimelineTests {
         @Test func measuresTheResolverLengthBetweenTwoPositions() {
             #expect(main.timeline.length(from: main.at(0, 500), to: main.at(1, 60)) == .duration(160))
         }
+
+        @Test func accessorsReadTheValueInTheirUnit() {
+            #expect(TimelineLength.duration(-1.5).seconds == -1.5)
+            #expect(TimelineLength.duration(1.5).count == nil)
+            #expect(TimelineLength.pages(-3).count == -3)
+            #expect(TimelineLength.positions(3).count == 3)
+            #expect(TimelineLength.positions(3).seconds == nil)
+        }
     }
 
     struct BoundsOfResource {

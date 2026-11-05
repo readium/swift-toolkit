@@ -31,7 +31,8 @@ public protocol TimelinePositionResolver: Sendable {
     /// `nil` when it is unknown.
     func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)?
 
-    /// Length between `start` and `end`, or `nil` when `end` is before
-    /// `start`, or when the length of a resource between them is unknown.
+    /// Length between `start` and `end`, negative when `end` is before
+    /// `start`, or `nil` when the length of a resource between them is
+    /// unknown.
     func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength?
 }

@@ -139,20 +139,23 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
         )
     }
 
-    /// Length between `start` and `end`, or `nil` when the length of a
-    /// resource between them is unknown, `end` is before `start`, or one of
-    /// them is outside the reading order.
+    /// Length between `start` and `end`, negative when `end` is before
+    /// `start`, or `nil` when the length of a resource between them is
+    /// unknown, or one of them is outside the reading order.
     ///
-    /// A `start` past the known length of its resource, when `end` is in a
-    /// later resource, shows that this length is wrong: it is unknown too.
+    /// A position past the known length of its resource, when the other one
+    /// is in a later resource, shows that this length is wrong: it is
+    /// unknown too.
     ///
     /// Unlike the coordinates, it does not depend on the lengths of the
-    /// resources before `start`.
+    /// resources before the earliest position.
     package func length(from start: TimelinePosition, to end: TimelinePosition) -> Scalar? {
+        if end.isBefore(start) {
+            return length(from: end, to: start).map { .zero - $0 }
+        }
         guard
             lengths.indices.contains(start.readingOrderIndex),
             lengths.indices.contains(end.readingOrderIndex),
-            !end.isBefore(start),
             let startOffset = Scalar(exactly: start.offset),
             var length = Scalar(exactly: end.offset)
         else {

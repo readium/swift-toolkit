@@ -236,9 +236,9 @@ public struct Timeline: Sendable {
         resolver.position(of: locator)
     }
 
-    /// Returns the length between `start` and `end`, or `nil` when `end` is
-    /// before `start`, or when the length of a resource between them is
-    /// unknown.
+    /// Returns the length between `start` and `end`, negative when `end` is
+    /// before `start`, or `nil` when the length of a resource between them
+    /// is unknown.
     public func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
         resolver.length(from: start, to: end)
     }

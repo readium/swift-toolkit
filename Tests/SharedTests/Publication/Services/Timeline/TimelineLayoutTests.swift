@@ -45,12 +45,18 @@ enum TimelineLayoutTests {
             Example(name: "an unknown length of the end resource does not matter", lengths: [10, 5, nil], start: at(1, 1), end: at(2, 3), expected: 7),
             Example(name: "an unknown length in between", lengths: [10, nil, 20], start: at(0, 8), end: at(2, 3), expected: nil),
             Example(name: "a start past the known length of its resource", start: at(0, 12), end: at(1, 1), expected: nil),
-            Example(name: "the end is before the start", start: at(1, 4), end: at(1, 1), expected: nil),
+            Example(name: "an end past the known length of its resource does not matter", start: at(0, 8), end: at(1, 7), expected: 9),
+            Example(name: "the same position", start: at(1, 2), end: at(1, 2), expected: 0),
+            Example(name: "the end is before the start", start: at(1, 4), end: at(0, 8), expected: -6),
             Example(name: "an offset is not a whole length", start: at(1, 1.5), end: at(1, 4), expected: nil),
             Example(name: "a position outside the reading order", start: at(1, 1), end: at(3, 0), expected: nil),
         ])
         func lengthBetweenPositions(_ example: Example) {
-            #expect(layout(example.lengths).length(from: example.start, to: example.end) == example.expected)
+            let layout = layout(example.lengths)
+
+            #expect(layout.length(from: example.start, to: example.end) == example.expected)
+            // The opposite, going backward.
+            #expect(layout.length(from: example.end, to: example.start) == example.expected.map { -$0 })
         }
     }
 
