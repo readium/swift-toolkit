@@ -649,7 +649,7 @@ private func makeSplit() -> TimelineFixture {
 }
 
 private func node(_ title: String, _ href: String, _ children: [Timeline.Node] = []) -> Timeline.Node {
-    Timeline.Node(title: .text(title), link: Link(href: href), children: children)
+    Timeline.Node(title: title, link: Link(href: href), children: children)
 }
 
 private func url(_ string: String) -> AnyURL {
@@ -690,7 +690,7 @@ struct TimelineFixture: Sendable {
 
     /// Returns the entry with the given title.
     subscript(title: String) -> TimelineTOCEntry {
-        timeline.preOrderEntries.first { $0.title == .text(title) }!
+        timeline.preOrderEntries.first { $0.title == title }!
     }
 
     /// Returns the position at `offset` in the track at `index`, when all the

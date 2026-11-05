@@ -11,16 +11,10 @@ import Foundation
 public extension Timeline {
     /// One line per entry of the table of contents, with its index, title
     /// and HREF, indented by depth.
-    ///
-    /// An untitled entry shows its number, such as `#2`.
     var outline: [String] {
         func lines(_ entries: [TimelineTOCEntry], indent: String) -> [String] {
             entries.flatMap { entry -> [String] in
-                let title = switch entry.title {
-                case let .text(text): text
-                case let .number(number): "#\(number)"
-                }
-                return ["\(indent)\(entry.id.index) \(title) → \(entry.link.href)"]
+                ["\(indent)\(entry.id.index) \(entry.title) → \(entry.link.href)"]
                     + lines(entry.children, indent: indent + "  ")
             }
         }

@@ -27,9 +27,6 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
         /// When an audiobook has no table of contents, makes one from the
         /// titles of its reading order resources, if at least two of them are
         /// titled.
-        ///
-        /// When disabled, the experimental timeline of such an audiobook is
-        /// empty, instead of having one item per reading order resource.
         public var generatesAudiobookTableOfContentsFromReadingOrder: Bool
 
         public init(
@@ -165,9 +162,7 @@ public final class ReadiumWebPubParser: PublicationParser, Loggable {
 
                         } else if manifest.conforms(to: .audiobook) {
                             $0.setLocatorServiceFactory(AudioLocatorService.makeFactory())
-                            $0.setTimelineServiceFactory(AudioTimelineService.makeFactory(
-                                generatesFromReadingOrder: config.generatesAudiobookTableOfContentsFromReadingOrder
-                            ))
+                            $0.setTimelineServiceFactory(AudioTimelineService.makeFactory())
 
                         } else if manifest.conforms(to: .pdf), format.conformsTo(.lcp), let pdfFactory {
                             $0.setPDFDocumentServiceFactory(DefaultPDFDocumentService.makeFactory(factory: pdfFactory))

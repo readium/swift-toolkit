@@ -110,7 +110,7 @@ struct WebTimelineServiceTests {
         let timeline = try await timeline()
         let locator = Locator(href: AnyURL(string: example.href)!, mediaType: .xhtml, locations: .init(progression: example.progression))
 
-        #expect(timeline.item(containing: locator)?.title == example.expected.map { .text($0) })
+        #expect(timeline.item(containing: locator)?.title == example.expected)
     }
 
     @Test func aSplitChapterCoversItsFollowingResources() async throws {

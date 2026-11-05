@@ -58,7 +58,6 @@ struct PDFTimelineServiceTests {
         #expect(timeline.toc.entries.map(\.length) == [nil, nil])
     }
 
-    /// Unlike for an audiobook, no entries are generated from the reading order.
     @Test func emptyTableOfContentsGivesAnEmptyTimeline() async throws {
         let timeline = try await timeline(toc: [], positions: nil)
 

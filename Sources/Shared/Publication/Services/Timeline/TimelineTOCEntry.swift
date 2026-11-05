@@ -9,18 +9,6 @@ import Foundation
 /// An entry of the ``TimelineTOC``.
 @_spi(ExperimentalTimeline)
 public struct TimelineTOCEntry: Identifiable, Hashable, Sendable {
-    /// Title of an entry.
-    public enum Title: Hashable, Sendable {
-        /// A title to display.
-        case text(String)
-
-        /// No title. Holds the 1-based number of the entry's resource in the
-        /// reading order, to display a title such as "Track 3".
-        ///
-        /// It counts all the resources, not only the untitled ones.
-        case number(Int)
-    }
-
     /// Identifier of an entry, unique within its timeline.
     ///
     /// The same entry keeps its ID in a timeline rebuilt from the same table
@@ -39,10 +27,9 @@ public struct TimelineTOCEntry: Identifiable, Hashable, Sendable {
     public let id: ID
 
     /// Title of the entry.
-    public let title: Title
+    public let title: String
 
-    /// Link of the entry in the table of contents, or of the reading order
-    /// resource for a generated entry.
+    /// Link of the entry in the table of contents.
     ///
     /// Use it to jump to the entry with `Navigator.go(to:)`.
     public let link: Link
@@ -74,7 +61,7 @@ public struct TimelineTOCEntry: Identifiable, Hashable, Sendable {
 
     package init(
         id: ID,
-        title: Title,
+        title: String,
         link: Link,
         start: TimelinePosition?,
         end: TimelinePosition?,

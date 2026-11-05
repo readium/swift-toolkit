@@ -47,11 +47,11 @@ import Foundation
 public struct Timeline: Sendable {
     /// Source of a ``TimelineTOCEntry``.
     public struct Node: Sendable {
-        public let title: TimelineTOCEntry.Title
+        public let title: String
         public let link: Link
         public let children: [Node]
 
-        public init(title: TimelineTOCEntry.Title, link: Link, children: [Node] = []) {
+        public init(title: String, link: Link, children: [Node] = []) {
             self.title = title
             self.link = link
             self.children = children

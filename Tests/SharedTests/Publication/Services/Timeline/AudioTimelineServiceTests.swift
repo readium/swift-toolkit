@@ -21,7 +21,7 @@ enum AudioTimelineServiceTests {
 
             let timeline = try await timeline(toc: toc)
 
-            // `t3.mp3` gets no generated entry.
+            // `t3.mp3` has no entry.
             #expect(timeline.outline == [
                 "0 Intro → t1.mp3",
                 "1 Chapter → t2.mp3#t=10",
@@ -33,7 +33,6 @@ enum AudioTimelineServiceTests {
         struct TableOfContentsOutline: Sendable, CustomTestStringConvertible {
             let name: String
             let toc: [Link]
-            var generatesFromReadingOrder = true
             let expected: [String]
 
             var testDescription: String {
@@ -54,41 +53,24 @@ enum AudioTimelineServiceTests {
                 expected: ["0 One → t1.mp3#t=5", "1 Two → t2.mp3#t=5", "2 Three → t3.mp3"]
             ),
             TableOfContentsOutline(
-                name: "an empty table of contents generates one entry per track",
-                toc: [],
-                expected: ["0 One → t1.mp3", "1 #2 → t2.mp3", "2 #3 → t3.mp3"]
-            ),
-            TableOfContentsOutline(
-                name: "only untitled, childless entries count as an empty table of contents",
+                name: "only untitled, childless entries give an empty table of contents",
                 toc: [Link(href: "t1.mp3"), Link(href: "t2.mp3", title: " ")],
-                expected: ["0 One → t1.mp3", "1 #2 → t2.mp3", "2 #3 → t3.mp3"]
-            ),
-            TableOfContentsOutline(
-                name: "an empty table of contents gives an empty timeline with the option off",
-                toc: [],
-                generatesFromReadingOrder: false,
                 expected: []
             ),
         ])
-        func untitledOrMissingEntries(_ example: TableOfContentsOutline) async throws {
-            let timeline = try await timeline(toc: example.toc, generatesFromReadingOrder: example.generatesFromReadingOrder)
+        func untitledEntriesAreReplacedByTheirChildren(_ example: TableOfContentsOutline) async throws {
+            let timeline = try await timeline(toc: example.toc)
 
             #expect(timeline.outline == example.expected)
         }
 
-        @Test func generatedEntriesLinkToTheStartOfEachTrack() async throws {
-            let timeline = try await timeline(toc: [])
-
-            #expect(timeline.toc.entries.map(\.link) == readingOrder)
-            #expect(timeline.toc.entries.map { $0.start?.readingOrderIndex } == [0, 1, 2])
-            #expect(timeline.toc.entries.map { $0.start?.offset } == [0, 0, 0])
-        }
-
-        @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
+        /// Without a table of contents, no entry is generated from the
+        /// tracks, even when they are titled: the segments are the tracks.
+        @Test(arguments: [false, true])
+        func emptyOrFailingTableOfContentsGivesATimelineWithoutEntries(fails: Bool) async throws {
             let timeline = try await timeline(
                 toc: [],
-                generatesFromReadingOrder: false,
-                tocService: { _ in StubTableOfContentsService(.failure(.decoding("Broken"))) }
+                tocService: fails ? { _ in StubTableOfContentsService(.failure(.decoding("Broken"))) } : nil
             )
 
             #expect(timeline.toc.isEmpty)
@@ -141,7 +123,7 @@ enum AudioTimelineServiceTests {
 
     struct Lifetime {
         @Test func failsOnceThePublicationIsDeallocated() async {
-            let service = AudioTimelineService(publication: Weak(), generatesFromReadingOrder: true)
+            let service = AudioTimelineService(publication: Weak())
 
             let error = await #expect(throws: ReadError.self) {
                 _ = try await service.timeline()
@@ -165,13 +147,12 @@ private let readingOrder = [
 
 private func makePublication(
     toc: [Link] = [],
-    generatesFromReadingOrder: Bool = true,
     tocService: TableOfContentsServiceFactory? = nil
 ) -> Publication {
     Publication(
         manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder, tableOfContents: toc),
         servicesBuilder: PublicationServicesBuilder(setup: {
-            $0.setTimelineServiceFactory(AudioTimelineService.makeFactory(generatesFromReadingOrder: generatesFromReadingOrder))
+            $0.setTimelineServiceFactory(AudioTimelineService.makeFactory())
             if let tocService {
                 $0.setTableOfContentsServiceFactory(tocService)
             }
@@ -181,10 +162,9 @@ private func makePublication(
 
 private func timeline(
     toc: [Link],
-    generatesFromReadingOrder: Bool = true,
     tocService: TableOfContentsServiceFactory? = nil
 ) async throws -> Timeline {
-    let publication = makePublication(toc: toc, generatesFromReadingOrder: generatesFromReadingOrder, tocService: tocService)
+    let publication = makePublication(toc: toc, tocService: tocService)
     let timeline = try #require(await publication.timeline())
     withExtendedLifetime(publication) {}
     return timeline

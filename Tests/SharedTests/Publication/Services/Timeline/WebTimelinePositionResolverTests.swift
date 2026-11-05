@@ -210,7 +210,7 @@ private func resolver(_ positionCounts: [Int?] = [4, 2, 4], positionsArePages: B
         readingOrder: readingOrder,
         positionCounts: positionCounts,
         positionsArePages: positionsArePages,
-        nodes: readingOrder.map { Timeline.Node(title: .text($0.href), link: Link(href: $0.href)) }
+        nodes: readingOrder.map { Timeline.Node(title: $0.href, link: Link(href: $0.href)) }
     )
 }
 

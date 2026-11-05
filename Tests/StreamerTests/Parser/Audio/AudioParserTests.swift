@@ -293,10 +293,10 @@ enum AudioParserTests {
                 name: "a single titled file leaves the table of contents empty",
                 metadata: [AudioMetadata(title: "One"), AudioMetadata()],
                 expectedTOC: [],
-                expectedTimeline: ["0 One → 1.mp3", "1 #2 → 2.mp3"]
+                expectedTimeline: []
             ),
             Files(
-                name: "the option off disables both fallbacks",
+                name: "the option off leaves the table of contents empty",
                 generatesTableOfContentsFromReadingOrder: false,
                 metadata: [AudioMetadata(title: "One"), AudioMetadata(title: "Two")],
                 expectedTOC: [],

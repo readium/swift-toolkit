@@ -73,7 +73,7 @@ extension [Link] {
             guard let title = link.title?.orNilIfBlank() else {
                 return children
             }
-            return [Timeline.Node(title: .text(title), link: link, children: children)]
+            return [Timeline.Node(title: title, link: link, children: children)]
         }
     }
 }
