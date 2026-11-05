@@ -63,7 +63,9 @@ public struct TTSUtterance: Sendable {
     public let voice: TTSVoice?
 
     @available(*, unavailable, message: "Use `voice` and `language` instead")
-    public var voiceOrLanguage: Either<TTSVoice, Language> { fatalError() }
+    public var voiceOrLanguage: Either<TTSVoice, Language> {
+        fatalError()
+    }
 
     /// Multiplier of the normal speaking speed of the engine (1.0).
     ///

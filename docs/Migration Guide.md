@@ -81,6 +81,24 @@ nowPlaying.playback = NowPlayingInfo.Playback(chapterNumber: chapterNumber, dura
 
 For the same reason, we recommend setting the `media` once all its metadata is available, including the artwork, instead of updating it afterwards.
 
+### Text-to-speech voices
+
+`PublicationSpeechSynthesizer.Configuration.voiceIdentifier` is replaced by `voices`, which selects a voice per language. A voice is identified by a `TTSVoice.ID` instead of a `String`.
+
+The voice used to apply to every utterance, whatever its language. It now only speaks the utterances of its language, and the other ones are spoken with the best voice of their language. To restore a voice identifier stored with the previous version, key it by the base language of the voice so that it applies to all its regions:
+
+```swift
+// Before
+synthesizer.config.voiceIdentifier = storedIdentifier
+
+// After
+if let voice = synthesizer.voice(withID: TTSVoice.ID(storedIdentifier)) {
+    synthesizer.config.voices[voice.language.removingRegion()] = voice.id
+}
+```
+
+See the [TTS guide](Guides/TTS.md#voice) to learn how the voice of an utterance is selected.
+
 
 ## 4.0.0-alpha.2
 

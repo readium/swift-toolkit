@@ -39,7 +39,9 @@ public struct TTSVoice: Hashable, Sendable, Identifiable {
     public let id: ID
 
     @available(*, unavailable, message: "Use `id.rawValue` instead")
-    public var identifier: String { fatalError() }
+    public var identifier: String {
+        fatalError()
+    }
 
     /// Human-friendly name for this voice.
     public let name: String

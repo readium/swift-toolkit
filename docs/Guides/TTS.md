@@ -20,7 +20,7 @@ To read a publication, you need to create an instance of `PublicationSpeechSynth
 let synthesizer = PublicationSpeechSynthesizer(
     publication: publication,
     config: PublicationSpeechSynthesizer.Configuration(
-        defaultLanguage: Language("fr")
+        defaultLanguage: "fr"
     )
 )
 ```
@@ -62,7 +62,7 @@ The `PublicationSpeechSynthesizer` offers some options to configure the TTS engi
 Update the configuration by setting it directly. When the synthesizer is playing, the current utterance restarts from its beginning with the new configuration.
 
 ```swift
-synthesizer.config.defaultLanguage = Language("fr")
+synthesizer.config.defaultLanguage = "fr"
 ```
 
 ### Default language
@@ -96,7 +96,7 @@ To get the voices supported by the engine, use `synthesizer.availableVoices`. Us
 
 ```swift
 let frenchVoices = synthesizer.availableVoices
-    .filterByLanguage(Language("fr"))
+    .filterByLanguage("fr")
     .sorted()
 ```
 

@@ -43,15 +43,10 @@ public final class PublicationSpeechSynthesizer: Loggable {
         /// Identifiers of the voices used to speak the utterances, per
         /// language.
         ///
-        /// The voice of an utterance is looked up with its language, else the
+        /// An utterance is spoken with the voice of its language, else of the
         /// `defaultLanguage`, the publication language or the current one.
-        /// The key matching its language and region comes first, then the
-        /// one of its base language, e.g. `en-US` then `en`. The voices which
-        /// are not installed are skipped. Without a match, the synthesizer
-        /// uses the first voice of the base language ordered by
-        /// ``TTSVoice/sorted(preferredRegions:displayLocale:)``. Use
-        /// ``PublicationSpeechSynthesizer/voice(for:)`` to get the resolved
-        /// voice.
+        /// See ``PublicationSpeechSynthesizer/voice(for:)`` for the voice
+        /// speaking a language.
         public var voices: [Language: TTSVoice.ID]
 
         /// Identifier for the voice used to speak the utterances.
@@ -239,22 +234,27 @@ public final class PublicationSpeechSynthesizer: Loggable {
         engine.availableVoices
     }
 
-    /// Returns the first voice with the given `id` supported by the TTS `engine`.
+    /// Returns the first voice with the given `id` supported by the TTS
+    /// `engine`.
     ///
-    /// This can be used to restore the user selected voice after storing it in the user defaults.
+    /// This can be used to restore the user selected voice after storing it in
+    /// the user defaults.
     public func voice(withID id: TTSVoice.ID) -> TTSVoice? {
-        let voice = lastUsedVoice.takeIf { $0.id == id }
-            ?? engine.voice(withID: id)
-
-        lastUsedVoice = voice
+        if let voice = voicesByID[id] {
+            return voice
+        }
+        let voice = engine.voice(withID: id)
+        voicesByID[id] = voice
         return voice
     }
 
     /// Returns the voice speaking the utterances in `language`, e.g. to show
     /// it in a voice picker.
     ///
-    /// This is the installed voice of `config.voices` for `language`, else
-    /// the first voice of its base language ordered by
+    /// This is the voice of `config.voices` matching `language` and its
+    /// region first, then its base language, e.g. `en-US` then `en`. The
+    /// voices which are not installed are skipped. Without a match, this is
+    /// the first voice of the base language ordered by
     /// ``TTSVoice/sorted(preferredRegions:displayLocale:)``.
     ///
     /// Returns `nil` when the engine picks the voice itself: with
@@ -272,8 +272,8 @@ public final class PublicationSpeechSynthesizer: Loggable {
         fatalError()
     }
 
-    /// Cache for the last requested voice, for performance.
-    private var lastUsedVoice: TTSVoice?
+    /// Cache of the voices found with `voice(withID:)`.
+    private var voicesByID: [TTSVoice.ID: TTSVoice] = [:]
 
     /// (Re)starts the synthesizer from the given locator or the beginning of the publication.
     public func start(from startLocator: Locator? = nil) {
