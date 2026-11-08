@@ -68,8 +68,8 @@ final class PaginationView: UIView, Loggable {
 
     /// Number of positions (as in `Publication.positionList`) to preload before and after the
     /// current page.
-    private let preloadPreviousPositionCount: Int
-    private let preloadNextPositionCount: Int
+    private var preloadPreviousPositionCount: Int
+    private var preloadNextPositionCount: Int
 
     /// Queue of page index to be loaded next.
     private var loadingIndexQueue: [(index: Int, location: PageLocation)] = []
@@ -235,8 +235,42 @@ final class PaginationView: UIView, Loggable {
         // To make sure that the views the most likely to be visible are loaded first, we first load
         // the current one, then the next ones and to finish the previous ones.
         scheduleLoadPage(at: index, location: location)
+        schedulePreloadedPages(around: index)
+
+        previousView?.pageDidDisappear()
+
+        loadPages()
+    }
+
+    /// Changes the number of positions to preload before and after the
+    /// current page, and loads or flushes the views to match.
+    ///
+    /// For example, an app can open a publication without preloading, to
+    /// show the first page as soon as possible, and preload the pages around
+    /// it once it is shown.
+    func setPreloadPositionCounts(previous: Int, next: Int) {
+        guard previous != preloadPreviousPositionCount || next != preloadNextPositionCount else {
+            return
+        }
+        preloadPreviousPositionCount = previous
+        preloadNextPositionCount = next
+
+        guard !isEmpty else {
+            return
+        }
+        schedulePreloadedPages(around: currentIndex)
+        if !loadingIndexQueue.isEmpty {
+            loadPages(after: loadPagesTask)
+        }
+    }
+
+    /// Queues the views to preload around the given page, and flushes the
+    /// ones out of range, loaded or queued.
+    private func schedulePreloadedPages(around index: Int) {
         let lastIndex = scheduleLoadPages(from: index, upToPositionCount: preloadNextPositionCount, direction: .forward, location: .start)
         let firstIndex = scheduleLoadPages(from: index, upToPositionCount: preloadPreviousPositionCount, direction: .backward, location: .end)
+
+        loadingIndexQueue.removeAll { !(firstIndex ... lastIndex ~= $0.index) }
 
         for (i, view) in loadedViews {
             // Flushes the views that are not needed anymore.
@@ -247,10 +281,6 @@ final class PaginationView: UIView, Loggable {
                 continue
             }
         }
-
-        previousView?.pageDidDisappear()
-
-        loadPages()
     }
 
     /// - Parameter previous: Loading to wait for before starting, such as a

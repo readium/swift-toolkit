@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. Take a look
 * `PublicationSpeechSynthesizer.Configuration.voices` selects a voice per language, so that each utterance of a multilingual publication is spoken with the voice of its language, [see the user guide](docs/Guides/TTS.md#voice).
 * `PublicationSpeechSynthesizer.voice(for:)` returns the voice speaking a language, e.g. to show it in a voice picker.
 * `PublicationSpeechSynthesizer.Configuration.prefersAssistiveTechnologyVoice` speaks with the voice selected in the accessibility settings of the device.
+* `EPUBNavigatorViewController.setPreloadPositionCounts(previous:next:)` changes the number of positions preloaded around the current resource after the navigator is created, for example to open a publication without preloading and start preloading once the first page is shown.
 
 #### Streamer
 

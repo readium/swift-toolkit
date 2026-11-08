@@ -134,6 +134,35 @@ import UIKit
         delegate.views[1]?.finishLoading()
     }
 
+    /// Raising the preload counts after the open loads the pages newly in
+    /// range.
+    @Test func raisingThePreloadCountsLoadsThePagesInRange() async {
+        let (view, delegate) = await makePaginationView(pageCount: 4, preloadNextPositionCount: 0)
+        #expect(view.loadedViews.keys.sorted() == [0])
+
+        delegate.blockedIndexes = [2]
+        view.setPreloadPositionCounts(previous: 0, next: 2)
+        #expect(await delegate.nextEvent() == .loading(index: 2))
+        #expect(view.loadedViews.keys.sorted() == [0, 1, 2])
+
+        delegate.views[2]?.finishLoading()
+        #expect(await delegate.nextEvent() == .update(index: 0, isCurrentPageLoading: false))
+    }
+
+    /// Lowering the preload counts flushes the pages out of range, and drops
+    /// the ones left to load.
+    @Test func loweringThePreloadCountsFlushesThePagesOutOfRange() async {
+        let (view, delegate) = await makePaginationView(pageCount: 4, preloadNextPositionCount: 2, blockedIndexes: [1])
+        #expect(view.loadedViews.keys.sorted() == [0, 1])
+
+        view.setPreloadPositionCounts(previous: 0, next: 0)
+        #expect(view.loadedViews.keys.sorted() == [0])
+
+        delegate.views[1]?.finishLoading()
+        #expect(await delegate.nextEvent() == .update(index: 0, isCurrentPageLoading: false))
+        #expect(delegate.views[2] == nil)
+    }
+
     /// Returns a pagination view at the first page, once its pages are loaded
     /// or one of the `blockedIndexes` is loading.
     private func makePaginationView(
