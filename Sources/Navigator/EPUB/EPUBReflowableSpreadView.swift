@@ -401,6 +401,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
 
     // MARK: - Progression
 
+    /// Content anchor reported with the current rendered progression.
+    private(set) var reflowLocation: Locator?
+
     /// Current progression range in the page.
     private var progression: ClosedRange<Double>?
     /// To check if a progression change was cancelled or not.
@@ -416,6 +419,8 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         else {
             return
         }
+        reflowLocation = (try? JSONValue(body["locator"]).flatMap { try Locator(json: $0) })?
+            .copy(href: spread.first.link.url(), mediaType: spread.first.link.mediaType ?? .xhtml)
         precondition(firstProgression <= lastProgression)
         firstProgression = min(max(firstProgression, 0.0), 1.0)
         lastProgression = min(max(lastProgression, 0.0), 1.0)

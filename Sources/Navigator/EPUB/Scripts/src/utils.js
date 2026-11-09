@@ -8,6 +8,7 @@
 
 import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
 import { getCurrentSelection } from "./selection";
+import { getCssSelector } from "css-selector-generator";
 
 window.addEventListener(
   "error",
@@ -25,16 +26,11 @@ window.addEventListener(
 window.addEventListener(
   "load",
   function () {
-    var pendingResize;
     const observer = new ResizeObserver(() => {
-      if (pendingResize) {
-        window.cancelAnimationFrame(pendingResize);
-      }
-
-      pendingResize = window.requestAnimationFrame(function () {
-        onViewportWidthChanged();
-        onScroll();
-      });
+      // ResizeObserver runs before paint. Restore the retained content range
+      // here rather than presenting a percentage-based page for one frame.
+      onViewportWidthChanged();
+      onScroll();
     });
     observer.observe(document.body);
   },
@@ -44,7 +40,12 @@ window.addEventListener(
 function onViewportWidthChanged() {
   viewportWidth = window.innerWidth;
   appendVirtualColumnIfNeeded();
-  snapCurrentPosition();
+  if (reflowRange && reflowRange.startContainer.isConnected) {
+    scrollToRange(reflowRange, false);
+  } else {
+    snapCurrentPosition();
+  }
+  reflowGeometry = geometry();
 }
 
 /**
@@ -84,7 +85,13 @@ var viewportWidth = 0;
  * Expects an object {first, last}
  */
 function notifyProgressions(progressions) {
-  webkit.messageHandlers.progressionChanged.postMessage(progressions);
+  // A resize can dispatch scroll before ResizeObserver restores the range.
+  // Never adopt that transient page as a new reading position.
+  if (reflowGeometry === geometry()) captureReflowLocation();
+  webkit.messageHandlers.progressionChanged.postMessage({
+    ...progressions,
+    locator: reflowLocator,
+  });
 }
 
 window.addEventListener("scroll", onScroll);
@@ -211,11 +218,19 @@ export function scrollToLocator(locator, animated) {
   if (!range) {
     return false;
   }
-  return scrollToRange(range, animated);
+  const moved = scrollToRange(range, animated);
+  if (moved) {
+    reflowRange = range;
+    reflowLocator = locator;
+  }
+  return moved;
 }
 
 function scrollToRange(range, animated) {
-  return scrollToRect(range.getBoundingClientRect(), animated);
+  const rect = Array.from(range.getClientRects()).find(
+    (rect) => rect.width > 0 && rect.height > 0
+  );
+  return rect ? scrollToRect(rect, animated) : false;
 }
 
 function scrollToRect(rect, animated) {
@@ -290,6 +305,55 @@ function snapCurrentPosition() {
   var currentOffsetSnapped = snapOffset(currentOffset + 1);
 
   document.scrollingElement.scrollLeft = currentOffsetSnapped;
+}
+
+// A DOM range survives CSS and viewport reflow without rounding the logical
+// position to the beginning of a newly computed page.
+let reflowRange = null;
+
+let reflowLocator = null;
+let reflowGeometry;
+
+function geometry() {
+  return [innerWidth, innerHeight, document.body.scrollWidth, document.body.scrollHeight].join(":");
+}
+
+function rangeIsVisible(range) {
+  const rect = Array.from(range.getClientRects()).find(r => r.width > 0 && r.height > 0);
+  return rect && rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight;
+}
+
+function captureReflowLocation() {
+  if (readium.isFixedLayout || isScrollModeEnabled() || isVerticalWritingMode() || isRTL()) return;
+  if (reflowRange?.startContainer.isConnected && rangeIsVisible(reflowRange)) return;
+  reflowRange = null;
+  reflowLocator = null;
+  const deadline = performance.now() + 20;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode()) && performance.now() < deadline) {
+    const parent = node.parentElement;
+    if (parent.closest("script,style,noscript,[aria-hidden=true],[id^=r2-decoration-]")) continue;
+    const style = getComputedStyle(parent);
+    if (style.visibility === "hidden" || style.display === "none" || style.opacity === "0") continue;
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    if (!Array.from(range.getClientRects()).some(r => r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight)) continue;
+    for (const match of node.textContent.matchAll(/\S+/gu)) {
+      if (performance.now() >= deadline) return;
+      range.setStart(node, match.index);
+      range.setEnd(node, match.index + match[0].length);
+      if (!rangeIsVisible(range)) continue;
+      const quote = TextQuoteAnchor.fromRange(parent, range).toSelector();
+      reflowRange = range;
+      reflowLocator = {
+        href: "#", type: "application/xhtml+xml",
+        locations: { cssSelector: getCssSelector(parent) },
+        text: { highlight: quote.exact, before: quote.prefix, after: quote.suffix },
+      };
+      return;
+    }
+  }
 }
 
 export function rangeFromLocator(locator) {
