@@ -38,7 +38,6 @@ window.addEventListener(
 );
 
 function onViewportWidthChanged() {
-  viewportWidth = window.innerWidth;
   appendVirtualColumnIfNeeded();
   if (reflowRange && reflowRange.startContainer.isConnected) {
     scrollToRange(reflowRange, false);
@@ -78,7 +77,6 @@ function appendVirtualColumnIfNeeded() {
 
 var lastKnownProgressions;
 var ticking = false;
-var viewportWidth = 0;
 
 /**
  * First and last progressions in range [0 - 1].
@@ -95,6 +93,10 @@ function notifyProgressions(progressions) {
 }
 
 window.addEventListener("scroll", onScroll);
+window.addEventListener("resize", () => {
+  onViewportWidthChanged();
+  onScroll();
+});
 
 function onScroll() {
   if (readium.isFixedLayout) {
@@ -294,7 +296,7 @@ function scrollTo({ left, top, animated } = {}) {
 function snapOffset(offset) {
   const delta = isRTL() ? -1 : 1;
   const value = offset + delta;
-  return value - (value % viewportWidth);
+  return value - (value % window.innerWidth);
 }
 
 function snapCurrentPosition() {
