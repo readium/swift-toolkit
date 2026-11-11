@@ -224,6 +224,9 @@ export function scrollToLocator(locator, animated) {
   if (moved) {
     reflowRange = range;
     reflowLocator = locator;
+    // Restoring a locator on the current page may not dispatch a scroll event.
+    // Publish the retained anchor even when the scroll offset is unchanged.
+    onScroll();
   }
   return moved;
 }
