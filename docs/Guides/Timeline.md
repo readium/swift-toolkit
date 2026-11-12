@@ -56,7 +56,7 @@ gantt
     .time(1519) : milestone, 00:25:19, 1s
 ```
 -->
-![The four tracks of the audiobook laid end to end on a line of 55:08: intro.mp3 from 0:00, track1.mp3 from 4:52, track2.mp3 from 20:19 and track3.mp3 from 41:27, with a position at 25:19, 5 minutes into track2.mp3](timeline-positions.svg)
+![The four tracks of the audiobook laid end to end on a line of 55:08: intro.mp3 from 0:00, track1.mp3 from 4:52, track2.mp3 from 20:19 and track3.mp3 from 41:27, with a position at 25:19, 5 minutes into track2.mp3](Assets/timeline-positions.svg)
 
 In the EPUB, the line is made of the 40 positions of the publication. A position is a stable chunk of content, independent of the screen size and font size.
 
@@ -79,7 +79,7 @@ gantt
     .position(20) : milestone, 00:00:20, 1s
 ```
 -->
-![The five resources of the EPUB laid end to end on a line of 40 positions: preface.xhtml from position 1, chapter1.xhtml from 6, chapter2.xhtml from 14, chapter2-part2.xhtml from 26 and chapter3.xhtml from 33, with a position at 20, halfway through chapter2.xhtml](timeline-epub-positions.svg)
+![The five resources of the EPUB laid end to end on a line of 40 positions: preface.xhtml from position 1, chapter1.xhtml from 6, chapter2.xhtml from 14, chapter2-part2.xhtml from 26 and chapter3.xhtml from 33, with a position at 20, halfway through chapter2.xhtml](Assets/timeline-epub-positions.svg)
 
 A **`TimelinePosition`** is a point on this line. It is located by its reading order index and its offset in the resource. Its other properties are derived from these two. The positions above, 5 minutes into `track2.mp3` and halfway through `chapter2.xhtml`, are:
 
@@ -148,11 +148,11 @@ flowchart TB
     linkStyle default stroke-width:1px
     classDef unplaced stroke-dasharray: 5 5,color:#888
     class B,F7 unplaced
-    classDef entries fill:#ffffff
+    classDef entries fill:none
     class TOC entries
 ```
 -->
-![The table of contents tree, then the same entries flattened in pre-order with their depth and start: Part I, Chapter 1, Chapter 2, Scene 2.1, Part II, Chapter 3, and Bonus which is not placed](timeline-toc-tree.svg)
+![The table of contents tree, then the same entries flattened in pre-order with their depth and start: Part I, Chapter 1, Chapter 2, Scene 2.1, Part II, Chapter 3, and Bonus which is not placed](Assets/timeline-toc-tree.svg)
 
 Each entry then gets a range on the timeline:
 
@@ -186,7 +186,7 @@ gantt
     Scene 2.1 : active, 00:31:01, 00:41:27
 ```
 -->
-![The ranges of the entries by depth: Part I from 9:39 to 41:27 and Part II from 41:27 to 55:08, Chapter 1 from 13:53 to 20:19, Chapter 2 from 20:19 to 41:27 and Chapter 3 from 45:50 to 55:08, Scene 2.1 from 31:01 to 41:27](timeline-toc-ranges.svg)
+![The ranges of the entries by depth: Part I from 9:39 to 41:27 and Part II from 41:27 to 55:08, Chapter 1 from 13:53 to 20:19, Chapter 2 from 20:19 to 41:27 and Chapter 3 from 45:50 to 55:08, Scene 2.1 from 31:01 to 41:27](Assets/timeline-toc-ranges.svg)
 
 An entry cannot be placed when its link points outside the reading order, like Bonus, or before the start of the previous placed entry in pre-order. It keeps its place in the tree, but its `start`, `end` and `length` are `nil`.
 
@@ -223,7 +223,7 @@ gantt
     Part II  : active, 00:41:27, 00:55:08
 ```
 -->
-![The segments of the audiobook. With all the depths: no entry in intro.mp3, no entry at the start of track1.mp3, then Part I, Chapter 1, Chapter 2, Scene 2.1, Part II and Chapter 3. With a maximum depth of 1: the same two segments without entry, then Part I and Part II](timeline-segments.svg)
+![The segments of the audiobook. With all the depths: no entry in intro.mp3, no entry at the start of track1.mp3, then Part I, Chapter 1, Chapter 2, Scene 2.1, Part II and Chapter 3. With a maximum depth of 1: the same two segments without entry, then Part I and Part II](Assets/timeline-segments.svg)
 
 * A segment ends where another entry takes over. The segment of Part I ends at 13:53, where Chapter 1 starts, while the entry Part I goes on until 41:27.
 * Outside any entry, such as before the first one or in a publication without a table of contents, there is one segment without entry per resource. Its `tocEntry` is `nil`. The segments therefore always cover the whole publication.
@@ -259,7 +259,7 @@ gantt
     Chapter 3 : active, 00:00:33, 00:00:41
 ```
 -->
-![The segments of the EPUB. With all the depths: no entry in preface.xhtml, then Chapter 1, Chapter 2 in chapter2.xhtml, Section 2.2 and Chapter 3. With a maximum depth of 1: no entry, then Chapter 1, Chapter 2 over both of its resources, and Chapter 3](timeline-epub-segments.svg)
+![The segments of the EPUB. With all the depths: no entry in preface.xhtml, then Chapter 1, Chapter 2 in chapter2.xhtml, Section 2.2 and Chapter 3. With a maximum depth of 1: no entry, then Chapter 1, Chapter 2 over both of its resources, and Chapter 3](Assets/timeline-epub-segments.svg)
 
 The `link` of a segment points to its start, so that you can go there with the Navigator.
 
@@ -503,7 +503,7 @@ gantt
     #83;ection 2.2 : active, 00:00:26, 00:00:33
 ```
 -->
-![The ranges of the EPUB entries by depth: Chapter 1 from position 6 to 14, Chapter 2 from 14 to 33 and Chapter 3 from 33 to 41, then Section 2.2 from 26 to 33. Section 2.1 is not placed](timeline-epub-toc-ranges.svg)
+![The ranges of the EPUB entries by depth: Chapter 1 from position 6 to 14, Chapter 2 from 14 to 33 and Chapter 3 from 33 to 41, then Section 2.2 from 26 to 33. Section 2.1 is not placed](Assets/timeline-epub-toc-ranges.svg)
 
 The current entry of an EPUB is therefore precise to the resource.
 

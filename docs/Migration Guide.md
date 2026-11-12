@@ -8,7 +8,7 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` now takes an `AnyURL` instead of a `RelativeURL`.
 
-:warning: An implementation using the previous signature still compiles, but is no longer called. Update the type of the `href` parameter:
+⚠️ An implementation using the previous signature still compiles, but is no longer called. Update the type of the `href` parameter:
 
 ```diff
 -func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {
@@ -559,7 +559,7 @@ The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, wi
 
 If you use Carthage, remove `Minizip.xcframework` from your dependencies and add `ReadiumZIPFoundation.xcframework` instead. No changes are needed when using Swift Package Manager or CocoaPods.
 
-:warning: When upgrading to 3.1.0 instead of 3.0.0, keep `Minizip.xcframework in your Carthage dependencies.
+⚠️ When upgrading to 3.1.0 instead of 3.0.0, keep `Minizip.xcframework in your Carthage dependencies.
 
 ### Migration of HREFs and Locators (bookmarks, annotations, etc.)
 
