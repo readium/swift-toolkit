@@ -21,8 +21,6 @@ import Foundation
 /// computed from the number of positions of each resource. A missing or
 /// non-positive count is unknown.
 package struct WebTimelinePositionResolver: TimelinePositionResolver {
-    package let readingOrder: [Link]
-
     /// Lays out the positions of the reading order resources.
     private let layout: TimelineLayout<Int>
 
@@ -46,7 +44,6 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     ///   - nodes: Nodes of the timeline, whose first entry pointing to each
     ///     resource is placed.
     package init(readingOrder: [Link], positionCounts: [Int?], positionsArePages: Bool = false, nodes: [Timeline.Node]) {
-        self.readingOrder = readingOrder
         self.positionsArePages = positionsArePages
         let makeCoordinate: @Sendable (Int) -> TimelineCoordinate = positionsArePages
             ? TimelineCoordinate.page
@@ -71,9 +68,13 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         self.firstEntries = firstEntries
     }
 
+    package var readingOrder: [Link] {
+        layout.readingOrder
+    }
+
     package func position(of link: Link) -> TimelinePosition? {
         guard
-            let index = readingOrder.firstIndexWithHREF(link.url()),
+            let index = layout.index(of: link.url()),
             firstEntries[index] == link
         else {
             return nil
@@ -85,7 +86,7 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     /// position of the locator in the publication when it is in its
     /// resource, else the position at its progression.
     package func position(of locator: Locator) -> TimelinePosition? {
-        guard let index = readingOrder.firstIndexWithHREF(locator.href) else {
+        guard let index = layout.index(of: locator.href) else {
             return nil
         }
         let progression = min(max(0, locator.locations.progression ?? 0), 1)

@@ -21,6 +21,24 @@ enum WebTimelinePositionResolverTests {
                 totalProgression: 0.4
             ))
         }
+
+        /// Entries are matched by value: a duplicate of the first entry of a
+        /// resource is placed at the same start, unlike another entry of the
+        /// resource.
+        @Test func duplicateOfTheFirstEntryOfAResourceIsPlaced() {
+            let nodes = [
+                Timeline.Node(title: "B", link: Link(href: "b")),
+                Timeline.Node(title: "B again", link: Link(href: "b")),
+                Timeline.Node(title: "Other", link: Link(href: "b", title: "Other")),
+            ]
+            let resolver = resolver(nodes: nodes)
+            let timeline = Timeline(nodes: nodes, resolver: resolver)
+            let start = resolver.bounds(ofResourceAt: 1).start
+
+            #expect(timeline.toc.entries.map(\.start) == [start, start, nil])
+            // The first one has an empty range.
+            #expect(timeline.toc.entries.map(\.length) == [.positions(0), .positions(6), nil])
+        }
     }
 
     /// All the locators are in `c`, at positions 7 to 10.
@@ -210,13 +228,18 @@ enum WebTimelinePositionResolverTests {
 
 // MARK: - Helpers
 
-private func resolver(_ positionCounts: [Int?] = [4, 2, 4], positionsArePages: Bool = false) -> WebTimelinePositionResolver {
+/// - Parameter nodes: Defaults to one entry per resource.
+private func resolver(
+    _ positionCounts: [Int?] = [4, 2, 4],
+    positionsArePages: Bool = false,
+    nodes: [Timeline.Node]? = nil
+) -> WebTimelinePositionResolver {
     let readingOrder = ["a", "b", "c"].map { Link(href: $0, mediaType: .xhtml) }
     return WebTimelinePositionResolver(
         readingOrder: readingOrder,
         positionCounts: positionCounts,
         positionsArePages: positionsArePages,
-        nodes: readingOrder.map { Timeline.Node(title: $0.href, link: Link(href: $0.href)) }
+        nodes: nodes ?? readingOrder.map { Timeline.Node(title: $0.href, link: Link(href: $0.href)) }
     )
 }
 

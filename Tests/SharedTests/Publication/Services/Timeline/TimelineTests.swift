@@ -170,8 +170,15 @@ enum TimelineTests {
             #expect(fixture.timeline.segments().segments(in: url("t3")).last?.end == example.expected)
         }
 
-        @Test func emptyReadingOrderHasNoEnd() {
-            #expect(AudioTimelinePositionResolver(readingOrder: []).end == nil)
+        @Test func emptyReadingOrderHasNoEndNorSegment() {
+            let resolver = AudioTimelinePositionResolver(readingOrder: [])
+            let timeline = Timeline(nodes: [node("A", "t1")], resolver: resolver)
+
+            #expect(resolver.end == nil)
+            #expect(timeline.toc.entries.map(\.start) == [nil])
+            #expect(timeline.segments().isEmpty)
+            #expect(timeline.segments().segment(containing: Locator(href: "t1", mediaType: .mp3)) == nil)
+            #expect(timeline.segments().segments(in: url("t1")) == [])
         }
 
         /// `Link.duration` can be shorter than the actual track.
@@ -417,6 +424,21 @@ enum TimelineTests {
             #expect(Array(partway.timeline.segments(maxDepth: 1)) == [
                 partway.segment("A", (0, 0), (0, 300)),
                 partway.segment(nil, (0, 300), (0, 600), link: partway["C"].link),
+            ])
+        }
+
+        /// At depth 1, C is ignored under the rangeless R: the ranges without
+        /// entry before and after C are merged within `t1`.
+        @Test func mergeTheRangesWithoutEntryOfATrack() {
+            let fixture = TimelineFixture(durations: [600, 300], nodes: [
+                node("R", "outside.mp3", [node("C", "t1#t=300")]),
+                node("A", "t2#t=100"),
+            ])
+
+            #expect(Array(fixture.timeline.segments(maxDepth: 1)) == [
+                fixture.segment(nil, (0, 0), (1, 0)),
+                fixture.segment(nil, (1, 0), (1, 100)),
+                fixture.segment("A", (1, 100), (1, 300)),
             ])
         }
 

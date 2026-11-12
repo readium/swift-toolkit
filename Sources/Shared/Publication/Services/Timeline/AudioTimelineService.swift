@@ -19,16 +19,10 @@ public final class AudioTimelineService: TimelineService {
     private let cache: AsyncThrowingMemoizer<Timeline, ReadError>
 
     init(publication: Weak<Publication>) {
-        cache = AsyncThrowingMemoizer { () async throws(ReadError) -> Timeline in
-            guard let publication = publication() else {
-                throw .unsupportedOperation(DebugError("The publication is no longer available"))
+        cache = AsyncThrowingMemoizer { () async throws(ReadError) in
+            try await Timeline(publication: publication()) { publication, _ in
+                AudioTimelinePositionResolver(readingOrder: publication.readingOrder)
             }
-
-            let nodes = await publication.timelineNodes()
-            return Timeline(
-                nodes: nodes,
-                resolver: AudioTimelinePositionResolver(readingOrder: publication.readingOrder)
-            )
         }
     }
 

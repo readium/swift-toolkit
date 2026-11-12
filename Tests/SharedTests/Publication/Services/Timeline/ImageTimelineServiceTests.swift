@@ -46,7 +46,7 @@ struct ImageTimelineServiceTests {
     }
 
     @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
-        let publication = makePublication(tocService: { _ in FailingTableOfContentsService() })
+        let publication = makePublication(tocService: { _ in StubTableOfContentsService.failing() })
         let timeline = try #require(await publication.timeline())
 
         #expect(timeline.toc.isEmpty)

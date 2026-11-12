@@ -144,14 +144,14 @@ struct WebTimelineServiceTests {
 
     @Test func readsTheTableOfContentsService() async throws {
         let timeline = try await timeline(tocService: { _ in
-            StubTableOfContentsService(toc: [Link(href: "ch2.xhtml", title: "Custom")])
+            StubTableOfContentsService(.success([Link(href: "ch2.xhtml", title: "Custom")]))
         })
 
         #expect(timeline.outline == ["0 Custom → ch2.xhtml"])
     }
 
     @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
-        let timeline = try await timeline(tocService: { _ in FailingTableOfContentsService() })
+        let timeline = try await timeline(tocService: { _ in StubTableOfContentsService.failing() })
 
         #expect(timeline.toc.isEmpty)
         #expect(timeline.segments().map(\.link.href) == resources.map { "\($0).xhtml" })
@@ -225,13 +225,5 @@ private func position(_ index: Int, _ progression: Double = 0, totalProgression:
 private func positions(_ counts: [Int]) -> [[Locator]] {
     zip(resources, counts).map { resource, count in
         (0 ..< count).map { _ in Locator(href: AnyURL(string: "\(resource).xhtml")!, mediaType: .xhtml) }
-    }
-}
-
-private struct StubTableOfContentsService: TableOfContentsService {
-    let toc: [Link]
-
-    func tableOfContents() async -> ReadResult<[Link]> {
-        .success(toc)
     }
 }

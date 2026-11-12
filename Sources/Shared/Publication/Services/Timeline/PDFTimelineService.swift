@@ -23,17 +23,11 @@ public final class PDFTimelineService: TimelineService {
     private let cache: AsyncThrowingMemoizer<Timeline, ReadError>
 
     init(publication: Weak<Publication>) {
-        cache = AsyncThrowingMemoizer { () async throws(ReadError) -> Timeline in
-            guard let publication = publication() else {
-                throw .unsupportedOperation(DebugError("The publication is no longer available"))
+        cache = AsyncThrowingMemoizer { () async throws(ReadError) in
+            try await Timeline(publication: publication()) { publication, _ in
+                let pageCounts = await publication.positionsByReadingOrder().getOrNil()?.map(\.count) ?? []
+                return PDFTimelinePositionResolver(readingOrder: publication.readingOrder, pageCounts: pageCounts)
             }
-
-            let nodes = await publication.timelineNodes()
-            let pageCounts = await publication.positionsByReadingOrder().getOrNil()?.map(\.count) ?? []
-            return Timeline(
-                nodes: nodes,
-                resolver: PDFTimelinePositionResolver(readingOrder: publication.readingOrder, pageCounts: pageCounts)
-            )
         }
     }
 

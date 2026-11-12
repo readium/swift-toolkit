@@ -58,14 +58,8 @@ struct PDFTimelineServiceTests {
         #expect(timeline.toc.entries.map(\.length) == [nil, nil])
     }
 
-    @Test func emptyTableOfContentsGivesAnEmptyTimeline() async throws {
-        let timeline = try await timeline(toc: [], positions: nil)
-
-        #expect(timeline.toc.isEmpty)
-    }
-
     @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
-        let timeline = try await timeline(tocService: { _ in FailingTableOfContentsService() }, positions: nil)
+        let timeline = try await timeline(tocService: { _ in StubTableOfContentsService.failing() }, positions: nil)
 
         #expect(timeline.toc.isEmpty)
         #expect(timeline.segments().map(\.link.href) == ["a.pdf", "b.pdf"])

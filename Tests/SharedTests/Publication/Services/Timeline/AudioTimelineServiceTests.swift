@@ -70,7 +70,7 @@ enum AudioTimelineServiceTests {
         func emptyOrFailingTableOfContentsGivesATimelineWithoutEntries(fails: Bool) async throws {
             let timeline = try await timeline(
                 toc: [],
-                tocService: fails ? { _ in StubTableOfContentsService(.failure(.decoding("Broken"))) } : nil
+                tocService: fails ? { _ in StubTableOfContentsService.failing() } : nil
             )
 
             #expect(timeline.toc.isEmpty)
@@ -89,7 +89,7 @@ enum AudioTimelineServiceTests {
 
     struct Caching {
         @Test func tableOfContentsFailureIsNotRetried() async throws {
-            let service = StubTableOfContentsService(.failure(.decoding("Broken")))
+            let service = StubTableOfContentsService.failing()
             let publication = makePublication(tocService: { _ in service })
 
             _ = try await publication.timeline()
@@ -168,24 +168,4 @@ private func timeline(
     let timeline = try #require(await publication.timeline())
     withExtendedLifetime(publication) {}
     return timeline
-}
-
-/// Answers with `toc` and counts the calls.
-private final class StubTableOfContentsService: TableOfContentsService, @unchecked Sendable {
-    private let toc: ReadResult<[Link]>
-    private let lock = NSLock()
-    private var calls = 0
-
-    init(_ toc: ReadResult<[Link]>) {
-        self.toc = toc
-    }
-
-    var callCount: Int {
-        lock.withLock { calls }
-    }
-
-    func tableOfContents() async -> ReadResult<[Link]> {
-        lock.withLock { calls += 1 }
-        return toc
-    }
 }

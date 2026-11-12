@@ -34,9 +34,9 @@ public struct TimelineTOC: Sendable {
         var path = [entry]
         var parentIndex = parentIndices[entry.id.index]
         while let index = parentIndex {
-            path.insert(allEntries[index], at: 0)
+            path.append(allEntries[index])
             parentIndex = parentIndices[index]
         }
-        return path
+        return path.reversed()
     }
 }

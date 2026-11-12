@@ -10,7 +10,7 @@ import Foundation
 /// the reading order to its end.
 ///
 /// ``Timeline/segments(maxDepth:)`` builds a new collection at each call, for
-/// a single `maxDepth`: keep it to locate each new location.
+/// a single `maxDepth`. Keep it to locate each new location.
 @_spi(ExperimentalTimeline)
 public struct TimelineSegments: RandomAccessCollection, Sendable {
     private let segments: [TimelineSegment]
@@ -76,26 +76,29 @@ public struct TimelineSegments: RandomAccessCollection, Sendable {
         }
         let (resourceStart, resourceEnd) = resolver.bounds(ofResourceAt: index)
 
-        return segments.compactMap { segment in
-            guard
-                segment.start.readingOrderIndex <= index,
-                segment.end.map({ resourceStart.isBefore($0) }) ?? true
-            else {
-                return nil
-            }
+        // The segments follow each other, so the ones before the segment
+        // containing the start of the resource end before it.
+        let firstIndex = self.index(containing: resourceStart) ?? startIndex
 
-            let start = segment.start.isBefore(resourceStart) ? resourceStart : segment.start
-            // A segment can end past the known end of its resource.
-            let end = segment.end
-                .flatMap { $0.readingOrderIndex == index ? $0 : nil }
-                .map { end in resourceEnd.map { $0.isBefore(end) ? $0 : end } ?? end }
-                ?? resourceEnd
-            guard end.map({ start.isBefore($0) }) ?? true else {
-                return nil
+        return segments[firstIndex...]
+            .prefix { $0.start.readingOrderIndex <= index }
+            .compactMap { segment in
+                guard segment.end.map({ resourceStart.isBefore($0) }) ?? true else {
+                    return nil
+                }
+
+                let start = segment.start.isBefore(resourceStart) ? resourceStart : segment.start
+                // A segment can end past the known end of its resource.
+                let end = segment.end
+                    .flatMap { $0.readingOrderIndex == index ? $0 : nil }
+                    .map { end in resourceEnd.map { $0.isBefore(end) ? $0 : end } ?? end }
+                    ?? resourceEnd
+                guard end.map({ start.isBefore($0) }) ?? true else {
+                    return nil
+                }
+                let link = segment.start == start ? segment.link : resolver.readingOrder[index]
+                return TimelineSegment(tocEntry: segment.tocEntry, link: link, start: start, end: end)
             }
-            let link = segment.start == start ? segment.link : resolver.readingOrder[index]
-            return TimelineSegment(tocEntry: segment.tocEntry, link: link, start: start, end: end)
-        }
     }
 
     /// Returns the index of the segment containing `position`, or the last

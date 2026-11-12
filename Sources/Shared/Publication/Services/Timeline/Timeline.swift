@@ -108,14 +108,16 @@ public struct Timeline: Sendable {
         // placed one is left without a range.
         var starts: [TimelinePosition?] = []
         var rangedIndices: [Int] = []
+        var lastStart: TimelinePosition?
         for (nodeIndex, node) in flatNodes.enumerated() {
             var start = resolver.position(of: node.link)
-            if let lastIndex = rangedIndices.last, let lastStart = starts[lastIndex], let position = start, position.isBefore(lastStart) {
+            if let position = start, let lastStart, position.isBefore(lastStart) {
                 start = nil
             }
             starts.append(start)
-            if start != nil {
+            if let start {
                 rangedIndices.append(nodeIndex)
+                lastStart = start
             }
         }
 
