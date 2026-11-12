@@ -13,7 +13,7 @@ public typealias TimelineServiceFactory = @Sendable (PublicationServiceContext) 
 /// on the reading order, where each entry gets a start and an end.
 ///
 /// Use it to find the chapter containing the current location, move to the
-/// previous or next chapter, or get the boundaries and duration of each
+/// previous or next chapter, or get the boundaries and length of each
 /// chapter.
 @_spi(ExperimentalTimeline)
 public protocol TimelineService: PublicationService {

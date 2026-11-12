@@ -49,16 +49,17 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
             ? TimelineCoordinate.page
             : TimelineCoordinate.position
         self.makeCoordinate = makeCoordinate
-        layout = TimelineLayout(
+        let layout = TimelineLayout(
             readingOrder: readingOrder,
             lengths: positionCounts,
             coordinate: { makeCoordinate($0 + 1) }
         )
+        self.layout = layout
 
         var firstEntries: [Int: Link] = [:]
         func record(_ nodes: [Timeline.Node]) {
             for node in nodes {
-                if let index = readingOrder.firstIndexWithHREF(node.link.url()), firstEntries[index] == nil {
+                if let index = layout.index(of: node.link.url()), firstEntries[index] == nil {
                     firstEntries[index] = node.link
                 }
                 record(node.children)

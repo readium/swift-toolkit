@@ -8,20 +8,20 @@ import Foundation
 
 /// A position on a ``Timeline``.
 ///
-/// A position is located by its reading order index and its offset. The other
-/// properties are derived from these two.
+/// A position is located by its reading order index and its offset.
 @_spi(ExperimentalTimeline)
 public struct TimelinePosition: Hashable, Sendable {
     /// Index of the resource in the reading order.
     public let readingOrderIndex: Int
 
-    /// Offset in the resource, in a unit chosen by the resolver, such as
-    /// seconds or a scroll progression.
+    /// Offset in the resource, in a unit chosen by the
+    /// ``TimelinePositionResolver``, such as seconds, a page index or a scroll
+    /// progression.
     ///
     /// Only meaningful to compare positions of the same resource.
     public let offset: Double
 
-    /// Where the position stands in the publication, in its natural unit.
+    /// Where the position stands in the whole timeline, in its natural unit.
     ///
     /// `nil` when the length of a preceding resource is unknown.
     public let coordinate: TimelineCoordinate?

@@ -11,13 +11,16 @@ import Foundation
 /// chapter?" or "how long is this chapter?".
 ///
 /// The reading order forms a continuous line from the start of the
-/// publication to its end, made of the duration of each resource for an
-/// audiobook. A ``TimelinePosition`` is a point on this line.
+/// publication to its end, made of the length of each resource in the
+/// natural unit of the publication: the duration of a track in an audiobook,
+/// the pages of a PDF or a comic, or the positions of an EPUB. A
+/// ``TimelinePosition`` is a point on this line.
 ///
 /// Its ``toc`` is a tree of ``TimelineTOCEntry`` mirroring the table of
 /// contents. Each entry has a range on the line:
 ///
-/// - It starts where its link points, such as `t2.mp3#t=60`.
+/// - It starts where its link points, such as `track2.mp3#t=60` or
+///   `document.pdf#page=12`.
 /// - It ends at the start of the next placed entry after its subtree, or at
 ///   the end of the publication. A parent therefore contains its children,
 ///   and owns the gap before its first child.

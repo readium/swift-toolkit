@@ -67,6 +67,17 @@ enum TimelineLayoutTests {
             #expect(layout.index(of: AnyURL(string: "b#page=2")!) == 1)
             #expect(layout.index(of: AnyURL(string: "outside")!) == nil)
         }
+
+        /// The index is the first match, falling back on ignoring the
+        /// fragment, then the query, as `firstIndexWithHREF`.
+        @Test(arguments: ["a", "./a", "a#f", "b?q=1", "b?q=1#f", "b?q=2", "c", "c?q=1", "outside"])
+        func indexMatchesTheReadingOrderLookup(_ href: String) {
+            let readingOrder = [Link(href: "a"), Link(href: "b?q=1"), Link(href: "a"), Link(href: "b"), Link(href: "dir/../c")]
+            let layout = TimelineLayout<Int>(readingOrder: readingOrder, lengths: [], coordinate: { .page($0) })
+            let url = AnyURL(string: href)!
+
+            #expect(layout.index(of: url) == readingOrder.firstIndexWithHREF(url))
+        }
     }
 
     struct Positions {

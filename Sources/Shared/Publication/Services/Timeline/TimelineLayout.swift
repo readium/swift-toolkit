@@ -35,6 +35,9 @@ extension Double: TimelineScalar {
 package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
     package let readingOrder: [Link]
 
+    /// Index of the first reading order resource with each normalized HREF.
+    private let indicesByHREF: [String: Int]
+
     /// Length of each reading order resource.
     private let lengths: [Scalar?]
 
@@ -58,6 +61,10 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
         coordinate: @escaping @Sendable (Scalar) -> TimelineCoordinate
     ) {
         self.readingOrder = readingOrder
+        indicesByHREF = Dictionary(
+            readingOrder.enumerated().map { index, link in (link.url().normalized.string, index) },
+            uniquingKeysWith: { first, _ in first }
+        )
         makeCoordinate = coordinate
         self.lengths = readingOrder.indices.map { index in
             lengths.getOrNil(index).flatMap { $0 }.flatMap { $0 > .zero ? $0 : nil }
@@ -100,9 +107,13 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
         return (startOffset.doubleValue + progression * length.doubleValue) / totalLength.doubleValue
     }
 
-    /// Index of the reading order resource at `href`, ignoring its fragment.
+    /// Index of the first reading order resource at `href`, falling back on
+    /// ignoring its fragment, then its query too, like `firstIndexWithHREF`.
     package func index(of href: any URLConvertible) -> Int? {
-        readingOrder.firstIndexWithHREF(href)
+        let href = href.anyURL.normalized
+        return indicesByHREF[href.string]
+            ?? indicesByHREF[href.removingFragment().string]
+            ?? indicesByHREF[href.removingQuery().removingFragment().string]
     }
 
     /// Start and end of the reading order resource at `index`, which must be
