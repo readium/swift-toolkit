@@ -87,7 +87,8 @@ public struct TimelineSegments: RandomAccessCollection, Sendable {
                     return nil
                 }
 
-                let start = segment.start.isBefore(resourceStart) ? resourceStart : segment.start
+                let isClipped = segment.start.isBefore(resourceStart)
+                let start = isClipped ? resourceStart : segment.start
                 // A segment can end past the known end of its resource.
                 let end = segment.end
                     .flatMap { $0.readingOrderIndex == index ? $0 : nil }
@@ -96,7 +97,7 @@ public struct TimelineSegments: RandomAccessCollection, Sendable {
                 guard end.map({ start.isBefore($0) }) ?? true else {
                     return nil
                 }
-                let link = segment.start == start ? segment.link : resolver.readingOrder[index]
+                let link = isClipped ? resolver.readingOrder[index] : segment.link
                 return TimelineSegment(tocEntry: segment.tocEntry, link: link, start: start, end: end)
             }
     }

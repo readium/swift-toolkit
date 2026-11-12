@@ -26,6 +26,9 @@ public struct TimelineTOC: Sendable {
     /// Index of the parent of each entry.
     let parentIndices: [Int?]
 
+    /// Depth of each entry, starting at 1 for the top level.
+    let depths: [Int]
+
     /// Returns the entries from the top level down to `entry` itself, such
     /// as the chapter and then the section for a section.
     ///
@@ -38,5 +41,24 @@ public struct TimelineTOC: Sendable {
             parentIndex = parentIndices[index]
         }
         return path.reversed()
+    }
+
+    /// Returns the index of the entry containing the positions from the start
+    /// of the ranged entry `entryIndex`: itself, or its closest ranged
+    /// ancestor within `maxDepth`.
+    func containingEntryIndex(from entryIndex: Int, maxDepth: Int?) -> Int? {
+        var containingIndex: Int? = entryIndex
+        while let currentIndex = containingIndex, !isRanged(currentIndex) || !isWithin(currentIndex, maxDepth: maxDepth) {
+            containingIndex = parentIndices[currentIndex]
+        }
+        return containingIndex
+    }
+
+    private func isRanged(_ entryIndex: Int) -> Bool {
+        allEntries[entryIndex].start != nil
+    }
+
+    private func isWithin(_ entryIndex: Int, maxDepth: Int?) -> Bool {
+        maxDepth.map { depths[entryIndex] <= $0 } ?? true
     }
 }

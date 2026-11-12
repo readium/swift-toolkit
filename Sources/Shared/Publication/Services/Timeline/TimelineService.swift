@@ -58,7 +58,7 @@ extension Timeline {
     /// segments still cover each resource.
     init(
         publication: Publication?,
-        resolver makeResolver: (Publication, [Node]) async -> any TimelinePositionResolver
+        makeResolver: (Publication, [Node]) async -> any TimelinePositionResolver
     ) async throws(ReadError) {
         guard let publication else {
             throw .unsupportedOperation(DebugError("The publication is no longer available"))

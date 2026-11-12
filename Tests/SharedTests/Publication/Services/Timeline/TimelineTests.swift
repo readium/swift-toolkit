@@ -345,6 +345,10 @@ enum TimelineTests {
             #expect(main.timeline.toc.path(to: main["Part 1"]) == [main["Part 1"]])
         }
 
+        @Test func goesFromTheTopLevelDownToTheEntry() {
+            #expect(main.timeline.toc.path(to: main["Chapter 3"]) == [main["Part 2"], main["Chapter 3"]])
+        }
+
         /// Chapter 2 is not in the reading order.
         @Test func goesFromTheTopLevelDownToTheEntryThroughTheUnplacedAncestors() {
             #expect(nested.timeline.toc.path(to: nested["Section"]) == [nested["Part 1"], nested["Chapter 2"], nested["Section"]])

@@ -63,6 +63,12 @@ public struct TimelinePosition: Hashable, Sendable {
         (readingOrderIndex, offset) < (other.readingOrderIndex, other.offset)
     }
 
+    /// Returns whether this position is at the same place as `other` on the
+    /// timeline, ignoring the derived properties like ``isBefore(_:)``.
+    package func isAt(_ other: TimelinePosition) -> Bool {
+        !isBefore(other) && !other.isBefore(self)
+    }
+
     /// Returns this position at the end of the publication, at a
     /// `totalProgression` of 1.
     package func atPublicationEnd() -> TimelinePosition {

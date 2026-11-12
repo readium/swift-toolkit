@@ -49,9 +49,6 @@ public struct Timeline: Sendable {
 
     private let resolver: any TimelinePositionResolver
 
-    /// Depth of each entry, starting at 1 for the top level.
-    private let depths: [Int]
-
     /// Indices of the entries with a range, in pre-order, which is also the
     /// order of their starts.
     private let rangedIndices: [Int]
@@ -65,7 +62,7 @@ public struct Timeline: Sendable {
     }
 
     /// Start of a range of ``segments(maxDepth:)``.
-    private struct Break {
+    private struct Boundary {
         let start: TimelinePosition
 
         /// Ranged entry starting the range, or `nil` at the start of a
@@ -151,10 +148,10 @@ public struct Timeline: Sendable {
         toc = TimelineTOC(
             entries: topLevelIndices.map { builtEntries[$0] },
             allEntries: builtEntries,
-            parentIndices: parentIndices
+            parentIndices: parentIndices,
+            depths: depths
         )
         self.resolver = resolver
-        self.depths = depths
         self.rangedIndices = rangedIndices
         resourceStarts = resolver.readingOrder.enumerated().map { index, link in
             ResourceStart(link: link, position: resolver.bounds(ofResourceAt: index).start)
@@ -184,11 +181,11 @@ public struct Timeline: Sendable {
     ///   positions are in the segment of their closest ancestor within it.
     ///   The top level is 1.
     public func segments(maxDepth: Int? = nil) -> TimelineSegments {
-        // Each ranged entry starts a range up to the next break, inside the
-        // deepest entry containing it within `maxDepth`. The start of each
-        // resource breaks the ranges too, so that a range without entry stays
-        // in its resource.
-        var breaks: [Break] = []
+        // Each ranged entry starts a range up to the next boundary, inside
+        // the deepest entry containing it within `maxDepth`. The start of
+        // each resource is a boundary too, so that a range without entry
+        // stays in its resource.
+        var boundaries: [Boundary] = []
         var resourceIndex = 0
         func addResourceStarts(upTo position: TimelinePosition?) {
             while resourceIndex < resourceStarts.count {
@@ -196,29 +193,30 @@ public struct Timeline: Sendable {
                 guard position.map({ !$0.isBefore(resourceStart.position) }) ?? true else {
                     return
                 }
-                breaks.append(Break(start: resourceStart.position, rangedIndex: nil, link: resourceStart.link))
+                boundaries.append(Boundary(start: resourceStart.position, rangedIndex: nil, link: resourceStart.link))
                 resourceIndex += 1
             }
         }
         for rangedIndex in rangedIndices {
             let entry = toc.allEntries[rangedIndex]
-            addResourceStarts(upTo: entry.start!)
+            let start = entry.start!
+            addResourceStarts(upTo: start)
             // Takes the link of a resource, or of a ranged entry, starting
             // there first.
-            let link = breaks.last.flatMap { $0.start == entry.start ? $0.link : nil } ?? entry.link
-            breaks.append(Break(start: entry.start!, rangedIndex: rangedIndex, link: link))
+            let link = boundaries.last.flatMap { $0.start.isAt(start) ? $0.link : nil } ?? entry.link
+            boundaries.append(Boundary(start: start, rangedIndex: rangedIndex, link: link))
         }
         addResourceStarts(upTo: nil)
 
         var segments: [TimelineSegment] = []
         // Entry of the current range.
         var currentEntryIndex: Int?
-        for (index, rangeBreak) in breaks.enumerated() {
-            if let rangedIndex = rangeBreak.rangedIndex {
-                currentEntryIndex = containingEntryIndex(from: rangedIndex, maxDepth: maxDepth)
+        for (index, boundary) in boundaries.enumerated() {
+            if let rangedIndex = boundary.rangedIndex {
+                currentEntryIndex = toc.containingEntryIndex(from: rangedIndex, maxDepth: maxDepth)
             }
-            let start = rangeBreak.start
-            let end = index + 1 < breaks.count ? breaks[index + 1].start : resolver.end
+            let start = boundary.start
+            let end = index + 1 < boundaries.count ? boundaries[index + 1].start : resolver.end
             guard end.map({ start.isBefore($0) }) ?? true else {
                 continue
             }
@@ -234,30 +232,11 @@ public struct Timeline: Sendable {
                 segments[segments.count - 1] = TimelineSegment(tocEntry: last.tocEntry, link: last.link, start: last.start, end: end)
             } else {
                 let entry = currentEntryIndex.map { toc.allEntries[$0] }
-                let link = entry.flatMap { $0.start == start ? $0.link : nil } ?? rangeBreak.link
+                let link = entry.flatMap { $0.start?.isAt(start) == true ? $0.link : nil } ?? boundary.link
                 segments.append(TimelineSegment(tocEntry: entry, link: link, start: start, end: end))
             }
         }
 
         return TimelineSegments(segments: segments, resolver: resolver)
-    }
-
-    /// Returns the index of the entry containing the positions from the start
-    /// of the ranged entry `entryIndex`: itself, or its closest ranged
-    /// ancestor within `maxDepth`.
-    private func containingEntryIndex(from entryIndex: Int, maxDepth: Int?) -> Int? {
-        var containingIndex: Int? = entryIndex
-        while let currentIndex = containingIndex, !isRanged(currentIndex) || !isWithin(currentIndex, maxDepth: maxDepth) {
-            containingIndex = toc.parentIndices[currentIndex]
-        }
-        return containingIndex
-    }
-
-    private func isRanged(_ entryIndex: Int) -> Bool {
-        toc.allEntries[entryIndex].start != nil
-    }
-
-    private func isWithin(_ entryIndex: Int, maxDepth: Int?) -> Bool {
-        maxDepth.map { depths[entryIndex] <= $0 } ?? true
     }
 }
