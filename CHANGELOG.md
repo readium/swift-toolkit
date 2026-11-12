@@ -9,7 +9,9 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Shared
 
-* New experimental `Publication.timeline()` API. A `Timeline` lays out the table of contents on the reading order, and splits the reading order into segments covering it from start to end, to answer questions such as "which chapter am I in?", "what's the next chapter?" or "how long is this chapter?". It is available for audiobooks, EPUB (limited support), PDF and DiViNa.
+* New experimental `Publication.timeline()` API to locate the current chapter, measure what is left in it and step through the chapters, [see the user guide](docs/Guides/Timeline.md).
+    * A `Timeline` lays out the table of contents on the reading order, measured in time, pages or positions depending on the publication.
+    * `Timeline.segments(maxDepth:)` splits the reading order into consecutive segments covering it from start to end, each with its current entry of the table of contents, if any.
 
 #### Navigator
 
