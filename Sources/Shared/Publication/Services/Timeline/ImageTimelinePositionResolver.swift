@@ -27,20 +27,16 @@ package struct ImageTimelinePositionResolver: TimelinePositionResolver {
         layout.readingOrder
     }
 
-    package var end: TimelinePosition? {
-        layout.end
-    }
-
     package func position(of link: Link) -> TimelinePosition? {
-        layout.bounds(ofResource: link.url())?.start
+        layout.index(of: link.url()).map { layout.position(at: $0, offset: 0) }
     }
 
     package func position(of locator: Locator) -> TimelinePosition? {
-        layout.bounds(ofResource: locator.href)?.start
+        layout.index(of: locator.href).map { layout.position(at: $0, offset: 0) }
     }
 
-    package func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
-        layout.bounds(ofResource: href)
+    package func bounds(ofResourceAt index: Int) -> (start: TimelinePosition, end: TimelinePosition?) {
+        layout.bounds(ofResourceAt: index)
     }
 
     package func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {

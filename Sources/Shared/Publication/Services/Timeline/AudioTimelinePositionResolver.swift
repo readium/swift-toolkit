@@ -27,10 +27,6 @@ package struct AudioTimelinePositionResolver: TimelinePositionResolver {
         layout.readingOrder
     }
 
-    package var end: TimelinePosition? {
-        layout.end
-    }
-
     package func position(of link: Link) -> TimelinePosition? {
         let url = link.url()
         guard let index = layout.index(of: url) else {
@@ -53,8 +49,8 @@ package struct AudioTimelinePositionResolver: TimelinePositionResolver {
         return layout.position(at: index, offset: offset)
     }
 
-    package func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
-        layout.bounds(ofResource: href)
+    package func bounds(ofResourceAt index: Int) -> (start: TimelinePosition, end: TimelinePosition?) {
+        layout.bounds(ofResourceAt: index)
     }
 
     package func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {

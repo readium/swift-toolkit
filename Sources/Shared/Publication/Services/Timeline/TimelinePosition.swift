@@ -62,6 +62,18 @@ public struct TimelinePosition: Hashable, Sendable {
     public func isBefore(_ other: TimelinePosition) -> Bool {
         (readingOrderIndex, offset) < (other.readingOrderIndex, other.offset)
     }
+
+    /// Returns this position at the end of the publication, at a
+    /// `totalProgression` of 1.
+    package func atPublicationEnd() -> TimelinePosition {
+        TimelinePosition(
+            readingOrderIndex: readingOrderIndex,
+            offset: offset,
+            coordinate: coordinate,
+            progression: progression,
+            totalProgression: 1
+        )
+    }
 }
 
 /// Where a position stands in a publication, in its natural unit.

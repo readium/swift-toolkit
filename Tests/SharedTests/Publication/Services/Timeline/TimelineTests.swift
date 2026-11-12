@@ -170,6 +170,10 @@ enum TimelineTests {
             #expect(fixture.timeline.segments().segments(in: url("t3")).last?.end == example.expected)
         }
 
+        @Test func emptyReadingOrderHasNoEnd() {
+            #expect(AudioTimelinePositionResolver(readingOrder: []).end == nil)
+        }
+
         /// `Link.duration` can be shorter than the actual track.
         @Test func startPastTheKnownDurationOfATrack() {
             let fixture = TimelineFixture(durations: [600, 300], nodes: [
@@ -372,6 +376,15 @@ enum TimelineTests {
                 noTOC.segment(nil, (1, 0), (2, 0)),
                 noTOC.segment(nil, (2, 0), (2, 900)),
             ])
+        }
+
+        /// Each track has a segment, even when it repeats the HREF of a
+        /// previous one.
+        @Test func haveOneSegmentWithoutEntryPerTrackRepeatingAnHREF() {
+            let readingOrder = [Link(href: "t1", mediaType: .mp3, duration: 600), Link(href: "t1", mediaType: .mp3, duration: 300)]
+            let timeline = Timeline(nodes: [], resolver: AudioTimelinePositionResolver(readingOrder: readingOrder))
+
+            #expect(timeline.segments().map(\.link) == readingOrder)
         }
 
         /// A starts partway into `t2`.

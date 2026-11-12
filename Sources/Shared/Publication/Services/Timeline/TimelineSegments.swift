@@ -71,10 +71,10 @@ public struct TimelineSegments: RandomAccessCollection, Sendable {
     ///
     /// Empty when `href` is not in the reading order.
     public func segments(in href: any URLConvertible) -> [TimelineSegment] {
-        guard let (resourceStart, resourceEnd) = resolver.bounds(ofResource: href) else {
+        guard let index = resolver.readingOrder.firstIndexWithHREF(href) else {
             return []
         }
-        let index = resourceStart.readingOrderIndex
+        let (resourceStart, resourceEnd) = resolver.bounds(ofResourceAt: index)
 
         return segments.compactMap { segment in
             guard

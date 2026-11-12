@@ -71,13 +71,6 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         self.firstEntries = firstEntries
     }
 
-    package var end: TimelinePosition? {
-        guard !readingOrder.isEmpty else {
-            return nil
-        }
-        return end(ofResourceAt: readingOrder.count - 1)
-    }
-
     package func position(of link: Link) -> TimelinePosition? {
         guard
             let index = readingOrder.firstIndexWithHREF(link.url()),
@@ -109,8 +102,8 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         }
     }
 
-    package func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
-        readingOrder.firstIndexWithHREF(href).map { (start(ofResourceAt: $0), end(ofResourceAt: $0)) }
+    package func bounds(ofResourceAt index: Int) -> (start: TimelinePosition, end: TimelinePosition?) {
+        (start(ofResourceAt: index), end(ofResourceAt: index))
     }
 
     package func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
@@ -130,9 +123,13 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     /// The coordinate of the end is one past the last position of the
     /// resource.
     private func end(ofResourceAt index: Int) -> TimelinePosition {
-        position(at: index, progression: 1) { positionsBefore in
+        let end = position(at: index, progression: 1) { positionsBefore in
             layout.length(ofResourceAt: index).map { positionsBefore + $0 + 1 }
         }
+
+        // The end of the publication is at 100%, even when the count of a
+        // resource is unknown.
+        return index == readingOrder.count - 1 ? end.atPublicationEnd() : end
     }
 
     /// Position at `progression` in the resource at `index`.

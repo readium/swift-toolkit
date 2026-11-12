@@ -104,7 +104,7 @@ enum WebTimelinePositionResolverTests {
 
     struct Ends {
         @Test func endIsOnePastTheLastPosition() {
-            #expect(resolver().bounds(ofResource: AnyURL(string: "b")!)?.end == TimelinePosition(
+            #expect(resolver().bounds(ofResourceAt: 1).end == TimelinePosition(
                 readingOrderIndex: 1,
                 offset: 1,
                 coordinate: .position(7),
@@ -112,14 +112,20 @@ enum WebTimelinePositionResolverTests {
                 totalProgression: 0.6
             ))
             #expect(resolver().end?.coordinate == .position(11))
-            #expect(resolver().end?.totalProgression == 1)
         }
 
-        @Test func onlyTheEndDependsOnTheCountOfTheResource() throws {
-            let bounds = try #require(resolver([4, 2, nil]).bounds(ofResource: AnyURL(string: "c")!))
+        @Test func onlyTheEndDependsOnTheCountOfTheResource() {
+            let bounds = resolver([4, 2, nil]).bounds(ofResourceAt: 2)
 
             #expect(bounds.start.coordinate == .position(7))
             #expect(bounds.end?.coordinate == nil)
+        }
+
+        /// The end of the publication is at 100%, even when a count is
+        /// unknown.
+        @Test(arguments: [[4, 2, 4], [nil, 2, 4], [4, 2, nil]] as [[Int?]])
+        func endOfThePublicationIsAt100Percent(_ positionCounts: [Int?]) {
+            #expect(resolver(positionCounts).end?.totalProgression == 1)
         }
     }
 
@@ -171,7 +177,7 @@ enum WebTimelinePositionResolverTests {
         func lengthFromALocatorAgreesWithItsCoordinate(_ example: LocatorLength) throws {
             let resolver = resolver()
             let start = try #require(resolver.position(of: locator("c", example.locations)))
-            let end = try #require(resolver.bounds(ofResource: AnyURL(string: "c")!)?.end)
+            let end = try #require(resolver.bounds(ofResourceAt: 2).end)
 
             #expect(start.coordinate == .position(11 - example.expected))
             #expect(end.coordinate == .position(11))
@@ -182,7 +188,7 @@ enum WebTimelinePositionResolverTests {
         @Test func lengthFromALocatorAgreesWithItsPage() throws {
             let resolver = resolver(positionsArePages: true)
             let start = try #require(resolver.position(of: locator("c", .init(progression: 0, position: 9))))
-            let end = try #require(resolver.bounds(ofResource: AnyURL(string: "c")!)?.end)
+            let end = try #require(resolver.bounds(ofResourceAt: 2).end)
 
             #expect(start.coordinate == .page(9))
             #expect(end.coordinate == .page(11))

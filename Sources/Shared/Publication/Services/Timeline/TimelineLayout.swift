@@ -105,23 +105,11 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
         readingOrder.firstIndexWithHREF(href)
     }
 
-    /// End of the publication, or `nil` when the reading order is empty or
-    /// the length of its last resource is unknown.
-    package var end: TimelinePosition? {
-        guard !readingOrder.isEmpty else {
-            return nil
-        }
-        return end(ofResourceAt: readingOrder.count - 1)
-    }
-
-    /// Start and end of the reading order resource at `href`, ignoring its
-    /// fragment, or `nil` when it is not in the reading order. The end is
-    /// `nil` when the length of the resource is unknown.
-    package func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
-        guard let index = index(of: href) else {
-            return nil
-        }
-        return (position(at: index, offset: .zero), end(ofResourceAt: index))
+    /// Start and end of the reading order resource at `index`, which must be
+    /// in `readingOrder.indices`. The end is `nil` when the length of the
+    /// resource is unknown.
+    package func bounds(ofResourceAt index: Int) -> (start: TimelinePosition, end: TimelinePosition?) {
+        (position(at: index, offset: .zero), end(ofResourceAt: index))
     }
 
     /// Position at `offset` in the resource at `index`.
@@ -184,16 +172,7 @@ package struct TimelineLayout<Scalar: TimelineScalar>: Sendable {
 
         // The end of the publication is at 100%, even when the length of a
         // preceding resource is unknown.
-        guard index < readingOrder.count - 1 else {
-            return TimelinePosition(
-                readingOrderIndex: index,
-                offset: end.offset,
-                coordinate: end.coordinate,
-                progression: end.progression,
-                totalProgression: 1
-            )
-        }
-        return end
+        return index == readingOrder.count - 1 ? end.atPublicationEnd() : end
     }
 }
 

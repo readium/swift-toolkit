@@ -112,13 +112,12 @@ enum TimelineLayoutTests {
         @Test func resourceBounds() {
             let layout = layout([10, 5, nil])
 
-            #expect(layout.bounds(ofResource: AnyURL(string: "a")!)?.start == position(0, 0, page: 1, progression: 0, totalProgression: nil))
-            #expect(layout.bounds(ofResource: AnyURL(string: "b")!)?.end == position(1, 5, page: 16, progression: 1, totalProgression: nil))
-            #expect(layout.bounds(ofResource: AnyURL(string: "c")!)?.end == nil)
-            #expect(layout.bounds(ofResource: AnyURL(string: "outside")!) == nil)
+            #expect(layout.bounds(ofResourceAt: 0).start == position(0, 0, page: 1, progression: 0, totalProgression: nil))
+            #expect(layout.bounds(ofResourceAt: 1).end == position(1, 5, page: 16, progression: 1, totalProgression: nil))
+            #expect(layout.bounds(ofResourceAt: 2).end == nil)
         }
 
-        struct PublicationEnd: Sendable, CustomTestStringConvertible {
+        struct LastResourceEnd: Sendable, CustomTestStringConvertible {
             let lengths: [Int?]
             let expected: TimelinePosition?
 
@@ -127,19 +126,15 @@ enum TimelineLayoutTests {
             }
         }
 
-        /// The end of the publication is at 100%, even when a preceding length
-        /// is unknown.
+        /// The end of the last resource is at 100%, even when a preceding
+        /// length is unknown.
         @Test(arguments: [
-            PublicationEnd(lengths: [10, 5, 20], expected: position(2, 20, page: 36, progression: 1, totalProgression: 1)),
-            PublicationEnd(lengths: [nil, 5, 20], expected: position(2, 20, page: nil, progression: 1, totalProgression: 1)),
-            PublicationEnd(lengths: [10, 5, nil], expected: nil),
+            LastResourceEnd(lengths: [10, 5, 20], expected: position(2, 20, page: 36, progression: 1, totalProgression: 1)),
+            LastResourceEnd(lengths: [nil, 5, 20], expected: position(2, 20, page: nil, progression: 1, totalProgression: 1)),
+            LastResourceEnd(lengths: [10, 5, nil], expected: nil),
         ])
-        func publicationEnd(_ example: PublicationEnd) {
-            #expect(layout(example.lengths).end == example.expected)
-        }
-
-        @Test func emptyReadingOrderHasNoEnd() {
-            #expect(TimelineLayout<Int>(readingOrder: [], lengths: [], coordinate: { .page($0 + 1) }).end == nil)
+        func lastResourceEnd(_ example: LastResourceEnd) {
+            #expect(layout(example.lengths).bounds(ofResourceAt: 2).end == example.expected)
         }
     }
 }

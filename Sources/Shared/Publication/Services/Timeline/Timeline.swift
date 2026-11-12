@@ -154,11 +154,8 @@ public struct Timeline: Sendable {
         self.resolver = resolver
         self.depths = depths
         self.rangedIndices = rangedIndices
-        // A duplicate HREF resolves to its first resource, which already
-        // has a start.
-        resourceStarts = resolver.readingOrder.enumerated().compactMap { index, link in
-            resolver.bounds(ofResource: link.url())
-                .flatMap { $0.start.readingOrderIndex == index ? ResourceStart(link: link, position: $0.start) : nil }
+        resourceStarts = resolver.readingOrder.enumerated().map { index, link in
+            ResourceStart(link: link, position: resolver.bounds(ofResourceAt: index).start)
         }
     }
 

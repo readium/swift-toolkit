@@ -36,12 +36,12 @@ struct WebTimelineServiceTests {
     }
 
     /// Notes 1 is the first entry of `ch1b`, but goes back. Chapter 3 ends
-    /// with the publication.
+    /// with the publication, at 100%.
     @Test func onlyTheFirstEntryOfEachResourceIsPlaced() async throws {
         let timeline = try await timeline()
 
         #expect(timeline.toc.entries.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
-        #expect(timeline.toc.entries.map(\.end) == [position(3), nil, position(4), nil, position(4, 1), nil])
+        #expect(timeline.toc.entries.map(\.end) == [position(3), nil, position(4), nil, position(4, 1, totalProgression: 1), nil])
     }
 
     /// `cover`, `ch1a`, `ch1b`, `ch2` and `ch3` have 1, 3, 2, 4 and 5
@@ -217,8 +217,8 @@ private func timeline(
 private let resources = ["cover", "ch1a", "ch1b", "ch2", "ch3"]
 
 /// Position without positions.
-private func position(_ index: Int, _ progression: Double = 0) -> TimelinePosition {
-    TimelinePosition(readingOrderIndex: index, offset: progression, progression: progression)
+private func position(_ index: Int, _ progression: Double = 0, totalProgression: Double? = nil) -> TimelinePosition {
+    TimelinePosition(readingOrderIndex: index, offset: progression, progression: progression, totalProgression: totalProgression)
 }
 
 /// The given number of positions in each resource.
