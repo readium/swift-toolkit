@@ -7,6 +7,7 @@
 import Foundation
 @_spi(ExperimentalTimeline) @testable import ReadiumShared
 import Testing
+@_spi(ExperimentalTimeline) import TestSupport
 
 /// Reading order: `a.jpg`, `b.jpg` and `c.jpg`.
 ///
@@ -17,9 +18,9 @@ struct ImageTimelineServiceTests {
         let publication = makePublication()
         let timeline = try #require(await publication.timeline())
 
-        #expect(timeline.items.map { $0.start?.coordinate } == [.page(1), .page(3)])
-        #expect(timeline.items.map(\.length) == [.pages(2), .pages(1)])
-        #expect(timeline.items[1].end?.coordinate == .page(4))
+        #expect(timeline.toc.entries.map { $0.start?.coordinate } == [.page(1), .page(3)])
+        #expect(timeline.toc.entries.map(\.length) == [.pages(2), .pages(1)])
+        #expect(timeline.toc.entries[1].end?.coordinate == .page(4))
 
         let locator = Locator(href: AnyURL(string: "b.jpg")!, mediaType: .jpeg, locations: .init(progression: 0.5))
         #expect(timeline.position(of: locator) == TimelinePosition(
@@ -29,7 +30,7 @@ struct ImageTimelineServiceTests {
             progression: 0,
             totalProgression: 1 / 3
         ))
-        #expect(timeline.item(containing: locator) == timeline.items[0])
+        #expect(timeline.segments().segment(containing: locator)?.tocEntry == timeline.toc.entries[0])
     }
 
     /// The pages match the positions list of the publication.
@@ -42,6 +43,14 @@ struct ImageTimelineServiceTests {
         for locator in positions {
             #expect(timeline.position(of: locator)?.coordinate == locator.locations.position.map { .page($0) })
         }
+    }
+
+    @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
+        let publication = makePublication(tocService: { _ in StubTableOfContentsService.failing() })
+        let timeline = try #require(await publication.timeline())
+
+        #expect(timeline.toc.isEmpty)
+        #expect(timeline.segments().map(\.link.href) == ["a.jpg", "b.jpg", "c.jpg"])
     }
 
     @Test func failsOnceThePublicationIsDeallocated() async {
@@ -59,7 +68,7 @@ struct ImageTimelineServiceTests {
 
 // MARK: - Helpers
 
-private func makePublication() -> Publication {
+private func makePublication(tocService: TableOfContentsServiceFactory? = nil) -> Publication {
     Publication(
         manifest: Manifest(
             metadata: Metadata(title: ""),
@@ -72,6 +81,9 @@ private func makePublication() -> Publication {
         servicesBuilder: PublicationServicesBuilder(setup: {
             $0.setPositionsServiceFactory(PerResourcePositionsService.makeFactory(fallbackMediaType: .jpeg))
             $0.setTimelineServiceFactory(ImageTimelineService.makeFactory())
+            if let tocService {
+                $0.setTableOfContentsServiceFactory(tocService)
+            }
         })
     )
 }

@@ -27,16 +27,10 @@ public final class WebTimelineService: TimelineService {
     private let cache: AsyncThrowingMemoizer<Timeline, ReadError>
 
     init(publication: Weak<Publication>) {
-        cache = AsyncThrowingMemoizer { () async throws(ReadError) -> Timeline in
-            guard let publication = publication() else {
-                throw .unsupportedOperation(DebugError("The publication is no longer available"))
-            }
-
-            let nodes = try await publication.tableOfContents().get().timelineNodes
-            let positionCounts = await publication.positionsByReadingOrder().getOrNil()?.map(\.count) ?? []
-            return Timeline(
-                nodes: nodes,
-                resolver: WebTimelinePositionResolver(
+        cache = AsyncThrowingMemoizer { () async throws(ReadError) in
+            try await Timeline(publication: publication()) { publication, nodes in
+                let positionCounts = await publication.positionsByReadingOrder().getOrNil()?.map(\.count) ?? []
+                return WebTimelinePositionResolver(
                     readingOrder: publication.readingOrder,
                     positionCounts: positionCounts,
                     // A fixed-layout resource has a single position.
@@ -45,12 +39,12 @@ public final class WebTimelineService: TimelineService {
                     },
                     nodes: nodes
                 )
-            )
+            }
         }
     }
 
-    /// Builds the timeline once. A failure is not cached, so the next call
-    /// tries again.
+    /// Builds the timeline once, with an empty table of contents when it fails
+    /// to load.
     public func timeline() async throws(ReadError) -> Timeline {
         try await cache()
     }

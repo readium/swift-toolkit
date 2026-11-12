@@ -71,7 +71,7 @@ class ImageParserTests: XCTestCase {
         let publication = try await parser.parse(asset: cbzAsset, warnings: nil).get().build()
 
         let timeline = try await publication.timeline()
-        XCTAssertEqual(timeline?.items, [])
+        XCTAssertEqual(timeline?.toc.isEmpty, true)
     }
 
     /// The reading order is sorted alphabetically, ignores Thumbs.db, hidden files and non-bitmap

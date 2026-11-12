@@ -21,6 +21,24 @@ enum WebTimelinePositionResolverTests {
                 totalProgression: 0.4
             ))
         }
+
+        /// Entries are matched by value: a duplicate of the first entry of a
+        /// resource is placed at the same start, unlike another entry of the
+        /// resource.
+        @Test func duplicateOfTheFirstEntryOfAResourceIsPlaced() {
+            let nodes = [
+                Timeline.Node(title: "B", link: Link(href: "b")),
+                Timeline.Node(title: "B again", link: Link(href: "b")),
+                Timeline.Node(title: "Other", link: Link(href: "b", title: "Other")),
+            ]
+            let resolver = resolver(nodes: nodes)
+            let timeline = Timeline(nodes: nodes, resolver: resolver)
+            let start = resolver.bounds(ofResourceAt: 1).start
+
+            #expect(timeline.toc.entries.map(\.start) == [start, start, nil])
+            // The first one has an empty range.
+            #expect(timeline.toc.entries.map(\.length) == [.positions(0), .positions(6), nil])
+        }
     }
 
     /// All the locators are in `c`, at positions 7 to 10.
@@ -104,7 +122,7 @@ enum WebTimelinePositionResolverTests {
 
     struct Ends {
         @Test func endIsOnePastTheLastPosition() {
-            #expect(resolver().bounds(ofResource: AnyURL(string: "b")!)?.end == TimelinePosition(
+            #expect(resolver().bounds(ofResourceAt: 1).end == TimelinePosition(
                 readingOrderIndex: 1,
                 offset: 1,
                 coordinate: .position(7),
@@ -112,14 +130,20 @@ enum WebTimelinePositionResolverTests {
                 totalProgression: 0.6
             ))
             #expect(resolver().end?.coordinate == .position(11))
-            #expect(resolver().end?.totalProgression == 1)
         }
 
-        @Test func onlyTheEndDependsOnTheCountOfTheResource() throws {
-            let bounds = try #require(resolver([4, 2, nil]).bounds(ofResource: AnyURL(string: "c")!))
+        @Test func onlyTheEndDependsOnTheCountOfTheResource() {
+            let bounds = resolver([4, 2, nil]).bounds(ofResourceAt: 2)
 
             #expect(bounds.start.coordinate == .position(7))
             #expect(bounds.end?.coordinate == nil)
+        }
+
+        /// The end of the publication is at 100%, even when a count is
+        /// unknown.
+        @Test(arguments: [[4, 2, 4], [nil, 2, 4], [4, 2, nil]] as [[Int?]])
+        func endOfThePublicationIsAt100Percent(_ positionCounts: [Int?]) {
+            #expect(resolver(positionCounts).end?.totalProgression == 1)
         }
     }
 
@@ -145,7 +169,11 @@ enum WebTimelinePositionResolverTests {
             LengthExample(name: "an unknown count in between", positionCounts: [4, nil, 4], start: at(0, 0), end: at(2, 0), expected: nil),
         ])
         func lengthIsCountedInPositions(_ example: LengthExample) {
-            #expect(resolver(example.positionCounts).length(from: example.start, to: example.end) == example.expected.map { .positions($0) })
+            let resolver = resolver(example.positionCounts)
+
+            #expect(resolver.length(from: example.start, to: example.end) == example.expected.map { .positions($0) })
+            // The opposite, going backward.
+            #expect(resolver.length(from: example.end, to: example.start) == example.expected.map { .positions(-$0) })
         }
 
         struct LocatorLength: Sendable, CustomTestStringConvertible {
@@ -167,7 +195,7 @@ enum WebTimelinePositionResolverTests {
         func lengthFromALocatorAgreesWithItsCoordinate(_ example: LocatorLength) throws {
             let resolver = resolver()
             let start = try #require(resolver.position(of: locator("c", example.locations)))
-            let end = try #require(resolver.bounds(ofResource: AnyURL(string: "c")!)?.end)
+            let end = try #require(resolver.bounds(ofResourceAt: 2).end)
 
             #expect(start.coordinate == .position(11 - example.expected))
             #expect(end.coordinate == .position(11))
@@ -178,33 +206,40 @@ enum WebTimelinePositionResolverTests {
         @Test func lengthFromALocatorAgreesWithItsPage() throws {
             let resolver = resolver(positionsArePages: true)
             let start = try #require(resolver.position(of: locator("c", .init(progression: 0, position: 9))))
-            let end = try #require(resolver.bounds(ofResource: AnyURL(string: "c")!)?.end)
+            let end = try #require(resolver.bounds(ofResourceAt: 2).end)
 
             #expect(start.coordinate == .page(9))
             #expect(end.coordinate == .page(11))
             #expect(resolver.length(from: start, to: end) == .pages(2))
         }
 
-        /// The coordinates are read before the progressions.
-        @Test func lengthIsUnknownWhenTheEndIsBeforeTheStartByTheirCoordinates() throws {
+        /// The coordinates are read before the progressions: the end at
+        /// position 9 is before the start at position 10.
+        @Test func lengthIsNegativeWhenTheEndIsBeforeTheStartByTheirCoordinates() throws {
             let resolver = resolver()
             let start = try #require(resolver.position(of: locator("c", .init(progression: 0.1, position: 10))))
             let end = try #require(resolver.position(of: locator("c", .init(progression: 0.5))))
 
-            #expect(resolver.length(from: start, to: end) == nil)
+            #expect(resolver.length(from: start, to: end) == .positions(-1))
+            #expect(resolver.length(from: end, to: start) == .positions(1))
         }
     }
 }
 
 // MARK: - Helpers
 
-private func resolver(_ positionCounts: [Int?] = [4, 2, 4], positionsArePages: Bool = false) -> WebTimelinePositionResolver {
+/// - Parameter nodes: Defaults to one entry per resource.
+private func resolver(
+    _ positionCounts: [Int?] = [4, 2, 4],
+    positionsArePages: Bool = false,
+    nodes: [Timeline.Node]? = nil
+) -> WebTimelinePositionResolver {
     let readingOrder = ["a", "b", "c"].map { Link(href: $0, mediaType: .xhtml) }
     return WebTimelinePositionResolver(
         readingOrder: readingOrder,
         positionCounts: positionCounts,
         positionsArePages: positionsArePages,
-        nodes: readingOrder.map { Timeline.Node(title: .text($0.href), link: Link(href: $0.href)) }
+        nodes: nodes ?? readingOrder.map { Timeline.Node(title: $0.href, link: Link(href: $0.href)) }
     )
 }
 

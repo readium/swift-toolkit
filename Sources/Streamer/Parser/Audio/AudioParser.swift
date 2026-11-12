@@ -54,9 +54,6 @@ public final class AudioParser: PublicationParser, Loggable {
 
         /// When no file has a chapter, makes the table of contents from the
         /// titles of the files, if at least two of them are titled.
-        ///
-        /// When disabled, the experimental timeline of such a publication is
-        /// empty, instead of having one item per file.
         public var generatesTableOfContentsFromReadingOrder: Bool
 
         public init(
@@ -252,9 +249,7 @@ public final class AudioParser: PublicationParser, Loggable {
                 cover: cover.map { EmbeddedCoverService.makeFactory(data: $0.data, mediaType: $0.mediaType) },
                 locator: AudioLocatorService.makeFactory(),
                 setup: { [config] in
-                    $0.setTimelineServiceFactory(AudioTimelineService.makeFactory(
-                        generatesFromReadingOrder: config.generatesTableOfContentsFromReadingOrder
-                    ))
+                    $0.setTimelineServiceFactory(AudioTimelineService.makeFactory())
                 }
             )
         ))

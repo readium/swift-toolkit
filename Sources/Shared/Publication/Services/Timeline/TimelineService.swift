@@ -10,11 +10,10 @@ import Foundation
 public typealias TimelineServiceFactory = @Sendable (PublicationServiceContext) -> TimelineService?
 
 /// Provides the ``Timeline`` of a publication: its table of contents laid out
-/// on the reading order, where each entry becomes an item with a start and an
-/// end.
+/// on the reading order, where each entry gets a start and an end.
 ///
 /// Use it to find the chapter containing the current location, move to the
-/// previous or next chapter, or get the boundaries and duration of each
+/// previous or next chapter, or get the boundaries and length of each
 /// chapter.
 @_spi(ExperimentalTimeline)
 public protocol TimelineService: PublicationService {
@@ -49,18 +48,43 @@ public extension PublicationServicesBuilder {
     }
 }
 
-// MARK: Table of Contents Helpers
+// MARK: Service Helpers
 
-extension [Link] {
-    /// Nodes of the timeline of this table of contents. An untitled entry is
-    /// replaced by its children.
-    var timelineNodes: [Timeline.Node] {
-        flatMap { link -> [Timeline.Node] in
-            let children = link.children.timelineNodes
+extension Timeline {
+    /// Builds the timeline of `publication` from its table of contents, with
+    /// the resolver returned by `makeResolver`.
+    ///
+    /// The table of contents is empty when it fails to load, so that the
+    /// segments still cover each resource.
+    init(
+        publication: Publication?,
+        makeResolver: (Publication, [Node]) async -> any TimelinePositionResolver
+    ) async throws(ReadError) {
+        guard let publication else {
+            throw .unsupportedOperation(DebugError("The publication is no longer available"))
+        }
+
+        let nodes: [Node]
+        switch await publication.tableOfContents() {
+        case let .success(toc):
+            nodes = Self.nodes(of: toc)
+        case let .failure(error):
+            publication.log(.warning, "Failed to read the table of contents of the timeline: \(error)")
+            nodes = []
+        }
+
+        await self.init(nodes: nodes, resolver: makeResolver(publication, nodes))
+    }
+
+    /// Nodes of the table of contents `links`. An untitled entry is replaced
+    /// by its children.
+    private static func nodes(of links: [Link]) -> [Node] {
+        links.flatMap { link -> [Node] in
+            let children = nodes(of: link.children)
             guard let title = link.title?.orNilIfBlank() else {
                 return children
             }
-            return [Timeline.Node(title: .text(title), link: link, children: children)]
+            return [Node(title: title, link: link, children: children)]
         }
     }
 }

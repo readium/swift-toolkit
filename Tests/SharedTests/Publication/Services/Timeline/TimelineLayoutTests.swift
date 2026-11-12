@@ -45,12 +45,18 @@ enum TimelineLayoutTests {
             Example(name: "an unknown length of the end resource does not matter", lengths: [10, 5, nil], start: at(1, 1), end: at(2, 3), expected: 7),
             Example(name: "an unknown length in between", lengths: [10, nil, 20], start: at(0, 8), end: at(2, 3), expected: nil),
             Example(name: "a start past the known length of its resource", start: at(0, 12), end: at(1, 1), expected: nil),
-            Example(name: "the end is before the start", start: at(1, 4), end: at(1, 1), expected: nil),
+            Example(name: "an end past the known length of its resource does not matter", start: at(0, 8), end: at(1, 7), expected: 9),
+            Example(name: "the same position", start: at(1, 2), end: at(1, 2), expected: 0),
+            Example(name: "the end is before the start", start: at(1, 4), end: at(0, 8), expected: -6),
             Example(name: "an offset is not a whole length", start: at(1, 1.5), end: at(1, 4), expected: nil),
             Example(name: "a position outside the reading order", start: at(1, 1), end: at(3, 0), expected: nil),
         ])
         func lengthBetweenPositions(_ example: Example) {
-            #expect(layout(example.lengths).length(from: example.start, to: example.end) == example.expected)
+            let layout = layout(example.lengths)
+
+            #expect(layout.length(from: example.start, to: example.end) == example.expected)
+            // The opposite, going backward.
+            #expect(layout.length(from: example.end, to: example.start) == example.expected.map { -$0 })
         }
     }
 
@@ -60,6 +66,17 @@ enum TimelineLayoutTests {
 
             #expect(layout.index(of: AnyURL(string: "b#page=2")!) == 1)
             #expect(layout.index(of: AnyURL(string: "outside")!) == nil)
+        }
+
+        /// The index is the first match, falling back on ignoring the
+        /// fragment, then the query, as `firstIndexWithHREF`.
+        @Test(arguments: ["a", "./a", "a#f", "b?q=1", "b?q=1#f", "b?q=2", "c", "c?q=1", "outside"])
+        func indexMatchesTheReadingOrderLookup(_ href: String) {
+            let readingOrder = [Link(href: "a"), Link(href: "b?q=1"), Link(href: "a"), Link(href: "b"), Link(href: "dir/../c")]
+            let layout = TimelineLayout<Int>(readingOrder: readingOrder, lengths: [], coordinate: { .page($0) })
+            let url = AnyURL(string: href)!
+
+            #expect(layout.index(of: url) == readingOrder.firstIndexWithHREF(url))
         }
     }
 
@@ -106,13 +123,12 @@ enum TimelineLayoutTests {
         @Test func resourceBounds() {
             let layout = layout([10, 5, nil])
 
-            #expect(layout.bounds(ofResource: AnyURL(string: "a")!)?.start == position(0, 0, page: 1, progression: 0, totalProgression: nil))
-            #expect(layout.bounds(ofResource: AnyURL(string: "b")!)?.end == position(1, 5, page: 16, progression: 1, totalProgression: nil))
-            #expect(layout.bounds(ofResource: AnyURL(string: "c")!)?.end == nil)
-            #expect(layout.bounds(ofResource: AnyURL(string: "outside")!) == nil)
+            #expect(layout.bounds(ofResourceAt: 0).start == position(0, 0, page: 1, progression: 0, totalProgression: nil))
+            #expect(layout.bounds(ofResourceAt: 1).end == position(1, 5, page: 16, progression: 1, totalProgression: nil))
+            #expect(layout.bounds(ofResourceAt: 2).end == nil)
         }
 
-        struct PublicationEnd: Sendable, CustomTestStringConvertible {
+        struct LastResourceEnd: Sendable, CustomTestStringConvertible {
             let lengths: [Int?]
             let expected: TimelinePosition?
 
@@ -121,19 +137,15 @@ enum TimelineLayoutTests {
             }
         }
 
-        /// The end of the publication is at 100%, even when a preceding length
-        /// is unknown.
+        /// The end of the last resource is at 100%, even when a preceding
+        /// length is unknown.
         @Test(arguments: [
-            PublicationEnd(lengths: [10, 5, 20], expected: position(2, 20, page: 36, progression: 1, totalProgression: 1)),
-            PublicationEnd(lengths: [nil, 5, 20], expected: position(2, 20, page: nil, progression: 1, totalProgression: 1)),
-            PublicationEnd(lengths: [10, 5, nil], expected: nil),
+            LastResourceEnd(lengths: [10, 5, 20], expected: position(2, 20, page: 36, progression: 1, totalProgression: 1)),
+            LastResourceEnd(lengths: [nil, 5, 20], expected: position(2, 20, page: nil, progression: 1, totalProgression: 1)),
+            LastResourceEnd(lengths: [10, 5, nil], expected: nil),
         ])
-        func publicationEnd(_ example: PublicationEnd) {
-            #expect(layout(example.lengths).end == example.expected)
-        }
-
-        @Test func emptyReadingOrderHasNoEnd() {
-            #expect(TimelineLayout<Int>(readingOrder: [], lengths: [], coordinate: { .page($0 + 1) }).end == nil)
+        func lastResourceEnd(_ example: LastResourceEnd) {
+            #expect(layout(example.lengths).bounds(ofResourceAt: 2).end == example.expected)
         }
     }
 }

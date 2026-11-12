@@ -27,7 +27,7 @@ import Testing
 /// - X → `t1` (goes back)
 /// - B → `t3#t=200`
 ///
-/// **Nested**: tracks `t1` 600 s and `t2` 300 s. A placed item is nested
+/// **Nested**: tracks `t1` 600 s and `t2` 300 s. A placed entry is nested
 /// under a rangeless one.
 ///
 /// - Part 1 → `t1`
@@ -45,7 +45,7 @@ import Testing
 ///     - Section → `t1#t=300`
 enum TimelineTests {
     struct Building {
-        @Test func idsArePreOrderIndexesAndItemsKeepTheNodes() {
+        @Test func idsWrapPreOrderIndicesAndEntriesKeepTheNodes() {
             #expect(main.timeline.outline == [
                 "0 Part 1 → t1",
                 "  1 Chapter 1 → t1",
@@ -54,20 +54,14 @@ enum TimelineTests {
                 "  4 Chapter 3 → t2#t=120",
                 "  5 Chapter 4 → t3",
             ])
-            #expect(main.timeline.preOrderItems.map(\.link) == main.nodes.preOrder.map(\.link))
+            #expect(main.timeline.preOrderEntries.map(\.link) == main.nodes.preOrder.map(\.link))
         }
 
-        @Test func emptyNodesGiveAnEmptyTimeline() {
-            let timeline = TimelineFixture(durations: [600, 300, 900], nodes: []).timeline
-
-            #expect(timeline.items.isEmpty)
-            #expect(timeline.item(containing: Locator(href: "t1", mediaType: .mp3)) == nil)
-            #expect(timeline.first() == nil)
-            #expect(timeline.segments() == [])
-            #expect(timeline.segments(in: url("t1")) == [])
+        @Test func emptyNodesGiveATimelineWithoutEntries() {
+            #expect(noTOC.timeline.toc.isEmpty)
         }
 
-        @Test func sparseItemsKeepTheirPlaceWithoutARange() {
+        @Test func sparseEntriesKeepTheirPlaceWithoutARange() {
             #expect(sparse.timeline.outline == [
                 "0 A → t2#t=10",
                 "1 R → outside.mp3",
@@ -75,7 +69,7 @@ enum TimelineTests {
                 "3 X → t1",
                 "4 B → t3#t=200",
             ])
-            #expect(sparse.timeline.preOrderItems.map(\.start) == [
+            #expect(sparse.timeline.preOrderEntries.map(\.start) == [
                 sparse.at(1, 10),
                 // Outside the reading order.
                 nil,
@@ -98,8 +92,8 @@ enum TimelineTests {
             #expect(fixture["Child"].end == nil)
         }
 
-        @Test func itemsAreAllPlaced() {
-            #expect(main.timeline.preOrderItems.map(\.start) == [
+        @Test func entriesAreAllPlaced() {
+            #expect(main.timeline.preOrderEntries.map(\.start) == [
                 // Part 1 and Chapter 1 share a start.
                 main.at(0, 0),
                 main.at(0, 0),
@@ -112,10 +106,10 @@ enum TimelineTests {
     }
 
     struct Ends {
-        @Test func itemEndsAtTheNextRangedItemAfterItsSubtree() {
+        @Test func entryEndsAtTheNextRangedEntryAfterItsSubtree() {
             let publicationEnd = position(2, 900, time: 1800, progression: 1, totalProgression: 1)
 
-            #expect(main.timeline.preOrderItems.map(\.end) == [
+            #expect(main.timeline.preOrderEntries.map(\.end) == [
                 // Part 1 ends where Chapter 2 does.
                 main.at(1, 60),
                 // Chapter 1 ends at Chapter 2's start.
@@ -128,8 +122,8 @@ enum TimelineTests {
             ])
         }
 
-        @Test func endsSkipRangelessItems() {
-            #expect(sparse.timeline.preOrderItems.map(\.end) == [
+        @Test func endsSkipRangelessEntries() {
+            #expect(sparse.timeline.preOrderEntries.map(\.end) == [
                 sparse.at(2, 0),
                 nil,
                 sparse.at(2, 200),
@@ -172,7 +166,19 @@ enum TimelineTests {
 
             #expect(fixture["Two"].end == example.expected)
             #expect(fixture.timeline.segments().last?.end == example.expected)
-            #expect(fixture.timeline.segments(in: url("t3")).last?.end == example.expected)
+            #expect(TimelineFixture(durations: example.durations, nodes: []).timeline.segments().last?.end == example.expected)
+            #expect(fixture.timeline.segments().segments(in: url("t3")).last?.end == example.expected)
+        }
+
+        @Test func emptyReadingOrderHasNoEndNorSegment() {
+            let resolver = AudioTimelinePositionResolver(readingOrder: [])
+            let timeline = Timeline(nodes: [node("A", "t1")], resolver: resolver)
+
+            #expect(resolver.end == nil)
+            #expect(timeline.toc.entries.map(\.start) == [nil])
+            #expect(timeline.segments().isEmpty)
+            #expect(timeline.segments().segment(containing: Locator(href: "t1", mediaType: .mp3)) == nil)
+            #expect(timeline.segments().segments(in: url("t1")) == [])
         }
 
         /// `Link.duration` can be shorter than the actual track.
@@ -189,30 +195,30 @@ enum TimelineTests {
             // D starts past the end of the publication.
             #expect(fixture["D"].end == fixture.at(1, 400))
             #expect(fixture["D"].length == .duration(0))
-            #expect(fixture.timeline.segments() == [
+            #expect(Array(fixture.timeline.segments()) == [
                 fixture.segment("A", (0, 0), (0, 700)),
                 fixture.segment("B", (0, 700), (1, 0)),
                 fixture.segment("C", (1, 0), (1, 400)),
             ])
             // Clipped to the end of each track.
-            #expect(fixture.timeline.segments(in: url("t1")) == [
+            #expect(fixture.timeline.segments().segments(in: url("t1")) == [
                 fixture.segment("A", (0, 0), (0, 600)),
             ])
-            #expect(fixture.timeline.segments(in: url("t2")) == [
+            #expect(fixture.timeline.segments().segments(in: url("t2")) == [
                 fixture.segment("C", (1, 0), (1, 300)),
             ])
-            // D has no segment.
-            #expect(fixture.segment(containing: "t2", 450) == nil)
+            // D has no segment: past the end of C, the segment is still C.
+            #expect(fixture.segment(containing: "t2", 450) == fixture.segment("C", (1, 0), (1, 400)))
         }
     }
 
     struct Lengths {
         @Test func lengthGoesFromTheStartToTheEnd() {
-            #expect(main.timeline.preOrderItems.map(\.length) == [660, 300, 360, 1140, 180, 900].map { .duration($0) })
+            #expect(main.timeline.preOrderEntries.map(\.length) == [660, 300, 360, 1140, 180, 900].map { .duration($0) })
         }
 
-        @Test func rangelessItemsHaveNoLength() {
-            #expect(sparse.timeline.preOrderItems.map(\.length) == [.duration(290), nil, .duration(200), nil, .duration(800)])
+        @Test func rangelessEntriesHaveNoLength() {
+            #expect(sparse.timeline.preOrderEntries.map(\.length) == [.duration(290), nil, .duration(200), nil, .duration(800)])
         }
 
         /// One continues past `t1`, whose duration is unknown, and Three has
@@ -224,7 +230,7 @@ enum TimelineTests {
                 node("Three", "t3"),
             ])
 
-            #expect(fixture.timeline.items.map(\.length) == [nil, .duration(300), nil])
+            #expect(fixture.timeline.toc.entries.map(\.length) == [nil, .duration(300), nil])
         }
     }
 
@@ -246,66 +252,70 @@ enum TimelineTests {
             #expect(!a.isBefore(b) && !b.isBefore(a))
         }
 
-        @Test func itemsOfTimelinesBuiltFromTheSameNodesAreEqual() {
+        @Test func entriesOfTimelinesBuiltFromTheSameNodesAreEqual() {
             let other = makeMain()
 
             #expect(main["Chapter 1"] == other["Chapter 1"])
             #expect(main["Chapter 1"].hashValue == other["Chapter 1"].hashValue)
             #expect(main["Chapter 1"] != main["Chapter 2"])
         }
-
-        /// C has the id of Chapter 2 in Main.
-        @Test func queriesIgnoreTheItemsOfAnotherTimeline() {
-            #expect(main.timeline.previous(before: sparse["C"]) == nil)
-            #expect(main.timeline.next(after: sparse["C"]) == nil)
-            #expect(main.timeline.ancestors(of: sparse["C"]) == [])
-        }
     }
 
-    struct ItemContaining {
-        @Test func returnsTheDeepestItemContainingTheLocator() {
-            #expect(main.item(containing: "t1", 450) == main["Chapter 2"])
-            // Part 2's gap.
-            #expect(main.item(containing: "t2", 90) == main["Part 2"])
-            // A start shared by Part 1 and Chapter 1.
-            #expect(main.item(containing: "t1", 0) == main["Chapter 1"])
-        }
-
-        @Test func stopsAtTheMaxDepth() {
-            #expect(main.item(containing: "t2", 200, maxDepth: 1) == main["Part 2"])
-            #expect(main.item(containing: "t2", 200, maxDepth: 5) == main["Chapter 3"])
-            // R is rangeless.
-            #expect(sparse.item(containing: "t3", 100, maxDepth: 1) == nil)
-        }
-
-        @Test func coverageOfASparseTimeline() {
-            #expect(sparse.item(containing: "t1", 300) == nil)
-            // Before A.
-            #expect(sparse.item(containing: "t2", 5) == nil)
-            #expect(sparse.item(containing: "outside.mp3") == nil)
-            // Not referenced by the TOC.
-            #expect(sparse.item(containing: "t4", 50) == sparse["B"])
-            // Past the known end of the last track.
-            #expect(sparse.item(containing: "t4", 150) == sparse["B"])
-        }
-    }
-
-    /// See also `labelsMatchItemAndSegmentContaining` in `Segments`.
+    /// See also `findsEachSegment` in `Segments`, at the start and end of
+    /// each segment.
     struct SegmentContaining {
         /// Part 2's segment ends at Chapter 3, unlike Part 2.
-        @Test func endsWhereTheNextItemStarts() {
+        @Test func endsWhereTheNextEntryStarts() {
             #expect(main.segment(containing: "t2", 90) == main.segment("Part 2", (1, 60), (1, 120)))
         }
 
-        @Test func isNilWithoutAnItem() {
-            // Before A.
-            #expect(sparse.segment(containing: "t2", 5) == nil)
+        @Test func isNilOutsideTheReadingOrder() {
+            #expect(sparse.segment(containing: "outside.mp3") == nil)
         }
 
         /// Past the known end of the last track, the segment of B ends before
         /// the locator.
         @Test func pastTheKnownEndOfThePublication() {
             #expect(sparse.segment(containing: "t4", 150) == sparse.segment("B", (2, 200), (3, 100)))
+        }
+
+        @Test func isTheLastSegmentWhenItsEndIsUnknown() {
+            let fixture = TimelineFixture(durations: [600, 300, nil], nodes: makeMain().nodes)
+            #expect(fixture.segment(containing: "t3", 5000) == fixture.timeline.segments().last)
+        }
+    }
+
+    struct SegmentBeforeAndAfter {
+        @Test func areTheNeighborsOfTheSegment() {
+            let segments = main.timeline.segments()
+
+            #expect(segments.segment(before: segments[1]) == segments[0])
+            #expect(segments.segment(after: segments[1]) == segments[2])
+        }
+
+        @Test func areNilAtTheEnds() {
+            let segments = main.timeline.segments()
+
+            #expect(segments.segment(before: segments[0]) == nil)
+            #expect(segments.segment(after: segments[segments.count - 1]) == nil)
+        }
+
+        /// Chapter 3 is located by its start, in Part 2.
+        @Test func acceptASegmentOfAnotherMaxDepth() {
+            let chapter3 = main.segment("Chapter 3", (1, 120), (2, 0))
+            let parts = main.timeline.segments(maxDepth: 1)
+
+            #expect(parts.segment(before: chapter3) == main.segment("Part 1", (0, 0), (1, 60)))
+            #expect(parts.segment(after: chapter3) == nil)
+        }
+
+        /// Chapter 2 clipped to `t2` is located by its start, in Chapter 2.
+        @Test func acceptACopyClippedToAResource() throws {
+            let segments = main.timeline.segments()
+            let clipped = try #require(segments.segments(in: url("t2")).first)
+
+            #expect(segments.segment(before: clipped) == main.segment("Chapter 1", (0, 0), (0, 300)))
+            #expect(segments.segment(after: clipped) == main.segment("Part 2", (1, 60), (1, 120)))
         }
     }
 
@@ -320,94 +330,34 @@ enum TimelineTests {
         @Test func measuresTheResolverLengthBetweenTwoPositions() {
             #expect(main.timeline.length(from: main.at(0, 500), to: main.at(1, 60)) == .duration(160))
         }
-    }
 
-    struct BoundsOfResource {
-        @Test func areTheBoundsOfTheResourceIgnoringTheFragment() throws {
-            let bounds = try #require(main.timeline.bounds(ofResource: url("t2#t=60")))
-            #expect(bounds.start == main.at(1, 0))
-            #expect(bounds.end == main.at(1, 300))
-            #expect(main.timeline.bounds(ofResource: url("outside.mp3")) == nil)
+        @Test func accessorsReadTheValueInTheirUnit() {
+            #expect(TimelineLength.duration(-1.5).seconds == -1.5)
+            #expect(TimelineLength.duration(1.5).count == nil)
+            #expect(TimelineLength.pages(-3).count == -3)
+            #expect(TimelineLength.positions(3).count == 3)
+            #expect(TimelineLength.positions(3).seconds == nil)
         }
     }
 
-    struct First {
-        @Test func isTheFirstRangedItemInPreOrder() {
-            // The outermost of Part 1 and Chapter 1, which share the first
-            // start.
-            #expect(main.timeline.first() == main["Part 1"])
-            #expect(first.timeline.first() == first["C"])
+    struct Path {
+        @Test func isTheEntryAloneAtTheTopLevel() {
+            #expect(main.timeline.toc.path(to: main["Part 1"]) == [main["Part 1"]])
         }
 
-        @Test func stopsAtTheMaxDepth() {
-            #expect(first.timeline.first(maxDepth: 1) == first["X"])
+        @Test func goesFromTheTopLevelDownToTheEntry() {
+            #expect(main.timeline.toc.path(to: main["Chapter 3"]) == [main["Part 2"], main["Chapter 3"]])
         }
 
-        @Test func isNilWhenNoItemIsPlaced() {
-            let timeline = TimelineFixture(durations: [600], nodes: [node("R", "outside.mp3")]).timeline
-
-            #expect(timeline.first() == nil)
-        }
-
-        /// The first placed item is under a rangeless parent.
-        private let first = TimelineFixture(durations: [600, 300], nodes: [
-            node("R", "outside.mp3", [node("C", "t1")]),
-            node("X", "t2"),
-        ])
-    }
-
-    struct PreviousAndNext {
-        @Test func followThePreOrder() {
-            let order = ["Chapter 1", "Chapter 2", "Part 2", "Chapter 3", "Chapter 4"].map { main[$0] }
-            for (item, next) in zip(order, order.dropFirst()) {
-                #expect(main.timeline.next(after: item) == next)
-                #expect(main.timeline.previous(before: next) == item)
-            }
-            #expect(main.timeline.previous(before: main["Part 1"]) == nil)
-            #expect(main.timeline.next(after: main["Chapter 4"]) == nil)
-        }
-
-        @Test func skipItemsWithTheSameStart() {
-            #expect(main.timeline.next(after: main["Part 1"]) == main["Chapter 2"])
-            #expect(main.timeline.previous(before: main["Chapter 1"]) == nil)
-        }
-
-        @Test func rangelessItemsUseTheirPlaceInThePreOrder() {
-            #expect(sparse.timeline.next(after: sparse["A"]) == sparse["C"])
-            #expect(sparse.timeline.next(after: sparse["R"]) == sparse["C"])
-            #expect(sparse.timeline.previous(before: sparse["X"]) == sparse["C"])
-            #expect(sparse.timeline.next(after: sparse["X"]) == sparse["B"])
-        }
-
-        @Test func stopAtTheMaxDepth() {
-            #expect(main.timeline.next(after: main["Chapter 2"], maxDepth: 1) == main["Part 2"])
-            // The containing part, as it compares with the start of the given
-            // item.
-            #expect(main.timeline.previous(before: main["Chapter 3"], maxDepth: 1) == main["Part 2"])
-        }
-
-        @Test(arguments: [0, -1])
-        func maxDepthBelowOneReturnsNothing(maxDepth: Int) {
-            #expect(main.item(containing: "t1", 450, maxDepth: maxDepth) == nil)
-            #expect(main.timeline.first(maxDepth: maxDepth) == nil)
-            #expect(main.timeline.previous(before: main["Chapter 2"], maxDepth: maxDepth) == nil)
-            #expect(main.timeline.next(after: main["Chapter 2"], maxDepth: maxDepth) == nil)
-            #expect(main.timeline.segments(maxDepth: maxDepth) == [])
-            #expect(main.timeline.segments(in: url("t1"), maxDepth: maxDepth) == [])
-        }
-    }
-
-    struct Ancestors {
-        @Test func goFromTheTopLevelToTheParent() {
-            #expect(main.timeline.ancestors(of: main["Part 1"]) == [])
-            #expect(main.timeline.ancestors(of: main["Chapter 3"]) == [main["Part 2"]])
-            #expect(sparse.timeline.ancestors(of: sparse["C"]) == [sparse["R"]])
+        /// Chapter 2 is not in the reading order.
+        @Test func goesFromTheTopLevelDownToTheEntryThroughTheUnplacedAncestors() {
+            #expect(nested.timeline.toc.path(to: nested["Section"]) == [nested["Part 1"], nested["Chapter 2"], nested["Section"]])
         }
     }
 
     struct Segments {
-        @Test func coverTheTimelineWithTheDeepestItems() {
-            #expect(main.timeline.segments() == [
+        @Test func coverTheTimelineWithTheDeepestEntries() {
+            #expect(Array(main.timeline.segments()) == [
                 // Part 1's segment is empty.
                 main.segment("Chapter 1", (0, 0), (0, 300)),
                 main.segment("Chapter 2", (0, 300), (1, 60)),
@@ -418,39 +368,98 @@ enum TimelineTests {
         }
 
         @Test func stopAtTheMaxDepth() {
-            #expect(main.timeline.segments(maxDepth: 1) == [
+            #expect(Array(main.timeline.segments(maxDepth: 1)) == [
                 main.segment("Part 1", (0, 0), (1, 60)),
                 main.segment("Part 2", (1, 60), (2, 900)),
             ])
         }
 
-        @Test func skipTheGapsOfASparseTimeline() {
-            #expect(sparse.timeline.segments() == [
+        @Test(arguments: [0, -1])
+        func maxDepthBelowOneGivesNoEntry(maxDepth: Int) {
+            #expect(Array(main.timeline.segments(maxDepth: maxDepth)) == Array(noTOC.timeline.segments()))
+            #expect(main.timeline.segments(maxDepth: maxDepth).segments(in: url("t1")) == noTOC.timeline.segments().segments(in: url("t1")))
+        }
+
+        /// The tracks without entry are not merged.
+        @Test func haveOneSegmentWithoutEntryPerTrackWithoutTableOfContents() {
+            #expect(Array(noTOC.timeline.segments()) == [
+                noTOC.segment(nil, (0, 0), (1, 0)),
+                noTOC.segment(nil, (1, 0), (2, 0)),
+                noTOC.segment(nil, (2, 0), (2, 900)),
+            ])
+        }
+
+        /// Each track has a segment, even when it repeats the HREF of a
+        /// previous one.
+        @Test func haveOneSegmentWithoutEntryPerTrackRepeatingAnHREF() {
+            let readingOrder = [Link(href: "t1", mediaType: .mp3, duration: 600), Link(href: "t1", mediaType: .mp3, duration: 300)]
+            let timeline = Timeline(nodes: [], resolver: AudioTimelinePositionResolver(readingOrder: readingOrder))
+
+            #expect(timeline.segments().map(\.link) == readingOrder)
+        }
+
+        /// A starts partway into `t2`.
+        @Test func haveOneSegmentWithoutEntryPerTrackBeforeTheFirstEntry() {
+            #expect(Array(sparse.timeline.segments()) == [
+                sparse.segment(nil, (0, 0), (1, 0)),
+                sparse.segment(nil, (1, 0), (1, 10)),
                 sparse.segment("A", (1, 10), (2, 0)),
                 sparse.segment("C", (2, 0), (2, 200)),
                 sparse.segment("B", (2, 200), (3, 100)),
             ])
-            // `[t3 0, t3 200)` has no segment, as `item(containing:)` returns
-            // nil there.
-            #expect(sparse.timeline.segments(maxDepth: 1) == [
+        }
+
+        /// No entry contains `[t3 0, t3 200)` within `maxDepth`, where C is
+        /// deeper than `maxDepth` under the rangeless R. Partway into a
+        /// track, the segment links to C.
+        @Test func haveNoEntryWhereOnlyADeeperEntryUnderARangelessOneIsPlaced() {
+            #expect(Array(sparse.timeline.segments(maxDepth: 1)) == [
+                sparse.segment(nil, (0, 0), (1, 0)),
+                sparse.segment(nil, (1, 0), (1, 10)),
                 sparse.segment("A", (1, 10), (2, 0)),
+                sparse.segment(nil, (2, 0), (2, 200)),
                 sparse.segment("B", (2, 200), (3, 100)),
+            ])
+
+            let partway = TimelineFixture(durations: [600], nodes: [
+                node("A", "t1"),
+                node("R", "outside.mp3", [node("C", "t1#t=300")]),
+            ])
+            #expect(Array(partway.timeline.segments(maxDepth: 1)) == [
+                partway.segment("A", (0, 0), (0, 300)),
+                partway.segment(nil, (0, 300), (0, 600), link: partway["C"].link),
             ])
         }
 
-        @Test func ancestorKeepsTheRangeOfADeeperItemUnderARangelessOne() {
-            #expect(nested.timeline.segments() == [
+        /// At depth 1, C is ignored under the rangeless R: the ranges without
+        /// entry before and after C are merged within `t1`.
+        @Test func mergeTheRangesWithoutEntryOfATrack() {
+            let fixture = TimelineFixture(durations: [600, 300], nodes: [
+                node("R", "outside.mp3", [node("C", "t1#t=300")]),
+                node("A", "t2#t=100"),
+            ])
+
+            #expect(Array(fixture.timeline.segments(maxDepth: 1)) == [
+                fixture.segment(nil, (0, 0), (1, 0)),
+                fixture.segment(nil, (1, 0), (1, 100)),
+                fixture.segment("A", (1, 100), (1, 300)),
+            ])
+        }
+
+        @Test func ancestorKeepsTheRangeOfADeeperEntryUnderARangelessOne() {
+            #expect(Array(nested.timeline.segments()) == [
                 nested.segment("Chapter 1", (0, 0), (0, 300)),
                 nested.segment("Section", (0, 300), (1, 0)),
                 nested.segment("Part 2", (1, 0), (1, 300)),
             ])
-            // `item(containing:)` returns Part 1 in `[t1 300, t2 0)`.
-            #expect(nested.timeline.segments(maxDepth: 2) == [
+            // Part 1 contains `[t1 300, t2 0)` within `maxDepth`. The range
+            // starts at Section, hence its link.
+            #expect(Array(nested.timeline.segments(maxDepth: 2)) == [
                 nested.segment("Chapter 1", (0, 0), (0, 300)),
-                nested.segment("Part 1", (0, 300), (1, 0)),
+                nested.segment("Part 1", (0, 300), (1, 0), link: nested["Section"].link),
                 nested.segment("Part 2", (1, 0), (1, 300)),
             ])
-            #expect(nested.timeline.segments(maxDepth: 1) == [
+            #expect(Array(nested.timeline.segments(maxDepth: 1)) == [
                 nested.segment("Part 1", (0, 0), (1, 0)),
                 nested.segment("Part 2", (1, 0), (1, 300)),
             ])
@@ -466,48 +475,54 @@ enum TimelineTests {
             }
         }
 
-        /// `item(containing:)` returns the item of a segment at its start and
-        /// 1 ms before its end, and `segment(containing:)` the segment.
+        /// `segment(containing:)` returns each segment at its start and 1 ms
+        /// before its end.
         @Test(arguments: [
             FixtureDepth(name: "main", fixture: main, maxDepth: nil),
             FixtureDepth(name: "main at depth 1", fixture: main, maxDepth: 1),
+            FixtureDepth(name: "main deeper than its entries", fixture: main, maxDepth: 5),
+            FixtureDepth(name: "without table of contents", fixture: noTOC, maxDepth: nil),
             FixtureDepth(name: "sparse", fixture: sparse, maxDepth: nil),
             FixtureDepth(name: "sparse at depth 1", fixture: sparse, maxDepth: 1),
             FixtureDepth(name: "nested", fixture: nested, maxDepth: nil),
             FixtureDepth(name: "nested at depth 2", fixture: nested, maxDepth: 2),
             FixtureDepth(name: "split at depth 2", fixture: split, maxDepth: 2),
         ])
-        func labelsMatchItemAndSegmentContaining(_ example: FixtureDepth) {
+        func findsEachSegment(_ example: FixtureDepth) {
             let fixture = example.fixture
-            for segment in fixture.timeline.segments(maxDepth: example.maxDepth) {
+            let segments = fixture.timeline.segments(maxDepth: example.maxDepth)
+            for segment in segments {
                 for locator in [fixture.locator(at: segment.start), fixture.locator(at: segment.end!, by: -0.001)] {
-                    #expect(fixture.timeline.item(containing: locator, maxDepth: example.maxDepth) == segment.item)
-                    #expect(fixture.timeline.segment(containing: locator, maxDepth: example.maxDepth) == segment)
+                    #expect(segments.segment(containing: locator) == segment)
                 }
             }
         }
     }
 
     struct SegmentsInResource {
+        /// A segment clipped at the start of the resource links to it.
         @Test func areClippedToTheResource() {
-            #expect(main.timeline.segments(in: url("t1")) == [
+            #expect(main.timeline.segments().segments(in: url("t1")) == [
                 main.segment("Chapter 1", (0, 0), (0, 300)),
                 main.segment("Chapter 2", (0, 300), (0, 600)),
             ])
-            #expect(main.timeline.segments(in: url("t2")) == [
-                main.segment("Chapter 2", (1, 0), (1, 60)),
+            #expect(main.timeline.segments().segments(in: url("t2")) == [
+                main.segment("Chapter 2", (1, 0), (1, 60), link: main.readingOrder[1]),
                 main.segment("Part 2", (1, 60), (1, 120)),
                 main.segment("Chapter 3", (1, 120), (1, 300)),
             ])
             // No empty Chapter 3.
-            #expect(main.timeline.segments(in: url("t3")) == [
+            #expect(main.timeline.segments().segments(in: url("t3")) == [
                 main.segment("Chapter 4", (2, 0), (2, 900)),
             ])
         }
 
         @Test func ofASparseTimeline() {
-            #expect(sparse.timeline.segments(in: url("t1")) == [])
-            #expect(sparse.timeline.segments(in: url("t2")) == [
+            #expect(sparse.timeline.segments().segments(in: url("t1")) == [
+                sparse.segment(nil, (0, 0), (0, 600)),
+            ])
+            #expect(sparse.timeline.segments().segments(in: url("t2")) == [
+                sparse.segment(nil, (1, 0), (1, 10)),
                 sparse.segment("A", (1, 10), (1, 300)),
             ])
         }
@@ -515,18 +530,18 @@ enum TimelineTests {
         @Test func endIsNilWhenTheTrackDurationIsUnknown() {
             let fixture = TimelineFixture(durations: [600, nil, 900], nodes: makeMain().nodes)
 
-            #expect(fixture.timeline.segments(in: url("t2")).last?.item == fixture["Chapter 3"])
-            #expect(fixture.timeline.segments(in: url("t2")).last?.end == nil)
+            #expect(fixture.timeline.segments().segments(in: url("t2")).last?.tocEntry == fixture["Chapter 3"])
+            #expect(fixture.timeline.segments().segments(in: url("t2")).last?.end == nil)
         }
 
         @Test func hrefIsResolvedInTheReadingOrder() {
-            #expect(main.timeline.segments(in: url("t2#t=60")) == main.timeline.segments(in: url("t2")))
-            #expect(main.timeline.segments(in: url("outside.mp3")) == [])
+            #expect(main.timeline.segments().segments(in: url("t2#t=60")) == main.timeline.segments().segments(in: url("t2")))
+            #expect(main.timeline.segments().segments(in: url("outside.mp3")) == [])
         }
 
         @Test func stopAtTheMaxDepth() {
-            #expect(main.timeline.segments(in: url("t2"), maxDepth: 1) == [
-                main.segment("Part 1", (1, 0), (1, 60)),
+            #expect(main.timeline.segments(maxDepth: 1).segments(in: url("t2")) == [
+                main.segment("Part 1", (1, 0), (1, 60), link: main.readingOrder[1]),
                 main.segment("Part 2", (1, 60), (1, 300)),
             ])
         }
@@ -536,6 +551,7 @@ enum TimelineTests {
 // MARK: - Helpers
 
 private let main = makeMain()
+private let noTOC = TimelineFixture(durations: [600, 300, 900], nodes: [])
 private let sparse = makeSparse()
 private let nested = makeNested()
 private let split = makeSplit()
@@ -582,7 +598,7 @@ private func makeSplit() -> TimelineFixture {
 }
 
 private func node(_ title: String, _ href: String, _ children: [Timeline.Node] = []) -> Timeline.Node {
-    Timeline.Node(title: .text(title), link: Link(href: href), children: children)
+    Timeline.Node(title: title, link: Link(href: href), children: children)
 }
 
 private func url(_ string: String) -> AnyURL {
@@ -621,9 +637,9 @@ struct TimelineFixture: Sendable {
         timeline = Timeline(nodes: nodes, resolver: AudioTimelinePositionResolver(readingOrder: readingOrder))
     }
 
-    /// Returns the item with the given title.
-    subscript(title: String) -> TimelineItem {
-        timeline.preOrderItems.first { $0.title == .text(title) }!
+    /// Returns the entry with the given title.
+    subscript(title: String) -> TimelineTOCEntry {
+        timeline.preOrderEntries.first { $0.title == title }!
     }
 
     /// Returns the position at `offset` in the track at `index`, when all the
@@ -640,18 +656,28 @@ struct TimelineFixture: Sendable {
         )
     }
 
-    /// Returns the segment of the item with the given title, between the
-    /// given track indexes and offsets.
-    func segment(_ title: String, _ start: (Int, TimeInterval), _ end: (Int, TimeInterval)) -> TimelineSegment {
-        TimelineSegment(item: self[title], start: at(start.0, start.1), end: at(end.0, end.1))
+    /// Returns the segment of the entry with the given title, or without
+    /// entry, between the given track indexes and offsets.
+    ///
+    /// - Parameter link: Defaults to the link of the entry, or of the track
+    ///   of `start` without entry.
+    func segment(
+        _ title: String?,
+        _ start: (Int, TimeInterval),
+        _ end: (Int, TimeInterval),
+        link: Link? = nil
+    ) -> TimelineSegment {
+        let entry = title.map { self[$0] }
+        return TimelineSegment(
+            tocEntry: entry,
+            link: link ?? entry?.link ?? readingOrder[start.0],
+            start: at(start.0, start.1),
+            end: at(end.0, end.1)
+        )
     }
 
-    func item(containing href: String, _ offset: TimeInterval? = nil, maxDepth: Int? = nil) -> TimelineItem? {
-        timeline.item(containing: locator(href, offset), maxDepth: maxDepth)
-    }
-
-    func segment(containing href: String, _ offset: TimeInterval? = nil, maxDepth: Int? = nil) -> TimelineSegment? {
-        timeline.segment(containing: locator(href, offset), maxDepth: maxDepth)
+    func segment(containing href: String, _ offset: TimeInterval? = nil) -> TimelineSegment? {
+        timeline.segments().segment(containing: locator(href, offset))
     }
 
     /// Returns the locator at `offset` seconds in the track `href`.
@@ -674,14 +700,14 @@ struct TimelineFixture: Sendable {
 }
 
 private extension Timeline {
-    /// All the items, in pre-order.
-    var preOrderItems: [TimelineItem] {
-        items.preOrder
+    /// All the entries, in pre-order.
+    var preOrderEntries: [TimelineTOCEntry] {
+        toc.entries.preOrder
     }
 }
 
-private extension [TimelineItem] {
-    var preOrder: [TimelineItem] {
+private extension [TimelineTOCEntry] {
+    var preOrder: [TimelineTOCEntry] {
         flatMap { [$0] + $0.children.preOrder }
     }
 }

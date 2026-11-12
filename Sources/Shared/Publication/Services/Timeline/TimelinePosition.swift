@@ -8,20 +8,20 @@ import Foundation
 
 /// A position on a ``Timeline``.
 ///
-/// A position is located by its reading order index and its offset. The other
-/// properties are derived from these two.
+/// A position is located by its reading order index and its offset.
 @_spi(ExperimentalTimeline)
 public struct TimelinePosition: Hashable, Sendable {
     /// Index of the resource in the reading order.
     public let readingOrderIndex: Int
 
-    /// Offset in the resource, in a unit chosen by the resolver, such as
-    /// seconds or a scroll progression.
+    /// Offset in the resource, in a unit chosen by the
+    /// ``TimelinePositionResolver``, such as seconds, a page index or a scroll
+    /// progression.
     ///
     /// Only meaningful to compare positions of the same resource.
     public let offset: Double
 
-    /// Where the position stands in the publication, in its natural unit.
+    /// Where the position stands in the whole timeline, in its natural unit.
     ///
     /// `nil` when the length of a preceding resource is unknown.
     public let coordinate: TimelineCoordinate?
@@ -62,11 +62,29 @@ public struct TimelinePosition: Hashable, Sendable {
     public func isBefore(_ other: TimelinePosition) -> Bool {
         (readingOrderIndex, offset) < (other.readingOrderIndex, other.offset)
     }
+
+    /// Returns whether this position is at the same place as `other` on the
+    /// timeline, ignoring the derived properties like ``isBefore(_:)``.
+    package func isAt(_ other: TimelinePosition) -> Bool {
+        !isBefore(other) && !other.isBefore(self)
+    }
+
+    /// Returns this position at the end of the publication, at a
+    /// `totalProgression` of 1.
+    package func atPublicationEnd() -> TimelinePosition {
+        TimelinePosition(
+            readingOrderIndex: readingOrderIndex,
+            offset: offset,
+            coordinate: coordinate,
+            progression: progression,
+            totalProgression: 1
+        )
+    }
 }
 
 /// Where a position stands in a publication, in its natural unit.
 ///
-/// The end of an item or of the publication is exclusive: one past its last
+/// The end of an entry or of the publication is exclusive: one past its last
 /// page or position, or the time where it stops.
 @_spi(ExperimentalTimeline)
 public enum TimelineCoordinate: Hashable, Sendable {
