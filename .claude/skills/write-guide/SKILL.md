@@ -100,16 +100,82 @@ Use GitHub-flavored alert syntax:
 
 Use these sparingly — one to three per guide is normal.
 
+When generating the DocC site, `scripts/prepare-docc-catalog.py` converts them into DocC
+asides (`> Important: …`). DocC has no caution aside, so prefer `WARNING` to `CAUTION`.
+
 ## Formatting conventions
 
-| Element                           | Convention                                                   |
-|-----------------------------------|--------------------------------------------------------------|
-| API type names, method names      | **`Publication`**, **`navigator.go(to:)`** — bold + backtick |
-| Parameters and property names     | `locator`, `readingProgression` — backtick only              |
-| UI concepts and user-facing terms | plain bold: **reading position**                             |
-| File names and paths              | backtick: `TTSView.swift`                                    |
-| Tables                            | Pad cells with whitespaces to vertically align the columns   |
-| No horizontal rules               | Never use `---` to separate sections                         |
+| Element                           | Convention                                                                             |
+|-----------------------------------|----------------------------------------------------------------------------------------|
+| API type names, method names      | **`Publication`**, **`navigator.go(to:)`** — bold + backtick                           |
+| Parameters and property names     | `locator`, `readingProgression` — backtick only                                        |
+| UI concepts and user-facing terms | plain bold: **reading position**                                                       |
+| File names and paths              | backtick: `TTSView.swift`                                                              |
+| Tables                            | Pad cells with whitespaces to vertically align the columns                             |
+| No horizontal rules               | Never use `---` to separate sections                                                   |
+| Emoji                             | The character (✅), not a shortcode (`:white_check_mark:`), which DocC does not render |
+
+## Diagrams
+
+Add a diagram when a concept is easier to see than to read, such as how a structure is laid
+out, nested or flattened. Prefer a few small diagrams, each answering one question, built on
+the same worked example used by the prose and the code.
+
+Write the diagrams in Mermaid, and commit them rendered to SVG: DocC does not render Mermaid.
+Keep the Mermaid source in the guide, in an HTML comment immediately followed by the image:
+
+````markdown
+<!--
+```mermaid
+gantt
+    dateFormat HH:mm:ss
+    axisFormat %M:%S
+    section Reading order
+    track1.mp3 : 00:00:00, 00:20:00
+    track2.mp3 : 00:20:00, 00:40:00
+```
+-->
+![The two tracks laid end to end on a 40-minute line](Assets/timeline-tracks.svg)
+````
+
+- **Image path.** Put the SVG in the `Assets` folder next to the guide, and reference it
+  with a Markdown image (`![Alt](Assets/name.svg)`), not an `<img>` tag, which DocC ignores.
+  DocC only resolves images by file name, so `scripts/prepare-docc-catalog.py` strips the
+  `Assets/` prefix from the image links. Prefix the file name with the guide topic
+  (`timeline-…`), as it must be unique in the whole DocC catalog.
+- **Alt text.** Describe what the diagram shows, for screen readers and readers of the raw
+  Markdown.
+- **No `-->` in the source.** It would close the HTML comment. In flowcharts, use thick
+  arrows (`==>`) and thin them with `linkStyle default stroke-width:1px`.
+- **Reserved words.** A Gantt task name starting with `section` (e.g. "Section 2.1") starts
+  a new section: write its first letter as an entity code (`#83;ection 2.1`). A `:` in a task
+  name breaks the line: rename the task.
+- **Trees.** Disconnected trees are laid out independently, so siblings at the top level
+  can end up on different levels. Link them to a shared root node, such as `toc.entries`.
+  Don't name a `classDef` like a Mermaid class (`root`, `node`, `cluster`): its style
+  applies to the whole diagram.
+- **Timelines.** A Gantt chart with `dateFormat HH:mm:ss` draws ranges on a time axis. Add
+  `displayMode: compact` in a front matter to draw the tasks of a section on a single row.
+  For a unit other than time, such as positions, map each unit to a second and label the
+  axis with `axisFormat %-S` and `tickInterval 5second`.
+- **Colors.** The tags of a Gantt task pick its color: untagged tasks are dark blue (e.g.
+  the reading order), `active` tasks light blue (e.g. entries) and `done` tasks gray (e.g.
+  "no entry"). The script alternates the shade of the bars touching each other on a row, so
+  that their boundaries stand out. Don't hard-code colors in a `classDef`, except a gray
+  text or `fill:none`: the diagram is also rendered with a dark palette.
+
+After adding or changing a diagram, render the SVGs of the guide with:
+
+```bash
+python3 -I .claude/skills/write-guide/scripts/render-diagrams.py "docs/Guides/Guide Name.md"
+```
+
+The script requires Node.js (it runs the Mermaid CLI with `npx`) and Google Chrome, or a
+Chrome binary in `PUPPETEER_EXECUTABLE_PATH`. It renders every diagram of the guide with a
+shared theme, and gives the SVGs a fixed size, as DocC shrinks the fluid SVGs of Mermaid to
+a thumbnail. It also renders a dark variant of each diagram, `Assets/name~dark.svg`, which
+DocC displays in dark mode. Commit both. Look at each rendered SVG before committing it:
+labels can overflow short bars or boxes.
 
 ## Cross-references
 
@@ -118,6 +184,21 @@ Link to related guides using relative paths:
 ```markdown
 See the [Navigator guide](Navigator/Navigator.md) for details on positioning.
 ```
+
+These links work on GitHub. When generating the DocC site, `scripts/prepare-docc-catalog.py`
+rewrites them into DocC links (`doc:Navigator`), including the anchors of headings, and
+links to files outside `docs/` into links to the repository on GitHub. Check that the path
+is correct relative to the guide: the script warns about links it cannot resolve. You can
+check a guide without building the whole site:
+
+```bash
+mkdir -p /tmp/docc/Readium.docc && cp -R docs/* /tmp/docc/Readium.docc/
+python3 -I scripts/prepare-docc-catalog.py /tmp/docc/Readium.docc https://github.com/readium/swift-toolkit/blob/develop
+xcrun docc convert /tmp/docc/Readium.docc --output-dir /tmp/docc/out
+```
+
+Only the warnings about the missing `Readium*` modules are expected, as this skips the API
+reference.
 
 When you mention a concept that is covered in depth elsewhere, add a short cross-reference
 rather than re-explaining it. Don't assume the reader has read other guides — give a one-
