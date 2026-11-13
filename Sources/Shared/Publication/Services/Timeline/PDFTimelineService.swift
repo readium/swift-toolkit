@@ -23,22 +23,16 @@ public final class PDFTimelineService: TimelineService {
     private let cache: AsyncThrowingMemoizer<Timeline, ReadError>
 
     init(publication: Weak<Publication>) {
-        cache = AsyncThrowingMemoizer { () async throws(ReadError) -> Timeline in
-            guard let publication = publication() else {
-                throw .unsupportedOperation(DebugError("The publication is no longer available"))
+        cache = AsyncThrowingMemoizer { () async throws(ReadError) in
+            try await Timeline(publication: publication()) { publication, _ in
+                let pageCounts = await publication.positionsByReadingOrder().getOrNil()?.map(\.count) ?? []
+                return PDFTimelinePositionResolver(readingOrder: publication.readingOrder, pageCounts: pageCounts)
             }
-
-            let nodes = try await publication.tableOfContents().get().timelineNodes
-            let pageCounts = await publication.positionsByReadingOrder().getOrNil()?.map(\.count) ?? []
-            return Timeline(
-                nodes: nodes,
-                resolver: PDFTimelinePositionResolver(readingOrder: publication.readingOrder, pageCounts: pageCounts)
-            )
         }
     }
 
-    /// Builds the timeline once. A failure is not cached, so the next call
-    /// tries again.
+    /// Builds the timeline once, with an empty table of contents when it fails
+    /// to load.
     public func timeline() async throws(ReadError) -> Timeline {
         try await cache()
     }

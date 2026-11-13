@@ -74,7 +74,7 @@ enum ReadiumWebPubParserTests {
                 expectedTimeline: ["0 Chapter 1 → part1#t=10"]
             ),
             ManifestExample(
-                name: "the option off disables both fallbacks",
+                name: "the option off leaves the table of contents empty",
                 generatesTableOfContentsFromReadingOrder: false,
                 expectedTOC: [],
                 expectedTimeline: []

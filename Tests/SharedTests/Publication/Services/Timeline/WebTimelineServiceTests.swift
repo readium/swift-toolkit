@@ -36,35 +36,35 @@ struct WebTimelineServiceTests {
     }
 
     /// Notes 1 is the first entry of `ch1b`, but goes back. Chapter 3 ends
-    /// with the publication.
+    /// with the publication, at 100%.
     @Test func onlyTheFirstEntryOfEachResourceIsPlaced() async throws {
         let timeline = try await timeline()
 
-        #expect(timeline.items.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
-        #expect(timeline.items.map(\.end) == [position(3), nil, position(4), nil, position(4, 1), nil])
+        #expect(timeline.toc.entries.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
+        #expect(timeline.toc.entries.map(\.end) == [position(3), nil, position(4), nil, position(4, 1, totalProgression: 1), nil])
     }
 
     /// `cover`, `ch1a`, `ch1b`, `ch2` and `ch3` have 1, 3, 2, 4 and 5
     /// positions.
-    @Test func itemsAreMeasuredInPositions() async throws {
+    @Test func entriesAreMeasuredInPositions() async throws {
         let timeline = try await timeline(positions: { _ in
             InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
         })
 
-        #expect(timeline.items.map { $0.start?.coordinate } == [.position(2), nil, .position(7), nil, .position(11), nil])
-        #expect(timeline.items.map(\.length) == [.positions(5), nil, .positions(4), nil, .positions(5), nil])
-        #expect(timeline.items[4].end?.coordinate == .position(16))
-        #expect(timeline.items[4].end?.totalProgression == 1)
+        #expect(timeline.toc.entries.map { $0.start?.coordinate } == [.position(2), nil, .position(7), nil, .position(11), nil])
+        #expect(timeline.toc.entries.map(\.length) == [.positions(5), nil, .positions(4), nil, .positions(5), nil])
+        #expect(timeline.toc.entries[4].end?.coordinate == .position(16))
+        #expect(timeline.toc.entries[4].end?.totalProgression == 1)
     }
 
     /// The positions of a fixed-layout publication are pages.
-    @Test func fixedLayoutItemsAreMeasuredInPages() async throws {
+    @Test func fixedLayoutEntriesAreMeasuredInPages() async throws {
         let timeline = try await timeline(layout: .fixed, positions: { _ in
             InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
         })
 
-        #expect(timeline.items.map { $0.start?.coordinate } == [.page(2), nil, .page(7), nil, .page(11), nil])
-        #expect(timeline.items.map(\.length) == [.pages(5), nil, .pages(4), nil, .pages(5), nil])
+        #expect(timeline.toc.entries.map { $0.start?.coordinate } == [.page(2), nil, .page(7), nil, .page(11), nil])
+        #expect(timeline.toc.entries.map(\.length) == [.pages(5), nil, .pages(4), nil, .pages(5), nil])
     }
 
     /// A reflowable resource has several positions, which are not pages.
@@ -73,24 +73,24 @@ struct WebTimelineServiceTests {
             InMemoryPositionsService(positionsByReadingOrder: positions([1, 3, 2, 4, 5]))
         })
 
-        #expect(timeline.items[0].start?.coordinate == .position(2))
-        #expect(timeline.items[0].length == .positions(5))
+        #expect(timeline.toc.entries[0].start?.coordinate == .position(2))
+        #expect(timeline.toc.entries[0].length == .positions(5))
     }
 
-    /// Without positions, the items are still placed.
+    /// Without positions, the entries are still placed.
     @Test(arguments: [nil, FailingPositionsService()])
-    func itemsAreNotMeasuredWithoutPositions(_ service: FailingPositionsService?) async throws {
+    func entriesAreNotMeasuredWithoutPositions(_ service: FailingPositionsService?) async throws {
         let timeline = try await timeline(positions: service.map { service in { _ in service } })
 
-        #expect(timeline.items.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
-        #expect(timeline.items.map(\.length) == [nil, nil, nil, nil, nil, nil])
+        #expect(timeline.toc.entries.map(\.start) == [position(1), nil, position(3), nil, position(4), nil])
+        #expect(timeline.toc.entries.map(\.length) == [nil, nil, nil, nil, nil, nil])
     }
 
     struct ResourceChapter: Sendable, CustomTestStringConvertible {
         let name: String
         let href: String
         let progression: Double
-        /// Title of the located item, `nil` for none.
+        /// Title of the located entry, `nil` for none.
         let expected: String?
 
         var testDescription: String {
@@ -110,27 +110,27 @@ struct WebTimelineServiceTests {
         let timeline = try await timeline()
         let locator = Locator(href: AnyURL(string: example.href)!, mediaType: .xhtml, locations: .init(progression: example.progression))
 
-        #expect(timeline.item(containing: locator)?.title == example.expected.map { .text($0) })
+        #expect(timeline.segments().segment(containing: locator)?.tocEntry?.title == example.expected)
     }
 
     @Test func aSplitChapterCoversItsFollowingResources() async throws {
         let timeline = try await timeline()
 
-        #expect(timeline.segments(in: AnyURL(string: "ch1b.xhtml")!) == [
-            TimelineSegment(item: timeline.items[0], start: position(2), end: position(2, 1)),
+        #expect(timeline.segments().segments(in: AnyURL(string: "ch1b.xhtml")!) == [
+            TimelineSegment(
+                tocEntry: timeline.toc.entries[0],
+                link: Link(href: "ch1b.xhtml", mediaType: .xhtml),
+                start: position(2),
+                end: position(2, 1)
+            ),
         ])
     }
 
-    @Test func nextAndPreviousSkipTheUnplacedEntries() async throws {
+    @Test func segmentsSkipTheUnplacedEntries() async throws {
         let timeline = try await timeline()
-        let chapter1 = timeline.items[0]
-        let chapter2 = timeline.items[2]
-        let chapter3 = timeline.items[4]
+        let entries = timeline.toc.entries
 
-        #expect(timeline.next(after: chapter1) == chapter2)
-        #expect(timeline.next(after: chapter2) == chapter3)
-        #expect(timeline.previous(before: chapter3) == chapter2)
-        #expect(timeline.previous(before: chapter2) == chapter1)
+        #expect(timeline.segments().map(\.tocEntry) == [nil, entries[0], entries[2], entries[4]])
     }
 
     /// A fixed-layout locator usually has no progression.
@@ -138,16 +138,23 @@ struct WebTimelineServiceTests {
         let timeline = try await timeline(layout: .fixed)
         let locator = Locator(href: AnyURL(string: "ch1a.xhtml")!, mediaType: .xhtml)
 
-        #expect(timeline.items[0].start == position(1))
-        #expect(timeline.item(containing: locator) == timeline.items[0])
+        #expect(timeline.toc.entries[0].start == position(1))
+        #expect(timeline.segments().segment(containing: locator)?.tocEntry == timeline.toc.entries[0])
     }
 
     @Test func readsTheTableOfContentsService() async throws {
         let timeline = try await timeline(tocService: { _ in
-            StubTableOfContentsService(toc: [Link(href: "ch2.xhtml", title: "Custom")])
+            StubTableOfContentsService(.success([Link(href: "ch2.xhtml", title: "Custom")]))
         })
 
         #expect(timeline.outline == ["0 Custom → ch2.xhtml"])
+    }
+
+    @Test func tableOfContentsFailureGivesATimelineWithoutEntries() async throws {
+        let timeline = try await timeline(tocService: { _ in StubTableOfContentsService.failing() })
+
+        #expect(timeline.toc.isEmpty)
+        #expect(timeline.segments().map(\.link.href) == resources.map { "\($0).xhtml" })
     }
 
     @Test func failsOnceThePublicationIsDeallocated() async {
@@ -210,21 +217,13 @@ private func timeline(
 private let resources = ["cover", "ch1a", "ch1b", "ch2", "ch3"]
 
 /// Position without positions.
-private func position(_ index: Int, _ progression: Double = 0) -> TimelinePosition {
-    TimelinePosition(readingOrderIndex: index, offset: progression, progression: progression)
+private func position(_ index: Int, _ progression: Double = 0, totalProgression: Double? = nil) -> TimelinePosition {
+    TimelinePosition(readingOrderIndex: index, offset: progression, progression: progression, totalProgression: totalProgression)
 }
 
 /// The given number of positions in each resource.
 private func positions(_ counts: [Int]) -> [[Locator]] {
     zip(resources, counts).map { resource, count in
         (0 ..< count).map { _ in Locator(href: AnyURL(string: "\(resource).xhtml")!, mediaType: .xhtml) }
-    }
-}
-
-private struct StubTableOfContentsService: TableOfContentsService {
-    let toc: [Link]
-
-    func tableOfContents() async -> ReadResult<[Link]> {
-        .success(toc)
     }
 }

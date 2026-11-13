@@ -21,8 +21,6 @@ import Foundation
 /// computed from the number of positions of each resource. A missing or
 /// non-positive count is unknown.
 package struct WebTimelinePositionResolver: TimelinePositionResolver {
-    private let readingOrder: [Link]
-
     /// Lays out the positions of the reading order resources.
     private let layout: TimelineLayout<Int>
 
@@ -46,22 +44,22 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     ///   - nodes: Nodes of the timeline, whose first entry pointing to each
     ///     resource is placed.
     package init(readingOrder: [Link], positionCounts: [Int?], positionsArePages: Bool = false, nodes: [Timeline.Node]) {
-        self.readingOrder = readingOrder
         self.positionsArePages = positionsArePages
         let makeCoordinate: @Sendable (Int) -> TimelineCoordinate = positionsArePages
             ? TimelineCoordinate.page
             : TimelineCoordinate.position
         self.makeCoordinate = makeCoordinate
-        layout = TimelineLayout(
+        let layout = TimelineLayout(
             readingOrder: readingOrder,
             lengths: positionCounts,
             coordinate: { makeCoordinate($0 + 1) }
         )
+        self.layout = layout
 
         var firstEntries: [Int: Link] = [:]
         func record(_ nodes: [Timeline.Node]) {
             for node in nodes {
-                if let index = readingOrder.firstIndexWithHREF(node.link.url()), firstEntries[index] == nil {
+                if let index = layout.index(of: node.link.url()), firstEntries[index] == nil {
                     firstEntries[index] = node.link
                 }
                 record(node.children)
@@ -71,16 +69,13 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         self.firstEntries = firstEntries
     }
 
-    package var end: TimelinePosition? {
-        guard !readingOrder.isEmpty else {
-            return nil
-        }
-        return end(ofResourceAt: readingOrder.count - 1)
+    package var readingOrder: [Link] {
+        layout.readingOrder
     }
 
     package func position(of link: Link) -> TimelinePosition? {
         guard
-            let index = readingOrder.firstIndexWithHREF(link.url()),
+            let index = layout.index(of: link.url()),
             firstEntries[index] == link
         else {
             return nil
@@ -92,7 +87,7 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     /// position of the locator in the publication when it is in its
     /// resource, else the position at its progression.
     package func position(of locator: Locator) -> TimelinePosition? {
-        guard let index = readingOrder.firstIndexWithHREF(locator.href) else {
+        guard let index = layout.index(of: locator.href) else {
             return nil
         }
         let progression = min(max(0, locator.locations.progression ?? 0), 1)
@@ -109,8 +104,8 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
         }
     }
 
-    package func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
-        readingOrder.firstIndexWithHREF(href).map { (start(ofResourceAt: $0), end(ofResourceAt: $0)) }
+    package func bounds(ofResourceAt index: Int) -> (start: TimelinePosition, end: TimelinePosition?) {
+        (start(ofResourceAt: index), end(ofResourceAt: index))
     }
 
     package func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
@@ -130,9 +125,13 @@ package struct WebTimelinePositionResolver: TimelinePositionResolver {
     /// The coordinate of the end is one past the last position of the
     /// resource.
     private func end(ofResourceAt index: Int) -> TimelinePosition {
-        position(at: index, progression: 1) { positionsBefore in
+        let end = position(at: index, progression: 1) { positionsBefore in
             layout.length(ofResourceAt: index).map { positionsBefore + $0 + 1 }
         }
+
+        // The end of the publication is at 100%, even when the count of a
+        // resource is unknown.
+        return index == readingOrder.count - 1 ? end.atPublicationEnd() : end
     }
 
     /// Position at `progression` in the resource at `index`.

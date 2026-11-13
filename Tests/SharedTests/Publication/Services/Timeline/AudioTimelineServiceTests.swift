@@ -11,7 +11,7 @@ import Testing
 
 enum AudioTimelineServiceTests {
     struct TableOfContents {
-        @Test func itemsMirrorTheTableOfContents() async throws {
+        @Test func entriesMirrorTheTableOfContents() async throws {
             let toc = [
                 Link(href: "t1.mp3", title: "Intro"),
                 Link(href: "t2.mp3#t=10", title: "Chapter", children: [
@@ -21,19 +21,18 @@ enum AudioTimelineServiceTests {
 
             let timeline = try await timeline(toc: toc)
 
-            // `t3.mp3` gets no generated item.
+            // `t3.mp3` has no entry.
             #expect(timeline.outline == [
                 "0 Intro → t1.mp3",
                 "1 Chapter → t2.mp3#t=10",
                 "  2 Section → t2.mp3#t=20",
             ])
-            #expect(timeline.items.map(\.link) == toc)
+            #expect(timeline.toc.entries.map(\.link) == toc)
         }
 
         struct TableOfContentsOutline: Sendable, CustomTestStringConvertible {
             let name: String
             let toc: [Link]
-            var generatesFromReadingOrder = true
             let expected: [String]
 
             var testDescription: String {
@@ -54,40 +53,34 @@ enum AudioTimelineServiceTests {
                 expected: ["0 One → t1.mp3#t=5", "1 Two → t2.mp3#t=5", "2 Three → t3.mp3"]
             ),
             TableOfContentsOutline(
-                name: "an empty table of contents generates one item per track",
-                toc: [],
-                expected: ["0 One → t1.mp3", "1 #2 → t2.mp3", "2 #3 → t3.mp3"]
-            ),
-            TableOfContentsOutline(
-                name: "only untitled, childless entries count as an empty table of contents",
+                name: "only untitled, childless entries give an empty table of contents",
                 toc: [Link(href: "t1.mp3"), Link(href: "t2.mp3", title: " ")],
-                expected: ["0 One → t1.mp3", "1 #2 → t2.mp3", "2 #3 → t3.mp3"]
-            ),
-            TableOfContentsOutline(
-                name: "an empty table of contents gives an empty timeline with the option off",
-                toc: [],
-                generatesFromReadingOrder: false,
                 expected: []
             ),
         ])
-        func untitledOrMissingEntries(_ example: TableOfContentsOutline) async throws {
-            let timeline = try await timeline(toc: example.toc, generatesFromReadingOrder: example.generatesFromReadingOrder)
+        func untitledEntriesAreReplacedByTheirChildren(_ example: TableOfContentsOutline) async throws {
+            let timeline = try await timeline(toc: example.toc)
 
             #expect(timeline.outline == example.expected)
         }
 
-        @Test func generatedItemsLinkToTheStartOfEachTrack() async throws {
-            let timeline = try await timeline(toc: [])
+        /// Without a table of contents, no entry is generated from the
+        /// tracks, even when they are titled: the segments are the tracks.
+        @Test(arguments: [false, true])
+        func emptyOrFailingTableOfContentsGivesATimelineWithoutEntries(fails: Bool) async throws {
+            let timeline = try await timeline(
+                toc: [],
+                tocService: fails ? { _ in StubTableOfContentsService.failing() } : nil
+            )
 
-            #expect(timeline.items.map(\.link) == readingOrder)
-            #expect(timeline.items.map { $0.start?.readingOrderIndex } == [0, 1, 2])
-            #expect(timeline.items.map { $0.start?.offset } == [0, 0, 0])
+            #expect(timeline.toc.isEmpty)
+            #expect(timeline.segments().map(\.link) == readingOrder)
         }
 
         @Test func customServiceIsUsed() async throws {
             let timeline = try await timeline(
                 toc: [Link(href: "t1.mp3", title: "Manifest")],
-                tocService: { _ in StubTableOfContentsService { _ in .success([Link(href: "t2.mp3", title: "Custom")]) } }
+                tocService: { _ in StubTableOfContentsService(.success([Link(href: "t2.mp3", title: "Custom")])) }
             )
 
             #expect(timeline.outline == ["0 Custom → t2.mp3"])
@@ -95,28 +88,23 @@ enum AudioTimelineServiceTests {
     }
 
     struct Caching {
-        @Test func failureIsThrownAndNotCached() async throws {
-            let service = StubTableOfContentsService { call in
-                call == 1 ? .failure(.decoding("Broken")) : .success([Link(href: "t1.mp3", title: "Intro")])
-            }
+        @Test func tableOfContentsFailureIsNotRetried() async throws {
+            let service = StubTableOfContentsService.failing()
             let publication = makePublication(tocService: { _ in service })
 
-            let error = await #expect(throws: ReadError.self) {
-                _ = try await publication.timeline()
-            }
-            if case .decoding? = error {} else {
-                Issue.record("Expected a decoding error, got \(String(describing: error))")
-            }
-            #expect(try await publication.timeline()?.outline == ["0 Intro → t1.mp3"])
+            _ = try await publication.timeline()
+            _ = try await publication.timeline()
+
+            #expect(service.callCount == 1)
             withExtendedLifetime(publication) {}
         }
 
         @Test func successIsCached() async throws {
-            let service = StubTableOfContentsService { _ in .success([Link(href: "t1.mp3", title: "Intro")]) }
+            let service = StubTableOfContentsService(.success([Link(href: "t1.mp3", title: "Intro")]))
             let publication = makePublication(tocService: { _ in service })
 
-            let first = try await publication.timeline()?.items
-            let second = try await publication.timeline()?.items
+            let first = try await publication.timeline()?.toc.entries
+            let second = try await publication.timeline()?.toc.entries
 
             #expect(first?.isEmpty == false)
             #expect(first == second)
@@ -135,7 +123,7 @@ enum AudioTimelineServiceTests {
 
     struct Lifetime {
         @Test func failsOnceThePublicationIsDeallocated() async {
-            let service = AudioTimelineService(publication: Weak(), generatesFromReadingOrder: true)
+            let service = AudioTimelineService(publication: Weak())
 
             let error = await #expect(throws: ReadError.self) {
                 _ = try await service.timeline()
@@ -159,13 +147,12 @@ private let readingOrder = [
 
 private func makePublication(
     toc: [Link] = [],
-    generatesFromReadingOrder: Bool = true,
     tocService: TableOfContentsServiceFactory? = nil
 ) -> Publication {
     Publication(
         manifest: Manifest(metadata: Metadata(title: ""), readingOrder: readingOrder, tableOfContents: toc),
         servicesBuilder: PublicationServicesBuilder(setup: {
-            $0.setTimelineServiceFactory(AudioTimelineService.makeFactory(generatesFromReadingOrder: generatesFromReadingOrder))
+            $0.setTimelineServiceFactory(AudioTimelineService.makeFactory())
             if let tocService {
                 $0.setTableOfContentsServiceFactory(tocService)
             }
@@ -175,34 +162,10 @@ private func makePublication(
 
 private func timeline(
     toc: [Link],
-    generatesFromReadingOrder: Bool = true,
     tocService: TableOfContentsServiceFactory? = nil
 ) async throws -> Timeline {
-    let publication = makePublication(toc: toc, generatesFromReadingOrder: generatesFromReadingOrder, tocService: tocService)
+    let publication = makePublication(toc: toc, tocService: tocService)
     let timeline = try #require(await publication.timeline())
     withExtendedLifetime(publication) {}
     return timeline
-}
-
-/// Answers with `toc`, which takes the number of the call, starting at 1.
-private final class StubTableOfContentsService: TableOfContentsService, @unchecked Sendable {
-    private let toc: @Sendable (_ call: Int) -> ReadResult<[Link]>
-    private let lock = NSLock()
-    private var calls = 0
-
-    init(_ toc: @escaping @Sendable (_ call: Int) -> ReadResult<[Link]>) {
-        self.toc = toc
-    }
-
-    var callCount: Int {
-        lock.withLock { calls }
-    }
-
-    func tableOfContents() async -> ReadResult<[Link]> {
-        let call = lock.withLock {
-            calls += 1
-            return calls
-        }
-        return toc(call)
-    }
 }

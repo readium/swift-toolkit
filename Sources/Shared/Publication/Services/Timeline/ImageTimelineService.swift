@@ -20,21 +20,15 @@ public final class ImageTimelineService: TimelineService {
     private let cache: AsyncThrowingMemoizer<Timeline, ReadError>
 
     init(publication: Weak<Publication>) {
-        cache = AsyncThrowingMemoizer { () async throws(ReadError) -> Timeline in
-            guard let publication = publication() else {
-                throw .unsupportedOperation(DebugError("The publication is no longer available"))
+        cache = AsyncThrowingMemoizer { () async throws(ReadError) in
+            try await Timeline(publication: publication()) { publication, _ in
+                ImageTimelinePositionResolver(readingOrder: publication.readingOrder)
             }
-
-            let nodes = try await publication.tableOfContents().get().timelineNodes
-            return Timeline(
-                nodes: nodes,
-                resolver: ImageTimelinePositionResolver(readingOrder: publication.readingOrder)
-            )
         }
     }
 
-    /// Builds the timeline once. A failure is not cached, so the next call
-    /// tries again.
+    /// Builds the timeline once, with an empty table of contents when it fails
+    /// to load.
     public func timeline() async throws(ReadError) -> Timeline {
         try await cache()
     }
