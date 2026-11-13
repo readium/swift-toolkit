@@ -214,7 +214,7 @@ public actor PDFResourceContentIterator: ContentIterator, Loggable {
 
         let pageLocator = locator.copy(
             locations: {
-                $0.fragments = ["page=\(pageNumber)"]
+                $0.fragments = [.page(pageNumber)]
                 $0.position = resourceInfo.positionOffset + pageNumber
                 $0.progression = pageProgression
                 $0.totalProgression = totalProgression

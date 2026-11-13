@@ -682,7 +682,7 @@ struct TimelineFixture: Sendable {
 
     /// Returns the locator at `offset` seconds in the track `href`.
     func locator(_ href: String, _ offset: TimeInterval? = nil) -> Locator {
-        let fragments = offset.map { ["t=\($0)"] } ?? []
+        let fragments = offset.map { [URLFragment(rawValue: "t=\($0)")!] } ?? []
         return Locator(href: href, mediaType: .mp3, locations: .init(fragments: fragments))
     }
 

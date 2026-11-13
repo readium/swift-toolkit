@@ -126,7 +126,7 @@ enum PDFResourceContentIteratorTests {
             let expectedPageNumbers = [2, 3, 4, 5, 6, 7, 8, 9]
             for expected in expectedPageNumbers {
                 let element = try await iter.next()
-                #expect(element?.locator.locations.fragments == ["page=\(expected)"])
+                #expect(element?.locator.locations.fragments == [.page(expected)])
             }
         }
 
@@ -278,7 +278,7 @@ private func makeElement(
         position: pageNumber,
         progression: progression,
         highlight: text
-    ).copy(locations: { $0.fragments = ["page=\(pageNumber)"] })
+    ).copy(locations: { $0.fragments = [.page(pageNumber)] })
     return TextContentElement(
         locator: loc,
         role: .body,
@@ -308,7 +308,7 @@ private func makeLocator(
             $0.position = position
             $0.progression = progression
             if let page = pageFragment {
-                $0.fragments = ["page=\(page)"]
+                $0.fragments = [.page(page)]
             }
         },
         text: {

@@ -290,11 +290,11 @@ extension SwiftSoup.Element {
     /// HREF of a link pointing to `id` inside the resource: the id
     /// percent-encoded as a fragment, resolved against the resource HREF.
     private func fragmentHREF(id: String, baseHREF: AnyURL?) -> String {
-        let encodedID = id.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed) ?? id
-        guard let fragment = RelativeURL(string: "#" + encodedID) else {
-            return (baseHREF?.string ?? "") + "#" + encodedID
+        let fragment = URLFragment(percentDecoded: id)
+        guard let baseHREF = baseHREF else {
+            return "#" + (fragment?.rawValue ?? "")
         }
-        return (baseHREF?.resolve(fragment) ?? fragment.anyURL).string
+        return baseHREF.replacingFragment(fragment).string
     }
 
     /// Resolves the receiver's `href` attribute against the resource's base

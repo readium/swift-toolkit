@@ -152,7 +152,7 @@ private func resolve(
 }
 
 private func makeLocator(
-    fragments: [String] = [],
+    fragments: [URLFragment] = [],
     progression: Double? = nil,
     position: Int? = nil
 ) -> Locator {
@@ -166,7 +166,7 @@ private func makeLocator(
 private func makePositions(count: Int) -> [Locator] {
     (1 ... count).map { i in
         makeLocator(
-            fragments: ["page=\(i)"],
+            fragments: [.page(i)],
             progression: count > 1 ? Double(i - 1) / Double(count - 1) : 0.0,
             position: i
         )

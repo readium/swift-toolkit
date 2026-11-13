@@ -122,7 +122,7 @@ private func positions(_ pageCounts: [Int]) -> [[Locator]] {
             Locator(
                 href: AnyURL(string: index == 0 ? "a.pdf" : "b.pdf")!,
                 mediaType: .pdf,
-                locations: .init(fragments: ["page=\(page)"], position: previousPageCount + page)
+                locations: .init(fragments: [URLFragment(rawValue: "page=\(page)")!], position: previousPageCount + page)
             )
         }
     }
