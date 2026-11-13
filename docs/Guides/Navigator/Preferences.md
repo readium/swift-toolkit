@@ -1,6 +1,6 @@
 # Configuring the Navigator
 
-Take a look at the [migration guide](../Migration%20Guide.md) if you are already using the legacy EPUB settings.
+Take a look at the [migration guide](../../Migration%20Guide.md) if you are already using the legacy EPUB settings.
 
 ## Overview
 
@@ -10,7 +10,7 @@ You cannot directly overwrite the Navigator settings. Instead, you submit a set 
 
 For instance: "font size" is a **setting**, and the application can submit the font size value `150%` as a **preference**.
 
-<img src="Assets/settings-flow.svg">
+![The app submits Preferences to the Navigator, which computes its Settings](Assets/settings-flow.svg)
 
 ```swift
 // 1. Create a set of preferences.
@@ -84,7 +84,7 @@ The `defaults` are used as fallback values when the default Navigator settings a
 
 ## Build a user settings interface
 
-:question: The following examples use SwiftUI, but could be implemented using UIKit as well.
+❓ The following examples use SwiftUI, but could be implemented using UIKit as well.
 
 ### `PreferencesEditor`
 
@@ -151,7 +151,7 @@ struct UserPreferences<
 
 The `commit` parameter is a closure used to save the edited preferences to the data store, before submitting them to the Navigator.
 
-:question: The individual `PDFPreferencesEditor` properties are passed to `fixedLayoutUserPreferences()` so that it can be reused with other fixed-layout publication types, such as FXL EPUB or comic books. This is useful to reuse the user interface for similar publication types.
+❓ The individual `PDFPreferencesEditor` properties are passed to `fixedLayoutUserPreferences()` so that it can be reused with other fixed-layout publication types, such as FXL EPUB or comic books. This is useful to reuse the user interface for similar publication types.
 
 ### User settings view for fixed-layout publications
 
@@ -377,33 +377,33 @@ EPUB comes in two very different flavors: **reflowable** which allows a lot of c
 
 An EPUB can also mix both kinds of resources in a single publication. In this case, a preference is effective as soon as at least one resource of the matching kind is in the reading order, and it applies only to those resources. For example, `fontSize` is effective in a fixed-layout publication containing a reflowable chapter, but it changes only that chapter.
 
-| Setting              | Reflowable         | Fixed Layout       |
-|----------------------|--------------------|--------------------|
-| `backgroundColor`    | :white_check_mark: | :white_check_mark: |
-| `columnCount`        | :white_check_mark: |                    |
-| `fontFamily`         | :white_check_mark: |                    |
-| `fontSize`           | :white_check_mark: |                    |
-| `fontWeight`         | :white_check_mark: |                    |
-| `hyphens`            | :white_check_mark: |                    |
-| `imageFilter`        | :white_check_mark: |                    |
-| `language`           | :white_check_mark: | :white_check_mark: |
-| `letterSpacing`      | :white_check_mark: |                    |
-| `ligatures`          | :white_check_mark: |                    |
-| `lineHeight`         | :white_check_mark: |                    |
-| `pageMargins`        | :white_check_mark: |                    |
-| `paragraphIndent`    | :white_check_mark: |                    |
-| `paragraphSpacing`   | :white_check_mark: |                    |
-| `publisherStyles`    | :white_check_mark: |                    |
-| `readingProgression` | :white_check_mark: | :white_check_mark: |
-| `scroll`             | :white_check_mark: |                    |
-| `spread`             |                    | :white_check_mark: |
-| `textAlign`          | :white_check_mark: |                    |
-| `textColor`          | :white_check_mark: |                    |
-| `textNormalization`  | :white_check_mark: |                    |
-| `theme`              | :white_check_mark: |                    |
-| `typeScale`          | :white_check_mark: |                    |
-| `verticalText`       | :white_check_mark: |                    |
-| `wordSpacing`        | :white_check_mark: |                    |
+| Setting              | Reflowable | Fixed Layout |
+|----------------------|------------|--------------|
+| `backgroundColor`    | ✅         | ✅           |
+| `columnCount`        | ✅         |              |
+| `fontFamily`         | ✅         |              |
+| `fontSize`           | ✅         |              |
+| `fontWeight`         | ✅         |              |
+| `hyphens`            | ✅         |              |
+| `imageFilter`        | ✅         |              |
+| `language`           | ✅         | ✅           |
+| `letterSpacing`      | ✅         |              |
+| `ligatures`          | ✅         |              |
+| `lineHeight`         | ✅         |              |
+| `pageMargins`        | ✅         |              |
+| `paragraphIndent`    | ✅         |              |
+| `paragraphSpacing`   | ✅         |              |
+| `publisherStyles`    | ✅         |              |
+| `readingProgression` | ✅         | ✅           |
+| `scroll`             | ✅         |              |
+| `spread`             |            | ✅           |
+| `textAlign`          | ✅         |              |
+| `textColor`          | ✅         |              |
+| `textNormalization`  | ✅         |              |
+| `theme`              | ✅         |              |
+| `typeScale`          | ✅         |              |
+| `verticalText`       | ✅         |              |
+| `wordSpacing`        | ✅         |              |
 
 #### Publisher styles
 
@@ -431,14 +431,14 @@ The `imageFilter` preference is available only in dark mode (`theme = .dark`).
 
 Some preferences are not available for all languages and layout.
 
-| Preference        | LTR                | RTL                | CJK |
-|-------------------|--------------------|--------------------|-----|
-| `paragraphIndent` | :white_check_mark: | :white_check_mark: |     |
-| `textAlign`       | :white_check_mark: | :white_check_mark: |     |
-| `letterSpacing`   | :white_check_mark: |                    |     |
-| `wordSpacing`     | :white_check_mark: |                    |     |
-| `hyphens`         | :white_check_mark: |                    |     |
-| `ligatures`       |                    | :white_check_mark: |     |
+| Preference        | LTR | RTL | CJK |
+|-------------------|-----|-----|-----|
+| `paragraphIndent` | ✅  | ✅  |     |
+| `textAlign`       | ✅  | ✅  |     |
+| `letterSpacing`   | ✅  |     |     |
+| `wordSpacing`     | ✅  |     |     |
+| `hyphens`         | ✅  |     |     |
+| `ligatures`       |     | ✅  |     |
 
 ### PDF
 
@@ -446,10 +446,10 @@ Some preferences are not available for all languages and layout.
 
 Some preferences are available only in scroll or paginated mode (`scroll = false`).
 
-| Preference         | Vertical Scroll    | Horizontal Scroll  | Paginated          |
-|--------------------|--------------------|--------------------|--------------------|
-| `offsetFirstPage`  | :white_check_mark: |                    | :white_check_mark: |
-| `spread`           | :white_check_mark: |                    | :white_check_mark: |
-| `scrollAxis`       | :white_check_mark: | :white_check_mark: |                    |
-| `visibleScrollbar` | :white_check_mark: | :white_check_mark: |                    |
+| Preference         | Vertical Scroll | Horizontal Scroll | Paginated |
+|--------------------|-----------------|-------------------|-----------|
+| `offsetFirstPage`  | ✅              |                   | ✅        |
+| `spread`           | ✅              |                   | ✅        |
+| `scrollAxis`       | ✅              | ✅                |           |
+| `visibleScrollbar` | ✅              | ✅                |           |
 

@@ -11,193 +11,154 @@ import Foundation
 /// chapter?" or "how long is this chapter?".
 ///
 /// The reading order forms a continuous line from the start of the
-/// publication to its end, made of the duration of each resource for an
-/// audiobook. A ``TimelinePosition`` is a point on this line.
+/// publication to its end, made of the length of each resource in the
+/// natural unit of the publication: the duration of a track in an audiobook,
+/// the pages of a PDF or a comic, or the positions of an EPUB. A
+/// ``TimelinePosition`` is a point on this line.
 ///
-/// A timeline is a tree of ``TimelineItem`` mirroring the table of contents.
-/// Each item has a range on the line:
+/// Its ``toc`` is a tree of ``TimelineTOCEntry`` mirroring the table of
+/// contents. Each entry has a range on the line:
 ///
-/// - It starts where the link of its entry points, such as `t2.mp3#t=60`.
-/// - It ends at the start of the next placed item after its subtree, or at
+/// - It starts where its link points, such as `track2.mp3#t=60` or
+///   `document.pdf#page=12`.
+/// - It ends at the start of the next placed entry after its subtree, or at
 ///   the end of the publication. A parent therefore contains its children,
 ///   and owns the gap before its first child.
 ///
-/// An item that cannot be placed keeps its place in the tree without a
+/// An entry that cannot be placed keeps its place in the tree without a
 /// range: its link points outside the reading order, or before the start of
-/// the previous placed item.
+/// the previous placed entry.
 ///
-/// Without a table of contents, a timeline can be generated with one item per
-/// reading order resource.
-///
-/// To display the current chapter in a running header, locate the
-/// navigator's location each time it changes, and update the header when
-/// the `id` of the item changes:
-///
-/// ```swift
-/// func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-///     let chapter = timeline.item(containing: locator, maxDepth: 1)
-///     if chapter?.id != currentChapter?.id {
-///         currentChapter = chapter
-///         updateHeader()
-///     }
-/// }
-/// ```
+/// The ``segments(maxDepth:)`` cover the reading order, including outside
+/// any entry, such as before the first one or in a publication without a
+/// table of contents.
 @_spi(ExperimentalTimeline)
 public struct Timeline: Sendable {
-    /// Source of a ``TimelineItem``.
+    /// Source of a ``TimelineTOCEntry``.
     public struct Node: Sendable {
-        public let title: TimelineItem.Title
+        public let title: String
         public let link: Link
         public let children: [Node]
 
-        public init(title: TimelineItem.Title, link: Link, children: [Node] = []) {
+        public init(title: String, link: Link, children: [Node] = []) {
             self.title = title
             self.link = link
             self.children = children
         }
     }
 
-    /// Top-level items.
-    public let items: [TimelineItem]
+    /// Table of contents laid out on the reading order.
+    public let toc: TimelineTOC
 
     private let resolver: any TimelinePositionResolver
 
-    /// All the items, indexed by their ID.
-    private let allItems: [TimelineItem]
+    /// Indices of the entries with a range, in pre-order, which is also the
+    /// order of their starts.
+    private let rangedIndices: [Int]
 
-    /// ID of the parent of each item.
-    private let parentIDs: [Int?]
+    /// Start of each reading order resource.
+    private let resourceStarts: [ResourceStart]
 
-    /// Depth of each item, starting at 1 for the top level.
-    private let depths: [Int]
+    private struct ResourceStart: Sendable {
+        let link: Link
+        let position: TimelinePosition
+    }
 
-    /// IDs of the items with a range, in pre-order, which is also the order
-    /// of their starts.
-    private let rangedIDs: [Int]
+    /// Start of a range of ``segments(maxDepth:)``.
+    private struct Boundary {
+        let start: TimelinePosition
+
+        /// Ranged entry starting the range, or `nil` at the start of a
+        /// resource continuing the previous range.
+        let rangedIndex: Int?
+
+        /// Link to the start, when the entry of the range does not start
+        /// there: of the resource starting there, or else of the first
+        /// ranged entry starting there.
+        let link: Link
+    }
 
     public init(nodes: [Node], resolver: any TimelinePositionResolver) {
         // Flattens the nodes in pre-order.
         var flatNodes: [Node] = []
-        var parentIDs: [Int?] = []
+        var parentIndices: [Int?] = []
         var depths: [Int] = []
-        var childIDs: [[Int]] = []
-        // ID following the subtree of each node.
+        var childIndices: [[Int]] = []
+        // Index following the subtree of each node.
         var subtreeEnds: [Int] = []
 
         @discardableResult
-        func flatten(_ node: Node, parentID: Int?, depth: Int) -> Int {
-            let nodeID = flatNodes.count
+        func flatten(_ node: Node, parentIndex: Int?, depth: Int) -> Int {
+            let nodeIndex = flatNodes.count
             flatNodes.append(node)
-            parentIDs.append(parentID)
+            parentIndices.append(parentIndex)
             depths.append(depth)
-            childIDs.append([])
-            subtreeEnds.append(nodeID)
+            childIndices.append([])
+            subtreeEnds.append(nodeIndex)
             for child in node.children {
-                childIDs[nodeID].append(flatten(child, parentID: nodeID, depth: depth + 1))
+                childIndices[nodeIndex].append(flatten(child, parentIndex: nodeIndex, depth: depth + 1))
             }
-            subtreeEnds[nodeID] = flatNodes.count
-            return nodeID
+            subtreeEnds[nodeIndex] = flatNodes.count
+            return nodeIndex
         }
 
-        let topLevelIDs = nodes.map { flatten($0, parentID: nil, depth: 1) }
+        let topLevelIndices = nodes.map { flatten($0, parentIndex: nil, depth: 1) }
 
         // Places the nodes in pre-order. A node starting before the last
         // placed one is left without a range.
         var starts: [TimelinePosition?] = []
-        var rangedIDs: [Int] = []
-        for (nodeID, node) in flatNodes.enumerated() {
+        var rangedIndices: [Int] = []
+        var lastStart: TimelinePosition?
+        for (nodeIndex, node) in flatNodes.enumerated() {
             var start = resolver.position(of: node.link)
-            if let lastID = rangedIDs.last, let lastStart = starts[lastID], let position = start, position.isBefore(lastStart) {
+            if let position = start, let lastStart, position.isBefore(lastStart) {
                 start = nil
             }
             starts.append(start)
-            if start != nil {
-                rangedIDs.append(nodeID)
+            if let start {
+                rangedIndices.append(nodeIndex)
+                lastStart = start
             }
         }
 
-        // Start of the first ranged item from each ID.
+        // Start of the first ranged entry from each index.
         var nextStarts = [TimelinePosition?](repeating: nil, count: flatNodes.count + 1)
-        for nodeID in flatNodes.indices.reversed() {
-            nextStarts[nodeID] = starts[nodeID] ?? nextStarts[nodeID + 1]
+        for nodeIndex in flatNodes.indices.reversed() {
+            nextStarts[nodeIndex] = starts[nodeIndex] ?? nextStarts[nodeIndex + 1]
         }
 
-        // Builds the items from the leaves, as children follow their parent
-        // in pre-order.
-        var allItems = [TimelineItem?](repeating: nil, count: flatNodes.count)
-        for (nodeID, node) in flatNodes.enumerated().reversed() {
-            let start = starts[nodeID]
+        // Builds the entries from the leaves, as children follow their
+        // parent in pre-order.
+        var allEntries = [TimelineTOCEntry?](repeating: nil, count: flatNodes.count)
+        for (nodeIndex, node) in flatNodes.enumerated().reversed() {
+            let start = starts[nodeIndex]
             let end = start.flatMap { start in
-                // An item can start past the known end of the publication.
-                nextStarts[subtreeEnds[nodeID]] ?? resolver.end.map { $0.isBefore(start) ? start : $0 }
+                // An entry can start past the known end of the publication.
+                nextStarts[subtreeEnds[nodeIndex]] ?? resolver.end.map { $0.isBefore(start) ? start : $0 }
             }
-            allItems[nodeID] = TimelineItem(
-                id: nodeID,
+            allEntries[nodeIndex] = TimelineTOCEntry(
+                id: TimelineTOCEntry.ID(index: nodeIndex),
                 title: node.title,
                 link: node.link,
                 start: start,
                 end: end,
                 length: start.flatMap { start in end.flatMap { resolver.length(from: start, to: $0) } },
-                children: childIDs[nodeID].map { allItems[$0]! }
+                children: childIndices[nodeIndex].map { allEntries[$0]! }
             )
         }
 
-        let builtItems = allItems.map { $0! }
-        self.allItems = builtItems
-        items = topLevelIDs.map { builtItems[$0] }
+        let builtEntries = allEntries.map { $0! }
+        toc = TimelineTOC(
+            entries: topLevelIndices.map { builtEntries[$0] },
+            allEntries: builtEntries,
+            parentIndices: parentIndices,
+            depths: depths
+        )
         self.resolver = resolver
-        self.parentIDs = parentIDs
-        self.depths = depths
-        self.rangedIDs = rangedIDs
-    }
-
-    /// Returns the deepest item containing `locator`, or `nil` when it is
-    /// outside the reading order or before the first item.
-    ///
-    /// - Parameter maxDepth: Returns an ancestor of the deepest item, no
-    ///   deeper than this depth. The top level is 1.
-    public func item(containing locator: Locator, maxDepth: Int? = nil) -> TimelineItem? {
-        guard
-            maxDepth.map({ $0 >= 1 }) ?? true,
-            let position = position(of: locator)
-        else {
-            return nil
+        self.rangedIndices = rangedIndices
+        resourceStarts = resolver.readingOrder.enumerated().map { index, link in
+            ResourceStart(link: link, position: resolver.bounds(ofResourceAt: index).start)
         }
-
-        // Index of the first ranged item starting after the position.
-        var low = 0
-        var high = rangedIDs.count
-        while low < high {
-            let middle = (low + high) / 2
-            if !position.isBefore(allItems[rangedIDs[middle]].start!) {
-                low = middle + 1
-            } else {
-                high = middle
-            }
-        }
-        guard low > 0 else {
-            return nil
-        }
-
-        return labelID(of: rangedIDs[low - 1], maxDepth: maxDepth).map { allItems[$0] }
-    }
-
-    /// Returns the segment of ``segments(maxDepth:)`` containing `locator`.
-    ///
-    /// Unlike the item, the segment ends where the next item starts, such as
-    /// the first child of a parent item. Use it to measure what is left of
-    /// the current chapter.
-    ///
-    /// - Parameter maxDepth: Labels the segment with an item no deeper than
-    ///   this depth. The top level is 1.
-    public func segment(containing locator: Locator, maxDepth: Int? = nil) -> TimelineSegment? {
-        guard
-            let item = item(containing: locator, maxDepth: maxDepth),
-            let position = position(of: locator)
-        else {
-            return nil
-        }
-        return segments(maxDepth: maxDepth).last { $0.item.id == item.id && !position.isBefore($0.start) }
     }
 
     /// Returns the position of `locator` on the timeline, or `nil` when it is
@@ -206,175 +167,79 @@ public struct Timeline: Sendable {
         resolver.position(of: locator)
     }
 
-    /// Returns the length between `start` and `end`, or `nil` when `end` is
-    /// before `start`, or when the length of a resource between them is
-    /// unknown.
+    /// Returns the length between `start` and `end`, negative when `end` is
+    /// before `start`, or `nil` when the length of a resource between them
+    /// is unknown.
     public func length(from start: TimelinePosition, to end: TimelinePosition) -> TimelineLength? {
         resolver.length(from: start, to: end)
     }
 
-    /// Returns the start and end of the reading order resource at `href`,
-    /// ignoring its fragment, or `nil` when it is not in the reading order.
-    /// The end is `nil` when it is unknown.
+    /// Returns the segments covering the reading order, one after another.
     ///
-    /// Use it to measure what is left of the current resource with
-    /// ``length(from:to:)``, such as before the first item, where there is no
-    /// segment.
-    public func bounds(ofResource href: any URLConvertible) -> (start: TimelinePosition, end: TimelinePosition?)? {
-        resolver.bounds(ofResource: href)
-    }
+    /// The entry of a segment is the deepest one containing its positions,
+    /// within `maxDepth`. Outside any entry, such as before the first one,
+    /// there is one segment without entry per reading order resource.
+    ///
+    /// - Parameter maxDepth: Ignores the entries deeper than this depth: their
+    ///   positions are in the segment of their closest ancestor within it.
+    ///   The top level is 1.
+    public func segments(maxDepth: Int? = nil) -> TimelineSegments {
+        // Each ranged entry starts a range up to the next boundary, inside
+        // the deepest entry containing it within `maxDepth`. The start of
+        // each resource is a boundary too, so that a range without entry
+        // stays in its resource.
+        var boundaries: [Boundary] = []
+        var resourceIndex = 0
+        func addResourceStarts(upTo position: TimelinePosition?) {
+            while resourceIndex < resourceStarts.count {
+                let resourceStart = resourceStarts[resourceIndex]
+                guard position.map({ !$0.isBefore(resourceStart.position) }) ?? true else {
+                    return
+                }
+                boundaries.append(Boundary(start: resourceStart.position, rangedIndex: nil, link: resourceStart.link))
+                resourceIndex += 1
+            }
+        }
+        for rangedIndex in rangedIndices {
+            let entry = toc.allEntries[rangedIndex]
+            let start = entry.start!
+            addResourceStarts(upTo: start)
+            // Takes the link of a resource, or of a ranged entry, starting
+            // there first.
+            let link = boundaries.last.flatMap { $0.start.isAt(start) ? $0.link : nil } ?? entry.link
+            boundaries.append(Boundary(start: start, rangedIndex: rangedIndex, link: link))
+        }
+        addResourceStarts(upTo: nil)
 
-    /// Returns the first item with a range in pre-order, or `nil` when no
-    /// placed item is within `maxDepth`.
-    ///
-    /// - Parameter maxDepth: Skips the items deeper than this depth. The top
-    ///   level is 1.
-    public func first(maxDepth: Int? = nil) -> TimelineItem? {
-        rangedIDs
-            .first { isWithin($0, maxDepth: maxDepth) }
-            .map { allItems[$0] }
-    }
-
-    /// Returns the item before `item` in pre-order, skipping the items
-    /// without a range or sharing its start.
-    ///
-    /// - Parameter maxDepth: Skips the items deeper than this depth. The top
-    ///   level is 1.
-    public func previous(before item: TimelineItem, maxDepth: Int? = nil) -> TimelineItem? {
-        guard contains(item) else {
-            return nil
-        }
-        return rangedIDs.last { candidateID in
-            candidateID < item.id
-                && isWithin(candidateID, maxDepth: maxDepth)
-                && item.start.map { allItems[candidateID].start!.isBefore($0) } ?? true
-        }
-        .map { allItems[$0] }
-    }
-
-    /// Returns the item after `item` in pre-order, skipping the items without
-    /// a range or sharing its start.
-    ///
-    /// - Parameter maxDepth: Skips the items deeper than this depth. The top
-    ///   level is 1.
-    public func next(after item: TimelineItem, maxDepth: Int? = nil) -> TimelineItem? {
-        guard contains(item) else {
-            return nil
-        }
-        return rangedIDs.first { candidateID in
-            candidateID > item.id
-                && isWithin(candidateID, maxDepth: maxDepth)
-                && item.start.map { $0.isBefore(allItems[candidateID].start!) } ?? true
-        }
-        .map { allItems[$0] }
-    }
-
-    /// Returns the ancestors of `item`, from the top level down to its
-    /// parent. Empty for a top-level item.
-    public func ancestors(of item: TimelineItem) -> [TimelineItem] {
-        guard contains(item) else {
-            return []
-        }
-        var ancestors: [TimelineItem] = []
-        var parentID = parentIDs[item.id]
-        while let id = parentID {
-            ancestors.insert(allItems[id], at: 0)
-            parentID = parentIDs[id]
-        }
-        return ancestors
-    }
-
-    /// Returns consecutive segments covering the timeline, each labelled with
-    /// the deepest item playing in it.
-    ///
-    /// The item of a segment is the one returned by ``item(containing:maxDepth:)``
-    /// in it.
-    ///
-    /// - Parameter maxDepth: Labels the segments with items no deeper than
-    ///   this depth. The top level is 1.
-    public func segments(maxDepth: Int? = nil) -> [TimelineSegment] {
         var segments: [TimelineSegment] = []
-
-        // Each ranged item starts an interval up to the next one, labelled
-        // like `item(containing:)` would in it.
-        for (index, rangedID) in rangedIDs.enumerated() {
-            guard let labelID = labelID(of: rangedID, maxDepth: maxDepth) else {
-                continue
+        // Entry of the current range.
+        var currentEntryIndex: Int?
+        for (index, boundary) in boundaries.enumerated() {
+            if let rangedIndex = boundary.rangedIndex {
+                currentEntryIndex = toc.containingEntryIndex(from: rangedIndex, maxDepth: maxDepth)
             }
-            let item = allItems[labelID]
-            let start = allItems[rangedID].start!
-            var end = item.end
-            if index + 1 < rangedIDs.count, let next = allItems[rangedIDs[index + 1]].start, end.map({ next.isBefore($0) }) ?? true {
-                end = next
-            }
+            let start = boundary.start
+            let end = index + 1 < boundaries.count ? boundaries[index + 1].start : resolver.end
             guard end.map({ start.isBefore($0) }) ?? true else {
                 continue
             }
 
-            // Merges the consecutive intervals of a label, such as those of
-            // the items deeper than `maxDepth`.
-            if let last = segments.last, last.item.id == labelID {
-                segments[segments.count - 1] = TimelineSegment(item: item, start: last.start, end: end)
+            // Merges the consecutive ranges of an entry, such as those of the
+            // entries deeper than `maxDepth`, and the ranges without entry of
+            // a resource.
+            if
+                let last = segments.last,
+                last.tocEntry?.id.index == currentEntryIndex,
+                currentEntryIndex != nil || last.start.readingOrderIndex == start.readingOrderIndex
+            {
+                segments[segments.count - 1] = TimelineSegment(tocEntry: last.tocEntry, link: last.link, start: last.start, end: end)
             } else {
-                segments.append(TimelineSegment(item: item, start: start, end: end))
+                let entry = currentEntryIndex.map { toc.allEntries[$0] }
+                let link = entry.flatMap { $0.start?.isAt(start) == true ? $0.link : nil } ?? boundary.link
+                segments.append(TimelineSegment(tocEntry: entry, link: link, start: start, end: end))
             }
         }
 
-        return segments
-    }
-
-    /// Returns the segments of ``segments(maxDepth:)`` in the reading order
-    /// resource at `href`, with positions clipped to the resource.
-    ///
-    /// Empty when `href` is not in the reading order.
-    public func segments(in href: any URLConvertible, maxDepth: Int? = nil) -> [TimelineSegment] {
-        guard let (resourceStart, resourceEnd) = bounds(ofResource: href) else {
-            return []
-        }
-        let index = resourceStart.readingOrderIndex
-
-        return segments(maxDepth: maxDepth).compactMap { segment in
-            guard
-                segment.start.readingOrderIndex <= index,
-                segment.end.map({ resourceStart.isBefore($0) }) ?? true
-            else {
-                return nil
-            }
-
-            let start = segment.start.isBefore(resourceStart) ? resourceStart : segment.start
-            // A segment can end past the known end of its resource.
-            let end = segment.end
-                .flatMap { $0.readingOrderIndex == index ? $0 : nil }
-                .map { end in resourceEnd.map { $0.isBefore(end) ? $0 : end } ?? end }
-                ?? resourceEnd
-            guard end.map({ start.isBefore($0) }) ?? true else {
-                return nil
-            }
-            return TimelineSegment(item: segment.item, start: start, end: end)
-        }
-    }
-
-    /// Returns whether `item` belongs to this timeline.
-    private func contains(_ item: TimelineItem) -> Bool {
-        allItems.indices.contains(item.id) && allItems[item.id] == item
-    }
-
-    /// Returns the ID of the item labelling the positions from the start of
-    /// the ranged item `itemID`: itself, or its closest ranged ancestor
-    /// within `maxDepth`.
-    private func labelID(of itemID: Int, maxDepth: Int?) -> Int? {
-        var labelID: Int? = itemID
-        while let currentID = labelID, !isRanged(currentID) || !isWithin(currentID, maxDepth: maxDepth) {
-            labelID = parentIDs[currentID]
-        }
-        return labelID
-    }
-
-    private func isRanged(_ itemID: Int) -> Bool {
-        allItems[itemID].start != nil
-    }
-
-    private func isWithin(_ itemID: Int, maxDepth: Int?) -> Bool {
-        maxDepth.map { depths[itemID] <= $0 } ?? true
+        return TimelineSegments(segments: segments, resolver: resolver)
     }
 }

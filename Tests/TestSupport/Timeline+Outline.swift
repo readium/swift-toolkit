@@ -9,20 +9,15 @@ import Foundation
 
 @_spi(ExperimentalTimeline)
 public extension Timeline {
-    /// One line per item, with its id, title and HREF, indented by depth.
-    ///
-    /// An untitled item shows its number, such as `#2`.
+    /// One line per entry of the table of contents, with its index, title
+    /// and HREF, indented by depth.
     var outline: [String] {
-        func lines(_ items: [TimelineItem], indent: String) -> [String] {
-            items.flatMap { item -> [String] in
-                let title = switch item.title {
-                case let .text(text): text
-                case let .number(number): "#\(number)"
-                }
-                return ["\(indent)\(item.id) \(title) → \(item.link.href)"]
-                    + lines(item.children, indent: indent + "  ")
+        func lines(_ entries: [TimelineTOCEntry], indent: String) -> [String] {
+            entries.flatMap { entry -> [String] in
+                ["\(indent)\(entry.id.index) \(entry.title) → \(entry.link.href)"]
+                    + lines(entry.children, indent: indent + "  ")
             }
         }
-        return lines(items, indent: "")
+        return lines(toc.entries, indent: "")
     }
 }

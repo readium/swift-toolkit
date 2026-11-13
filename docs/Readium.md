@@ -14,6 +14,7 @@ The Readium Swift Toolkit is a toolkit for ebooks, audiobooks, and comics writte
 - <doc:Migration-Guide>
 - <doc:Open-Publication>
 - <doc:NavigatorOverview>
+- <doc:Timeline>
 - <doc:Content>
 - <doc:Search>
 - <doc:TTS>

@@ -19,8 +19,8 @@ struct PDFParserTests {
         let publication = try await parse("outline.pdf")
         let timeline = try #require(await publication.timeline())
         let href = publication.readingOrder[0].href
-        let chapter1 = timeline.items[0].children[0]
-        let chapter2 = timeline.items[1]
+        let chapter1 = timeline.toc.entries[0].children[0]
+        let chapter2 = timeline.toc.entries[1]
 
         #expect(timeline.outline == [
             "0 Part 1 → \(href)#page=1",
@@ -29,7 +29,7 @@ struct PDFParserTests {
         ])
         #expect(chapter1.end?.offset == 3)
         #expect(chapter2.end?.offset == 4)
-        #expect(timeline.item(containing: Locator(href: href, mediaType: .pdf, locations: .init(fragments: ["page=3"]))) == chapter1)
+        #expect(timeline.segments().segment(containing: Locator(href: href, mediaType: .pdf, locations: .init(fragments: ["page=3"])))?.tocEntry == chapter1)
     }
 }
 
