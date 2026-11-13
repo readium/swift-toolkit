@@ -244,7 +244,7 @@ open class PDFNavigatorViewController:
         }
     }
 
-    private func apply(settings: PDFSettings, to pdfView: PDFView) {
+    private func apply(settings: PDFSettings, to pdfView: PDFDocumentView) {
         let isRTL = (settings.readingProgression == .rtl)
 
         pdfView.displaysAsBook = settings.offsetFirstPage
@@ -295,7 +295,7 @@ open class PDFNavigatorViewController:
         pdfView.displaysPageBreaks = true
         pdfView.autoScales = false
 
-        if let scrollView = pdfView.firstScrollView {
+        if let scrollView = pdfView.documentScrollView {
             let showScrollbar = settings.visibleScrollbar
             scrollView.showsVerticalScrollIndicator = showScrollbar
             scrollView.showsHorizontalScrollIndicator = showScrollbar

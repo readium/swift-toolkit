@@ -39,7 +39,7 @@ public final class PDFDocumentView: PDFView {
         // the screen notches.
         // Thefore, we will handle the adjustement manually by only taking the notch area into
         // account.
-        firstScrollView?.contentInsetAdjustmentBehavior = .never
+        documentScrollView?.contentInsetAdjustmentBehavior = .never
     }
 
     @available(*, unavailable)
@@ -81,8 +81,20 @@ public final class PDFDocumentView: PDFView {
 
     private func updateContentInset() {
         let insets = contentInset
-        firstScrollView?.contentInset.top = insets.top
-        firstScrollView?.contentInset.bottom = insets.bottom
+        documentScrollView?.contentInset.top = insets.top
+        documentScrollView?.contentInset.bottom = insets.bottom
+    }
+
+    /// Scroll view laying out the pages of the document, which we can
+    /// configure.
+    ///
+    /// `nil` when the document is paginated with a `UIPageViewController`.
+    /// The first scroll view is then its private paging scroll view, which
+    /// must not be configured. For example, content insets don't affect the
+    /// layout of its pages, but they make it scrollable vertically, which it
+    /// doesn't support.
+    var documentScrollView: UIScrollView? {
+        isUsingPageViewController ? nil : firstScrollView
     }
 
     private var contentInset: UIEdgeInsets {
