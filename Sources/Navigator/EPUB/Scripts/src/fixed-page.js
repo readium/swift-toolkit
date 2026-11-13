@@ -122,6 +122,11 @@ export function FixedPage(iframeId, pageType) {
     // Calculate the scaled height of the content
     var scaledHeight = _pageSize.height * scale;
 
+    // The safe area insets are in points, but the iframe is positioned in CSS
+    // pixels of this page, which are scaled by the viewport.
+    var insetTop = _safeAreaInsets.top / scale;
+    var insetBottom = _safeAreaInsets.bottom / scale;
+
     // Determine the appropriate transform based on page type.
     // Single page and center page in spread need horizontal centering.
     // Left/right pages in spread don't need horizontal transform.
@@ -133,16 +138,28 @@ export function FixedPage(iframeId, pageType) {
     if (_fit === Fit.WIDTH && scaledHeight > _viewportSize.height) {
       // Content overflows: align to top with safe area inset
       // Override the CSS centering
-      _iframe.style.top = _safeAreaInsets.top + "px";
+      _iframe.style.top = insetTop + "px";
       if (needsHorizontalCenter) {
         _iframe.style.transform = "translateX(-50%)";
       } else {
         _iframe.style.transform = "none";
       }
     } else {
-      // Content fits or is page fit: center vertically
-      // Keep the CSS centering but adjust for safe area insets
-      var verticalOffset = _safeAreaInsets.top - _safeAreaInsets.bottom;
+      // Content fits or is page fit: center vertically on the screen, and
+      // move the page only as far as needed to stay between the safe area
+      // insets.
+      //
+      // The offsets are in CSS pixels of this page, from the center of the
+      // screen. A page centered between the insets has `freeSpace` above and
+      // below it, so it stays between them as long as it is moved by at most
+      // `freeSpace` from there. We pick the offset closest to the center of
+      // the screen.
+      var offsetBetweenInsets = (insetTop - insetBottom) / 2;
+      var freeSpace = (_viewportSize.height / scale - _pageSize.height) / 2;
+      var verticalOffset = Math.min(
+        Math.max(0, offsetBetweenInsets - freeSpace),
+        offsetBetweenInsets + freeSpace
+      );
       _iframe.style.top = "calc(50% + " + verticalOffset + "px)";
       if (needsHorizontalCenter) {
         _iframe.style.transform = "translate(-50%, -50%)";
