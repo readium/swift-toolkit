@@ -145,10 +145,21 @@ export function FixedPage(iframeId, pageType) {
         _iframe.style.transform = "none";
       }
     } else {
-      // Content fits or is page fit: center vertically
-      // Keep the CSS centering but move it to the center of the area between
-      // the safe area insets.
-      var verticalOffset = (insetTop - insetBottom) / 2;
+      // Content fits or is page fit: center vertically on the screen, and
+      // move the page only as far as needed to stay between the safe area
+      // insets.
+      //
+      // The offsets are in CSS pixels of this page, from the center of the
+      // screen. A page centered between the insets has `freeSpace` above and
+      // below it, so it stays between them as long as it is moved by at most
+      // `freeSpace` from there. We pick the offset closest to the center of
+      // the screen.
+      var offsetBetweenInsets = (insetTop - insetBottom) / 2;
+      var freeSpace = (_viewportSize.height / scale - _pageSize.height) / 2;
+      var verticalOffset = Math.min(
+        Math.max(0, offsetBetweenInsets - freeSpace),
+        offsetBetweenInsets + freeSpace
+      );
       _iframe.style.top = "calc(50% + " + verticalOffset + "px)";
       if (needsHorizontalCenter) {
         _iframe.style.transform = "translate(-50%, -50%)";
