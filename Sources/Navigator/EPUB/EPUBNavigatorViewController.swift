@@ -569,11 +569,15 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     private var paginationView: PaginationView?
 
+    /// Set by `setPreloadPositionCounts(previous:next:)`, in place of the
+    /// counts of the configuration.
+    private var preloadPositionCounts: (previous: Int, next: Int)?
+
     private func makePaginationView(hasPositions: Bool) -> PaginationView {
         let view = PaginationView(
             frame: .zero,
-            preloadPreviousPositionCount: hasPositions ? config.preloadPreviousPositionCount : 0,
-            preloadNextPositionCount: hasPositions ? config.preloadNextPositionCount : 0,
+            preloadPreviousPositionCount: hasPositions ? (preloadPositionCounts?.previous ?? config.preloadPreviousPositionCount) : 0,
+            preloadNextPositionCount: hasPositions ? (preloadPositionCounts?.next ?? config.preloadNextPositionCount) : 0,
             isScrollEnabled: isPaginationViewScrollingEnabled
         )
         view.delegate = self
@@ -753,6 +757,24 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             notifiedCurrentLocation = location
             delegate.navigator(self, locationDidChange: location)
         }
+    }
+
+    /// Changes the number of positions to preload before and after the
+    /// current resource, in place of `Configuration.preloadPreviousPositionCount`
+    /// and `Configuration.preloadNextPositionCount`.
+    ///
+    /// The resources newly in range are loaded after the current one, and
+    /// the ones out of range are released. For example, you can open a
+    /// publication without preloading, to show the first page as soon as
+    /// possible, then preload the resources around it once
+    /// `navigator(_:locationDidChange:)` is called.
+    public func setPreloadPositionCounts(previous: Int, next: Int) {
+        preloadPositionCounts = (previous, next)
+        let hasPositions = !positionsByReadingOrder.isEmpty
+        paginationView?.setPreloadPositionCounts(
+            previous: hasPositions ? previous : 0,
+            next: hasPositions ? next : 0
+        )
     }
 
     public func go(to locator: Locator, options: NavigatorGoOptions) async -> Bool {
