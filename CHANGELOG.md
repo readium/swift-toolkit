@@ -79,6 +79,7 @@ All notable changes to this project will be documented in this file. Take a look
 * Fixed reflowable EPUBs being displayed as a single column on the iPhone Duo unfolded in landscape, by porting the [responsive columns fix of Readium CSS 1.1.2](https://github.com/readium/css/issues/247).
 * `EPUBNavigatorViewController`'s current locator is now reported as soon as the current page is loaded, instead of waiting for the preloading of adjacent resources.
 * Fixed the `viewport` of `PDFNavigatorViewController` including the off-screen pages in paginated mode.
+* Fixed fixed-layout EPUB pages not being centered vertically between the content insets.
 
 
 ## [4.0.0-alpha.2] - 2026-09-18
