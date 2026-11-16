@@ -188,7 +188,9 @@ open class PDFNavigatorViewController:
     }
 
     private func resetPDFView(at locator: Locator?) {
-        guard isViewLoaded else {
+        // The positions are needed to resolve the locator. `viewDidLoad`
+        // resets the PDF view once they are loaded, with the latest settings.
+        guard positionsByReadingOrder != nil else {
             return
         }
 
