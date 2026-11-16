@@ -587,11 +587,15 @@ open class PDFNavigatorViewController:
     public private(set) var settings: PDFSettings
 
     public func submitPreferences(_ preferences: PDFPreferences) {
-        settings = PDFSettings(
+        let settings = PDFSettings(
             preferences: preferences,
             defaults: config.defaults,
             metadata: publication.metadata
         )
+        guard settings != self.settings else {
+            return
+        }
+        self.settings = settings
         resetPDFView(at: currentOrPendingLocation)
 
         delegate?.navigator(self, presentationDidChange: presentation)
