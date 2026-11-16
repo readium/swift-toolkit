@@ -2,7 +2,9 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-## Unreleased
+<!-- ## Unreleased -->
+
+## 4.0.0-alpha.3
 
 ### Resource loading errors
 

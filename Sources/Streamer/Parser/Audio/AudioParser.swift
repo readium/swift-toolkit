@@ -248,7 +248,7 @@ public final class AudioParser: PublicationParser, Loggable {
             servicesBuilder: .init(
                 cover: cover.map { EmbeddedCoverService.makeFactory(data: $0.data, mediaType: $0.mediaType) },
                 locator: AudioLocatorService.makeFactory(),
-                setup: { [config] in
+                setup: {
                     $0.setTimelineServiceFactory(AudioTimelineService.makeFactory())
                 }
             )
