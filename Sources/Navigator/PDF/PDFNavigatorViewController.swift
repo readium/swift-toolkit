@@ -70,7 +70,9 @@ open class PDFNavigatorViewController:
         publication.readingOrder
     }
 
-    private let initialLocation: Locator?
+    /// Location targeted by the latest reset of the PDF view, displayed once
+    /// its document is loaded.
+    private var pendingLocation: Locator?
     private let config: Configuration
     private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
@@ -93,7 +95,7 @@ open class PDFNavigatorViewController:
         }
 
         self.publication = publication
-        self.initialLocation = initialLocation
+        pendingLocation = initialLocation
         self.config = config
         self.delegate = delegate
         editingActions = EditingActionsController(
@@ -126,7 +128,7 @@ open class PDFNavigatorViewController:
 
         Task {
             try? await didLoadPositions(publication.positionsByReadingOrder().get())
-            resetPDFView(at: initialLocation)
+            resetPDFView(at: currentOrPendingLocation)
         }
     }
 
@@ -161,7 +163,7 @@ open class PDFNavigatorViewController:
 
                 // Reset the PDF view to update the spread if needed.
                 if self.settings.spread == .auto {
-                    self.resetPDFView(at: self.currentLocation)
+                    self.resetPDFView(at: self.currentOrPendingLocation)
                 }
             })
         }
@@ -179,11 +181,18 @@ open class PDFNavigatorViewController:
         }
     }
 
+    /// The current location, or the pending one while no document is loaded
+    /// yet, to display after resetting the PDF view.
+    private var currentOrPendingLocation: Locator? {
+        currentResourceIndex == nil ? pendingLocation : currentLocation
+    }
+
     private func resetPDFView(at locator: Locator?) {
         guard isViewLoaded else {
             return
         }
 
+        pendingLocation = locator
         resetTask = Task {
             await _resetPDFView(at: locator)
         }
@@ -430,6 +439,12 @@ open class PDFNavigatorViewController:
                 return false
             }
 
+            // A reset replaced the PDF view while the document was loading,
+            // which makes this navigation obsolete.
+            guard pdfView === self.pdfView else {
+                return false
+            }
+
             currentResourceIndex = index
             pdfView.document = document
             updateScaleFactors(zoomToFit: true)
@@ -575,7 +590,7 @@ open class PDFNavigatorViewController:
             defaults: config.defaults,
             metadata: publication.metadata
         )
-        resetPDFView(at: currentLocation)
+        resetPDFView(at: currentOrPendingLocation)
 
         delegate?.navigator(self, presentationDidChange: presentation)
     }
