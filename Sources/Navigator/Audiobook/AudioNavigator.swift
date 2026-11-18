@@ -210,9 +210,8 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             let item = player.currentItem,
             item.isPlaybackBufferEmpty, !item.isPlaybackLikelyToKeepUp
         {
-            // As `automaticallyWaitsToMinimizeStalling` is disabled, the
-            // player reports `.playing` even when it is stalled on an empty
-            // buffer waiting for data.
+            // `playImmediately(atRate:)` reports `.playing` even when the
+            // player is stalled on an empty buffer waiting for data.
             return .loading
         }
         if state == .paused {
@@ -685,7 +684,11 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     private func makePlayer() -> AVPlayer {
         let player = AVPlayer()
         player.allowsExternalPlayback = false
-        player.automaticallyWaitsToMinimizeStalling = false
+        // Lets the player wait for more data and resume by itself after a
+        // stall. Otherwise a stall in the background stops the playback until
+        // the app returns to the foreground. `play()` uses
+        // `playImmediately(atRate:)`, so starting the playback doesn't wait.
+        player.automaticallyWaitsToMinimizeStalling = true
         player.volume = Float(settings.volume)
 
         let periodicObserver = player.addPeriodicTimeObserver(
