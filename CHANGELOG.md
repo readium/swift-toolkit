@@ -3,7 +3,14 @@
 All notable changes to this project will be documented in this file. Take a look at [the migration guide](docs/Migration%20Guide.md) to upgrade between two major versions.
 
 
-<!-- ## [Unreleased] -->
+## [Unreleased]
+
+### Fixed
+
+#### Navigator
+
+* The `AudioNavigator` now resumes by itself after the network stalls, instead of stopping until the app returns to the foreground when it is in the background.
+
 
 ## [4.0.0-alpha.3] - 2026-11-16
 
