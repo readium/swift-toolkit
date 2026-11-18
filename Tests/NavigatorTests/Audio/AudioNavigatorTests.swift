@@ -94,6 +94,68 @@ enum AudioNavigatorTests {
         }
     }
 
+    @Suite("Audio session at the end of a resource") @MainActor struct AudioSessionAtEndOfResource {
+        private let audioSession = RecordingAudioSessionManager()
+        private let audiobook: Audiobook
+
+        init() {
+            audiobook = Audiobook(audioSession: audioSession)
+        }
+
+        @Test("playing on to the next resource never reports a pause", .requiresPlayback)
+        func playOnToNextResource() async {
+            // Given a position shortly before the end of the first resource.
+            await audiobook.goToResource(at: 0)
+            await audiobook.navigator.seek(to: trackDuration - 0.3)
+            let reportCountBeforePlaying = audioSession.reportedPlaying.count
+
+            // When playing up to the next resource, then pausing.
+            audiobook.navigator.play()
+            await audiobook.waitForPlayback { $0.state == .playing && $0.resourceIndex == 1 }
+            audiobook.navigator.pause()
+
+            // Then the audio session was told about the user's pause only, so
+            // it is not released in the background at the end of the
+            // resource.
+            let reports = audioSession.reportedPlaying[reportCountBeforePlaying...]
+            #expect(reports.first == true)
+            #expect(reports.last == false)
+            #expect(reports.dropLast().allSatisfy { $0 })
+        }
+
+        @Test("a playback held by the delegate at the end of the resource reports a pause", .requiresPlayback)
+        func heldAtEndOfResource() async {
+            // Given a position shortly before the end of the first resource,
+            // and a delegate refusing to play the next one.
+            audiobook.playsNextResource = false
+            await audiobook.goToResource(at: 0)
+            await audiobook.navigator.seek(to: trackDuration - 0.3)
+
+            // When playing up to the end of the resource.
+            audiobook.navigator.play()
+            await audiobook.waitForPlayback { $0.state == .playing }
+            await audiobook.waitForPlayback { $0.state == .paused }
+
+            // Then the audio session was told that the playback stopped.
+            #expect(audioSession.reportedPlaying.last == false)
+            #expect(audiobook.navigator.playbackInfo.resourceIndex == 0)
+        }
+
+        @Test("playing up to the end of the publication reports a pause", .requiresPlayback)
+        func playToEndOfPublication() async {
+            // Given a position shortly before the end of the last resource.
+            await audiobook.goShortlyBeforeEnd()
+
+            // When playing up to the end of the publication.
+            audiobook.navigator.play()
+            await audiobook.waitForPlayback { $0.state == .playing }
+            await audiobook.waitForPlayback { $0.state == .ended }
+
+            // Then the audio session was told that the playback stopped.
+            #expect(audioSession.reportedPlaying.last == false)
+        }
+    }
+
     @Suite("Once the playback is ended") @MainActor struct Ended {
         private let audiobook = Audiobook()
 
