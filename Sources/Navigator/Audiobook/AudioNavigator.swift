@@ -448,8 +448,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             playbackDidChange()
         }
         // Pausing an already paused player, e.g. during a seek, doesn't
-        // change its rate.
-        reportPlaybackToAudioSession()
+        // change its rate. Reported directly, so that the end-of-item guard
+        // of `reportPlaybackToAudioSession()` never drops an explicit pause.
+        audioSession.user(self, didChangePlaying: false)
     }
 
     /// Stops the playback and ends the audio session.

@@ -133,11 +133,11 @@ enum AudioNavigatorTests {
 
             // When playing up to the end of the resource.
             audiobook.navigator.play()
-            await audiobook.waitForPlayback { $0.state == .playing }
-            await audiobook.waitForPlayback { $0.state == .paused }
+            await audioSession.waitForReport(true)
 
-            // Then the audio session was told that the playback stopped.
-            #expect(audioSession.reportedPlaying.last == false)
+            // Then the audio session is told that the playback stopped, in
+            // the first resource.
+            await audioSession.waitForReport(false)
             #expect(audiobook.navigator.playbackInfo.resourceIndex == 0)
         }
 
@@ -148,11 +148,11 @@ enum AudioNavigatorTests {
 
             // When playing up to the end of the publication.
             audiobook.navigator.play()
-            await audiobook.waitForPlayback { $0.state == .playing }
-            await audiobook.waitForPlayback { $0.state == .ended }
+            await audioSession.waitForReport(true)
 
-            // Then the audio session was told that the playback stopped.
-            #expect(audioSession.reportedPlaying.last == false)
+            // Then the audio session is told that the playback stopped.
+            await audioSession.waitForReport(false)
+            #expect(audiobook.navigator.state == .ended)
         }
     }
 
