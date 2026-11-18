@@ -447,6 +447,10 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
             // The player doesn't report a pause when it was not playing yet.
             playbackDidChange()
         }
+        // Pausing an already paused player, e.g. during a seek, doesn't
+        // change its rate. Reported directly, so that the end-of-item guard
+        // of `reportPlaybackToAudioSession()` never drops an explicit pause.
+        audioSession.user(self, didChangePlaying: false)
     }
 
     /// Stops the playback and ends the audio session.
@@ -705,6 +709,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
 
         timeControlStatusObserver = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] _, _ in
             Task { @MainActor [weak self] in
+                // The player pauses at the end of an item without a rate
+                // change notification.
+                self?.reportPlaybackToAudioSession()
                 self?.playbackDidChange()
             }
         }
@@ -735,14 +742,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                 let reason = notification.userInfo?[AVPlayer.rateDidChangeReasonKey] as? AVPlayer.RateDidChangeReason
                 self.isPausedByInterruption = self.player.rate == 0 && reason == .audioSessionInterrupted
 
-                switch self.player.timeControlStatus {
-                case .paused:
-                    self.audioSession.user(self, didChangePlaying: false)
-                case .waitingToPlayAtSpecifiedRate, .playing:
-                    self.audioSession.user(self, didChangePlaying: true)
-                @unknown default:
-                    break
-                }
+                self.reportPlaybackToAudioSession()
             }
         }
 
@@ -766,10 +766,40 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
                     // end of the resource was known.
                     self.playbackDidChange()
                 }
+                self.reportPlaybackToAudioSession()
             }
         }
 
         return player
+    }
+
+    /// Whether the player paused itself at the end of the current item, and
+    /// the end-of-item handler did not run yet.
+    private var hasPlayedToEndOfItemUnhandled: Bool {
+        guard
+            !hasReachedEndOfResource,
+            player.timeControlStatus == .paused,
+            let item = player.currentItem,
+            item.duration.isNumeric
+        else {
+            return false
+        }
+        return item.currentTime() >= item.duration
+    }
+
+    /// Tells the audio session whether the playback is requested.
+    ///
+    /// This reports the intent rather than the player status: the navigator
+    /// pauses the player while it seeks or moves on to the next resource,
+    /// and the audio session must not be released in the background then.
+    /// iOS removes the Now Playing controls when it is.
+    private func reportPlaybackToAudioSession() {
+        // At the end of a resource, the end-of-item handler reports the
+        // playback once it knows whether it moves on.
+        guard !hasPlayedToEndOfItemUnhandled else {
+            return
+        }
+        audioSession.user(self, didChangePlaying: isPlaybackRequested)
     }
 
     private func observe(currentItem item: AVPlayerItem?) {
