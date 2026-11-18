@@ -6,7 +6,7 @@
 
 import Foundation
 
-public struct PDFOutlineNode: Sendable {
+public struct PDFOutlineNode: Equatable, Sendable {
     /// Title of this outline item.
     public let title: String?
 
@@ -28,7 +28,7 @@ public struct PDFOutlineNode: Sendable {
     /// which the links are relative to.
     public func linkWithDocumentHREF<T: URLConvertible>(_ href: T) -> Link {
         Link(
-            href: "\(href.anyURL.string)#page=\(pageNumber)",
+            href: href.anyURL.replacingFragment(.page(pageNumber)).string,
             mediaType: .pdf,
             title: title,
             children: children.linksWithDocumentHREF(href)

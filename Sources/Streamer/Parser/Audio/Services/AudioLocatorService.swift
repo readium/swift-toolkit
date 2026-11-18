@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalSelectors) import ReadiumShared
 
 /// Locator service for audio publications.
 final class AudioLocatorService: LocatorService {
@@ -74,7 +74,7 @@ final class AudioLocatorService: LocatorService {
 
         let positionInResource = positionInPublication - resourcePosition
         let fragment = TemporalPosition(time: positionInResource.roundedToMilliseconds)
-            .flatMap { TemporalSelector.position($0).fragment.percentDecoded }
+            .map { TemporalSelector.position($0).fragment }
 
         return Locator(
             href: link.url(),

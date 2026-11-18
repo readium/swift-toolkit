@@ -70,7 +70,9 @@ open class PDFNavigatorViewController:
         publication.readingOrder
     }
 
-    private let initialLocation: Locator?
+    /// Location targeted by the latest reset of the PDF view, displayed once
+    /// its document is loaded.
+    private var pendingLocation: Locator?
     private let config: Configuration
     private let editingActions: EditingActionsController
     /// Reading order index of the current resource.
@@ -93,7 +95,7 @@ open class PDFNavigatorViewController:
         }
 
         self.publication = publication
-        self.initialLocation = initialLocation
+        pendingLocation = initialLocation
         self.config = config
         self.delegate = delegate
         editingActions = EditingActionsController(
@@ -126,7 +128,7 @@ open class PDFNavigatorViewController:
 
         Task {
             try? await didLoadPositions(publication.positionsByReadingOrder().get())
-            resetPDFView(at: initialLocation)
+            resetPDFView(at: currentOrPendingLocation)
         }
     }
 
@@ -161,7 +163,7 @@ open class PDFNavigatorViewController:
 
                 // Reset the PDF view to update the spread if needed.
                 if self.settings.spread == .auto {
-                    self.resetPDFView(at: self.currentLocation)
+                    self.resetPDFView(at: self.currentOrPendingLocation)
                 }
             })
         }
@@ -179,11 +181,20 @@ open class PDFNavigatorViewController:
         }
     }
 
+    /// The current location, or the pending one while no document is loaded
+    /// yet, to display after resetting the PDF view.
+    private var currentOrPendingLocation: Locator? {
+        currentResourceIndex == nil ? pendingLocation : currentLocation
+    }
+
     private func resetPDFView(at locator: Locator?) {
-        guard isViewLoaded else {
+        // The positions are needed to resolve the locator. `viewDidLoad`
+        // resets the PDF view once they are loaded, with the latest settings.
+        guard positionsByReadingOrder != nil else {
             return
         }
 
+        pendingLocation = locator
         resetTask = Task {
             await _resetPDFView(at: locator)
         }
@@ -244,7 +255,7 @@ open class PDFNavigatorViewController:
         }
     }
 
-    private func apply(settings: PDFSettings, to pdfView: PDFView) {
+    private func apply(settings: PDFSettings, to pdfView: PDFDocumentView) {
         let isRTL = (settings.readingProgression == .rtl)
 
         pdfView.displaysAsBook = settings.offsetFirstPage
@@ -295,7 +306,7 @@ open class PDFNavigatorViewController:
         pdfView.displaysPageBreaks = true
         pdfView.autoScales = false
 
-        if let scrollView = pdfView.firstScrollView {
+        if let scrollView = pdfView.documentScrollView {
             let showScrollbar = settings.visibleScrollbar
             scrollView.showsVerticalScrollIndicator = showScrollbar
             scrollView.showsHorizontalScrollIndicator = showScrollbar
@@ -356,6 +367,10 @@ open class PDFNavigatorViewController:
     }
 
     @objc private func pageDidChange() {
+        // With a page view controller, the viewport follows the current
+        // page, which might change after the visible pages.
+        viewport = computeLocatorAndViewport().viewport
+
         if let locator = currentPosition {
             delegate?.navigator(self, locationDidChange: locator)
         }
@@ -423,6 +438,12 @@ open class PDFNavigatorViewController:
 
             guard let document = await openDocument(at: href) else {
                 log(.error, "Can't open PDF document at \(href)")
+                return false
+            }
+
+            // A reset replaced the PDF view while the document was loading,
+            // which makes this navigation obsolete.
+            guard pdfView === self.pdfView else {
                 return false
             }
 
@@ -516,7 +537,7 @@ open class PDFNavigatorViewController:
             href: href,
             mediaType: readingOrderLink.mediaType ?? .pdf,
             locations: .init(
-                fragments: ["page=\(pageNumber)"]
+                fragments: [.page(pageNumber)]
             )
         )
     }
@@ -539,7 +560,7 @@ open class PDFNavigatorViewController:
             return nil
         }
 
-        let href = locator.href.replacingFragment(locator.locations.fragments.first.flatMap(URLFragment.init(percentDecoded:)))
+        let href = locator.href.replacingFragment(locator.locations.fragments.first)
         return Link(href: href.string, mediaType: locator.mediaType)
     }
 
@@ -566,12 +587,16 @@ open class PDFNavigatorViewController:
     public private(set) var settings: PDFSettings
 
     public func submitPreferences(_ preferences: PDFPreferences) {
-        settings = PDFSettings(
+        let settings = PDFSettings(
             preferences: preferences,
             defaults: config.defaults,
             metadata: publication.metadata
         )
-        resetPDFView(at: currentLocation)
+        guard settings != self.settings else {
+            return
+        }
+        self.settings = settings
+        resetPDFView(at: currentOrPendingLocation)
 
         delegate?.navigator(self, presentationDidChange: presentation)
     }
@@ -636,7 +661,15 @@ open class PDFNavigatorViewController:
     /// `convert(_:from:)`, which maps page bounds into view coordinates
     /// accounting for both scroll position and zoom, and discard any pages
     /// that don't actually intersect the view's visible bounds.
+    ///
+    /// With a page view controller, used to paginate single pages,
+    /// `PDFView.visiblePages` also returns the pages it keeps loaded around
+    /// the current one, which is the only visible page.
     private func visiblePages(in pdfView: PDFDocumentView) -> [PDFPage] {
+        if pdfView.isUsingPageViewController {
+            return pdfView.currentPage.map { [$0] } ?? []
+        }
+
         var pages = pdfView.visiblePages
 
         if settings.scroll {

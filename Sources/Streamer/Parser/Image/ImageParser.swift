@@ -5,7 +5,7 @@
 //
 
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalTimeline) import ReadiumShared
 
 /// Parses an image–based Publication from an unstructured archive format containing bitmap files,
 /// such as CBZ or a simple ZIP.
@@ -185,7 +185,10 @@ public final class ImageParser: PublicationParser {
             ),
             container: container,
             servicesBuilder: .init(
-                positions: PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!)
+                positions: PerResourcePositionsService.makeFactory(fallbackMediaType: MediaType("image/*")!),
+                setup: {
+                    $0.setTimelineServiceFactory(ImageTimelineService.makeFactory())
+                }
             )
         ))
     }

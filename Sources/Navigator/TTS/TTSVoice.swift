@@ -9,7 +9,24 @@ import Foundation
 import ReadiumShared
 
 /// Represents a voice provided by the TTS engine which can speak an utterance.
-public struct TTSVoice: Hashable, Sendable {
+public struct TTSVoice: Hashable, Sendable, Identifiable {
+    /// Unique and stable identifier for a voice.
+    public struct ID: RawRepresentable, Hashable, Sendable, Codable, ExpressibleByStringLiteral {
+        public let rawValue: String
+
+        public init(_ rawValue: String) {
+            self.rawValue = rawValue
+        }
+
+        public init(rawValue: String) {
+            self.init(rawValue)
+        }
+
+        public init(stringLiteral value: String) {
+            self.init(value)
+        }
+    }
+
     public enum Gender: Hashable, Sendable {
         case female, male, unspecified
     }
@@ -18,9 +35,13 @@ public struct TTSVoice: Hashable, Sendable {
         case lower, low, medium, high, higher
     }
 
-    /// Unique and stable identifier for this voice. Can be used to store and retrieve the voice from the user
-    /// preferences.
-    public let identifier: String
+    /// Unique and stable identifier for this voice.
+    public let id: ID
+
+    @available(*, unavailable, message: "Use `id.rawValue` instead")
+    public var identifier: String {
+        fatalError()
+    }
 
     /// Human-friendly name for this voice.
     public let name: String
@@ -35,17 +56,28 @@ public struct TTSVoice: Hashable, Sendable {
     public let quality: Quality?
 
     public init(
+        id: ID,
+        language: Language,
+        name: String,
+        gender: Gender,
+        quality: Quality?
+    ) {
+        self.id = id
+        self.language = language
+        self.name = name
+        self.gender = gender
+        self.quality = quality
+    }
+
+    @available(*, unavailable, message: "Use `init(id:language:name:gender:quality:)` instead")
+    public init(
         identifier: String,
         language: Language,
         name: String,
         gender: Gender,
         quality: Quality?
     ) {
-        self.identifier = identifier
-        self.language = language
-        self.name = name
-        self.gender = gender
-        self.quality = quality
+        fatalError()
     }
 }
 

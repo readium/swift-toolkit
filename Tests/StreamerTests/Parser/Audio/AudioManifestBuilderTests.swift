@@ -549,6 +549,34 @@ enum AudioManifestBuilderTests {
                 #expect(warnings.audioMetadataWarnings == [.invalidChapterStart(href: url("1.mp3"), title: "Part 1")])
             }
         }
+
+        struct FilesTableOfContents: Sendable, CustomTestStringConvertible {
+            let name: String
+            let files: [AudioMetadata]
+            let expected: [Link]
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        /// The option only disables the table of contents made of the file
+        /// titles: the chapters of the files are still merged.
+        @Test(arguments: [
+            FilesTableOfContents(
+                name: "titled files without chapters",
+                files: [AudioMetadata(title: "Part 1"), AudioMetadata(title: "Part 2")],
+                expected: []
+            ),
+            FilesTableOfContents(
+                name: "the first file has chapters, the second one is titled without chapters",
+                files: [AudioMetadata(chapters: [.init(title: "Chapter 1", start: 0)]), AudioMetadata(title: "Part 2")],
+                expected: [Link(href: "1.mp3#t=0", title: "Chapter 1"), Link(href: "2.mp3", title: "Part 2")]
+            ),
+        ])
+        func isNotMadeOfTheFileTitlesWhenTheOptionIsOff(_ example: FilesTableOfContents) {
+            #expect(build(example.files, generatesTableOfContentsFromReadingOrder: false).tableOfContents == example.expected)
+        }
     }
 
     struct ReferenceExample {
@@ -644,8 +672,8 @@ private func build(_ files: AudioMetadata?..., warnings: WarningLogger? = nil) -
     build(files, warnings: warnings)
 }
 
-private func build(_ files: [AudioMetadata?], warnings: WarningLogger? = nil) -> Manifest {
-    AudioManifestBuilder().build(
+private func build(_ files: [AudioMetadata?], generatesTableOfContentsFromReadingOrder: Bool = true, warnings: WarningLogger? = nil) -> Manifest {
+    AudioManifestBuilder(generatesTableOfContentsFromReadingOrder: generatesTableOfContentsFromReadingOrder).build(
         entries: files.enumerated().map { index, metadata in
             entry("\(index + 1).mp3", .mp3, metadata)
         },

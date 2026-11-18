@@ -43,7 +43,8 @@ protocol PaginationViewDelegate: AnyObject {
     /// Creates the page view for the page at given index.
     func paginationView(_ paginationView: PaginationView, pageViewAtIndex index: Int) -> (UIView & PageView)?
 
-    /// Called when the page views were updated.
+    /// Called once all the queued page views are loaded, and earlier when the
+    /// current page view was already settled at its start or end.
     func paginationViewDidUpdateViews(_ paginationView: PaginationView)
 
     /// Returns the number of positions (as in `Publication.positionList`) in the page view at given index.
@@ -72,6 +73,11 @@ final class PaginationView: UIView, Loggable {
 
     /// Queue of page index to be loaded next.
     private var loadingIndexQueue: [(index: Int, location: PageLocation)] = []
+
+    /// Location each loaded view finished moving to, removed when the view
+    /// might be elsewhere: while it moves again, or once it is no longer
+    /// the current view, as the user might have scrolled it.
+    private var settledLocations: [Int: PageLocation] = [:]
 
     /// Returns whether the page views are loaded.
     var isEmpty: Bool {
@@ -158,6 +164,7 @@ final class PaginationView: UIView, Loggable {
                 view.removeFromSuperview()
             }
             loadedViews.removeAll()
+            settledLocations.removeAll()
         }
     }
 
@@ -166,8 +173,11 @@ final class PaginationView: UIView, Loggable {
 
         if window == nil {
             loadPagesTask?.cancel()
-        } else {
-            loadPages()
+        } else if let task = loadPagesTask, task.isCancelled {
+            // Resumes the loading stopped when leaving the window, once it
+            // finished loading its last view. A loading in progress, such as
+            // the first one before moving into the window, goes on.
+            loadPages(after: task)
         }
     }
 
@@ -196,6 +206,7 @@ final class PaginationView: UIView, Loggable {
             view.removeFromSuperview()
         }
         loadedViews.removeAll()
+        settledLocations.removeAll()
         loadingIndexQueue.removeAll()
 
         setCurrentIndex(index, location: location)
@@ -214,7 +225,12 @@ final class PaginationView: UIView, Loggable {
         let location = location ?? (movingBackward ? .end : .start)
 
         let previousView = currentView
+        settledLocations.removeValue(forKey: currentIndex)
         currentIndex = index
+
+        // The views of the new window are all scheduled again, and the
+        // others are not needed anymore.
+        loadingIndexQueue.removeAll()
 
         // To make sure that the views the most likely to be visible are loaded first, we first load
         // the current one, then the next ones and to finish the previous ones.
@@ -227,6 +243,7 @@ final class PaginationView: UIView, Loggable {
             guard firstIndex ... lastIndex ~= i else {
                 view.removeFromSuperview()
                 loadedViews.removeValue(forKey: i)
+                settledLocations.removeValue(forKey: i)
                 continue
             }
         }
@@ -236,20 +253,51 @@ final class PaginationView: UIView, Loggable {
         loadPages()
     }
 
-    private func loadPages() {
+    /// - Parameter previous: Loading to wait for before starting, such as a
+    ///   cancelled one still loading a view which the new loading would
+    ///   not notify about.
+    private func loadPages(after previous: Task<Void, Never>? = nil) {
         loadPagesTask?.cancel()
         loadPagesTask = Task { @MainActor in
-            await loadNextPage()
-            delegate?.paginationViewDidUpdateViews(self)
+            await previous?.value
+            // A cancelled task stops before taking the next view from the
+            // queue, which the new task loads instead. Otherwise, it would
+            // notify the delegate while the new task still loads the current
+            // view.
+            while !Task.isCancelled, let page = await loadNextPage() {
+                // Notifies the delegate as soon as the current view is shown,
+                // without waiting for the preloaded ones. An unsettled view
+                // reports its new progression only after loading or
+                // scrolling, so it waits for the end.
+                if !Task.isCancelled, page.index == currentIndex, page.isSettled {
+                    delegate?.paginationViewDidUpdateViews(self)
+                }
+            }
+            if !Task.isCancelled {
+                delegate?.paginationViewDidUpdateViews(self)
+            }
         }
     }
 
     private var loadPagesTask: Task<Void, Never>?
 
-    private func loadNextPage() async {
+    /// Loads the next view of the queue, or returns `nil` when the queue is
+    /// empty or the delegate couldn't create the view, which stops the
+    /// loading.
+    ///
+    /// - Returns: The index of the view, and whether it is settled: it had
+    ///   already finished moving to the same start or end, such as a
+    ///   preloaded view, so it has no load or scroll pending and its
+    ///   progression is up to date.
+    private func loadNextPage() async -> (index: Int, isSettled: Bool)? {
         guard let (index, location) = loadingIndexQueue.popFirst() else {
-            return
+            return nil
         }
+        let isSettled = switch location {
+        case .start, .end: settledLocations[index] == location
+        case .locator: false
+        }
+        settledLocations.removeValue(forKey: index)
 
         if
             loadedViews[index] == nil,
@@ -261,11 +309,15 @@ final class PaginationView: UIView, Loggable {
         }
 
         guard let view = loadedViews[index] else {
-            return
+            return nil
         }
 
         await view.go(to: location, animated: false)
-        await loadNextPage()
+        // The view might have been replaced, for example by a reload.
+        if loadedViews[index] === view {
+            settledLocations[index] = location
+        }
+        return (index, isSettled)
     }
 
     /// Queue views to be loaded until reaching the given number of pre-loaded positions.

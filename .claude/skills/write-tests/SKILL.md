@@ -87,6 +87,48 @@ func roundTrip(format: Format) throws { ... }
 @Test func fetchMetadata() async throws { ... }
 ```
 
+### Arguments with several values
+
+When each case of a parameterized test holds more than one value, declare a dedicated struct nested in the suite instead of using a tuple. Named fields don't need a comment to explain their order, and default values keep the cases short.
+
+The struct is `Sendable`. Give it a `name` and conform it to `CustomTestStringConvertible`, so that the test report shows the name of each case.
+
+```swift
+// ✅ Correct — a struct with named fields
+struct LocatorPosition: Sendable, CustomTestStringConvertible {
+    let name: String
+    var durations: [TimeInterval?] = [600, 300, 900]
+    let locations: Locator.Locations
+    let expected: TimelinePosition
+
+    var testDescription: String { name }
+}
+
+@Test(arguments: [
+    LocatorPosition(
+        name: "a progression with a known duration",
+        locations: .init(progression: 0.5),
+        expected: position(1, 150)
+    ),
+    LocatorPosition(
+        name: "a progression with an unknown duration",
+        durations: [600, nil, 900],
+        locations: .init(progression: 0.5),
+        expected: position(1, 0)
+    ),
+])
+func locatorIsTurnedIntoAPosition(_ example: LocatorPosition) { ... }
+
+// ❌ Wrong — a tuple whose values are only told apart by their position
+@Test(arguments: [
+    ([600, 300, 900], Locator.Locations(progression: 0.5), position(1, 150)),
+    ([600, nil, 900], Locator.Locations(progression: 0.5), position(1, 0)),
+] as [([TimeInterval?], Locator.Locations, TimelinePosition)])
+func locatorIsTurnedIntoAPosition(durations: [TimeInterval?], locations: Locator.Locations, expected: TimelinePosition) { ... }
+```
+
+A case holding a single value stays a plain argument, e.g. `@Test(arguments: [0, -1])`.
+
 ### Display names
 
 A function name is enough for a simple test. When the behavior needs a sentence to be described, give display names to the nested suite and its tests, so that they read as one sentence in the test report. The suite names the subject and each test continues it, starting with a lowercase letter.
@@ -218,7 +260,7 @@ fileprivate func makeLocator(href: String = "/ch.html", progression: Double? = n
 
 1. Does every file start with `import Testing`? Zero `import XCTest`.
 2. Happy path, boundary conditions, and error cases covered?
-3. Similar tests collapsed into `@Test(arguments:)` parameterized tests?
+3. Similar tests collapsed into `@Test(arguments:)` parameterized tests, with a struct when a case holds several values?
 4. No `// MARK:` inside any suite type?
 5. No `@Suite` without a trait or a display name reading as a sentence with its tests?
 6. No `guard ... else { return }` — replaced with `!` or `try #require`?

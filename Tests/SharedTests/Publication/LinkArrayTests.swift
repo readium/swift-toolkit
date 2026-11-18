@@ -105,6 +105,13 @@ class LinkArrayTests: XCTestCase {
         XCTAssertEqual(try links.firstIndexWithHREF(XCTUnwrap(AnyURL(string: "l2?query=1#fragment"))), 1)
     }
 
+    /// Ignoring only the fragment takes precedence over ignoring the query too.
+    func testFirstIndexWithHREFIgnoringFragmentKeepsTheQuery() throws {
+        let links = [Link(href: "l1"), Link(href: "l1?query=1")]
+
+        XCTAssertEqual(try links.firstIndexWithHREF(XCTUnwrap(AnyURL(string: "l1?query=1#fragment"))), 1)
+    }
+
     /// Finds the first `Link` with a `type` matching the given `mediaType`.
     func testFirstWithMediaType() {
         let links = [

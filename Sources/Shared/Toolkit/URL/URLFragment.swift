@@ -78,6 +78,31 @@ public struct URLFragment: RawRepresentable, Hashable, Sendable, ExpressibleBySt
         }
     }
 
+    /// Creates a fragment from a list of name-value pairs, e.g.
+    /// `t=10&track=audio`.
+    ///
+    /// The names and values are percent-encoded, including their `&` and `=`
+    /// characters, so that ``parameters`` returns the given pairs.
+    ///
+    /// Returns `nil` when `parameters` is empty.
+    public init?(parameters: [Parameter]) {
+        var allowedCharacters = CharacterSet.urlFragmentAllowed
+        allowedCharacters.remove(charactersIn: "&=")
+
+        var pairs: [String] = []
+        for parameter in parameters {
+            guard
+                let name = parameter.name.addingPercentEncoding(withAllowedCharacters: allowedCharacters),
+                let value = parameter.value.addingPercentEncoding(withAllowedCharacters: allowedCharacters)
+            else {
+                return nil
+            }
+            pairs.append(name + "=" + value)
+        }
+
+        self.init(rawValue: pairs.joined(separator: "&"))
+    }
+
     /// Returns the name-value pairs of a fragment such as `t=10&track=audio`,
     /// in their order of appearance.
     ///

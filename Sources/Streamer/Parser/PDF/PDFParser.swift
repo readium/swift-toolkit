@@ -6,7 +6,7 @@
 
 import CoreGraphics
 import Foundation
-import ReadiumShared
+@_spi(ExperimentalTimeline) import ReadiumShared
 
 public final class PDFParser: PublicationParser, Loggable {
     private let pdfFactory: PDFDocumentFactory
@@ -69,6 +69,7 @@ public final class PDFParser: PublicationParser, Loggable {
                                     cached: (href: href, document: document)
                                 )
                             )
+                            $0.setTimelineServiceFactory(PDFTimelineService.makeFactory())
                         }
                     )
                 )

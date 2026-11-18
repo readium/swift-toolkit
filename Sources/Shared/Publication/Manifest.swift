@@ -152,6 +152,7 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
         let links = [readingOrder, resources, links]
 
         return deepFind(href: href, in: links)
+            ?? deepFind(href: href.removingFragment(), in: links)
             ?? deepFind(href: href.removingQuery().removingFragment(), in: links)
     }
 
@@ -178,7 +179,7 @@ public struct Manifest: Hashable, Sendable, JSONValueDecodable, JSONObjectEncoda
     /// Returns `nil` if the resource is not found in the manifest.
     public func locator(for link: Link) -> Locator? {
         let originalHREF = link.url()
-        let fragment = originalHREF.fragment?.percentDecoded
+        let fragment = originalHREF.fragment
         let href = originalHREF.removingFragment()
 
         guard

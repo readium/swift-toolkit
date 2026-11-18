@@ -95,16 +95,32 @@ The publisher styles are observed as long as the related preferences are unset. 
 
 The decoding is also more lenient: an invalid value drops only its preference, instead of failing to decode all of them.
 
+## 4.0.0-alpha.3
+
 ### Resource loading errors
 
 `NavigatorDelegate.navigator(_:didFailToLoadResourceAt:withError:)` now takes an `AnyURL` instead of a `RelativeURL`.
 
-:warning: An implementation using the previous signature still compiles, but is no longer called. Update the type of the `href` parameter:
+⚠️ An implementation using the previous signature still compiles, but is no longer called. Update the type of the `href` parameter:
 
 ```diff
 -func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: RelativeURL, withError error: ReadError) {
 +func navigator(_ navigator: Navigator, didFailToLoadResourceAt href: AnyURL, withError error: ReadError) {
 ```
+
+### Percent-encoded locator fragments
+
+The fragments of a `Locator` are now percent-encoded, like the fragment of a URL. A fragment can be structured, for example `t=10&track=a%26b`, and decoding it as a whole loses the difference between a delimiter and its encoded form.
+
+`Locator.Locations.fragments` is therefore an array of `URLFragment` instead of `String`:
+
+```diff
+ // Reading a fragment as a string, such as an HTML ID.
+-let id = locator.locations.fragments.first
++let id = locator.locations.fragments.first?.percentDecoded
+```
+
+There is nothing to migrate for the locators you stored, the JSON written by previous versions is still readable. However, a locator saved by this version may hold a fragment that an older version of your app reads as is, without decoding it. Only the fragments with non-ASCII or reserved characters are concerned,  which older versions of the Readium toolkit did not produce anyways.
 
 ### Audio Navigator
 
@@ -171,6 +187,24 @@ nowPlaying.playback = NowPlayingInfo.Playback(chapterNumber: chapterNumber, dura
 ```
 
 For the same reason, we recommend setting the `media` once all its metadata is available, including the artwork, instead of updating it afterwards.
+
+### Text-to-speech voices
+
+`PublicationSpeechSynthesizer.Configuration.voiceIdentifier` is replaced by `voices`, which selects a voice per language. A voice is identified by a `TTSVoice.ID` instead of a `String`.
+
+The voice used to apply to every utterance, whatever its language. It now only speaks the utterances of its language, and the other ones are spoken with the best voice of their language. To restore a voice identifier stored with the previous version, key it by the base language of the voice so that it applies to all its regions:
+
+```swift
+// Before
+synthesizer.config.voiceIdentifier = storedIdentifier
+
+// After
+if let voice = synthesizer.voice(withID: TTSVoice.ID(storedIdentifier)) {
+    synthesizer.config.voices[voice.language.removingRegion()] = voice.id
+}
+```
+
+See the [TTS guide](Guides/TTS.md#voice) to learn how the voice of an utterance is selected.
 
 
 ## 4.0.0-alpha.2
@@ -632,7 +666,7 @@ The default `ZIPArchiveOpener` is now using ZIPFoundation instead of Minizip, wi
 
 If you use Carthage, remove `Minizip.xcframework` from your dependencies and add `ReadiumZIPFoundation.xcframework` instead. No changes are needed when using Swift Package Manager or CocoaPods.
 
-:warning: When upgrading to 3.1.0 instead of 3.0.0, keep `Minizip.xcframework in your Carthage dependencies.
+⚠️ When upgrading to 3.1.0 instead of 3.0.0, keep `Minizip.xcframework in your Carthage dependencies.
 
 ### Migration of HREFs and Locators (bookmarks, annotations, etc.)
 

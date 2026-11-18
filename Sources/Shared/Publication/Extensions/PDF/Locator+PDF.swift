@@ -10,16 +10,14 @@ import Foundation
 public extension Locator.Locations {
     /// The 1-based page number extracted from a `page=N` fragment parameter,
     /// if present.
+    ///
+    /// When several fragments or parameters hold a valid page number, the
+    /// first one wins.
     var page: Int? {
-        for fragment in fragments {
-            let components = fragment.components(separatedBy: CharacterSet(charactersIn: "&#"))
-            for component in components {
-                let parts = component.components(separatedBy: "=")
-                if parts.count == 2, parts[0] == "page", let n = Int(parts[1]) {
-                    return n
-                }
-            }
-        }
-        return nil
+        fragments
+            .lazy
+            .flatMap { $0.parameters(named: "page") }
+            .compactMap { Int($0) }
+            .first
     }
 }

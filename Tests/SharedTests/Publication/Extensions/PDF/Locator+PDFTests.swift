@@ -30,11 +30,19 @@ struct LocatorLocationsPDFTests {
     @Test func pageIsParsedFromCompoundFragment() {
         // Handles compound fragment strings like "foo=1&page=42"
         #expect(Locator.Locations(fragments: ["foo=1&page=42"]).page == 42)
-        #expect(Locator.Locations(fragments: ["foo=1#page=5"]).page == 5)
     }
 
     @Test func pageReturnsFirstMatchWhenMultipleFragments() {
         let locations = Locator.Locations(fragments: ["other=3", "page=7", "page=2"])
         #expect(locations.page == 7)
+    }
+
+    @Test func pageReturnsFirstValidValue() {
+        #expect(Locator.Locations(fragments: ["page=abc&page=5&page=6"]).page == 5)
+        #expect(Locator.Locations(fragments: ["page=abc", "page=5"]).page == 5)
+    }
+
+    @Test func pageIsParsedFromPercentEncodedFragment() {
+        #expect(Locator.Locations(fragments: ["%70age=%35"]).page == 5)
     }
 }

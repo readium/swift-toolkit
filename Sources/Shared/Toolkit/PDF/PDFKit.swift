@@ -129,10 +129,38 @@ private final class PDFKitPDFDocument: PDFDocument, PDFDocumentTextProviding, PD
     }
 
     func tableOfContents() async throws -> [PDFOutlineNode] {
-        try await pdfKitDocument.documentRef?.tableOfContents() ?? []
+        // We don't use `CGPDFDocument.outline`, as it drops the items whose
+        // named destination is a dictionary (`<< /D [...] >>`), which is valid
+        // according to the PDF specification.
+        pdfKitDocument.outlineRoot?.childNodes(in: pdfKitDocument) ?? []
     }
 
     func pageText(at pageIndex: Int) async throws -> String? {
         pdfKitDocument.page(at: pageIndex)?.string
+    }
+}
+
+private extension PDFOutline {
+    /// Converts the children of this outline item to `PDFOutlineNode`s,
+    /// skipping the ones without a destination page in `document`, with their
+    /// descendants.
+    func childNodes(in document: PDFKit.PDFDocument) -> [PDFOutlineNode] {
+        (0 ..< numberOfChildren).compactMap { child(at: $0)?.node(in: document) }
+    }
+
+    private func node(in document: PDFKit.PDFDocument) -> PDFOutlineNode? {
+        guard let page = destination?.page else {
+            return nil
+        }
+        let pageIndex = document.index(for: page)
+        guard pageIndex != NSNotFound else {
+            return nil
+        }
+
+        return PDFOutlineNode(
+            title: label,
+            pageNumber: pageIndex + 1,
+            children: childNodes(in: document)
+        )
     }
 }

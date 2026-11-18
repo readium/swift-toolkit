@@ -129,6 +129,14 @@ echo "📄  Preparing documentation catalog..."
 # and copy the contents of the 'docs' folder into it.
 if [ -d "docs" ]; then
     cp -R docs/* "$DOCC_CATALOG_DIR/"
+
+    # The guides use relative links for GitHub, which DocC does not resolve.
+    # Rewrite them into DocC links, or into links to the repository at the
+    # documented tag or commit for the files outside the 'docs' folder.
+    GIT_REF=$(git describe --tags --exact-match 2>/dev/null || git rev-parse HEAD)
+    python3 -I "$SCRIPT_DIR/prepare-docc-catalog.py" \
+        "$DOCC_CATALOG_DIR" \
+        "https://github.com/readium/$REPO_NAME/blob/$GIT_REF"
 else
     echo "⚠️  Warning: 'docs' folder not found. Site may be empty."
 fi
