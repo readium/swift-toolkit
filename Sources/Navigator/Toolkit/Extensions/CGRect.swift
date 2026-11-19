@@ -6,6 +6,17 @@
 
 import UIKit
 
+extension Array where Element == CGRect {
+    /// Returns the smallest rectangle containing all the rects, or nil when
+    /// the array is empty.
+    func union() -> CGRect? {
+        guard let first = first else {
+            return nil
+        }
+        return dropFirst().reduce(first) { $0.union($1) }
+    }
+}
+
 extension CGRect {
     /// Parses a `CGRect` from its JSON representation.
     init?(json: Any?) {
