@@ -219,6 +219,74 @@ enum EPUBPreferencesTests {
         }
     }
 
+    @Suite("fixed-layout preferences") struct FixedLayout {
+        @Test("offsetFirstPage is not effective when the spread is disabled by a preference or a default")
+        @MainActor func offsetFirstPageWithoutSpread() {
+            let preference = makeEditor(preferences: EPUBPreferences(spread: .never), layout: .fixed)
+            #expect(preference.spread.isEffective)
+            #expect(!preference.offsetFirstPage.isEffective)
+
+            let defaults = makeEditor(defaults: EPUBDefaults(spread: .never), layout: .fixed)
+            #expect(!defaults.offsetFirstPage.isEffective)
+
+            let auto = makeEditor(layout: .fixed)
+            #expect(auto.offsetFirstPage.isEffective)
+
+            let always = makeEditor(preferences: EPUBPreferences(spread: .always), layout: .fixed)
+            #expect(always.offsetFirstPage.isEffective)
+        }
+
+        @Test("fit and spread are auto and offsetFirstPage is nil when unset")
+        @MainActor func defaultEffectiveValues() {
+            let editor = makeEditor(layout: .fixed)
+            #expect(editor.fit.value == nil)
+            #expect(editor.fit.effectiveValue == .auto)
+            #expect(editor.spread.value == nil)
+            #expect(editor.spread.effectiveValue == .auto)
+            #expect(editor.offsetFirstPage.value == nil)
+            #expect(editor.offsetFirstPage.effectiveValue == nil)
+        }
+
+        @Test("fit, spread and offsetFirstPage use the defaults as effective value when unset")
+        @MainActor func effectiveValuesFromDefaults() {
+            let editor = makeEditor(defaults: EPUBDefaults(fit: .width, offsetFirstPage: true, spread: .always), layout: .fixed)
+            #expect(editor.fit.effectiveValue == .width)
+            #expect(editor.spread.effectiveValue == .always)
+            #expect(editor.offsetFirstPage.effectiveValue == true)
+        }
+
+        @Test("the editor supports the fit and spread values")
+        @MainActor func supportedValues() {
+            let editor = makeEditor(layout: .fixed)
+            #expect(editor.fit.supportedValues == [.auto, .page, .width])
+            #expect(editor.spread.supportedValues == [.auto, .never, .always])
+        }
+
+        @Test("the editor sets and clears the preferences")
+        @MainActor func setAndClear() {
+            let editor = makeEditor(layout: .fixed)
+            editor.fit.set(.width)
+            editor.spread.set(.always)
+            editor.offsetFirstPage.set(true)
+            #expect(editor.preferences.fit == .width)
+            #expect(editor.preferences.spread == .always)
+            #expect(editor.preferences.offsetFirstPage == true)
+            #expect(editor.fit.effectiveValue == .width)
+            #expect(editor.spread.effectiveValue == .always)
+            #expect(editor.offsetFirstPage.effectiveValue == true)
+
+            editor.fit.clear()
+            editor.spread.clear()
+            editor.offsetFirstPage.clear()
+            #expect(editor.preferences.fit == nil)
+            #expect(editor.preferences.spread == nil)
+            #expect(editor.preferences.offsetFirstPage == nil)
+            #expect(editor.fit.effectiveValue == .auto)
+            #expect(editor.spread.effectiveValue == .auto)
+            #expect(editor.offsetFirstPage.effectiveValue == nil)
+        }
+    }
+
     @Suite("language-specific preferences") struct LanguageSpecific {
         private let languageSpecificPreferences: Set<String> = [
             "hyphens", "letterSpacing", "ligatures", "noRuby", "paragraphIndent", "textAlign", "wordSpacing",
@@ -728,6 +796,21 @@ enum EPUBPreferencesTests {
             #expect(try JSONDecoder().decode(EPUBPreferences.self, from: data) == allPreferences)
         }
 
+        @Test("encodes every preference with its own key")
+        func codingKeys() throws {
+            let data = try JSONEncoder().encode(allPreferences)
+            // `NSDictionary` equality is lenient on numeric types (`true` vs
+            // `1`), but this test pins the key names.
+            let encoded = try #require(JSONSerialization.jsonObject(with: data) as? NSDictionary)
+            let expected = try #require(JSONSerialization.jsonObject(with: Data(allPreferencesJSON.utf8)) as? NSDictionary)
+            #expect(encoded == expected)
+        }
+
+        @Test("decodes every preference from its own key")
+        func decodesCodingKeys() throws {
+            #expect(try decode(allPreferencesJSON) == allPreferences)
+        }
+
         @Test("merging keeps the preferences of the receiver which the other doesn't set")
         func merging() {
             #expect(EPUBPreferences().merging(allPreferences) == allPreferences)
@@ -1064,6 +1147,48 @@ private let allPreferences = EPUBPreferences(
     visitedColor: Color(hex: "#FF00FF"),
     wordSpacing: 0.2
 )
+
+/// `allPreferences` serialized, which pins the name of every coding key. The
+/// colors are serialized as their raw value.
+private let allPreferencesJSON = """
+{
+  "version": 4,
+  "backgroundColor": 16711680,
+  "columnCount": 2,
+  "fit": "width",
+  "fontFamily": "Literata",
+  "fontSize": 1.4,
+  "fontWeight": 1.75,
+  "fontWidth": 1.7,
+  "hyphens": true,
+  "blendImages": true,
+  "darkenImages": 0.3,
+  "invertImages": 0.4,
+  "invertGaiji": 0.6,
+  "language": "fr",
+  "letterSpacing": 0.1,
+  "ligatures": false,
+  "lineHeight": 1.6,
+  "linkColor": 255,
+  "maximalLineLength": 1.3,
+  "minimalLineLength": 0.8,
+  "noRuby": true,
+  "offsetFirstPage": true,
+  "optimalLineLength": 1.2,
+  "pageMargins": 1.5,
+  "paragraphIndent": 1.1,
+  "paragraphSpacing": 0.5,
+  "readingProgression": "rtl",
+  "scroll": true,
+  "spread": "always",
+  "textAlign": "justify",
+  "textColor": 65280,
+  "textNormalization": true,
+  "verticalText": true,
+  "visitedColor": 16711935,
+  "wordSpacing": 0.2
+}
+"""
 
 /// Every preference set to a value different from the ones of
 /// `allPreferences` and `allDefaults`.
