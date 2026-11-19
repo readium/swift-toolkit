@@ -1,5 +1,4 @@
 const path = require("path");
-const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: "production",
@@ -18,16 +17,6 @@ module.exports = {
   resolve: {
     extensions: [".ts", "..."],
   },
-  plugins: [
-    new CopyPlugin({
-      patterns: [
-        {
-          from: path.resolve(__dirname, "node_modules/@readium/css/css/dist"),
-          to: path.resolve(__dirname, "../Assets/Static/readium-css"),
-        },
-      ],
-    }),
-  ],
   module: {
     rules: [
       {

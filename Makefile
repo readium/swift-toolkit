@@ -1,4 +1,5 @@
 SCRIPTS_PATH := Sources/Navigator/EPUB/Scripts
+READIUM_CSS_PATH := Sources/Navigator/EPUB/Assets/Static/readium-css
 
 help:
 	@echo "Usage: make <target>\n\n\
@@ -13,6 +14,8 @@ help:
 	  lint-format\t\tVerify formatting\n\
 	  format\t\tFormat sources\n\
 	  update-locales\tUpdate the localization files\n\
+	  update-readium-css\tUpdate Readium CSS to the latest version\n\
+	  \t\t\tUse 'version=<version>' to install a specific version.\n\
 	"
 
 .PHONY: test
@@ -67,10 +70,21 @@ scripts:
 	pnpm run test && \
 	pnpm run bundle
 
+	rm -rf "$(READIUM_CSS_PATH)"
+	cp -R "$(SCRIPTS_PATH)/node_modules/@readium/css/css/dist" "$(READIUM_CSS_PATH)"
+
 .PHONY: update-scripts
 update-scripts:
 	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
 	pnpm install --dir "$(SCRIPTS_PATH)"
+
+.PHONY: update-readium-css
+update-readium-css:
+	@which corepack >/dev/null 2>&1 || (echo "ERROR: corepack is required, please install it first\nhttps://pnpm.io/installation#using-corepack"; exit 1)
+	cd $(SCRIPTS_PATH) && \
+	corepack install && \
+	pnpm add --save-dev --save-exact "@readium/css@$(or $(version),latest)"
+	$(MAKE) scripts
 
 .PHONY: lint-format
 lint-format:
