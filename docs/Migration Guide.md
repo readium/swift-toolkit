@@ -83,6 +83,51 @@ The publisher styles are observed as long as the related preferences are unset. 
  )
 ```
 
+### Bundled fonts
+
+The toolkit no longer bundles the additional font families anymore ([OpenDyslexic](https://opendyslexic.org/), [AccessibleDfA](https://github.com/Orange-OpenSource/font-accessible-dfa) and [iA Writer Duospace](https://github.com/iaolo/iA-Fonts/tree/master/iA%20Writer%20Duospace)).
+
+To keep offering some of them, add their font files to your app target and declare it in `EPUBNavigatorViewController.Configuration.fontFamilyDeclarations`.
+
+```swift
+extension FontFamily {
+    static let openDyslexic: FontFamily = "OpenDyslexic"
+}
+
+let fonts = FileURL(url: Bundle.main.resourceURL!)!
+let navigator = try EPUBNavigatorViewController(
+    publication: publication,
+    initialLocation: locator,
+    config: .init(
+        fontFamilyDeclarations: [
+            CSSFontFamilyDeclaration(
+                fontFamily: .openDyslexic,
+                fontFaces: [
+                    CSSFontFace(
+                        file: fonts.appendingPath("OpenDyslexic-Regular.otf", isDirectory: false),
+                        style: .normal, weight: .standard(.normal)
+                    ),
+                    CSSFontFace(
+                        file: fonts.appendingPath("OpenDyslexic-Italic.otf", isDirectory: false),
+                        style: .italic, weight: .standard(.normal)
+                    ),
+                    CSSFontFace(
+                        file: fonts.appendingPath("OpenDyslexic-Bold.otf", isDirectory: false),
+                        style: .normal, weight: .standard(.bold)
+                    ),
+                    CSSFontFace(
+                        file: fonts.appendingPath("OpenDyslexic-BoldItalic.otf", isDirectory: false),
+                        style: .italic, weight: .standard(.bold)
+                    ),
+                ]
+            ).eraseToAnyHTMLFontFamilyDeclaration(),
+        ]
+    )
+)
+```
+
+See [the EPUB fonts guide](Guides/Navigator/EPUB%20Fonts.md) for more details.
+
 ### Saved `EPUBPreferences`
 
 `EPUBPreferences` saved as JSON with a previous version of the toolkit are migrated when decoded, so you don't need to migrate them yourself.

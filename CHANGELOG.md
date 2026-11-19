@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file. Take a look
     * `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, to match the base line height of Readium CSS v2 for Latin scripts.
     * `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. When unset, its `effectiveValue` is `true`, as the ligatures are rendered by default.
     * `EPUBPreferencesEditor.letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages, as supported by Readium CSS v2.
+* Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, and the matching `FontFamily` constants, as Readium CSS v2 no longer distributes fonts. To keep offering them, embed and declare them in your app, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
 
 ### Fixed
 

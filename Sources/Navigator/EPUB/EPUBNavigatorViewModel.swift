@@ -89,34 +89,6 @@ enum EPUBScriptScope {
         assetsBaseURL: any AbsoluteURL,
         formatSniffer: FormatSniffer
     ) {
-        var config = config
-
-        if let fontsDir = Bundle.module.resourceURL?.fileURL?.appendingPath("Assets/Static/fonts", isDirectory: true) {
-            config.fontFamilyDeclarations.append(
-                CSSFontFamilyDeclaration(
-                    fontFamily: .openDyslexic,
-                    fontFaces: [
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Regular.otf", isDirectory: false),
-                            style: .normal, weight: .standard(.normal)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Italic.otf", isDirectory: false),
-                            style: .italic, weight: .standard(.normal)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Bold.otf", isDirectory: false),
-                            style: .normal, weight: .standard(.bold)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-BoldItalic.otf", isDirectory: false),
-                            style: .italic, weight: .standard(.bold)
-                        ),
-                    ]
-                ).eraseToAnyHTMLFontFamilyDeclaration()
-            )
-        }
-
         self.publication = publication
         self.readingOrder = EPUBReadingOrder(
             readingOrder: readingOrder,

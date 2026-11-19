@@ -183,11 +183,6 @@ public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable,
     public static let fantasy: FontFamily = "fantasy"
     public static let monospace: FontFamily = "monospace"
 
-    // Accessibility fonts embedded with Readium
-    public static let accessibleDfA: FontFamily = "AccessibleDfA"
-    public static let iaWriterDuospace: FontFamily = "IA Writer Duospace"
-    public static let openDyslexic: FontFamily = "OpenDyslexic"
-
     // Recommended font families available on iOS
     // See https://readium.org/readium-css/docs/CSS09-default_fonts
 

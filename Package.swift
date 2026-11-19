@@ -62,10 +62,7 @@ let package = Package(
                 "ReadiumShared",
                 .product(name: "ReadiumFuzi", package: "Fuzi"),
             ],
-            path: "Sources/Streamer",
-            resources: [
-                .copy("Assets"),
-            ]
+            path: "Sources/Streamer"
         ),
         .testTarget(
             name: "ReadiumStreamerTests",

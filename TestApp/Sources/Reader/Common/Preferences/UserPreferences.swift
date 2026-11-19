@@ -539,9 +539,6 @@ struct UserPreferences<
                         .with(supportedValues: [
                             nil,
                             .sansSerif,
-                            .iaWriterDuospace,
-                            .accessibleDfA,
-                            .openDyslexic,
                             .literata,
                         ])
                         .eraseToAnyPreference(),

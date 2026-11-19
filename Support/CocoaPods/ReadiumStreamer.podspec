@@ -11,12 +11,6 @@ Pod::Spec.new do |s|
   s.author        = { "Readium" => "contact@readium.org" }
   s.source        = { :git => "https://github.com/readium/swift-toolkit.git", :tag => s.version }
   s.requires_arc  = true
-  s.resource_bundles = {
-    'ReadiumStreamer' => [
-      'Sources/Streamer/Resources/**',
-      'Sources/Streamer/Assets',
-    ],
-  }
   s.source_files  = "Sources/Streamer/**/*.{m,h,swift}"
   s.swift_version = '6.0'
   s.platform      = :ios

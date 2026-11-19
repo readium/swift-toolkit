@@ -24,9 +24,6 @@ module.exports = {
         {
           from: path.resolve(__dirname, "node_modules/@readium/css/css/dist"),
           to: path.resolve(__dirname, "../Assets/Static/readium-css"),
-          globOptions: {
-            ignore: ["**/fonts/**"],
-          },
         },
       ],
     }),
