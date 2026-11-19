@@ -16,6 +16,11 @@ public struct Metadata: Hashable, Sendable, Loggable, WarningLogger, JSONValueDe
     public typealias Collection = Contributor
 
     public var identifier: String? // URI
+
+    /// Alternate identifiers for this publication, other than the primary
+    /// ``identifier``.
+    public var altIdentifiers: [AltIdentifier]
+
     public var type: String? // URI (@type)
     public var conformsTo: [Publication.Profile]
 
@@ -72,6 +77,7 @@ public struct Metadata: Hashable, Sendable, Loggable, WarningLogger, JSONValueDe
 
     public init(
         identifier: String? = nil,
+        altIdentifiers: [AltIdentifier] = [],
         type: String? = nil,
         conformsTo: [Publication.Profile] = [],
         title: LocalizedStringConvertible? = nil,
@@ -107,6 +113,7 @@ public struct Metadata: Hashable, Sendable, Loggable, WarningLogger, JSONValueDe
         otherMetadata: [String: JSONValue] = [:]
     ) {
         self.identifier = identifier
+        self.altIdentifiers = altIdentifiers
         self.type = type
         self.conformsTo = conformsTo
         localizedTitle = title?.localizedString
@@ -158,6 +165,7 @@ public struct Metadata: Hashable, Sendable, Loggable, WarningLogger, JSONValueDe
         }
 
         identifier = jsonObject.pop("identifier")?.string
+        altIdentifiers = jsonObject.pop("altIdentifier")?.decode(allowingSingle: true, warnings: warnings) ?? []
         type = jsonObject.pop("@type")?.string ?? jsonObject.pop("type")?.string
         conformsTo = jsonObject.pop("conformsTo")?.decode(allowingSingle: true) ?? []
         localizedTitle = title
@@ -197,6 +205,7 @@ public struct Metadata: Hashable, Sendable, Loggable, WarningLogger, JSONValueDe
     public var jsonObject: [String: JSONValue] {
         .init([
             "identifier": identifier,
+            "altIdentifier": altIdentifiers.orNullIfEmpty,
             "@type": type,
             "conformsTo": conformsTo.map(\.uri).orNullIfEmpty,
             "title": localizedTitle,

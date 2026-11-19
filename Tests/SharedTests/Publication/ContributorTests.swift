@@ -27,6 +27,10 @@ class ContributorTests: XCTestCase {
             try? Contributor(json: [
                 "name": "Colin Greenwood",
                 "identifier": "colin",
+                "altIdentifier": [
+                    "urn:isbn:9781449325862",
+                    ["value": "1449325866", "scheme": "urn:isbn"],
+                ],
                 "sortAs": "greenwood",
                 "role": "bassist",
                 "position": 4,
@@ -38,6 +42,10 @@ class ContributorTests: XCTestCase {
             Contributor(
                 name: "Colin Greenwood",
                 identifier: "colin",
+                altIdentifiers: [
+                    AltIdentifier(value: "urn:isbn:9781449325862"),
+                    AltIdentifier(value: "1449325866", scheme: "urn:isbn"),
+                ],
                 sortAs: "greenwood",
                 roles: ["bassist"],
                 position: 4,
@@ -80,6 +88,10 @@ class ContributorTests: XCTestCase {
             Contributor(
                 name: ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 identifier: "jonny",
+                altIdentifiers: [
+                    AltIdentifier(value: "urn:isbn:9781449325862"),
+                    AltIdentifier(value: "1449325866", scheme: "urn:isbn"),
+                ],
                 sortAs: "greenwood",
                 roles: ["guitarist", "pianist"],
                 position: 2.5,
@@ -91,6 +103,10 @@ class ContributorTests: XCTestCase {
             [
                 "name": ["en": "Jonny Greenwood", "fr": "Jean Boisvert"],
                 "identifier": "jonny",
+                "altIdentifier": [
+                    "urn:isbn:9781449325862",
+                    ["value": "1449325866", "scheme": "urn:isbn"] as JSONValue,
+                ],
                 "sortAs": "greenwood",
                 "role": ["guitarist", "pianist"],
                 "position": 2.5,
