@@ -31,6 +31,13 @@ All notable changes to this project will be documented in this file. Take a look
     * `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. When unset, its `effectiveValue` is `true`, as the ligatures are rendered by default.
     * `EPUBPreferencesEditor.letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages, as supported by Readium CSS v2.
 
+### Fixed
+
+#### Navigator
+
+* The `AudioNavigator` now resumes by itself after the network stalls, instead of stopping until the app returns to the foreground when it is in the background.
+
+
 ## [4.0.0-alpha.3] - 2026-11-16
 
 ### Added
