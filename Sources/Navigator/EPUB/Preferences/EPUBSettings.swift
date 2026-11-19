@@ -50,26 +50,6 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         backgroundColor ?? ReadiumCSS.defaultBackgroundColor
     }
 
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
-    public var publisherStyles: Bool {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
-    public var typeScale: Double? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
-    public var imageFilter: ImageFilter? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
-    public var theme: Theme {
-        fatalError()
-    }
-
     let cssLayout: CSSLayout
 
     public init(
@@ -324,21 +304,6 @@ public struct EPUBDefaults: Sendable {
         self.textAlign = textAlign
         self.textNormalization = textNormalization
         self.wordSpacing = wordSpacing.map { max($0, 0) }
-    }
-
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
-    public var publisherStyles: Bool? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
-    public var typeScale: Double? {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "The image filters have no default values anymore, use the darkenImages or invertImages preferences instead")
-    public var imageFilter: ImageFilter? {
-        fatalError()
     }
 }
 

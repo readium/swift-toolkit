@@ -22,11 +22,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         layouts.default
     }
 
-    @available(*, unavailable, renamed: "defaultLayout")
-    public var layout: EPUBLayout {
-        fatalError()
-    }
-
     /// Layouts used by the resources of the reading order.
     private let layouts: EPUBLayouts
 
@@ -494,26 +489,6 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
-
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
-    public var publisherStyles: AnyPreference<Bool> {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
-    public var typeScale: AnyRangePreference<Double> {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
-    public var imageFilter: AnyEnumPreference<ImageFilter?> {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
-    public var theme: AnyEnumPreference<Theme> {
-        fatalError()
-    }
 
     /// Direction of the reading progression across resources.
     ///

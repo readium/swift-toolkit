@@ -286,3 +286,75 @@ public extension EPUBPreferences {
         fatalError()
     }
 }
+
+// MARK: - Removed settings
+
+public extension EPUBSettings {
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    var publisherStyles: Bool {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    var typeScale: Double? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    var imageFilter: ImageFilter? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    var theme: Theme {
+        fatalError()
+    }
+}
+
+// MARK: - Removed defaults
+
+public extension EPUBDefaults {
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    var publisherStyles: Bool? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    var typeScale: Double? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "The image filters have no default values anymore, use the darkenImages or invertImages preferences instead")
+    var imageFilter: ImageFilter? {
+        fatalError()
+    }
+}
+
+// MARK: - Removed editor preferences
+
+public extension EPUBPreferencesEditor {
+    @available(*, unavailable, renamed: "defaultLayout")
+    var layout: EPUBLayout {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    var publisherStyles: AnyPreference<Bool> {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    var typeScale: AnyRangePreference<Double> {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
+    var imageFilter: AnyEnumPreference<ImageFilter?> {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    var theme: AnyEnumPreference<Theme> {
+        fatalError()
+    }
+}
