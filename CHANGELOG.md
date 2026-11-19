@@ -15,7 +15,6 @@ All notable changes to this project will be documented in this file. Take a look
     * Added `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji` preferences for precise CSS filtering of images.
     * Added the `linkColor` and `visitedColor` preferences to change the color of the hyperlinks.
     * Added the `fontWidth` preference to change the width of the glyphs, with the fonts supporting it (variable fonts with a width axis).
-    * Added optional CSS minification to the build scripts (`make scripts minify=true`).
 
 ### Changed
 

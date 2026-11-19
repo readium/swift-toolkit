@@ -31,9 +31,6 @@ devDependencies:
   '@readium/css':
     specifier: 2.0.5
     version: 2.0.5
-  '@types/clean-css':
-    specifier: ^4.2.11
-    version: 4.2.11
   '@types/jest':
     specifier: ^30.0.0
     version: 30.0.0
@@ -43,9 +40,6 @@ devDependencies:
   babel-loader:
     specifier: ^8.4.1
     version: 8.4.1(@babel/core@7.29.7)(webpack@5.107.2)
-  clean-css:
-    specifier: ^5.3.3
-    version: 5.3.3
   copy-webpack-plugin:
     specifier: 14.0.0
     version: 14.0.0(webpack@5.107.2)
@@ -69,7 +63,7 @@ devDependencies:
     version: 5.9.3
   webpack:
     specifier: ^5.107.2
-    version: 5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4)
+    version: 5.107.2(webpack-cli@5.1.4)
   webpack-cli:
     specifier: ^5.1.4
     version: 5.1.4(webpack@5.107.2)
@@ -1876,13 +1870,6 @@ packages:
       '@babel/types': 7.29.7
     dev: true
 
-  /@types/clean-css@4.2.11:
-    resolution: {integrity: sha512-Y8n81lQVTAfP2TOdtJJEsCoYl1AnOkqDqMvXb9/7pfgZZ7r8YrEyurrAvAoAjHOGXKRybay+5CsExqIH6liccw==}
-    dependencies:
-      '@types/node': 26.1.2
-      source-map: 0.6.1
-    dev: true
-
   /@types/estree@1.0.9:
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
     dev: true
@@ -2243,7 +2230,7 @@ packages:
       webpack: 5.x.x
       webpack-cli: 5.x.x
     dependencies:
-      webpack: 5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4)
+      webpack: 5.107.2(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.107.2)
     dev: true
 
@@ -2254,7 +2241,7 @@ packages:
       webpack: 5.x.x
       webpack-cli: 5.x.x
     dependencies:
-      webpack: 5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4)
+      webpack: 5.107.2(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.107.2)
     dev: true
 
@@ -2269,7 +2256,7 @@ packages:
       webpack-dev-server:
         optional: true
     dependencies:
-      webpack: 5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4)
+      webpack: 5.107.2(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.107.2)
     dev: true
 
@@ -2493,7 +2480,7 @@ packages:
       loader-utils: 2.0.4
       make-dir: 3.1.0
       schema-utils: 2.7.1
-      webpack: 5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4)
+      webpack: 5.107.2(webpack-cli@5.1.4)
     dev: true
 
   /babel-plugin-istanbul@7.0.1:
@@ -2723,13 +2710,6 @@ packages:
     resolution: {integrity: sha512-4bHTS2YuzUvtoLjdy+98ykbNB5jS0+07EvFNXerqZQJ89F7DI6ET7OQo/HJuW6K0aVsKA9hj9/RVb2kQVOrPDQ==}
     dev: true
 
-  /clean-css@5.3.3:
-    resolution: {integrity: sha512-D5J+kHaVb/wKSFcyyV75uCn8fiY4sV38XJoe4CUyGQ+mOU/fMVYUdH1hJC+CJQ5uY3EnW27SbJYS4X8BiLrAFg==}
-    engines: {node: '>= 10.0'}
-    dependencies:
-      source-map: 0.6.1
-    dev: true
-
   /cliui@8.0.1:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
     engines: {node: '>=12'}
@@ -2814,7 +2794,7 @@ packages:
       schema-utils: 4.3.3
       serialize-javascript: 7.1.0
       tinyglobby: 0.2.17
-      webpack: 5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4)
+      webpack: 5.107.2(webpack-cli@5.1.4)
     dev: true
 
   /core-js-compat@3.49.0:
@@ -5419,7 +5399,7 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /terser-webpack-plugin@5.6.1(clean-css@5.3.3)(webpack@5.107.2):
+  /terser-webpack-plugin@5.6.1(webpack@5.107.2):
     resolution: {integrity: sha512-201R5j+sJpK8nFWwKVyNfZot8FaJbLZDq5evriVzbV1wDtSXDjRUDRfJzHpAaxFDMEhsZL1QkeqM61wgsS3KaQ==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
@@ -5463,11 +5443,10 @@ packages:
         optional: true
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
-      clean-css: 5.3.3
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.48.0
-      webpack: 5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4)
+      webpack: 5.107.2(webpack-cli@5.1.4)
     dev: true
 
   /terser@5.48.0:
@@ -5815,7 +5794,7 @@ packages:
       import-local: 3.2.0
       interpret: 3.1.1
       rechoir: 0.8.0
-      webpack: 5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4)
+      webpack: 5.107.2(webpack-cli@5.1.4)
       webpack-merge: 5.10.0
     dev: true
 
@@ -5833,7 +5812,7 @@ packages:
     engines: {node: '>=10.13.0'}
     dev: true
 
-  /webpack@5.107.2(clean-css@5.3.3)(webpack-cli@5.1.4):
+  /webpack@5.107.2(webpack-cli@5.1.4):
     resolution: {integrity: sha512-v7RhXaJbpMlV0D7hC7lb2EbnxkoeUqf9qhKr6lozx3Q48pmFrqqNRmZFUEGmi7pSwm6fCQ2H1IjvCkHqdpVdjQ==}
     engines: {node: '>=10.13.0'}
     hasBin: true
@@ -5863,7 +5842,7 @@ packages:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.3
-      terser-webpack-plugin: 5.6.1(clean-css@5.3.3)(webpack@5.107.2)
+      terser-webpack-plugin: 5.6.1(webpack@5.107.2)
       watchpack: 2.5.2
       webpack-cli: 5.1.4(webpack@5.107.2)
       webpack-sources: 3.5.0
