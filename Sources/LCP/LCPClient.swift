@@ -28,6 +28,10 @@ import Foundation
 ///              return R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
 ///          }
 ///
+///          func decryptField(field: Data, using context: LCPClientContext) -> Data? {
+///              return R2LCPClient.decryptField(field: field, using: context as! DRMContext)
+///          }
+///
 ///          func getSupportedLCPProfileURIs() -> [String] {
 ///              return R2LCPClient.getSupportedLCPProfileURIs() ?? []
 ///          }
@@ -40,31 +44,19 @@ public protocol LCPClient: Sendable {
     /// Decrypt provided content, given a valid context is provided.
     func decrypt(data: Data, using context: LCPClientContext) -> Data?
 
+    /// Decrypts a License Document field (e.g. the user name or email), which
+    /// is encrypted with the user key, unlike publication resources which are
+    /// encrypted with the content key.
+    ///
+    /// `field` is the raw encrypted value, after decoding the Base64 string
+    /// found in the License Document.
+    func decryptField(field: Data, using context: LCPClientContext) -> Data?
+
     /// Given an array of possible password hashes, return a valid password hash for the lcpl licence.
     func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash?
 
     /// Returns the LCP profile URIs supported by the underlying liblcp build.
     func getSupportedLCPProfileURIs() -> [String]
-}
-
-public extension LCPClient {
-    // FIXME: This default implementation preserves source compatibility for facades that predate `getSupportedLCPProfileURIs()`. Remove it in the next breaking release and make the method a hard protocol requirement, so the supported profiles always come from liblcp instead of this stale hardcoded list.
-    func getSupportedLCPProfileURIs() -> [String] {
-        [
-            "http://readium.org/lcp/basic-profile",
-            "http://readium.org/lcp/profile-1.0",
-            "http://readium.org/lcp/profile-2.0",
-            "http://readium.org/lcp/profile-2.1",
-            "http://readium.org/lcp/profile-2.2",
-            "http://readium.org/lcp/profile-2.3",
-            "http://readium.org/lcp/profile-2.4",
-            "http://readium.org/lcp/profile-2.5",
-            "http://readium.org/lcp/profile-2.6",
-            "http://readium.org/lcp/profile-2.7",
-            "http://readium.org/lcp/profile-2.8",
-            "http://readium.org/lcp/profile-2.9",
-        ]
-    }
 }
 
 public typealias LCPClientContext = Any & Sendable
