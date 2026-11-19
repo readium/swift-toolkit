@@ -279,7 +279,12 @@ function scrollTo({ left, top, animated } = {}) {
 function snapOffset(offset) {
   const delta = isRTL() ? -1 : 1;
   const value = offset + delta;
-  return value - (value % viewportWidth);
+  // `viewportWidth` is only set once the `ResizeObserver` callback ran, a
+  // frame after the page is rendered. The native side may already scroll
+  // to the initial location before that, and a modulo by 0 would yield
+  // `NaN`, an offset `scrollTo()` doesn't move the page to.
+  const pageWidth = viewportWidth || window.innerWidth;
+  return value - (value % pageWidth);
 }
 
 function snapCurrentPosition() {

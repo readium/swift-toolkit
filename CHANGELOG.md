@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The `AudioNavigator` now resumes by itself after the network stalls, instead of stopping until the app returns to the foreground when it is in the background.
+* The EPUB navigator no longer opens a paginated reflowable resource on its first page instead of the requested location, when the web view is slow to render its first frames.
 
 
 ## [4.0.0-alpha.3] - 2026-11-16
