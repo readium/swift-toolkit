@@ -255,24 +255,31 @@ enum EPUBScriptScope {
     private var safeAreaInsets: UIEdgeInsets = .zero
     private let layoutResolver = LayoutResolver()
 
-    func viewSizeWillChange(_ newSize: CGSize, insets: UIEdgeInsets? = nil) {
-        let insetsChanged = insets != nil && insets != safeAreaInsets
-        guard viewSize != newSize || insetsChanged else {
+    /// Updates the spread for the size the view is about to take.
+    ///
+    /// The CSS layout is not resolved here, as the safe area insets matching
+    /// this size are not known yet. It is resolved once the view is laid out,
+    /// see `viewDidLayout(size:safeAreaInsets:)`.
+    func viewSizeWillChange(_ newSize: CGSize) {
+        guard viewSize != newSize else {
             return
         }
         viewSize = newSize
-        if let insets = insets {
-            safeAreaInsets = insets
-        }
         updateSpread()
-        updateCSS(with: settings, commitNow: true)
     }
 
-    func safeAreaInsetsDidChange(_ insets: UIEdgeInsets) {
-        guard safeAreaInsets != insets else {
+    /// Resolves the CSS layout from the final size and safe area insets of
+    /// the view, and commits it when it changed.
+    func viewDidLayout(size: CGSize, safeAreaInsets insets: UIEdgeInsets) {
+        viewSizeWillChange(size)
+        safeAreaInsets = insets
+
+        // Most layout passes don't change the layout, for example when the
+        // app toggles its bars, which only changes the top and bottom insets
+        // used with vertical text.
+        guard resolveLayout(with: settings) != resolvedLayout else {
             return
         }
-        safeAreaInsets = insets
         updateCSS(with: settings, commitNow: true)
     }
 
@@ -330,9 +337,11 @@ enum EPUBScriptScope {
         }
     }
 
-    private func updateCSS(with settings: EPUBSettings, commitNow: Bool) {
-        let previous = css
-        let layout = viewSize.flatMap { size -> LayoutResolver.Layout? in
+    /// Layout of the current CSS, resolved from the view size.
+    private var resolvedLayout: LayoutResolver.Layout?
+
+    private func resolveLayout(with settings: EPUBSettings) -> LayoutResolver.Layout? {
+        viewSize.flatMap { size -> LayoutResolver.Layout? in
             guard size.width > 0, size.height > 0 else { return nil }
             return layoutResolver.layout(
                 settings: settings,
@@ -340,10 +349,15 @@ enum EPUBScriptScope {
                 safeAreaInsets: safeAreaInsets
             )
         }
+    }
+
+    private func updateCSS(with settings: EPUBSettings, commitNow: Bool) {
+        let previous = css
+        resolvedLayout = resolveLayout(with: settings)
         css.update(
             with: settings,
             userInterfaceIdiom: userInterfaceIdiom,
-            resolvedLayout: layout
+            resolvedLayout: resolvedLayout
         )
 
         // HTML resources in the cache have the CSS already injected at the time
