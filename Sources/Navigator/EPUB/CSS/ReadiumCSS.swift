@@ -29,9 +29,9 @@ extension ReadiumCSS {
 }
 
 extension ReadiumCSS {
-    @MainActor
     mutating func update(
         with settings: EPUBSettings,
+        userInterfaceIdiom: UIUserInterfaceIdiom,
         resolvedLayout: LayoutResolver.Layout? = nil,
         safeAreaInsets: UIEdgeInsets = .zero
     ) {
@@ -44,14 +44,36 @@ extension ReadiumCSS {
             "--RS__disableOverflow": "readium-noOverflow-on",
         ])
 
+        // Readium CSS applies `--USER__fontSize` with a `zoom` on `body`,
+        // which also scales the lengths in px set below. They are divided by
+        // this `zoom` to compensate it.
+        var bodyZoom = settings.fontSize
+
+        // Applies the WebKit patch matching the device:
+        // - iOSPatch on iPhone. The text is then scaled with
+        //   `-webkit-text-size-adjust` instead, without any `zoom`.
+        // - iPadOSPatch on iPad, where WebKit requests the pages as desktop.
+        //   An iPad app running on an Apple silicon Mac ("Designed for iPad")
+        //   reports an iPad too and gets it on purpose, as it uses the same
+        //   WebKit and also requests the pages as desktop.
+        // - Nothing for a Mac Catalyst app optimized for the Mac.
+        //
+        // See https://github.com/readium/css/issues/189
+        switch userInterfaceIdiom {
+        case .pad:
+            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
+        case .phone:
+            overrides["--USER__iOSPatch"] = "readium-iOSPatch-on"
+            bodyZoom = 1
+        default:
+            break
+        }
+
         // The margins around the lines come from the resolved `lineLength`,
         // so `--RS__pageGutter` is not set: `body` is `border-box`, so the
         // gutter would be added to these margins.
-        //
-        // The scroll padding is divided by the font size to compensate the
-        // `zoom` applied by `--USER__fontSize`.
         if settings.scroll, resolvedLayout != nil {
-            let padding = { (inset: CGFloat) in CSSPxLength(inset / settings.fontSize) }
+            let padding = { (inset: CGFloat) in CSSPxLength(inset / bodyZoom) }
             if settings.verticalText {
                 rsProperties.scrollPaddingLeft = padding(safeAreaInsets.left)
                 rsProperties.scrollPaddingRight = padding(safeAreaInsets.right)
@@ -61,28 +83,11 @@ extension ReadiumCSS {
             }
         }
 
-        // Applies WebKit patches, ideally:
-        // - iOS patch for iOS and iPadOS when the site is requested as mobile.
-        // - iPadOSPatch for iPadOS when the site is requested as desktop.
-        // - Nothing if MacOS.
-        //
-        // See https://github.com/readium/css/issues/189
-        switch UIDevice.current.userInterfaceIdiom {
-        case .pad:
-            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
-        case .phone:
-            overrides["--USER__iOSPatch"] = "readium-iOSPatch-on"
-        default:
-            break
-        }
-
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
-            // The layout is resolved once the viewport size is known. The line
-            // length is divided by the font size to compensate the `zoom`
-            // applied by `--USER__fontSize`.
+            // The layout is resolved once the viewport size is known.
             colCount: resolvedLayout?.colCount,
-            lineLength: resolvedLayout.map { CSSPxLength($0.lineLength / settings.fontSize) },
+            lineLength: resolvedLayout.map { CSSPxLength($0.lineLength / bodyZoom) },
             blendImages: settings.blendImages,
             darkenImages: imageFilter(settings.darkenImages).map { 1 - $0 },
             invertImages: imageFilter(settings.invertImages),

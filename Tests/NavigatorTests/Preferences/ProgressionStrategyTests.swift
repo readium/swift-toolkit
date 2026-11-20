@@ -9,7 +9,7 @@ import Foundation
 import Testing
 
 struct ProgressionStrategyTests {
-    // The comments give the unrounded results.
+    /// The comments give the unrounded results.
     @Test("rounds the floating-point residue", arguments: [
         // (step, value, incremented, decremented)
         (0.1, 0.2, 0.3, 0.1), // 0.30000000000000004

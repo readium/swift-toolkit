@@ -322,7 +322,7 @@ struct ReadiumCSSTests {
         )
     }
 
-    @Test @MainActor func updateResolvesTheFontFamilyAlternates() {
+    @Test func updateResolvesTheFontFamilyAlternates() {
         var css = ReadiumCSS(
             baseURL: baseURL,
             fontFamilyDeclarations: [
@@ -332,34 +332,64 @@ struct ReadiumCSSTests {
                     .eraseToAnyHTMLFontFamilyDeclaration(),
             ]
         )
-        css.update(with: EPUBSettings(preferences: EPUBPreferences(fontFamily: "Literata"), defaults: EPUBDefaults(), metadata: Metadata(title: "Test")))
+        css.update(
+            with: EPUBSettings(preferences: EPUBPreferences(fontFamily: "Literata"), defaults: EPUBDefaults(), metadata: Metadata(title: "Test")),
+            userInterfaceIdiom: .pad
+        )
         #expect(css.userProperties.cssProperties()["--USER__fontFamily"] == #"Literata, "IA Writer Duospace", serif"#)
     }
 
+    struct PatchCase: Sendable, CustomTestStringConvertible {
+        let name: String
+        let idiom: UIUserInterfaceIdiom
+        let patches: [String: String]
+
+        var testDescription: String {
+            name
+        }
+    }
+
+    @Test(arguments: [
+        PatchCase(name: "iPhone", idiom: .phone, patches: ["--USER__iOSPatch": "readium-iOSPatch-on"]),
+        PatchCase(name: "iPad", idiom: .pad, patches: ["--USER__iPadOSPatch": "readium-iPadOSPatch-on"]),
+        PatchCase(name: "Mac", idiom: .mac, patches: [:]),
+        PatchCase(name: "unspecified device", idiom: .unspecified, patches: [:]),
+    ])
+    func updateAppliesTheWebKitPatchOfTheDevice(_ test: PatchCase) {
+        var css = ReadiumCSS(baseURL: baseURL)
+        css.update(
+            with: EPUBSettings(preferences: EPUBPreferences(), defaults: EPUBDefaults(), metadata: Metadata(title: "Test")),
+            userInterfaceIdiom: test.idiom
+        )
+        let userProps = css.userProperties.cssProperties().compactMapValues { $0 }
+        #expect(userProps.filter { $0.key.hasSuffix("Patch") } == test.patches)
+        #expect(css.rsProperties.cssProperties()["--RS__disableOverflow"] == "readium-noOverflow-on")
+    }
+
     @Test(arguments: [false, true])
-    @MainActor func updateDoesNotSetPageGutter(scroll: Bool) {
+    func updateDoesNotSetPageGutter(scroll: Bool) {
         var css = ReadiumCSS(baseURL: baseURL)
         let settings = EPUBSettings(
             preferences: EPUBPreferences(pageMargins: 1.5, scroll: scroll),
             defaults: EPUBDefaults(),
             metadata: Metadata(title: "Test")
         )
-        css.update(with: settings)
+        css.update(with: settings, userInterfaceIdiom: .pad)
         #expect(css.rsProperties.pageGutter == nil)
 
-        css.update(with: settings, resolvedLayout: LayoutResolver.Layout(colCount: 1, lineLength: 500.0))
+        css.update(with: settings, userInterfaceIdiom: .pad, resolvedLayout: LayoutResolver.Layout(colCount: 1, lineLength: 500.0))
         #expect(css.rsProperties.pageGutter == nil)
     }
 
     @Test(arguments: [false, true])
-    @MainActor func updateWithoutLayoutOmitsLayoutProperties(scroll: Bool) {
+    func updateWithoutLayoutOmitsLayoutProperties(scroll: Bool) {
         var css = ReadiumCSS(baseURL: baseURL)
         let settings = EPUBSettings(
             preferences: EPUBPreferences(columnCount: 2, scroll: scroll),
             defaults: EPUBDefaults(),
             metadata: Metadata(title: "Test")
         )
-        css.update(with: settings, safeAreaInsets: UIEdgeInsets(top: 44, left: 20, bottom: 34, right: 25))
+        css.update(with: settings, userInterfaceIdiom: .pad, safeAreaInsets: UIEdgeInsets(top: 44, left: 20, bottom: 34, right: 25))
 
         let props = css.userProperties.cssProperties()
         #expect(props["--USER__colCount"] == .some(nil))
@@ -371,7 +401,25 @@ struct ReadiumCSSTests {
         #expect(rsProps["--RS__scrollPaddingRight"] == .some(nil))
     }
 
-    @Test @MainActor func updateWithLayoutAppliesColCountAndLineLength() {
+    struct LineLengthCase: Sendable, CustomTestStringConvertible {
+        let name: String
+        let idiom: UIUserInterfaceIdiom
+        let lineLength: String
+
+        var testDescription: String {
+            name
+        }
+    }
+
+    /// The line length is divided by the font size to compensate the `zoom`
+    /// on `body`, except on iPhone where the iOS patch scales the text with
+    /// `-webkit-text-size-adjust` instead.
+    @Test(arguments: [
+        LineLengthCase(name: "iPhone", idiom: .phone, lineLength: "640.00000px"),
+        LineLengthCase(name: "iPad", idiom: .pad, lineLength: "320.00000px"),
+        LineLengthCase(name: "Mac", idiom: .mac, lineLength: "320.00000px"),
+    ])
+    func updateWithLayoutAppliesColCountAndLineLength(_ test: LineLengthCase) {
         var css = ReadiumCSS(baseURL: baseURL)
         let settings = EPUBSettings(
             preferences: EPUBPreferences(fontSize: 2.0),
@@ -379,32 +427,73 @@ struct ReadiumCSSTests {
             metadata: Metadata(title: "Test")
         )
         let layout = LayoutResolver.Layout(colCount: 2, lineLength: 640.0)
-        css.update(with: settings, resolvedLayout: layout)
+        css.update(with: settings, userInterfaceIdiom: test.idiom, resolvedLayout: layout)
 
         #expect(
             css.userProperties.cssProperties()["--USER__colCount"] == "2"
         )
         #expect(
-            css.userProperties.cssProperties()["--USER__lineLength"] == "320.00000px"
+            css.userProperties.cssProperties()["--USER__lineLength"] == .some(test.lineLength)
         )
     }
 
-    @Test @MainActor func updateWithLayoutAndScrollSettingsComputesScrollPaddingFromInsets() {
+    struct ScrollPaddingCase: Sendable, CustomTestStringConvertible {
+        let name: String
+        let idiom: UIUserInterfaceIdiom
+        var verticalText: Bool = false
+        let paddings: [String: String]
+
+        var testDescription: String {
+            name
+        }
+    }
+
+    /// The scroll padding is set on the block axis of the text. Like the line
+    /// length, it is divided by the font size, except on iPhone.
+    @Test(arguments: [
+        ScrollPaddingCase(
+            name: "iPhone",
+            idiom: .phone,
+            paddings: ["--RS__scrollPaddingTop": "44.00000px", "--RS__scrollPaddingBottom": "34.00000px"]
+        ),
+        ScrollPaddingCase(
+            name: "iPad",
+            idiom: .pad,
+            paddings: ["--RS__scrollPaddingTop": "22.00000px", "--RS__scrollPaddingBottom": "17.00000px"]
+        ),
+        ScrollPaddingCase(
+            name: "Mac",
+            idiom: .mac,
+            paddings: ["--RS__scrollPaddingTop": "22.00000px", "--RS__scrollPaddingBottom": "17.00000px"]
+        ),
+        ScrollPaddingCase(
+            name: "iPhone with vertical text",
+            idiom: .phone,
+            verticalText: true,
+            paddings: ["--RS__scrollPaddingLeft": "20.00000px", "--RS__scrollPaddingRight": "25.00000px"]
+        ),
+        ScrollPaddingCase(
+            name: "iPad with vertical text",
+            idiom: .pad,
+            verticalText: true,
+            paddings: ["--RS__scrollPaddingLeft": "10.00000px", "--RS__scrollPaddingRight": "12.50000px"]
+        ),
+    ])
+    func updateWithLayoutAndScrollSettingsComputesScrollPaddingFromInsets(_ test: ScrollPaddingCase) {
         var css = ReadiumCSS(baseURL: baseURL)
         let settings = EPUBSettings(
-            preferences: EPUBPreferences(scroll: true),
+            preferences: EPUBPreferences(fontSize: 2.0, scroll: true, verticalText: test.verticalText),
             defaults: EPUBDefaults(),
             metadata: Metadata(title: "Test")
         )
         let insets = UIEdgeInsets(top: 44, left: 20, bottom: 34, right: 25)
         let layout = LayoutResolver.Layout(colCount: 1, lineLength: 500.0)
-        css.update(with: settings, resolvedLayout: layout, safeAreaInsets: insets)
+        css.update(with: settings, userInterfaceIdiom: test.idiom, resolvedLayout: layout, safeAreaInsets: insets)
 
         #expect(
-            css.rsProperties.cssProperties()["--RS__scrollPaddingTop"] == "44.00000px"
-        )
-        #expect(
-            css.rsProperties.cssProperties()["--RS__scrollPaddingBottom"] == "34.00000px"
+            css.rsProperties.cssProperties()
+                .compactMapValues { $0 }
+                .filter { $0.key.hasPrefix("--RS__scrollPadding") } == test.paddings
         )
     }
 }

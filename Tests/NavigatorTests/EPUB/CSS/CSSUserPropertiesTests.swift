@@ -139,6 +139,6 @@ struct CSSUserPropertiesTests {
     }
 
     @Test func intColorIgnoresTheBitsAboveRGB() {
-        #expect(CSSIntColor(0x7F00FF00).css() == "#00FF00")
+        #expect(CSSIntColor(0x7F00_FF00).css() == "#00FF00")
     }
 }

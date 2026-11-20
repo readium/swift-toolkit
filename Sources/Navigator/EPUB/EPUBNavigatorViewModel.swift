@@ -113,7 +113,7 @@ enum EPUBScriptScope {
             fontFamilyDeclarations: config.fontFamilyDeclarations
         )
 
-        css.update(with: settings)
+        css.update(with: settings, userInterfaceIdiom: userInterfaceIdiom)
 
         NotificationCenter.default.addObserver(
             self,
@@ -300,6 +300,9 @@ enum EPUBScriptScope {
     private var css: ReadiumCSS
     private let servedFonts: [FileURL: AbsoluteURL]
 
+    /// Device used to choose the WebKit patch of Readium CSS.
+    private let userInterfaceIdiom = UIDevice.current.userInterfaceIdiom
+
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
             let link = publication.linkWithHREF(href),
@@ -337,7 +340,12 @@ enum EPUBScriptScope {
                 safeAreaInsets: safeAreaInsets
             )
         }
-        css.update(with: settings, resolvedLayout: layout, safeAreaInsets: safeAreaInsets)
+        css.update(
+            with: settings,
+            userInterfaceIdiom: userInterfaceIdiom,
+            resolvedLayout: layout,
+            safeAreaInsets: safeAreaInsets
+        )
 
         // HTML resources in the cache have the CSS already injected at the time
         // they were first served. Evict them so that any future resource load

@@ -8,6 +8,7 @@ import Foundation
 @testable import ReadiumNavigator
 import ReadiumShared
 import Testing
+import UIKit
 
 enum EPUBPreferencesTests {
     /// Keeps the round-trip, merging and settings tests exhaustive.
@@ -111,11 +112,9 @@ enum EPUBPreferencesTests {
 
     @Suite("Readium CSS") struct CSS {
         @Test("emits only the default properties when every preference is unset")
-        @MainActor func unset() {
-            // The WebKit patches depend on the device running the tests.
+        func unset() {
             let props = cssProperties()
                 .compactMapValues { $0 }
-                .filter { !$0.key.hasSuffix("Patch") }
             #expect(props == [
                 "--RS__disableOverflow": "readium-noOverflow-on",
                 "--USER__fontSize": "100.00000%",
@@ -124,7 +123,7 @@ enum EPUBPreferencesTests {
         }
 
         @Test("emits each preference", arguments: cssTable)
-        @MainActor func emitted(preferences: EPUBPreferences, expected: [String: String?]) {
+        func emitted(preferences: EPUBPreferences, expected: [String: String?]) {
             let unset = cssProperties()
             let set = cssProperties(preferences: preferences)
             // A property removed by the preference is reported as `nil`.
@@ -509,7 +508,7 @@ enum EPUBPreferencesTests {
             (.infinity, "1000"),
             (.nan, nil),
         ] as [(Double?, String?)])
-        @MainActor func css(fontWeight: Double?, expected: String?) {
+        func css(fontWeight: Double?, expected: String?) {
             // Set on the settings, as the preferences are limited to 2.5.
             var settings = settings()
             settings.fontWeight = fontWeight
@@ -629,7 +628,7 @@ enum EPUBPreferencesTests {
 
     @Suite("image filters") struct ImageFilters {
         @Test("ReadiumCSS doesn't apply the image filters at 0 or negative", arguments: [0.0, -0.5])
-        @MainActor func cssImageFiltersOff(value: Double) {
+        func cssImageFiltersOff(value: Double) {
             let props = cssProperties(preferences: EPUBPreferences(darkenImages: value, invertImages: value, invertGaiji: value))
             #expect(props["--USER__darkenImages"] == .some(nil))
             #expect(props["--USER__invertImages"] == .some(nil))
@@ -637,7 +636,7 @@ enum EPUBPreferencesTests {
         }
 
         @Test("ReadiumCSS limits the image filters to 100%")
-        @MainActor func cssImageFiltersAboveMaximum() {
+        func cssImageFiltersAboveMaximum() {
             let props = cssProperties(preferences: EPUBPreferences(darkenImages: 1.5, invertImages: 1.5, invertGaiji: 1.5))
             #expect(props["--USER__darkenImages"] == "0.00000")
             #expect(props["--USER__invertImages"] == "1.00000")
@@ -665,7 +664,7 @@ enum EPUBPreferencesTests {
                 editor.darkenImages.decrement()
             }
             // Repeated decrements of 0.1 leave a residue instead of an exact 0.
-            #expect(editor.darkenImages.format(value: try #require(editor.preferences.darkenImages)) == "0%")
+            #expect(try editor.darkenImages.format(value: #require(editor.preferences.darkenImages)) == "0%")
             #expect(cssProperties(preferences: editor.preferences)["--USER__darkenImages"] == .some(nil))
         }
 
@@ -1363,15 +1362,15 @@ private func settings(
 }
 
 /// Readium CSS properties emitted for the given `settings`, before the layout
-/// is resolved.
-@MainActor private func cssProperties(_ settings: EPUBSettings) -> [String: String?] {
+/// is resolved, without any WebKit patch.
+private func cssProperties(_ settings: EPUBSettings) -> [String: String?] {
     var css = ReadiumCSS(baseURL: HTTPURL(string: "https://readium/")!)
-    css.update(with: settings)
+    css.update(with: settings, userInterfaceIdiom: .mac)
     return css.rsProperties.cssProperties()
         .merging(css.userProperties.cssProperties()) { _, user in user }
 }
 
-@MainActor private func cssProperties(
+private func cssProperties(
     preferences: EPUBPreferences = EPUBPreferences(),
     defaults: EPUBDefaults = EPUBDefaults()
 ) -> [String: String?] {
