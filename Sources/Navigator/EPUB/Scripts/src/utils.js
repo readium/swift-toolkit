@@ -36,7 +36,10 @@ window.addEventListener(
         onScroll();
       });
     });
-    observer.observe(document.body);
+    // SVG documents have no body.
+    if (document.body) {
+      observer.observe(document.body);
+    }
   },
   false
 );
@@ -109,7 +112,9 @@ function onScroll() {
     const totalContentWidth = root.scrollWidth;
 
     if (isRTL()) {
-      scrollX = Math.abs(scrollX);
+      // `scrollX` is negative in RTL, and positive in the content inset of
+      // the scroll view. The navigator clamps the progressions to [0, 1].
+      scrollX = -scrollX;
     }
     lastKnownProgressions = {
       first: scrollX / totalContentWidth,

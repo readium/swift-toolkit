@@ -9,12 +9,6 @@ Readium allows users to customize the font family used to render a reflowable EP
 
 iOS ships with a large collection of font families that you can use directly in the EPUB preferences. [Take a look at the Apple catalog of System Fonts](https://developer.apple.com/fonts/system-fonts/).
 
-To improve readability, Readium embeds three additional font families designed for accessibility:
-
-* [OpenDyslexic](https://opendyslexic.org/)
-* [AccessibleDfA](https://github.com/Orange-OpenSource/font-accessible-dfa), by Orange
-* [iA Writer Duospace](https://github.com/iaolo/iA-Fonts/tree/master/iA%20Writer%20Duospace), by iA
-
 You can use all the iOS System Fonts out of the box with the EPUB navigator:
 
 ```swift
@@ -46,9 +40,7 @@ epubPreferencesEditor.fontFamily.with(supportedValues: [
     nil, // A `nil` value means that the original author font will be used.
     .palatino,
     .helveticaNeue,
-    .iaWriterDuospace,
-    .accessibleDfA,
-    .openDyslexic
+    .atkinsonHyperlegible, // A custom font family, see below.
 ])
 ```
 

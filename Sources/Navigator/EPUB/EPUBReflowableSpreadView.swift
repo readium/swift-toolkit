@@ -355,19 +355,40 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return false
         }
 
-        // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
-        if viewModel.scroll, !viewModel.verticalText, [0, 1].contains(progression) {
-            var contentOffset = scrollView.contentOffset
-            contentOffset.y = (progression == 0)
-                ? -scrollView.contentInset.top
-                : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
-            scrollView.contentOffset = contentOffset
+        // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the start or the end of the page in scroll mode.
+        if viewModel.scroll, [0, 1].contains(progression) {
+            scrollView.contentOffset = Self.scrollModeContentOffset(
+                of: scrollView,
+                atStart: progression == 0,
+                verticalText: viewModel.verticalText
+            )
             return true
         } else {
             let dir = viewModel.readingProgression.rawValue
             await evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\', \(animated))")
             return true
         }
+    }
+
+    /// Returns the content offset showing the start or the end of a resource
+    /// in scroll mode, including the content inset.
+    static func scrollModeContentOffset(
+        of scrollView: UIScrollView,
+        atStart: Bool,
+        verticalText: Bool
+    ) -> CGPoint {
+        var offset = scrollView.contentOffset
+        if verticalText {
+            // Vertical text scrolls horizontally, from right to left.
+            offset.x = atStart
+                ? (scrollView.contentSize.width - scrollView.bounds.width + scrollView.contentInset.right)
+                : -scrollView.contentInset.left
+        } else {
+            offset.y = atStart
+                ? -scrollView.contentInset.top
+                : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
+        }
+        return offset
     }
 
     /// Scrolls at the tag with ID `tagID`.

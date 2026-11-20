@@ -51,7 +51,8 @@ export function registerTemplates(newStyles) {
   if (stylesheet) {
     let styleElement = document.createElement("style");
     styleElement.innerHTML = stylesheet;
-    document.getElementsByTagName("head")[0].appendChild(styleElement);
+    // SVG documents have no head, and decorations are not supported in them.
+    document.head?.appendChild(styleElement);
   }
 }
 
@@ -417,6 +418,10 @@ window.addEventListener(
   function () {
     // Will relayout all the decorations when the document body is resized.
     const body = document.body;
+    // SVG documents have no body.
+    if (!body) {
+      return;
+    }
     var lastSize = { width: 0, height: 0 };
     const observer = new ResizeObserver(() => {
       if (

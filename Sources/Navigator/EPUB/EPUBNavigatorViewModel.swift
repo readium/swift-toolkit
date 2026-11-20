@@ -89,34 +89,6 @@ enum EPUBScriptScope {
         assetsBaseURL: any AbsoluteURL,
         formatSniffer: FormatSniffer
     ) {
-        var config = config
-
-        if let fontsDir = Bundle.module.resourceURL?.fileURL?.appendingPath("Assets/Static/fonts", isDirectory: true) {
-            config.fontFamilyDeclarations.append(
-                CSSFontFamilyDeclaration(
-                    fontFamily: .openDyslexic,
-                    fontFaces: [
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Regular.otf", isDirectory: false),
-                            style: .normal, weight: .standard(.normal)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Italic.otf", isDirectory: false),
-                            style: .italic, weight: .standard(.normal)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Bold.otf", isDirectory: false),
-                            style: .normal, weight: .standard(.bold)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-BoldItalic.otf", isDirectory: false),
-                            style: .italic, weight: .standard(.bold)
-                        ),
-                    ]
-                ).eraseToAnyHTMLFontFamilyDeclaration()
-            )
-        }
-
         self.publication = publication
         self.readingOrder = EPUBReadingOrder(
             readingOrder: readingOrder,
@@ -137,12 +109,11 @@ enum EPUBScriptScope {
 
         css = ReadiumCSS(
             layout: CSSLayout(),
-            rsProperties: config.readiumCSSRSProperties,
             baseURL: assetsBaseURL.appendingPath("readium-css", isDirectory: true),
             fontFamilyDeclarations: config.fontFamilyDeclarations
         )
 
-        css.update(with: settings)
+        css.update(with: settings, userInterfaceIdiom: userInterfaceIdiom)
 
         NotificationCenter.default.addObserver(
             self,
@@ -257,8 +228,8 @@ enum EPUBScriptScope {
         settings.readingProgression
     }
 
-    var theme: Theme {
-        settings.theme
+    var backgroundColor: Color {
+        settings.effectiveBackgroundColor
     }
 
     var scroll: Bool {
@@ -281,13 +252,35 @@ enum EPUBScriptScope {
 
     private(set) var spreadEnabled: Bool = false
     private var viewSize: CGSize?
+    private var safeAreaInsets: UIEdgeInsets = .zero
+    private let layoutResolver = LayoutResolver()
 
+    /// Updates the spread for the size the view is about to take.
+    ///
+    /// The CSS layout is not resolved here, as the safe area insets matching
+    /// this size are not known yet. It is resolved once the view is laid out,
+    /// see `viewDidLayout(size:safeAreaInsets:)`.
     func viewSizeWillChange(_ newSize: CGSize) {
         guard viewSize != newSize else {
             return
         }
         viewSize = newSize
         updateSpread()
+    }
+
+    /// Resolves the CSS layout from the final size and safe area insets of
+    /// the view, and commits it when it changed.
+    func viewDidLayout(size: CGSize, safeAreaInsets insets: UIEdgeInsets) {
+        viewSizeWillChange(size)
+        safeAreaInsets = insets
+
+        // Most layout passes don't change the layout, for example when the
+        // app toggles its bars, which only changes the top and bottom insets
+        // used with vertical text.
+        guard resolveLayout(with: settings) != resolvedLayout else {
+            return
+        }
+        updateCSS(with: settings, commitNow: true)
     }
 
     private func updateSpread() {
@@ -313,6 +306,9 @@ enum EPUBScriptScope {
 
     private var css: ReadiumCSS
     private let servedFonts: [FileURL: AbsoluteURL]
+
+    /// Device used to choose the WebKit patch of Readium CSS.
+    private let userInterfaceIdiom = UIDevice.current.userInterfaceIdiom
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
@@ -341,9 +337,28 @@ enum EPUBScriptScope {
         }
     }
 
+    /// Layout of the current CSS, resolved from the view size.
+    private var resolvedLayout: LayoutResolver.Layout?
+
+    private func resolveLayout(with settings: EPUBSettings) -> LayoutResolver.Layout? {
+        viewSize.flatMap { size -> LayoutResolver.Layout? in
+            guard size.width > 0, size.height > 0 else { return nil }
+            return layoutResolver.layout(
+                settings: settings,
+                viewportSize: size,
+                safeAreaInsets: safeAreaInsets
+            )
+        }
+    }
+
     private func updateCSS(with settings: EPUBSettings, commitNow: Bool) {
         let previous = css
-        css.update(with: settings)
+        resolvedLayout = resolveLayout(with: settings)
+        css.update(
+            with: settings,
+            userInterfaceIdiom: userInterfaceIdiom,
+            resolvedLayout: resolvedLayout
+        )
 
         // HTML resources in the cache have the CSS already injected at the time
         // they were first served. Evict them so that any future resource load

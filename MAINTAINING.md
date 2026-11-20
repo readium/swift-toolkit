@@ -26,6 +26,18 @@ pnpm update
 make scripts
 ```
 
+### Readium CSS
+
+The stylesheets in `Sources/Navigator/EPUB/Assets/Static/readium-css` are copied by `make scripts` from the `@readium/css` npm package, pinned to an exact version in `Sources/Navigator/EPUB/Scripts/package.json`. Don't edit them directly. `pnpm update` keeps this pinned version, so upgrade Readium CSS with:
+
+```shell
+make update-readium-css
+# Or, for a specific version:
+make update-readium-css version=<version>
+```
+
+Commit the updated `package.json`, `pnpm-lock.yaml` and `readium-css` folder.
+
 ### Build tools
 
 In `BuildTools/Package.swift`, bump the versions, then update the lock:
