@@ -389,16 +389,11 @@ struct ReadiumCSSTests {
             defaults: EPUBDefaults(),
             metadata: Metadata(title: "Test")
         )
-        css.update(with: settings, userInterfaceIdiom: .pad, safeAreaInsets: UIEdgeInsets(top: 44, left: 20, bottom: 34, right: 25))
+        css.update(with: settings, userInterfaceIdiom: .pad)
 
         let props = css.userProperties.cssProperties()
         #expect(props["--USER__colCount"] == .some(nil))
         #expect(props["--USER__lineLength"] == .some(nil))
-        let rsProps = css.rsProperties.cssProperties()
-        #expect(rsProps["--RS__scrollPaddingTop"] == .some(nil))
-        #expect(rsProps["--RS__scrollPaddingBottom"] == .some(nil))
-        #expect(rsProps["--RS__scrollPaddingLeft"] == .some(nil))
-        #expect(rsProps["--RS__scrollPaddingRight"] == .some(nil))
     }
 
     struct LineLengthCase: Sendable, CustomTestStringConvertible {
@@ -437,63 +432,23 @@ struct ReadiumCSSTests {
         )
     }
 
-    struct ScrollPaddingCase: Sendable, CustomTestStringConvertible {
-        let name: String
-        let idiom: UIUserInterfaceIdiom
-        var verticalText: Bool = false
-        let paddings: [String: String]
-
-        var testDescription: String {
-            name
-        }
-    }
-
-    /// The scroll padding is set on the block axis of the text. Like the line
-    /// length, it is divided by the font size, except on iPhone.
-    @Test(arguments: [
-        ScrollPaddingCase(
-            name: "iPhone",
-            idiom: .phone,
-            paddings: ["--RS__scrollPaddingTop": "44.00000px", "--RS__scrollPaddingBottom": "34.00000px"]
-        ),
-        ScrollPaddingCase(
-            name: "iPad",
-            idiom: .pad,
-            paddings: ["--RS__scrollPaddingTop": "22.00000px", "--RS__scrollPaddingBottom": "17.00000px"]
-        ),
-        ScrollPaddingCase(
-            name: "Mac",
-            idiom: .mac,
-            paddings: ["--RS__scrollPaddingTop": "22.00000px", "--RS__scrollPaddingBottom": "17.00000px"]
-        ),
-        ScrollPaddingCase(
-            name: "iPhone with vertical text",
-            idiom: .phone,
-            verticalText: true,
-            paddings: ["--RS__scrollPaddingLeft": "20.00000px", "--RS__scrollPaddingRight": "25.00000px"]
-        ),
-        ScrollPaddingCase(
-            name: "iPad with vertical text",
-            idiom: .pad,
-            verticalText: true,
-            paddings: ["--RS__scrollPaddingLeft": "10.00000px", "--RS__scrollPaddingRight": "12.50000px"]
-        ),
-    ])
-    func updateWithLayoutAndScrollSettingsComputesScrollPaddingFromInsets(_ test: ScrollPaddingCase) {
+    /// In scroll mode, the safe area is applied by the content inset of the
+    /// web view's scroll view, so the body has no scroll padding.
+    @Test(arguments: [false, true])
+    func updateWithScrollSettingsDoesNotSetScrollPadding(verticalText: Bool) {
         var css = ReadiumCSS(baseURL: baseURL)
         let settings = EPUBSettings(
-            preferences: EPUBPreferences(fontSize: 2.0, scroll: true, verticalText: test.verticalText),
+            preferences: EPUBPreferences(scroll: true, verticalText: verticalText),
             defaults: EPUBDefaults(),
             metadata: Metadata(title: "Test")
         )
-        let insets = UIEdgeInsets(top: 44, left: 20, bottom: 34, right: 25)
         let layout = LayoutResolver.Layout(colCount: 1, lineLength: 500.0)
-        css.update(with: settings, userInterfaceIdiom: test.idiom, resolvedLayout: layout, safeAreaInsets: insets)
+        css.update(with: settings, userInterfaceIdiom: .phone, resolvedLayout: layout)
 
-        #expect(
-            css.rsProperties.cssProperties()
-                .compactMapValues { $0 }
-                .filter { $0.key.hasPrefix("--RS__scrollPadding") } == test.paddings
-        )
+        let props = css.rsProperties.cssProperties()
+        #expect(props["--RS__scrollPaddingTop"] == .some(nil))
+        #expect(props["--RS__scrollPaddingBottom"] == .some(nil))
+        #expect(props["--RS__scrollPaddingLeft"] == .some(nil))
+        #expect(props["--RS__scrollPaddingRight"] == .some(nil))
     }
 }

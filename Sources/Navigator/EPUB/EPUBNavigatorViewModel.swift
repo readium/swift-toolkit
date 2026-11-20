@@ -343,8 +343,7 @@ enum EPUBScriptScope {
         css.update(
             with: settings,
             userInterfaceIdiom: userInterfaceIdiom,
-            resolvedLayout: layout,
-            safeAreaInsets: safeAreaInsets
+            resolvedLayout: layout
         )
 
         // HTML resources in the cache have the CSS already injected at the time

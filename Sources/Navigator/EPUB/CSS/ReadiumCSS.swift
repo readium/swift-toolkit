@@ -32,8 +32,7 @@ extension ReadiumCSS {
     mutating func update(
         with settings: EPUBSettings,
         userInterfaceIdiom: UIUserInterfaceIdiom,
-        resolvedLayout: LayoutResolver.Layout? = nil,
-        safeAreaInsets: UIEdgeInsets = .zero
+        resolvedLayout: LayoutResolver.Layout? = nil
     ) {
         layout = settings.cssLayout
 
@@ -45,7 +44,7 @@ extension ReadiumCSS {
         ])
 
         // Readium CSS applies `--USER__fontSize` with a `zoom` on `body`,
-        // which also scales the lengths in px set below. They are divided by
+        // which also scales the line length in px set below. It is divided by
         // this `zoom` to compensate it.
         var bodyZoom = settings.fontSize
 
@@ -72,16 +71,10 @@ extension ReadiumCSS {
         // The margins around the lines come from the resolved `lineLength`,
         // so `--RS__pageGutter` is not set: `body` is `border-box`, so the
         // gutter would be added to these margins.
-        if settings.scroll, resolvedLayout != nil {
-            let padding = { (inset: CGFloat) in CSSPxLength(inset / bodyZoom) }
-            if settings.verticalText {
-                rsProperties.scrollPaddingLeft = padding(safeAreaInsets.left)
-                rsProperties.scrollPaddingRight = padding(safeAreaInsets.right)
-            } else {
-                rsProperties.scrollPaddingTop = padding(safeAreaInsets.top)
-                rsProperties.scrollPaddingBottom = padding(safeAreaInsets.bottom)
-            }
-        }
+        //
+        // The `--RS__scrollPadding*` properties are not set either: in scroll
+        // mode, the content inset of the web view's scroll view already
+        // applies the safe area (see `EPUBReflowableSpreadView`).
 
         userProperties = CSSUserProperties(
             view: settings.scroll ? .scroll : .paged,
