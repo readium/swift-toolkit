@@ -11,3 +11,10 @@ package extension Comparable {
         min(max(self, limits.lowerBound), limits.upperBound)
     }
 }
+
+package extension Comparable where Self: AdditiveArithmetic {
+    /// Returns the value, or `nil` if it is not above zero (NaN included).
+    var positiveOrNil: Self? {
+        self > .zero ? self : nil
+    }
+}

@@ -499,7 +499,7 @@ Some preferences are available only in paginated mode (`scroll = false`).
 
 #### Line length and margins
 
-The navigator computes the number of columns and the line length from the viewport size and these preferences:
+The navigator computes the number of columns and the line length from the viewport size, the `fontSize` and these preferences:
 
 * `optimalLineLength` is a factor applied to the optimal line length (578 points), used to choose the number of columns fitting in the viewport. It applies only in paginated mode, when `columnCount` is `nil` (automatic).
 * `minimalLineLength` is a factor applied to the minimal line length (356 points): fewer columns are displayed if the lines would be shorter. It applies only in paginated mode, when `columnCount` is greater than 1. When `nil` (the default), the requested number of columns is always displayed.

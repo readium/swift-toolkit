@@ -585,19 +585,29 @@ enum EPUBPreferencesTests {
             (0.5, 0.5),
         ])
         func limitValues(value: Double, expected: Double) {
-            let prefs = EPUBPreferences(fontSize: value, letterSpacing: value, pageMargins: value, paragraphSpacing: value, wordSpacing: value)
-            #expect(prefs.fontSize == expected)
+            let prefs = EPUBPreferences(letterSpacing: value, pageMargins: value, paragraphSpacing: value, wordSpacing: value)
             #expect(prefs.letterSpacing == expected)
             #expect(prefs.pageMargins == expected)
             #expect(prefs.paragraphSpacing == expected)
             #expect(prefs.wordSpacing == expected)
 
-            let defaults = EPUBDefaults(fontSize: value, letterSpacing: value, pageMargins: value, paragraphSpacing: value, wordSpacing: value)
-            #expect(defaults.fontSize == expected)
+            let defaults = EPUBDefaults(letterSpacing: value, pageMargins: value, paragraphSpacing: value, wordSpacing: value)
             #expect(defaults.letterSpacing == expected)
             #expect(defaults.pageMargins == expected)
             #expect(defaults.paragraphSpacing == expected)
             #expect(defaults.wordSpacing == expected)
+        }
+
+        @Test("preferences and defaults ignore a font size that is not above 0", arguments: [
+            (-1.0, nil),
+            (0.0, nil),
+            (.nan, nil),
+            (0.01, 0.01),
+            (1.5, 1.5),
+        ] as [(Double, Double?)])
+        func fontSize(value: Double, expected: Double?) {
+            #expect(EPUBPreferences(fontSize: value).fontSize == expected)
+            #expect(EPUBDefaults(fontSize: value).fontSize == expected)
         }
     }
 
@@ -643,13 +653,18 @@ enum EPUBPreferencesTests {
             }
         }
 
-        static let customDefaults = EPUBDefaults(columnCount: 2, maximalLineLength: 1.2, minimalLineLength: 0.8, optimalLineLength: 1.5)
+        static let customDefaults = EPUBDefaults(columnCount: 2, fontSize: 1.4, maximalLineLength: 1.2, minimalLineLength: 0.8, optimalLineLength: 1.5)
 
         static let limits: [Limit] = [
             // Out of range, falling back on the defaults.
             Limit(\.columnCount, "columnCount", 0, "nil"),
             Limit(\.columnCount, "columnCount", -1, "nil"),
             Limit(\.columnCount, "columnCount", 0, "2", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.fontSize, "fontSize", 0, "1.0"),
+            Limit(\.fontSize, "fontSize", -1, "1.0"),
+            Limit(\.fontSize, "fontSize", .nan, "1.0"),
+            Limit(\.fontSize, "fontSize", 0, "1.4", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.fontSize, "fontSize", -1, "1.4", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.maximalLineLength, "maximalLineLength", 0, "1.0"),
             Limit(\.maximalLineLength, "maximalLineLength", -1, "1.0"),
             Limit(\.maximalLineLength, "maximalLineLength", 0, "1.2", defaults: customDefaults, defaultsDescription: "custom defaults"),
@@ -662,7 +677,6 @@ enum EPUBPreferencesTests {
             Limit(\.optimalLineLength, "optimalLineLength", 0, "1.5", defaults: customDefaults, defaultsDescription: "custom defaults"),
 
             // Out of range, limited.
-            Limit(\.fontSize, "fontSize", -1, "0.0"),
             Limit(\.fontWeight, "fontWeight", -1, "0.0"),
             Limit(\.fontWeight, "fontWeight", 3, "2.5"),
             Limit(\.fontWidth, "fontWidth", 0.1, "0.5"),
@@ -681,8 +695,9 @@ enum EPUBPreferencesTests {
             // Valid values are kept.
             Limit(\.columnCount, "columnCount", 1, "1"),
             Limit(\.columnCount, "columnCount", 1, "1", defaults: customDefaults, defaultsDescription: "custom defaults"),
-            Limit(\.fontSize, "fontSize", 0, "0.0"),
+            Limit(\.fontSize, "fontSize", 0.01, "0.01"),
             Limit(\.fontSize, "fontSize", 2, "2.0"),
+            Limit(\.fontSize, "fontSize", 2, "2.0", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.fontWeight, "fontWeight", 2.5, "2.5"),
             Limit(\.fontWidth, "fontWidth", 0.5, "0.5"),
             Limit(\.darkenImages, "darkenImages", 0.4, "0.4"),
@@ -715,7 +730,7 @@ enum EPUBPreferencesTests {
 
             let settings = settings(defaults: defaults)
             #expect(settings.columnCount == nil)
-            #expect(settings.fontSize == 0)
+            #expect(settings.fontSize == 1.0)
             #expect(settings.fontWeight == 2.5)
             #expect(settings.fontWidth == 0.5)
             #expect(settings.letterSpacing == 0)
@@ -747,7 +762,7 @@ enum EPUBPreferencesTests {
             )
             #expect(settings == makeSettings(
                 columnCount: nil,
-                fontSize: 0,
+                fontSize: 1.0,
                 fontWeight: 0,
                 fontWidth: 2.5,
                 darkenImages: 1,
@@ -767,7 +782,7 @@ enum EPUBPreferencesTests {
         func settingsCreatedDirectlyWithValidValues() {
             let settings = makeSettings(
                 columnCount: 3,
-                fontSize: 0,
+                fontSize: 0.01,
                 fontWeight: 2.5,
                 fontWidth: 0.5,
                 darkenImages: 0,
@@ -782,7 +797,7 @@ enum EPUBPreferencesTests {
                 wordSpacing: 0.3
             )
             #expect(settings.columnCount == 3)
-            #expect(settings.fontSize == 0)
+            #expect(settings.fontSize == 0.01)
             #expect(settings.fontWeight == 2.5)
             #expect(settings.fontWidth == 0.5)
             #expect(settings.darkenImages == 0)
@@ -1153,7 +1168,8 @@ enum EPUBPreferencesTests {
             let prefs = try decode(#"{"version": 4, "columnCount": 0, "spread": "auto", "fontSize": -1}"#)
             #expect(prefs.columnCount == nil)
             #expect(prefs.spread == nil)
-            #expect(prefs.fontSize == 0)
+            #expect(prefs.fontSize == nil)
+            #expect(try decode(#"{"version": 4, "fontSize": 0}"#).fontSize == nil)
         }
 
         @Test("a versioned payload is not migrated")

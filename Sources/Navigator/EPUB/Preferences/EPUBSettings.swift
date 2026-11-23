@@ -92,7 +92,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.columnCount = EPUBPreferences.validColumnCount(columnCount)
         self.fit = fit
         self.fontFamily = fontFamily
-        self.fontSize = max(fontSize, 0)
+        self.fontSize = fontSize.positiveOrNil ?? 1.0
         self.fontWeight = fontWeight?.clamped(to: EPUBPreferences.fontWeightRange)
         self.fontWidth = fontWidth?.clamped(to: EPUBPreferences.fontWidthRange)
         self.hyphens = hyphens
@@ -105,11 +105,11 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.ligatures = ligatures
         self.lineHeight = lineHeight
         self.linkColor = linkColor
-        self.maximalLineLength = EPUBPreferences.validLineLength(maximalLineLength)
-        self.minimalLineLength = EPUBPreferences.validLineLength(minimalLineLength)
+        self.maximalLineLength = maximalLineLength?.positiveOrNil
+        self.minimalLineLength = minimalLineLength?.positiveOrNil
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
-        self.optimalLineLength = EPUBPreferences.validLineLength(optimalLineLength) ?? 1.0
+        self.optimalLineLength = optimalLineLength.positiveOrNil ?? 1.0
         self.pageMargins = max(pageMargins, 0)
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
@@ -163,18 +163,18 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 
         let columnCount = EPUBPreferences.validColumnCount(preferences.columnCount) ?? defaults.columnCount
         let fit = preferences.fit ?? defaults.fit ?? .auto
-        let fontSize = preferences.fontSize ?? defaults.fontSize ?? 1.0
+        let fontSize = preferences.fontSize?.positiveOrNil ?? defaults.fontSize ?? 1.0
         let fontWeight = preferences.fontWeight ?? defaults.fontWeight
         let fontWidth = preferences.fontWidth ?? defaults.fontWidth
         let hyphens = preferences.hyphens ?? defaults.hyphens
         let letterSpacing = preferences.letterSpacing ?? defaults.letterSpacing
         let ligatures = preferences.ligatures ?? defaults.ligatures
         let lineHeight = preferences.lineHeight ?? defaults.lineHeight
-        let maximalLineLength = EPUBPreferences.validLineLength(preferences.maximalLineLength) ?? defaults.maximalLineLength
-        let minimalLineLength = EPUBPreferences.validLineLength(preferences.minimalLineLength) ?? defaults.minimalLineLength
+        let maximalLineLength = preferences.maximalLineLength?.positiveOrNil ?? defaults.maximalLineLength
+        let minimalLineLength = preferences.minimalLineLength?.positiveOrNil ?? defaults.minimalLineLength
         let noRuby = preferences.noRuby ?? defaults.noRuby ?? false
         let offsetFirstPage = preferences.offsetFirstPage ?? defaults.offsetFirstPage
-        let optimalLineLength = EPUBPreferences.validLineLength(preferences.optimalLineLength) ?? defaults.optimalLineLength ?? 1.0
+        let optimalLineLength = preferences.optimalLineLength?.positiveOrNil ?? defaults.optimalLineLength ?? 1.0
         let pageMargins = preferences.pageMargins ?? defaults.pageMargins ?? 1.0
         let paragraphIndent = preferences.paragraphIndent ?? defaults.paragraphIndent
         let paragraphSpacing = preferences.paragraphSpacing ?? defaults.paragraphSpacing
@@ -285,7 +285,7 @@ public struct EPUBDefaults: Sendable {
     ) {
         self.columnCount = EPUBPreferences.validColumnCount(columnCount)
         self.fit = fit
-        self.fontSize = fontSize.map { max($0, 0) }
+        self.fontSize = fontSize?.positiveOrNil
         self.fontWeight = fontWeight?.clamped(to: EPUBPreferences.fontWeightRange)
         self.fontWidth = fontWidth?.clamped(to: EPUBPreferences.fontWidthRange)
         self.hyphens = hyphens
@@ -293,11 +293,11 @@ public struct EPUBDefaults: Sendable {
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
-        self.maximalLineLength = EPUBPreferences.validLineLength(maximalLineLength)
-        self.minimalLineLength = EPUBPreferences.validLineLength(minimalLineLength)
+        self.maximalLineLength = maximalLineLength?.positiveOrNil
+        self.minimalLineLength = minimalLineLength?.positiveOrNil
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
-        self.optimalLineLength = EPUBPreferences.validLineLength(optimalLineLength)
+        self.optimalLineLength = optimalLineLength?.positiveOrNil
         self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }

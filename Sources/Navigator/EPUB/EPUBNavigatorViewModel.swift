@@ -357,13 +357,14 @@ enum EPUBScriptScope {
     }
 
     /// Layout of the current CSS, resolved from the view size.
-    private var resolvedLayout: LayoutResolver.Layout?
+    private(set) var resolvedLayout: LayoutResolver.Layout?
 
     private func resolveLayout(with settings: EPUBSettings) -> LayoutResolver.Layout? {
         viewSize.flatMap { size -> LayoutResolver.Layout? in
             guard size.width > 0, size.height > 0 else { return nil }
             return layoutResolver.layout(
                 settings: settings,
+                fontScale: settings.fontSize,
                 viewportSize: size,
                 insets: layoutInsets
             )

@@ -196,7 +196,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.columnCount = Self.validColumnCount(columnCount)
         self.fit = fit
         self.fontFamily = fontFamily
-        self.fontSize = fontSize.map { max($0, 0) }
+        self.fontSize = fontSize?.positiveOrNil
         self.fontWeight = fontWeight?.clamped(to: Self.fontWeightRange)
         self.fontWidth = fontWidth?.clamped(to: Self.fontWidthRange)
         self.hyphens = hyphens
@@ -209,11 +209,11 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.ligatures = ligatures
         self.lineHeight = lineHeight
         self.linkColor = linkColor
-        self.maximalLineLength = Self.validLineLength(maximalLineLength)
-        self.minimalLineLength = Self.validLineLength(minimalLineLength)
+        self.maximalLineLength = maximalLineLength?.positiveOrNil
+        self.minimalLineLength = minimalLineLength?.positiveOrNil
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
-        self.optimalLineLength = Self.validLineLength(optimalLineLength)
+        self.optimalLineLength = optimalLineLength?.positiveOrNil
         self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
@@ -302,11 +302,6 @@ extension EPUBPreferences {
     /// Returns the `columnCount`, or `nil` if it is lower than 1.
     static func validColumnCount(_ value: Int?) -> Int? {
         value.takeIf { $0 >= 1 }
-    }
-
-    /// Returns the line length, or `nil` if it is lower than or equal to 0.
-    static func validLineLength(_ value: Double?) -> Double? {
-        value.takeIf { $0 > 0 }
     }
 }
 

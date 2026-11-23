@@ -432,6 +432,23 @@ struct ReadiumCSSTests {
         )
     }
 
+    /// A font size of 0 is ignored by the settings, so neither a `0%` font
+    /// size nor a line length divided by 0 is emitted.
+    @Test(arguments: [UIUserInterfaceIdiom.phone, .pad, .mac])
+    func updateWithZeroFontSizeKeepsLineLength(idiom: UIUserInterfaceIdiom) {
+        var css = ReadiumCSS(baseURL: baseURL)
+        let settings = EPUBSettings(
+            preferences: EPUBPreferences(fontSize: 0),
+            defaults: EPUBDefaults(),
+            metadata: Metadata(title: "Test")
+        )
+        css.update(with: settings, userInterfaceIdiom: idiom, resolvedLayout: LayoutResolver.Layout(colCount: 1, lineLength: 712))
+
+        let props = css.userProperties.cssProperties()
+        #expect(props["--USER__fontSize"] == "100.00000%")
+        #expect(props["--USER__lineLength"] == "712.00000px")
+    }
+
     /// In scroll mode, the safe area is applied by the content inset of the
     /// web view's scroll view, so the body has no scroll padding.
     @Test(arguments: [false, true])

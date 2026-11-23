@@ -78,6 +78,35 @@ import UIKit
         )
         #expect(delegate.scripts.count == (test.commits ? 2 : 1))
     }
+
+    /// An iPad Air 13-inch in landscape gets two columns only up to a 100%
+    /// font size, and the lines are limited by the maximal line length
+    /// multiplied by the font size. A font size of 0 is laid out like 100%.
+    @Test("the layout follows the font size", arguments: [
+        (0.0, LayoutResolver.Layout(colCount: 2, lineLength: 623)),
+        (0.8, LayoutResolver.Layout(colCount: 2, lineLength: 712 * 0.8)),
+        (1.0, LayoutResolver.Layout(colCount: 2, lineLength: 623)),
+        (1.2, LayoutResolver.Layout(colCount: 1, lineLength: 712 * 1.2)),
+    ])
+    func layoutFollowsFontSize(fontSize: Double, expected: LayoutResolver.Layout) {
+        let viewModel = makeViewModel(preferences: EPUBPreferences(fontSize: fontSize))
+        viewModel.viewDidLayout(size: CGSize(width: 1366, height: 1024), safeAreaInsets: .zero, reflowableContentInset: .zero)
+        #expect(viewModel.resolvedLayout == expected)
+    }
+
+    @Test("the layout is resolved again when the font size changes")
+    func layoutUpdatedWithFontSize() {
+        let delegate = ViewModelDelegate()
+        let viewModel = makeViewModel(preferences: EPUBPreferences())
+        viewModel.delegate = delegate
+        viewModel.viewDidLayout(size: CGSize(width: 1366, height: 1024), safeAreaInsets: .zero, reflowableContentInset: .zero)
+        #expect(viewModel.resolvedLayout?.colCount == 2)
+
+        viewModel.submitPreferences(EPUBPreferences(fontSize: 1.2))
+        #expect(viewModel.resolvedLayout?.colCount == 1)
+        #expect(delegate.scripts.count == 2)
+        #expect(delegate.scripts.last?.contains(#""--USER__colCount":"1""#) == true)
+    }
 }
 
 // MARK: - Helpers
@@ -85,6 +114,10 @@ import UIKit
 private let initialInsets = UIEdgeInsets(top: 62, left: 62, bottom: 62, right: 62)
 
 @MainActor private func makeViewModel(verticalText: Bool) -> EPUBNavigatorViewModel {
+    makeViewModel(preferences: EPUBPreferences(verticalText: verticalText))
+}
+
+@MainActor private func makeViewModel(preferences: EPUBPreferences) -> EPUBNavigatorViewModel {
     let publication = Publication(
         manifest: Manifest(
             metadata: Metadata(title: "Reflowable"),
@@ -95,7 +128,7 @@ private let initialInsets = UIEdgeInsets(top: 62, left: 62, bottom: 62, right: 6
         publication: publication,
         readingOrder: publication.readingOrder,
         config: EPUBNavigatorViewController.Configuration(
-            preferences: EPUBPreferences(verticalText: verticalText)
+            preferences: preferences
         )
     )
 }

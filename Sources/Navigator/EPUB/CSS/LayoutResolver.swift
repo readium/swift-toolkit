@@ -25,7 +25,8 @@ final class LayoutResolver {
 
     /// The default line lengths are the ones of the Readium TypeScript
     /// toolkit: the width of 65 (optimal), 40 (minimal) and 80 (maximal)
-    /// "0" characters at 16px in Iowan Old Style.
+    /// "0" characters at 16px in Iowan Old Style. They are the lengths at a
+    /// 100% font size, see the `fontScale` parameter of `layout()`.
     init(
         baseMinMargins: Double = 30.0,
         baseOptimalLineLength: Double = 578.0,
@@ -40,12 +41,16 @@ final class LayoutResolver {
 
     /// Resolves the layout using `EPUBSettings`.
     ///
-    /// - Parameter insets: Insets the margins at the ends of the lines can't
-    ///   be smaller than: left and right with horizontal text, top and bottom
-    ///   with vertical text.
+    /// - Parameters:
+    ///   - fontScale: Font size factor the optimal, minimal and maximal line
+    ///     lengths are multiplied by, usually the `fontSize` setting. Must be
+    ///     above 0. The margins don't follow it.
+    ///   - insets: Insets the margins at the ends of the lines can't be
+    ///     smaller than: left and right with horizontal text, top and bottom
+    ///     with vertical text.
     func layout(
         settings: EPUBSettings,
-        systemFontScale: Double = 1.0,
+        fontScale: Double,
         viewportSize: CGSize,
         insets: UIEdgeInsets = .zero
     ) -> Layout {
@@ -57,7 +62,7 @@ final class LayoutResolver {
             minimalLineLength: settings.minimalLineLength,
             maximalLineLength: settings.maximalLineLength,
             minMargins: settings.pageMargins,
-            systemFontScale: systemFontScale,
+            fontScale: fontScale,
             viewportSize: viewportSize,
             insets: insets
         )
@@ -65,9 +70,14 @@ final class LayoutResolver {
 
     /// Resolves the layout using individual layout parameters.
     ///
-    /// - Parameter insets: Insets the margins at the ends of the lines can't
-    ///   be smaller than: left and right with horizontal text, top and bottom
-    ///   with vertical text.
+    /// - Parameters:
+    ///   - fontScale: Font size factor the optimal, minimal and maximal line
+    ///     lengths are multiplied by, so that a line holds about the same
+    ///     number of characters at any font size. Must be above 0. The
+    ///     margins don't follow it.
+    ///   - insets: Insets the margins at the ends of the lines can't be
+    ///     smaller than: left and right with horizontal text, top and bottom
+    ///     with vertical text.
     func layout(
         scroll: Bool,
         verticalText: Bool,
@@ -76,14 +86,14 @@ final class LayoutResolver {
         minimalLineLength: Double?,
         maximalLineLength: Double?,
         minMargins: Double,
-        systemFontScale: Double = 1.0,
+        fontScale: Double,
         viewportSize: CGSize,
         insets: UIEdgeInsets = .zero
     ) -> Layout {
-        let optimalLineLength = baseOptimalLineLength * optimalLineLength * systemFontScale
-        let minLineLength = minimalLineLength.map { baseMinLineLength * $0 * systemFontScale }
-        let maxLineLength = maximalLineLength.map { baseMaxLineLength * $0 * systemFontScale }
-        let minMargins = baseMinMargins * minMargins * systemFontScale
+        let optimalLineLength = baseOptimalLineLength * optimalLineLength * fontScale
+        let minLineLength = minimalLineLength.map { baseMinLineLength * $0 * fontScale }
+        let maxLineLength = maximalLineLength.map { baseMaxLineLength * $0 * fontScale }
+        let minMargins = baseMinMargins * minMargins
 
         let minMarginsWithInsets: Double = {
             if verticalText {

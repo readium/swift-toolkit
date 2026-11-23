@@ -25,7 +25,7 @@ To support arbitrary column counts natively via Readium CSS v2, `columnCount` ha
 
 ### `EPUBPreferences` line length and page margins
 
-The EPUB navigator now computes the number of columns and the line length of reflowable resources from the viewport size and the new `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences. `pageMargins` is now a factor applied to the minimal margins on each side of the lines, which are larger when the line length is limited. See [the Preferences guide](Guides/Navigator/Preferences.md#line-length-and-margins) for details.
+The EPUB navigator now computes the number of columns and the line length of reflowable resources from the viewport size, the font size and the new `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences. `pageMargins` is now a factor applied to the minimal margins on each side of the lines, which are larger when the line length is limited. See [the Preferences guide](Guides/Navigator/Preferences.md#line-length-and-margins) for details.
 
 ### `EPUBPreferences` Image Filters
 
