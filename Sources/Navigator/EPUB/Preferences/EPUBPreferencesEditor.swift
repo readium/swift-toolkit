@@ -381,7 +381,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             format: \.percentageString
         )
 
-    /// Hiding/disabling ruby (furigana) annotations.
+    /// Hides the ruby (furigana) annotations when `true`.
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources

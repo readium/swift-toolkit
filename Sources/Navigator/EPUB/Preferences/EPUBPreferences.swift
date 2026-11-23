@@ -98,7 +98,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// ignored.
     public var minimalLineLength: Double?
 
-    /// Hiding/disabling ruby (furigana) annotations.
+    /// Hides the ruby (furigana) annotations when `true`.
+    ///
+    /// Only effective with reflowable publications using a CJK layout
+    /// (horizontal or vertical).
     public var noRuby: Bool?
 
     /// Indicates whether the first page should be displayed alone and centered

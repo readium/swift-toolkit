@@ -147,7 +147,7 @@ extension ReadiumCSS: HTMLInjectable {
         return dirRegex.stringByReplacingMatches(in: html, options: [], range: range, withTemplate: "$1")
     }
 
-    /// https://github.com/readium/readium-css/blob/develop/docs/CSS06-stylesheets_order.md
+    /// https://github.com/readium/css/blob/develop/docs/CSS06-stylesheets_order.md
     func injections(for html: String) throws -> [HTMLInjection] {
         var inj: [HTMLInjection] = []
         inj.append(.meta(name: "viewport", content: "width=device-width, height=device-height, initial-scale=1.0"))
@@ -178,7 +178,7 @@ extension ReadiumCSS: HTMLInjectable {
         inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-after.css", isDirectory: false).string))
 
         // Fix Readium CSS issue with the positioning of <audio> elements.
-        // https://github.com/readium/readium-css/issues/94
+        // https://github.com/readium/css/issues/94
         // https://github.com/readium/r2-navigator-kotlin/issues/193
         inj.append(.style("audio[controls] { width: revert; height: revert; }"))
 
@@ -187,7 +187,7 @@ extension ReadiumCSS: HTMLInjectable {
 
     /// Returns whether the given `html` has any CSS styles.
     ///
-    /// https://github.com/readium/readium-css/blob/develop/docs/CSS06-stylesheets_order.md#append-if-there-is-no-authors-styles
+    /// https://github.com/readium/css/blob/develop/docs/CSS06-stylesheets_order.md#append-if-there-is-no-authors-styles
     private func hasStyles(_ html: String) -> Bool {
         html.localizedCaseInsensitiveContains("<link ")
             || html.localizedCaseInsensitiveContains(" style=")
@@ -207,7 +207,7 @@ extension ReadiumCSS: HTMLInjectable {
 
     /// Inject the `dir` attribute in `html` and `body`.
     ///
-    /// https://github.com/readium/readium-css/blob/develop/docs/CSS16-internationalization.md#direction
+    /// https://github.com/readium/css/blob/develop/docs/CSS16-internationalization.md#direction
     private func dirInjection() -> [HTMLInjection] {
         guard let rtl = layout.stylesheets.htmlDir.isRTL else {
             return []
@@ -221,7 +221,7 @@ extension ReadiumCSS: HTMLInjectable {
 
     /// Injects the `xml:lang` attribute in `html` and `body`.
     ///
-    /// https://github.com/readium/readium-css/blob/develop/docs/CSS16-internationalization.md#language
+    /// https://github.com/readium/css/blob/develop/docs/CSS16-internationalization.md#language
     private func langInjections(for html: String) -> [HTMLInjection] {
         let langAttrs = ["xml:lang", "lang"]
         guard

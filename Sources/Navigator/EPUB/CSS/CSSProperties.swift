@@ -34,7 +34,7 @@ extension CSSProperties {
 
 /// User settings properties.
 ///
-/// See https://readium.org/readium-css/docs/CSS19-api.html#user-settings
+/// See https://github.com/readium/css/blob/develop/docs/CSS19-api.md#user-settings
 struct CSSUserProperties: CSSProperties, Sendable {
     // View mode
 
@@ -45,7 +45,8 @@ struct CSSUserProperties: CSSProperties, Sendable {
 
     /// The number of columns (column-count) the user wants displayed.
     ///
-    /// To reset, change the value to 0.
+    /// Readium CSS treats `0` as an error and renders a single column. To
+    /// reset, set the property to `nil` instead.
     var colCount: Int?
 
     /// The maximum line length.
@@ -137,7 +138,8 @@ struct CSSUserProperties: CSSProperties, Sendable {
     /// It impacts font style, weight and variant, text decoration, super and subscripts.
     var a11yNormalize: Bool?
 
-    /// Hiding/disabling ruby (furigana) annotations.
+    /// Hides the ruby (furigana) annotations when `true`. Only available with
+    /// the CJK stylesheets.
     var noRuby: Bool?
 
     /// Additional overrides for extensions and adjustments.
@@ -245,7 +247,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
 
 /// Reading System properties.
 ///
-/// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
+/// See https://github.com/readium/css/blob/develop/docs/CSS19-api.md#reading-system-styles
 struct CSSRSProperties: CSSProperties, Sendable {
     // Pagination
 
