@@ -174,7 +174,7 @@ extension EPUBPreferences {
 
         // `columnCount` was an enum of `auto`, `1` and `2`.
         if let columnCount = container.decodeLeniently(String.self, forKey: .columnCount) {
-            self.columnCount = Int(columnCount).takeIf { $0 >= 1 }
+            self.columnCount = Self.validColumnCount(Int(columnCount))
         }
 
         // `theme` was an enum of `light`, `dark` and `sepia`, and

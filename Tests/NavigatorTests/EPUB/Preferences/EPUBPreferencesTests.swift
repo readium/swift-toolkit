@@ -601,6 +601,256 @@ enum EPUBPreferencesTests {
         }
     }
 
+    /// The limits of `EPUBPreferences.init` are bypassed by the preferences
+    /// set after the initialization, so `EPUBSettings` applies them too.
+    @Suite("settings limits") struct SettingsLimits {
+        @Test("a preference set after the initialization resolves like one given to the initializer", arguments: limits)
+        func preferencesSetAfterInit(limit: Limit) {
+            var prefs = EPUBPreferences()
+            limit.set(&prefs)
+            let resolved = settings(preferences: prefs, defaults: limit.defaults)
+
+            let setting = Mirror(reflecting: resolved).children.first { $0.label == limit.property }
+            #expect(setting.map { unwrappedDescription($0.value) } == limit.expected)
+
+            // `merging(_:)` gives the values to the initializer.
+            let initialized = EPUBPreferences().merging(prefs)
+            #expect(resolved == settings(preferences: initialized, defaults: limit.defaults))
+        }
+
+        /// A preference set after the initialization of `EPUBPreferences`, and
+        /// the description of the value expected in the resolved setting.
+        struct Limit: Sendable, CustomTestStringConvertible {
+            let property: String
+            let set: @Sendable (inout EPUBPreferences) -> Void
+            let defaults: EPUBDefaults
+            let expected: String
+            let testDescription: String
+
+            init<Value: Sendable>(
+                _ keyPath: WritableKeyPath<EPUBPreferences, Value?> & Sendable,
+                _ property: String,
+                _ value: Value,
+                _ expected: String,
+                defaults: EPUBDefaults = EPUBDefaults(),
+                defaultsDescription: String = "the default EPUBDefaults"
+            ) {
+                self.property = property
+                set = { $0[keyPath: keyPath] = value }
+                self.defaults = defaults
+                self.expected = expected
+                testDescription = "\(property) = \(value) with \(defaultsDescription)"
+            }
+        }
+
+        static let customDefaults = EPUBDefaults(columnCount: 2, maximalLineLength: 1.2, minimalLineLength: 0.8, optimalLineLength: 1.5)
+
+        static let limits: [Limit] = [
+            // Out of range, falling back on the defaults.
+            Limit(\.columnCount, "columnCount", 0, "nil"),
+            Limit(\.columnCount, "columnCount", -1, "nil"),
+            Limit(\.columnCount, "columnCount", 0, "2", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.maximalLineLength, "maximalLineLength", 0, "1.0"),
+            Limit(\.maximalLineLength, "maximalLineLength", -1, "1.0"),
+            Limit(\.maximalLineLength, "maximalLineLength", 0, "1.2", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.maximalLineLength, "maximalLineLength", 0, "nil", defaults: EPUBDefaults(maximalLineLength: nil), defaultsDescription: "no default"),
+            Limit(\.minimalLineLength, "minimalLineLength", 0, "nil"),
+            Limit(\.minimalLineLength, "minimalLineLength", -1, "nil"),
+            Limit(\.minimalLineLength, "minimalLineLength", 0, "0.8", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.optimalLineLength, "optimalLineLength", 0, "1.0"),
+            Limit(\.optimalLineLength, "optimalLineLength", -1, "1.0"),
+            Limit(\.optimalLineLength, "optimalLineLength", 0, "1.5", defaults: customDefaults, defaultsDescription: "custom defaults"),
+
+            // Out of range, limited.
+            Limit(\.fontSize, "fontSize", -1, "0.0"),
+            Limit(\.fontWeight, "fontWeight", -1, "0.0"),
+            Limit(\.fontWeight, "fontWeight", 3, "2.5"),
+            Limit(\.fontWidth, "fontWidth", 0.1, "0.5"),
+            Limit(\.fontWidth, "fontWidth", 3, "2.5"),
+            Limit(\.darkenImages, "darkenImages", -0.5, "0.0"),
+            Limit(\.darkenImages, "darkenImages", 1.5, "1.0"),
+            Limit(\.invertImages, "invertImages", -0.5, "0.0"),
+            Limit(\.invertImages, "invertImages", 1.5, "1.0"),
+            Limit(\.invertGaiji, "invertGaiji", -0.5, "0.0"),
+            Limit(\.invertGaiji, "invertGaiji", 1.5, "1.0"),
+            Limit(\.letterSpacing, "letterSpacing", -1, "0.0"),
+            Limit(\.pageMargins, "pageMargins", -1, "0.0"),
+            Limit(\.paragraphSpacing, "paragraphSpacing", -1, "0.0"),
+            Limit(\.wordSpacing, "wordSpacing", -1, "0.0"),
+
+            // Valid values are kept.
+            Limit(\.columnCount, "columnCount", 1, "1"),
+            Limit(\.columnCount, "columnCount", 1, "1", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.fontSize, "fontSize", 0, "0.0"),
+            Limit(\.fontSize, "fontSize", 2, "2.0"),
+            Limit(\.fontWeight, "fontWeight", 2.5, "2.5"),
+            Limit(\.fontWidth, "fontWidth", 0.5, "0.5"),
+            Limit(\.darkenImages, "darkenImages", 0.4, "0.4"),
+            Limit(\.invertImages, "invertImages", 1, "1.0"),
+            Limit(\.invertGaiji, "invertGaiji", 0, "0.0"),
+            Limit(\.letterSpacing, "letterSpacing", 0.2, "0.2"),
+            Limit(\.maximalLineLength, "maximalLineLength", 0.01, "0.01"),
+            Limit(\.minimalLineLength, "minimalLineLength", 1.5, "1.5"),
+            Limit(\.minimalLineLength, "minimalLineLength", 1.5, "1.5", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.optimalLineLength, "optimalLineLength", 1.2, "1.2", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.pageMargins, "pageMargins", 0, "0.0"),
+            Limit(\.paragraphSpacing, "paragraphSpacing", 0.5, "0.5"),
+            Limit(\.wordSpacing, "wordSpacing", 0.3, "0.3"),
+        ]
+
+        @Test("the settings limit the defaults set after their initialization")
+        func defaultsSetAfterInit() {
+            var defaults = EPUBDefaults()
+            defaults.columnCount = 0
+            defaults.fontSize = -1
+            defaults.fontWeight = 3
+            defaults.fontWidth = 0.1
+            defaults.letterSpacing = -1
+            defaults.maximalLineLength = 0
+            defaults.minimalLineLength = -1
+            defaults.optimalLineLength = 0
+            defaults.pageMargins = -1
+            defaults.paragraphSpacing = -1
+            defaults.wordSpacing = -1
+
+            let settings = settings(defaults: defaults)
+            #expect(settings.columnCount == nil)
+            #expect(settings.fontSize == 0)
+            #expect(settings.fontWeight == 2.5)
+            #expect(settings.fontWidth == 0.5)
+            #expect(settings.letterSpacing == 0)
+            #expect(settings.maximalLineLength == nil)
+            #expect(settings.minimalLineLength == nil)
+            #expect(settings.optimalLineLength == 1.0)
+            #expect(settings.pageMargins == 0)
+            #expect(settings.paragraphSpacing == 0)
+            #expect(settings.wordSpacing == 0)
+        }
+
+        @Test("settings created directly are limited")
+        func settingsCreatedDirectly() {
+            let settings = makeSettings(
+                columnCount: -1,
+                fontSize: -1,
+                fontWeight: -1,
+                fontWidth: 3,
+                darkenImages: 1.5,
+                invertImages: -0.5,
+                invertGaiji: 1.5,
+                letterSpacing: -1,
+                maximalLineLength: -1,
+                minimalLineLength: 0,
+                optimalLineLength: -1,
+                pageMargins: -1,
+                paragraphSpacing: -1,
+                wordSpacing: -1
+            )
+            #expect(settings == makeSettings(
+                columnCount: nil,
+                fontSize: 0,
+                fontWeight: 0,
+                fontWidth: 2.5,
+                darkenImages: 1,
+                invertImages: 0,
+                invertGaiji: 1,
+                letterSpacing: 0,
+                maximalLineLength: nil,
+                minimalLineLength: nil,
+                optimalLineLength: 1.0,
+                pageMargins: 0,
+                paragraphSpacing: 0,
+                wordSpacing: 0
+            ))
+        }
+
+        @Test("settings created directly keep the valid values")
+        func settingsCreatedDirectlyWithValidValues() {
+            let settings = makeSettings(
+                columnCount: 3,
+                fontSize: 0,
+                fontWeight: 2.5,
+                fontWidth: 0.5,
+                darkenImages: 0,
+                invertImages: 0.4,
+                invertGaiji: 1,
+                letterSpacing: 0.2,
+                maximalLineLength: 2,
+                minimalLineLength: 0.01,
+                optimalLineLength: 1.5,
+                pageMargins: 0,
+                paragraphSpacing: 0.5,
+                wordSpacing: 0.3
+            )
+            #expect(settings.columnCount == 3)
+            #expect(settings.fontSize == 0)
+            #expect(settings.fontWeight == 2.5)
+            #expect(settings.fontWidth == 0.5)
+            #expect(settings.darkenImages == 0)
+            #expect(settings.invertImages == 0.4)
+            #expect(settings.invertGaiji == 1)
+            #expect(settings.letterSpacing == 0.2)
+            #expect(settings.maximalLineLength == 2)
+            #expect(settings.minimalLineLength == 0.01)
+            #expect(settings.optimalLineLength == 1.5)
+            #expect(settings.pageMargins == 0)
+            #expect(settings.paragraphSpacing == 0.5)
+            #expect(settings.wordSpacing == 0.3)
+        }
+
+        private func makeSettings(
+            columnCount: Int?,
+            fontSize: Double,
+            fontWeight: Double?,
+            fontWidth: Double?,
+            darkenImages: Double?,
+            invertImages: Double?,
+            invertGaiji: Double?,
+            letterSpacing: Double?,
+            maximalLineLength: Double?,
+            minimalLineLength: Double?,
+            optimalLineLength: Double,
+            pageMargins: Double,
+            paragraphSpacing: Double?,
+            wordSpacing: Double?
+        ) -> EPUBSettings {
+            EPUBSettings(
+                backgroundColor: nil,
+                columnCount: columnCount,
+                fit: .auto,
+                fontFamily: nil,
+                fontSize: fontSize,
+                fontWeight: fontWeight,
+                fontWidth: fontWidth,
+                hyphens: nil,
+                blendImages: false,
+                darkenImages: darkenImages,
+                invertImages: invertImages,
+                invertGaiji: invertGaiji,
+                language: nil,
+                letterSpacing: letterSpacing,
+                ligatures: nil,
+                lineHeight: nil,
+                linkColor: nil,
+                maximalLineLength: maximalLineLength,
+                minimalLineLength: minimalLineLength,
+                offsetFirstPage: nil,
+                optimalLineLength: optimalLineLength,
+                pageMargins: pageMargins,
+                paragraphIndent: nil,
+                paragraphSpacing: paragraphSpacing,
+                readingProgression: .ltr,
+                scroll: false,
+                spread: .auto,
+                textAlign: nil,
+                textColor: nil,
+                textNormalization: false,
+                verticalText: false,
+                visitedColor: nil,
+                wordSpacing: wordSpacing
+            )
+        }
+    }
+
     @Suite("hyphens") struct Hyphens {
         @Test("the editor reads the hyphens as on when unset, only with justified text", arguments: [
             (.justify, true),
@@ -691,14 +941,14 @@ enum EPUBPreferencesTests {
             #expect(props["--USER__invertGaiji"] == .some(nil))
         }
 
-        @Test("ReadiumCSS limits the image filters to 100%")
+        @Test("ReadiumCSS emits the image filters set after the initialization up to 100%")
         func cssImageFiltersAboveMaximum() {
-            // Set on the settings, as the preferences are limited to 1.
-            var mutated = settings()
-            mutated.darkenImages = 1.5
-            mutated.invertImages = 1.5
-            mutated.invertGaiji = 1.5
-            let props = cssProperties(mutated)
+            // Set after the initialization, which doesn't limit them.
+            var prefs = EPUBPreferences()
+            prefs.darkenImages = 1.5
+            prefs.invertImages = 1.5
+            prefs.invertGaiji = 1.5
+            let props = cssProperties(preferences: prefs)
             #expect(props["--USER__darkenImages"] == "0.00000")
             #expect(props["--USER__invertImages"] == "1.00000")
             #expect(props["--USER__invertGaiji"] == "1.00000")

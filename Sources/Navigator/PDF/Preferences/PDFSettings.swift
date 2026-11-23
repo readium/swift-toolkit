@@ -33,9 +33,12 @@ public struct PDFSettings: ConfigurableSettings, Sendable {
             ?? defaults.offsetFirstPage
             ?? false
 
-        pageSpacing = preferences.pageSpacing
-            ?? defaults.pageSpacing
-            ?? 0
+        pageSpacing = max(
+            preferences.pageSpacing
+                ?? defaults.pageSpacing
+                ?? 0,
+            0
+        )
 
         readingProgression = preferences.readingProgression
             ?? ReadingProgression(metadata.readingProgression)
@@ -91,7 +94,7 @@ public struct PDFDefaults: Sendable {
         self.backgroundColor = backgroundColor
         self.fit = fit
         self.offsetFirstPage = offsetFirstPage
-        self.pageSpacing = pageSpacing
+        self.pageSpacing = pageSpacing.map { max($0, 0) }
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.scrollAxis = scrollAxis

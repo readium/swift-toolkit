@@ -190,7 +190,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         wordSpacing: Double? = nil
     ) {
         self.backgroundColor = backgroundColor
-        self.columnCount = columnCount.takeIf { $0 >= 1 }
+        self.columnCount = Self.validColumnCount(columnCount)
         self.fit = fit
         self.fontFamily = fontFamily
         self.fontSize = fontSize.map { max($0, 0) }
@@ -206,11 +206,11 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.ligatures = ligatures
         self.lineHeight = lineHeight
         self.linkColor = linkColor
-        self.maximalLineLength = maximalLineLength.takeIf { $0 > 0 }
-        self.minimalLineLength = minimalLineLength.takeIf { $0 > 0 }
+        self.maximalLineLength = Self.validLineLength(maximalLineLength)
+        self.minimalLineLength = Self.validLineLength(minimalLineLength)
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
-        self.optimalLineLength = optimalLineLength.takeIf { $0 > 0 }
+        self.optimalLineLength = Self.validLineLength(optimalLineLength)
         self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
@@ -289,12 +289,22 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     }
 }
 
-/// Supported ranges of the preferences, shared with `EPUBDefaults` and the
-/// `EPUBPreferencesEditor`.
+/// Limits of the preferences, shared with `EPUBDefaults`, `EPUBSettings` and
+/// the `EPUBPreferencesEditor`.
 extension EPUBPreferences {
     static let fontWeightRange: ClosedRange<Double> = 0.0 ... 2.5
     static let fontWidthRange: ClosedRange<Double> = 0.5 ... 2.5
     static let imageFilterRange: ClosedRange<Double> = 0.0 ... 1.0
+
+    /// Returns the `columnCount`, or `nil` if it is lower than 1.
+    static func validColumnCount(_ value: Int?) -> Int? {
+        value.takeIf { $0 >= 1 }
+    }
+
+    /// Returns the line length, or `nil` if it is lower than or equal to 0.
+    static func validLineLength(_ value: Double?) -> Double? {
+        value.takeIf { $0 > 0 }
+    }
 }
 
 // MARK: - Codable

@@ -118,13 +118,13 @@ extension ReadiumCSS {
         )
     }
 
-    /// Returns the percentage of an image filter to emit, limited to 1.
+    /// Returns the percentage of an image filter to emit.
     ///
     /// A filter at 0 is not emitted, as the presence of the property is enough
     /// to trigger the Readium CSS rule. For example, `--USER__invertGaiji: 0`
     /// would exclude the gaiji from the other image filters.
     private func imageFilter(_ value: Double?) -> Double? {
-        value.takeIf { $0 >= 0.00001 }.map { min($0, 1) }
+        value.takeIf { $0 >= 0.00001 }
     }
 
     func resolveFontStack(of fontFamily: FontFamily) -> [String] {
