@@ -21,6 +21,22 @@ import UIKit
         }
     }
 
+    /// With horizontal text, the left and right safe area is already in the
+    /// margins resolved by `LayoutResolver`, so only vertical text keeps the
+    /// left and right content inset.
+    @Test(arguments: [
+        (false, UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0)),
+        (true, UIEdgeInsets(top: 62, left: 20, bottom: 34, right: 25)),
+    ])
+    func scrollModeContentInset(verticalText: Bool, expected: UIEdgeInsets) {
+        #expect(
+            EPUBReflowableSpreadView.scrollModeContentInset(
+                UIEdgeInsets(top: 62, left: 20, bottom: 34, right: 25),
+                verticalText: verticalText
+            ) == expected
+        )
+    }
+
     /// The offsets include the content inset, which holds the safe area,
     /// and keep the current offset on the other axis.
     @Test(arguments: [

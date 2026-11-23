@@ -101,13 +101,26 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         if viewModel.scroll {
             topConstraint.constant = 0
             bottomConstraint.constant = 0
-            scrollView.contentInset = contentInset
+            scrollView.contentInset = Self.scrollModeContentInset(contentInset, verticalText: viewModel.verticalText)
 
         } else {
             topConstraint.constant = contentInset.top
             bottomConstraint.constant = -contentInset.bottom
             scrollView.contentInset = .zero
         }
+    }
+
+    /// Returns the content inset of the scroll view in scroll mode.
+    ///
+    /// With horizontal text, the left and right insets are dropped: the
+    /// document is laid out in the full width of the view, and the line
+    /// length resolved by `LayoutResolver` already keeps the text out of the
+    /// left and right safe area.
+    static func scrollModeContentInset(_ inset: UIEdgeInsets, verticalText: Bool) -> UIEdgeInsets {
+        guard !verticalText else {
+            return inset
+        }
+        return UIEdgeInsets(top: inset.top, left: 0, bottom: inset.bottom, right: 0)
     }
 
     /// Reroutes touches over the top and bottom margins of a paginated spread

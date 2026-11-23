@@ -33,6 +33,12 @@ import WebKit
     /// per-layout tuning to support publications mixing reflowable and fixed-
     /// layout resources.
     ///
+    /// With horizontal text in reflowable resources, the left and right insets
+    /// are ignored: the left and right margins are set by the `pageMargins`
+    /// preference and are never smaller than the view's safe area insets. They
+    /// apply to vertical text, which is always scrolled, and to fixed-layout
+    /// resources.
+    ///
     /// - Returns: The insets to apply, or `nil` to fall back on
     ///   `navigatorContentInset(_:)`, then on the navigator's default
     ///   behavior.
