@@ -198,9 +198,9 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.fontWidth = fontWidth?.clamped(to: Self.fontWidthRange)
         self.hyphens = hyphens
         self.blendImages = blendImages
-        self.darkenImages = darkenImages
-        self.invertImages = invertImages
-        self.invertGaiji = invertGaiji
+        self.darkenImages = darkenImages?.clamped(to: Self.imageFilterRange)
+        self.invertImages = invertImages?.clamped(to: Self.imageFilterRange)
+        self.invertGaiji = invertGaiji?.clamped(to: Self.imageFilterRange)
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
@@ -294,6 +294,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 extension EPUBPreferences {
     static let fontWeightRange: ClosedRange<Double> = 0.0 ... 2.5
     static let fontWidthRange: ClosedRange<Double> = 0.5 ... 2.5
+    static let imageFilterRange: ClosedRange<Double> = 0.0 ... 1.0
 }
 
 // MARK: - Codable

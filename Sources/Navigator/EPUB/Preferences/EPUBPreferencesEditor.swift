@@ -217,7 +217,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             effectiveValue: { $0.settings.darkenImages ?? 0 },
             defaultEffectiveValue: 0,
             isEffective: { [layouts] _ in layouts.contains(.reflowable) },
-            supportedRange: 0.0 ... 1.0,
+            supportedRange: EPUBPreferences.imageFilterRange,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
@@ -231,7 +231,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             effectiveValue: { $0.settings.invertGaiji ?? 0 },
             defaultEffectiveValue: 0,
             isEffective: { [layouts] _ in layouts.contains(.reflowable) },
-            supportedRange: 0.0 ... 1.0,
+            supportedRange: EPUBPreferences.imageFilterRange,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )
@@ -250,7 +250,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             effectiveValue: { $0.settings.invertImages ?? 0 },
             defaultEffectiveValue: 0,
             isEffective: { [layouts] _ in layouts.contains(.reflowable) },
-            supportedRange: 0.0 ... 1.0,
+            supportedRange: EPUBPreferences.imageFilterRange,
             progressionStrategy: .increment(0.1),
             format: \.percentageString
         )

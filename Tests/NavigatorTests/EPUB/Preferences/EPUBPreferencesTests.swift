@@ -652,6 +652,37 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("image filters") struct ImageFilters {
+        @Test("preferences limit the image filters to 0.0 ... 1.0", arguments: [
+            (-0.5, 0.0),
+            (0.0, 0.0),
+            (0.4, 0.4),
+            (1.0, 1.0),
+            (1.5, 1.0),
+        ])
+        func limitValue(value: Double, expected: Double) {
+            let prefs = EPUBPreferences(darkenImages: value, invertImages: value, invertGaiji: value)
+            #expect(prefs.darkenImages == expected)
+            #expect(prefs.invertImages == expected)
+            #expect(prefs.invertGaiji == expected)
+        }
+
+        @Test("preferences keep unset image filters unset")
+        func unsetValue() {
+            let prefs = EPUBPreferences()
+            #expect(prefs.darkenImages == nil)
+            #expect(prefs.invertImages == nil)
+            #expect(prefs.invertGaiji == nil)
+        }
+
+        @Test("decoding limits the image filters to 0.0 ... 1.0")
+        func decodeLimitsValue() throws {
+            let json = #"{"darkenImages": 1.5, "invertImages": -0.5, "invertGaiji": 0.4}"#
+            let prefs = try JSONDecoder().decode(EPUBPreferences.self, from: Data(json.utf8))
+            #expect(prefs.darkenImages == 1.0)
+            #expect(prefs.invertImages == 0.0)
+            #expect(prefs.invertGaiji == 0.4)
+        }
+
         @Test("ReadiumCSS doesn't apply the image filters at 0 or negative", arguments: [0.0, -0.5])
         func cssImageFiltersOff(value: Double) {
             let props = cssProperties(preferences: EPUBPreferences(darkenImages: value, invertImages: value, invertGaiji: value))
@@ -662,7 +693,12 @@ enum EPUBPreferencesTests {
 
         @Test("ReadiumCSS limits the image filters to 100%")
         func cssImageFiltersAboveMaximum() {
-            let props = cssProperties(preferences: EPUBPreferences(darkenImages: 1.5, invertImages: 1.5, invertGaiji: 1.5))
+            // Set on the settings, as the preferences are limited to 1.
+            var mutated = settings()
+            mutated.darkenImages = 1.5
+            mutated.invertImages = 1.5
+            mutated.invertGaiji = 1.5
+            let props = cssProperties(mutated)
             #expect(props["--USER__darkenImages"] == "0.00000")
             #expect(props["--USER__invertImages"] == "1.00000")
             #expect(props["--USER__invertGaiji"] == "1.00000")
