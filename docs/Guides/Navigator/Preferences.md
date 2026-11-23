@@ -501,9 +501,9 @@ Some preferences are available only in paginated mode (`scroll = false`).
 
 The navigator computes the number of columns and the line length from the viewport size and these preferences:
 
-* `optimalLineLength` is a factor applied to the optimal line length (578 points). With `columnCount = nil`, it chooses the number of columns fitting in the viewport.
-* `minimalLineLength` is a factor applied to the minimal line length (356 points). With a `columnCount` greater than 1, fewer columns are displayed if the lines would be shorter. When `nil` (the default), the requested number of columns is always displayed.
-* `maximalLineLength` is a factor applied to the maximal line length (712 points), which limits the width of the lines, or their height with vertical text. It is `1.0` by default. Set `EPUBDefaults.maximalLineLength` to `nil` to let the lines take all the available width when the preference is unset, which also lets the users turn off the limit in the `EPUBPreferencesEditor`.
+* `optimalLineLength` is a factor applied to the optimal line length (578 points), used to choose the number of columns fitting in the viewport. It applies only in paginated mode, when `columnCount` is `nil` (automatic).
+* `minimalLineLength` is a factor applied to the minimal line length (356 points): fewer columns are displayed if the lines would be shorter. It applies only in paginated mode, when `columnCount` is greater than 1. When `nil` (the default), the requested number of columns is always displayed.
+* `maximalLineLength` is a factor applied to the maximal line length (712 points), which limits the width of the lines, or their height with vertical text. It applies in both scroll and paginated modes, whatever the `columnCount`. It is `1.0` by default. Set `EPUBDefaults.maximalLineLength` to `nil` to let the lines take all the available width when the preference is unset, which also lets the users turn off the limit in the `EPUBPreferencesEditor`.
 * `pageMargins` is a factor applied to the minimal margins on each side of the lines (30 points): left and right, or top and bottom with vertical text. The margins are larger when the line length is limited, and never smaller than the safe area insets.
 
 `minimalLineLength` and `maximalLineLength` are `AnyOptionalRangePreference<Double>` in the `EPUBPreferencesEditor`, see [the view for an `OptionalRangePreference`](#view-for-an-optionalrangepreferencevalue).

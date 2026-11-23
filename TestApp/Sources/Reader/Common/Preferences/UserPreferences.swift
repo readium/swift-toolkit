@@ -427,6 +427,7 @@ struct UserPreferences<
             if let optimalLineLength = optimalLineLength {
                 stepperRow(
                     title: "Optimal line length",
+                    subtitle: "Chooses the number of columns. Applied when paginated with automatic columns.",
                     preference: optimalLineLength,
                     commit: commit
                 )
@@ -435,6 +436,7 @@ struct UserPreferences<
             if let minimalLineLength = minimalLineLength {
                 optionalStepperRow(
                     title: "Minimal line length",
+                    subtitle: "Removes columns when the lines would be shorter. Applied when paginated with a fix number of columns (2 or more).",
                     preference: minimalLineLength,
                     commit: commit
                 )
@@ -445,6 +447,7 @@ struct UserPreferences<
                 // not `nil`, so disabling it would fall back on the default.
                 stepperRow(
                     title: "Maximal line length",
+                    subtitle: "Limits the length of the lines. Applied when scrolled and paginated.",
                     preference: maximalLineLength,
                     commit: commit
                 )
@@ -786,11 +789,13 @@ struct UserPreferences<
     /// Component for a `RangePreference` modifiable by a `Stepper` view.
     func stepperRow<V: Comparable>(
         title: String,
+        subtitle: String? = nil,
         preference: AnyRangePreference<V>,
         commit: @escaping () -> Void
     ) -> some View {
         stepperRow(
             title: title,
+            subtitle: subtitle,
             value: preference.format(value: preference.value ?? preference.effectiveValue),
             isActive: preference.isEffective,
             onIncrement: { preference.increment(); commit() },
@@ -803,11 +808,13 @@ struct UserPreferences<
     /// view, without a toggle to disable it.
     func stepperRow<V: Comparable>(
         title: String,
+        subtitle: String? = nil,
         preference: AnyOptionalRangePreference<V>,
         commit: @escaping () -> Void
     ) -> some View {
         stepperRow(
             title: title,
+            subtitle: subtitle,
             value: preference.format(value: (preference.value ?? preference.effectiveValue) ?? preference.defaultValue),
             isActive: preference.isEffective,
             onIncrement: { preference.increment(); commit() },
@@ -819,6 +826,7 @@ struct UserPreferences<
     /// Component for a `RangePreference` modifiable by a `Stepper` view.
     func stepperRow(
         title: String,
+        subtitle: String? = nil,
         value: String,
         isActive: Bool,
         onIncrement: @escaping () -> Void,
@@ -827,6 +835,7 @@ struct UserPreferences<
     ) -> some View {
         preferenceRow(
             isActive: isActive,
+            subtitle: subtitle,
             onClear: onClear
         ) {
             HStack(spacing: 4) {
@@ -852,6 +861,7 @@ struct UserPreferences<
     /// it, and a `Stepper` to modify its value.
     func optionalStepperRow<V: Comparable>(
         title: String,
+        subtitle: String? = nil,
         preference: AnyOptionalRangePreference<V>,
         commit: @escaping () -> Void
     ) -> some View {
@@ -859,10 +869,13 @@ struct UserPreferences<
 
         return preferenceRow(
             isActive: preference.isEffective,
+            subtitle: subtitle,
             onClear: { preference.clear(); commit() }
         ) {
             HStack(spacing: 4) {
+                // Wraps instead of truncating next to the toggle and stepper.
                 Text(title)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Spacer()
 
@@ -1003,17 +1016,26 @@ struct UserPreferences<
     /// Layout for a preference row.
     func preferenceRow<V: View>(
         isActive: Bool,
+        subtitle: String? = nil,
         onClear: @escaping () -> Void,
         content: @escaping () -> V
     ) -> some View {
-        HStack(spacing: 8) {
-            content()
-                .foregroundColor(isActive ? nil : .gray)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 8) {
+                content()
+                    .foregroundColor(isActive ? nil : .gray)
 
-            Button(action: onClear) {
-                Image(systemName: "delete.left")
+                Button(action: onClear) {
+                    Image(systemName: "delete.left")
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
     }
 }
