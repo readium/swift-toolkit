@@ -441,7 +441,9 @@ struct UserPreferences<
             }
 
             if let maximalLineLength = maximalLineLength {
-                optionalStepperRow(
+                // No toggle: the default `EPUBDefaults.maximalLineLength` is
+                // not `nil`, so disabling it would fall back on the default.
+                stepperRow(
                     title: "Maximal line length",
                     preference: maximalLineLength,
                     commit: commit
@@ -790,6 +792,23 @@ struct UserPreferences<
         stepperRow(
             title: title,
             value: preference.format(value: preference.value ?? preference.effectiveValue),
+            isActive: preference.isEffective,
+            onIncrement: { preference.increment(); commit() },
+            onDecrement: { preference.decrement(); commit() },
+            onClear: { preference.clear(); commit() }
+        )
+    }
+
+    /// Component for an `OptionalRangePreference` modifiable by a `Stepper`
+    /// view, without a toggle to disable it.
+    func stepperRow<V: Comparable>(
+        title: String,
+        preference: AnyOptionalRangePreference<V>,
+        commit: @escaping () -> Void
+    ) -> some View {
+        stepperRow(
+            title: title,
+            value: preference.format(value: (preference.value ?? preference.effectiveValue) ?? preference.defaultValue),
             isActive: preference.isEffective,
             onIncrement: { preference.increment(); commit() },
             onDecrement: { preference.decrement(); commit() },
