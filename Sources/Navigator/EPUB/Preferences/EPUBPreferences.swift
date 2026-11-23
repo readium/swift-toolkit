@@ -84,7 +84,8 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     /// Factor applied to the maximal line length of the reflowable resources.
     ///
-    /// When `nil` and without a default value, the lines take all the available
+    /// When `nil`, `EPUBDefaults.maximalLineLength` is used (`1.0` unless the
+    /// app changes it). When both are `nil`, the lines take all the available
     /// width. Values lower than or equal to `0` are ignored.
     public var maximalLineLength: Double?
 

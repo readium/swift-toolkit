@@ -52,7 +52,7 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("settings") struct Settings {
-        @Test("the settings when every preference and default is unset")
+        @Test("the settings when every preference is unset, with the default EPUBDefaults")
         func unset() {
             #expect(settings() == EPUBSettings(
                 backgroundColor: nil,
@@ -72,7 +72,7 @@ enum EPUBPreferencesTests {
                 ligatures: nil,
                 lineHeight: nil,
                 linkColor: nil,
-                maximalLineLength: nil,
+                maximalLineLength: 1.0,
                 minimalLineLength: nil,
                 noRuby: false,
                 offsetFirstPage: nil,
@@ -405,18 +405,43 @@ enum EPUBPreferencesTests {
             #expect(editor.minimalLineLength.effectiveValue == nil)
             #expect(editor.maximalLineLength.supportedRange == 0.5 ... 2.0)
             #expect(editor.maximalLineLength.defaultValue == 1.0)
-            #expect(editor.maximalLineLength.effectiveValue == nil)
+            #expect(editor.maximalLineLength.effectiveValue == 1.0)
         }
 
         @Test("the editor sets and clears the line length limits")
         @MainActor func editorSetAndClear() {
             let editor = makeEditor()
+            editor.minimalLineLength.increment()
+            #expect(editor.preferences.minimalLineLength == 1.1)
+            #expect(editor.minimalLineLength.effectiveValue == 1.1)
+
+            editor.minimalLineLength.set(nil)
+            #expect(editor.preferences.minimalLineLength == nil)
+            #expect(editor.minimalLineLength.effectiveValue == nil)
+
             editor.maximalLineLength.increment()
             #expect(editor.preferences.maximalLineLength == 1.1)
             #expect(editor.maximalLineLength.effectiveValue == 1.1)
 
+            // Clearing the preference falls back on the default limit.
             editor.maximalLineLength.set(nil)
             #expect(editor.preferences.maximalLineLength == nil)
+            #expect(editor.maximalLineLength.effectiveValue == 1.0)
+        }
+
+        @Test("the lines are limited by default, unless the defaults remove the limit")
+        @MainActor func maximalLineLengthDefault() {
+            #expect(EPUBDefaults().maximalLineLength == 1.0)
+            #expect(settings().maximalLineLength == 1.0)
+
+            let defaults = EPUBDefaults(maximalLineLength: nil)
+            #expect(settings(defaults: defaults).maximalLineLength == nil)
+
+            let editor = makeEditor(defaults: defaults)
+            #expect(editor.maximalLineLength.effectiveValue == nil)
+            editor.maximalLineLength.set(1.2)
+            #expect(editor.maximalLineLength.effectiveValue == 1.2)
+            editor.maximalLineLength.set(nil)
             #expect(editor.maximalLineLength.effectiveValue == nil)
         }
 

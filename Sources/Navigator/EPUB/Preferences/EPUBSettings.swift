@@ -239,6 +239,8 @@ public struct EPUBDefaults: Sendable {
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
+    /// `1.0` by default, which limits the lines to the maximal line length.
+    /// Set it to `nil` to let the lines take all the available width.
     public var maximalLineLength: Double?
     public var minimalLineLength: Double?
     public var noRuby: Bool?
@@ -265,7 +267,8 @@ public struct EPUBDefaults: Sendable {
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
         lineHeight: Double? = nil,
-        maximalLineLength: Double? = nil,
+        // Not a fallback in `EPUBSettings`, so that `nil` removes the limit.
+        maximalLineLength: Double? = 1.0,
         minimalLineLength: Double? = nil,
         noRuby: Bool? = nil,
         offsetFirstPage: Bool? = nil,

@@ -23,11 +23,14 @@ final class LayoutResolver {
     private let baseMinLineLength: Double
     private let baseMaxLineLength: Double
 
+    /// The default line lengths are the ones of the Readium TypeScript
+    /// toolkit: the width of 65 (optimal), 40 (minimal) and 80 (maximal)
+    /// "0" characters at 16px in Iowan Old Style.
     init(
         baseMinMargins: Double = 30.0,
-        baseOptimalLineLength: Double = 640.0,
-        baseMinLineLength: Double = 440.0,
-        baseMaxLineLength: Double = 740.0
+        baseOptimalLineLength: Double = 578.0,
+        baseMinLineLength: Double = 356.0,
+        baseMaxLineLength: Double = 712.0
     ) {
         self.baseMinMargins = baseMinMargins
         self.baseOptimalLineLength = baseOptimalLineLength

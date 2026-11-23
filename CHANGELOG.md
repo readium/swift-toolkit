@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file. Take a look
 
 * Upgraded Readium CSS to version 2.0.5.
     * Added the `noRuby` preference to allow hiding ruby (furigana) annotations in CJK publications.
-    * Added the `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences to control the line length of reflowable resources. The navigator uses them to choose the number of columns and to limit the width of the lines.
+    * Added the `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences to control the line length of reflowable resources. The navigator uses them to choose the number of columns and to limit the width of the lines. By default, the lines are limited to the maximal line length (`EPUBDefaults.maximalLineLength`), [see the user guide](docs/Guides/Navigator/Preferences.md#line-length-and-margins).
     * Added `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji` preferences for precise CSS filtering of images.
     * Added the `linkColor` and `visitedColor` preferences to change the color of the hyperlinks.
     * Added the `fontWidth` preference to change the width of the glyphs, with the fonts supporting it (variable fonts with a width axis).

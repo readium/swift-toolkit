@@ -11,6 +11,8 @@ import Testing
 import UIKit
 
 struct LayoutResolverTests {
+    /// Fixture lengths, different from the default ones, which are tested
+    /// below with `LayoutResolver()`.
     let resolver = LayoutResolver(
         baseMinMargins: 30.0,
         baseOptimalLineLength: 640.0,
@@ -243,6 +245,86 @@ struct LayoutResolverTests {
         // 1 column: 900 - 60 = 840, clamped to the maximal line length 740
         #expect(layout.colCount == 1)
         #expect(layout.lineLength == 740.0)
+    }
+
+    // MARK: - Default Line Lengths
+
+    /// Layout with the default line lengths and settings, on the screens of
+    /// the devices in points.
+    struct DeviceLayout: Sendable, CustomTestStringConvertible {
+        let name: String
+        let width: Double
+        var safeArea: Double = 0
+        var scroll: Bool = false
+        let colCount: Int
+        let lineLength: Double
+
+        var testDescription: String {
+            scroll ? "\(name), scrolled" : name
+        }
+    }
+
+    @Test("layout with the default settings", arguments: [
+        // Two columns of the optimal line length need 2 × (578 + 2 × 30).
+        DeviceLayout(name: "below the 2 columns threshold", width: 1275, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "at the 2 columns threshold", width: 1276, colCount: 2, lineLength: 578),
+        DeviceLayout(name: "iPhone 17 Pro portrait", width: 402, colCount: 1, lineLength: 342),
+        DeviceLayout(name: "iPhone 17 Pro landscape", width: 874, safeArea: 62, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad mini portrait", width: 744, colCount: 1, lineLength: 684),
+        DeviceLayout(name: "iPad mini landscape", width: 1133, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad Air 11-inch portrait", width: 820, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad Air 11-inch landscape", width: 1180, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad Pro 11-inch landscape", width: 1210, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad Air 13-inch landscape", width: 1366, colCount: 2, lineLength: 623),
+        DeviceLayout(name: "iPad Pro 13-inch portrait", width: 1032, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad Pro 13-inch landscape", width: 1376, colCount: 2, lineLength: 628),
+        DeviceLayout(name: "iPhone 17 Pro portrait", width: 402, scroll: true, colCount: 1, lineLength: 342),
+        DeviceLayout(name: "iPhone 17 Pro landscape", width: 874, safeArea: 62, scroll: true, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad Air 11-inch landscape", width: 1180, scroll: true, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad Pro 13-inch landscape", width: 1376, scroll: true, colCount: 1, lineLength: 712),
+    ])
+    func defaultLayout(device: DeviceLayout) {
+        let layout = LayoutResolver().layout(
+            settings: defaultSettings(preferences: EPUBPreferences(scroll: device.scroll)),
+            viewportSize: CGSize(width: device.width, height: 800),
+            safeAreaInsets: UIEdgeInsets(top: 0, left: device.safeArea, bottom: 0, right: device.safeArea)
+        )
+
+        #expect(layout == LayoutResolver.Layout(colCount: device.colCount, lineLength: device.lineLength))
+    }
+
+    @Test("the default maximal line length limits the height of the vertical lines")
+    func defaultLayoutWithVerticalText() {
+        let layout = LayoutResolver().layout(
+            settings: defaultSettings(preferences: EPUBPreferences(verticalText: true)),
+            viewportSize: CGSize(width: 820, height: 1180)
+        )
+
+        #expect(layout == LayoutResolver.Layout(colCount: 1, lineLength: 712))
+    }
+
+    @Test("the lines take all the available width without a default maximal line length", arguments: [false, true])
+    func defaultLayoutWithoutMaximalLineLength(scroll: Bool) {
+        let layout = LayoutResolver().layout(
+            settings: defaultSettings(
+                preferences: EPUBPreferences(scroll: scroll),
+                defaults: EPUBDefaults(maximalLineLength: nil)
+            ),
+            viewportSize: CGSize(width: 1180, height: 800)
+        )
+
+        #expect(layout == LayoutResolver.Layout(colCount: 1, lineLength: 1120))
+    }
+
+    private func defaultSettings(
+        preferences: EPUBPreferences = EPUBPreferences(),
+        defaults: EPUBDefaults = EPUBDefaults()
+    ) -> EPUBSettings {
+        EPUBSettings(
+            preferences: preferences,
+            defaults: defaults,
+            metadata: Metadata(title: "Test")
+        )
     }
 
     private func settings(
