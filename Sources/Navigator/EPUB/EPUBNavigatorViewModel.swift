@@ -252,14 +252,16 @@ enum EPUBScriptScope {
 
     private(set) var spreadEnabled: Bool = false
     private var viewSize: CGSize?
-    private var safeAreaInsets: UIEdgeInsets = .zero
+    /// Insets the margins of the resolved layout can't be smaller than, see
+    /// `viewDidLayout(size:safeAreaInsets:reflowableContentInset:)`.
+    private var layoutInsets: UIEdgeInsets = .zero
     private let layoutResolver = LayoutResolver()
 
     /// Updates the spread for the size the view is about to take.
     ///
     /// The CSS layout is not resolved here, as the safe area insets matching
     /// this size are not known yet. It is resolved once the view is laid out,
-    /// see `viewDidLayout(size:safeAreaInsets:)`.
+    /// see `viewDidLayout(size:safeAreaInsets:reflowableContentInset:)`.
     func viewSizeWillChange(_ newSize: CGSize) {
         guard viewSize != newSize else {
             return
@@ -268,15 +270,32 @@ enum EPUBScriptScope {
         updateSpread()
     }
 
-    /// Resolves the CSS layout from the final size and safe area insets of
-    /// the view, and commits it when it changed.
-    func viewDidLayout(size: CGSize, safeAreaInsets insets: UIEdgeInsets) {
+    /// Resolves the CSS layout from the final size and insets of the view, and
+    /// commits it when it changed.
+    ///
+    /// The margins at the ends of the lines can't be smaller than:
+    /// - with horizontal text, the left and right `safeAreaInsets` of the
+    ///   view, which include its `additionalSafeAreaInsets`;
+    /// - with vertical text, the top and bottom `reflowableContentInset`, the
+    ///   content inset of reflowable resources, which the scroll view doesn't
+    ///   apply on this axis. Unlike the safe area of the view, it doesn't
+    ///   include the app's bars.
+    func viewDidLayout(
+        size: CGSize,
+        safeAreaInsets: UIEdgeInsets,
+        reflowableContentInset: UIEdgeInsets
+    ) {
         viewSizeWillChange(size)
-        safeAreaInsets = insets
+        layoutInsets = UIEdgeInsets(
+            top: reflowableContentInset.top,
+            left: safeAreaInsets.left,
+            bottom: reflowableContentInset.bottom,
+            right: safeAreaInsets.right
+        )
 
         // Most layout passes don't change the layout, for example when the
-        // app toggles its bars, which only changes the top and bottom insets
-        // used with vertical text.
+        // app toggles its bars, which only changes the top and bottom safe
+        // area insets.
         guard resolveLayout(with: settings) != resolvedLayout else {
             return
         }
@@ -346,7 +365,7 @@ enum EPUBScriptScope {
             return layoutResolver.layout(
                 settings: settings,
                 viewportSize: size,
-                safeAreaInsets: safeAreaInsets
+                insets: layoutInsets
             )
         }
     }

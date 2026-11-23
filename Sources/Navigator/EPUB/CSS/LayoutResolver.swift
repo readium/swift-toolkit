@@ -39,11 +39,15 @@ final class LayoutResolver {
     }
 
     /// Resolves the layout using `EPUBSettings`.
+    ///
+    /// - Parameter insets: Insets the margins at the ends of the lines can't
+    ///   be smaller than: left and right with horizontal text, top and bottom
+    ///   with vertical text.
     func layout(
         settings: EPUBSettings,
         systemFontScale: Double = 1.0,
         viewportSize: CGSize,
-        safeAreaInsets: UIEdgeInsets = .zero
+        insets: UIEdgeInsets = .zero
     ) -> Layout {
         layout(
             scroll: settings.scroll,
@@ -55,11 +59,15 @@ final class LayoutResolver {
             minMargins: settings.pageMargins,
             systemFontScale: systemFontScale,
             viewportSize: viewportSize,
-            safeAreaInsets: safeAreaInsets
+            insets: insets
         )
     }
 
     /// Resolves the layout using individual layout parameters.
+    ///
+    /// - Parameter insets: Insets the margins at the ends of the lines can't
+    ///   be smaller than: left and right with horizontal text, top and bottom
+    ///   with vertical text.
     func layout(
         scroll: Bool,
         verticalText: Bool,
@@ -70,7 +78,7 @@ final class LayoutResolver {
         minMargins: Double,
         systemFontScale: Double = 1.0,
         viewportSize: CGSize,
-        safeAreaInsets: UIEdgeInsets = .zero
+        insets: UIEdgeInsets = .zero
     ) -> Layout {
         let optimalLineLength = baseOptimalLineLength * optimalLineLength * systemFontScale
         let minLineLength = minimalLineLength.map { baseMinLineLength * $0 * systemFontScale }
@@ -79,9 +87,9 @@ final class LayoutResolver {
 
         let minMarginsWithInsets: Double = {
             if verticalText {
-                return max(minMargins, max(safeAreaInsets.top, safeAreaInsets.bottom))
+                return max(minMargins, max(insets.top, insets.bottom))
             } else {
-                return max(minMargins, max(safeAreaInsets.left, safeAreaInsets.right))
+                return max(minMargins, max(insets.left, insets.right))
             }
         }()
 

@@ -33,7 +33,7 @@ struct LayoutResolverTests {
             minMargins: 1.0,
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         // colCount is always 1 for scroll
@@ -53,7 +53,7 @@ struct LayoutResolverTests {
             minMargins: 1.0,
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         #expect(layout.colCount == 1)
@@ -72,7 +72,7 @@ struct LayoutResolverTests {
             minMargins: 1.0,
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 1000, height: 800),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         #expect(layout.colCount == 1)
@@ -91,13 +91,34 @@ struct LayoutResolverTests {
             minMargins: 1.0, // 30
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
-            safeAreaInsets: UIEdgeInsets(top: 10, left: 50, bottom: 10, right: 40)
+            insets: UIEdgeInsets(top: 10, left: 50, bottom: 10, right: 40)
         )
 
         #expect(layout.colCount == 1)
         // insets max(50, 40) = 50 > minMargins 30 -> margins = 50
         // available = 800 - 50 * 2 = 700
         #expect(layout.lineLength == 700.0)
+    }
+
+    @Test func scrolledVerticalTextWithInsets() {
+        let layout = resolver.layout(
+            scroll: true,
+            verticalText: true,
+            columnCount: nil,
+            optimalLineLength: 1.0,
+            minimalLineLength: nil,
+            maximalLineLength: nil,
+            minMargins: 1.0, // 30
+            systemFontScale: 1.0,
+            viewportSize: CGSize(width: 800, height: 600),
+            insets: UIEdgeInsets(top: 50, left: 100, bottom: 40, right: 100)
+        )
+
+        #expect(layout.colCount == 1)
+        // insets max(50, 40) = 50 > minMargins 30 -> margins = 50, the left
+        // and right insets are ignored
+        // available = 600 (height) - 50 * 2 = 500
+        #expect(layout.lineLength == 500.0)
     }
 
     // MARK: - Paginated Layout Auto
@@ -113,7 +134,7 @@ struct LayoutResolverTests {
             minMargins: 1.0,
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 390, height: 844),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         #expect(layout.colCount == 1)
@@ -133,7 +154,7 @@ struct LayoutResolverTests {
             minMargins: 1.0,
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 1400, height: 900),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         #expect(layout.colCount == 2)
@@ -153,7 +174,7 @@ struct LayoutResolverTests {
             minMargins: 1.0,
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 1400, height: 900),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         #expect(layout.colCount == 2)
@@ -174,7 +195,7 @@ struct LayoutResolverTests {
             minMargins: 1.0, // 30
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 1200, height: 800),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         #expect(layout.colCount == 2)
@@ -194,7 +215,7 @@ struct LayoutResolverTests {
             minMargins: 1.0, // 30
             systemFontScale: 1.0,
             viewportSize: CGSize(width: 600, height: 800),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         // For 2 columns: available = 600 - 120 = 480 / 2 = 240 < 440
@@ -287,7 +308,7 @@ struct LayoutResolverTests {
         let layout = LayoutResolver().layout(
             settings: defaultSettings(preferences: EPUBPreferences(scroll: device.scroll)),
             viewportSize: CGSize(width: device.width, height: 800),
-            safeAreaInsets: UIEdgeInsets(top: 0, left: device.safeArea, bottom: 0, right: device.safeArea)
+            insets: UIEdgeInsets(top: 0, left: device.safeArea, bottom: 0, right: device.safeArea)
         )
 
         #expect(layout == LayoutResolver.Layout(colCount: device.colCount, lineLength: device.lineLength))
@@ -383,7 +404,7 @@ struct LayoutResolverTests {
             minMargins: 1.0,
             systemFontScale: fontScale,
             viewportSize: CGSize(width: 1000, height: 800),
-            safeAreaInsets: .zero
+            insets: .zero
         )
 
         // margins: 30 * 1.0 * 1.5 = 45

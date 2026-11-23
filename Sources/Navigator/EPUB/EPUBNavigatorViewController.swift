@@ -33,11 +33,15 @@ import WebKit
     /// per-layout tuning to support publications mixing reflowable and fixed-
     /// layout resources.
     ///
-    /// With horizontal text in reflowable resources, the left and right insets
-    /// are ignored: the left and right margins are set by the `pageMargins`
-    /// preference and are never smaller than the view's safe area insets. They
-    /// apply to vertical text, which is always scrolled, and to fixed-layout
-    /// resources.
+    /// In reflowable resources, the insets at the ends of the lines are not
+    /// applied around the content, the margins there are set by the
+    /// `pageMargins` preference:
+    /// - With horizontal text, the left and right insets are ignored, and the
+    ///   left and right margins are never smaller than the view's safe area
+    ///   insets.
+    /// - With vertical text, which is always scrolled, the top and bottom
+    ///   margins are never smaller than the larger of the top and bottom
+    ///   insets.
     ///
     /// - Returns: The insets to apply, or `nil` to fall back on
     ///   `navigatorContentInset(_:)`, then on the navigator's default
@@ -430,7 +434,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         // We may need to refresh the spreads in this situation. Unfortunately,
         // the `viewWillTransition(to:with:)` API is called before we receive
         // the `didBecomeActive` notification, so we cannot rely on it here.
-        viewModel.viewDidLayout(size: view.bounds.size, safeAreaInsets: view.safeAreaInsets)
+        updateViewModelLayout()
 
         if needsReloadSpreadsOnActive {
             needsReloadSpreadsOnActive = false
@@ -491,8 +495,17 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     override open func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if isActive {
-            viewModel.viewDidLayout(size: view.bounds.size, safeAreaInsets: view.safeAreaInsets)
+            updateViewModelLayout()
         }
+    }
+
+    /// Resolves the CSS layout from the current size and insets of the view.
+    private func updateViewModelLayout() {
+        viewModel.viewDidLayout(
+            size: view.bounds.size,
+            safeAreaInsets: view.safeAreaInsets,
+            reflowableContentInset: contentInset(for: .reflowable)
+        )
     }
 
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -1088,8 +1101,12 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets {
-        let layout = spreadView.spread.layout(in: publication)
+        contentInset(for: spreadView.spread.layout(in: publication))
+    }
 
+    /// Returns the content insets applied around a spread with the given
+    /// `layout`, from the delegate or the configuration.
+    private func contentInset(for layout: EPUBLayout) -> UIEdgeInsets {
         if let inset = delegate?.navigator(self, contentInsetFor: layout) ?? delegate?.navigatorContentInset(self) {
             return inset
         }

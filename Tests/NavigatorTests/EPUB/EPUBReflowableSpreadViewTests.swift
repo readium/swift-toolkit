@@ -21,12 +21,11 @@ import UIKit
         }
     }
 
-    /// With horizontal text, the left and right safe area is already in the
-    /// margins resolved by `LayoutResolver`, so only vertical text keeps the
-    /// left and right content inset.
+    /// Only the insets on the scroll axis are kept, the other ones are
+    /// already in the margins resolved by `LayoutResolver`.
     @Test(arguments: [
         (false, UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0)),
-        (true, UIEdgeInsets(top: 62, left: 20, bottom: 34, right: 25)),
+        (true, UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 25)),
     ])
     func scrollModeContentInset(verticalText: Bool, expected: UIEdgeInsets) {
         #expect(
