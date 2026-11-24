@@ -435,6 +435,9 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         // the `viewWillTransition(to:with:)` API is called before we receive
         // the `didBecomeActive` notification, so we cannot rely on it here.
         updateViewModelLayout()
+        // The hinge of a device unfolded while the app was inactive may only
+        // be reported from a later layout pass.
+        view.setNeedsLayout()
 
         if needsReloadSpreadsOnActive {
             needsReloadSpreadsOnActive = false
@@ -504,8 +507,27 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         viewModel.viewDidLayout(
             size: view.bounds.size,
             safeAreaInsets: view.safeAreaInsets,
-            reflowableContentInset: contentInset(for: .reflowable)
+            reflowableContentInset: contentInset(for: .reflowable),
+            hingeWidth: currentHingeWidth()
         )
+    }
+
+    /// Returns the width of the vertical hinge splitting the view in two
+    /// equal sides, on a foldable device such as an unfolded iPhone in
+    /// landscape.
+    ///
+    /// The division regions are read even when inactive, as the device is
+    /// unfolded flat. They are only reliable once the view is laid out:
+    /// during a transition, their frames can be out of sync with the bounds.
+    private func currentHingeWidth() -> Double? {
+        if #available(iOS 27.1, *) {
+            let divisions = view.reservedRegions(kind: .division, options: .includeInactive)
+            return LayoutResolver.verticalHingeWidth(
+                divisions: divisions.map(\.frame),
+                in: view.bounds
+            )
+        }
+        return nil
     }
 
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -513,6 +535,16 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
         if isActive {
             viewModel.viewSizeWillChange(size)
+        }
+
+        // During the transition, the frames of the division regions can be
+        // out of sync with the bounds, so the hinge is read again once the
+        // view has its final size, in case no layout pass follows.
+        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+            guard let self, self.isActive else {
+                return
+            }
+            self.updateViewModelLayout()
         }
     }
 

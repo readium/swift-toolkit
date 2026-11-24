@@ -254,15 +254,18 @@ enum EPUBScriptScope {
     private(set) var spreadEnabled: Bool = false
     private var viewSize: CGSize?
     /// Insets the margins of the resolved layout can't be smaller than, see
-    /// `viewDidLayout(size:safeAreaInsets:reflowableContentInset:)`.
+    /// `viewDidLayout(size:safeAreaInsets:reflowableContentInset:hingeWidth:)`.
     private var layoutInsets: UIEdgeInsets = .zero
+    /// Width of the vertical hinge splitting the view in two equal sides, on
+    /// a foldable device.
+    private var hingeWidth: Double?
     private let layoutResolver = LayoutResolver()
 
     /// Updates the spread for the size the view is about to take.
     ///
     /// The CSS layout is not resolved here, as the safe area insets matching
     /// this size are not known yet. It is resolved once the view is laid out,
-    /// see `viewDidLayout(size:safeAreaInsets:reflowableContentInset:)`.
+    /// see `viewDidLayout(size:safeAreaInsets:reflowableContentInset:hingeWidth:)`.
     func viewSizeWillChange(_ newSize: CGSize) {
         guard viewSize != newSize else {
             return
@@ -281,12 +284,18 @@ enum EPUBScriptScope {
     ///   content inset of reflowable resources, which the scroll view doesn't
     ///   apply on this axis. Unlike the safe area of the view, it doesn't
     ///   include the app's bars.
+    ///
+    /// `hingeWidth` is the width of the vertical hinge splitting the view in
+    /// two equal sides, on a foldable device, or `nil` without one. See
+    /// `LayoutResolver.verticalHingeWidth(divisions:in:tolerance:)`.
     func viewDidLayout(
         size: CGSize,
         safeAreaInsets: UIEdgeInsets,
-        reflowableContentInset: UIEdgeInsets
+        reflowableContentInset: UIEdgeInsets,
+        hingeWidth: Double?
     ) {
         viewSizeWillChange(size)
+        self.hingeWidth = hingeWidth
         layoutInsets = UIEdgeInsets(
             top: reflowableContentInset.top,
             left: safeAreaInsets.left,
@@ -296,7 +305,9 @@ enum EPUBScriptScope {
 
         // Most layout passes don't change the layout, for example when the
         // app toggles its bars, which only changes the top and bottom safe
-        // area insets.
+        // area insets. A pass with the same size and insets can still change
+        // it: right after a foldable device is unfolded, the hinge is only
+        // reported from the second pass.
         guard resolveLayout(with: settings) != resolvedLayout else {
             return
         }
@@ -367,7 +378,8 @@ enum EPUBScriptScope {
                 settings: settings,
                 fontScale: settings.fontSize,
                 viewportSize: size,
-                insets: layoutInsets
+                insets: layoutInsets,
+                hingeWidth: hingeWidth
             )
         }
     }

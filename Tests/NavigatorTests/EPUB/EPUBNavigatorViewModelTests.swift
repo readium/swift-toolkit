@@ -68,13 +68,19 @@ import UIKit
         // A portrait size where the line length isn't limited by the
         // maximal one.
         let size = CGSize(width: 400, height: 420)
-        viewModel.viewDidLayout(size: size, safeAreaInsets: initialInsets, reflowableContentInset: initialInsets)
+        viewModel.viewDidLayout(
+            size: size,
+            safeAreaInsets: initialInsets,
+            reflowableContentInset: initialInsets,
+            hingeWidth: nil
+        )
         #expect(delegate.scripts.count == 1)
 
         viewModel.viewDidLayout(
             size: size,
             safeAreaInsets: test.safeAreaInsets,
-            reflowableContentInset: test.reflowableContentInset
+            reflowableContentInset: test.reflowableContentInset,
+            hingeWidth: nil
         )
         #expect(delegate.scripts.count == (test.commits ? 2 : 1))
     }
@@ -90,7 +96,12 @@ import UIKit
     ])
     func layoutFollowsFontSize(fontSize: Double, expected: LayoutResolver.Layout) {
         let viewModel = makeViewModel(preferences: EPUBPreferences(fontSize: fontSize))
-        viewModel.viewDidLayout(size: CGSize(width: 1366, height: 1024), safeAreaInsets: .zero, reflowableContentInset: .zero)
+        viewModel.viewDidLayout(
+            size: CGSize(width: 1366, height: 1024),
+            safeAreaInsets: .zero,
+            reflowableContentInset: .zero,
+            hingeWidth: nil
+        )
         #expect(viewModel.resolvedLayout == expected)
     }
 
@@ -99,13 +110,36 @@ import UIKit
         let delegate = ViewModelDelegate()
         let viewModel = makeViewModel(preferences: EPUBPreferences())
         viewModel.delegate = delegate
-        viewModel.viewDidLayout(size: CGSize(width: 1366, height: 1024), safeAreaInsets: .zero, reflowableContentInset: .zero)
+        viewModel.viewDidLayout(
+            size: CGSize(width: 1366, height: 1024),
+            safeAreaInsets: .zero,
+            reflowableContentInset: .zero,
+            hingeWidth: nil
+        )
         #expect(viewModel.resolvedLayout?.colCount == 2)
 
         viewModel.submitPreferences(EPUBPreferences(fontSize: 1.2))
         #expect(viewModel.resolvedLayout?.colCount == 1)
         #expect(delegate.scripts.count == 2)
         #expect(delegate.scripts.last?.contains(#""--USER__colCount":"1""#) == true)
+    }
+
+    /// Right after a foldable device is unfolded, the hinge is only reported
+    /// from the second layout pass, with the same size and insets.
+    @Test("the layout is resolved again when the hinge appears")
+    func layoutUpdatedWithHinge() {
+        let delegate = ViewModelDelegate()
+        let viewModel = makeViewModel(preferences: EPUBPreferences())
+        viewModel.delegate = delegate
+        let size = CGSize(width: 951, height: 669)
+
+        viewModel.viewDidLayout(size: size, safeAreaInsets: .zero, reflowableContentInset: .zero, hingeWidth: nil)
+        #expect(viewModel.resolvedLayout?.colCount == 1)
+
+        viewModel.viewDidLayout(size: size, safeAreaInsets: .zero, reflowableContentInset: .zero, hingeWidth: 40)
+        #expect(viewModel.resolvedLayout == LayoutResolver.Layout(colCount: 2, lineLength: 415.5))
+        #expect(delegate.scripts.count == 2)
+        #expect(delegate.scripts.last?.contains(#""--USER__colCount":"2""#) == true)
     }
 }
 

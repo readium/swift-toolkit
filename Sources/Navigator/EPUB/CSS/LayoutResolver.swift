@@ -48,11 +48,15 @@ final class LayoutResolver {
     ///   - insets: Insets the margins at the ends of the lines can't be
     ///     smaller than: left and right with horizontal text, top and bottom
     ///     with vertical text.
+    ///   - hingeWidth: Width of the vertical hinge splitting the viewport in
+    ///     two equal sides, on a foldable device. See
+    ///     `verticalHingeWidth(divisions:in:tolerance:)`.
     func layout(
         settings: EPUBSettings,
         fontScale: Double,
         viewportSize: CGSize,
-        insets: UIEdgeInsets = .zero
+        insets: UIEdgeInsets = .zero,
+        hingeWidth: Double? = nil
     ) -> Layout {
         layout(
             scroll: settings.scroll,
@@ -64,7 +68,8 @@ final class LayoutResolver {
             minMargins: settings.pageMargins,
             fontScale: fontScale,
             viewportSize: viewportSize,
-            insets: insets
+            insets: insets,
+            hingeWidth: hingeWidth
         )
     }
 
@@ -78,6 +83,12 @@ final class LayoutResolver {
     ///   - insets: Insets the margins at the ends of the lines can't be
     ///     smaller than: left and right with horizontal text, top and bottom
     ///     with vertical text.
+    ///   - hingeWidth: Width of the vertical hinge splitting the viewport in
+    ///     two equal sides, on a foldable device. See
+    ///     `verticalHingeWidth(divisions:in:tolerance:)`.
+    ///     In paginated mode with horizontal text, when the number of columns
+    ///     is automatic, each side gets its own column and the margins are at
+    ///     least half of the hinge, so that no text is on the hinge.
     func layout(
         scroll: Bool,
         verticalText: Bool,
@@ -88,7 +99,8 @@ final class LayoutResolver {
         minMargins: Double,
         fontScale: Double,
         viewportSize: CGSize,
-        insets: UIEdgeInsets = .zero
+        insets: UIEdgeInsets = .zero,
+        hingeWidth: Double? = nil
     ) -> Layout {
         // The parameters are factors, these lengths are in points.
         let optimalLength = baseOptimalLineLength * optimalLineLength * fontScale
@@ -112,7 +124,10 @@ final class LayoutResolver {
                 margins: margins,
                 optimalLength: optimalLength,
                 maxLength: maxLength,
-                minLength: minLength
+                minLength: minLength,
+                // Vertical text is always scrolled, and its columns are not
+                // laid out side by side.
+                hingeWidth: verticalText ? nil : hingeWidth
             )
         }
     }
@@ -141,9 +156,22 @@ final class LayoutResolver {
         margins: Double,
         optimalLength: Double,
         maxLength: Double?,
-        minLength: Double?
+        minLength: Double?,
+        hingeWidth: Double?
     ) -> Layout {
         guard let requestedColCount, requestedColCount > 0 else {
+            if
+                let hingeWidth,
+                let layout = paginatedLayoutAroundHinge(
+                    hingeWidth: hingeWidth,
+                    margins: margins,
+                    viewportWidth: viewportWidth,
+                    maxLength: maxLength
+                )
+            {
+                return layout
+            }
+
             return paginatedLayoutAuto(
                 margins: margins,
                 optimalLength: optimalLength,
@@ -185,6 +213,38 @@ final class LayoutResolver {
         return Layout(colCount: colCount, lineLength: lineLength)
     }
 
+    /// Lays out one column on each side of a vertical hinge. The gap between
+    /// them is centered on the hinge, as the lines are centered in their
+    /// columns.
+    ///
+    /// There is only one column on each side, even if a side could hold
+    /// more: the pagination scripts fill the last screen only with two
+    /// columns per screen (`appendVirtualColumnIfNeeded()`).
+    ///
+    /// Returns `nil` when a side, outside of the hinge, is narrower than the
+    /// base minimal line length. Like in auto mode without a hinge, the
+    /// minimal line length setting doesn't apply.
+    private func paginatedLayoutAroundHinge(
+        hingeWidth: Double,
+        margins: Double,
+        viewportWidth: Double,
+        maxLength: Double?
+    ) -> Layout? {
+        let halfHinge = max(hingeWidth, 0) / 2
+        let sideWidth = viewportWidth / 2
+        // This minimum doesn't follow the font size or the margins: it only
+        // rules out sides too narrow to be pages, such as with a small
+        // window. A larger font or margins shorten the lines as they do on
+        // the screen of a phone.
+        guard sideWidth - halfHinge >= baseMinLineLength else {
+            return nil
+        }
+
+        let available = sideWidth - max(margins, halfHinge) * 2
+        let lineLength = min(available, maxLength ?? available)
+        return Layout(colCount: 2, lineLength: lineLength)
+    }
+
     private func paginatedLayoutNColumns(
         colCount: Int,
         margins: Double,
@@ -218,5 +278,41 @@ final class LayoutResolver {
                 lineLength: lineLength
             )
         }
+    }
+}
+
+extension LayoutResolver {
+    /// Returns the width of the hinge splitting the view in two equal sides,
+    /// on a foldable device, from the frames of the division regions of the
+    /// view (`UIView.ReservedRegion.Kind.division`).
+    ///
+    /// Only a division covering the full height of the view and centered in
+    /// it, within `tolerance` points, is a hinge between two sides: a
+    /// horizontal division or one off the center (for example, when the app
+    /// shares the screen with another one) is ignored. As the frames of the
+    /// regions can be out of sync with the bounds during a transition, this
+    /// also ignores a frame which doesn't match the bounds.
+    ///
+    /// - Parameters:
+    ///   - divisions: Frames of the division regions, including their
+    ///     margins, in the coordinate space of the view.
+    ///   - bounds: Bounds of the view.
+    static func verticalHingeWidth(
+        divisions: [CGRect],
+        in bounds: CGRect,
+        tolerance: Double = 2
+    ) -> Double? {
+        guard !bounds.isEmpty else {
+            return nil
+        }
+
+        return divisions
+            .first { division in
+                division.width < bounds.width / 2
+                    && division.minY <= bounds.minY + tolerance
+                    && division.maxY >= bounds.maxY - tolerance
+                    && abs(division.midX - bounds.midX) <= tolerance
+            }
+            .map { Double($0.width) }
     }
 }

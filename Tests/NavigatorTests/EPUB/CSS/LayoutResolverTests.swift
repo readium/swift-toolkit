@@ -570,4 +570,163 @@ struct LayoutResolverTests {
         // 712 × 1.5, below 1180 - 2 × 30
         #expect(layout == LayoutResolver.Layout(colCount: 1, lineLength: 1068))
     }
+
+    /// Layout with the default line lengths around the vertical hinge of an
+    /// iPhone Duo unfolded in landscape (951 x 669pt, 40pt band).
+    @Suite("With a vertical hinge") struct Hinge {
+        struct HingeLayout: Sendable, CustomTestStringConvertible {
+            let name: String
+            var scroll: Bool = false
+            var verticalText: Bool = false
+            var columnCount: Int?
+            var minimalLineLength: Double?
+            var pageMargins: Double = 1.0
+            var fontScale: Double = 1.0
+            var width: Double = 951
+            var hingeWidth: Double? = 40
+            let expected: LayoutResolver.Layout
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test("each side of the hinge gets its own column, in auto mode only", arguments: [
+            // Each 475.5pt side holds one column: 475.5 - 2 × 30.
+            HingeLayout(name: "two columns", expected: .init(colCount: 2, lineLength: 415.5)),
+            HingeLayout(name: "one column without a hinge", hingeWidth: nil, expected: .init(colCount: 1, lineLength: 712)),
+            HingeLayout(name: "a hinge line without a band", hingeWidth: 0, expected: .init(colCount: 2, lineLength: 415.5)),
+            // The lines are shorter than the optimal one at 100% already.
+            HingeLayout(name: "a larger font", fontScale: 2.0, expected: .init(colCount: 2, lineLength: 415.5)),
+            HingeLayout(name: "a smaller font, limited by the maximal line length", fontScale: 0.5, expected: .init(colCount: 2, lineLength: 356)),
+            // Without the hinge, 3 columns with the middle one on the hinge.
+            HingeLayout(name: "instead of three columns", fontScale: 0.4, expected: .init(colCount: 2, lineLength: 284.8)),
+            // Without the hinge, 4 columns. The pagination scripts only fill
+            // the last screen with two columns per screen.
+            HingeLayout(name: "instead of four columns", fontScale: 0.3, expected: .init(colCount: 2, lineLength: 213.6)),
+            // Margins of half the band, 20pt.
+            HingeLayout(name: "no page margins", pageMargins: 0, expected: .init(colCount: 2, lineLength: 435.5)),
+            HingeLayout(name: "larger page margins", pageMargins: 2, expected: .init(colCount: 2, lineLength: 355.5)),
+            // 356 × 1.2 is above 415.5, but it only applies to the requested columns.
+            HingeLayout(name: "a minimal line length", minimalLineLength: 1.2, expected: .init(colCount: 2, lineLength: 415.5)),
+            // 350 - 20 is below the 356pt base minimal line length.
+            HingeLayout(name: "sides too narrow", width: 700, expected: .init(colCount: 1, lineLength: 640)),
+            HingeLayout(name: "already two columns", width: 1366, expected: .init(colCount: 2, lineLength: 623)),
+            HingeLayout(name: "one requested column", columnCount: 1, expected: .init(colCount: 1, lineLength: 712)),
+            HingeLayout(name: "three requested columns", columnCount: 3, expected: .init(colCount: 3, lineLength: 257)),
+            HingeLayout(name: "scroll mode", scroll: true, expected: .init(colCount: 1, lineLength: 712)),
+            // Not reachable, vertical text is always scrolled.
+            HingeLayout(name: "vertical text", verticalText: true, expected: .init(colCount: 1, lineLength: 712)),
+        ])
+        func layoutAroundHinge(_ test: HingeLayout) {
+            let layout = LayoutResolver().layout(
+                scroll: test.scroll,
+                verticalText: test.verticalText,
+                columnCount: test.columnCount,
+                optimalLineLength: 1.0,
+                minimalLineLength: test.minimalLineLength,
+                maximalLineLength: 1.0,
+                minMargins: test.pageMargins,
+                fontScale: test.fontScale,
+                viewportSize: CGSize(width: test.width, height: 669),
+                hingeWidth: test.hingeWidth
+            )
+
+            #expect(layout.colCount == test.expected.colCount)
+            #expect(abs(layout.lineLength - test.expected.lineLength) < 0.0001)
+        }
+
+        struct HingeMargins: Sendable, CustomTestStringConvertible {
+            let pageMargins: Double
+            let fontScale: Double
+            let insets: UIEdgeInsets
+
+            var testDescription: String {
+                "page margins \(pageMargins), font scale \(fontScale), insets \(insets.left) and \(insets.right)"
+            }
+        }
+
+        @Test("no text is on the hinge", arguments: [0.0, 0.5, 1.0, 2.0, 4.0].flatMap { pageMargins in
+            [0.5, 1.0, 2.0].flatMap { fontScale in
+                [UIEdgeInsets.zero, UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 84), UIEdgeInsets(top: 0, left: 62, bottom: 0, right: 62)].map { insets in
+                    HingeMargins(pageMargins: pageMargins, fontScale: fontScale, insets: insets)
+                }
+            }
+        })
+        func noTextOnHinge(_ test: HingeMargins) {
+            let layout = LayoutResolver().layout(
+                scroll: false,
+                verticalText: false,
+                columnCount: nil,
+                optimalLineLength: 1.0,
+                minimalLineLength: nil,
+                maximalLineLength: 1.0,
+                minMargins: test.pageMargins,
+                fontScale: test.fontScale,
+                viewportSize: CGSize(width: 951, height: 669),
+                insets: test.insets,
+                hingeWidth: 40
+            )
+
+            #expect(layout.colCount == 2)
+            #expect(layout.lineLength > 0)
+            // The lines are centered in their column, half of the viewport.
+            let sideMargin = (951 / 2 - layout.lineLength) / 2
+            #expect(sideMargin >= 20)
+            #expect(sideMargin >= max(test.insets.left, test.insets.right))
+        }
+
+        struct Division: Sendable, CustomTestStringConvertible {
+            let name: String
+            var bounds = CGRect(x: 0, y: 0, width: 951, height: 669)
+            let divisions: [CGRect]
+            let expected: Double?
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test("only a full height division centered in the view is a hinge", arguments: [
+            Division(name: "unfolded in landscape", divisions: [CGRect(x: 455.5, y: 0, width: 40, height: 669)], expected: 40),
+            Division(name: "a hinge line without a band", divisions: [CGRect(x: 475.5, y: 0, width: 0, height: 669)], expected: 0),
+            Division(name: "centered within the tolerance", divisions: [CGRect(x: 457, y: 0, width: 40, height: 669)], expected: 40),
+            Division(name: "off center", divisions: [CGRect(x: 460, y: 0, width: 40, height: 669)], expected: nil),
+            Division(name: "folded", divisions: [], expected: nil),
+            Division(
+                name: "unfolded in portrait",
+                bounds: CGRect(x: 0, y: 0, width: 669, height: 951),
+                divisions: [CGRect(x: 0, y: 455.5, width: 669, height: 40)],
+                expected: nil
+            ),
+            Division(
+                name: "the landscape hinge in portrait bounds, during a rotation",
+                bounds: CGRect(x: 0, y: 0, width: 669, height: 951),
+                divisions: [CGRect(x: 455.5, y: 0, width: 40, height: 669)],
+                expected: nil
+            ),
+            Division(
+                name: "the portrait hinge in landscape bounds, during a rotation",
+                divisions: [CGRect(x: 0, y: 455.5, width: 669, height: 40)],
+                expected: nil
+            ),
+            Division(
+                name: "in a narrower window",
+                bounds: CGRect(x: 0, y: 0, width: 600, height: 669),
+                divisions: [CGRect(x: 455.5, y: 0, width: 40, height: 669)],
+                expected: nil
+            ),
+            Division(name: "not the full height", divisions: [CGRect(x: 455.5, y: 100, width: 40, height: 569)], expected: nil),
+            Division(name: "wider than half the view", divisions: [CGRect(x: 200, y: 0, width: 551, height: 669)], expected: nil),
+            Division(
+                name: "among other divisions",
+                divisions: [CGRect(x: 0, y: 300, width: 951, height: 40), CGRect(x: 455.5, y: 0, width: 40, height: 669)],
+                expected: 40
+            ),
+            Division(name: "an empty view", bounds: .zero, divisions: [.zero], expected: nil),
+        ])
+        func verticalHingeWidth(_ test: Division) {
+            #expect(LayoutResolver.verticalHingeWidth(divisions: test.divisions, in: test.bounds) == test.expected)
+        }
+    }
 }
