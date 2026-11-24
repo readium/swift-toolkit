@@ -520,13 +520,18 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     /// unfolded flat. They are only reliable once the view is laid out:
     /// during a transition, their frames can be out of sync with the bounds.
     private func currentHingeWidth() -> Double? {
-        if #available(iOS 27.1, *) {
-            let divisions = view.reservedRegions(kind: .division, options: .includeInactive)
-            return LayoutResolver.verticalHingeWidth(
-                divisions: divisions.map(\.frame),
-                in: view.bounds
-            )
-        }
+        // The division regions API is only in the iOS 27.1+ SDK. Xcode 27.0
+        // and 27.1 ship the same Swift 6.4.0 compiler, so the API is only
+        // built with Xcode 27.2+ (Swift 6.4.2).
+        #if compiler(>=6.4.2)
+            if #available(iOS 27.1, *) {
+                let divisions = view.reservedRegions(kind: .division, options: .includeInactive)
+                return LayoutResolver.verticalHingeWidth(
+                    divisions: divisions.map(\.frame),
+                    in: view.bounds
+                )
+            }
+        #endif
         return nil
     }
 
