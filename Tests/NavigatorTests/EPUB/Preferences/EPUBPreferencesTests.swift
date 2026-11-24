@@ -56,17 +56,17 @@ enum EPUBPreferencesTests {
         func unset() {
             #expect(settings() == EPUBSettings(
                 backgroundColor: nil,
+                blendImages: false,
                 columnCount: nil,
+                darkenImages: nil,
                 fit: .auto,
                 fontFamily: nil,
                 fontSize: 1.0,
                 fontWeight: nil,
                 fontWidth: nil,
                 hyphens: nil,
-                blendImages: false,
-                darkenImages: nil,
-                invertImages: nil,
-                invertGaiji: nil,
+                invertGaiji: false,
+                invertImages: false,
                 language: nil,
                 letterSpacing: nil,
                 ligatures: nil,
@@ -683,10 +683,6 @@ enum EPUBPreferencesTests {
             Limit(\.fontWidth, "fontWidth", 3, "2.5"),
             Limit(\.darkenImages, "darkenImages", -0.5, "0.0"),
             Limit(\.darkenImages, "darkenImages", 1.5, "1.0"),
-            Limit(\.invertImages, "invertImages", -0.5, "0.0"),
-            Limit(\.invertImages, "invertImages", 1.5, "1.0"),
-            Limit(\.invertGaiji, "invertGaiji", -0.5, "0.0"),
-            Limit(\.invertGaiji, "invertGaiji", 1.5, "1.0"),
             Limit(\.letterSpacing, "letterSpacing", -1, "0.0"),
             Limit(\.pageMargins, "pageMargins", -1, "0.0"),
             Limit(\.paragraphSpacing, "paragraphSpacing", -1, "0.0"),
@@ -701,8 +697,6 @@ enum EPUBPreferencesTests {
             Limit(\.fontWeight, "fontWeight", 2.5, "2.5"),
             Limit(\.fontWidth, "fontWidth", 0.5, "0.5"),
             Limit(\.darkenImages, "darkenImages", 0.4, "0.4"),
-            Limit(\.invertImages, "invertImages", 1, "1.0"),
-            Limit(\.invertGaiji, "invertGaiji", 0, "0.0"),
             Limit(\.letterSpacing, "letterSpacing", 0.2, "0.2"),
             Limit(\.maximalLineLength, "maximalLineLength", 0.01, "0.01"),
             Limit(\.minimalLineLength, "minimalLineLength", 1.5, "1.5"),
@@ -750,8 +744,6 @@ enum EPUBPreferencesTests {
                 fontWeight: -1,
                 fontWidth: 3,
                 darkenImages: 1.5,
-                invertImages: -0.5,
-                invertGaiji: 1.5,
                 letterSpacing: -1,
                 maximalLineLength: -1,
                 minimalLineLength: 0,
@@ -766,8 +758,6 @@ enum EPUBPreferencesTests {
                 fontWeight: 0,
                 fontWidth: 2.5,
                 darkenImages: 1,
-                invertImages: 0,
-                invertGaiji: 1,
                 letterSpacing: 0,
                 maximalLineLength: nil,
                 minimalLineLength: nil,
@@ -786,8 +776,6 @@ enum EPUBPreferencesTests {
                 fontWeight: 2.5,
                 fontWidth: 0.5,
                 darkenImages: 0,
-                invertImages: 0.4,
-                invertGaiji: 1,
                 letterSpacing: 0.2,
                 maximalLineLength: 2,
                 minimalLineLength: 0.01,
@@ -801,8 +789,6 @@ enum EPUBPreferencesTests {
             #expect(settings.fontWeight == 2.5)
             #expect(settings.fontWidth == 0.5)
             #expect(settings.darkenImages == 0)
-            #expect(settings.invertImages == 0.4)
-            #expect(settings.invertGaiji == 1)
             #expect(settings.letterSpacing == 0.2)
             #expect(settings.maximalLineLength == 2)
             #expect(settings.minimalLineLength == 0.01)
@@ -818,8 +804,6 @@ enum EPUBPreferencesTests {
             fontWeight: Double?,
             fontWidth: Double?,
             darkenImages: Double?,
-            invertImages: Double?,
-            invertGaiji: Double?,
             letterSpacing: Double?,
             maximalLineLength: Double?,
             minimalLineLength: Double?,
@@ -830,17 +814,17 @@ enum EPUBPreferencesTests {
         ) -> EPUBSettings {
             EPUBSettings(
                 backgroundColor: nil,
+                blendImages: false,
                 columnCount: columnCount,
+                darkenImages: darkenImages,
                 fit: .auto,
                 fontFamily: nil,
                 fontSize: fontSize,
                 fontWeight: fontWeight,
                 fontWidth: fontWidth,
                 hyphens: nil,
-                blendImages: false,
-                darkenImages: darkenImages,
-                invertImages: invertImages,
-                invertGaiji: invertGaiji,
+                invertGaiji: false,
+                invertImages: false,
                 language: nil,
                 letterSpacing: letterSpacing,
                 ligatures: nil,
@@ -848,6 +832,7 @@ enum EPUBPreferencesTests {
                 linkColor: nil,
                 maximalLineLength: maximalLineLength,
                 minimalLineLength: minimalLineLength,
+                noRuby: false,
                 offsetFirstPage: nil,
                 optimalLineLength: optimalLineLength,
                 pageMargins: pageMargins,
@@ -917,7 +902,7 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("image filters") struct ImageFilters {
-        @Test("preferences limit the image filters to 0.0 ... 1.0", arguments: [
+        @Test("preferences limit darkenImages to 0.0 ... 1.0", arguments: [
             (-0.5, 0.0),
             (0.0, 0.0),
             (0.4, 0.4),
@@ -925,10 +910,8 @@ enum EPUBPreferencesTests {
             (1.5, 1.0),
         ])
         func limitValue(value: Double, expected: Double) {
-            let prefs = EPUBPreferences(darkenImages: value, invertImages: value, invertGaiji: value)
+            let prefs = EPUBPreferences(darkenImages: value)
             #expect(prefs.darkenImages == expected)
-            #expect(prefs.invertImages == expected)
-            #expect(prefs.invertGaiji == expected)
         }
 
         @Test("preferences keep unset image filters unset")
@@ -939,43 +922,46 @@ enum EPUBPreferencesTests {
             #expect(prefs.invertGaiji == nil)
         }
 
-        @Test("decoding limits the image filters to 0.0 ... 1.0")
+        @Test("decoding limits darkenImages to 0.0 ... 1.0 and reads the inversions")
         func decodeLimitsValue() throws {
-            let json = #"{"darkenImages": 1.5, "invertImages": -0.5, "invertGaiji": 0.4}"#
+            let json = #"{"darkenImages": 1.5, "invertGaiji": true, "invertImages": false}"#
             let prefs = try JSONDecoder().decode(EPUBPreferences.self, from: Data(json.utf8))
             #expect(prefs.darkenImages == 1.0)
-            #expect(prefs.invertImages == 0.0)
-            #expect(prefs.invertGaiji == 0.4)
+            #expect(prefs.invertGaiji == true)
+            #expect(prefs.invertImages == false)
         }
 
-        @Test("ReadiumCSS doesn't apply the image filters at 0 or negative", arguments: [0.0, -0.5])
+        @Test("ReadiumCSS doesn't apply the image filters which are off", arguments: [0.0, -0.5])
         func cssImageFiltersOff(value: Double) {
-            let props = cssProperties(preferences: EPUBPreferences(darkenImages: value, invertImages: value, invertGaiji: value))
+            let props = cssProperties(preferences: EPUBPreferences(darkenImages: value, invertGaiji: false, invertImages: false))
             #expect(props["--USER__darkenImages"] == .some(nil))
             #expect(props["--USER__invertImages"] == .some(nil))
             #expect(props["--USER__invertGaiji"] == .some(nil))
         }
 
-        @Test("ReadiumCSS emits the image filters set after the initialization up to 100%")
-        func cssImageFiltersAboveMaximum() {
-            // Set after the initialization, which doesn't limit them.
-            var prefs = EPUBPreferences()
-            prefs.darkenImages = 1.5
-            prefs.invertImages = 1.5
-            prefs.invertGaiji = 1.5
-            let props = cssProperties(preferences: prefs)
-            #expect(props["--USER__darkenImages"] == "0.00000")
+        @Test("ReadiumCSS inverts at 100% when the inversions are on")
+        func cssInversionsOn() {
+            let props = cssProperties(preferences: EPUBPreferences(invertGaiji: true, invertImages: true))
             #expect(props["--USER__invertImages"] == "1.00000")
             #expect(props["--USER__invertGaiji"] == "1.00000")
+        }
+
+        @Test("ReadiumCSS emits darkenImages set after the initialization up to 100%")
+        func cssImageFiltersAboveMaximum() {
+            // Set after the initialization, which doesn't limit it.
+            var prefs = EPUBPreferences()
+            prefs.darkenImages = 1.5
+            let props = cssProperties(preferences: prefs)
+            #expect(props["--USER__darkenImages"] == "0.00000")
         }
 
         // `--USER__invertGaiji: 0` would replace the whole `filter` of the
         // gaiji, which would not be filtered with the other images.
         @Test("ReadiumCSS keeps the other filters on the gaiji when invertGaiji is toggled off")
         @MainActor func cssInvertGaijiToggledOff() {
-            let editor = makeEditor(preferences: EPUBPreferences(darkenImages: 0.2, invertImages: 1.0, invertGaiji: 1.0))
+            let editor = makeEditor(preferences: EPUBPreferences(darkenImages: 0.2, invertGaiji: true, invertImages: true))
             editor.invertGaiji.toggle()
-            #expect(editor.preferences.invertGaiji == 0)
+            #expect(editor.preferences.invertGaiji == false)
 
             let props = cssProperties(preferences: editor.preferences)
             #expect(props["--USER__darkenImages"] == "0.80000")
@@ -1017,7 +1003,7 @@ enum EPUBPreferencesTests {
             #expect(editor.darkenImages.effectiveValue == 0)
         }
 
-        @Test("the editor toggles the inversions between 0% and 100%")
+        @Test("the editor toggles the inversions")
         @MainActor func editorInversionToggles() {
             let editor = makeEditor()
             for (filter, preference) in inversions(of: editor) {
@@ -1025,9 +1011,10 @@ enum EPUBPreferencesTests {
                 #expect(filter.effectiveValue == false)
 
                 filter.toggle()
-                #expect(editor.preferences[keyPath: preference] == 1.0)
+                #expect(editor.preferences[keyPath: preference] == true)
+                #expect(filter.effectiveValue == true)
                 filter.toggle()
-                #expect(editor.preferences[keyPath: preference] == 0.0)
+                #expect(editor.preferences[keyPath: preference] == false)
                 #expect(filter.effectiveValue == false)
 
                 filter.clear()
@@ -1035,22 +1022,13 @@ enum EPUBPreferencesTests {
             }
         }
 
-        @Test("the editor reads a partial inversion as on")
-        @MainActor func editorPartialInversion() {
-            let editor = makeEditor(preferences: EPUBPreferences(invertImages: 0.5, invertGaiji: 0.5))
-            for (filter, _) in inversions(of: editor) {
-                #expect(filter.value == true)
-                #expect(filter.effectiveValue == true)
-            }
-        }
-
         /// The inversion toggles of the `editor`, with their preference.
         @MainActor private func inversions(
             of editor: EPUBPreferencesEditor
-        ) -> [(filter: AnyPreference<Bool>, preference: KeyPath<EPUBPreferences, Double?>)] {
+        ) -> [(filter: AnyPreference<Bool>, preference: KeyPath<EPUBPreferences, Bool?>)] {
             [
-                (editor.invertImages, \.invertImages),
                 (editor.invertGaiji, \.invertGaiji),
+                (editor.invertImages, \.invertImages),
             ]
         }
     }
@@ -1184,7 +1162,7 @@ enum EPUBPreferencesTests {
             #expect(prefs == EPUBPreferences(
                 backgroundColor: Color(rawValue: 0x000000),
                 fontSize: 1.2,
-                invertGaiji: 1.0,
+                invertGaiji: true,
                 linkColor: Color(rawValue: 0x63CAFF),
                 textColor: Color(rawValue: 0xFEFEFE),
                 visitedColor: Color(rawValue: 0x0099E5)
@@ -1213,7 +1191,7 @@ enum EPUBPreferencesTests {
             let dark = try decode(#"{"theme": "dark", "textColor": 16711680}"#)
             #expect(dark == EPUBPreferences(
                 backgroundColor: Color(rawValue: 0x000000),
-                invertGaiji: 1.0,
+                invertGaiji: true,
                 linkColor: Color(rawValue: 0x63CAFF),
                 textColor: Color(rawValue: 0xFF0000),
                 visitedColor: Color(rawValue: 0x0099E5)
@@ -1247,11 +1225,11 @@ enum EPUBPreferencesTests {
         /// darkened.
         @Test("migrates the 3.x image filters with the dark theme", arguments: [
             (#""imageFilter": "darken""#, 0.2, nil, nil),
-            (#""imageFilter": "invert""#, nil, 1.0, 1.0),
-            (#""imageFilter": "unknown""#, nil, nil, 1.0),
-            (#""fontSize": 1.2"#, nil, nil, 1.0),
-        ] as [(String, Double?, Double?, Double?)])
-        func legacyImageFilterDark(filter: String, darkenImages: Double?, invertImages: Double?, invertGaiji: Double?) throws {
+            (#""imageFilter": "invert""#, nil, true, true),
+            (#""imageFilter": "unknown""#, nil, nil, true),
+            (#""fontSize": 1.2"#, nil, nil, true),
+        ] as [(String, Double?, Bool?, Bool?)])
+        func legacyImageFilterDark(filter: String, darkenImages: Double?, invertImages: Bool?, invertGaiji: Bool?) throws {
             let prefs = try decode(#"{"theme": "dark", \#(filter)}"#)
             #expect(prefs.darkenImages == darkenImages)
             #expect(prefs.invertImages == invertImages)
@@ -1275,7 +1253,7 @@ enum EPUBPreferencesTests {
                 backgroundColor: Color(rawValue: 0x000000),
                 columnCount: 2,
                 fontSize: 1.2,
-                invertGaiji: 1.0,
+                invertGaiji: true,
                 linkColor: Color(rawValue: 0x63CAFF),
                 textColor: Color(rawValue: 0xFEFEFE),
                 visitedColor: Color(rawValue: 0x0099E5)
@@ -1290,7 +1268,7 @@ enum EPUBPreferencesTests {
                 columnCount: 2,
                 fontSize: 1.2,
                 hyphens: true,
-                invertGaiji: 1.0,
+                invertGaiji: true,
                 letterSpacing: 0.1,
                 ligatures: false,
                 lineHeight: 2.0,
@@ -1378,7 +1356,7 @@ enum EPUBPreferencesTests {
             }
             #expect(prefs == EPUBPreferences(
                 backgroundColor: Color(rawValue: 0x000000),
-                invertGaiji: 1.0,
+                invertGaiji: true,
                 linkColor: Color(rawValue: 0x63CAFF),
                 textColor: Color(rawValue: 0xFEFEFE),
                 visitedColor: Color(rawValue: 0x0099E5)
@@ -1395,7 +1373,7 @@ enum EPUBPreferencesTests {
             }
             #expect(night == EPUBPreferences(
                 backgroundColor: Color(rawValue: 0x000000),
-                invertGaiji: 1.0,
+                invertGaiji: true,
                 linkColor: Color(rawValue: 0x63CAFF),
                 textColor: Color(rawValue: 0xFF0000),
                 visitedColor: Color(rawValue: 0x0099E5)
@@ -1439,17 +1417,17 @@ enum EPUBPreferencesTests {
 /// Every preference set to a distinct non-default value.
 private let allPreferences = EPUBPreferences(
     backgroundColor: Color(hex: "#FF0000"),
+    blendImages: true,
     columnCount: 2,
+    darkenImages: 0.3,
     fit: .width,
     fontFamily: "Literata",
     fontSize: 1.4,
     fontWeight: 1.75,
     fontWidth: 1.7,
     hyphens: true,
-    blendImages: true,
-    darkenImages: 0.3,
-    invertImages: 0.4,
-    invertGaiji: 0.6,
+    invertGaiji: true,
+    invertImages: false,
     language: Language(code: .bcp47("fr")),
     letterSpacing: 0.1,
     ligatures: false,
@@ -1480,17 +1458,17 @@ private let allPreferencesJSON = """
 {
   "version": 4,
   "backgroundColor": 16711680,
+  "blendImages": true,
   "columnCount": 2,
+  "darkenImages": 0.3,
   "fit": "width",
   "fontFamily": "Literata",
   "fontSize": 1.4,
   "fontWeight": 1.75,
   "fontWidth": 1.7,
   "hyphens": true,
-  "blendImages": true,
-  "darkenImages": 0.3,
-  "invertImages": 0.4,
-  "invertGaiji": 0.6,
+  "invertGaiji": true,
+  "invertImages": false,
   "language": "fr",
   "letterSpacing": 0.1,
   "ligatures": false,
@@ -1520,17 +1498,17 @@ private let allPreferencesJSON = """
 /// `allPreferences` and `allDefaults`.
 private let otherPreferences = EPUBPreferences(
     backgroundColor: Color(hex: "#00FFFF"),
+    blendImages: false,
     columnCount: 1,
+    darkenImages: 0.7,
     fit: .auto,
     fontFamily: "Iowan Old Style",
     fontSize: 0.9,
     fontWeight: 0.5,
     fontWidth: 0.8,
     hyphens: false,
-    blendImages: false,
-    darkenImages: 0.7,
-    invertImages: 0.9,
-    invertGaiji: 0.2,
+    invertGaiji: false,
+    invertImages: true,
     language: Language(code: .bcp47("de")),
     letterSpacing: 0.3,
     ligatures: true,
@@ -1619,8 +1597,8 @@ private let cssTable: [(preferences: EPUBPreferences, expected: [String: String?
     (EPUBPreferences(fontWidth: 1.5), ["--USER__fontWidth": "150.00000%"]),
     (EPUBPreferences(hyphens: true), ["--USER__bodyHyphens": "auto"]),
     (EPUBPreferences(hyphens: false), ["--USER__bodyHyphens": "none"]),
-    (EPUBPreferences(invertImages: 1.0), ["--USER__invertImages": "1.00000"]),
-    (EPUBPreferences(invertGaiji: 1.0), ["--USER__invertGaiji": "1.00000"]),
+    (EPUBPreferences(invertGaiji: true), ["--USER__invertGaiji": "1.00000"]),
+    (EPUBPreferences(invertImages: true), ["--USER__invertImages": "1.00000"]),
     (EPUBPreferences(language: Language(code: .bcp47("fr"))), [:]),
     // ReadiumCSS halves the letter spacing.
     (EPUBPreferences(letterSpacing: 0.2), ["--USER__letterSpacing": "0.10000rem"]),

@@ -12,17 +12,17 @@ import ReadiumShared
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var backgroundColor: Color?
+    public var blendImages: Bool
     public var columnCount: Int?
+    public var darkenImages: Double?
     public var fit: Fit
     public var fontFamily: FontFamily?
     public var fontSize: Double
     public var fontWeight: Double?
     public var fontWidth: Double?
     public var hyphens: Bool?
-    public var blendImages: Bool
-    public var darkenImages: Double?
-    public var invertImages: Double?
-    public var invertGaiji: Double?
+    public var invertGaiji: Bool
+    public var invertImages: Bool
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
@@ -54,17 +54,17 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 
     public init(
         backgroundColor: Color?,
+        blendImages: Bool,
         columnCount: Int?,
+        darkenImages: Double?,
         fit: Fit,
         fontFamily: FontFamily?,
         fontSize: Double,
         fontWeight: Double?,
         fontWidth: Double?,
         hyphens: Bool?,
-        blendImages: Bool,
-        darkenImages: Double?,
-        invertImages: Double?,
-        invertGaiji: Double?,
+        invertGaiji: Bool,
+        invertImages: Bool,
         language: Language?,
         letterSpacing: Double?,
         ligatures: Bool?,
@@ -72,7 +72,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         linkColor: Color?,
         maximalLineLength: Double?,
         minimalLineLength: Double?,
-        noRuby: Bool = false,
+        noRuby: Bool,
         offsetFirstPage: Bool?,
         optimalLineLength: Double,
         pageMargins: Double,
@@ -89,17 +89,17 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         wordSpacing: Double?
     ) {
         self.backgroundColor = backgroundColor
+        self.blendImages = blendImages
         self.columnCount = EPUBPreferences.validColumnCount(columnCount)
+        self.darkenImages = darkenImages?.clamped(to: EPUBPreferences.imageFilterRange)
         self.fit = fit
         self.fontFamily = fontFamily
         self.fontSize = fontSize.positiveOrNil ?? 1.0
         self.fontWeight = fontWeight?.clamped(to: EPUBPreferences.fontWeightRange)
         self.fontWidth = fontWidth?.clamped(to: EPUBPreferences.fontWidthRange)
         self.hyphens = hyphens
-        self.blendImages = blendImages
-        self.darkenImages = darkenImages?.clamped(to: EPUBPreferences.imageFilterRange)
-        self.invertImages = invertImages?.clamped(to: EPUBPreferences.imageFilterRange)
-        self.invertGaiji = invertGaiji?.clamped(to: EPUBPreferences.imageFilterRange)
+        self.invertGaiji = invertGaiji
+        self.invertImages = invertImages
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
@@ -185,17 +185,17 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 
         self.init(
             backgroundColor: preferences.backgroundColor,
+            blendImages: preferences.blendImages ?? false,
             columnCount: columnCount,
+            darkenImages: preferences.darkenImages,
             fit: fit,
             fontFamily: preferences.fontFamily,
             fontSize: fontSize,
             fontWeight: fontWeight,
             fontWidth: fontWidth,
             hyphens: hyphens,
-            blendImages: preferences.blendImages ?? false,
-            darkenImages: preferences.darkenImages,
-            invertImages: preferences.invertImages,
-            invertGaiji: preferences.invertGaiji,
+            invertGaiji: preferences.invertGaiji ?? false,
+            invertImages: preferences.invertImages ?? false,
             language: language,
             letterSpacing: letterSpacing,
             ligatures: ligatures,

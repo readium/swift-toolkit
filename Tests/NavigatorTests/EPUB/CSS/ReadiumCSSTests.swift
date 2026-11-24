@@ -103,8 +103,7 @@ struct ReadiumCSSTests {
     @Test func injectionsWithReadiumCSSProperties() throws {
         let css = ReadiumCSS(
             rsProperties: CSSRSProperties(
-                colGap: CSSPxLength(40.0),
-                textColor: CSSHexColor("#FF0000")
+                noOverflow: true
             ),
             userProperties: CSSUserProperties(
                 linkColor: CSSHexColor("#0000FF"),
@@ -121,8 +120,7 @@ struct ReadiumCSSTests {
                 cssAfter(),
                 audioFix,
                 .styleAttribute(on: .html, css: """
-                --RS__colGap: 40.00000px !important;
-                --RS__textColor: #FF0000 !important;
+                --RS__disableOverflow: readium-noOverflow-on !important;
                 --USER__linkColor: #0000FF !important;
                 --USER__wordSpacing: 20.00000rem !important;
 
@@ -366,19 +364,52 @@ struct ReadiumCSSTests {
         #expect(css.rsProperties.cssProperties()["--RS__disableOverflow"] == "readium-noOverflow-on")
     }
 
-    @Test(arguments: [false, true])
-    func updateDoesNotSetPageGutter(scroll: Bool) {
-        var css = ReadiumCSS(baseURL: baseURL)
-        let settings = EPUBSettings(
-            preferences: EPUBPreferences(pageMargins: 1.5, scroll: scroll),
-            defaults: EPUBDefaults(),
-            metadata: Metadata(title: "Test")
-        )
-        css.update(with: settings, userInterfaceIdiom: .pad)
-        #expect(css.rsProperties.pageGutter == nil)
+    /// The complete inline CSS emitted for each device, with the default
+    /// settings and a resolved layout.
+    @Test(arguments: [
+        (UIUserInterfaceIdiom.phone, """
+        --RS__disableOverflow: readium-noOverflow-on !important;
+        --USER__colCount: 1 !important;
+        --USER__fontSize: 100.00000% !important;
+        --USER__iOSPatch: readium-iOSPatch-on !important;
+        --USER__lineLength: 578.00000px !important;
+        --USER__view: readium-paged-on !important;
 
-        css.update(with: settings, userInterfaceIdiom: .pad, resolvedLayout: LayoutResolver.Layout(colCount: 1, lineLength: 500.0))
-        #expect(css.rsProperties.pageGutter == nil)
+        """),
+        (.pad, """
+        --RS__disableOverflow: readium-noOverflow-on !important;
+        --USER__colCount: 1 !important;
+        --USER__fontSize: 100.00000% !important;
+        --USER__iPadOSPatch: readium-iPadOSPatch-on !important;
+        --USER__lineLength: 578.00000px !important;
+        --USER__view: readium-paged-on !important;
+
+        """),
+        (.mac, """
+        --RS__disableOverflow: readium-noOverflow-on !important;
+        --USER__colCount: 1 !important;
+        --USER__fontSize: 100.00000% !important;
+        --USER__lineLength: 578.00000px !important;
+        --USER__view: readium-paged-on !important;
+
+        """),
+        (.unspecified, """
+        --RS__disableOverflow: readium-noOverflow-on !important;
+        --USER__colCount: 1 !important;
+        --USER__fontSize: 100.00000% !important;
+        --USER__lineLength: 578.00000px !important;
+        --USER__view: readium-paged-on !important;
+
+        """),
+    ])
+    func updateEmitsTheInlineCSSOfTheDevice(idiom: UIUserInterfaceIdiom, expected: String) throws {
+        var css = ReadiumCSS(baseURL: baseURL)
+        css.update(
+            with: EPUBSettings(preferences: EPUBPreferences(), defaults: EPUBDefaults(), metadata: Metadata(title: "Test")),
+            userInterfaceIdiom: idiom,
+            resolvedLayout: LayoutResolver.Layout(colCount: 1, lineLength: 578)
+        )
+        #expect(try css.injections(for: html).contains(.styleAttribute(on: .html, css: expected)))
     }
 
     @Test(arguments: [false, true])
@@ -447,25 +478,5 @@ struct ReadiumCSSTests {
         let props = css.userProperties.cssProperties()
         #expect(props["--USER__fontSize"] == "100.00000%")
         #expect(props["--USER__lineLength"] == "712.00000px")
-    }
-
-    /// In scroll mode, the safe area is applied by the content inset of the
-    /// web view's scroll view, so the body has no scroll padding.
-    @Test(arguments: [false, true])
-    func updateWithScrollSettingsDoesNotSetScrollPadding(verticalText: Bool) {
-        var css = ReadiumCSS(baseURL: baseURL)
-        let settings = EPUBSettings(
-            preferences: EPUBPreferences(scroll: true, verticalText: verticalText),
-            defaults: EPUBDefaults(),
-            metadata: Metadata(title: "Test")
-        )
-        let layout = LayoutResolver.Layout(colCount: 1, lineLength: 500.0)
-        css.update(with: settings, userInterfaceIdiom: .phone, resolvedLayout: layout)
-
-        let props = css.rsProperties.cssProperties()
-        #expect(props["--RS__scrollPaddingTop"] == .some(nil))
-        #expect(props["--RS__scrollPaddingBottom"] == .some(nil))
-        #expect(props["--RS__scrollPaddingLeft"] == .some(nil))
-        #expect(props["--RS__scrollPaddingRight"] == .some(nil))
     }
 }

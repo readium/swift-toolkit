@@ -434,16 +434,16 @@ Bitmaps and SVG documents in the reading order are always rendered as fixed-layo
 | Setting              | Reflowable | Fixed Layout |
 |----------------------|------------|--------------|
 | `backgroundColor`    | ✅         | ✅           |
+| `blendImages`        | ✅         |              |
 | `columnCount`        | ✅         |              |
+| `darkenImages`       | ✅         |              |
 | `fontFamily`         | ✅         |              |
 | `fontSize`           | ✅         |              |
 | `fontWeight`         | ✅         |              |
 | `fontWidth`          | ✅         |              |
 | `hyphens`            | ✅         |              |
-| `blendImages`        | ✅         |              |
-| `darkenImages`       | ✅         |              |
-| `invertImages`       | ✅         |              |
 | `invertGaiji`        | ✅         |              |
+| `invertImages`       | ✅         |              |
 | `language`           | ✅         | ✅           |
 | `letterSpacing`      | ✅         |              |
 | `ligatures`          | ✅         |              |
@@ -556,13 +556,13 @@ func apply(_ theme: ReaderTheme, to editor: EPUBPreferencesEditor) {
 
 #### Image filters
 
-The `darkenImages`, `invertImages` and `invertGaiji` preferences are applied with any colors, although they are typically used with a dark `backgroundColor`. To filter the images only with your dark theme, set these preferences along with its colors and clear them otherwise.
+The `darkenImages`, `invertGaiji` and `invertImages` preferences are applied with any colors, although they are typically used with a dark `backgroundColor`. To filter the images only with your dark theme, set these preferences along with its colors and clear them otherwise.
 
 * `darkenImages` reduces the brightness of the images by the given percentage, from `0.0` to `1.0`.
-* `invertImages` inverts the colors of the images by the given percentage, from `0.0` to `1.0`.
-* `invertGaiji` inverts by the given percentage, from `0.0` to `1.0`, only the gaiji, which are the images used in Japanese publications for the characters missing from the fonts (`<img class="gaiji">`). They are usually black glyphs displayed among the text, which are hard to read on a dark background unless inverted. When `invertGaiji` is above `0.0`, the gaiji ignore `darkenImages` and `invertImages`.
+* `invertGaiji` inverts the colors of the gaiji only when `true`. The gaiji are the images used in Japanese publications for the characters missing from the fonts (`<img class="gaiji">`). They are usually black glyphs displayed among the text, which are hard to read on a dark background unless inverted. When `invertGaiji` is `true`, the gaiji ignore `darkenImages` and `invertImages`.
+* `invertImages` inverts the colors of the images when `true`.
 
-`blendImages` is a toggle, off by default, which blends the images (`<img>` and `<svg>`) with the background color using `mix-blend-mode: multiply`. The white areas of the images take the color of the page, for example with a sepia background. Like the other filters, it is applied with any colors, but it is meant for light backgrounds: multiplied with a dark background, the images become very dark.
+`blendImages`, a toggle off by default like the inversions, blends the images (`<img>` and `<svg>`) with the background color using `mix-blend-mode: multiply`. The white areas of the images take the color of the page, for example with a sepia background. Like the other filters, it is applied with any colors, but it is meant for light backgrounds: multiplied with a dark background, the images become very dark.
 
 #### Language specific preferences
 

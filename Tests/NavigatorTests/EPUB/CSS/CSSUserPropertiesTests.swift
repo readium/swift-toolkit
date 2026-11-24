@@ -37,6 +37,8 @@ struct CSSUserPropertiesTests {
                 "--USER__ligatures": nil,
                 "--USER__a11yNormalize": nil,
                 "--USER__noRuby": nil,
+                "--USER__iOSPatch": nil,
+                "--USER__iPadOSPatch": nil,
             ]
         )
     }
@@ -44,72 +46,75 @@ struct CSSUserPropertiesTests {
     @Test func convertFullUserPropertiesToCSSProperties() {
         #expect(
             CSSUserProperties(
-                view: .scroll,
-                colCount: 0,
-                lineLength: CSSPercentLength(42),
+                view: .paged,
+                colCount: 2,
+                lineLength: CSSPxLength(578),
                 blendImages: true,
                 darkenImages: 0.8,
-                invertImages: 0.9,
-                invertGaiji: 0.95,
+                invertImages: 1.0,
+                invertGaiji: 1.0,
                 textColor: CSSHexColor("#FF0000"),
                 backgroundColor: CSSHexColor("#00FF00"),
                 linkColor: CSSHexColor("#0000FF"),
                 visitedColor: CSSHexColor("#FF00FF"),
                 fontFamily: ["Times New"],
-                fontSize: CSSVMaxLength(2.3),
+                fontSize: CSSPercentLength(1.2),
                 fontWeight: 600,
                 fontWidth: CSSPercentLength(1.25),
                 textAlign: .justify,
-                lineHeight: .length(CSSPtLength(4.5)),
-                paraSpacing: CSSPtLength(5.6),
-                paraIndent: CSSRemLength(6.7),
-                wordSpacing: CSSRemLength(7.8),
-                letterSpacing: CSSRemLength(8.9),
+                lineHeight: .unitless(1.5),
+                paraSpacing: CSSRemLength(0.5),
+                paraIndent: CSSRemLength(1.0),
+                wordSpacing: CSSRemLength(0.2),
+                letterSpacing: CSSRemLength(0.05),
                 bodyHyphens: .auto,
                 ligatures: .common,
                 a11yNormalize: true,
-                noRuby: true
+                noRuby: true,
+                iOSPatch: true,
+                iPadOSPatch: true
             ).cssProperties() == [
-                "--USER__view": "readium-scroll-on",
-                "--USER__colCount": "0",
-                "--USER__lineLength": "4200.00000%",
+                "--USER__view": "readium-paged-on",
+                "--USER__colCount": "2",
+                "--USER__lineLength": "578.00000px",
                 "--USER__blendImages": "readium-blend-on",
                 "--USER__darkenImages": "0.80000",
-                "--USER__invertImages": "0.90000",
-                "--USER__invertGaiji": "0.95000",
+                "--USER__invertImages": "1.00000",
+                "--USER__invertGaiji": "1.00000",
                 "--USER__textColor": "#FF0000",
                 "--USER__backgroundColor": "#00FF00",
                 "--USER__linkColor": "#0000FF",
                 "--USER__visitedColor": "#FF00FF",
                 "--USER__fontFamily": "\"Times New\"",
-                "--USER__fontSize": "2.30000vmax",
+                "--USER__fontSize": "120.00000%",
                 "--USER__fontWeight": "600",
                 "--USER__fontWidth": "125.00000%",
                 "--USER__textAlign": "justify",
-                "--USER__lineHeight": "4.50000pt",
-                "--USER__paraSpacing": "5.60000pt",
-                "--USER__paraIndent": "6.70000rem",
-                "--USER__wordSpacing": "7.80000rem",
-                "--USER__letterSpacing": "8.90000rem",
+                "--USER__lineHeight": "1.50000",
+                "--USER__paraSpacing": "0.50000rem",
+                "--USER__paraIndent": "1.00000rem",
+                "--USER__wordSpacing": "0.20000rem",
+                "--USER__letterSpacing": "0.05000rem",
                 "--USER__bodyHyphens": "auto",
                 "--USER__ligatures": "common-ligatures",
                 "--USER__a11yNormalize": "readium-a11y-on",
                 "--USER__noRuby": "readium-noRuby-on",
+                "--USER__iOSPatch": "readium-iOSPatch-on",
+                "--USER__iPadOSPatch": "readium-iPadOSPatch-on",
             ]
         )
     }
 
-    @Test func overrideUserProperties() {
-        let props = CSSUserProperties(
-            colCount: 1,
-            overrides: [
-                "--USER__colCount": "2",
-                "--USER__custom": "value",
-            ]
-        ).cssProperties()
-
-        #expect(props["--USER__colCount"] == "2")
-        #expect(props["--USER__custom"] == "value")
+    @Test func disabledFlagsAreNotEmitted() {
+        #expect(
+            CSSUserProperties(
+                blendImages: false,
+                a11yNormalize: false,
+                noRuby: false,
+                iOSPatch: false,
+                iPadOSPatch: false
+            ).css() == nil
+        )
     }
 
     @Test func generateEmptyInlineCSSProperties() {
@@ -120,9 +125,9 @@ struct CSSUserPropertiesTests {
         #expect(
             CSSUserProperties(
                 view: .scroll,
-                colCount: 0
+                colCount: 1
             ).css() == """
-            --USER__colCount: 0 !important;
+            --USER__colCount: 1 !important;
             --USER__view: readium-scroll-on !important;
 
             """

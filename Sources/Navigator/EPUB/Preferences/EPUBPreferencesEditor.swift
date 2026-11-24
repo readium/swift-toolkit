@@ -81,6 +81,17 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             isEffective: { $0.preferences.backgroundColor != nil }
         )
 
+    /// Blends the images with the background color.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var blendImages: AnyPreference<Bool> =
+        preference(
+            preference: \.blendImages,
+            setting: \.blendImages,
+            defaultEffectiveValue: false,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
+        )
+
     /// Number of reflowable columns to display (one-page view or two-page
     /// spread).
     ///
@@ -99,6 +110,20 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
                     && !$0.settings.scroll
             },
             supportedValues: [nil, 1, 2]
+        )
+
+    /// Darkens images by the given percentage.
+    ///
+    /// Only effective when the publication contains reflowable resources.
+    public lazy var darkenImages: AnyRangePreference<Double> =
+        rangePreference(
+            preference: \.darkenImages,
+            effectiveValue: { $0.settings.darkenImages ?? 0 },
+            defaultEffectiveValue: 0,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
+            supportedRange: EPUBPreferences.imageFilterRange,
+            progressionStrategy: .increment(0.1),
+            format: \.percentageString
         )
 
     /// Method for fitting the content within the viewport.
@@ -197,68 +222,27 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             }
         )
 
-    /// Blends the images with the background color.
+    /// Inverts the colors of the gaiji images.
     ///
     /// Only effective when the publication contains reflowable resources.
-    public lazy var blendImages: AnyPreference<Bool> =
+    public lazy var invertGaiji: AnyPreference<Bool> =
         preference(
-            preference: \.blendImages,
-            setting: \.blendImages,
+            preference: \.invertGaiji,
+            setting: \.invertGaiji,
             defaultEffectiveValue: false,
             isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
 
-    /// Darkens images by the given percentage.
-    ///
-    /// Only effective when the publication contains reflowable resources.
-    public lazy var darkenImages: AnyRangePreference<Double> =
-        rangePreference(
-            preference: \.darkenImages,
-            effectiveValue: { $0.settings.darkenImages ?? 0 },
-            defaultEffectiveValue: 0,
-            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
-            supportedRange: EPUBPreferences.imageFilterRange,
-            progressionStrategy: .increment(0.1),
-            format: \.percentageString
-        )
-
-    /// Inverts gaiji images.
-    ///
-    /// Only effective when the publication contains reflowable resources.
-    public lazy var invertGaiji: AnyPreference<Bool> =
-        rangePreference(
-            preference: \.invertGaiji,
-            effectiveValue: { $0.settings.invertGaiji ?? 0 },
-            defaultEffectiveValue: 0,
-            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
-            supportedRange: EPUBPreferences.imageFilterRange,
-            progressionStrategy: .increment(0.1),
-            format: \.percentageString
-        )
-        .map(
-            from: { $0 > 0 },
-            to: { $0 ? 1.0 : 0.0 }
-        )
-        .eraseToAnyPreference()
-
-    /// Inverts the color of images.
+    /// Inverts the colors of the images.
     ///
     /// Only effective when the publication contains reflowable resources.
     public lazy var invertImages: AnyPreference<Bool> =
-        rangePreference(
+        preference(
             preference: \.invertImages,
-            effectiveValue: { $0.settings.invertImages ?? 0 },
-            defaultEffectiveValue: 0,
-            isEffective: { [layouts] _ in layouts.contains(.reflowable) },
-            supportedRange: EPUBPreferences.imageFilterRange,
-            progressionStrategy: .increment(0.1),
-            format: \.percentageString
+            setting: \.invertImages,
+            defaultEffectiveValue: false,
+            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
         )
-        .map(
-            from: { $0 > 0 },
-            to: { $0 ? 1.0 : 0.0 }
-        )
-        .eraseToAnyPreference()
 
     /// Language of the publication content.
     ///

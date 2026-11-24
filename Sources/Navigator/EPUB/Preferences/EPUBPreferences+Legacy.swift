@@ -249,10 +249,10 @@ extension EPUBPreferences {
                 // The `darken` filter was `brightness(80%)`.
                 darkenImages = 0.2
             case "invert":
-                invertImages = 1.0
-                invertGaiji = 1.0
+                invertImages = true
+                invertGaiji = true
             default:
-                invertGaiji = 1.0
+                invertGaiji = true
             }
 
         case .sepia:

@@ -36,12 +36,8 @@ extension ReadiumCSS {
     ) {
         layout = settings.cssLayout
 
-        var overrides: [String: String] = [:]
-
-        rsProperties = CSSRSProperties(overrides: [
-            // See https://github.com/readium/css/issues/183
-            "--RS__disableOverflow": "readium-noOverflow-on",
-        ])
+        // See https://github.com/readium/css/issues/183
+        rsProperties = CSSRSProperties(noOverflow: true)
 
         // Readium CSS applies `--USER__fontSize` with a `zoom` on `body`,
         // which also scales the line length in px set below. It is divided by
@@ -59,14 +55,10 @@ extension ReadiumCSS {
         // - Nothing for a Mac Catalyst app optimized for the Mac.
         //
         // See https://github.com/readium/css/issues/189
-        switch userInterfaceIdiom {
-        case .pad:
-            overrides["--USER__iPadOSPatch"] = "readium-iPadOSPatch-on"
-        case .phone:
-            overrides["--USER__iOSPatch"] = "readium-iOSPatch-on"
+        let iOSPatch = userInterfaceIdiom == .phone
+        let iPadOSPatch = userInterfaceIdiom == .pad
+        if iOSPatch {
             bodyZoom = 1
-        default:
-            break
         }
 
         // The margins around the lines come from the resolved `lineLength`,
@@ -83,9 +75,14 @@ extension ReadiumCSS {
             colCount: resolvedLayout?.colCount,
             lineLength: resolvedLayout.map { CSSPxLength($0.lineLength / bodyZoom) },
             blendImages: settings.blendImages,
-            darkenImages: imageFilter(settings.darkenImages).map { 1 - $0 },
-            invertImages: imageFilter(settings.invertImages),
-            invertGaiji: imageFilter(settings.invertGaiji),
+            // An image filter which is off is not emitted, as the presence of
+            // the property is enough to trigger the Readium CSS rule. For
+            // example, `--USER__invertGaiji: 0` would exclude the gaiji from
+            // the other image filters. `darkenImages` is off below 0.00001,
+            // such as the residue of stepping it down to 0%.
+            darkenImages: settings.darkenImages.takeIf { $0 >= 0.00001 }.map { 1 - $0 },
+            invertImages: settings.invertImages ? 1.0 : nil,
+            invertGaiji: settings.invertGaiji ? 1.0 : nil,
             textColor: settings.textColor.map { CSSIntColor($0.rawValue) },
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
             linkColor: settings.linkColor.map { CSSIntColor($0.rawValue) },
@@ -115,17 +112,9 @@ extension ReadiumCSS {
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,
             noRuby: settings.noRuby,
-            overrides: overrides
+            iOSPatch: iOSPatch,
+            iPadOSPatch: iPadOSPatch
         )
-    }
-
-    /// Returns the percentage of an image filter to emit.
-    ///
-    /// A filter at 0 is not emitted, as the presence of the property is enough
-    /// to trigger the Readium CSS rule. For example, `--USER__invertGaiji: 0`
-    /// would exclude the gaiji from the other image filters.
-    private func imageFilter(_ value: Double?) -> Double? {
-        value.takeIf { $0 >= 0.00001 }
     }
 
     func resolveFontStack(of fontFamily: FontFamily) -> [String] {

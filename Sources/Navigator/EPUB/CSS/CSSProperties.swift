@@ -142,8 +142,14 @@ struct CSSUserProperties: CSSProperties, Sendable {
     /// the CJK stylesheets.
     var noRuby: Bool?
 
-    /// Additional overrides for extensions and adjustments.
-    var overrides: [String: String?]
+    // WebKit patches
+
+    /// Applies the patch for WebKit on iOS (iPhone).
+    var iOSPatch: Bool?
+
+    /// Applies the patch for WebKit on iPadOS, which requests the pages as
+    /// desktop.
+    var iPadOSPatch: Bool?
 
     init(
         view: CSSView? = nil,
@@ -171,7 +177,8 @@ struct CSSUserProperties: CSSProperties, Sendable {
         ligatures: CSSLigatures? = nil,
         a11yNormalize: Bool? = nil,
         noRuby: Bool? = nil,
-        overrides: [String: String?] = [:]
+        iOSPatch: Bool? = nil,
+        iPadOSPatch: Bool? = nil
     ) {
         self.view = view
         self.colCount = colCount
@@ -198,7 +205,8 @@ struct CSSUserProperties: CSSProperties, Sendable {
         self.ligatures = ligatures
         self.a11yNormalize = a11yNormalize
         self.noRuby = noRuby
-        self.overrides = overrides
+        self.iOSPatch = iOSPatch
+        self.iPadOSPatch = iPadOSPatch
     }
 
     func cssProperties() -> [String: String?] {
@@ -240,309 +248,32 @@ struct CSSUserProperties: CSSProperties, Sendable {
         props.putCSS(name: "--USER__a11yNormalize", value: CSSFlag(name: "a11y", isEnabled: a11yNormalize))
         props.putCSS(name: "--USER__noRuby", value: CSSFlag(name: "noRuby", isEnabled: noRuby))
 
-        props.merge(overrides, uniquingKeysWith: { _, n in n })
+        // WebKit patches
+        props.putCSS(name: "--USER__iOSPatch", value: CSSFlag(name: "iOSPatch", isEnabled: iOSPatch))
+        props.putCSS(name: "--USER__iPadOSPatch", value: CSSFlag(name: "iPadOSPatch", isEnabled: iPadOSPatch))
+
         return props
     }
 }
 
 /// Reading System properties.
 ///
+/// Only the properties set by the navigator are declared.
+///
 /// See https://github.com/readium/css/blob/develop/docs/CSS19-api.md#reading-system-styles
 struct CSSRSProperties: CSSProperties, Sendable {
-    // Pagination
+    /// Disables the `overflow` rules of Readium CSS on `:root` and `body`.
+    ///
+    /// See https://github.com/readium/css/issues/183
+    var noOverflow: Bool?
 
-    /// @param viewportWidth The optimal viewport width.
-    var viewportWidth: CSSLength?
-
-    /// @param colWidth The optimal column’s width. It serves as a floor in our design.
-    var colWidth: CSSLength?
-
-    /// @param colCount The optimal number of columns (depending on the columns’ width).
-    var colCount: Int?
-
-    /// @param colGap The gap between columns. You must account for this gap when scrolling.
-    var colGap: CSSAbsoluteLength?
-
-    /// @param pageGutter The horizontal page margins.
-    var pageGutter: CSSAbsoluteLength?
-
-    /// @param scrollPaddingTop The default top padding for continuous scroll mode.
-    var scrollPaddingTop: CSSLength?
-
-    /// @param scrollPaddingBottom The default bottom padding for continuous scroll mode.
-    var scrollPaddingBottom: CSSLength?
-
-    /// @param scrollPaddingLeft The default left padding for continuous scroll mode.
-    var scrollPaddingLeft: CSSLength?
-
-    /// @param scrollPaddingRight The default right padding for continuous scroll mode.
-    var scrollPaddingRight: CSSLength?
-
-    // Vertical rhythm
-
-    /// @param flowSpacing The default vertical margins for HTML5 flow content e.g. pre, figure,
-    /// blockquote, etc.
-    var flowSpacing: CSSLength?
-
-    /// @param paraSpacing The default vertical margins for paragraphs.
-    var paraSpacing: CSSLength?
-
-    /// @param paraIndent The default text-indent for paragraphs.
-    var paraIndent: CSSLength?
-
-    // Safeguards
-
-    /// @param defaultLineLength The optimal line-length. It must be set in rem in order to take :root’s
-    /// font-size as a reference, whichever the body’s font-size might be.
-    var defaultLineLength: CSSRemLength?
-
-    /// @param maxMediaWidth The max-width for media elements i.e. img, svg, audio and video.
-    var maxMediaWidth: CSSLength?
-
-    /// @param maxMediaHeight The max-height for media elements i.e. img, svg, audio and video.
-    var maxMediaHeight: CSSLength?
-
-    /// @param boxSizingMedia The box model (box-sizing) you want to use for media elements.
-    var boxSizingMedia: CSSBoxSizing?
-
-    /// @param boxSizingTable The box model (box-sizing) you want to use for tables.
-    var boxSizingTable: CSSBoxSizing?
-
-    // Colors
-
-    /// @param textColor The default color for body copy’s text.
-    var textColor: CSSColor?
-
-    /// @param backgroundColor The default background-color for pages.
-    var backgroundColor: CSSColor?
-
-    /// @param selectionTextColor The color for selected text.
-    var selectionTextColor: CSSColor?
-
-    /// @param selectionBackgroundColor The background-color for selected text.
-    var selectionBackgroundColor: CSSColor?
-
-    /// @param linkColor The default color for hyperlinks.
-    var linkColor: CSSColor?
-
-    /// @param visitedColor The default color for visited hyperlinks.
-    var visitedColor: CSSColor?
-
-    /// @param primaryColor An optional primary accentuation color you could use for headings or any
-    /// other element of your choice.
-    var primaryColor: CSSColor?
-
-    /// @param secondaryColor An optional secondary accentuation color you could use for any element
-    /// of your choice.
-    var secondaryColor: CSSColor?
-
-    // Typography
-
-    /// @param typeScale The scale to be used for computing all elements’ font-size. Since those font
-    /// sizes are computed dynamically, you can set a smaller type scale when the user sets one
-    /// of the largest font sizes.
-    var typeScale: Double?
-
-    /// @param baseFontFamily The default typeface for body copy in case the ebook doesn’t have one
-    /// declared. Please note some languages have a specific font-stack (japanese, hindi, etc.)
-    var baseFontFamily: [String]?
-
-    /// @param baseLineHeight The default line-height for body copy in case the ebook doesn’t have
-    /// one declared.
-    var baseLineHeight: CSSLineHeight?
-
-    // Default font-stacks
-
-    /// @param oldStyleTf An old style serif font-stack relying on pre-installed fonts.
-    var oldStyleTf: [String]?
-
-    /// @param modernTf A modern serif font-stack relying on pre-installed fonts.
-    var modernTf: [String]?
-
-    /// @param sansTf A neutral sans-serif font-stack relying on pre-installed fonts.
-    var sansTf: [String]?
-
-    /// @param humanistTf A humanist sans-serif font-stack relying on pre-installed fonts.
-    var humanistTf: [String]?
-
-    /// @param monospaceTf A monospace font-stack relying on pre-installed fonts.
-    var monospaceTf: [String]?
-
-    // Default font-stacks for Japanese publications
-
-    /// @param serifJa A Mincho font-stack whose fonts with proportional latin characters are
-    /// prioritized for horizontal writing.
-    var serifJa: [String]?
-
-    /// @param sansSerifJa A Gothic font-stack whose fonts with proportional latin characters are
-    /// prioritized for horizontal writing.
-    var sansSerifJa: [String]?
-
-    /// @param serifJaV A Mincho font-stack whose fonts with fixed-width latin characters are
-    /// prioritized for vertical writing.
-    var serifJaV: [String]?
-
-    /// @param sansSerifJaV A Gothic font-stack whose fonts with fixed-width latin characters are
-    /// prioritized for vertical writing.
-    var sansSerifJaV: [String]?
-
-    // Default styles for unstyled publications
-
-    /// @param compFontFamily The typeface for headings.
-    /// The value can be another variable e.g. var(-RS__humanistTf).
-    var compFontFamily: [String]?
-
-    /// @param codeFontFamily The typeface for code snippets.
-    /// The value can be another variable e.g. var(-RS__monospaceTf).
-    var codeFontFamily: [String]?
-
-    /// Additional overrides for extensions and adjustments.
-    var overrides: [String: String?]
-
-    init(
-        viewportWidth: CSSLength? = nil,
-        colWidth: CSSLength? = nil,
-        colCount: Int? = nil,
-        colGap: CSSAbsoluteLength? = nil,
-        pageGutter: CSSAbsoluteLength? = nil,
-        scrollPaddingTop: CSSLength? = nil,
-        scrollPaddingBottom: CSSLength? = nil,
-        scrollPaddingLeft: CSSLength? = nil,
-        scrollPaddingRight: CSSLength? = nil,
-        flowSpacing: CSSLength? = nil,
-        paraSpacing: CSSLength? = nil,
-        paraIndent: CSSLength? = nil,
-        defaultLineLength: CSSRemLength? = nil,
-        maxMediaWidth: CSSLength? = nil,
-        maxMediaHeight: CSSLength? = nil,
-        boxSizingMedia: CSSBoxSizing? = nil,
-        boxSizingTable: CSSBoxSizing? = nil,
-        textColor: CSSColor? = nil,
-        backgroundColor: CSSColor? = nil,
-        selectionTextColor: CSSColor? = nil,
-        selectionBackgroundColor: CSSColor? = nil,
-        linkColor: CSSColor? = nil,
-        visitedColor: CSSColor? = nil,
-        primaryColor: CSSColor? = nil,
-        secondaryColor: CSSColor? = nil,
-        typeScale: Double? = nil,
-        baseFontFamily: [String]? = nil,
-        baseLineHeight: CSSLineHeight? = nil,
-        oldStyleTf: [String]? = nil,
-        modernTf: [String]? = nil,
-        sansTf: [String]? = nil,
-        humanistTf: [String]? = nil,
-        monospaceTf: [String]? = nil,
-        serifJa: [String]? = nil,
-        sansSerifJa: [String]? = nil,
-        serifJaV: [String]? = nil,
-        sansSerifJaV: [String]? = nil,
-        compFontFamily: [String]? = nil,
-        codeFontFamily: [String]? = nil,
-        overrides: [String: String?] = [:]
-    ) {
-        self.viewportWidth = viewportWidth
-        self.colWidth = colWidth
-        self.colCount = colCount
-        self.colGap = colGap
-        self.pageGutter = pageGutter
-        self.scrollPaddingTop = scrollPaddingTop
-        self.scrollPaddingBottom = scrollPaddingBottom
-        self.scrollPaddingLeft = scrollPaddingLeft
-        self.scrollPaddingRight = scrollPaddingRight
-        self.flowSpacing = flowSpacing
-        self.paraSpacing = paraSpacing
-        self.paraIndent = paraIndent
-        self.defaultLineLength = defaultLineLength
-        self.maxMediaWidth = maxMediaWidth
-        self.maxMediaHeight = maxMediaHeight
-        self.boxSizingMedia = boxSizingMedia
-        self.boxSizingTable = boxSizingTable
-        self.textColor = textColor
-        self.backgroundColor = backgroundColor
-        self.selectionTextColor = selectionTextColor
-        self.selectionBackgroundColor = selectionBackgroundColor
-        self.linkColor = linkColor
-        self.visitedColor = visitedColor
-        self.primaryColor = primaryColor
-        self.secondaryColor = secondaryColor
-        self.typeScale = typeScale
-        self.baseFontFamily = baseFontFamily
-        self.baseLineHeight = baseLineHeight
-        self.oldStyleTf = oldStyleTf
-        self.modernTf = modernTf
-        self.sansTf = sansTf
-        self.humanistTf = humanistTf
-        self.monospaceTf = monospaceTf
-        self.serifJa = serifJa
-        self.sansSerifJa = sansSerifJa
-        self.serifJaV = serifJaV
-        self.sansSerifJaV = sansSerifJaV
-        self.compFontFamily = compFontFamily
-        self.codeFontFamily = codeFontFamily
-        self.overrides = overrides
+    init(noOverflow: Bool? = nil) {
+        self.noOverflow = noOverflow
     }
 
     func cssProperties() -> [String: String?] {
         var props: [String: String?] = [:]
-
-        // Pagination
-        props.putCSS(name: "--RS__viewportWidth", value: viewportWidth)
-        props.putCSS(name: "--RS__colWidth", value: colWidth)
-        props.putCSS(name: "--RS__colCount", value: colCount)
-        props.putCSS(name: "--RS__colGap", value: colGap)
-        props.putCSS(name: "--RS__pageGutter", value: pageGutter)
-        props.putCSS(name: "--RS__scrollPaddingTop", value: scrollPaddingTop)
-        props.putCSS(name: "--RS__scrollPaddingBottom", value: scrollPaddingBottom)
-        props.putCSS(name: "--RS__scrollPaddingLeft", value: scrollPaddingLeft)
-        props.putCSS(name: "--RS__scrollPaddingRight", value: scrollPaddingRight)
-
-        // Vertical rhythm
-        props.putCSS(name: "--RS__flowSpacing", value: flowSpacing)
-        props.putCSS(name: "--RS__paraSpacing", value: paraSpacing)
-        props.putCSS(name: "--RS__paraIndent", value: paraIndent)
-
-        // Safeguards
-        props.putCSS(name: "--RS__defaultLineLength", value: defaultLineLength)
-        props.putCSS(name: "--RS__maxMediaWidth", value: maxMediaWidth)
-        props.putCSS(name: "--RS__maxMediaHeight", value: maxMediaHeight)
-        props.putCSS(name: "--RS__boxSizingMedia", value: boxSizingMedia)
-        props.putCSS(name: "--RS__boxSizingTable", value: boxSizingTable)
-
-        // Colors
-        props.putCSS(name: "--RS__textColor", value: textColor)
-        props.putCSS(name: "--RS__backgroundColor", value: backgroundColor)
-        props.putCSS(name: "--RS__selectionTextColor", value: selectionTextColor)
-        props.putCSS(name: "--RS__selectionBackgroundColor", value: selectionBackgroundColor)
-        props.putCSS(name: "--RS__linkColor", value: linkColor)
-        props.putCSS(name: "--RS__visitedColor", value: visitedColor)
-        props.putCSS(name: "--RS__primaryColor", value: primaryColor)
-        props.putCSS(name: "--RS__secondaryColor", value: secondaryColor)
-
-        // Typography
-        props.putCSS(name: "--RS__typeScale", value: typeScale)
-        props.putCSS(name: "--RS__baseFontFamily", value: baseFontFamily)
-        props.putCSS(name: "--RS__baseLineHeight", value: baseLineHeight)
-
-        // Default font-stacks
-        props.putCSS(name: "--RS__oldStyleTf", value: oldStyleTf)
-        props.putCSS(name: "--RS__modernTf", value: modernTf)
-        props.putCSS(name: "--RS__sansTf", value: sansTf)
-        props.putCSS(name: "--RS__humanistTf", value: humanistTf)
-        props.putCSS(name: "--RS__monospaceTf", value: monospaceTf)
-
-        // Default font-stacks for Japanese publications
-        props.putCSS(name: "--RS__serif-ja", value: serifJa)
-        props.putCSS(name: "--RS__sans-serif-ja", value: sansSerifJa)
-        props.putCSS(name: "--RS__serif-ja-v", value: serifJaV)
-        props.putCSS(name: "--RS__sans-serif-ja-v", value: sansSerifJaV)
-
-        // Default styles for unstyled publications
-        props.putCSS(name: "--RS__compFontFamily", value: compFontFamily)
-        props.putCSS(name: "--RS__codeFontFamily", value: codeFontFamily)
-
-        props.merge(overrides, uniquingKeysWith: { _, n in n })
-
+        props.putCSS(name: "--RS__disableOverflow", value: CSSFlag(name: "noOverflow", isEnabled: noOverflow))
         return props
     }
 }

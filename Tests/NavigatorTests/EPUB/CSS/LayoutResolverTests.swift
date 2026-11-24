@@ -224,6 +224,53 @@ struct LayoutResolverTests {
         #expect(layout.lineLength == 540.0)
     }
 
+    @Test func paginatedRequestedColumnsClampedToMaximalLineLength() {
+        let layout = resolver.layout(
+            scroll: false,
+            verticalText: false,
+            columnCount: 3,
+            optimalLineLength: 1.0,
+            minimalLineLength: 1.0, // 440
+            maximalLineLength: 0.7, // 518
+            minMargins: 1.0, // 30
+            fontScale: 1.0,
+            viewportSize: CGSize(width: 2000, height: 800),
+            insets: .zero
+        )
+
+        // available = (2000 - 30 * 2 * 3) / 3 = 606.67 >= 440, clamped to
+        // the maximal line length 518, still 3 columns
+        #expect(layout == LayoutResolver.Layout(colCount: 3, lineLength: 518))
+    }
+
+    // MARK: - Zero Viewport
+
+    /// A zero viewport, for example before the first layout of the view,
+    /// gives empty lines instead of a crash or NaN.
+    @Test(arguments: [
+        (scroll: true, columnCount: nil, expected: LayoutResolver.Layout(colCount: 1, lineLength: 0)),
+        (scroll: false, columnCount: nil, expected: LayoutResolver.Layout(colCount: 1, lineLength: 0)),
+        (scroll: false, columnCount: 2, expected: LayoutResolver.Layout(colCount: 2, lineLength: 0)),
+    ] as [(scroll: Bool, columnCount: Int?, expected: LayoutResolver.Layout)])
+    func zeroViewport(scroll: Bool, columnCount: Int?, expected: LayoutResolver.Layout) {
+        for verticalText in [false, true] {
+            let layout = resolver.layout(
+                scroll: scroll,
+                verticalText: verticalText,
+                columnCount: columnCount,
+                optimalLineLength: 1.0,
+                minimalLineLength: 1.0,
+                maximalLineLength: 1.0,
+                minMargins: 1.0,
+                fontScale: 1.0,
+                viewportSize: .zero,
+                insets: UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
+            )
+
+            #expect(layout == expected, "verticalText: \(verticalText)")
+        }
+    }
+
     // MARK: - EPUBSettings Overload
 
     @Test func layoutWithEPUBSettings() {
@@ -360,17 +407,17 @@ struct LayoutResolverTests {
     ) -> EPUBSettings {
         EPUBSettings(
             backgroundColor: nil,
+            blendImages: false,
             columnCount: columnCount,
+            darkenImages: nil,
             fit: .auto,
             fontFamily: nil,
             fontSize: 1.0,
             fontWeight: nil,
             fontWidth: nil,
             hyphens: nil,
-            blendImages: false,
-            darkenImages: nil,
-            invertImages: nil,
-            invertGaiji: nil,
+            invertGaiji: false,
+            invertImages: false,
             language: nil,
             letterSpacing: nil,
             ligatures: nil,
@@ -378,6 +425,7 @@ struct LayoutResolverTests {
             linkColor: nil,
             maximalLineLength: maximalLineLength,
             minimalLineLength: minimalLineLength,
+            noRuby: false,
             offsetFirstPage: nil,
             optimalLineLength: optimalLineLength,
             pageMargins: pageMargins,

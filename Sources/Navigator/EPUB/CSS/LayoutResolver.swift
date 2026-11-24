@@ -90,46 +90,44 @@ final class LayoutResolver {
         viewportSize: CGSize,
         insets: UIEdgeInsets = .zero
     ) -> Layout {
-        let optimalLineLength = baseOptimalLineLength * optimalLineLength * fontScale
-        let minLineLength = minimalLineLength.map { baseMinLineLength * $0 * fontScale }
-        let maxLineLength = maximalLineLength.map { baseMaxLineLength * $0 * fontScale }
-        let minMargins = baseMinMargins * minMargins
-
-        let minMarginsWithInsets: Double = {
-            if verticalText {
-                return max(minMargins, max(insets.top, insets.bottom))
-            } else {
-                return max(minMargins, max(insets.left, insets.right))
-            }
-        }()
+        // The parameters are factors, these lengths are in points.
+        let optimalLength = baseOptimalLineLength * optimalLineLength * fontScale
+        let minLength = minimalLineLength.map { baseMinLineLength * $0 * fontScale }
+        let maxLength = maximalLineLength.map { baseMaxLineLength * $0 * fontScale }
+        let insetsMargins = verticalText
+            ? max(insets.top, insets.bottom)
+            : max(insets.left, insets.right)
+        let margins = max(baseMinMargins * minMargins, insetsMargins)
 
         if scroll {
             return scrolledLayout(
                 viewportSize: verticalText ? viewportSize.height : viewportSize.width,
-                minimalMargins: minMarginsWithInsets,
-                maximalLineLength: maxLineLength
+                margins: margins,
+                maxLength: maxLength
             )
         } else {
             return paginatedLayout(
                 viewportWidth: viewportSize.width,
                 requestedColCount: columnCount,
-                minimalMargins: minMarginsWithInsets,
-                optimalLineLength: optimalLineLength,
-                maximalLineLength: maxLineLength,
-                minimalLineLength: minLineLength
+                margins: margins,
+                optimalLength: optimalLength,
+                maxLength: maxLength,
+                minLength: minLength
             )
         }
     }
 
+    // The lengths and margins of the functions below are in points.
+
     private func scrolledLayout(
         viewportSize: Double,
-        minimalMargins: Double,
-        maximalLineLength: Double?
+        margins: Double,
+        maxLength: Double?
     ) -> Layout {
-        let minMargins = min(minimalMargins, viewportSize)
-        let availableSize = viewportSize - (minMargins * 2)
-        let maximalLineLength = maximalLineLength.map { max($0, minMargins * 2) }
-        let lineLength = min(availableSize, maximalLineLength ?? availableSize)
+        let margins = min(margins, viewportSize)
+        let availableSize = viewportSize - (margins * 2)
+        let maxLength = maxLength.map { max($0, margins * 2) }
+        let lineLength = min(availableSize, maxLength ?? availableSize)
 
         return Layout(
             colCount: 1,
@@ -140,79 +138,79 @@ final class LayoutResolver {
     private func paginatedLayout(
         viewportWidth: Double,
         requestedColCount: Int?,
-        minimalMargins: Double,
-        optimalLineLength: Double,
-        maximalLineLength: Double?,
-        minimalLineLength: Double?
+        margins: Double,
+        optimalLength: Double,
+        maxLength: Double?,
+        minLength: Double?
     ) -> Layout {
         guard let requestedColCount, requestedColCount > 0 else {
             return paginatedLayoutAuto(
-                minimalPageGutter: minimalMargins,
-                optimalLineLength: optimalLineLength,
+                margins: margins,
+                optimalLength: optimalLength,
                 viewportWidth: viewportWidth,
-                maximalLineLength: maximalLineLength
+                maxLength: maxLength
             )
         }
 
         return paginatedLayoutNColumns(
             colCount: requestedColCount,
-            minimalMargins: minimalMargins,
+            margins: margins,
             viewportWidth: viewportWidth,
-            minimalLineLength: minimalLineLength,
-            maximalLineLength: maximalLineLength
+            minLength: minLength,
+            maxLength: maxLength
         )
     }
 
     private func paginatedLayoutAuto(
-        minimalPageGutter: Double,
-        optimalLineLength: Double,
+        margins: Double,
+        optimalLength: Double,
         viewportWidth: Double,
-        maximalLineLength: Double?
+        maxLength: Double?
     ) -> Layout {
-        let optimalLineLength = min(optimalLineLength, viewportWidth)
-        guard optimalLineLength > 0 else {
+        let optimalLength = min(optimalLength, viewportWidth)
+        guard optimalLength > 0 else {
             return Layout(colCount: 1, lineLength: 0)
         }
 
         let minMarginWidthWithFloatingColCount =
-            (minimalPageGutter * 2 * (viewportWidth / optimalLineLength)) / (1 + (minimalPageGutter * 2 / optimalLineLength))
+            (margins * 2 * (viewportWidth / optimalLength)) / (1 + (margins * 2 / optimalLength))
 
-        let floatingColCount = (viewportWidth - minMarginWidthWithFloatingColCount) / optimalLineLength
-        let colCount = max(1, Int(floor(floatingColCount).rounded()))
+        let floatingColCount = (viewportWidth - minMarginWidthWithFloatingColCount) / optimalLength
+        let colCount = max(1, Int(floor(floatingColCount)))
 
-        let minMarginWidth = minimalPageGutter * 2 * Double(colCount)
+        let minMarginWidth = margins * 2 * Double(colCount)
         let available = (viewportWidth - minMarginWidth) / Double(colCount)
-        let lineLength = min(available, maximalLineLength ?? available)
+        let lineLength = min(available, maxLength ?? available)
 
         return Layout(colCount: colCount, lineLength: lineLength)
     }
 
     private func paginatedLayoutNColumns(
         colCount: Int,
-        minimalMargins: Double,
+        margins: Double,
         viewportWidth: Double,
-        minimalLineLength: Double?,
-        maximalLineLength: Double?
+        minLength: Double?,
+        maxLength: Double?
     ) -> Layout {
-        let minPageGutter = min(minimalMargins, viewportWidth)
-        let actualAvailableWidth = viewportWidth - (minPageGutter * 2 * Double(colCount))
-        let minimalLineLength = minimalLineLength.map { min($0, actualAvailableWidth) }
-        let maximalLineLength = maximalLineLength.map { max($0, minPageGutter * 2) }
+        let margins = min(margins, viewportWidth)
+        let actualAvailableWidth = viewportWidth - (margins * 2 * Double(colCount))
+        let minLength = minLength.map { min($0, actualAvailableWidth) }
+        let maxLength = maxLength.map { max($0, margins * 2) }
 
         let lineLength = actualAvailableWidth / Double(colCount)
 
-        if let minimalLineLength, lineLength < minimalLineLength, colCount > 1 {
+        if let minLength, lineLength < minLength, colCount > 1 {
             return paginatedLayoutNColumns(
                 colCount: colCount - 1,
-                minimalMargins: minPageGutter,
+                margins: margins,
                 viewportWidth: viewportWidth,
-                minimalLineLength: minimalLineLength,
-                maximalLineLength: maximalLineLength
+                minLength: minLength,
+                maxLength: maxLength
             )
-        } else if let maximalLineLength, lineLength > maximalLineLength {
+        } else if let maxLength, lineLength > maxLength {
             return Layout(
                 colCount: colCount,
-                lineLength: maximalLineLength
+                lineLength: maxLength
             )
         } else {
             return Layout(

@@ -16,12 +16,18 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// When `nil`, the background color of the publication is kept.
     public var backgroundColor: Color?
 
+    /// Blends the images with the background color.
+    public var blendImages: Bool?
+
     /// Number of reflowable columns to display (one-page view or two-page
     /// spread).
     ///
     /// When `nil`, the number of columns is chosen automatically depending on
     /// the viewport size. Values lower than `1` are ignored.
     public var columnCount: Int?
+
+    /// Darkens images by the given percentage (0.0 to 1.0).
+    public var darkenImages: Double?
 
     /// Method for fitting the content of fixed-layout resources within the
     /// viewport.
@@ -46,17 +52,11 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Enable hyphenation.
     public var hyphens: Bool?
 
-    /// Blends the images with the background color.
-    public var blendImages: Bool?
+    /// Inverts the colors of the gaiji images when `true`.
+    public var invertGaiji: Bool?
 
-    /// Darkens images by the given percentage (0.0 to 1.0).
-    public var darkenImages: Double?
-
-    /// Inverts images by the given percentage (0.0 to 1.0).
-    public var invertImages: Double?
-
-    /// Inverts gaiji images by the given percentage (0.0 to 1.0).
-    public var invertGaiji: Double?
+    /// Inverts the colors of the images when `true`.
+    public var invertImages: Bool?
 
     /// Language of the publication content.
     public var language: Language?
@@ -158,17 +158,17 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     public init(
         backgroundColor: Color? = nil,
+        blendImages: Bool? = nil,
         columnCount: Int? = nil,
+        darkenImages: Double? = nil,
         fit: Fit? = nil,
         fontFamily: FontFamily? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
         fontWidth: Double? = nil,
         hyphens: Bool? = nil,
-        blendImages: Bool? = nil,
-        darkenImages: Double? = nil,
-        invertImages: Double? = nil,
-        invertGaiji: Double? = nil,
+        invertGaiji: Bool? = nil,
+        invertImages: Bool? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
@@ -193,17 +193,17 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         wordSpacing: Double? = nil
     ) {
         self.backgroundColor = backgroundColor
+        self.blendImages = blendImages
         self.columnCount = Self.validColumnCount(columnCount)
+        self.darkenImages = darkenImages?.clamped(to: Self.imageFilterRange)
         self.fit = fit
         self.fontFamily = fontFamily
         self.fontSize = fontSize?.positiveOrNil
         self.fontWeight = fontWeight?.clamped(to: Self.fontWeightRange)
         self.fontWidth = fontWidth?.clamped(to: Self.fontWidthRange)
         self.hyphens = hyphens
-        self.blendImages = blendImages
-        self.darkenImages = darkenImages?.clamped(to: Self.imageFilterRange)
-        self.invertImages = invertImages?.clamped(to: Self.imageFilterRange)
-        self.invertGaiji = invertGaiji?.clamped(to: Self.imageFilterRange)
+        self.invertGaiji = invertGaiji
+        self.invertImages = invertImages
         self.language = language
         self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
@@ -231,17 +231,17 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     public func merging(_ other: EPUBPreferences) -> EPUBPreferences {
         EPUBPreferences(
             backgroundColor: other.backgroundColor ?? backgroundColor,
+            blendImages: other.blendImages ?? blendImages,
             columnCount: other.columnCount ?? columnCount,
+            darkenImages: other.darkenImages ?? darkenImages,
             fit: other.fit ?? fit,
             fontFamily: other.fontFamily ?? fontFamily,
             fontSize: other.fontSize ?? fontSize,
             fontWeight: other.fontWeight ?? fontWeight,
             fontWidth: other.fontWidth ?? fontWidth,
             hyphens: other.hyphens ?? hyphens,
-            blendImages: other.blendImages ?? blendImages,
-            darkenImages: other.darkenImages ?? darkenImages,
-            invertImages: other.invertImages ?? invertImages,
             invertGaiji: other.invertGaiji ?? invertGaiji,
+            invertImages: other.invertImages ?? invertImages,
             language: other.language ?? language,
             letterSpacing: other.letterSpacing ?? letterSpacing,
             ligatures: other.ligatures ?? ligatures,
@@ -319,17 +319,17 @@ public extension EPUBPreferences {
     private enum CodingKeys: String, CodingKey {
         case version
         case backgroundColor
+        case blendImages
         case columnCount
+        case darkenImages
         case fit
         case fontFamily
         case fontSize
         case fontWeight
         case fontWidth
         case hyphens
-        case blendImages
-        case darkenImages
-        case invertImages
         case invertGaiji
+        case invertImages
         case language
         case letterSpacing
         case ligatures
@@ -363,17 +363,17 @@ public extension EPUBPreferences {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.init(
             backgroundColor: container.decodeLeniently(Color.self, forKey: .backgroundColor),
+            blendImages: container.decodeLeniently(Bool.self, forKey: .blendImages),
             columnCount: container.decodeLeniently(Int.self, forKey: .columnCount),
+            darkenImages: container.decodeLeniently(Double.self, forKey: .darkenImages),
             fit: container.decodeLeniently(Fit.self, forKey: .fit),
             fontFamily: container.decodeLeniently(FontFamily.self, forKey: .fontFamily),
             fontSize: container.decodeLeniently(Double.self, forKey: .fontSize),
             fontWeight: container.decodeLeniently(Double.self, forKey: .fontWeight),
             fontWidth: container.decodeLeniently(Double.self, forKey: .fontWidth),
             hyphens: container.decodeLeniently(Bool.self, forKey: .hyphens),
-            blendImages: container.decodeLeniently(Bool.self, forKey: .blendImages),
-            darkenImages: container.decodeLeniently(Double.self, forKey: .darkenImages),
-            invertImages: container.decodeLeniently(Double.self, forKey: .invertImages),
-            invertGaiji: container.decodeLeniently(Double.self, forKey: .invertGaiji),
+            invertGaiji: container.decodeLeniently(Bool.self, forKey: .invertGaiji),
+            invertImages: container.decodeLeniently(Bool.self, forKey: .invertImages),
             language: container.decodeLeniently(Language.self, forKey: .language),
             letterSpacing: container.decodeLeniently(Double.self, forKey: .letterSpacing),
             ligatures: container.decodeLeniently(Bool.self, forKey: .ligatures),
@@ -407,17 +407,17 @@ public extension EPUBPreferences {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(Self.codingVersion, forKey: .version)
         try container.encodeIfPresent(backgroundColor, forKey: .backgroundColor)
+        try container.encodeIfPresent(blendImages, forKey: .blendImages)
         try container.encodeIfPresent(columnCount, forKey: .columnCount)
+        try container.encodeIfPresent(darkenImages, forKey: .darkenImages)
         try container.encodeIfPresent(fit, forKey: .fit)
         try container.encodeIfPresent(fontFamily, forKey: .fontFamily)
         try container.encodeIfPresent(fontSize, forKey: .fontSize)
         try container.encodeIfPresent(fontWeight, forKey: .fontWeight)
         try container.encodeIfPresent(fontWidth, forKey: .fontWidth)
         try container.encodeIfPresent(hyphens, forKey: .hyphens)
-        try container.encodeIfPresent(blendImages, forKey: .blendImages)
-        try container.encodeIfPresent(darkenImages, forKey: .darkenImages)
-        try container.encodeIfPresent(invertImages, forKey: .invertImages)
         try container.encodeIfPresent(invertGaiji, forKey: .invertGaiji)
+        try container.encodeIfPresent(invertImages, forKey: .invertImages)
         try container.encodeIfPresent(language, forKey: .language)
         try container.encodeIfPresent(letterSpacing, forKey: .letterSpacing)
         try container.encodeIfPresent(ligatures, forKey: .ligatures)

@@ -29,20 +29,25 @@ The EPUB navigator now computes the number of columns and the line length of ref
 
 ### `EPUBPreferences` Image Filters
 
-To support precise CSS filtering of images via Readium CSS v2, `EPUBPreferences.imageFilter` has been replaced with `blendImages`, `darkenImages`, `invertImages`, and `invertGaiji`. The old `ImageFilter` enum is removed.
+`EPUBPreferences.imageFilter` is replaced with four preferences, one for each image filter of Readium CSS v2. The `ImageFilter` enum is removed.
 
-`darkenImages` and `invertImages` take a percentage from `0.0` to `1.0`. To get the same rendering as the previous filters:
+* `blendImages` blends the images with the background color when `true`.
+* `darkenImages` reduces the brightness of the images by a percentage, from `0.0` to `1.0`.
+* `invertGaiji` inverts the colors of the gaiji only (the images used for the characters missing from the fonts in Japanese publications) when `true`.
+* `invertImages` inverts the colors of the images when `true`.
+
+To get the same rendering as the previous filters:
 
 ```diff
 -preferences.imageFilter = .darken
 +preferences.darkenImages = 0.2
 -preferences.imageFilter = .invert
-+preferences.invertImages = 1.0
++preferences.invertImages = true
 ```
 
 The previous filters were applied only with the dark theme, while the new preferences are applied with any colors. To keep the previous behavior, set them only together with the colors of your dark theme, [see below](#epubpreferences-themes).
 
-`EPUBPreferencesEditor.imageFilter` is replaced with `blendImages` (`AnyPreference<Bool>`), `darkenImages` (`AnyRangePreference<Double>`), and `invertImages` and `invertGaiji` (`AnyPreference<Bool>`, toggling the inversion between `0.0` and `1.0`).
+`EPUBPreferencesEditor.imageFilter` is replaced with `blendImages`, `invertGaiji` and `invertImages` (`AnyPreference<Bool>`), and `darkenImages` (`AnyRangePreference<Double>`).
 
 ### `EPUBPreferences` themes
 
@@ -68,7 +73,7 @@ To rebuild a theme picker in your app, these are the colors of the previous them
 
 See [the Preferences guide](Guides/Navigator/Preferences.md#colors-and-themes) for an example of theme picker built with the `EPUBPreferencesEditor`.
 
-The previous dark theme also inverted the gaiji (images used for the characters missing from the fonts in Japanese publications), unless the images were darkened. Set `invertGaiji` to `1.0` along with your dark colors to keep them readable. It inverted the title page images too, which is no longer possible.
+The previous dark theme also inverted the gaiji (images used for the characters missing from the fonts in Japanese publications), unless the images were darkened. Set `invertGaiji` to `true` along with your dark colors to keep them readable. It inverted the title page images too, which is no longer possible.
 
 ### `EPUBPreferences` publisher styles
 
@@ -133,8 +138,8 @@ See [the EPUB fonts guide](Guides/Navigator/EPUB%20Fonts.md) for more details.
 `EPUBPreferences` saved as JSON with a previous version of the toolkit are migrated when decoded, so you don't need to migrate them yourself.
 
 * `columnCount`: `"auto"` becomes `nil`, `"1"` and `"2"` become `1` and `2`.
-* `imageFilter`: with the dark theme, `"darken"` becomes `darkenImages = 0.2` and `"invert"` becomes `invertImages = 1.0`. With another theme, the filter is dropped, as it was not applied.
-* `theme`: `"dark"` and `"sepia"` become the colors listed [above](#epubpreferences-themes), and `"light"` is dropped. The colors which were saved along with the theme are kept, the theme only fills the missing ones. `"dark"` also sets `invertGaiji = 1.0`, unless `imageFilter` is `"darken"`.
+* `imageFilter`: with the dark theme, `"darken"` becomes `darkenImages = 0.2` and `"invert"` becomes `invertImages = true`. With another theme, the filter is dropped, as it was not applied.
+* `theme`: `"dark"` and `"sepia"` become the colors listed [above](#epubpreferences-themes), and `"light"` is dropped. The colors which were saved along with the theme are kept, the theme only fills the missing ones. `"dark"` also sets `invertGaiji = true`, unless `imageFilter` is `"darken"`.
 * `publisherStyles`: when `true`, the preferences it disabled (`hyphens`, `letterSpacing`, `ligatures`, `lineHeight`, `paragraphIndent`, `paragraphSpacing`, `textAlign` and `wordSpacing`) are dropped, as they now apply as soon as they are set. When `false` or missing, they are kept. If your app kept the default `EPUBDefaults.publisherStyles` (`true`), these preferences saved without an explicit `publisherStyles` were ignored and will now be applied.
 * `typeScale` is dropped.
 

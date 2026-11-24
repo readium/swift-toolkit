@@ -105,16 +105,16 @@ struct UserPreferences<
                         reflowableUserPreferences(
                             commit: commit,
                             backgroundColor: editor.backgroundColor,
+                            blendImages: editor.blendImages,
                             columnCount: editor.columnCount,
+                            darkenImages: editor.darkenImages,
                             fontFamily: editor.fontFamily,
                             fontSize: editor.fontSize,
                             fontWeight: editor.fontWeight,
                             fontWidth: editor.fontWidth,
                             hyphens: editor.hyphens,
-                            blendImages: editor.blendImages,
-                            darkenImages: editor.darkenImages,
-                            invertImages: editor.invertImages,
                             invertGaiji: editor.invertGaiji,
+                            invertImages: editor.invertImages,
                             language: editor.language,
                             letterSpacing: editor.letterSpacing,
                             ligatures: editor.ligatures,
@@ -325,16 +325,16 @@ struct UserPreferences<
     @ViewBuilder func reflowableUserPreferences(
         commit: @escaping () -> Void,
         backgroundColor: AnyPreference<ReadiumNavigator.Color>? = nil,
+        blendImages: AnyPreference<Bool>? = nil,
         columnCount: AnyEnumPreference<Int?>? = nil,
+        darkenImages: AnyRangePreference<Double>? = nil,
         fontFamily: AnyPreference<FontFamily?>? = nil,
         fontSize: AnyRangePreference<Double>? = nil,
         fontWeight: AnyRangePreference<Double>? = nil,
         fontWidth: AnyRangePreference<Double>? = nil,
         hyphens: AnyPreference<Bool>? = nil,
-        blendImages: AnyPreference<Bool>? = nil,
-        darkenImages: AnyRangePreference<Double>? = nil,
-        invertImages: AnyPreference<Bool>? = nil,
         invertGaiji: AnyPreference<Bool>? = nil,
+        invertImages: AnyPreference<Bool>? = nil,
         language: AnyPreference<Language?>? = nil,
         letterSpacing: AnyRangePreference<Double>? = nil,
         ligatures: AnyPreference<Bool>? = nil,
@@ -473,7 +473,7 @@ struct UserPreferences<
 
             if let blendImages = blendImages {
                 toggleRow(
-                    title: "Blend Images",
+                    title: "Blend images",
                     preference: blendImages,
                     commit: commit
                 )
@@ -481,7 +481,7 @@ struct UserPreferences<
 
             if let darkenImages = darkenImages {
                 stepperRow(
-                    title: "Darken Images",
+                    title: "Darken images",
                     preference: darkenImages,
                     commit: commit
                 )
@@ -489,7 +489,7 @@ struct UserPreferences<
 
             if let invertImages = invertImages {
                 toggleRow(
-                    title: "Invert Images",
+                    title: "Invert images",
                     preference: invertImages,
                     commit: commit
                 )
@@ -497,7 +497,7 @@ struct UserPreferences<
 
             if let invertGaiji = invertGaiji {
                 toggleRow(
-                    title: "Invert Gaiji",
+                    title: "Invert gaiji",
                     preference: invertGaiji,
                     commit: commit
                 )
