@@ -54,6 +54,15 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         self.state = state
     }
 
+    /// Returns the value of the preference at `keyPath` for a preference of
+    /// an optional type, as `.none` instead of `.some(nil)` when unset.
+    private func optionalValue<Value>(of keyPath: KeyPath<Preferences, Value?>) -> Value?? {
+        guard let value = preferences[keyPath: keyPath] else {
+            return nil
+        }
+        return value
+    }
+
     func preference<Value: Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value>,
@@ -106,11 +115,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     ) -> AnyPreference<Value?> {
         ProxyPreference(
             value: { [weak self] in
-                // Returns `.none` instead of `.some(nil)` when unset.
-                guard let value = self?.preferences[keyPath: prefKP] else {
-                    return nil
-                }
-                return value
+                self?.optionalValue(of: prefKP)
             },
             effectiveValue: { [weak self] in
                 self?.state.settings[keyPath: settingKP]
@@ -187,11 +192,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     ) -> AnyEnumPreference<Value?> {
         ProxyEnumPreference(
             value: { [weak self] in
-                // Returns `.none` instead of `.some(nil)` when unset.
-                guard let value = self?.preferences[keyPath: prefKP] else {
-                    return nil
-                }
-                return value
+                self?.optionalValue(of: prefKP)
             },
             effectiveValue: { [weak self] in
                 self?.state.settings[keyPath: settingKP]
@@ -280,11 +281,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     ) -> AnyOptionalRangePreference<Bound> {
         ProxyOptionalRangePreference(
             value: { [weak self] in
-                // Returns `.none` instead of `.some(nil)` when unset.
-                guard let value = self?.preferences[keyPath: prefKP] else {
-                    return nil
-                }
-                return value
+                self?.optionalValue(of: prefKP)
             },
             effectiveValue: { [weak self] in
                 self?.state.settings[keyPath: settingKP]

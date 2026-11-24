@@ -823,7 +823,8 @@ struct UserPreferences<
         )
     }
 
-    /// Component for a `RangePreference` modifiable by a `Stepper` view.
+    /// Row with a `Stepper` view displaying the given formatted value, used by
+    /// the range preference components.
     func stepperRow(
         title: String,
         subtitle: String? = nil,

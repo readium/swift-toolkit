@@ -30,7 +30,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: nil,
-            minMargins: 1.0,
+            pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
             insets: .zero
@@ -50,7 +50,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: nil,
-            minMargins: 1.0,
+            pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
             insets: .zero
@@ -69,7 +69,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: 0.8, // 740 * 0.8 = 592
-            minMargins: 1.0,
+            pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 1000, height: 800),
             insets: .zero
@@ -88,14 +88,14 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: nil,
-            minMargins: 1.0, // 30
+            pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
             insets: UIEdgeInsets(top: 10, left: 50, bottom: 10, right: 40)
         )
 
         #expect(layout.colCount == 1)
-        // insets max(50, 40) = 50 > minMargins 30 -> margins = 50
+        // insets max(50, 40) = 50 > page margins 30 -> margins = 50
         // available = 800 - 50 * 2 = 700
         #expect(layout.lineLength == 700.0)
     }
@@ -108,14 +108,14 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: nil,
-            minMargins: 1.0, // 30
+            pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
             insets: UIEdgeInsets(top: 50, left: 100, bottom: 40, right: 100)
         )
 
         #expect(layout.colCount == 1)
-        // insets max(50, 40) = 50 > minMargins 30 -> margins = 50, the left
+        // insets max(50, 40) = 50 > page margins 30 -> margins = 50, the left
         // and right insets are ignored
         // available = 600 (height) - 50 * 2 = 500
         #expect(layout.lineLength == 500.0)
@@ -131,7 +131,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: nil,
-            minMargins: 1.0,
+            pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 390, height: 844),
             insets: .zero
@@ -151,7 +151,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: nil,
-            minMargins: 1.0,
+            pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 1400, height: 900),
             insets: .zero
@@ -171,7 +171,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: 0.8, // 740 * 0.8 = 592
-            minMargins: 1.0,
+            pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 1400, height: 900),
             insets: .zero
@@ -192,7 +192,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: 1.0, // 440
             maximalLineLength: nil,
-            minMargins: 1.0, // 30
+            pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 1200, height: 800),
             insets: .zero
@@ -212,7 +212,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: 1.0, // 440
             maximalLineLength: nil,
-            minMargins: 1.0, // 30
+            pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 600, height: 800),
             insets: .zero
@@ -232,7 +232,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: 1.0, // 440
             maximalLineLength: 0.7, // 518
-            minMargins: 1.0, // 30
+            pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 2000, height: 800),
             insets: .zero
@@ -261,7 +261,7 @@ struct LayoutResolverTests {
                 optimalLineLength: 1.0,
                 minimalLineLength: 1.0,
                 maximalLineLength: 1.0,
-                minMargins: 1.0,
+                pageMargins: 1.0,
                 fontScale: 1.0,
                 viewportSize: .zero,
                 insets: UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
@@ -544,7 +544,7 @@ struct LayoutResolverTests {
             optimalLineLength: 1.0,
             minimalLineLength: nil,
             maximalLineLength: nil,
-            minMargins: 1.5, // 45
+            pageMargins: 1.5, // 45
             fontScale: 2.0,
             viewportSize: CGSize(width: 1000, height: 800),
             insets: .zero
@@ -626,7 +626,7 @@ struct LayoutResolverTests {
                 optimalLineLength: 1.0,
                 minimalLineLength: test.minimalLineLength,
                 maximalLineLength: 1.0,
-                minMargins: test.pageMargins,
+                pageMargins: test.pageMargins,
                 fontScale: test.fontScale,
                 viewportSize: CGSize(width: test.width, height: 669),
                 hingeWidth: test.hingeWidth
@@ -661,7 +661,7 @@ struct LayoutResolverTests {
                 optimalLineLength: 1.0,
                 minimalLineLength: nil,
                 maximalLineLength: 1.0,
-                minMargins: test.pageMargins,
+                pageMargins: test.pageMargins,
                 fontScale: test.fontScale,
                 viewportSize: CGSize(width: 951, height: 669),
                 insets: test.insets,

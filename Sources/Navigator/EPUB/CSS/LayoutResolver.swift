@@ -65,7 +65,7 @@ final class LayoutResolver {
             optimalLineLength: settings.optimalLineLength,
             minimalLineLength: settings.minimalLineLength,
             maximalLineLength: settings.maximalLineLength,
-            minMargins: settings.pageMargins,
+            pageMargins: settings.pageMargins,
             fontScale: fontScale,
             viewportSize: viewportSize,
             insets: insets,
@@ -76,6 +76,8 @@ final class LayoutResolver {
     /// Resolves the layout using individual layout parameters.
     ///
     /// - Parameters:
+    ///   - pageMargins: Factor the base minimal margins are multiplied by,
+    ///     usually the `pageMargins` setting.
     ///   - fontScale: Font size factor the optimal, minimal and maximal line
     ///     lengths are multiplied by, so that a line holds about the same
     ///     number of characters at any font size. Must be above 0. The
@@ -96,7 +98,7 @@ final class LayoutResolver {
         optimalLineLength: Double,
         minimalLineLength: Double?,
         maximalLineLength: Double?,
-        minMargins: Double,
+        pageMargins: Double,
         fontScale: Double,
         viewportSize: CGSize,
         insets: UIEdgeInsets = .zero,
@@ -109,11 +111,11 @@ final class LayoutResolver {
         let insetsMargins = verticalText
             ? max(insets.top, insets.bottom)
             : max(insets.left, insets.right)
-        let margins = max(baseMinMargins * minMargins, insetsMargins)
+        let margins = max(baseMinMargins * pageMargins, insetsMargins)
 
         if scroll {
             return scrolledLayout(
-                viewportSize: verticalText ? viewportSize.height : viewportSize.width,
+                viewportLength: verticalText ? viewportSize.height : viewportSize.width,
                 margins: margins,
                 maxLength: maxLength
             )
@@ -135,12 +137,12 @@ final class LayoutResolver {
     // The lengths and margins of the functions below are in points.
 
     private func scrolledLayout(
-        viewportSize: Double,
+        viewportLength: Double,
         margins: Double,
         maxLength: Double?
     ) -> Layout {
-        let margins = min(margins, viewportSize)
-        let availableSize = viewportSize - (margins * 2)
+        let margins = min(margins, viewportLength)
+        let availableSize = viewportLength - (margins * 2)
         let maxLength = maxLength.map { max($0, margins * 2) }
         let lineLength = min(availableSize, maxLength ?? availableSize)
 
@@ -218,8 +220,9 @@ final class LayoutResolver {
     /// columns.
     ///
     /// There is only one column on each side, even if a side could hold
-    /// more: the pagination scripts fill the last screen only with two
-    /// columns per screen (`appendVirtualColumnIfNeeded()`).
+    /// more, so that each side is a page. As every column has the same
+    /// margins, more columns would also have the margins of the hinge away
+    /// from it.
     ///
     /// Returns `nil` when a side, outside of the hinge, is narrower than the
     /// base minimal line length. Like in auto mode without a hinge, the
