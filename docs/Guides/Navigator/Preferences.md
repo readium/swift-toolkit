@@ -505,13 +505,11 @@ The navigator chooses the number of columns and the length of the lines from the
 You can adjust this layout with the following preferences. The line length preferences are factors of reference lengths chosen by the navigator, so `1.0` keeps the reference length.
 
 * `optimalLineLength` is the target line length used to choose the number of columns, in automatic mode. Increase it to display fewer and wider columns.
-* `maximalLineLength` limits the length of the lines, in both scroll and paginated modes. The remaining space is added to the margins. It is `1.0` by default. To let the lines take all the available width, set `EPUBDefaults.maximalLineLength` to `nil`. The `EPUBPreferencesEditor.maximalLineLength` preference can then be set to `nil` to remove the limit.
+* `maximalLineLength` limits the length of the lines, in both scroll and paginated modes. The remaining space is added to the margins. It is `1.0` by default. To let the lines take all the available width, set `EPUBDefaults.maximalLineLength` to `nil`.
 * `minimalLineLength` prevents the lines from becoming too short when you request several columns with `columnCount`: fewer columns are displayed if the lines would be shorter. When `nil` (the default), the requested number of columns is always displayed.
 * `pageMargins` scales the minimal margins on each side of the lines. The margins are larger when the line length is limited, and never smaller than the safe area insets.
 
 With vertical text, the line length is the height of the lines, and the margins are at the top and bottom.
-
-`minimalLineLength` and `maximalLineLength` are `AnyOptionalRangePreference<Double>` in the `EPUBPreferencesEditor`, see [the view for an `OptionalRangePreference`](#view-for-an-optionalrangepreferencevalue).
 
 #### Colors and themes
 
@@ -521,7 +519,7 @@ The EPUB navigator has no themes. Instead, it offers four color preferences: `te
 * When a color is unset, the one of the publication is kept.
 * Each color is applied on its own. If you set only the `backgroundColor`, make sure the text of the publication remains readable, or set the `textColor` too.
 
-A theme is therefore a set of colors that your app applies together. For example, with the colors of the themes of the previous versions of the toolkit:
+A theme is therefore a set of colors that your app applies together. For example:
 
 ```swift
 /// A set of colors applied together. `nil` keeps the color of the publication.

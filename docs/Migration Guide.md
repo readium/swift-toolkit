@@ -6,17 +6,17 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ### Upgrade to Readium CSS v2
 
-The EPUB navigator now uses Readium CSS v2. Several EPUB preferences are replaced or removed, and the Readium CSS properties are no longer public.
+The EPUB navigator now uses Readium CSS v2. Several EPUB preferences are replaced or removed.
 
 #### Readium CSS properties
 
-The Readium CSS properties are now internal to the EPUB navigator, which sets them from the EPUB preferences. `EPUBNavigatorViewController.Configuration.readiumCSSRSProperties` is removed, as well as the `CSSRSProperties` and `CSSUserProperties` types and the CSS value types they used (`CSSLength`, `CSSColor`, etc.).
+The Readium CSS properties are now internal to the EPUB navigator, which sets them from the EPUB preferences. `EPUBNavigatorViewController.Configuration.readiumCSSRSProperties` is removed, as well as the `CSSRSProperties` and `CSSUserProperties` types.
 
-If you customized the Readium CSS reading system properties, use the EPUB preferences or `EPUBDefaults` instead.
+If you customized the Readium CSS reading system properties, use the EPUB preferences or defaults instead.
 
 #### Column count
 
-`columnCount` is now an `Int?` instead of a `ColumnCount` enum, to support any number of columns. The `ColumnCount` enum is removed. Use `nil` for an automatic number of columns, depending on the viewport size. Values lower than `1` are ignored.
+`columnCount` is now an `Int?` instead of a `ColumnCount` enum, to support any number of columns. Use `nil` for an automatic number of columns, depending on the viewport size.
 
 ```diff
 -preferences.columnCount = .auto
@@ -36,40 +36,17 @@ By default, the lines are now limited to a maximal length, so wide screens displ
 ```swift
 let navigator = try EPUBNavigatorViewController(
     publication: publication,
-    initialLocation: locator,
     config: .init(defaults: EPUBDefaults(maximalLineLength: nil))
 )
 ```
 
-#### Image filters
-
-`EPUBPreferences.imageFilter` is replaced with four independent preferences. The `ImageFilter` enum is removed.
-
-* `blendImages` blends the images with the background color when `true`.
-* `darkenImages` reduces the brightness of the images by a percentage, from `0.0` to `1.0`.
-* `invertGaiji` inverts the colors of the gaiji only (the images used for the characters missing from the fonts in Japanese publications) when `true`.
-* `invertImages` inverts the colors of the images when `true`.
-
-To get the same rendering as the previous filters:
-
-```diff
--preferences.imageFilter = .darken
-+preferences.darkenImages = 0.2
--preferences.imageFilter = .invert
-+preferences.invertImages = true
-```
-
-The previous filters were applied only with the dark theme, while the new preferences are applied with any colors. To keep the previous behavior, set them only together with the colors of your dark theme, [see below](#themes).
-
-`EPUBPreferencesEditor.imageFilter` is replaced with `blendImages`, `invertGaiji` and `invertImages` (`AnyPreference<Bool>`), and `darkenImages` (`AnyRangePreference<Double>`).
-
 #### Themes
 
-The `theme` preference is removed from `EPUBPreferences`, as well as the `Theme` enum. Instead, a theme is a set of color preferences that your app applies together: `textColor` and `backgroundColor`, plus the new `linkColor` and `visitedColor`.
+The `theme` preference is removed from `EPUBPreferences`. Instead, a theme is a set of color preferences that your app applies together: `textColor` and `backgroundColor`, plus the new `linkColor` and `visitedColor`.
 
 A color preference which is set overrides the colors of the publication. When unset, the colors of the publication are kept, so the previous `light` theme is the same as leaving the four colors unset.
 
-To rebuild a theme picker in your app, these are the colors of the previous themes:
+To rebuild a theme picker in your app, these are the colors of the legacy themes:
 
 | Theme   | `textColor` | `backgroundColor` | `linkColor` | `visitedColor` |
 |---------|-------------|-------------------|-------------|----------------|
@@ -87,7 +64,28 @@ To rebuild a theme picker in your app, these are the colors of the previous them
 
 See [the Preferences guide](Guides/Navigator/Preferences.md#colors-and-themes) for an example of theme picker built with the `EPUBPreferencesEditor`.
 
-The previous dark theme also inverted the gaiji (images used for the characters missing from the fonts in Japanese publications), unless the images were darkened. Set `invertGaiji` to `true` along with your dark colors to keep them readable. It inverted the title page images too, which is no longer possible.
+The previous dark theme also inverted the gaiji (images used for the characters missing from the fonts in Japanese publications), unless the images were darkened. Set `invertGaiji` to `true` along with your dark colors to keep them readable.
+
+
+#### Image filters
+
+`EPUBPreferences.imageFilter` is replaced with four independent preferences.
+
+* `blendImages` blends the images with the background color when `true`.
+* `darkenImages` reduces the brightness of the images by a percentage, from `0.0` to `1.0`.
+* `invertGaiji` inverts the colors of the gaiji only (the images used for the characters missing from the fonts in Japanese publications) when `true`.
+* `invertImages` inverts the colors of the images when `true`.
+
+To get the same rendering as the previous filters:
+
+```diff
+-preferences.imageFilter = .darken
++preferences.darkenImages = 0.2
+-preferences.imageFilter = .invert
++preferences.invertImages = true
+```
+
+The previous filters were applied only with the dark theme, while the new preferences are applied with any colors. To keep the previous behavior, set them only together with the colors of your dark theme.
 
 #### Publisher styles
 
@@ -111,7 +109,7 @@ The publisher styles are kept as long as the related preferences are unset. Pref
 
 #### Bundled fonts
 
-The toolkit no longer bundles the additional font families ([OpenDyslexic](https://opendyslexic.org/), [AccessibleDfA](https://github.com/Orange-OpenSource/font-accessible-dfa) and [iA Writer Duospace](https://github.com/iaolo/iA-Fonts/tree/master/iA%20Writer%20Duospace)), and the matching `FontFamily` constants (`.openDyslexic`, `.accessibleDfA` and `.iaWriterDuospace`) are removed.
+The toolkit no longer bundles the additional font families ([OpenDyslexic](https://opendyslexic.org/), [AccessibleDfA](https://github.com/Orange-OpenSource/font-accessible-dfa) and [iA Writer Duospace](https://github.com/iaolo/iA-Fonts)).
 
 To keep offering some of them, add their font files to your app target and declare them in `EPUBNavigatorViewController.Configuration.fontFamilyDeclarations`.
 

@@ -28,17 +28,13 @@ All notable changes to this project will be documented in this file. Take a look
     * Removed the `typeScale` preference.
     * `columnCount` is now an `Int?`, where `nil` means an automatic number of columns.
     * `pageMargins` is now a factor applied to the minimal margins on each side of the lines.
-* The EPUB navigator now lays out the reflowable resources from the length of the lines:
+* The EPUB navigator now adapts the number of columns and the length of the lines to the screen and font sizes:
     * The lines are limited to a maximal length by default. Set `EPUBDefaults.maximalLineLength` to `nil` to let them take all the available width.
     * In automatic mode (`columnCount = nil`), as many columns as the screen can hold are displayed, instead of at most two.
     * The line lengths follow the font size, so a larger font displays fewer columns with about the same number of characters per line.
     * On foldable devices, one column is displayed on each side of the hinge.
 * Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
 * SVG documents in the reading order of an EPUB are now rendered as fixed-layout pages, even in a reflowable publication.
-
-#### Streamer
-
-* An OPF metadata property with the `ebpaj:` prefix resolves to the EBPAJ vocabulary (`http://www.ebpaj.jp/`) even when the prefix is not declared on the `package` element. Its key in `Metadata.otherMetadata` changes from `http://idpf.org/epub/vocab/package/#...` to `http://www.ebpaj.jp/...`.
 
 ### Fixed
 
