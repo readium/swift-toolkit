@@ -168,6 +168,23 @@ class ReaderViewController<N: Navigator>: UIViewController,
 
     @objc func presentUserPreferences() {}
 
+    /// Presents the given user preferences view as a sheet.
+    ///
+    /// On iPhone, the sheet opens at half the screen height and leaves the
+    /// reader undimmed, so that changes can be previewed live. It can still be
+    /// dragged up to full height.
+    func presentUserPreferencesSheet<V: View>(_ view: V) {
+        let vc = UIHostingController(rootView: view)
+        vc.modalPresentationStyle = .formSheet
+        if let sheet = vc.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+            sheet.largestUndimmedDetentIdentifier = .medium
+            sheet.prefersGrabberVisible = true
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+        }
+        present(vc, animated: true)
+    }
+
     // MARK: - Bookmarks
 
     @objc func bookmarkCurrentPosition() {
