@@ -479,4 +479,52 @@ struct ReadiumCSSTests {
         #expect(props["--USER__fontSize"] == "100.00000%")
         #expect(props["--USER__lineLength"] == "712.00000px")
     }
+
+    // MARK: - EBPAJ fonts patch
+
+    let ebpajFontsPatch = HTMLInjection.stylesheetLink(href: "https://readium/assets/ReadiumCSS-ebpaj_fonts_patch.css")
+
+    /// The patch is appended after `ReadiumCSS-after.css` with the CJK layouts.
+    @Test(arguments: [
+        (CSSLayout.Stylesheets.cjkHorizontal, "cjk-horizontal/"),
+        (.cjkVertical, "cjk-vertical/"),
+    ])
+    func injectEBPAJFontsPatchWithCJKLayouts(stylesheets: CSSLayout.Stylesheets, folder: String) throws {
+        let css = ReadiumCSS(layout: CSSLayout(stylesheets: stylesheets), baseURL: baseURL, isEBPAJ: true)
+
+        let styles = try css.injections(for: html).filter { $0.target == .head && $0 != viewportMeta }
+        #expect(styles == [
+            cssBefore(folder: folder),
+            cssDefault(folder: folder),
+            cssAfter(folder: folder),
+            ebpajFontsPatch,
+            audioFix,
+        ])
+    }
+
+    @Test(arguments: [CSSLayout.Stylesheets.default, .rtl])
+    func doNotInjectEBPAJFontsPatchWithOtherLayouts(stylesheets: CSSLayout.Stylesheets) throws {
+        let css = ReadiumCSS(layout: CSSLayout(stylesheets: stylesheets), baseURL: baseURL, isEBPAJ: true)
+
+        #expect(try !css.injections(for: html).contains(ebpajFontsPatch))
+    }
+
+    @Test(arguments: [CSSLayout.Stylesheets.cjkHorizontal, .cjkVertical])
+    func doNotInjectEBPAJFontsPatchWithoutEBPAJ(stylesheets: CSSLayout.Stylesheets) throws {
+        let css = ReadiumCSS(layout: CSSLayout(stylesheets: stylesheets), baseURL: baseURL, isEBPAJ: false)
+
+        #expect(try !css.injections(for: html).contains(ebpajFontsPatch))
+    }
+
+    @Test(arguments: [
+        (Metadata(title: "Test", description: "ebpaj-guide-1.0"), true),
+        (Metadata(title: "Test", otherMetadata: ["http://www.ebpaj.jp/guide-version": "1.1.3"]), true),
+        (Metadata(title: "Test", otherMetadata: ["ebpaj:guide-version": "1.1.3"]), true),
+        (Metadata(title: "Test"), false),
+        (Metadata(title: "Test", description: "A Japanese novel."), false),
+        (Metadata(title: "Test", otherMetadata: ["http://idpf.org/epub/vocab/package/#guide-version": "1.1.3"]), false),
+    ])
+    func metadataIsEBPAJ(metadata: Metadata, expected: Bool) {
+        #expect(metadata.isEBPAJ == expected)
+    }
 }

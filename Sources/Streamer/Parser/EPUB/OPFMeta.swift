@@ -21,6 +21,9 @@ enum OPFVocabulary: String {
     /// Additional prefixes used in the streamer.
     case calibre
 
+    /// Japanese EBPAJ EPUB 3 production guide.
+    case ebpaj
+
     /// New TDM Reservation Protocol
     /// https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/
     case tdm
@@ -52,6 +55,8 @@ enum OPFVocabulary: String {
         case .calibre:
             // https://github.com/kovidgoyal/calibre/blob/3f903cbdd165e0d1c5c25eecb6eef2a998342230/src/calibre/ebooks/metadata/opf3.py#L170
             return "https://calibre-ebook.com"
+        case .ebpaj:
+            return "http://www.ebpaj.jp/"
         case .tdm:
             return "http://www.w3.org/ns/tdmrep#"
         }

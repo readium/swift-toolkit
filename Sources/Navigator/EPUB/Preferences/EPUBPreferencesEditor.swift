@@ -377,7 +377,7 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
             defaultEffectiveValue: defaults.noRuby ?? false,
             isEffective: { [layouts] in
                 layouts.contains(.reflowable)
-                    && [.cjkHorizontal, .cjkVertical].contains($0.settings.cssLayout.stylesheets)
+                    && $0.settings.cssLayout.stylesheets.isCJK
             }
         )
 

@@ -17,6 +17,11 @@ struct ReadiumCSS {
     var baseURL: any AbsoluteURL
 
     var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = []
+
+    /// Indicates whether the publication follows the EBPAJ EPUB 3 production
+    /// guide, which requires the Readium CSS EBPAJ fonts patch with the CJK
+    /// layouts.
+    var isEBPAJ: Bool = false
 }
 
 extension ReadiumCSS {
@@ -166,6 +171,20 @@ extension ReadiumCSS: HTMLInjectable {
             inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-default.css", isDirectory: false).string))
         }
         inj.append(.stylesheetLink(href: stylesheetsFolder.appendingPath("ReadiumCSS-after.css", isDirectory: false).string))
+
+        // The EBPAJ template declares its font families with Windows fonts
+        // only. The patch adds the fonts of the other platforms, and must be
+        // appended after the other stylesheets to override the author's
+        // `@font-face` rules.
+        // https://github.com/readium/css/blob/develop/css/dist/ReadMe.md#ebpaj-polyfill
+        //
+        // Readium CSS only requires the EBPAJ metadata. Restricting the patch
+        // to the CJK layouts is our choice, as in the TypeScript toolkit. Like
+        // all the Readium CSS stylesheets, it is only injected in reflowable
+        // resources.
+        if isEBPAJ, layout.stylesheets.isCJK {
+            inj.append(.stylesheetLink(href: baseURL.appendingPath("ReadiumCSS-ebpaj_fonts_patch.css", isDirectory: false).string))
+        }
 
         // Fix Readium CSS issue with the positioning of <audio> elements.
         // https://github.com/readium/css/issues/94

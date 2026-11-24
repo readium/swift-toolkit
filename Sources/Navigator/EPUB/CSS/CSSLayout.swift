@@ -46,6 +46,15 @@ struct CSSLayout: Hashable {
             case .cjkVertical: return .unspecified
             }
         }
+
+        /// Whether these stylesheets are for an Asian language, laid out
+        /// horizontally or vertically.
+        var isCJK: Bool {
+            switch self {
+            case .default, .rtl: return false
+            case .cjkHorizontal, .cjkVertical: return true
+            }
+        }
     }
 
     enum HTMLDir: String {

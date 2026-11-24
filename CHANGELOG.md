@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. Take a look
     * Added the `blendImages`, `darkenImages`, `invertGaiji` and `invertImages` preferences to filter the images. `darkenImages` takes a percentage, the others are toggles.
     * Added the `linkColor` and `visitedColor` preferences to change the color of the hyperlinks.
     * Added the `fontWidth` preference to change the width of the glyphs, with the fonts supporting it (variable fonts with a width axis).
+* Added the Readium CSS EBPAJ fonts patch in Japanese publications following the EBPAJ EPUB 3 production guide, whose font families only reference Windows fonts. They are rendered with the iOS fonts instead, such as Hiragino Mincho and Hiragino Sans, [see the user guide](docs/Guides/Navigator/EPUB%20Fonts.md#japanese-publications-following-the-ebpaj-guide).
 
 ### Changed
 
@@ -31,6 +32,10 @@ All notable changes to this project will be documented in this file. Take a look
     * `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. When unset, its `effectiveValue` is `true`, as the ligatures are rendered by default.
     * `EPUBPreferencesEditor.letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages, as supported by Readium CSS v2.
 * Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, and the matching `FontFamily` constants, as Readium CSS v2 no longer distributes fonts. To keep offering them, embed and declare them in your app, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
+
+#### Streamer
+
+* An OPF metadata property with the `ebpaj:` prefix resolves to the EBPAJ vocabulary (`http://www.ebpaj.jp/`) even when the prefix is not declared on the `package` element. Its key in `Metadata.otherMetadata` changes from `http://idpf.org/epub/vocab/package/#...` to `http://www.ebpaj.jp/...`.
 
 ### Fixed
 
