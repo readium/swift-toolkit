@@ -108,7 +108,7 @@ extension ReadiumCSS {
                 default: return nil
                 }
             }(),
-            lineHeight: settings.lineHeight.map { .unitless($0) },
+            lineHeight: settings.lineHeight,
             paraSpacing: settings.paragraphSpacing.map { CSSRemLength($0) },
             paraIndent: settings.paragraphIndent.map { CSSRemLength($0) },
             wordSpacing: settings.wordSpacing.map { CSSRemLength($0) },

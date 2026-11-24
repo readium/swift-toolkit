@@ -50,7 +50,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
     var colCount: Int?
 
     /// The maximum line length.
-    var lineLength: CSSLength?
+    var lineLength: CSSPxLength?
 
     // Appearance
 
@@ -70,16 +70,16 @@ struct CSSUserProperties: CSSProperties, Sendable {
     /// The color for textual contents. It impacts all elements but headings and pre in the DOM.
     ///
     /// To reset, remove the CSS variable.
-    var textColor: CSSColor?
+    var textColor: CSSIntColor?
 
     /// The background-color for the whole screen. To reset, remove the CSS variable.
-    var backgroundColor: CSSColor?
+    var backgroundColor: CSSIntColor?
 
     /// The color for hyperlinks. To reset, remove the CSS variable.
-    var linkColor: CSSColor?
+    var linkColor: CSSIntColor?
 
     /// The color for visited hyperlinks. To reset, remove the CSS variable.
-    var visitedColor: CSSColor?
+    var visitedColor: CSSIntColor?
 
     // Typography
 
@@ -88,7 +88,7 @@ struct CSSUserProperties: CSSProperties, Sendable {
     var fontFamily: [String]?
 
     /// Increasing and decreasing the root font-size. It will serve as a reference for the cascade.
-    var fontSize: CSSLength?
+    var fontSize: CSSPercentLength?
 
     /// The weight (font-weight) of the text, from 1 to 1000.
     var fontWeight: Int?
@@ -104,12 +104,12 @@ struct CSSUserProperties: CSSProperties, Sendable {
     /// Increasing and decreasing leading (line-height). It impacts body, p, li and div.
     ///
     /// Recommended values: a range from 1 to 2. Increments are left to implementers’ judgment.
-    var lineHeight: CSSLineHeight?
+    var lineHeight: Double?
 
     /// The vertical margins (margin-top and margin-bottom) for paragraphs.
     ///
     /// Recommended values: a range from 0 to 2rem. Increments are left to implementers’ judgment.
-    var paraSpacing: CSSLength?
+    var paraSpacing: CSSRemLength?
 
     /// The text-indent for paragraphs.
     ///
@@ -154,22 +154,22 @@ struct CSSUserProperties: CSSProperties, Sendable {
     init(
         view: CSSView? = nil,
         colCount: Int? = nil,
-        lineLength: CSSLength? = nil,
+        lineLength: CSSPxLength? = nil,
         blendImages: Bool? = nil,
         darkenImages: Double? = nil,
         invertImages: Double? = nil,
         invertGaiji: Double? = nil,
-        textColor: CSSColor? = nil,
-        backgroundColor: CSSColor? = nil,
-        linkColor: CSSColor? = nil,
-        visitedColor: CSSColor? = nil,
+        textColor: CSSIntColor? = nil,
+        backgroundColor: CSSIntColor? = nil,
+        linkColor: CSSIntColor? = nil,
+        visitedColor: CSSIntColor? = nil,
         fontFamily: [String]? = nil,
-        fontSize: CSSLength? = nil,
+        fontSize: CSSPercentLength? = nil,
         fontWeight: Int? = nil,
         fontWidth: CSSPercentLength? = nil,
         textAlign: CSSTextAlign? = nil,
-        lineHeight: CSSLineHeight? = nil,
-        paraSpacing: CSSLength? = nil,
+        lineHeight: Double? = nil,
+        paraSpacing: CSSRemLength? = nil,
         paraIndent: CSSRemLength? = nil,
         wordSpacing: CSSRemLength? = nil,
         letterSpacing: CSSRemLength? = nil,
@@ -287,40 +287,7 @@ enum CSSView: String, CSSConvertible, Sendable {
     }
 }
 
-protocol CSSColor: CSSConvertible, Sendable {}
-
-struct CSSRGBColor: CSSColor, Sendable {
-    let red: Int
-    let green: Int
-    let blue: Int
-
-    init(red: Int, green: Int, blue: Int) {
-        precondition((0 ... 255).contains(red))
-        precondition((0 ... 255).contains(green))
-        precondition((0 ... 255).contains(blue))
-        self.red = red
-        self.green = green
-        self.blue = blue
-    }
-
-    func css() -> String? {
-        "rgb(\(red), \(green), \(blue))"
-    }
-}
-
-struct CSSHexColor: CSSColor, Sendable {
-    let color: String
-
-    init(_ color: String) {
-        self.color = color
-    }
-
-    func css() -> String? {
-        color
-    }
-}
-
-struct CSSIntColor: CSSColor, Sendable {
+struct CSSIntColor: CSSConvertible, Sendable {
     let color: Int
 
     init(_ color: Int) {
@@ -332,51 +299,8 @@ struct CSSIntColor: CSSColor, Sendable {
     }
 }
 
-protocol CSSLength: CSSConvertible, Sendable {}
-
-protocol CSSAbsoluteLength: CSSLength {}
-
-/// Centimeters
-struct CSSCmLength: CSSAbsoluteLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "cm")
-    }
-}
-
-/// Millimeters
-struct CSSMmLength: CSSAbsoluteLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "mm")
-    }
-}
-
-/// Inches
-struct CSSInLength: CSSAbsoluteLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "in")
-    }
-}
-
 /// Pixels
-struct CSSPxLength: CSSAbsoluteLength, Sendable {
+struct CSSPxLength: CSSConvertible, Sendable {
     let value: Double
 
     init(_ value: Double) {
@@ -388,62 +312,8 @@ struct CSSPxLength: CSSAbsoluteLength, Sendable {
     }
 }
 
-/// Points
-struct CSSPtLength: CSSAbsoluteLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "pt")
-    }
-}
-
-/// Picas
-struct CSSPcLength: CSSAbsoluteLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "pc")
-    }
-}
-
-protocol CSSRelativeLength: CSSLength {}
-
-/// Relative to the font-size of the element.
-struct CSSEmLength: CSSRelativeLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "em")
-    }
-}
-
-/// Relative to the width of the "0" (zero).
-struct CSSChLength: CSSRelativeLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "ch")
-    }
-}
-
 /// Relative to font-size of the root element.
-struct CSSRemLength: CSSRelativeLength, Sendable {
+struct CSSRemLength: CSSConvertible, Sendable {
     let value: Double
 
     init(_ value: Double) {
@@ -455,60 +325,8 @@ struct CSSRemLength: CSSRelativeLength, Sendable {
     }
 }
 
-/// Relative to 1% of the width of the viewport.
-struct CSSVwLength: CSSRelativeLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "vw")
-    }
-}
-
-/// Relative to 1% of the height of the viewport.
-struct CSSVhLength: CSSRelativeLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "vh")
-    }
-}
-
-/// Relative to 1% of viewport's smaller dimension.
-struct CSSVMinLength: CSSRelativeLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "vmin")
-    }
-}
-
-/// Relative to 1% of viewport's larger dimension.
-struct CSSVMaxLength: CSSRelativeLength, Sendable {
-    let value: Double
-
-    init(_ value: Double) {
-        self.value = value
-    }
-
-    func css() -> String? {
-        value.css(unit: "vmax")
-    }
-}
-
 /// Relative to the parent element.
-struct CSSPercentLength: CSSRelativeLength, Sendable {
+struct CSSPercentLength: CSSConvertible, Sendable {
     let value: Double
 
     init(_ value: Double) {
@@ -531,21 +349,6 @@ enum CSSTextAlign: String, CSSConvertible, Sendable {
     }
 }
 
-/// Line height supports unitless numbers.
-enum CSSLineHeight: CSSConvertible, Sendable {
-    case length(CSSLength)
-    case unitless(Double)
-
-    func css() -> String? {
-        switch self {
-        case let .length(length):
-            return length.css()
-        case let .unitless(value):
-            return String(format: "%.5f", value)
-        }
-    }
-}
-
 enum CSSHyphens: String, CSSConvertible, Sendable {
     case none
     case auto
@@ -558,15 +361,6 @@ enum CSSHyphens: String, CSSConvertible, Sendable {
 enum CSSLigatures: String, CSSConvertible, Sendable {
     case none
     case common = "common-ligatures"
-
-    func css() -> String? {
-        rawValue
-    }
-}
-
-enum CSSBoxSizing: String, CSSConvertible, Sendable {
-    case contentBox = "content-box"
-    case borderBox = "border-box"
 
     func css() -> String? {
         rawValue
@@ -604,10 +398,6 @@ private struct CSSFlag: CSSConvertible {
 
 private extension Dictionary where Key == String, Value == String? {
     mutating func putCSS(name: String, value: CSSConvertible?) {
-        self[name] = value?.css()
-    }
-
-    mutating func putCSS(name: String, value: String?) {
         self[name] = value?.css()
     }
 

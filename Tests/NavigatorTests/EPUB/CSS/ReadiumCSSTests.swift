@@ -106,7 +106,7 @@ struct ReadiumCSSTests {
                 noOverflow: true
             ),
             userProperties: CSSUserProperties(
-                linkColor: CSSHexColor("#0000FF"),
+                linkColor: CSSIntColor(0x0000FF),
                 wordSpacing: CSSRemLength(20.0)
             ),
             baseURL: baseURL
