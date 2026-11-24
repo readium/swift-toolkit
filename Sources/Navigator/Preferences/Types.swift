@@ -59,7 +59,7 @@ public enum Fit: String, Codable, Hashable, Sendable {
     case width
 }
 
-@available(*, unavailable, message: "Readium CSS v2 has no themes, use the textColor, backgroundColor, linkColor and visitedColor preferences instead")
+@available(*, unavailable, message: "Use the textColor, backgroundColor, linkColor and visitedColor preferences instead")
 public enum Theme: String, Codable, Hashable, Sendable {
     case light
     case dark

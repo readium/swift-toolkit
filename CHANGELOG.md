@@ -9,29 +9,32 @@ All notable changes to this project will be documented in this file. Take a look
 
 #### Navigator
 
-* Upgraded Readium CSS to version 2.0.5.
-    * Added the `noRuby` preference to allow hiding ruby (furigana) annotations in CJK publications.
-    * Added the `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences to control the line length of reflowable resources. The navigator uses them to choose the number of columns and to limit the width of the lines. By default, the lines are limited to the maximal line length (`EPUBDefaults.maximalLineLength`), [see the user guide](docs/Guides/Navigator/Preferences.md#line-length-and-margins).
-    * Added the `blendImages`, `darkenImages`, `invertGaiji` and `invertImages` preferences to filter the images. `darkenImages` takes a percentage, the others are toggles.
-    * Added the `linkColor` and `visitedColor` preferences to change the color of the hyperlinks.
-    * Added the `fontWidth` preference to change the width of the glyphs, with the fonts supporting it (variable fonts with a width axis).
-* Added the Readium CSS EBPAJ fonts patch in Japanese publications following the EBPAJ EPUB 3 production guide, whose font families only reference Windows fonts. They are rendered with the iOS fonts instead, such as Hiragino Mincho and Hiragino Sans, [see the user guide](docs/Guides/Navigator/EPUB%20Fonts.md#japanese-publications-following-the-ebpaj-guide).
+* New EPUB preferences for reflowable resources:
+    * `optimalLineLength`, `minimalLineLength` and `maximalLineLength` control the line length, from which the navigator chooses the number of columns and limits the width of the lines, [see the user guide](docs/Guides/Navigator/Preferences.md#line-length-and-margins).
+    * `linkColor` and `visitedColor` change the color of the hyperlinks.
+    * `blendImages`, `darkenImages`, `invertGaiji` and `invertImages` filter the images, [see the user guide](docs/Guides/Navigator/Preferences.md#image-filters).
+    * `fontWidth` changes the width of the glyphs, with the fonts supporting it.
+    * `noRuby` hides the ruby (furigana) annotations in CJK publications.
+* Japanese publications following the EBPAJ EPUB 3 production guide are now rendered with the iOS fonts, such as Hiragino Mincho and Hiragino Sans, instead of the Windows fonts they reference.
 
 ### Changed
 
 #### Navigator
 
-* Removed `EPUBNavigatorViewController.Configuration.readiumCSSRSProperties`. The Readium CSS properties (`CSSRSProperties`, `CSSUserProperties` and the CSS value types) are now internal to the navigator. Use the EPUB preferences or `EPUBDefaults` instead, [see the migration guide](docs/Migration%20Guide.md).
-* Changes in the EPUB navigator preferences, following the upgrade to Readium CSS v2.
-    * Changed `columnCount` preference in `EPUBPreferences`, `EPUBSettings`, and `EPUBDefaults` to `Int?` to support arbitrary column counts, where `nil` means an automatic number of columns. The `ColumnCount` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
-    * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertGaiji`, and `invertImages`. Unlike `imageFilter`, which was applied only with the dark theme, they are applied with any colors. The `ImageFilter` enum is removed, [see the migration guide](docs/Migration%20Guide.md).
-    * Removed the `theme` preference and the `Theme` enum, as Readium CSS v2 has no themes. Use the `textColor`, `backgroundColor`, `linkColor` and `visitedColor` preferences instead. An unset color keeps the one of the publication. A saved `theme` is migrated to these colors, [see the migration guide](docs/Migration%20Guide.md).
-    * Removed the `publisherStyles` preference. Readium CSS v2 applies the user settings as soon as they are set, [see the migration guide](docs/Migration%20Guide.md).
-    * Removed the `typeScale` preference, as the type scale user setting is no longer available in Readium CSS v2.
-    * `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, to match the base line height of Readium CSS v2 for Latin scripts.
-    * `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. When unset, its `effectiveValue` is `true`, as the ligatures are rendered by default.
-    * `EPUBPreferencesEditor.letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages, as supported by Readium CSS v2.
-* Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, and the matching `FontFamily` constants, as Readium CSS v2 no longer distributes fonts. To keep offering them, embed and declare them in your app, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
+* Upgraded Readium CSS to version 2.0.5 in the EPUB navigator, which changes several EPUB preferences, [see the migration guide](docs/Migration%20Guide.md#upgrade-to-readium-css-v2).
+    * Removed the `theme` preference. Build your themes from the `textColor`, `backgroundColor`, `linkColor` and `visitedColor` preferences instead.
+    * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertGaiji` and `invertImages`, which are applied with any colors.
+    * Removed the `publisherStyles` preference. The preferences take effect as soon as they are set.
+    * Removed the `typeScale` preference.
+    * `columnCount` is now an `Int?`, where `nil` means an automatic number of columns.
+    * `pageMargins` is now a factor applied to the minimal margins on each side of the lines.
+* The EPUB navigator now lays out the reflowable resources from the length of the lines:
+    * The lines are limited to a maximal length by default. Set `EPUBDefaults.maximalLineLength` to `nil` to let them take all the available width.
+    * In automatic mode (`columnCount = nil`), as many columns as the screen can hold are displayed, instead of at most two.
+    * The line lengths follow the font size, so a larger font displays fewer columns with about the same number of characters per line.
+    * On foldable devices, one column is displayed on each side of the hinge.
+* Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
+* SVG documents in the reading order of an EPUB are now rendered as fixed-layout pages, even in a reflowable publication.
 
 #### Streamer
 

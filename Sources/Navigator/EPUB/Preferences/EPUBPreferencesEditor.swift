@@ -327,8 +327,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
         )
 
     /// Factor applied to the maximal line length. When unset, the effective
-    /// value is `EPUBDefaults.maximalLineLength` (100% unless the app changes
-    /// it). When the latter is `nil`, the lines take all the available width.
+    /// value is `EPUBDefaults.maximalLineLength`. When the latter is `nil`,
+    /// the lines take all the available width.
     ///
     /// Only effective when the publication contains reflowable resources.
     public lazy var maximalLineLength: AnyOptionalRangePreference<Double> =

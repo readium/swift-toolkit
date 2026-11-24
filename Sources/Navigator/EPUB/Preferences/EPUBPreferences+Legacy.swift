@@ -266,12 +266,12 @@ extension EPUBPreferences {
 // MARK: - Removed preferences
 
 public extension EPUBPreferences {
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    @available(*, unavailable, message: "Not needed anymore, the preferences take effect as soon as they are set")
     var publisherStyles: Bool? {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    @available(*, unavailable, message: "Removed without replacement")
     var typeScale: Double? {
         fatalError()
     }
@@ -281,7 +281,7 @@ public extension EPUBPreferences {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    @available(*, unavailable, message: "Use textColor, backgroundColor, linkColor and visitedColor instead")
     var theme: Theme? {
         fatalError()
     }
@@ -290,12 +290,12 @@ public extension EPUBPreferences {
 // MARK: - Removed settings
 
 public extension EPUBSettings {
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    @available(*, unavailable, message: "Not needed anymore, the preferences take effect as soon as they are set")
     var publisherStyles: Bool {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    @available(*, unavailable, message: "Removed without replacement")
     var typeScale: Double? {
         fatalError()
     }
@@ -305,7 +305,7 @@ public extension EPUBSettings {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    @available(*, unavailable, message: "Use textColor, backgroundColor, linkColor and visitedColor instead")
     var theme: Theme {
         fatalError()
     }
@@ -314,12 +314,12 @@ public extension EPUBSettings {
 // MARK: - Removed defaults
 
 public extension EPUBDefaults {
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    @available(*, unavailable, message: "Not needed anymore, the preferences take effect as soon as they are set")
     var publisherStyles: Bool? {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    @available(*, unavailable, message: "Removed without replacement")
     var typeScale: Double? {
         fatalError()
     }
@@ -338,12 +338,12 @@ public extension EPUBPreferencesEditor {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Not needed anymore with Readium CSS v2, user settings are applied as soon as they are set")
+    @available(*, unavailable, message: "Not needed anymore, the preferences take effect as soon as they are set")
     var publisherStyles: AnyPreference<Bool> {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Not available in Readium CSS v2")
+    @available(*, unavailable, message: "Removed without replacement")
     var typeScale: AnyRangePreference<Double> {
         fatalError()
     }
@@ -353,7 +353,7 @@ public extension EPUBPreferencesEditor {
         fatalError()
     }
 
-    @available(*, unavailable, message: "Readium CSS v2 has no themes, use textColor, backgroundColor, linkColor and visitedColor instead")
+    @available(*, unavailable, message: "Use textColor, backgroundColor, linkColor and visitedColor instead")
     var theme: AnyEnumPreference<Theme> {
         fatalError()
     }

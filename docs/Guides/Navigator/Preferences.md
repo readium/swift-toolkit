@@ -48,11 +48,11 @@ epubNavigator.submitPreferences(editor.preferences)
 
 Preferences are low-level technical properties. While some of them can be exposed directly to the user, such as the font size, others should not be displayed as-is.
 
-For instance, in EPUB, we can simulate two pages side by side using the `columnCount` property (`nil` for automatic, `1`, `2`) for reflowable resources, and the `spread` (`auto`, `never`, `always`) property for fixed-layout publications. Rather than displaying both of these settings with all of their possible values in the user interface, you might prefer to show a single switch button to enable a dual-page mode, which will set both settings appropriately.
+For instance, in EPUB, we can simulate two pages side by side using the `columnCount` property (`nil` for automatic, or a number of columns) for reflowable resources, and the `spread` (`auto`, `never`, `always`) property for fixed-layout publications. Rather than displaying both of these settings with all of their possible values in the user interface, you might prefer to show a single switch button to enable a dual-page mode, which will set both settings appropriately.
 
 ### Inactive settings
 
-A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the word spacing setting is effective only with a left-to-right layout.
+A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the `hyphens` setting is effective only with a left-to-right layout.
 
 You can check if a setting is effective for a set of preferences using the `PreferencesEditor`:
 
@@ -437,6 +437,7 @@ Bitmaps and SVG documents in the reading order are always rendered as fixed-layo
 | `blendImages`        | ✅         |              |
 | `columnCount`        | ✅         |              |
 | `darkenImages`       | ✅         |              |
+| `fit`                |            | ✅           |
 | `fontFamily`         | ✅         |              |
 | `fontSize`           | ✅         |              |
 | `fontWeight`         | ✅         |              |
@@ -499,12 +500,16 @@ Some preferences are available only in paginated mode (`scroll = false`).
 
 #### Line length and margins
 
-The navigator computes the number of columns and the line length from the viewport size, the `fontSize` and these preferences:
+The navigator chooses the number of columns and the length of the lines from the viewport size and the font size, to keep the lines comfortable to read. A larger font displays fewer columns, with about the same number of characters per line. In automatic mode (`columnCount` is `nil`), the navigator displays as many columns as the viewport can hold. On foldable devices, it displays one column on each side of the hinge.
 
-* `optimalLineLength` is a factor applied to the optimal line length (578 points), used to choose the number of columns fitting in the viewport. It applies only in paginated mode, when `columnCount` is `nil` (automatic).
-* `minimalLineLength` is a factor applied to the minimal line length (356 points): fewer columns are displayed if the lines would be shorter. It applies only in paginated mode, when `columnCount` is greater than 1. When `nil` (the default), the requested number of columns is always displayed.
-* `maximalLineLength` is a factor applied to the maximal line length (712 points), which limits the width of the lines, or their height with vertical text. It applies in both scroll and paginated modes, whatever the `columnCount`. It is `1.0` by default. Set `EPUBDefaults.maximalLineLength` to `nil` to let the lines take all the available width when the preference is unset, which also lets the users turn off the limit in the `EPUBPreferencesEditor`.
-* `pageMargins` is a factor applied to the minimal margins on each side of the lines (30 points): left and right, or top and bottom with vertical text. The margins are larger when the line length is limited, and never smaller than the safe area insets.
+You can adjust this layout with the following preferences. The line length preferences are factors of reference lengths chosen by the navigator, so `1.0` keeps the reference length.
+
+* `optimalLineLength` is the target line length used to choose the number of columns, in automatic mode. Increase it to display fewer and wider columns.
+* `maximalLineLength` limits the length of the lines, in both scroll and paginated modes. The remaining space is added to the margins. It is `1.0` by default. To let the lines take all the available width, set `EPUBDefaults.maximalLineLength` to `nil`. The `EPUBPreferencesEditor.maximalLineLength` preference can then be set to `nil` to remove the limit.
+* `minimalLineLength` prevents the lines from becoming too short when you request several columns with `columnCount`: fewer columns are displayed if the lines would be shorter. When `nil` (the default), the requested number of columns is always displayed.
+* `pageMargins` scales the minimal margins on each side of the lines. The margins are larger when the line length is limited, and never smaller than the safe area insets.
+
+With vertical text, the line length is the height of the lines, and the margins are at the top and bottom.
 
 `minimalLineLength` and `maximalLineLength` are `AnyOptionalRangePreference<Double>` in the `EPUBPreferencesEditor`, see [the view for an `OptionalRangePreference`](#view-for-an-optionalrangepreferencevalue).
 
@@ -556,13 +561,12 @@ func apply(_ theme: ReaderTheme, to editor: EPUBPreferencesEditor) {
 
 #### Image filters
 
-The `darkenImages`, `invertGaiji` and `invertImages` preferences are applied with any colors, although they are typically used with a dark `backgroundColor`. To filter the images only with your dark theme, set these preferences along with its colors and clear them otherwise.
+The image filter preferences are applied with any colors. `darkenImages`, `invertGaiji` and `invertImages` are typically used with a dark `backgroundColor`: to filter the images only with your dark theme, set these preferences along with its colors and clear them otherwise.
 
+* `blendImages` blends the images (`<img>` and `<svg>`) with the background color when `true`, so that their white areas take the color of the page, for example with a sepia background. It is meant for light backgrounds, as the images become very dark on a dark one.
 * `darkenImages` reduces the brightness of the images by the given percentage, from `0.0` to `1.0`.
 * `invertGaiji` inverts the colors of the gaiji only when `true`. The gaiji are the images used in Japanese publications for the characters missing from the fonts (`<img class="gaiji">`). They are usually black glyphs displayed among the text, which are hard to read on a dark background unless inverted. When `invertGaiji` is `true`, the gaiji ignore `darkenImages` and `invertImages`.
 * `invertImages` inverts the colors of the images when `true`.
-
-`blendImages`, a toggle off by default like the inversions, blends the images (`<img>` and `<svg>`) with the background color using `mix-blend-mode: multiply`. The white areas of the images take the color of the page, for example with a sepia background. Like the other filters, it is applied with any colors, but it is meant for light backgrounds: multiplied with a dark background, the images become very dark.
 
 #### Language specific preferences
 

@@ -4,15 +4,19 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
-### Readium CSS properties
+### Upgrade to Readium CSS v2
 
-Readium CSS has been upgraded to version 2, and its properties are now internal to the EPUB navigator, which sets them from the EPUB preferences. `EPUBNavigatorViewController.Configuration.readiumCSSRSProperties` is removed, as well as the `CSSRSProperties` and `CSSUserProperties` types and the CSS value types they used (`CSSLength`, `CSSColor`, etc.).
+The EPUB navigator now uses Readium CSS v2. Several EPUB preferences are replaced or removed, and the Readium CSS properties are no longer public.
+
+#### Readium CSS properties
+
+The Readium CSS properties are now internal to the EPUB navigator, which sets them from the EPUB preferences. `EPUBNavigatorViewController.Configuration.readiumCSSRSProperties` is removed, as well as the `CSSRSProperties` and `CSSUserProperties` types and the CSS value types they used (`CSSLength`, `CSSColor`, etc.).
 
 If you customized the Readium CSS reading system properties, use the EPUB preferences or `EPUBDefaults` instead.
 
-### `EPUBPreferences` Column Count
+#### Column count
 
-To support arbitrary column counts natively via Readium CSS v2, `columnCount` has been changed from a `ColumnCount` enum to an `Int?`. The old `ColumnCount` enum is removed. Use `nil` for an automatic number of columns, depending on the viewport size. Values lower than `1` are ignored.
+`columnCount` is now an `Int?` instead of a `ColumnCount` enum, to support any number of columns. The `ColumnCount` enum is removed. Use `nil` for an automatic number of columns, depending on the viewport size. Values lower than `1` are ignored.
 
 ```diff
 -preferences.columnCount = .auto
@@ -23,13 +27,23 @@ To support arbitrary column counts natively via Readium CSS v2, `columnCount` ha
 
 `EPUBPreferencesEditor.columnCount` is now an `AnyEnumPreference<Int?>` supporting the values `nil` (auto), `1` and `2`.
 
-### `EPUBPreferences` line length and page margins
+#### Line length and page margins
 
 The EPUB navigator now computes the number of columns and the line length of reflowable resources from the viewport size, the font size and the new `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences. `pageMargins` is now a factor applied to the minimal margins on each side of the lines, which are larger when the line length is limited. See [the Preferences guide](Guides/Navigator/Preferences.md#line-length-and-margins) for details.
 
-### `EPUBPreferences` Image Filters
+By default, the lines are now limited to a maximal length, so wide screens display two columns or larger margins. To let the lines take all the available width when you don't set the `maximalLineLength` preference, set its default value to `nil`:
 
-`EPUBPreferences.imageFilter` is replaced with four preferences, one for each image filter of Readium CSS v2. The `ImageFilter` enum is removed.
+```swift
+let navigator = try EPUBNavigatorViewController(
+    publication: publication,
+    initialLocation: locator,
+    config: .init(defaults: EPUBDefaults(maximalLineLength: nil))
+)
+```
+
+#### Image filters
+
+`EPUBPreferences.imageFilter` is replaced with four independent preferences. The `ImageFilter` enum is removed.
 
 * `blendImages` blends the images with the background color when `true`.
 * `darkenImages` reduces the brightness of the images by a percentage, from `0.0` to `1.0`.
@@ -45,13 +59,13 @@ To get the same rendering as the previous filters:
 +preferences.invertImages = true
 ```
 
-The previous filters were applied only with the dark theme, while the new preferences are applied with any colors. To keep the previous behavior, set them only together with the colors of your dark theme, [see below](#epubpreferences-themes).
+The previous filters were applied only with the dark theme, while the new preferences are applied with any colors. To keep the previous behavior, set them only together with the colors of your dark theme, [see below](#themes).
 
 `EPUBPreferencesEditor.imageFilter` is replaced with `blendImages`, `invertGaiji` and `invertImages` (`AnyPreference<Bool>`), and `darkenImages` (`AnyRangePreference<Double>`).
 
-### `EPUBPreferences` themes
+#### Themes
 
-Readium CSS v2 has no themes, so the `theme` preference is removed from `EPUBPreferences`, `EPUBSettings` and `EPUBPreferencesEditor`, as well as the `Theme` enum. A theme is now a set of color preferences that your app applies together: `textColor` and `backgroundColor`, plus the new `linkColor` and `visitedColor`.
+The `theme` preference is removed from `EPUBPreferences`, as well as the `Theme` enum. Instead, a theme is a set of color preferences that your app applies together: `textColor` and `backgroundColor`, plus the new `linkColor` and `visitedColor`.
 
 A color preference which is set overrides the colors of the publication. When unset, the colors of the publication are kept, so the previous `light` theme is the same as leaving the four colors unset.
 
@@ -75,11 +89,11 @@ See [the Preferences guide](Guides/Navigator/Preferences.md#colors-and-themes) f
 
 The previous dark theme also inverted the gaiji (images used for the characters missing from the fonts in Japanese publications), unless the images were darkened. Set `invertGaiji` to `true` along with your dark colors to keep them readable. It inverted the title page images too, which is no longer possible.
 
-### `EPUBPreferences` publisher styles
+#### Publisher styles
 
-Readium CSS v2 no longer requires a flag to apply the user settings, so the `publisherStyles` preference is removed from `EPUBPreferences` and associated types.
+The `publisherStyles` preference is removed from `EPUBPreferences`.
 
-The publisher styles are observed as long as the related preferences are unset. Preferences such as `textAlign`, `lineHeight`, or `wordSpacing` take effect as soon as they are set, so you can remove any toggle for the publisher styles from your user interface. To restore the publisher styles, reset these preferences to `nil` (e.g. with `editor.textAlign.clear()`).
+The publisher styles are kept as long as the related preferences are unset. Preferences such as `textAlign`, `lineHeight`, or `wordSpacing` take effect as soon as they are set, so you can remove any toggle for the publisher styles from your user interface. To restore the publisher styles, reset these preferences to `nil` (e.g. with `editor.textAlign.clear()`).
 
 ```diff
  let preferences = EPUBPreferences(
@@ -88,11 +102,18 @@ The publisher styles are observed as long as the related preferences are unset. 
  )
 ```
 
-### Bundled fonts
+#### Other preference changes
 
-The toolkit no longer bundles the additional font families anymore ([OpenDyslexic](https://opendyslexic.org/), [AccessibleDfA](https://github.com/Orange-OpenSource/font-accessible-dfa) and [iA Writer Duospace](https://github.com/iaolo/iA-Fonts/tree/master/iA%20Writer%20Duospace)).
+* The `typeScale` preference is removed from `EPUBPreferences`, without replacement.
+* `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, which is the default line height for Latin scripts.
+* `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. When unset, its `effectiveValue` is `true`, as the ligatures are rendered by default.
+* `EPUBPreferencesEditor.letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages.
 
-To keep offering some of them, add their font files to your app target and declare it in `EPUBNavigatorViewController.Configuration.fontFamilyDeclarations`.
+#### Bundled fonts
+
+The toolkit no longer bundles the additional font families ([OpenDyslexic](https://opendyslexic.org/), [AccessibleDfA](https://github.com/Orange-OpenSource/font-accessible-dfa) and [iA Writer Duospace](https://github.com/iaolo/iA-Fonts/tree/master/iA%20Writer%20Duospace)), and the matching `FontFamily` constants (`.openDyslexic`, `.accessibleDfA` and `.iaWriterDuospace`) are removed.
+
+To keep offering some of them, add their font files to your app target and declare them in `EPUBNavigatorViewController.Configuration.fontFamilyDeclarations`.
 
 ```swift
 extension FontFamily {
@@ -133,13 +154,13 @@ let navigator = try EPUBNavigatorViewController(
 
 See [the EPUB fonts guide](Guides/Navigator/EPUB%20Fonts.md) for more details.
 
-### Saved `EPUBPreferences`
+#### Saved preferences
 
 `EPUBPreferences` saved as JSON with a previous version of the toolkit are migrated when decoded, so you don't need to migrate them yourself.
 
 * `columnCount`: `"auto"` becomes `nil`, `"1"` and `"2"` become `1` and `2`.
 * `imageFilter`: with the dark theme, `"darken"` becomes `darkenImages = 0.2` and `"invert"` becomes `invertImages = true`. With another theme, the filter is dropped, as it was not applied.
-* `theme`: `"dark"` and `"sepia"` become the colors listed [above](#epubpreferences-themes), and `"light"` is dropped. The colors which were saved along with the theme are kept, the theme only fills the missing ones. `"dark"` also sets `invertGaiji = true`, unless `imageFilter` is `"darken"`.
+* `theme`: `"dark"` and `"sepia"` become the colors listed [above](#themes), and `"light"` is dropped. The colors which were saved along with the theme are kept, the theme only fills the missing ones. `"dark"` also sets `invertGaiji = true`, unless `imageFilter` is `"darken"`.
 * `publisherStyles`: when `true`, the preferences it disabled (`hyphens`, `letterSpacing`, `ligatures`, `lineHeight`, `paragraphIndent`, `paragraphSpacing`, `textAlign` and `wordSpacing`) are dropped, as they now apply as soon as they are set. When `false` or missing, they are kept. If your app kept the default `EPUBDefaults.publisherStyles` (`true`), these preferences saved without an explicit `publisherStyles` were ignored and will now be applied.
 * `typeScale` is dropped.
 
