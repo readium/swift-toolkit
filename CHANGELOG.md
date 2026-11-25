@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The `AudioNavigator` now resumes by itself after the network stalls, instead of stopping until the app returns to the foreground when it is in the background.
+* The location of a fixed-layout EPUB is now reported as soon as the current spread is loaded, instead of after the preloaded spreads around it.
 
 
 ## [4.0.0-alpha.3] - 2026-11-16
