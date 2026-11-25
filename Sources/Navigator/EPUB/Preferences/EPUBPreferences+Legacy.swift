@@ -160,49 +160,189 @@ private enum ReadiumCSSName: String {
     case backgroundColor = "--USER__backgroundColor"
 }
 
-// MARK: - Preferences serialized without a version (3.x)
+// MARK: - Preferences serialized with Readium 3.x
+
+/// Decodes the `EPUBPreferences` persisted with Readium 3.x, to migrate them
+/// to your own settings model.
+///
+/// This is a snapshot of the 3.x `EPUBPreferences`, with the values as they
+/// were saved. The decoding is lenient: an invalid value drops only its
+/// preference. See the migration guide for the equivalent of the removed
+/// preferences, such as `theme` or `publisherStyles`.
+///
+/// It will be removed in a future major version.
+public struct LegacyEPUBPreferences: Decodable, Hashable, Sendable {
+    /// Default page background color, as a packed RGB integer.
+    public let backgroundColor: Int?
+    /// Number of reflowable columns to display.
+    public let columnCount: ColumnCount?
+    /// Method for fitting the content of fixed-layout resources within the
+    /// viewport.
+    public let fit: Fit?
+    /// Default typeface for the text.
+    public let fontFamily: String?
+    /// Base text font size.
+    public let fontSize: Double?
+    /// Default boldness for the text.
+    public let fontWeight: Double?
+    /// Enable hyphenation.
+    public let hyphens: Bool?
+    /// Filter applied to images in dark theme.
+    public let imageFilter: ImageFilter?
+    /// Language of the publication content, as a BCP 47 tag.
+    public let language: String?
+    /// Space between letters.
+    public let letterSpacing: Double?
+    /// Enable ligatures in Arabic.
+    public let ligatures: Bool?
+    /// Leading line height.
+    public let lineHeight: Double?
+    /// Indicates whether the first page should be displayed alone and
+    /// centered instead of alongside the second page.
+    public let offsetFirstPage: Bool?
+    /// Factor applied to horizontal margins.
+    public let pageMargins: Double?
+    /// Text indentation for paragraphs.
+    public let paragraphIndent: Double?
+    /// Vertical margins for paragraphs.
+    public let paragraphSpacing: Double?
+    /// Indicates whether the original publisher styles should be observed.
+    ///
+    /// Many settings required this to be off.
+    public let publisherStyles: Bool?
+    /// Direction of the reading progression across resources.
+    public let readingProgression: ReadingProgression?
+    /// Indicates if the overflow of resources should be handled using
+    /// scrolling instead of synthetic pagination.
+    public let scroll: Bool?
+    /// Indicates if the fixed-layout publication should be rendered with a
+    /// synthetic spread (dual-page).
+    public let spread: Spread?
+    /// Page text alignment.
+    public let textAlign: TextAlignment?
+    /// Default page text color, as a packed RGB integer.
+    public let textColor: Int?
+    /// Normalize text styles to increase accessibility.
+    public let textNormalization: Bool?
+    /// Reader theme.
+    public let theme: Theme?
+    /// Scale applied to all element font sizes.
+    public let typeScale: Double?
+    /// Indicates whether the text should be laid out vertically.
+    public let verticalText: Bool?
+    /// Space between words.
+    public let wordSpacing: Double?
+
+    public enum ColumnCount: String, Decodable, Hashable, Sendable {
+        case auto
+        case one = "1"
+        case two = "2"
+    }
+
+    public enum Fit: String, Decodable, Hashable, Sendable {
+        case auto
+        case page
+        case width
+    }
+
+    public enum ImageFilter: String, Decodable, Hashable, Sendable {
+        case darken
+        case invert
+    }
+
+    public enum ReadingProgression: String, Decodable, Hashable, Sendable {
+        case ltr
+        case rtl
+    }
+
+    public enum Spread: String, Decodable, Hashable, Sendable {
+        case auto
+        case never
+        case always
+    }
+
+    public enum TextAlignment: String, Decodable, Hashable, Sendable {
+        case center
+        case justify
+        case start
+        case end
+        case left
+        case right
+    }
+
+    public enum Theme: String, Decodable, Hashable, Sendable {
+        case light
+        case dark
+        case sepia
+    }
+}
+
+public extension LegacyEPUBPreferences {
+    private enum CodingKeys: String, CodingKey {
+        case backgroundColor
+        case columnCount
+        case fit
+        case fontFamily
+        case fontSize
+        case fontWeight
+        case hyphens
+        case imageFilter
+        case language
+        case letterSpacing
+        case ligatures
+        case lineHeight
+        case offsetFirstPage
+        case pageMargins
+        case paragraphIndent
+        case paragraphSpacing
+        case publisherStyles
+        case readingProgression
+        case scroll
+        case spread
+        case textAlign
+        case textColor
+        case textNormalization
+        case theme
+        case typeScale
+        case verticalText
+        case wordSpacing
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        backgroundColor = container.decodeLeniently(Int.self, forKey: .backgroundColor)
+        columnCount = container.decodeLeniently(ColumnCount.self, forKey: .columnCount)
+        fit = container.decodeLeniently(Fit.self, forKey: .fit)
+        fontFamily = container.decodeLeniently(String.self, forKey: .fontFamily)
+        fontSize = container.decodeLeniently(Double.self, forKey: .fontSize)
+        fontWeight = container.decodeLeniently(Double.self, forKey: .fontWeight)
+        hyphens = container.decodeLeniently(Bool.self, forKey: .hyphens)
+        imageFilter = container.decodeLeniently(ImageFilter.self, forKey: .imageFilter)
+        language = container.decodeLeniently(String.self, forKey: .language)
+        letterSpacing = container.decodeLeniently(Double.self, forKey: .letterSpacing)
+        ligatures = container.decodeLeniently(Bool.self, forKey: .ligatures)
+        lineHeight = container.decodeLeniently(Double.self, forKey: .lineHeight)
+        offsetFirstPage = container.decodeLeniently(Bool.self, forKey: .offsetFirstPage)
+        pageMargins = container.decodeLeniently(Double.self, forKey: .pageMargins)
+        paragraphIndent = container.decodeLeniently(Double.self, forKey: .paragraphIndent)
+        paragraphSpacing = container.decodeLeniently(Double.self, forKey: .paragraphSpacing)
+        publisherStyles = container.decodeLeniently(Bool.self, forKey: .publisherStyles)
+        readingProgression = container.decodeLeniently(ReadingProgression.self, forKey: .readingProgression)
+        scroll = container.decodeLeniently(Bool.self, forKey: .scroll)
+        spread = container.decodeLeniently(Spread.self, forKey: .spread)
+        textAlign = container.decodeLeniently(TextAlignment.self, forKey: .textAlign)
+        textColor = container.decodeLeniently(Int.self, forKey: .textColor)
+        textNormalization = container.decodeLeniently(Bool.self, forKey: .textNormalization)
+        theme = container.decodeLeniently(Theme.self, forKey: .theme)
+        typeScale = container.decodeLeniently(Double.self, forKey: .typeScale)
+        verticalText = container.decodeLeniently(Bool.self, forKey: .verticalText)
+        wordSpacing = container.decodeLeniently(Double.self, forKey: .wordSpacing)
+    }
+}
+
+// MARK: - Legacy settings migration (2.x)
 
 extension EPUBPreferences {
-    /// Keys of the preferences serialized without a version, which changed
-    /// or were removed.
-    private enum LegacyCodingKeys: String, CodingKey {
-        case columnCount
-        case imageFilter
-        case publisherStyles
-        case theme
-    }
-
-    /// Migrates the preferences serialized without a version, before the
-    /// Readium CSS v2 upgrade.
-    ///
-    /// The `typeScale` preference is dropped.
-    mutating func migrateUnversioned(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: LegacyCodingKeys.self)
-
-        // `columnCount` was an enum of `auto`, `1` and `2`.
-        if let columnCount = container.decodeLeniently(String.self, forKey: .columnCount) {
-            self.columnCount = Self.validColumnCount(Int(columnCount))
-        }
-
-        // `theme` was an enum of `light`, `dark` and `sepia`, and
-        // `imageFilter` an enum of `darken` and `invert`.
-        let theme = container.decodeLeniently(String.self, forKey: .theme)
-            .flatMap(LegacyTheme.init(rawValue:))
-        if let theme = theme {
-            applyLegacyTheme(
-                theme,
-                imageFilter: container.decodeLeniently(String.self, forKey: .imageFilter)
-            )
-        }
-
-        // These preferences were ignored while the publisher styles were
-        // enabled. An unset `publisherStyles` is ambiguous, as apps could
-        // change its default value, so they are kept in this case.
-        if container.decodeLeniently(Bool.self, forKey: .publisherStyles) == true {
-            clearPublisherStylesOverrides()
-        }
-    }
-
     /// Clears the preferences which were ignored while the legacy publisher
     /// styles were enabled.
     mutating func clearPublisherStylesOverrides() {
@@ -241,10 +381,7 @@ extension EPUBPreferences {
     ///
     /// The colors already set are kept, as they took precedence over the
     /// theme. The light theme has no colors, it was the default rendering.
-    ///
-    /// - Parameter imageFilter: Legacy image filter (`darken` or `invert`),
-    ///   which was applied only with the dark theme.
-    mutating func applyLegacyTheme(_ theme: LegacyTheme, imageFilter: String? = nil) {
+    mutating func applyLegacyTheme(_ theme: LegacyTheme) {
         switch theme {
         case .light:
             break
@@ -254,19 +391,8 @@ extension EPUBPreferences {
             backgroundColor = backgroundColor ?? nightBackgroundColor
             linkColor = linkColor ?? nightLinkColor
             visitedColor = visitedColor ?? nightVisitedColor
-
-            // The dark theme inverted the gaiji, unless the images were
-            // darkened.
-            switch imageFilter {
-            case "darken":
-                // The `darken` filter was `brightness(80%)`.
-                darkenImages = 0.2
-            case "invert":
-                invertImages = true
-                invertGaiji = true
-            default:
-                invertGaiji = true
-            }
+            // The dark theme inverted the gaiji.
+            invertGaiji = true
 
         case .sepia:
             // The link colors of the sepia theme were the default ones.
@@ -296,6 +422,16 @@ public extension EPUBPreferences {
 
     @available(*, unavailable, message: "Use textColor, backgroundColor, linkColor and visitedColor instead")
     var theme: Theme? {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Store the publication-specific settings in your own settings model, see the migration guide")
+    func filterSharedPreferences() -> EPUBPreferences {
+        fatalError()
+    }
+
+    @available(*, unavailable, message: "Store the publication-specific settings in your own settings model, see the migration guide")
+    func filterPublicationPreferences() -> EPUBPreferences {
         fatalError()
     }
 }

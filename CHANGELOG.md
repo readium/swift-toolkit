@@ -40,6 +40,12 @@ All notable changes to this project will be documented in this file. Take a look
 * Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
 * SVG documents in the reading order of an EPUB are now rendered as fixed-layout pages, even in a reflowable publication.
 
+### Removed
+
+#### Navigator
+
+* The `Preferences` types and their values are no longer `Codable`. Persist your own settings model and derive the preferences from it instead, [see the migration guide](docs/Migration%20Guide.md#preferences-are-no-longer-codable).
+
 ### Fixed
 
 #### Navigator

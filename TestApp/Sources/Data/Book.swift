@@ -35,9 +35,9 @@ nonisolated struct Book: Codable {
     var progression: Double
     /// Date of creation.
     var created: Date
-    /// JSON of user preferences specific to this publication (e.g. language,
-    /// reading progression, spreads).
-    var preferencesJSON: String?
+    /// JSON of the user settings specific to this publication (e.g.
+    /// language, reading progression, spreads).
+    var settingsJSON: String?
 
     var mediaType: MediaType {
         MediaType(type) ?? .binary
@@ -52,8 +52,7 @@ nonisolated struct Book: Codable {
         url: AnyURL,
         coverPath: String? = nil,
         locator: Locator? = nil,
-        created: Date = Date(),
-        preferencesJSON: String? = nil
+        created: Date = Date()
     ) {
         self.id = id
         self.identifier = identifier
@@ -65,29 +64,23 @@ nonisolated struct Book: Codable {
         self.locator = locator
         progression = locator?.locations.totalProgression ?? 0
         self.created = created
-        self.preferencesJSON = preferencesJSON
     }
 
     var cover: FileURL? {
         coverPath.map { Paths.covers.appendingPath($0, isDirectory: false) }
     }
 
-    func preferences<P: Decodable>() throws -> P? {
-        guard let data = preferencesJSON.flatMap({ $0.data(using: .utf8) }) else {
+    func settings<S: Decodable>() throws -> S? {
+        guard let data = settingsJSON.flatMap({ $0.data(using: .utf8) }) else {
             return nil
         }
-        return try JSONDecoder().decode(P.self, from: data)
-    }
-
-    mutating func setPreferences<P: Encodable>(_ preferences: P) throws {
-        let data = try JSONEncoder().encode(preferences)
-        preferencesJSON = String(data: data, encoding: .utf8)
+        return try JSONDecoder().decode(S.self, from: data)
     }
 }
 
 nonisolated extension Book: TableRecord, FetchableRecord, PersistableRecord {
     enum Columns: String, ColumnExpression {
-        case id, identifier, title, type, url, coverPath, locator, progression, created, preferencesJSON
+        case id, identifier, title, type, url, coverPath, locator, progression, created, settingsJSON
     }
 }
 
@@ -142,10 +135,11 @@ final class BookRepository {
         }
     }
 
-    func savePreferences<Preferences: Encodable>(_ preferences: Preferences, of id: Book.Id) async throws {
-        // Encoded eagerly, as `preferences` is not `Sendable` and cannot be
+    /// Saves the book-specific `settings`.
+    func saveSettings<Settings: Encodable>(_ settings: Settings, of id: Book.Id) async throws {
+        // Encoded eagerly, as `settings` is not `Sendable` and cannot be
         // captured in the database closure.
-        let data = try JSONEncoder().encode(preferences)
+        let data = try JSONEncoder().encode(settings)
         let json = String(data: data, encoding: .utf8)
 
         try await db.write { db in
@@ -153,7 +147,7 @@ final class BookRepository {
                 return
             }
 
-            book.preferencesJSON = json
+            book.settingsJSON = json
             try book.save(db)
         }
     }

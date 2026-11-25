@@ -32,14 +32,16 @@ public protocol Configurable {
 public protocol ConfigurableSettings: Hashable {}
 
 /// Marker interface for the `Preferences` properties holder.
-public protocol ConfigurablePreferences: Codable, Hashable {
+public protocol ConfigurablePreferences: Hashable {
     /// Empty set of preferences.
     static var empty: Self { get }
+}
 
-    /// Creates a new instance of `Self` after merging the values of `other`.
-    ///
-    /// In case of conflict, `other` takes precedence.
-    func merging(_ other: Self) -> Self
+public extension ConfigurablePreferences {
+    @available(*, unavailable, message: "Store your own settings model and derive the preferences from it, see the migration guide")
+    func merging(_ other: Self) -> Self {
+        fatalError()
+    }
 }
 
 public extension Configurable {

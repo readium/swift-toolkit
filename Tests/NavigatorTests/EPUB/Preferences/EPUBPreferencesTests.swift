@@ -11,25 +11,22 @@ import Testing
 import UIKit
 
 enum EPUBPreferencesTests {
-    /// Keeps the round-trip, merging and settings tests exhaustive.
+    /// Keeps the settings tests exhaustive.
     ///
-    /// A stored property missing from the `Codable` implementation, from
-    /// `merging(_:)` or from the settings resolution would still pass these
-    /// tests if the fixtures left it `nil`, or gave it the value it is compared
-    /// with. These tests list the stored properties with a `Mirror`, so they
-    /// fail as soon as a new property is added to `EPUBPreferences` or
-    /// `EPUBDefaults` without being set in the fixtures.
+    /// A stored property missing from the settings resolution would still
+    /// pass these tests if the fixtures left it `nil`, or gave it the value it
+    /// is compared with. These tests list the stored properties with a
+    /// `Mirror`, so they fail as soon as a new property is added to
+    /// `EPUBPreferences` or `EPUBDefaults` without being set in the fixtures.
     @Suite("fixtures") struct Fixtures {
         @Test("the fixtures set every property")
         func complete() {
-            #expect(unsetProperties(of: allPreferences) == [])
             #expect(unsetProperties(of: otherPreferences) == [])
             #expect(unsetProperties(of: allDefaults) == [])
         }
 
         @Test("the fixtures compared by the tests have a different value for every property")
         func distinct() {
-            #expect(sameProperties(allPreferences, otherPreferences) == [])
             #expect(sameProperties(otherPreferences, allDefaults) == [])
             #expect(sameProperties(allDefaults, settings()) == [])
         }
@@ -135,10 +132,10 @@ enum EPUBPreferencesTests {
 
         @Test("the table sets every preference")
         func tableIsComplete() {
-            let merged = cssTable
-                .map(\.preferences)
-                .reduce(EPUBPreferences()) { $0.merging($1) }
-            #expect(unsetProperties(of: merged) == [])
+            let unset = cssTable
+                .map { unsetProperties(of: $0.preferences) }
+                .reduce(unsetProperties(of: EPUBPreferences())) { $0.intersection($1) }
+            #expect(unset == [])
         }
     }
 
@@ -623,8 +620,7 @@ enum EPUBPreferencesTests {
             let setting = Mirror(reflecting: resolved).children.first { $0.label == limit.property }
             #expect(setting.map { unwrappedDescription($0.value) } == limit.expected)
 
-            // `merging(_:)` gives the values to the initializer.
-            let initialized = EPUBPreferences().merging(prefs)
+            let initialized = prefs.reinitialized()
             #expect(resolved == settings(preferences: initialized, defaults: limit.defaults))
         }
 
@@ -922,15 +918,6 @@ enum EPUBPreferencesTests {
             #expect(prefs.invertGaiji == nil)
         }
 
-        @Test("decoding limits darkenImages to 0.0 ... 1.0 and reads the inversions")
-        func decodeLimitsValue() throws {
-            let json = #"{"darkenImages": 1.5, "invertGaiji": true, "invertImages": false}"#
-            let prefs = try JSONDecoder().decode(EPUBPreferences.self, from: Data(json.utf8))
-            #expect(prefs.darkenImages == 1.0)
-            #expect(prefs.invertGaiji == true)
-            #expect(prefs.invertImages == false)
-        }
-
         @Test("ReadiumCSS doesn't apply the image filters which are off", arguments: [0.0, -0.5])
         func cssImageFiltersOff(value: Double) {
             let props = cssProperties(preferences: EPUBPreferences(darkenImages: value, invertGaiji: false, invertImages: false))
@@ -1092,224 +1079,6 @@ enum EPUBPreferencesTests {
         }
     }
 
-    @Suite("Codable") struct Coding {
-        @Test("encodes and decodes every preference")
-        func roundTrip() throws {
-            let data = try JSONEncoder().encode(allPreferences)
-            #expect(try JSONDecoder().decode(EPUBPreferences.self, from: data) == allPreferences)
-        }
-
-        @Test("encodes every preference with its own key")
-        func codingKeys() throws {
-            let data = try JSONEncoder().encode(allPreferences)
-            // `NSDictionary` equality is lenient on numeric types (`true` vs
-            // `1`), but this test pins the key names.
-            let encoded = try #require(JSONSerialization.jsonObject(with: data) as? NSDictionary)
-            let expected = try #require(JSONSerialization.jsonObject(with: Data(allPreferencesJSON.utf8)) as? NSDictionary)
-            #expect(encoded == expected)
-        }
-
-        @Test("decodes every preference from its own key")
-        func decodesCodingKeys() throws {
-            #expect(try decode(allPreferencesJSON) == allPreferences)
-        }
-
-        @Test("merging keeps the preferences of the receiver which the other doesn't set")
-        func merging() {
-            #expect(EPUBPreferences().merging(allPreferences) == allPreferences)
-            #expect(allPreferences.merging(EPUBPreferences()) == allPreferences)
-        }
-
-        @Test("merging takes the preferences set by the other")
-        func mergingPrecedence() {
-            #expect(allPreferences.merging(otherPreferences) == otherPreferences)
-        }
-
-        @Test("encodes the format version")
-        func encodesVersion() throws {
-            let data = try JSONEncoder().encode(EPUBPreferences(fontSize: 1.2))
-            let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
-            #expect(json["version"] as? Int == 4)
-            #expect(json["fontSize"] as? Double == 1.2)
-            #expect(json.count == 2)
-        }
-
-        @Test("an invalid value drops only its preference", arguments: [#""version": 4"#, #""theme": "dark""#])
-        func invalidValue(other: String) throws {
-            let prefs = try decode(#"{"fontSize": "big", "lineHeight": 1.5, \#(other)}"#)
-            #expect(prefs.fontSize == nil)
-            #expect(prefs.lineHeight == 1.5)
-        }
-
-        @Test("decoded values are sanitized")
-        func sanitized() throws {
-            let prefs = try decode(#"{"version": 4, "columnCount": 0, "spread": "auto", "fontSize": -1}"#)
-            #expect(prefs.columnCount == nil)
-            #expect(prefs.spread == nil)
-            #expect(prefs.fontSize == nil)
-            #expect(try decode(#"{"version": 4, "fontSize": 0}"#).fontSize == nil)
-        }
-
-        @Test("a versioned payload is not migrated")
-        func versionedIsNotMigrated() throws {
-            let prefs = try decode(#"{"version": 4, "theme": "dark", "imageFilter": "invert", "publisherStyles": true, "lineHeight": 1.5}"#)
-            #expect(prefs == EPUBPreferences(lineHeight: 1.5))
-        }
-
-        @Test("migrates the 3.x dark theme to its colors")
-        func legacyThemeDark() throws {
-            let prefs = try decode(#"{"theme": "dark", "fontSize": 1.2}"#)
-            #expect(prefs == EPUBPreferences(
-                backgroundColor: Color(rawValue: 0x000000),
-                fontSize: 1.2,
-                invertGaiji: true,
-                linkColor: Color(rawValue: 0x63CAFF),
-                textColor: Color(rawValue: 0xFEFEFE),
-                visitedColor: Color(rawValue: 0x0099E5)
-            ))
-        }
-
-        @Test("migrates the 3.x sepia theme to its colors, without link colors")
-        func legacyThemeSepia() throws {
-            let prefs = try decode(#"{"theme": "sepia", "fontSize": 1.2}"#)
-            #expect(prefs == EPUBPreferences(
-                backgroundColor: Color(rawValue: 0xFAF4E8),
-                fontSize: 1.2,
-                textColor: Color(rawValue: 0x121212)
-            ))
-        }
-
-        @Test("migrates the 3.x light theme, or an invalid one, to no colors", arguments: [#""theme": "light","#, #""theme": "unknown","#, #""theme": 2,"#, ""])
-        func legacyThemeLight(theme: String) throws {
-            let prefs = try decode(#"{\#(theme) "fontSize": 1.2}"#)
-            #expect(prefs == EPUBPreferences(fontSize: 1.2))
-        }
-
-        @Test("the colors saved with a 3.x theme take precedence over its colors")
-        func legacyThemeWithExplicitColors() throws {
-            // Colors are serialized as packed integers.
-            let dark = try decode(#"{"theme": "dark", "textColor": 16711680}"#)
-            #expect(dark == EPUBPreferences(
-                backgroundColor: Color(rawValue: 0x000000),
-                invertGaiji: true,
-                linkColor: Color(rawValue: 0x63CAFF),
-                textColor: Color(rawValue: 0xFF0000),
-                visitedColor: Color(rawValue: 0x0099E5)
-            ))
-
-            let sepia = try decode(#"{"theme": "sepia", "backgroundColor": 65280}"#)
-            #expect(sepia == EPUBPreferences(
-                backgroundColor: Color(rawValue: 0x00FF00),
-                textColor: Color(rawValue: 0x121212)
-            ))
-
-            let light = try decode(#"{"theme": "light", "textColor": 16711680, "backgroundColor": 65280}"#)
-            #expect(light == EPUBPreferences(
-                backgroundColor: Color(rawValue: 0x00FF00),
-                textColor: Color(rawValue: 0xFF0000)
-            ))
-        }
-
-        @Test("migrates the 3.x column count", arguments: [
-            ("auto", nil),
-            ("1", 1),
-            ("2", 2),
-        ] as [(String, Int?)])
-        func legacyColumnCount(value: String, expected: Int?) throws {
-            let prefs = try decode(#"{"columnCount": "\#(value)", "fontSize": 1.2}"#)
-            #expect(prefs.columnCount == expected)
-            #expect(prefs.fontSize == 1.2)
-        }
-
-        /// The dark theme inverted the gaiji, unless the images were
-        /// darkened.
-        @Test("migrates the 3.x image filters with the dark theme", arguments: [
-            (#""imageFilter": "darken""#, 0.2, nil, nil),
-            (#""imageFilter": "invert""#, nil, true, true),
-            (#""imageFilter": "unknown""#, nil, nil, true),
-            (#""fontSize": 1.2"#, nil, nil, true),
-        ] as [(String, Double?, Bool?, Bool?)])
-        func legacyImageFilterDark(filter: String, darkenImages: Double?, invertImages: Bool?, invertGaiji: Bool?) throws {
-            let prefs = try decode(#"{"theme": "dark", \#(filter)}"#)
-            #expect(prefs.darkenImages == darkenImages)
-            #expect(prefs.invertImages == invertImages)
-            #expect(prefs.invertGaiji == invertGaiji)
-        }
-
-        @Test("drops the 3.x image filters without the dark theme", arguments: [#""theme": "light","#, #""theme": "sepia","#, ""])
-        func legacyImageFilterNotDark(theme: String) throws {
-            for filter in ["darken", "invert"] {
-                let prefs = try decode(#"{\#(theme) "imageFilter": "\#(filter)"}"#)
-                #expect(prefs.darkenImages == nil)
-                #expect(prefs.invertImages == nil)
-                #expect(prefs.invertGaiji == nil)
-            }
-        }
-
-        @Test("drops the preferences ignored with the 3.x publisher styles")
-        func legacyPublisherStylesOn() throws {
-            let prefs = try decode(threeXPayload(publisherStyles: true))
-            #expect(prefs == EPUBPreferences(
-                backgroundColor: Color(rawValue: 0x000000),
-                columnCount: 2,
-                fontSize: 1.2,
-                invertGaiji: true,
-                linkColor: Color(rawValue: 0x63CAFF),
-                textColor: Color(rawValue: 0xFEFEFE),
-                visitedColor: Color(rawValue: 0x0099E5)
-            ))
-        }
-
-        @Test("keeps the preferences when the 3.x publisher styles are off or unset", arguments: [false, nil])
-        func legacyPublisherStylesOffOrUnset(publisherStyles: Bool?) throws {
-            let prefs = try decode(threeXPayload(publisherStyles: publisherStyles))
-            #expect(prefs == EPUBPreferences(
-                backgroundColor: Color(rawValue: 0x000000),
-                columnCount: 2,
-                fontSize: 1.2,
-                hyphens: true,
-                invertGaiji: true,
-                letterSpacing: 0.1,
-                ligatures: false,
-                lineHeight: 2.0,
-                linkColor: Color(rawValue: 0x63CAFF),
-                paragraphIndent: 1.0,
-                paragraphSpacing: 0.5,
-                textAlign: .justify,
-                textColor: Color(rawValue: 0xFEFEFE),
-                visitedColor: Color(rawValue: 0x0099E5),
-                wordSpacing: 0.2
-            ))
-        }
-
-        /// A payload serialized by the 3.x toolkit, with the preferences
-        /// ignored while the publisher styles were enabled.
-        private func threeXPayload(publisherStyles: Bool?) -> String {
-            let publisherStyles = publisherStyles.map { #""publisherStyles": \#($0),"# } ?? ""
-            return #"""
-            {
-                \#(publisherStyles)
-                "columnCount": "2",
-                "fontSize": 1.2,
-                "hyphens": true,
-                "letterSpacing": 0.1,
-                "ligatures": false,
-                "lineHeight": 2.0,
-                "paragraphIndent": 1.0,
-                "paragraphSpacing": 0.5,
-                "textAlign": "justify",
-                "theme": "dark",
-                "typeScale": 1.2,
-                "wordSpacing": 0.2
-            }
-            """#
-        }
-
-        private func decode(_ json: String) throws -> EPUBPreferences {
-            try JSONDecoder().decode(EPUBPreferences.self, from: Data(json.utf8))
-        }
-    }
-
     /// These tests write to `UserDefaults.standard`, so they must not run
     /// concurrently.
     @Suite("Legacy preferences", .serialized) struct Legacy {
@@ -1456,88 +1225,7 @@ enum EPUBPreferencesTests {
     }
 }
 
-/// Every preference set to a distinct non-default value.
-private let allPreferences = EPUBPreferences(
-    backgroundColor: Color(hex: "#FF0000"),
-    blendImages: true,
-    columnCount: 2,
-    darkenImages: 0.3,
-    fit: .width,
-    fontFamily: "Literata",
-    fontSize: 1.4,
-    fontWeight: 1.75,
-    fontWidth: 1.7,
-    hyphens: true,
-    invertGaiji: true,
-    invertImages: false,
-    language: Language("fr"),
-    letterSpacing: 0.1,
-    ligatures: false,
-    lineHeight: 1.6,
-    linkColor: Color(hex: "#0000FF"),
-    maximalLineLength: 1.3,
-    minimalLineLength: 0.8,
-    noRuby: true,
-    offsetFirstPage: true,
-    optimalLineLength: 1.2,
-    pageMargins: 1.5,
-    paragraphIndent: 1.1,
-    paragraphSpacing: 0.5,
-    readingProgression: .rtl,
-    scroll: true,
-    spread: .always,
-    textAlign: .justify,
-    textColor: Color(hex: "#00FF00"),
-    textNormalization: true,
-    verticalText: true,
-    visitedColor: Color(hex: "#FF00FF"),
-    wordSpacing: 0.2
-)
-
-/// `allPreferences` serialized, which pins the name of every coding key. The
-/// colors are serialized as their raw value.
-private let allPreferencesJSON = """
-{
-  "version": 4,
-  "backgroundColor": 16711680,
-  "blendImages": true,
-  "columnCount": 2,
-  "darkenImages": 0.3,
-  "fit": "width",
-  "fontFamily": "Literata",
-  "fontSize": 1.4,
-  "fontWeight": 1.75,
-  "fontWidth": 1.7,
-  "hyphens": true,
-  "invertGaiji": true,
-  "invertImages": false,
-  "language": "fr",
-  "letterSpacing": 0.1,
-  "ligatures": false,
-  "lineHeight": 1.6,
-  "linkColor": 255,
-  "maximalLineLength": 1.3,
-  "minimalLineLength": 0.8,
-  "noRuby": true,
-  "offsetFirstPage": true,
-  "optimalLineLength": 1.2,
-  "pageMargins": 1.5,
-  "paragraphIndent": 1.1,
-  "paragraphSpacing": 0.5,
-  "readingProgression": "rtl",
-  "scroll": true,
-  "spread": "always",
-  "textAlign": "justify",
-  "textColor": 65280,
-  "textNormalization": true,
-  "verticalText": true,
-  "visitedColor": 16711935,
-  "wordSpacing": 0.2
-}
-"""
-
-/// Every preference set to a value different from the ones of
-/// `allPreferences` and `allDefaults`.
+/// Every preference set to a value different from the ones of `allDefaults`.
 private let otherPreferences = EPUBPreferences(
     backgroundColor: Color(hex: "#00FFFF"),
     blendImages: false,
@@ -1785,4 +1473,46 @@ private func cssProperties(
         ("visitedColor", editor.visitedColor.isEffective),
         ("wordSpacing", editor.wordSpacing.isEffective),
     ]
+}
+
+private extension EPUBPreferences {
+    /// Returns a copy of the preferences, created with the initializer.
+    func reinitialized() -> EPUBPreferences {
+        EPUBPreferences(
+            backgroundColor: backgroundColor,
+            blendImages: blendImages,
+            columnCount: columnCount,
+            darkenImages: darkenImages,
+            fit: fit,
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            fontWeight: fontWeight,
+            fontWidth: fontWidth,
+            hyphens: hyphens,
+            invertGaiji: invertGaiji,
+            invertImages: invertImages,
+            language: language,
+            letterSpacing: letterSpacing,
+            ligatures: ligatures,
+            lineHeight: lineHeight,
+            linkColor: linkColor,
+            maximalLineLength: maximalLineLength,
+            minimalLineLength: minimalLineLength,
+            noRuby: noRuby,
+            offsetFirstPage: offsetFirstPage,
+            optimalLineLength: optimalLineLength,
+            pageMargins: pageMargins,
+            paragraphIndent: paragraphIndent,
+            paragraphSpacing: paragraphSpacing,
+            readingProgression: readingProgression,
+            scroll: scroll,
+            spread: spread,
+            textAlign: textAlign,
+            textColor: textColor,
+            textNormalization: textNormalization,
+            verticalText: verticalText,
+            visitedColor: visitedColor,
+            wordSpacing: wordSpacing
+        )
+    }
 }

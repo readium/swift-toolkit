@@ -22,6 +22,53 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 +synthesizer.config.voices[voice.language.primaryLanguage] = voice.id
 ```
 
+### Preferences are no longer `Codable`
+
+`EPUBPreferences`, `PDFPreferences`, `AudioPreferences` and their value types (`Color`, `FontFamily`, `Fit`, `Spread`, etc.) are no longer `Codable`. Persisting the navigator preferences made them a storage format, which broke whenever a preference changed in Readium, and they rarely map 1-1 to the settings shown to your users (a theme, a dual-page toggle).
+
+Your app now owns its settings model, which it persists the way it wants, and derives the preferences from it before submitting them to the navigator.
+
+```swift
+struct ReaderSettings: Codable {
+    var fontSize: Double?
+    var scroll: Bool?
+    var language: String?
+
+    func preferences() -> EPUBPreferences {
+        EPUBPreferences(
+            fontSize: fontSize,
+            language: language.map { Language($0) },
+            scroll: scroll
+        )
+    }
+}
+```
+
+`ConfigurablePreferences.merging(_:)` and the `filterPublicationPreferences()` / `filterSharedPreferences()` methods of the `Preferences` types are removed. Store the preferences specific to a publication in your own model, [see the user guide](Guides/Navigator/Preferences.md#preferences-specific-to-a-publication) for the list.
+
+#### Migrating the saved preferences
+
+If you were directly persisting the preferences from Readium 3.x, you will need to migrate them to your own alternative model.
+
+To read the preferences persisted with Readium 3.x, decode them once with `LegacyEPUBPreferences`, `LegacyPDFPreferences` or `LegacyAudioPreferences`. Then map them to your model, save it and delete the old data.
+
+These types are snapshots of the 3.x `Preferences`: they hold the values as they were saved, including the removed preferences such as `theme` or `publisherStyles`, with their own nested types. See [Saved preferences](#saved-preferences) for the equivalent of the removed EPUB preferences.
+
+```swift
+if let data = UserDefaults.standard.data(forKey: "epubPreferences") {
+    let legacy = try JSONDecoder().decode(LegacyEPUBPreferences.self, from: data)
+    let settings = ReaderSettings(
+        fontSize: legacy.fontSize,
+        scroll: legacy.scroll,
+        language: legacy.language
+    )
+    try save(settings)
+    UserDefaults.standard.removeObject(forKey: "epubPreferences")
+}
+```
+
+The `Legacy*Preferences` types will be removed in a future major version.
+
 ### Upgrade to Readium CSS v2
 
 The EPUB navigator now uses Readium CSS v2. Several EPUB preferences are replaced or removed.
@@ -172,15 +219,16 @@ See [the EPUB fonts guide](Guides/Navigator/EPUB%20Fonts.md) for more details.
 
 #### Saved preferences
 
-`EPUBPreferences` saved as JSON with a previous version of the toolkit are migrated when decoded, so you don't need to migrate them yourself.
+When you map the `LegacyEPUBPreferences` saved with Readium 3.x to your model ([see above](#migrating-the-saved-preferences)), these are the equivalents of the removed preferences, to keep the rendering they had:
 
-* `columnCount`: `"auto"` becomes `nil`, `"1"` and `"2"` become `1` and `2`.
-* `imageFilter`: with the dark theme, `"darken"` becomes `darkenImages = 0.2` and `"invert"` becomes `invertImages = true`. With another theme, the filter is dropped, as it was not applied.
-* `theme`: `"dark"` and `"sepia"` become the colors listed [above](#themes), and `"light"` is dropped. The colors which were saved along with the theme are kept, the theme only fills the missing ones. `"dark"` also sets `invertGaiji = true`, unless `imageFilter` is `"darken"`.
-* `publisherStyles`: when `true`, the preferences it disabled (`hyphens`, `letterSpacing`, `ligatures`, `lineHeight`, `paragraphIndent`, `paragraphSpacing`, `textAlign` and `wordSpacing`) are dropped, as they now apply as soon as they are set. When `false` or missing, they are kept. If your app kept the default `EPUBDefaults.publisherStyles` (`true`), these preferences saved without an explicit `publisherStyles` were ignored and will now be applied.
-* `typeScale` is dropped.
+* `columnCount`: `.auto` becomes `nil`, `.one` and `.two` become `1` and `2`.
+* `imageFilter`: with the dark theme, `.darken` becomes `darkenImages = 0.2` and `.invert` becomes `invertImages = true`. With another theme, drop the filter, as it was not applied.
+* `theme`: `.dark` and `.sepia` become the colors listed [above](#themes), and `.light` leaves the colors unset. The `textColor` and `backgroundColor` saved along with the theme took precedence over its colors. `.dark` also inverted the gaiji (`invertGaiji = true`), unless `imageFilter` was `.darken`.
+* `publisherStyles`: when `true`, drop the preferences it disabled (`hyphens`, `letterSpacing`, `ligatures`, `lineHeight`, `paragraphIndent`, `paragraphSpacing`, `textAlign` and `wordSpacing`), as they now apply as soon as they are set. When `false` or missing, keep them. If your app kept the default `EPUBDefaults.publisherStyles` (`true`), these preferences saved without an explicit `publisherStyles` were ignored and will now be applied.
+* `typeScale` has no equivalent.
 
-The decoding is also more lenient: an invalid value drops only its preference, instead of failing to decode all of them.
+The colors are packed RGB integers, which you can convert with `Color(rawValue:)`. The decoding is lenient: an invalid value drops only its preference, instead of failing to decode all of them.
+
 
 ## 4.0.0-alpha.3
 

@@ -17,7 +17,7 @@ public extension FontFamily {
 }
 
 class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController> {
-    private let preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
+    private let settingsStore: UserSettingsStore<EPUBUserSettings>
 
     init(
         publication: Publication,
@@ -27,7 +27,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository,
         initialPreferences: EPUBPreferences,
-        preferencesStore: AnyUserPreferencesStore<EPUBPreferences>
+        settingsStore: UserSettingsStore<EPUBUserSettings>
     ) throws {
         var templates = HTMLDecorationTemplate.defaultTemplates()
         templates[.pageList] = .pageList
@@ -63,7 +63,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
             )
         )
 
-        self.preferencesStore = preferencesStore
+        self.settingsStore = settingsStore
 
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
 
@@ -75,9 +75,9 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
             let userPrefs = await UserPreferences(
                 model: UserPreferencesViewModel(
                     bookId: bookId,
-                    preferences: try! preferencesStore.preferences(for: bookId),
+                    preferences: try! settingsStore.settings(for: bookId).preferences(),
                     configurable: navigator,
-                    store: preferencesStore
+                    store: settingsStore
                 ),
                 onClose: { [weak self = self] in
                     self?.dismiss(animated: true)
