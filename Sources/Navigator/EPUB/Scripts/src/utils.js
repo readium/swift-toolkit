@@ -370,6 +370,9 @@ export function setCSSProperties(properties) {
   for (const name in properties) {
     setProperty(name, properties[name]);
   }
+  // Update the virtual columns, as the number of columns per screen can
+  // change without resizing the body.
+  window.requestAnimationFrame(appendVirtualColumnsIfNeeded);
 }
 
 // For setting user setting.
