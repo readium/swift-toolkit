@@ -156,7 +156,7 @@ struct ReadiumCSSTests {
     }
 
     @Test func injectLangAttributes() throws {
-        let language = Language(code: .bcp47("en"))
+        let language = Language("en")
         let css = ReadiumCSS(
             layout: CSSLayout(language: language),
             baseURL: baseURL
@@ -188,7 +188,7 @@ struct ReadiumCSSTests {
 
     @Test func injectLangAttributesWhenOneExistsOnHTMLTag() throws {
         let css = ReadiumCSS(
-            layout: CSSLayout(language: Language(code: .bcp47("en"))),
+            layout: CSSLayout(language: Language("en")),
             baseURL: baseURL
         )
 
@@ -216,7 +216,7 @@ struct ReadiumCSSTests {
 
     @Test func injectLangAttributesCopiesTheOneFromBodyTag() throws {
         let css = ReadiumCSS(
-            layout: CSSLayout(language: Language(code: .bcp47("en"))),
+            layout: CSSLayout(language: Language("en")),
             baseURL: baseURL
         )
 
@@ -238,8 +238,27 @@ struct ReadiumCSSTests {
                 .styleAttribute(on: .html, css: ""),
                 .dirAttribute(on: .html, rtl: false),
                 .dirAttribute(on: .body, rtl: false),
-                .langAttribute(on: .html, language: Language(code: .bcp47("fr"))),
+                .langAttribute(on: .html, language: Language("fr")),
             ]
+        )
+    }
+
+    @Test func injectLangAttributesCopiesTheCanonicalTagFromBodyTag() throws {
+        let css = ReadiumCSS(
+            layout: CSSLayout(language: Language("en")),
+            baseURL: baseURL
+        )
+
+        #expect(
+            try css.injections(for: """
+            <?xml version="1.0" encoding="utf-8"?>
+            <html xmlns="http://www.w3.org/1999/xhtml">
+                <head>
+                    <title>Publication</title>
+                </head>
+                <body lang="fr_ca"></body>
+            </html>
+            """).last == .attribute("xml:lang", on: .html, value: "fr-CA")
         )
     }
 
@@ -263,7 +282,7 @@ struct ReadiumCSSTests {
     }
 
     @Test func langInjectionFallsBackToLayoutLangWhenBodyLangIsEmpty() throws {
-        let language = Language(code: .bcp47("en"))
+        let language = Language("en")
         let css = ReadiumCSS(
             layout: CSSLayout(language: language),
             baseURL: baseURL
@@ -295,7 +314,7 @@ struct ReadiumCSSTests {
 
     @Test func injectDirAttributeWhenAlreadyPresent() throws {
         let css = ReadiumCSS(
-            layout: CSSLayout(language: Language(code: .bcp47("en"))),
+            layout: CSSLayout(language: Language("en")),
             baseURL: baseURL
         )
 

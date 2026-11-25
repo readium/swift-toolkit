@@ -34,7 +34,7 @@ public func makeDefaultTextTokenizer(unit: TextUnit, language: Language? = nil) 
 @available(iOS 12.0, *)
 public func makeNLTextTokenizer(unit: TextUnit, language: Language? = nil) -> TextTokenizer {
     let unit = unit.nlUnit
-    let language = language.map { NLLanguage($0.code.bcp47) }
+    let language = language.map { NLLanguage($0.tag) }
 
     func tokenize(_ text: String) throws -> [Range<String.Index>] {
         let tokenizer = NLTokenizer(unit: unit)

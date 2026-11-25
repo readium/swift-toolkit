@@ -70,7 +70,7 @@ let navigator = try EPUBNavigatorViewController(
     publication: publication,
     config: .init(
         preferences: EPUBPreferences(
-            language: Language(code: "fr")
+            language: Language("fr")
         ),
         defaults: EPUBDefaults(
             pageMargins: 1.5,

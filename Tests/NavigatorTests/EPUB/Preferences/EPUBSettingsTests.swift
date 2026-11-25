@@ -77,6 +77,14 @@ class EPUBSettingsTests: XCTestCase {
             resolveLayout(languages: ["zh-TW"]),
             CSSLayout(language: "zh-TW", stylesheets: .cjkVertical, readingProgression: .rtl)
         )
+        XCTAssertEqual(
+            resolveLayout(languages: ["ar-EG"]),
+            CSSLayout(language: "ar-EG", stylesheets: .rtl, readingProgression: .rtl)
+        )
+        XCTAssertEqual(
+            resolveLayout(languages: ["ja-JP"]),
+            CSSLayout(language: "ja-JP", stylesheets: .cjkHorizontal, readingProgression: .ltr)
+        )
     }
 
     func testComputeLayoutWithLTRReadingProgression() {

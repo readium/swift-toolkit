@@ -84,7 +84,7 @@ struct TTSSettings: View {
                     // The voice applies to all the regions of the language.
                     picker(
                         caption: "Voice",
-                        for: \.voices[language.removingRegion()],
+                        for: \.voices[language.primaryLanguage],
                         choices: [nil] + settings.availableVoiceIDs,
                         choiceLabel: { id in
                             id.flatMap { viewModel.voice(withID: $0)?.name } ?? "Default"

@@ -115,7 +115,7 @@ public struct Metadata: Hashable, Sendable, Loggable, WarningLogger, JSONValueDe
         self.modified = modified
         self.published = published
         self.languages = languages
-        language = languages.first.map { Language(code: .bcp47($0)) }
+        language = languages.first.map { Language($0) }
         self.sortAs = sortAs
         self.subjects = subjects
         self.authors = authors
@@ -166,7 +166,7 @@ public struct Metadata: Hashable, Sendable, Loggable, WarningLogger, JSONValueDe
         modified = jsonObject.pop("modified")?.date
         published = jsonObject.pop("published")?.date
         languages = jsonObject.pop("language")?.decode(allowingSingle: true) ?? []
-        language = languages.first.map { Language(code: .bcp47($0)) }
+        language = languages.first.map { Language($0) }
         sortAs = jsonObject.pop("sortAs")?.string
         subjects = jsonObject.pop("subject")?.decode(allowingSingle: true, warnings: warnings) ?? []
         authors = jsonObject.pop("author")?.decode(allowingSingle: true, warnings: warnings) ?? []

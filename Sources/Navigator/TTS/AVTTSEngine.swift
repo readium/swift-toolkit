@@ -346,7 +346,7 @@ private extension TTSVoice {
     init(voice: AVSpeechSynthesisVoice) {
         self.init(
             id: ID(voice.identifier),
-            language: Language(code: .bcp47(voice.language)),
+            language: Language(voice.language),
             name: voice.name,
             gender: Gender(voice: voice),
             quality: Quality(voice: voice)
@@ -398,7 +398,7 @@ private extension TTSVoice.Quality {
 
 private extension AVSpeechSynthesisVoice {
     convenience init?(language: Language) {
-        self.init(language: language.code.bcp47)
+        self.init(language: language.tag)
     }
 }
 

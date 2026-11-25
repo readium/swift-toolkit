@@ -74,7 +74,7 @@ struct UserPreferences<
     var onClose: () -> Void
 
     private let languages: [Language?] = [nil] + Language.all
-        .map { $0.removingRegion() }
+        .map(\.primaryLanguage)
         .removingDuplicates()
         .sorted { l1, l2 in l1.localizedDescription() <= l2.localizedDescription() }
 

@@ -11,7 +11,7 @@ import Testing
 
 enum TTSVoiceTests {
     struct FilterByLanguage {
-        @Test func filtersByBaseLanguage() {
+        @Test func filtersByPrimaryLanguage() {
             let voices = [
                 TTSVoice(language: "en-US"),
                 TTSVoice(language: "en-GB"),
@@ -23,7 +23,7 @@ enum TTSVoiceTests {
 
             let filtered = voices.filterByLanguage("en")
 
-            #expect(filtered.map(\.language.code.bcp47) == ["en-US", "en-GB", "en", "en-CA"])
+            #expect(filtered.map(\.language.tag) == ["en-US", "en-GB", "en", "en-CA"])
         }
 
         @Test func filtersByExactLanguageAndRegion() {
@@ -37,7 +37,7 @@ enum TTSVoiceTests {
 
             let filtered = voices.filterByLanguage("en-US")
 
-            #expect(filtered.map(\.language.code.bcp47) == ["en-US"])
+            #expect(filtered.map(\.language.tag) == ["en-US"])
         }
 
         @Test func withNoMatchesReturnsEmpty() {
@@ -99,7 +99,7 @@ enum TTSVoiceTests {
             let sorted = voices.sorted(displayLocale: displayLocale)
 
             // Languages are sorted by their localized names.
-            #expect(sorted.map(\.language.code.bcp47) == [
+            #expect(sorted.map(\.language.tag) == [
                 "ar-SA",
                 "zh-CN",
                 "en-US",
@@ -107,7 +107,7 @@ enum TTSVoiceTests {
             ])
         }
 
-        @Test func groupsVoicesByBaseLanguage() {
+        @Test func groupsVoicesByPrimaryLanguage() {
             let voices = [
                 TTSVoice(language: "en-GB"),
                 TTSVoice(language: "fr-CA"),
@@ -117,7 +117,7 @@ enum TTSVoiceTests {
 
             let sorted = voices.sorted(displayLocale: displayLocale)
 
-            #expect(sorted.map { $0.language.removingRegion().code.bcp47 } == ["en", "en", "fr", "fr"])
+            #expect(sorted.map(\.language.code) == ["en", "en", "fr", "fr"])
         }
     }
 
@@ -134,7 +134,7 @@ enum TTSVoiceTests {
 
             // US comes first, the other regions are ordered by their localized
             // names.
-            #expect(sorted.map(\.language.code.bcp47) == [
+            #expect(sorted.map(\.language.tag) == [
                 "en-US",
                 "en-AU",
                 "en-CA",
@@ -155,7 +155,7 @@ enum TTSVoiceTests {
 
             // Preferred regions appear first in the given order, then the default
             // region, then the rest ordered alphabetically.
-            #expect(sorted.map(\.language.code.bcp47) == [
+            #expect(sorted.map(\.language.tag) == [
                 "en-GB",
                 "en-AU",
                 "en-US",
@@ -173,7 +173,7 @@ enum TTSVoiceTests {
 
             let sorted = voices.sorted()
 
-            #expect(sorted.last?.language.code.bcp47 == "en")
+            #expect(sorted.last?.language.tag == "en")
         }
     }
 
@@ -305,9 +305,9 @@ private extension TTSVoice {
         quality: Quality? = nil
     ) {
         self.init(
-            id: id ?? ID("voice-\(language.code.bcp47)"),
+            id: id ?? ID("voice-\(language.tag)"),
             language: language,
-            name: name ?? "Voice (\(language.code.bcp47))",
+            name: name ?? "Voice (\(language.tag))",
             gender: gender,
             quality: quality
         )

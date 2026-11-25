@@ -8,19 +8,23 @@ import Foundation
 import ReadiumShared
 
 extension Language {
+    /// Whether publications in this language are read from right to left by
+    /// default.
+    ///
+    /// This is the case of Arabic, Persian and Hebrew whatever their region
+    /// or script, and of Traditional Chinese tagged exactly `zh-Hant` or
+    /// `zh-TW`, which is laid out vertically.
+    ///
+    /// See https://github.com/readium/css/blob/develop/docs/CSS16-internationalization.md#missing-page-progression-direction
     var isRTL: Bool {
-        let c = code.bcp47.lowercased()
-        return c == "ar"
-            || c == "fa"
-            || c == "he"
-            || c == "zh-hant"
-            || c == "zh-tw"
+        tag == "zh-Hant" || tag == "zh-TW" || ["ar", "fa", "he"].contains(code)
     }
 
+    /// Whether this is a Chinese, Japanese or Korean language, which can be
+    /// laid out horizontally or vertically.
+    ///
+    /// See https://github.com/readium/css/blob/develop/css/dist/ReadMe.md#cjk
     var isCJK: Bool {
-        let c = code.bcp47.lowercased()
-        return c == "ja"
-            || c == "ko"
-            || removingRegion().code.bcp47.lowercased() == "zh"
+        ["zh", "ja", "ko"].contains(code)
     }
 }

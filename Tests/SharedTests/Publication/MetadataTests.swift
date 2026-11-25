@@ -4,10 +4,11 @@
 //  available in the top-level LICENSE file of the project.
 //
 
+import Foundation
 @testable import ReadiumShared
-import XCTest
+import Testing
 
-class MetadataTests: XCTestCase {
+struct MetadataTests {
     let fullMetadata = Metadata(
         identifier: "1234",
         type: "epub",
@@ -49,26 +50,26 @@ class MetadataTests: XCTestCase {
         ]
     )
 
-    func testParseReadingProgression() {
-        XCTAssertEqual(ReadingProgression(rawValue: "rtl"), .rtl)
-        XCTAssertEqual(ReadingProgression(rawValue: "ltr"), .ltr)
-        XCTAssertEqual(ReadingProgression(rawValue: "auto"), .auto)
+    @Test func parseReadingProgression() {
+        #expect(ReadingProgression(rawValue: "rtl") == .rtl)
+        #expect(ReadingProgression(rawValue: "ltr") == .ltr)
+        #expect(ReadingProgression(rawValue: "auto") == .auto)
     }
 
-    func testReadingProgressionDefaultsToAuto() {
-        XCTAssertEqual(try Metadata(json: ["title": "t"])?.readingProgression, .auto)
-        XCTAssertEqual(Metadata(title: "t").readingProgression, .auto)
+    @Test func readingProgressionDefaultsToAuto() throws {
+        #expect(try Metadata(json: ["title": "t"])?.readingProgression == .auto)
+        #expect(Metadata(title: "t").readingProgression == .auto)
     }
 
-    func testParseMinimalJSON() {
-        XCTAssertEqual(
-            try? Metadata(json: ["title": "Title"]),
-            Metadata(title: "Title")
+    @Test func parseMinimalJSON() {
+        #expect(
+            (try? Metadata(json: ["title": "Title"]))
+                == Metadata(title: "Title")
         )
     }
 
-    func testParseFullJSON() {
-        XCTAssertEqual(
+    @Test func parseFullJSON() throws {
+        #expect(
             try Metadata(json: [
                 "identifier": "1234",
                 "@type": "epub",
@@ -112,73 +113,81 @@ class MetadataTests: XCTestCase {
                 ],
                 "other-metadata1": "value",
                 "other-metadata2": [42],
-            ] as JSONValue),
-            fullMetadata
+            ] as JSONValue)
+                == fullMetadata
         )
     }
 
-    func testParseInvalidJSON() {
-        XCTAssertThrowsError(try Metadata(json: [] as JSONValue))
+    @Test func parseInvalidJSON() {
+        #expect(throws: (any Error).self) {
+            try Metadata(json: [] as JSONValue)
+        }
     }
 
-    func testParseJSONWithSingleProfile() {
-        XCTAssertEqual(
+    @Test func parseJSONWithSingleProfile() throws {
+        #expect(
             try Metadata(json: [
                 "title": "Title",
                 "conformsTo": "https://readium.org/webpub-manifest/profiles/divina",
-            ]),
-            Metadata(
-                conformsTo: [.divina],
-                title: "Title"
-            )
+            ])
+                == Metadata(
+                    conformsTo: [.divina],
+                    title: "Title"
+                )
         )
     }
 
-    func testParseJSONWithSingleLanguage() {
-        XCTAssertEqual(
+    @Test func parseJSONWithSingleLanguage() throws {
+        #expect(
             try Metadata(json: [
                 "title": "Title",
                 "language": "fr",
-            ]),
-            Metadata(
-                title: "Title",
-                languages: ["fr"]
-            )
+            ])
+                == Metadata(
+                    title: "Title",
+                    languages: ["fr"]
+                )
         )
     }
 
-    func testParseJSONRequiresTitle() {
-        XCTAssertThrowsError(try Metadata(json: ["duration": 4.24]))
+    @Test func parseJSONRequiresTitle() {
+        #expect(throws: (any Error).self) {
+            try Metadata(json: ["duration": 4.24])
+        }
     }
 
-    func testParseJSONRequiresPositiveDuration() {
-        XCTAssertEqual(
-            try? Metadata(json: ["title": "t", "duration": -20] as JSONValue),
-            Metadata(title: "t")
+    @Test func parseJSONRequiresPositiveDuration() {
+        #expect(
+            (try? Metadata(json: ["title": "t", "duration": -20] as JSONValue))
+                == Metadata(title: "t")
         )
     }
 
-    func testParseJSONRequiresPositiveNumberOfPages() {
-        XCTAssertEqual(
-            try? Metadata(json: ["title": "t", "numberOfPages": -20] as JSONValue),
-            Metadata(title: "t")
+    @Test func parseJSONRequiresPositiveNumberOfPages() {
+        #expect(
+            (try? Metadata(json: ["title": "t", "numberOfPages": -20] as JSONValue))
+                == Metadata(title: "t")
         )
     }
 
-    func testGetMinimalJSON() {
-        XCTAssertEqual(
-            Metadata(title: "Title").jsonObject,
-            [
+    @Test func languageIsTheFirstOneParsed() {
+        let metadata = Metadata(title: "t", languages: ["en_US", "fr"])
+        #expect(metadata.language == "en-US")
+        #expect(metadata.languages == ["en_US", "fr"])
+    }
+
+    @Test func getMinimalJSON() {
+        #expect(
+            Metadata(title: "Title").jsonObject == [
                 "title": "Title",
                 "readingProgression": "auto",
             ]
         )
     }
 
-    func testGetFullJSON() {
-        XCTAssertEqual(
-            fullMetadata.jsonObject,
-            [
+    @Test func getFullJSON() {
+        #expect(
+            fullMetadata.jsonObject == [
                 "identifier": "1234",
                 "@type": "epub",
                 "conformsTo": [
@@ -228,9 +237,5 @@ class MetadataTests: XCTestCase {
                 "other-metadata2": [42],
             ] as [String: JSONValue]
         )
-    }
-
-    private func makeMetadata(languages: [String], readingProgression: ReadingProgression) -> Metadata {
-        Metadata(title: "", languages: languages, readingProgression: readingProgression)
     }
 }

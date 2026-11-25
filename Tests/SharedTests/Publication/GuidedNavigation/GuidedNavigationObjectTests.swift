@@ -43,7 +43,7 @@ enum GuidedNavigationObjectTests {
                     audio: AnyURL(string: "audio.mp3#t=0,20"),
                     video: AnyURL(string: "video.mp4#t=10,30")
                 ),
-                text: .init(plain: "Hello", ssml: "<speak>Hello</speak>", language: Language(code: .bcp47("en"))),
+                text: .init(plain: "Hello", ssml: "<speak>Hello</speak>", language: Language("en")),
                 roles: [.chapter, .heading2],
                 description: .init(refs: .init(text: AnyURL(string: "desc.html"))),
                 children: [
@@ -68,7 +68,7 @@ enum GuidedNavigationObjectTests {
             #expect(sut?.text == GuidedNavigationObject.Text(
                 plain: "Hello",
                 ssml: "<speak>Hello</speak>",
-                language: Language(code: .bcp47("en"))
+                language: Language("en")
             ))
         }
 

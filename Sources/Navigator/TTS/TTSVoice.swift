@@ -87,14 +87,14 @@ public extension [TTSVoice] {
     /// If the input language includes a region (e.g., "en-US"), only voices
     /// with that exact language and region combination will be returned.
     /// If the input language has no region (e.g., "en"), all voices matching
-    /// the base language will be returned, regardless of their region.
+    /// the primary language will be returned, regardless of their region.
     func filterByLanguage(_ language: Language) -> [TTSVoice] {
         if language.region != nil {
             // Exact match: language code and region must both match
             return filter { $0.language == language }
         } else {
-            // Base language match: filter by language code only, ignoring region
-            return filter { $0.language.removingRegion() == language }
+            // Primary language match: filter by language code only, ignoring region
+            return filter { $0.language.primaryLanguage == language }
         }
     }
 
@@ -106,12 +106,14 @@ public extension [TTSVoice] {
     /// 2. Order by voice quality from highest to lowest.
     /// 3. Order by voice gender: female > male > unspecified.
     /// 4. Order by voice name alphabetically.
+    ///
+    /// - Parameter preferredRegions: Regions to list first, e.g. `GB` or `419`.
     func sorted(
         preferredRegions: [Language.Region]? = nil,
         displayLocale: Locale = .current
     ) -> [TTSVoice] {
         let languagesAndRegions: [(language: Language, region: Language.Region?)] =
-            map { ($0.language.removingRegion(), $0.language.region) }
+            map { ($0.language.primaryLanguage, $0.language.region) }
 
         let regionsByLanguage: [Language: Set<Language.Region>] =
             Dictionary(grouping: languagesAndRegions, by: \.language)
@@ -137,7 +139,7 @@ public extension [TTSVoice] {
 
                 // 3. Add remaining regions ordered by localized name.
                 ordered.append(contentsOf: regions.sorted {
-                    ($0.localizedName(in: displayLocale) ?? $0.code) < ($1.localizedName(in: displayLocale) ?? $1.code)
+                    ($0.localizedName(in: displayLocale) ?? $0.rawValue) < ($1.localizedName(in: displayLocale) ?? $1.rawValue)
                 })
 
                 ordered = ordered.removingDuplicates()
@@ -156,7 +158,7 @@ public extension [TTSVoice] {
             gender: Int,
             name: String
         ) {
-            let language = voice.language.removingRegion()
+            let language = voice.language.primaryLanguage
 
             let regionPriority: Int =
                 if
@@ -169,7 +171,7 @@ public extension [TTSVoice] {
                 }
 
             return (
-                language: language.localizedLanguage(in: displayLocale) ?? voice.language.code.bcp47,
+                language: language.localizedLanguage(in: displayLocale) ?? voice.language.tag,
                 region: regionPriority,
                 quality: voice.quality.flatMap { qualityPriorities[$0] } ?? .max,
                 gender: genderPriorities[voice.gender] ?? .max,
@@ -206,58 +208,58 @@ public extension [TTSVoice] {
 private extension Locale {
     static var preferredRegions: [ReadiumShared.Language.Region] {
         preferredLanguages
-            .compactMap { ReadiumShared.Language(code: .bcp47($0)).region }
+            .compactMap { ReadiumShared.Language($0).region }
     }
 }
 
-// Default region per base language.
+// Default region per primary language.
 // Source: https://github.com/HadrienGardeur/web-speech-recommended-voices
 private let defaultRegionByLanguage: [Language.Code: Language.Region] = [
-    .bcp47("ar"): "SA",
-    .bcp47("bg"): "BG",
-    .bcp47("bho"): "IN",
-    .bcp47("bn"): "IN",
-    .bcp47("ca"): "ES",
-    .bcp47("cmn"): "CN",
-    .bcp47("cs"): "CZ",
-    .bcp47("da"): "DK",
-    .bcp47("de"): "DE",
-    .bcp47("el"): "GR",
-    .bcp47("en"): "US",
-    .bcp47("es"): "ES",
-    .bcp47("eu"): "ES",
-    .bcp47("fa"): "IR",
-    .bcp47("fi"): "FI",
-    .bcp47("fr"): "FR",
-    .bcp47("gl"): "ES",
-    .bcp47("he"): "IL",
-    .bcp47("hi"): "IN",
-    .bcp47("hr"): "HR",
-    .bcp47("hu"): "HU",
-    .bcp47("id"): "ID",
-    .bcp47("it"): "IT",
-    .bcp47("ja"): "JP",
-    .bcp47("kn"): "IN",
-    .bcp47("ko"): "KR",
-    .bcp47("mr"): "IN",
-    .bcp47("ms"): "MY",
-    .bcp47("nb"): "NO",
-    .bcp47("nl"): "NL",
-    .bcp47("pl"): "PL",
-    .bcp47("pt"): "BR",
-    .bcp47("ro"): "RO",
-    .bcp47("ru"): "RU",
-    .bcp47("sk"): "SK",
-    .bcp47("sl"): "SI",
-    .bcp47("sv"): "SE",
-    .bcp47("ta"): "IN",
-    .bcp47("te"): "IN",
-    .bcp47("th"): "TH",
-    .bcp47("tr"): "TR",
-    .bcp47("uk"): "UA",
-    .bcp47("vi"): "VN",
-    .bcp47("wuu"): "CN",
-    .bcp47("yue"): "HK",
+    "ar": "SA",
+    "bg": "BG",
+    "bho": "IN",
+    "bn": "IN",
+    "ca": "ES",
+    "cmn": "CN",
+    "cs": "CZ",
+    "da": "DK",
+    "de": "DE",
+    "el": "GR",
+    "en": "US",
+    "es": "ES",
+    "eu": "ES",
+    "fa": "IR",
+    "fi": "FI",
+    "fr": "FR",
+    "gl": "ES",
+    "he": "IL",
+    "hi": "IN",
+    "hr": "HR",
+    "hu": "HU",
+    "id": "ID",
+    "it": "IT",
+    "ja": "JP",
+    "kn": "IN",
+    "ko": "KR",
+    "mr": "IN",
+    "ms": "MY",
+    "nb": "NO",
+    "nl": "NL",
+    "pl": "PL",
+    "pt": "BR",
+    "ro": "RO",
+    "ru": "RU",
+    "sk": "SK",
+    "sl": "SI",
+    "sv": "SE",
+    "ta": "IN",
+    "te": "IN",
+    "th": "TH",
+    "tr": "TR",
+    "uk": "UA",
+    "vi": "VN",
+    "wuu": "CN",
+    "yue": "HK",
 ]
 
 /// Quality order priority: higher to lower

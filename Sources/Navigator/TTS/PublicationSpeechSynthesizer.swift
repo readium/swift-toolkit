@@ -254,14 +254,14 @@ public final class PublicationSpeechSynthesizer: Loggable {
     /// it in a voice picker.
     ///
     /// This is the voice of `config.voices` matching `language` and its
-    /// region first, then its base language, e.g. `en-US` then `en`. The
+    /// region first, then its primary language, e.g. `en-US` then `en`. The
     /// voices which are not installed are skipped. Without a match, this is
-    /// the first voice of the base language ordered by
+    /// the first voice of the primary language ordered by
     /// ``TTSVoice/sorted(preferredRegions:displayLocale:)``.
     ///
     /// Returns `nil` when the engine picks the voice itself: with
     /// `config.prefersAssistiveTechnologyVoice`, or when no voice is
-    /// installed for the base language.
+    /// installed for the primary language.
     public func voice(for language: Language) -> TTSVoice? {
         guard !config.prefersAssistiveTechnologyVoice else {
             return nil
@@ -455,19 +455,19 @@ public final class PublicationSpeechSynthesizer: Loggable {
     }
 
     /// Returns the installed voice of `config.voices` for `language`, matching
-    /// its region first, then its base language.
+    /// its region first, then its primary language.
     private func configuredVoice(for language: Language) -> TTSVoice? {
-        [language, language.removingRegion()]
+        [language, language.primaryLanguage]
             .compactMap { config.voices[$0] }
             .lazy
             .compactMap { self.voice(withID: $0) }
             .first
     }
 
-    /// Returns the first voice of the base language of `language`, ordered by
+    /// Returns the first voice of the primary language of `language`, ordered by
     /// `sorted()`.
     private func defaultVoice(for language: Language) -> TTSVoice? {
-        let language = language.removingRegion()
+        let language = language.primaryLanguage
         if let voice = defaultVoices[language] {
             return voice
         }
