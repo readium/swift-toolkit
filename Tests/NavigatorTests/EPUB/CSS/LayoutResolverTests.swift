@@ -247,17 +247,29 @@ struct LayoutResolverTests {
 
     /// A zero viewport, for example before the first layout of the view,
     /// gives empty lines instead of a crash or NaN.
-    @Test(arguments: [
-        (scroll: true, columnCount: nil, expected: LayoutResolver.Layout(colCount: 1, lineLength: 0)),
-        (scroll: false, columnCount: nil, expected: LayoutResolver.Layout(colCount: 1, lineLength: 0)),
-        (scroll: false, columnCount: 2, expected: LayoutResolver.Layout(colCount: 2, lineLength: 0)),
-    ] as [(scroll: Bool, columnCount: Int?, expected: LayoutResolver.Layout)])
-    func zeroViewport(scroll: Bool, columnCount: Int?, expected: LayoutResolver.Layout) {
+    struct ZeroViewport: Sendable, CustomTestStringConvertible {
+        let name: String
+        var scroll: Bool = false
+        var columnCount: Int?
+        let expected: LayoutResolver.Layout
+
+        var testDescription: String {
+            name
+        }
+    }
+
+    @Test("a zero viewport gives empty lines", arguments: [
+        ZeroViewport(name: "scrolled", scroll: true, expected: .init(colCount: 1, lineLength: 0)),
+        ZeroViewport(name: "automatic columns", expected: .init(colCount: 1, lineLength: 0)),
+        // The margins leave no room for the lines of two columns.
+        ZeroViewport(name: "two requested columns", columnCount: 2, expected: .init(colCount: 1, lineLength: 0)),
+    ])
+    func zeroViewport(_ test: ZeroViewport) {
         for verticalText in [false, true] {
             let layout = resolver.layout(
-                scroll: scroll,
+                scroll: test.scroll,
                 verticalText: verticalText,
-                columnCount: columnCount,
+                columnCount: test.columnCount,
                 optimalLineLength: 1.0,
                 minimalLineLength: 1.0,
                 maximalLineLength: 1.0,
@@ -267,7 +279,7 @@ struct LayoutResolverTests {
                 insets: UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
             )
 
-            #expect(layout == expected, "verticalText: \(verticalText)")
+            #expect(layout == test.expected, "verticalText: \(verticalText)")
         }
     }
 
@@ -727,6 +739,114 @@ struct LayoutResolverTests {
         ])
         func verticalHingeWidth(_ test: Division) {
             #expect(LayoutResolver.verticalHingeWidth(divisions: test.divisions, in: test.bounds) == test.expected)
+        }
+    }
+
+    /// Layout with the default line lengths, with large margins or line
+    /// length factors.
+    @Suite("With extreme settings") struct Extremes {
+        struct ExtremeLayout: Sendable, CustomTestStringConvertible {
+            let name: String
+            var scroll: Bool = false
+            var columnCount: Int?
+            var minimalLineLength: Double?
+            var maximalLineLength: Double?
+            let pageMargins: Double
+            var fontScale: Double = 1.0
+            let width: Double
+            let expected: LayoutResolver.Layout
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test("resolves extreme settings", arguments: [
+            // The maximal line length 712 × 0.5 × 0.4 = 142.4 is below the
+            // 2 × 120pt margins.
+            ExtremeLayout(name: "a maximal line length shorter than the margins, scrolled", scroll: true, maximalLineLength: 0.5, pageMargins: 4, fontScale: 0.4, width: 1000, expected: .init(colCount: 1, lineLength: 142.4)),
+            ExtremeLayout(name: "a maximal line length shorter than the margins, one requested column", columnCount: 1, maximalLineLength: 0.5, pageMargins: 4, fontScale: 0.4, width: 1000, expected: .init(colCount: 1, lineLength: 142.4)),
+            // The 120pt margins take each 195pt column, one column remains.
+            ExtremeLayout(name: "margins wider than the requested columns", columnCount: 2, pageMargins: 4, width: 390, expected: .init(colCount: 1, lineLength: 150)),
+            ExtremeLayout(name: "margins wider than the requested columns, with a minimal line length", columnCount: 2, minimalLineLength: 1.0, pageMargins: 4, width: 390, expected: .init(colCount: 1, lineLength: 150)),
+            ExtremeLayout(name: "margins wider than the viewport, scrolled", scroll: true, pageMargins: 4, width: 200, expected: .init(colCount: 1, lineLength: 0)),
+            ExtremeLayout(name: "margins wider than the viewport, auto", pageMargins: 4, width: 200, expected: .init(colCount: 1, lineLength: 0)),
+            // Two columns of (600 - 4 × 90) / 2 = 120pt are below the 356pt
+            // minimal line length, even though three columns have less room.
+            ExtremeLayout(name: "the minimal line length of the requested columns is kept when reducing them", columnCount: 3, minimalLineLength: 1.0, pageMargins: 3, width: 600, expected: .init(colCount: 1, lineLength: 420)),
+            // The single column of 600 - 2 × 120 = 360pt is limited by the
+            // maximal line length 712 × 0.5 × 0.4 = 142.4.
+            ExtremeLayout(name: "the maximal line length of the requested columns is kept when reducing them", columnCount: 3, minimalLineLength: 1.0, maximalLineLength: 0.5, pageMargins: 4, fontScale: 0.4, width: 600, expected: .init(colCount: 1, lineLength: 142.4)),
+        ])
+        func extremeLayout(_ test: ExtremeLayout) {
+            let layout = LayoutResolver().layout(
+                scroll: test.scroll,
+                verticalText: false,
+                columnCount: test.columnCount,
+                optimalLineLength: 1.0,
+                minimalLineLength: test.minimalLineLength,
+                maximalLineLength: test.maximalLineLength,
+                pageMargins: test.pageMargins,
+                fontScale: test.fontScale,
+                viewportSize: CGSize(width: test.width, height: 800)
+            )
+
+            #expect(layout.colCount == test.expected.colCount)
+            #expect(abs(layout.lineLength - test.expected.lineLength) < 0.0001)
+        }
+
+        struct Mode: Sendable, CustomTestStringConvertible {
+            let name: String
+            var scroll: Bool = false
+            var columnCount: Int?
+            var hingeWidth: Double?
+
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test("the lines fit in the viewport, and are only empty in a single column", arguments: [
+            Mode(name: "scrolled", scroll: true),
+            Mode(name: "auto"),
+            Mode(name: "auto around a hinge", hingeWidth: 40),
+            Mode(name: "one requested column", columnCount: 1),
+            Mode(name: "two requested columns", columnCount: 2),
+            Mode(name: "three requested columns", columnCount: 3),
+        ], [1.0, 100, 390, 951, 2000])
+        func linesFitInViewport(mode: Mode, width: Double) {
+            // The bounds of the preferences editor, and safe area insets
+            // larger than the margins. The viewport is square, so the lines
+            // have the same room with vertical text.
+            for verticalText in [false, true] {
+                for pageMargins in [0.0, 4.0] {
+                    for fontScale in [0.1, 5.0] {
+                        for lineLengthFactor in [nil, 0.5, 2.0] {
+                            for inset in [0.0, 300.0] {
+                                let layout = LayoutResolver().layout(
+                                    scroll: mode.scroll,
+                                    verticalText: verticalText,
+                                    columnCount: mode.columnCount,
+                                    optimalLineLength: lineLengthFactor ?? 1.0,
+                                    minimalLineLength: lineLengthFactor,
+                                    maximalLineLength: lineLengthFactor,
+                                    pageMargins: pageMargins,
+                                    fontScale: fontScale,
+                                    viewportSize: CGSize(width: width, height: width),
+                                    insets: UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset),
+                                    hingeWidth: mode.hingeWidth
+                                )
+
+                                let context: Comment = "verticalText: \(verticalText), pageMargins: \(pageMargins), fontScale: \(fontScale), lineLengthFactor: \(String(describing: lineLengthFactor)), inset: \(inset)"
+                                #expect(layout.colCount >= 1, context)
+                                #expect(layout.lineLength >= 0, context)
+                                #expect(layout.colCount == 1 || layout.lineLength > 0, context)
+                                #expect(layout.lineLength * Double(layout.colCount) <= width + 0.0001, context)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

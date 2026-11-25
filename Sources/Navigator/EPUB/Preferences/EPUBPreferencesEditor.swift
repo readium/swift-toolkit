@@ -344,7 +344,8 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     /// Factor applied to the minimal line length, under which the number of
     /// columns is reduced. When unset and without a default value, the
-    /// requested number of columns is always displayed.
+    /// requested number of columns is always displayed, unless the margins
+    /// leave no room for the lines.
     ///
     /// Only effective when:
     ///  - the publication contains reflowable resources

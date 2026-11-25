@@ -136,15 +136,27 @@ final class LayoutResolver {
 
     // The lengths and margins of the functions below are in points.
 
+    /// Returns the length left for the lines in a column of `columnLength`,
+    /// with `margins` at both ends.
+    ///
+    /// The margins are bounded by the column, so that the length is never
+    /// negative, even with margins or insets larger than a narrow viewport.
+    private func availableLength(in columnLength: Double, margins: Double) -> Double {
+        columnLength - min(margins, columnLength / 2) * 2
+    }
+
+    /// Returns the `available` length, limited to `maxLength` if any.
+    private func capped(_ available: Double, at maxLength: Double?) -> Double {
+        min(available, maxLength ?? available)
+    }
+
     private func scrolledLayout(
         viewportLength: Double,
         margins: Double,
         maxLength: Double?
     ) -> Layout {
-        let margins = min(margins, viewportLength)
-        let availableSize = viewportLength - (margins * 2)
-        let maxLength = maxLength.map { max($0, margins * 2) }
-        let lineLength = min(availableSize, maxLength ?? availableSize)
+        let available = availableLength(in: viewportLength, margins: margins)
+        let lineLength = capped(available, at: maxLength)
 
         return Layout(
             colCount: 1,
@@ -208,9 +220,8 @@ final class LayoutResolver {
         let floatingColCount = (viewportWidth - minMarginWidthWithFloatingColCount) / optimalLength
         let colCount = max(1, Int(floor(floatingColCount)))
 
-        let minMarginWidth = margins * 2 * Double(colCount)
-        let available = (viewportWidth - minMarginWidth) / Double(colCount)
-        let lineLength = min(available, maxLength ?? available)
+        let available = availableLength(in: viewportWidth / Double(colCount), margins: margins)
+        let lineLength = capped(available, at: maxLength)
 
         return Layout(colCount: colCount, lineLength: lineLength)
     }
@@ -225,8 +236,9 @@ final class LayoutResolver {
     /// from it.
     ///
     /// Returns `nil` when a side, outside of the hinge, is narrower than the
-    /// base minimal line length. Like in auto mode without a hinge, the
-    /// minimal line length setting doesn't apply.
+    /// base minimal line length, or when the margins leave no room for the
+    /// lines. Like in auto mode without a hinge, the minimal line length
+    /// setting doesn't apply.
     private func paginatedLayoutAroundHinge(
         hingeWidth: Double,
         margins: Double,
@@ -243,11 +255,20 @@ final class LayoutResolver {
             return nil
         }
 
-        let available = sideWidth - max(margins, halfHinge) * 2
-        let lineLength = min(available, maxLength ?? available)
+        let available = availableLength(in: sideWidth, margins: max(margins, halfHinge))
+        let lineLength = capped(available, at: maxLength)
+        guard lineLength > 0 else {
+            return nil
+        }
+
         return Layout(colCount: 2, lineLength: lineLength)
     }
 
+    /// Lays out `colCount` columns, or fewer when the margins leave no room
+    /// for their lines or when the lines would be shorter than `minLength`.
+    ///
+    /// The same `minLength` applies to every number of columns. When even a
+    /// single column is shorter, it takes all the available length.
     private func paginatedLayoutNColumns(
         colCount: Int,
         margins: Double,
@@ -255,14 +276,10 @@ final class LayoutResolver {
         minLength: Double?,
         maxLength: Double?
     ) -> Layout {
-        let margins = min(margins, viewportWidth)
-        let actualAvailableWidth = viewportWidth - (margins * 2 * Double(colCount))
-        let minLength = minLength.map { min($0, actualAvailableWidth) }
-        let maxLength = maxLength.map { max($0, margins * 2) }
+        let available = availableLength(in: viewportWidth / Double(colCount), margins: margins)
 
-        let lineLength = actualAvailableWidth / Double(colCount)
-
-        if let minLength, lineLength < minLength, colCount > 1 {
+        let isTooShort = available <= 0 || minLength.map { available < $0 } ?? false
+        if isTooShort, colCount > 1 {
             return paginatedLayoutNColumns(
                 colCount: colCount - 1,
                 margins: margins,
@@ -270,17 +287,12 @@ final class LayoutResolver {
                 minLength: minLength,
                 maxLength: maxLength
             )
-        } else if let maxLength, lineLength > maxLength {
-            return Layout(
-                colCount: colCount,
-                lineLength: maxLength
-            )
-        } else {
-            return Layout(
-                colCount: colCount,
-                lineLength: lineLength
-            )
         }
+
+        return Layout(
+            colCount: colCount,
+            lineLength: capped(available, at: maxLength)
+        )
     }
 }
 

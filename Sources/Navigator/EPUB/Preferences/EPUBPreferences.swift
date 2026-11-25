@@ -94,8 +94,8 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     ///
     /// It is used only in paginated mode, when `columnCount` is greater than
     /// 1. When `nil` and without a default value, the requested number of
-    /// columns is always displayed. Values lower than or equal to `0` are
-    /// ignored.
+    /// columns is always displayed, unless the margins leave no room for the
+    /// lines. Values lower than or equal to `0` are ignored.
     public var minimalLineLength: Double?
 
     /// Hides the ruby (furigana) annotations when `true`.
