@@ -382,7 +382,7 @@ pickerRow(
 
 ## Save and restore the user preferences
 
-The `Preferences` types are not `Codable`: they are low-level navigator inputs rarely map 1-1 to the settings of your user interface. Instead, your app owns a settings model, persisted the way you want, from which it derives the `Preferences` before submitting them to the navigator.
+The `Preferences` types are not `Codable`: they are low-level navigator inputs which rarely map 1-1 to the settings of your user interface. Instead, your app owns a settings model, persisted the way you want, from which it derives the `Preferences` before submitting them to the navigator.
 
 ```swift
 struct ReaderSettings: Codable {
@@ -395,20 +395,29 @@ struct ReaderSettings: Codable {
     var scroll: Bool?
 
     func preferences() -> EPUBPreferences {
-        EPUBPreferences(
-            backgroundColor: theme == .dark ? Color(hex: "#000000") : nil,
+        let (textColor, backgroundColor): (Color?, Color?) = switch theme {
+        case .light: (nil, nil)
+        case .sepia: (Color(hex: "#121212"), Color(hex: "#FAF4E8"))
+        case .dark: (Color(hex: "#FEFEFE"), Color(hex: "#000000"))
+        }
+
+        return EPUBPreferences(
+            backgroundColor: backgroundColor,
             fontSize: fontSize,
             scroll: scroll,
-            textColor: theme == .dark ? Color(hex: "#FEFEFE") : nil
+            textColor: textColor
         )
     }
 }
 
+// Save the settings chosen by the user.
+var settings = ReaderSettings()
+settings.theme = .sepia
 let jsonData = try JSONEncoder().encode(settings)
 
 // Later, when opening a publication:
-let settings = try JSONDecoder().decode(ReaderSettings.self, from: jsonData)
-navigator.submitPreferences(settings.preferences())
+let restoredSettings = try JSONDecoder().decode(ReaderSettings.self, from: jsonData)
+navigator.submitPreferences(restoredSettings.preferences())
 ```
 
 Your model decides what is persisted: a theme or a dual-page toggle can drive several preferences, and you are free to rename, add or drop settings without depending on the toolkit's serialization format.
