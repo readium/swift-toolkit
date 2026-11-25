@@ -17,11 +17,7 @@ extension Language {
     ///
     /// See https://github.com/readium/css/blob/develop/docs/CSS16-internationalization.md#missing-page-progression-direction
     var isRTL: Bool {
-        let tag = normalizedTag
-        if tag == "zh-hant" || tag == "zh-tw" {
-            return true
-        }
-        return ["ar", "fa", "he"].contains(primarySubtag(of: tag))
+        tag == "zh-Hant" || tag == "zh-TW" || ["ar", "fa", "he"].contains(code)
     }
 
     /// Whether this is a Chinese, Japanese or Korean language, which can be
@@ -29,21 +25,6 @@ extension Language {
     ///
     /// See https://github.com/readium/css/blob/develop/css/dist/ReadMe.md#cjk
     var isCJK: Bool {
-        ["zh", "ja", "ko"].contains(primarySubtag(of: normalizedTag))
-    }
-
-    /// Lowercased BCP 47 tag separated with `-`.
-    ///
-    /// `Locale` identifiers use `_` and can end with keywords, e.g.
-    /// `zh_TW@calendar=roc`.
-    private var normalizedTag: String {
-        code.bcp47
-            .prefix { $0 != "@" }
-            .lowercased()
-            .replacingOccurrences(of: "_", with: "-")
-    }
-
-    private func primarySubtag(of tag: String) -> Substring {
-        tag.prefix { $0 != "-" }
+        ["zh", "ja", "ko"].contains(code)
     }
 }

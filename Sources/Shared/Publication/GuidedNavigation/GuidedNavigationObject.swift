@@ -171,7 +171,7 @@ public struct GuidedNavigationObject: Hashable, Sendable, JSONValueDecodable {
                 self.init(
                     plain: plain,
                     ssml: ssml,
-                    language: obj["language"]?.string.map { Language(code: .bcp47($0)) }
+                    language: obj["language"]?.string.map { Language($0) }
                 )
             } else {
                 warnings?.log("Invalid Guided Navigation Text", model: Self.self, source: json, severity: .moderate)

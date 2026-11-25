@@ -347,7 +347,7 @@ public actor HTMLResourceContentIterator: ContentIterator {
                     return
                 }
 
-                let language = try node.language().map { Language(code: .bcp47($0)) }
+                let language = try node.language().map { Language($0) }
                 if currentLanguage != language {
                     flushSegment()
                     currentLanguage = language

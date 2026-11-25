@@ -245,7 +245,7 @@ extension ReadiumCSS: HTMLInjectable {
             !bodyLang.isEmpty
         {
             return [
-                .langAttribute(on: .html, language: Language(code: .bcp47(bodyLang))),
+                .langAttribute(on: .html, language: Language(bodyLang)),
             ]
         } else {
             return [

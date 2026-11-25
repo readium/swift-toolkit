@@ -19,6 +19,10 @@ All notable changes to this project will be documented in this file. Take a look
 
 ### Changed
 
+#### Shared
+
+* `Language` is now parsed from its BCP 47 tag, [see the migration guide](docs/Migration%20Guide.md#language).
+
 #### Navigator
 
 * Upgraded Readium CSS to version 2.0.5 in the EPUB navigator, which changes several EPUB preferences, [see the migration guide](docs/Migration%20Guide.md#upgrade-to-readium-css-v2).
@@ -94,7 +98,7 @@ All notable changes to this project will be documented in this file. Take a look
     * `AudioNavigatorDelegate.navigator(_:shouldPlayNextResource:)` is no longer called after the last resource. Use the new `MediaPlaybackState.ended` to detect the end of the publication, [see the migration guide](docs/Migration%20Guide.md#end-of-the-publication).
 * The `PublicationSpeechSynthesizer` picks up its configuration differently:
     * Changing `config` while playing restarts the current utterance with the new configuration, instead of applying it from the next utterance.
-    * An utterance whose language has no voice in `Configuration.voices` is spoken with the best voice of its base language, instead of the default voice of the engine, [see the migration guide](docs/Migration%20Guide.md#text-to-speech-voices).
+    * An utterance whose language has no voice in `Configuration.voices` is spoken with the best voice of its primary language, instead of the default voice of the engine, [see the migration guide](docs/Migration%20Guide.md#text-to-speech-voices).
 
 #### Streamer
 

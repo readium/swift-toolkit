@@ -167,7 +167,7 @@ extension HTMLInjection {
     }
 
     static func langAttribute(on target: HTMLElement, language: Language) -> HTMLInjection {
-        .attribute("xml:lang", on: target, value: language.code.bcp47)
+        .attribute("xml:lang", on: target, value: language.tag)
     }
 
     static func styleAttribute(on target: HTMLElement, css: String) -> HTMLInjection {

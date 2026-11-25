@@ -4,6 +4,24 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 
 ## Unreleased
 
+### Language
+
+`Language` is now parsed from its BCP 47 tag. Create a language with its tag, and read it with `tag`.
+
+```diff
+-let language = Language(code: .bcp47("en-US"))
++let language = Language("en-US")
+-let tag = language.code.bcp47
++let tag = language.tag
+```
+
+`removingRegion()` is renamed to `primaryLanguage`, with the same behaviour. For example, to select a TTS voice for all the regions of its language:
+
+```diff
+-synthesizer.config.voices[voice.language.removingRegion()] = voice.id
++synthesizer.config.voices[voice.language.primaryLanguage] = voice.id
+```
+
 ### Upgrade to Readium CSS v2
 
 The EPUB navigator now uses Readium CSS v2. Several EPUB preferences are replaced or removed.
@@ -261,7 +279,7 @@ For the same reason, we recommend setting the `media` once all its metadata is a
 
 `PublicationSpeechSynthesizer.Configuration.voiceIdentifier` is replaced by `voices`, which selects a voice per language. A voice is identified by a `TTSVoice.ID` instead of a `String`.
 
-The voice used to apply to every utterance, whatever its language. It now only speaks the utterances of its language, and the other ones are spoken with the best voice of their language. To restore a voice identifier stored with the previous version, key it by the base language of the voice so that it applies to all its regions:
+The voice used to apply to every utterance, whatever its language. It now only speaks the utterances of its language, and the other ones are spoken with the best voice of their language. To restore a voice identifier stored with the previous version, key it by the primary language of the voice so that it applies to all its regions:
 
 ```swift
 // Before
@@ -269,7 +287,7 @@ synthesizer.config.voiceIdentifier = storedIdentifier
 
 // After
 if let voice = synthesizer.voice(withID: TTSVoice.ID(storedIdentifier)) {
-    synthesizer.config.voices[voice.language.removingRegion()] = voice.id
+    synthesizer.config.voices[voice.language.primaryLanguage] = voice.id
 }
 ```
 

@@ -168,7 +168,7 @@ enum EPUBPreferencesTests {
         @Test("the preferences of both layouts are effective in a fixed-layout publication containing a reflowable resource", arguments: ["en", "ja"])
         @MainActor func fixedLayoutPublicationWithReflowableResource(language: String) {
             var preferences = setOnlyPreferences
-            preferences.language = Language(code: .bcp47(language))
+            preferences.language = Language(language)
 
             var reflowable = Link(href: "c2.xhtml", mediaType: .xhtml)
             reflowable.properties.epubLayout = .reflowable
@@ -299,7 +299,7 @@ enum EPUBPreferencesTests {
         ] as [(String, Bool, CSSLayout.Stylesheets, Set<String>)])
         @MainActor func editorEffective(language: String, verticalText: Bool, stylesheets: CSSLayout.Stylesheets, expected: Set<String>) {
             var preferences = setOnlyPreferences
-            preferences.language = Language(code: .bcp47(language))
+            preferences.language = Language(language)
             preferences.verticalText = verticalText
             #expect(settings(preferences: preferences).cssLayout.stylesheets == stylesheets)
 
@@ -1470,7 +1470,7 @@ private let allPreferences = EPUBPreferences(
     hyphens: true,
     invertGaiji: true,
     invertImages: false,
-    language: Language(code: .bcp47("fr")),
+    language: Language("fr"),
     letterSpacing: 0.1,
     ligatures: false,
     lineHeight: 1.6,
@@ -1551,7 +1551,7 @@ private let otherPreferences = EPUBPreferences(
     hyphens: false,
     invertGaiji: false,
     invertImages: true,
-    language: Language(code: .bcp47("de")),
+    language: Language("de"),
     letterSpacing: 0.3,
     ligatures: true,
     lineHeight: 1.1,
@@ -1584,7 +1584,7 @@ private let allDefaults = EPUBDefaults(
     fontWeight: 1.25,
     fontWidth: 1.4,
     hyphens: true,
-    language: Language(code: .bcp47("it")),
+    language: Language("it"),
     letterSpacing: 0.4,
     ligatures: false,
     lineHeight: 1.7,
@@ -1641,7 +1641,7 @@ private let cssTable: [(preferences: EPUBPreferences, expected: [String: String?
     (EPUBPreferences(hyphens: false), ["--USER__bodyHyphens": "none"]),
     (EPUBPreferences(invertGaiji: true), ["--USER__invertGaiji": "1.00000"]),
     (EPUBPreferences(invertImages: true), ["--USER__invertImages": "1.00000"]),
-    (EPUBPreferences(language: Language(code: .bcp47("fr"))), [:]),
+    (EPUBPreferences(language: Language("fr")), [:]),
     // ReadiumCSS halves the letter spacing.
     (EPUBPreferences(letterSpacing: 0.2), ["--USER__letterSpacing": "0.10000rem"]),
     (EPUBPreferences(ligatures: true), ["--USER__ligatures": "common-ligatures"]),
