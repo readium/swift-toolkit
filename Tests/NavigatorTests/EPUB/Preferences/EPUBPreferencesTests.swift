@@ -288,11 +288,11 @@ enum EPUBPreferencesTests {
 
     @Suite("language-specific preferences") struct LanguageSpecific {
         private let languageSpecificPreferences: Set<String> = [
-            "hyphens", "letterSpacing", "ligatures", "noRuby", "paragraphIndent", "textAlign", "wordSpacing",
+            "hyphens", "letterSpacing", "ligatures", "noRuby", "paragraphIndent", "textAlign", "textNormalization", "wordSpacing",
         ]
 
         @Test("the editor preferences are effective with the stylesheets supporting them", arguments: [
-            ("en", false, CSSLayout.Stylesheets.default, ["hyphens", "letterSpacing", "ligatures", "paragraphIndent", "textAlign", "wordSpacing"]),
+            ("en", false, CSSLayout.Stylesheets.default, ["hyphens", "letterSpacing", "ligatures", "paragraphIndent", "textAlign", "textNormalization", "wordSpacing"]),
             ("ar", false, CSSLayout.Stylesheets.rtl, ["ligatures", "paragraphIndent", "textAlign", "wordSpacing"]),
             ("ja", false, CSSLayout.Stylesheets.cjkHorizontal, ["letterSpacing", "noRuby"]),
             ("ja", true, CSSLayout.Stylesheets.cjkVertical, ["letterSpacing", "noRuby"]),
@@ -1397,6 +1397,48 @@ enum EPUBPreferencesTests {
                 EPUBPreferences.fromLegacyPreferences(appearanceValues: ["readium-night-on", "readium-default-on"])
             }
             #expect(prefs.backgroundColor == Color(rawValue: 0x000000))
+        }
+
+        @Test("drops the settings ignored with the 2.x publisher defaults")
+        func publisherDefaultsOn() {
+            let prefs = withLegacyValues(publisherDefaultsValues(publisherDefaults: true)) {
+                EPUBPreferences.fromLegacyPreferences()
+            }
+            #expect(prefs == EPUBPreferences(fontSize: 1.2))
+        }
+
+        @Test("keeps the settings when the 2.x publisher defaults are off or unset", arguments: [false, nil])
+        func publisherDefaultsOffOrUnset(publisherDefaults: Bool?) {
+            let prefs = withLegacyValues(publisherDefaultsValues(publisherDefaults: publisherDefaults)) {
+                EPUBPreferences.fromLegacyPreferences()
+            }
+            #expect(prefs == EPUBPreferences(
+                fontSize: 1.2,
+                hyphens: false,
+                letterSpacing: 0.1,
+                lineHeight: 1.5,
+                paragraphSpacing: 0.5,
+                textAlign: .justify,
+                wordSpacing: 0.2
+            ))
+        }
+
+        /// Values saved by the 2.x toolkit, including the settings ignored
+        /// while the publisher defaults were enabled.
+        private func publisherDefaultsValues(publisherDefaults: Bool?) -> [String: Any] {
+            var values: [String: Any] = [
+                "--USER__fontSize": 120.0,
+                "--USER__bodyHyphens": false,
+                "--USER__letterSpacing": 0.1,
+                "--USER__lineHeight": 1.5,
+                "--USER__paraSpacing": 0.5,
+                "--USER__textAlign": 0,
+                "--USER__wordSpacing": 0.2,
+            ]
+            if let publisherDefaults {
+                values["--USER__advancedSettings"] = publisherDefaults
+            }
+            return values
         }
 
         private func withLegacyValues<T>(_ values: [String: Any], _ block: () -> T) -> T {

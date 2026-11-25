@@ -570,15 +570,16 @@ The image filter preferences are applied with any colors. `darkenImages`, `inver
 
 Some preferences are not available for all languages and layout.
 
-| Preference        | LTR | RTL | CJK |
-|-------------------|-----|-----|-----|
-| `paragraphIndent` | ✅  | ✅  |     |
-| `textAlign`       | ✅  | ✅  |     |
-| `letterSpacing`   | ✅  |     | ✅  |
-| `wordSpacing`     | ✅  | ✅  |     |
-| `hyphens`         | ✅  |     |     |
-| `ligatures`       | ✅  | ✅  |     |
-| `noRuby`          |     |     | ✅  |
+| Preference          | LTR | RTL | CJK |
+|---------------------|-----|-----|-----|
+| `hyphens`           | ✅  |     |     |
+| `letterSpacing`     | ✅  |     | ✅  |
+| `ligatures`         | ✅  | ✅  |     |
+| `noRuby`            |     |     | ✅  |
+| `paragraphIndent`   | ✅  | ✅  |     |
+| `textAlign`         | ✅  | ✅  |     |
+| `textNormalization` | ✅  |     |     |
+| `wordSpacing`       | ✅  | ✅  |     |
 
 ### PDF
 

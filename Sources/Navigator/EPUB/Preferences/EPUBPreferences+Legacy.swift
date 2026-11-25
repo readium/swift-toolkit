@@ -94,6 +94,12 @@ public extension EPUBPreferences {
             preferences.applyLegacyTheme(theme)
         }
 
+        // The settings ignored with the publisher defaults were saved anyway,
+        // with their default values.
+        if defaults.optBool(for: .publisherDefault) == true {
+            preferences.clearPublisherStylesOverrides()
+        }
+
         return preferences
     }
 }
@@ -139,6 +145,7 @@ private enum ReadiumCSSName: String {
     case fontOverride = "--USER__fontOverride"
     case appearance = "--USER__appearance"
     case scroll = "--USER__scroll"
+    case publisherDefault = "--USER__advancedSettings"
     case textAlignment = "--USER__textAlign"
     case columnCount = "--USER__colCount"
     case wordSpacing = "--USER__wordSpacing"
@@ -192,15 +199,21 @@ extension EPUBPreferences {
         // enabled. An unset `publisherStyles` is ambiguous, as apps could
         // change its default value, so they are kept in this case.
         if container.decodeLeniently(Bool.self, forKey: .publisherStyles) == true {
-            hyphens = nil
-            letterSpacing = nil
-            ligatures = nil
-            lineHeight = nil
-            paragraphIndent = nil
-            paragraphSpacing = nil
-            textAlign = nil
-            wordSpacing = nil
+            clearPublisherStylesOverrides()
         }
+    }
+
+    /// Clears the preferences which were ignored while the legacy publisher
+    /// styles were enabled.
+    mutating func clearPublisherStylesOverrides() {
+        hyphens = nil
+        letterSpacing = nil
+        ligatures = nil
+        lineHeight = nil
+        paragraphIndent = nil
+        paragraphSpacing = nil
+        textAlign = nil
+        wordSpacing = nil
     }
 }
 

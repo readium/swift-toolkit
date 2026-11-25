@@ -551,13 +551,18 @@ public final class EPUBPreferencesEditor: StatefulPreferencesEditor<EPUBPreferen
 
     /// Normalize text styles to increase accessibility.
     ///
-    /// Only effective when the publication contains reflowable resources.
+    /// Only effective when:
+    ///  - the publication contains reflowable resources
+    ///  - the layout is LTR
     public lazy var textNormalization: AnyPreference<Bool> =
         preference(
             preference: \.textNormalization,
             setting: \.textNormalization,
             defaultEffectiveValue: defaults.textNormalization ?? false,
-            isEffective: { [layouts] _ in layouts.contains(.reflowable) }
+            isEffective: { [layouts] in
+                layouts.contains(.reflowable)
+                    && $0.settings.cssLayout.stylesheets == .default
+            }
         )
 
     /// Indicates whether the text should be laid out vertically. This is used

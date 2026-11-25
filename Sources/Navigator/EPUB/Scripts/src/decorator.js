@@ -136,6 +136,11 @@ export function DecorationGroup(groupId, groupName) {
    * Adds a new decoration to the group.
    */
   function add(decoration) {
+    // SVG documents have no body, and decorations are not supported in them.
+    if (!document.body) {
+      return;
+    }
+
     let id = groupId + "-" + lastItemId++;
 
     let range = rangeFromLocator(decoration.locator);
