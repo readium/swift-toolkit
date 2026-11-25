@@ -87,7 +87,7 @@ enum LanguageTests {
     struct Subtags {
         @Test(arguments: [("en", "en"), ("EN", "en"), ("eN", "en"), ("", "")])
         func normalizesCode(input: String, expected: String) {
-            let literal: Language.Code = Language.Code(stringLiteral: input)
+            let literal = Language.Code(stringLiteral: input)
             #expect(Language.Code(input).rawValue == expected)
             #expect(literal.rawValue == expected)
             #expect(Language.Code(input).description == expected)
@@ -95,7 +95,7 @@ enum LanguageTests {
 
         @Test(arguments: [("Hant", "Hant"), ("hANT", "Hant"), ("HANT", "Hant"), ("hant", "Hant"), ("", "")])
         func normalizesScript(input: String, expected: String) {
-            let literal: Language.Script = Language.Script(stringLiteral: input)
+            let literal = Language.Script(stringLiteral: input)
             #expect(Language.Script(input).rawValue == expected)
             #expect(literal.rawValue == expected)
             #expect(Language.Script(input).description == expected)
@@ -103,7 +103,7 @@ enum LanguageTests {
 
         @Test(arguments: [("GB", "GB"), ("gb", "GB"), ("Gb", "GB"), ("419", "419"), ("", "")])
         func normalizesRegion(input: String, expected: String) {
-            let literal: Language.Region = Language.Region(stringLiteral: input)
+            let literal = Language.Region(stringLiteral: input)
             #expect(Language.Region(input).rawValue == expected)
             #expect(literal.rawValue == expected)
             #expect(Language.Region(input).description == expected)

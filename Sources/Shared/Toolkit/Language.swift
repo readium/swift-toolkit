@@ -48,7 +48,9 @@ public struct Language: Hashable, Sendable, JSONValueDecodable, JSONValueEncodab
             self.init(value)
         }
 
-        public var description: String { rawValue }
+        public var description: String {
+            rawValue
+        }
 
         /// Localized name of the subtag, or `nil` if it is empty or unknown.
         public func localizedName(in targetLocale: Locale = Locale.current) -> String? {
@@ -73,7 +75,9 @@ public struct Language: Hashable, Sendable, JSONValueDecodable, JSONValueEncodab
             self.init(value)
         }
 
-        public var description: String { rawValue }
+        public var description: String {
+            rawValue
+        }
 
         /// Localized name of the subtag, or `nil` if it is empty or unknown.
         public func localizedName(in targetLocale: Locale = Locale.current) -> String? {
@@ -98,7 +102,9 @@ public struct Language: Hashable, Sendable, JSONValueDecodable, JSONValueEncodab
             self.init(value)
         }
 
-        public var description: String { rawValue }
+        public var description: String {
+            rawValue
+        }
 
         /// Localized name of the subtag, or `nil` if it is empty or unknown.
         public func localizedName(in targetLocale: Locale = Locale.current) -> String? {
