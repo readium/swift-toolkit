@@ -54,6 +54,15 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
         self.state = state
     }
 
+    /// Returns the value of the preference at `keyPath` for a preference of
+    /// an optional type, as `.none` instead of `.some(nil)` when unset.
+    private func optionalValue<Value>(of keyPath: KeyPath<Preferences, Value?>) -> Value?? {
+        guard let value = preferences[keyPath: keyPath] else {
+            return nil
+        }
+        return value
+    }
+
     func preference<Value: Sendable>(
         preference prefKP: WritableKeyPath<Preferences, Value?>,
         setting settingKP: KeyPath<Settings, Value>,
@@ -106,7 +115,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     ) -> AnyPreference<Value?> {
         ProxyPreference(
             value: { [weak self] in
-                self?.preferences[keyPath: prefKP]
+                self?.optionalValue(of: prefKP)
             },
             effectiveValue: { [weak self] in
                 self?.state.settings[keyPath: settingKP]
@@ -183,7 +192,7 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
     ) -> AnyEnumPreference<Value?> {
         ProxyEnumPreference(
             value: { [weak self] in
-                self?.preferences[keyPath: prefKP]
+                self?.optionalValue(of: prefKP)
             },
             effectiveValue: { [weak self] in
                 self?.state.settings[keyPath: settingKP]
@@ -256,6 +265,41 @@ public class StatefulPreferencesEditor<Preferences: ConfigurablePreferences, Set
                 return self.edit { $0[keyPath: prefKP] = value }
             },
             supportedRange: supportedRange,
+            progressionStrategy: progressionStrategy,
+            format: format
+        ).eraseToAnyPreference()
+    }
+
+    func optionalRangePreference<Bound: Comparable & Sendable>(
+        preference prefKP: WritableKeyPath<Preferences, Bound?>,
+        setting settingKP: KeyPath<Settings, Bound?>,
+        defaultValue: Bound,
+        isEffective: @escaping (State) -> Bool,
+        supportedRange: ClosedRange<Bound>,
+        progressionStrategy: AnyProgressionStrategy<Bound>,
+        format: @escaping (Bound) -> String
+    ) -> AnyOptionalRangePreference<Bound> {
+        ProxyOptionalRangePreference(
+            value: { [weak self] in
+                self?.optionalValue(of: prefKP)
+            },
+            effectiveValue: { [weak self] in
+                self?.state.settings[keyPath: settingKP]
+            },
+            isEffective: { [weak self] in
+                guard let self = self else {
+                    return false
+                }
+                return isEffective(self.state)
+            },
+            set: { [weak self] value in
+                guard let self = self else {
+                    return
+                }
+                self.edit { $0[keyPath: prefKP] = value ?? nil }
+            },
+            supportedRange: supportedRange,
+            defaultValue: defaultValue,
             progressionStrategy: progressionStrategy,
             format: format
         ).eraseToAnyPreference()

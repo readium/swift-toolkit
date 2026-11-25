@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file. Take a look
 
 ## [Unreleased]
 
+### Added
+
+#### Navigator
+
+* New EPUB preferences for reflowable resources:
+    * `optimalLineLength`, `minimalLineLength` and `maximalLineLength` control the line length, from which the navigator chooses the number of columns and limits the width of the lines, [see the user guide](docs/Guides/Navigator/Preferences.md#line-length-and-margins).
+    * `linkColor` and `visitedColor` change the color of the hyperlinks.
+    * `blendImages`, `darkenImages`, `invertGaiji` and `invertImages` filter the images, [see the user guide](docs/Guides/Navigator/Preferences.md#image-filters).
+    * `fontWidth` changes the width of the glyphs, with the fonts supporting it.
+    * `noRuby` hides the ruby (furigana) annotations in CJK publications.
+* Japanese publications following the EBPAJ EPUB 3 production guide are now rendered with the iOS fonts, such as Hiragino Mincho and Hiragino Sans, instead of the Windows fonts they reference.
+
+### Changed
+
+#### Navigator
+
+* Upgraded Readium CSS to version 2.0.5 in the EPUB navigator, which changes several EPUB preferences, [see the migration guide](docs/Migration%20Guide.md#upgrade-to-readium-css-v2).
+    * Removed the `theme` preference. Build your themes from the `textColor`, `backgroundColor`, `linkColor` and `visitedColor` preferences instead.
+    * Replaced the `imageFilter` preference with `blendImages`, `darkenImages`, `invertGaiji` and `invertImages`, which are applied with any colors.
+    * Removed the `publisherStyles` preference. The preferences take effect as soon as they are set.
+    * Removed the `typeScale` preference.
+    * `columnCount` is now an `Int?`, where `nil` means an automatic number of columns.
+    * `pageMargins` is now a factor applied to the minimal margins on each side of the lines.
+* The EPUB navigator now adapts the number of columns and the length of the lines to the screen and font sizes:
+    * The lines are limited to a maximal length by default. Set `EPUBDefaults.maximalLineLength` to `nil` to let them take all the available width.
+    * In automatic mode (`columnCount = nil`), as many columns as the screen can hold are displayed, instead of at most two.
+    * The line lengths follow the font size, so a larger font displays fewer columns with about the same number of characters per line.
+    * On foldable devices, one column is displayed on each side of the hinge.
+* Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
+* SVG documents in the reading order of an EPUB are now rendered as fixed-layout pages, even in a reflowable publication.
+
 ### Fixed
 
 #### Navigator

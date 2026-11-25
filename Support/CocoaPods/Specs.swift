@@ -64,10 +64,6 @@ let modules: [ModuleSpec] = [
         summary: "Readium Streamer",
         libraries: ["z", "xml2"],
         xcconfig: ["HEADER_SEARCH_PATHS": "$(SDKROOT)/usr/include/libxml2"],
-        resourceBundles: ["ReadiumStreamer": [
-            "Sources/Streamer/Resources/**",
-            "Sources/Streamer/Assets",
-        ]],
         dependencies: [
             .readium("ReadiumShared"),
             .pod("ReadiumFuzi", "~> 4.0.1"),

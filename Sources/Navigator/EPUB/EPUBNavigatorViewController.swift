@@ -33,6 +33,16 @@ import WebKit
     /// per-layout tuning to support publications mixing reflowable and fixed-
     /// layout resources.
     ///
+    /// In reflowable resources, the insets at the ends of the lines are not
+    /// applied around the content, the margins there are set by the
+    /// `pageMargins` preference:
+    /// - With horizontal text, the left and right insets are ignored, and the
+    ///   left and right margins are never smaller than the view's safe area
+    ///   insets.
+    /// - With vertical text, which is always scrolled, the top and bottom
+    ///   margins are never smaller than the larger of the top and bottom
+    ///   insets.
+    ///
     /// - Returns: The insets to apply, or `nil` to fall back on
     ///   `navigatorContentInset(_:)`, then on the navigator's default
     ///   behavior.
@@ -119,11 +129,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         /// Additional font families which will be available in the preferences.
         public var fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration]
 
-        /// Readium CSS reading system settings.
-        ///
-        /// See https://readium.org/readium-css/docs/CSS19-api.html#reading-system-styles
-        public var readiumCSSRSProperties: CSSRSProperties
-
         /// Logs the state changes when true.
         public var debugState: Bool
 
@@ -142,7 +147,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             preferredResourceVariant: EPUBResourceVariant = .default,
             decorationTemplates: [Decoration.Style.Id: HTMLDecorationTemplate] = HTMLDecorationTemplate.defaultTemplates(),
             fontFamilyDeclarations: [AnyHTMLFontFamilyDeclaration] = [],
-            readiumCSSRSProperties: CSSRSProperties = CSSRSProperties(),
             debugState: Bool = false
         ) {
             self.preferences = preferences
@@ -155,8 +159,12 @@ open class EPUBNavigatorViewController: InputObservableViewController,
             self.preferredResourceVariant = preferredResourceVariant
             self.decorationTemplates = decorationTemplates
             self.fontFamilyDeclarations = fontFamilyDeclarations
-            self.readiumCSSRSProperties = readiumCSSRSProperties
             self.debugState = debugState
+        }
+
+        @available(*, unavailable, message: "The Readium CSS properties are now internal to the navigator, use the EPUB preferences or EPUBDefaults instead")
+        public var readiumCSSRSProperties: Any {
+            fatalError()
         }
 
         func contentInset(for sizeClass: UIUserInterfaceSizeClass) -> EPUBContentInsets {
@@ -426,7 +434,10 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         // We may need to refresh the spreads in this situation. Unfortunately,
         // the `viewWillTransition(to:with:)` API is called before we receive
         // the `didBecomeActive` notification, so we cannot rely on it here.
-        viewModel.viewSizeWillChange(view.bounds.size)
+        updateViewModelLayout()
+        // The hinge of a device unfolded while the app was inactive may only
+        // be reported from a later layout pass.
+        view.setNeedsLayout()
 
         if needsReloadSpreadsOnActive {
             needsReloadSpreadsOnActive = false
@@ -484,11 +495,61 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         viewModel.viewSizeWillChange(view.bounds.size)
     }
 
+    override open func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if isActive {
+            updateViewModelLayout()
+        }
+    }
+
+    /// Resolves the CSS layout from the current size and insets of the view.
+    private func updateViewModelLayout() {
+        viewModel.viewDidLayout(
+            size: view.bounds.size,
+            safeAreaInsets: view.safeAreaInsets,
+            reflowableContentInset: contentInset(for: .reflowable),
+            hingeWidth: currentHingeWidth()
+        )
+    }
+
+    /// Returns the width of the vertical hinge splitting the view in two
+    /// equal sides, on a foldable device such as an unfolded iPhone in
+    /// landscape.
+    ///
+    /// The division regions are read even when inactive, as the device is
+    /// unfolded flat. They are only reliable once the view is laid out:
+    /// during a transition, their frames can be out of sync with the bounds.
+    private func currentHingeWidth() -> Double? {
+        // The division regions API is only in the iOS 27.1+ SDK. Xcode 27.0
+        // and 27.1 ship the same Swift 6.4.0 compiler, so the API is only
+        // built with Xcode 27.2+ (Swift 6.4.2).
+        #if compiler(>=6.4.2)
+            if #available(iOS 27.1, *) {
+                let divisions = view.reservedRegions(kind: .division, options: .includeInactive)
+                return LayoutResolver.verticalHingeWidth(
+                    divisions: divisions.map(\.frame),
+                    in: view.bounds
+                )
+            }
+        #endif
+        return nil
+    }
+
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
         if isActive {
             viewModel.viewSizeWillChange(size)
+        }
+
+        // During the transition, the frames of the division regions can be
+        // out of sync with the bounds, so the hinge is read again once the
+        // view has its final size, in case no layout pass follows.
+        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+            guard let self, self.isActive else {
+                return
+            }
+            self.updateViewModelLayout()
         }
     }
 
@@ -1077,8 +1138,12 @@ extension EPUBNavigatorViewController: EPUBNavigatorViewModelDelegate {
 
 extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
     func spreadViewContentInset(_ spreadView: EPUBSpreadView) -> UIEdgeInsets {
-        let layout = spreadView.spread.layout(in: publication)
+        contentInset(for: spreadView.spread.layout(in: publication))
+    }
 
+    /// Returns the content insets applied around a spread with the given
+    /// `layout`, from the delegate or the configuration.
+    private func contentInset(for layout: EPUBLayout) -> UIEdgeInsets {
         if let inset = delegate?.navigator(self, contentInsetFor: layout) ?? delegate?.navigatorContentInset(self) {
             return inset
         }

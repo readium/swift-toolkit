@@ -6,26 +6,27 @@
 
 @testable import ReadiumNavigator
 import ReadiumShared
-import XCTest
+import Testing
 
-class CSSUserPropertiesTests: XCTestCase {
-    func testConvertEmptyUserPropertiesToCSSProperties() {
-        XCTAssertEqual(
-            CSSUserProperties().cssProperties(),
-            [
+struct CSSUserPropertiesTests {
+    @Test func convertEmptyUserPropertiesToCSSProperties() {
+        #expect(
+            CSSUserProperties().cssProperties() == [
                 "--USER__view": nil,
                 "--USER__colCount": nil,
-                "--USER__pageMargins": nil,
-                "--USER__appearance": nil,
+                "--USER__lineLength": nil,
+                "--USER__blendImages": nil,
                 "--USER__darkenImages": nil,
                 "--USER__invertImages": nil,
+                "--USER__invertGaiji": nil,
                 "--USER__textColor": nil,
                 "--USER__backgroundColor": nil,
-                "--USER__fontOverride": nil,
+                "--USER__linkColor": nil,
+                "--USER__visitedColor": nil,
                 "--USER__fontFamily": nil,
                 "--USER__fontSize": nil,
-                "--USER__advancedSettings": nil,
-                "--USER__typeScale": nil,
+                "--USER__fontWeight": nil,
+                "--USER__fontWidth": nil,
                 "--USER__textAlign": nil,
                 "--USER__lineHeight": nil,
                 "--USER__paraSpacing": nil,
@@ -35,145 +36,114 @@ class CSSUserPropertiesTests: XCTestCase {
                 "--USER__bodyHyphens": nil,
                 "--USER__ligatures": nil,
                 "--USER__a11yNormalize": nil,
+                "--USER__noRuby": nil,
+                "--USER__iOSPatch": nil,
+                "--USER__iPadOSPatch": nil,
             ]
         )
     }
 
-    func testConvertFullUserPropertiesToCSSProperties() {
-        XCTAssertEqual(
+    @Test func convertFullUserPropertiesToCSSProperties() {
+        #expect(
             CSSUserProperties(
-                view: .scroll,
-                colCount: .auto,
-                pageMargins: 1.2,
-                appearance: .night,
-                darkenImages: true,
-                invertImages: true,
-                textColor: CSSHexColor("#FF0000"),
-                backgroundColor: CSSHexColor("#00FF00"),
-                fontOverride: true,
+                view: .paged,
+                colCount: 2,
+                lineLength: CSSPxLength(578),
+                blendImages: true,
+                darkenImages: 0.8,
+                invertImages: 1.0,
+                invertGaiji: 1.0,
+                textColor: CSSIntColor(0xFF0000),
+                backgroundColor: CSSIntColor(0x00FF00),
+                linkColor: CSSIntColor(0x0000FF),
+                visitedColor: CSSIntColor(0xFF00FF),
                 fontFamily: ["Times New"],
-                fontSize: CSSVMaxLength(2.3),
-                advancedSettings: true,
-                typeScale: 3.4,
+                fontSize: CSSPercentLength(1.2),
+                fontWeight: 600,
+                fontWidth: CSSPercentLength(1.25),
                 textAlign: .justify,
-                lineHeight: .length(CSSPtLength(4.5)),
-                paraSpacing: CSSPtLength(5.6),
-                paraIndent: CSSRemLength(6.7),
-                wordSpacing: CSSRemLength(7.8),
-                letterSpacing: CSSRemLength(8.9),
+                lineHeight: 1.5,
+                paraSpacing: CSSRemLength(0.5),
+                paraIndent: CSSRemLength(1.0),
+                wordSpacing: CSSRemLength(0.2),
+                letterSpacing: CSSRemLength(0.05),
                 bodyHyphens: .auto,
                 ligatures: .common,
-                a11yNormalize: true
-            ).cssProperties(),
-            [
-                "--USER__view": "readium-scroll-on",
-                "--USER__colCount": "auto",
-                "--USER__pageMargins": "1.20000",
-                "--USER__appearance": "readium-night-on",
-                "--USER__darkenImages": "readium-darken-on",
-                "--USER__invertImages": "readium-invert-on",
+                a11yNormalize: true,
+                noRuby: true,
+                iOSPatch: true,
+                iPadOSPatch: true
+            ).cssProperties() == [
+                "--USER__view": "readium-paged-on",
+                "--USER__colCount": "2",
+                "--USER__lineLength": "578.00000px",
+                "--USER__blendImages": "readium-blend-on",
+                "--USER__darkenImages": "0.80000",
+                "--USER__invertImages": "1.00000",
+                "--USER__invertGaiji": "1.00000",
                 "--USER__textColor": "#FF0000",
                 "--USER__backgroundColor": "#00FF00",
-                "--USER__fontOverride": "readium-font-on",
+                "--USER__linkColor": "#0000FF",
+                "--USER__visitedColor": "#FF00FF",
                 "--USER__fontFamily": "\"Times New\"",
-                "--USER__fontSize": "2.30000vmax",
-                "--USER__advancedSettings": "readium-advanced-on",
-                "--USER__typeScale": "3.40000",
+                "--USER__fontSize": "120.00000%",
+                "--USER__fontWeight": "600",
+                "--USER__fontWidth": "125.00000%",
                 "--USER__textAlign": "justify",
-                "--USER__lineHeight": "4.50000pt",
-                "--USER__paraSpacing": "5.60000pt",
-                "--USER__paraIndent": "6.70000rem",
-                "--USER__wordSpacing": "7.80000rem",
-                "--USER__letterSpacing": "8.90000rem",
+                "--USER__lineHeight": "1.50000",
+                "--USER__paraSpacing": "0.50000rem",
+                "--USER__paraIndent": "1.00000rem",
+                "--USER__wordSpacing": "0.20000rem",
+                "--USER__letterSpacing": "0.05000rem",
                 "--USER__bodyHyphens": "auto",
                 "--USER__ligatures": "common-ligatures",
                 "--USER__a11yNormalize": "readium-a11y-on",
+                "--USER__noRuby": "readium-noRuby-on",
+                "--USER__iOSPatch": "readium-iOSPatch-on",
+                "--USER__iPadOSPatch": "readium-iPadOSPatch-on",
             ]
         )
     }
 
-    func testOverrideUserProperties() {
-        let props = CSSUserProperties(
-            colCount: .one,
-            overrides: [
-                "--USER__colCount": "2",
-                "--USER__custom": "value",
-            ]
-        ).cssProperties()
-
-        XCTAssertEqual(props["--USER__colCount"], "2")
-        XCTAssertEqual(props["--USER__custom"], "value")
+    @Test func disabledFlagsAreNotEmitted() {
+        #expect(
+            CSSUserProperties(
+                blendImages: false,
+                a11yNormalize: false,
+                noRuby: false,
+                iOSPatch: false,
+                iPadOSPatch: false
+            ).css() == nil
+        )
     }
 
-    func testGenerateEmptyInlineCSSProperties() {
-        XCTAssertEqual(CSSUserProperties().css(), nil)
+    @Test func generateEmptyInlineCSSProperties() {
+        #expect(CSSUserProperties().css() == nil)
     }
 
-    func testGenerateMinimalInlineCSSProperties() {
-        XCTAssertEqual(
+    @Test func generateMinimalInlineCSSProperties() {
+        #expect(
             CSSUserProperties(
                 view: .scroll,
-                colCount: .auto
-            ).css(),
-            """
-            --USER__colCount: auto !important;
+                colCount: 1
+            ).css() == """
+            --USER__colCount: 1 !important;
             --USER__view: readium-scroll-on !important;
 
             """
         )
     }
 
-    func testGenerateFullInlineCSSProperties() {
-        XCTAssertEqual(
-            CSSUserProperties(
-                view: .scroll,
-                colCount: .auto,
-                pageMargins: 1.2,
-                appearance: .night,
-                darkenImages: true,
-                invertImages: true,
-                textColor: CSSHexColor("#FF0000"),
-                backgroundColor: CSSHexColor("#00FF00"),
-                fontOverride: true,
-                fontFamily: ["Times New", "Comic Sans"],
-                fontSize: CSSVMaxLength(2.3),
-                advancedSettings: true,
-                typeScale: 3.4,
-                textAlign: .justify,
-                lineHeight: .length(CSSPtLength(4.5)),
-                paraSpacing: CSSPtLength(5.6),
-                paraIndent: CSSRemLength(6.7),
-                wordSpacing: CSSRemLength(7.8),
-                letterSpacing: CSSRemLength(8.9),
-                bodyHyphens: .auto,
-                ligatures: .common,
-                a11yNormalize: true
-            ).css(),
-            """
-            --USER__a11yNormalize: readium-a11y-on !important;
-            --USER__advancedSettings: readium-advanced-on !important;
-            --USER__appearance: readium-night-on !important;
-            --USER__backgroundColor: #00FF00 !important;
-            --USER__bodyHyphens: auto !important;
-            --USER__colCount: auto !important;
-            --USER__darkenImages: readium-darken-on !important;
+    @Test func generateInlineCSSPropertiesWithSeveralFontFamilies() {
+        #expect(
+            CSSUserProperties(fontFamily: ["Times New", "Comic Sans"]).css() == """
             --USER__fontFamily: "Times New", "Comic Sans" !important;
-            --USER__fontOverride: readium-font-on !important;
-            --USER__fontSize: 2.30000vmax !important;
-            --USER__invertImages: readium-invert-on !important;
-            --USER__letterSpacing: 8.90000rem !important;
-            --USER__ligatures: common-ligatures !important;
-            --USER__lineHeight: 4.50000pt !important;
-            --USER__pageMargins: 1.20000 !important;
-            --USER__paraIndent: 6.70000rem !important;
-            --USER__paraSpacing: 5.60000pt !important;
-            --USER__textAlign: justify !important;
-            --USER__textColor: #FF0000 !important;
-            --USER__typeScale: 3.40000 !important;
-            --USER__view: readium-scroll-on !important;
-            --USER__wordSpacing: 7.80000rem !important;
 
             """
         )
+    }
+
+    @Test func intColorIgnoresTheBitsAboveRGB() {
+        #expect(CSSIntColor(0x7F00_FF00).css() == "#00FF00")
     }
 }

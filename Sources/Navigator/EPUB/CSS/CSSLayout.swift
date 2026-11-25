@@ -9,7 +9,7 @@ import ReadiumShared
 
 /// Readium CSS layout variant to use.
 ///
-/// See https://github.com/readium/readium-css/tree/master/css/dist
+/// See https://github.com/readium/css/tree/develop/css/dist
 struct CSSLayout: Hashable {
     let language: Language?
     let stylesheets: Stylesheets
@@ -26,7 +26,7 @@ struct CSSLayout: Hashable {
         /// Asian language, laid out vertically.
         ///
         /// The HTML `dir` attribute must not be modified with vertical CJK:
-        /// https://github.com/readium/readium-css/tree/master/css/dist#vertical
+        /// https://github.com/readium/css/blob/develop/css/dist/ReadMe.md#vertical
         case cjkVertical
 
         var folder: String? {
@@ -44,6 +44,15 @@ struct CSSLayout: Hashable {
             case .rtl: return .rtl
             case .cjkHorizontal: return .ltr
             case .cjkVertical: return .unspecified
+            }
+        }
+
+        /// Whether these stylesheets are for an Asian language, laid out
+        /// horizontally or vertically.
+        var isCJK: Bool {
+            switch self {
+            case .default, .rtl: return false
+            case .cjkHorizontal, .cjkVertical: return true
             }
         }
     }

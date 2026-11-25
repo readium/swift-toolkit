@@ -78,8 +78,10 @@ function getCurrentSelectionText() {
     return undefined;
   }
 
-  const text = document.body.textContent;
-  const textRange = TextRange.fromRange(range).relativeTo(document.body);
+  // SVG documents have no body.
+  const root = document.body ?? document.documentElement;
+  const text = root.textContent;
+  const textRange = TextRange.fromRange(range).relativeTo(root);
   const start = textRange.start.offset;
   const end = textRange.end.offset;
 

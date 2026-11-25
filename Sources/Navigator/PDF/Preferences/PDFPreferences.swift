@@ -24,9 +24,9 @@ public struct PDFPreferences: ConfigurablePreferences, Sendable {
     public var offsetFirstPage: Bool?
 
     /// Spacing between pages in points.
-    public var pageSpacing: Double? {
-        willSet { precondition(newValue == nil || newValue! >= 0) }
-    }
+    ///
+    /// Negative values are replaced with `0`.
+    public var pageSpacing: Double?
 
     /// Direction of the horizontal progression across pages.
     public var readingProgression: ReadingProgression?
@@ -56,11 +56,10 @@ public struct PDFPreferences: ConfigurablePreferences, Sendable {
         spread: Spread? = nil,
         visibleScrollbar: Bool? = nil
     ) {
-        precondition(pageSpacing == nil || pageSpacing! >= 0)
         self.backgroundColor = backgroundColor
         self.fit = fit
         self.offsetFirstPage = offsetFirstPage
-        self.pageSpacing = pageSpacing
+        self.pageSpacing = pageSpacing.map { max($0, 0) }
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.scrollAxis = scrollAxis

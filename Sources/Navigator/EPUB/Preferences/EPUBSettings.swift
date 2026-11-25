@@ -12,95 +12,116 @@ import ReadiumShared
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings, Sendable {
     public var backgroundColor: Color?
-    public var columnCount: ColumnCount
+    public var blendImages: Bool
+    public var columnCount: Int?
+    public var darkenImages: Double?
     public var fit: Fit
     public var fontFamily: FontFamily?
     public var fontSize: Double
     public var fontWeight: Double?
+    public var fontWidth: Double?
     public var hyphens: Bool?
-    public var imageFilter: ImageFilter?
+    public var invertGaiji: Bool
+    public var invertImages: Bool
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
+    public var linkColor: Color?
+    public var maximalLineLength: Double?
+    public var minimalLineLength: Double?
+    public var noRuby: Bool
     public var offsetFirstPage: Bool?
+    public var optimalLineLength: Double
     public var pageMargins: Double
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
-    public var publisherStyles: Bool
     public var readingProgression: ReadingProgression
     public var scroll: Bool
     public var spread: Spread
     public var textAlign: TextAlignment?
     public var textColor: Color?
     public var textNormalization: Bool
-    public var theme: Theme
-    public var typeScale: Double?
     public var verticalText: Bool
+    public var visitedColor: Color?
     public var wordSpacing: Double?
 
     public var effectiveBackgroundColor: Color {
-        backgroundColor ?? theme.backgroundColor
+        backgroundColor ?? ReadiumCSS.defaultBackgroundColor
     }
 
     let cssLayout: CSSLayout
 
     public init(
         backgroundColor: Color?,
-        columnCount: ColumnCount,
+        blendImages: Bool,
+        columnCount: Int?,
+        darkenImages: Double?,
         fit: Fit,
         fontFamily: FontFamily?,
         fontSize: Double,
         fontWeight: Double?,
+        fontWidth: Double?,
         hyphens: Bool?,
-        imageFilter: ImageFilter?,
+        invertGaiji: Bool,
+        invertImages: Bool,
         language: Language?,
         letterSpacing: Double?,
         ligatures: Bool?,
         lineHeight: Double?,
+        linkColor: Color?,
+        maximalLineLength: Double?,
+        minimalLineLength: Double?,
+        noRuby: Bool,
         offsetFirstPage: Bool?,
+        optimalLineLength: Double,
         pageMargins: Double,
         paragraphIndent: Double?,
         paragraphSpacing: Double?,
-        publisherStyles: Bool,
         readingProgression: ReadingProgression,
         scroll: Bool,
         spread: Spread,
         textAlign: TextAlignment?,
         textColor: Color?,
         textNormalization: Bool,
-        theme: Theme,
-        typeScale: Double?,
         verticalText: Bool,
+        visitedColor: Color?,
         wordSpacing: Double?
     ) {
         self.backgroundColor = backgroundColor
-        self.columnCount = columnCount
+        self.blendImages = blendImages
+        self.columnCount = EPUBPreferences.validColumnCount(columnCount)
+        self.darkenImages = darkenImages?.clamped(to: EPUBPreferences.imageFilterRange)
         self.fit = fit
         self.fontFamily = fontFamily
-        self.fontSize = fontSize
-        self.fontWeight = fontWeight
+        self.fontSize = fontSize.positiveOrNil ?? 1.0
+        self.fontWeight = fontWeight?.clamped(to: EPUBPreferences.fontWeightRange)
+        self.fontWidth = fontWidth?.clamped(to: EPUBPreferences.fontWidthRange)
         self.hyphens = hyphens
-        self.imageFilter = imageFilter
+        self.invertGaiji = invertGaiji
+        self.invertImages = invertImages
         self.language = language
-        self.letterSpacing = letterSpacing
+        self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
+        self.linkColor = linkColor
+        self.maximalLineLength = maximalLineLength?.positiveOrNil
+        self.minimalLineLength = minimalLineLength?.positiveOrNil
+        self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
-        self.pageMargins = pageMargins
+        self.optimalLineLength = optimalLineLength.positiveOrNil ?? 1.0
+        self.pageMargins = max(pageMargins, 0)
         self.paragraphIndent = paragraphIndent
-        self.paragraphSpacing = paragraphSpacing
-        self.publisherStyles = publisherStyles
+        self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = spread
         self.textAlign = textAlign
         self.textColor = textColor
         self.textNormalization = textNormalization
-        self.theme = theme
-        self.typeScale = typeScale
         self.verticalText = verticalText
-        self.wordSpacing = wordSpacing
+        self.visitedColor = visitedColor
+        self.wordSpacing = wordSpacing.map { max($0, 0) }
         cssLayout = CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
     }
 
@@ -140,61 +161,63 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             scroll = true
         }
 
+        let columnCount = EPUBPreferences.validColumnCount(preferences.columnCount) ?? defaults.columnCount
+        let fit = preferences.fit ?? defaults.fit ?? .auto
+        let fontSize = preferences.fontSize?.positiveOrNil ?? defaults.fontSize ?? 1.0
+        let fontWeight = preferences.fontWeight ?? defaults.fontWeight
+        let fontWidth = preferences.fontWidth ?? defaults.fontWidth
+        let hyphens = preferences.hyphens ?? defaults.hyphens
+        let letterSpacing = preferences.letterSpacing ?? defaults.letterSpacing
+        let ligatures = preferences.ligatures ?? defaults.ligatures
+        let lineHeight = preferences.lineHeight ?? defaults.lineHeight
+        let maximalLineLength = preferences.maximalLineLength?.positiveOrNil ?? defaults.maximalLineLength
+        let minimalLineLength = preferences.minimalLineLength?.positiveOrNil ?? defaults.minimalLineLength
+        let noRuby = preferences.noRuby ?? defaults.noRuby ?? false
+        let offsetFirstPage = preferences.offsetFirstPage ?? defaults.offsetFirstPage
+        let optimalLineLength = preferences.optimalLineLength?.positiveOrNil ?? defaults.optimalLineLength ?? 1.0
+        let pageMargins = preferences.pageMargins ?? defaults.pageMargins ?? 1.0
+        let paragraphIndent = preferences.paragraphIndent ?? defaults.paragraphIndent
+        let paragraphSpacing = preferences.paragraphSpacing ?? defaults.paragraphSpacing
+        let spread = preferences.spread ?? defaults.spread ?? .auto
+        let textAlign = preferences.textAlign ?? defaults.textAlign
+        let textNormalization = preferences.textNormalization ?? defaults.textNormalization ?? false
+        let wordSpacing = preferences.wordSpacing ?? defaults.wordSpacing
+
         self.init(
             backgroundColor: preferences.backgroundColor,
-            columnCount: preferences.columnCount
-                ?? defaults.columnCount
-                ?? .auto,
-            fit: preferences.fit
-                ?? defaults.fit
-                ?? .auto,
+            blendImages: preferences.blendImages ?? false,
+            columnCount: columnCount,
+            darkenImages: preferences.darkenImages,
+            fit: fit,
             fontFamily: preferences.fontFamily,
-            fontSize: preferences.fontSize
-                ?? defaults.fontSize
-                ?? 1.0,
-            fontWeight: preferences.fontWeight
-                ?? defaults.fontWeight,
-            hyphens: preferences.hyphens
-                ?? defaults.hyphens,
-            imageFilter: preferences.imageFilter
-                ?? defaults.imageFilter,
+            fontSize: fontSize,
+            fontWeight: fontWeight,
+            fontWidth: fontWidth,
+            hyphens: hyphens,
+            invertGaiji: preferences.invertGaiji ?? false,
+            invertImages: preferences.invertImages ?? false,
             language: language,
-            letterSpacing: preferences.letterSpacing
-                ?? defaults.letterSpacing,
-            ligatures: preferences.ligatures
-                ?? defaults.ligatures,
-            lineHeight: preferences.lineHeight
-                ?? defaults.lineHeight,
-            offsetFirstPage: preferences.offsetFirstPage
-                ?? defaults.offsetFirstPage,
-            pageMargins: preferences.pageMargins
-                ?? defaults.pageMargins
-                ?? 1.0,
-            paragraphIndent: preferences.paragraphIndent
-                ?? defaults.paragraphIndent,
-            paragraphSpacing: preferences.paragraphSpacing
-                ?? defaults.paragraphSpacing,
-            publisherStyles: preferences.publisherStyles
-                ?? defaults.publisherStyles
-                ?? true,
+            letterSpacing: letterSpacing,
+            ligatures: ligatures,
+            lineHeight: lineHeight,
+            linkColor: preferences.linkColor,
+            maximalLineLength: maximalLineLength,
+            minimalLineLength: minimalLineLength,
+            noRuby: noRuby,
+            offsetFirstPage: offsetFirstPage,
+            optimalLineLength: optimalLineLength,
+            pageMargins: pageMargins,
+            paragraphIndent: paragraphIndent,
+            paragraphSpacing: paragraphSpacing,
             readingProgression: readingProgression,
             scroll: scroll,
-            spread: preferences.spread
-                ?? defaults.spread
-                ?? .auto,
-            textAlign: preferences.textAlign
-                ?? defaults.textAlign,
+            spread: spread,
+            textAlign: textAlign,
             textColor: preferences.textColor,
-            textNormalization: preferences.textNormalization
-                ?? defaults.textNormalization
-                ?? false,
-            theme: preferences.theme
-                ?? .light,
-            typeScale: preferences.typeScale
-                ?? defaults.typeScale,
+            textNormalization: textNormalization,
             verticalText: verticalText,
-            wordSpacing: preferences.wordSpacing
-                ?? defaults.wordSpacing
+            visitedColor: preferences.visitedColor,
+            wordSpacing: wordSpacing
         )
     }
 }
@@ -206,75 +229,84 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 ///
 /// See `EPUBPreferences`.
 public struct EPUBDefaults: Sendable {
-    public var columnCount: ColumnCount?
+    public var columnCount: Int?
     public var fit: Fit?
     public var fontSize: Double?
     public var fontWeight: Double?
+    public var fontWidth: Double?
     public var hyphens: Bool?
-    public var imageFilter: ImageFilter?
     public var language: Language?
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
+    /// `1.0` by default, which limits the lines to the maximal line length.
+    /// Set it to `nil` to let the lines take all the available width.
+    public var maximalLineLength: Double?
+    public var minimalLineLength: Double?
+    public var noRuby: Bool?
     public var offsetFirstPage: Bool?
+    public var optimalLineLength: Double?
     public var pageMargins: Double?
     public var paragraphIndent: Double?
     public var paragraphSpacing: Double?
-    public var publisherStyles: Bool?
     public var readingProgression: ReadingProgression?
     public var scroll: Bool?
     public var spread: Spread?
     public var textAlign: TextAlignment?
     public var textNormalization: Bool?
-    public var typeScale: Double?
     public var wordSpacing: Double?
 
     public init(
-        columnCount: ColumnCount? = nil,
+        columnCount: Int? = nil,
         fit: Fit? = nil,
         fontSize: Double? = nil,
         fontWeight: Double? = nil,
+        fontWidth: Double? = nil,
         hyphens: Bool? = nil,
-        imageFilter: ImageFilter? = nil,
         language: Language? = nil,
         letterSpacing: Double? = nil,
         ligatures: Bool? = nil,
         lineHeight: Double? = nil,
+        // Not a fallback in `EPUBSettings`, so that `nil` removes the limit.
+        maximalLineLength: Double? = 1.0,
+        minimalLineLength: Double? = nil,
+        noRuby: Bool? = nil,
         offsetFirstPage: Bool? = nil,
+        optimalLineLength: Double? = nil,
         pageMargins: Double? = nil,
         paragraphIndent: Double? = nil,
         paragraphSpacing: Double? = nil,
-        publisherStyles: Bool? = nil,
         readingProgression: ReadingProgression? = nil,
         scroll: Bool? = nil,
         spread: Spread? = nil,
         textAlign: TextAlignment? = nil,
         textNormalization: Bool? = nil,
-        typeScale: Double? = nil,
         wordSpacing: Double? = nil
     ) {
-        self.columnCount = columnCount
+        self.columnCount = EPUBPreferences.validColumnCount(columnCount)
         self.fit = fit
-        self.fontSize = fontSize
-        self.fontWeight = fontWeight
+        self.fontSize = fontSize?.positiveOrNil
+        self.fontWeight = fontWeight?.clamped(to: EPUBPreferences.fontWeightRange)
+        self.fontWidth = fontWidth?.clamped(to: EPUBPreferences.fontWidthRange)
         self.hyphens = hyphens
-        self.imageFilter = imageFilter
         self.language = language
-        self.letterSpacing = letterSpacing
+        self.letterSpacing = letterSpacing.map { max($0, 0) }
         self.ligatures = ligatures
         self.lineHeight = lineHeight
+        self.maximalLineLength = maximalLineLength?.positiveOrNil
+        self.minimalLineLength = minimalLineLength?.positiveOrNil
+        self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
-        self.pageMargins = pageMargins
+        self.optimalLineLength = optimalLineLength?.positiveOrNil
+        self.pageMargins = pageMargins.map { max($0, 0) }
         self.paragraphIndent = paragraphIndent
-        self.paragraphSpacing = paragraphSpacing
-        self.publisherStyles = publisherStyles
+        self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
         self.readingProgression = readingProgression
         self.scroll = scroll
         self.spread = spread
         self.textAlign = textAlign
         self.textNormalization = textNormalization
-        self.typeScale = typeScale
-        self.wordSpacing = wordSpacing
+        self.wordSpacing = wordSpacing.map { max($0, 0) }
     }
 }
 

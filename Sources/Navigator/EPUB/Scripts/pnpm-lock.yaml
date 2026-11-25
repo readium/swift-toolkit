@@ -28,6 +28,9 @@ devDependencies:
   '@babel/preset-typescript':
     specifier: ^7.29.7
     version: 7.29.7(@babel/core@7.29.7)
+  '@readium/css':
+    specifier: 2.0.5
+    version: 2.0.5
   '@types/jest':
     specifier: ^30.0.0
     version: 30.0.0
@@ -1805,6 +1808,10 @@ packages:
   /@pkgr/core@0.3.6:
     resolution: {integrity: sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA==}
     engines: {node: ^14.18.0 || >=16.0.0}
+    dev: true
+
+  /@readium/css@2.0.5:
+    resolution: {integrity: sha512-rQWeDFSS9UfRTFFdWIhlko0jtkL9dOfNTqFjgMumlguromsyHC9/lGmbWDde7deEeE5ns+yBOSGKixMU0wqZ4A==}
     dev: true
 
   /@sinclair/typebox@0.34.52:

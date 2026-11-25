@@ -89,9 +89,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
                     self?.dismiss(animated: true)
                 }
             )
-            let vc = UIHostingController(rootView: userPrefs)
-            vc.modalPresentationStyle = .formSheet
-            present(vc, animated: true)
+            presentUserPreferencesSheet(userPrefs)
         }
     }
 

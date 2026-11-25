@@ -105,11 +105,13 @@ jobs:
         run: pnpm --dir "$scripts" run lint
       - name: Check formatting
         run: pnpm --dir "$scripts" run checkformat
-      - name: Check if bundled scripts are up-to-date
+      - name: Check if bundled scripts and Readium CSS are up-to-date
         run: |
             make scripts
             git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/scripts/*.js
             if git ls-files --others --exclude-standard Sources/Navigator/EPUB/Assets/Static/scripts/ | grep -q .; then echo "Untracked bundled scripts found. Run 'make scripts' and commit the result."; exit 1; fi
+            git diff --exit-code --name-only Sources/Navigator/EPUB/Assets/Static/readium-css/
+            if git ls-files --others --exclude-standard Sources/Navigator/EPUB/Assets/Static/readium-css/ | grep -q .; then echo "Untracked Readium CSS files found. Run 'make scripts' and commit the result."; exit 1; fi
       - name: Lint Swift formatting
         run: make lint-format
       - name: Check CocoaPods podspecs

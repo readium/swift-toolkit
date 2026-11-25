@@ -101,12 +101,27 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
         if viewModel.scroll {
             topConstraint.constant = 0
             bottomConstraint.constant = 0
-            scrollView.contentInset = contentInset
+            scrollView.contentInset = Self.scrollModeContentInset(contentInset, verticalText: viewModel.verticalText)
 
         } else {
             topConstraint.constant = contentInset.top
             bottomConstraint.constant = -contentInset.bottom
             scrollView.contentInset = .zero
+        }
+    }
+
+    /// Returns the content inset of the scroll view in scroll mode.
+    ///
+    /// Only the insets on the scroll axis are kept. On the other axis, the
+    /// document is laid out in the full size of the view, and the line length
+    /// resolved by `LayoutResolver` already keeps the text out of the insets:
+    /// the left and right safe area with horizontal text, the top and bottom
+    /// content inset with vertical text.
+    static func scrollModeContentInset(_ inset: UIEdgeInsets, verticalText: Bool) -> UIEdgeInsets {
+        if verticalText {
+            return UIEdgeInsets(top: 0, left: inset.left, bottom: 0, right: inset.right)
+        } else {
+            return UIEdgeInsets(top: inset.top, left: 0, bottom: inset.bottom, right: 0)
         }
     }
 
@@ -355,19 +370,40 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
             return false
         }
 
-        // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the top or the bottom of the page in scroll mode.
-        if viewModel.scroll, !viewModel.verticalText, [0, 1].contains(progression) {
-            var contentOffset = scrollView.contentOffset
-            contentOffset.y = (progression == 0)
-                ? -scrollView.contentInset.top
-                : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
-            scrollView.contentOffset = contentOffset
+        // Note: The JS layer does not take into account the scroll view's content inset. So it can't be used to reliably scroll to the start or the end of the page in scroll mode.
+        if viewModel.scroll, [0, 1].contains(progression) {
+            scrollView.contentOffset = Self.scrollModeContentOffset(
+                of: scrollView,
+                atStart: progression == 0,
+                verticalText: viewModel.verticalText
+            )
             return true
         } else {
             let dir = viewModel.readingProgression.rawValue
             await evaluateScript("readium.scrollToPosition(\'\(progression)\', \'\(dir)\', \(animated))")
             return true
         }
+    }
+
+    /// Returns the content offset showing the start or the end of a resource
+    /// in scroll mode, including the content inset.
+    static func scrollModeContentOffset(
+        of scrollView: UIScrollView,
+        atStart: Bool,
+        verticalText: Bool
+    ) -> CGPoint {
+        var offset = scrollView.contentOffset
+        if verticalText {
+            // Vertical text scrolls horizontally, from right to left.
+            offset.x = atStart
+                ? (scrollView.contentSize.width - scrollView.bounds.width + scrollView.contentInset.right)
+                : -scrollView.contentInset.left
+        } else {
+            offset.y = atStart
+                ? -scrollView.contentInset.top
+                : (scrollView.contentSize.height - scrollView.bounds.height + scrollView.contentInset.bottom)
+        }
+        return offset
     }
 
     /// Scrolls at the tag with ID `tagID`.

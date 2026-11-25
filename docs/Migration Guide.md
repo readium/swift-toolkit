@@ -2,7 +2,167 @@
 
 All migration steps necessary in reading apps to upgrade to major versions of the Swift Readium toolkit will be documented in this file.
 
-<!-- ## Unreleased -->
+## Unreleased
+
+### Upgrade to Readium CSS v2
+
+The EPUB navigator now uses Readium CSS v2. Several EPUB preferences are replaced or removed.
+
+#### Readium CSS properties
+
+The Readium CSS properties are now internal to the EPUB navigator, which sets them from the EPUB preferences. `EPUBNavigatorViewController.Configuration.readiumCSSRSProperties` is removed, as well as the `CSSRSProperties` and `CSSUserProperties` types.
+
+If you customized the Readium CSS reading system properties, use the EPUB preferences or defaults instead.
+
+#### Column count
+
+`columnCount` is now an `Int?` instead of a `ColumnCount` enum, to support any number of columns. Use `nil` for an automatic number of columns, depending on the viewport size.
+
+```diff
+-preferences.columnCount = .auto
++preferences.columnCount = nil
+-preferences.columnCount = .two
++preferences.columnCount = 2
+```
+
+`EPUBPreferencesEditor.columnCount` is now an `AnyEnumPreference<Int?>` supporting the values `nil` (auto), `1` and `2`.
+
+#### Line length and page margins
+
+The EPUB navigator now computes the number of columns and the line length of reflowable resources from the viewport size, the font size and the new `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences. `pageMargins` is now a factor applied to the minimal margins on each side of the lines, which are larger when the line length is limited. See [the Preferences guide](Guides/Navigator/Preferences.md#line-length-and-margins) for details.
+
+By default, the lines are now limited to a maximal length, so wide screens display two columns or larger margins. To let the lines take all the available width when you don't set the `maximalLineLength` preference, set its default value to `nil`:
+
+```swift
+let navigator = try EPUBNavigatorViewController(
+    publication: publication,
+    config: .init(defaults: EPUBDefaults(maximalLineLength: nil))
+)
+```
+
+#### Themes
+
+The `theme` preference is removed from `EPUBPreferences`. Instead, a theme is a set of color preferences that your app applies together: `textColor` and `backgroundColor`, plus the new `linkColor` and `visitedColor`.
+
+A color preference which is set overrides the colors of the publication. When unset, the colors of the publication are kept, so the previous `light` theme is the same as leaving the four colors unset.
+
+To rebuild a theme picker in your app, these are the colors of the legacy themes:
+
+| Theme   | `textColor` | `backgroundColor` | `linkColor` | `visitedColor` |
+|---------|-------------|-------------------|-------------|----------------|
+| `light` | unset       | unset             | unset       | unset          |
+| `sepia` | `#121212`   | `#FAF4E8`         | unset       | unset          |
+| `dark`  | `#FEFEFE`   | `#000000`         | `#63CAFF`   | `#0099E5`      |
+
+```diff
+-preferences.theme = .dark
++preferences.textColor = Color(hex: "#FEFEFE")
++preferences.backgroundColor = Color(hex: "#000000")
++preferences.linkColor = Color(hex: "#63CAFF")
++preferences.visitedColor = Color(hex: "#0099E5")
+```
+
+See [the Preferences guide](Guides/Navigator/Preferences.md#colors-and-themes) for an example of theme picker built with the `EPUBPreferencesEditor`.
+
+The previous dark theme also inverted the gaiji (images used for the characters missing from the fonts in Japanese publications), unless the images were darkened. Set `invertGaiji` to `true` along with your dark colors to keep them readable.
+
+
+#### Image filters
+
+`EPUBPreferences.imageFilter` is replaced with four independent preferences.
+
+* `blendImages` blends the images with the background color when `true`.
+* `darkenImages` reduces the brightness of the images by a percentage, from `0.0` to `1.0`.
+* `invertGaiji` inverts the colors of the gaiji only (the images used for the characters missing from the fonts in Japanese publications) when `true`.
+* `invertImages` inverts the colors of the images when `true`.
+
+To get the same rendering as the previous filters:
+
+```diff
+-preferences.imageFilter = .darken
++preferences.darkenImages = 0.2
+-preferences.imageFilter = .invert
++preferences.invertImages = true
+```
+
+The previous filters were applied only with the dark theme, while the new preferences are applied with any colors. To keep the previous behavior, set them only together with the colors of your dark theme.
+
+#### Publisher styles
+
+The `publisherStyles` preference is removed from `EPUBPreferences`.
+
+The publisher styles are kept as long as the related preferences are unset. Preferences such as `textAlign`, `lineHeight`, or `wordSpacing` take effect as soon as they are set, so you can remove any toggle for the publisher styles from your user interface. To restore the publisher styles, reset these preferences to `nil` (e.g. with `editor.textAlign.clear()`).
+
+```diff
+ let preferences = EPUBPreferences(
+-    publisherStyles: false,
+     textAlign: .justify
+ )
+```
+
+#### Other preference changes
+
+* The `typeScale` preference is removed from `EPUBPreferences`, without replacement.
+* `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, which is the default line height for Latin scripts.
+* `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. When unset, its `effectiveValue` is `true`, as the ligatures are rendered by default.
+* `EPUBPreferencesEditor.letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages.
+
+#### Bundled fonts
+
+The toolkit no longer bundles the additional font families ([OpenDyslexic](https://opendyslexic.org/), [AccessibleDfA](https://github.com/Orange-OpenSource/font-accessible-dfa) and [iA Writer Duospace](https://github.com/iaolo/iA-Fonts)).
+
+To keep offering some of them, add their font files to your app target and declare them in `EPUBNavigatorViewController.Configuration.fontFamilyDeclarations`.
+
+```swift
+extension FontFamily {
+    static let openDyslexic: FontFamily = "OpenDyslexic"
+}
+
+let fonts = FileURL(url: Bundle.main.resourceURL!)!
+let navigator = try EPUBNavigatorViewController(
+    publication: publication,
+    initialLocation: locator,
+    config: .init(
+        fontFamilyDeclarations: [
+            CSSFontFamilyDeclaration(
+                fontFamily: .openDyslexic,
+                fontFaces: [
+                    CSSFontFace(
+                        file: fonts.appendingPath("OpenDyslexic-Regular.otf", isDirectory: false),
+                        style: .normal, weight: .standard(.normal)
+                    ),
+                    CSSFontFace(
+                        file: fonts.appendingPath("OpenDyslexic-Italic.otf", isDirectory: false),
+                        style: .italic, weight: .standard(.normal)
+                    ),
+                    CSSFontFace(
+                        file: fonts.appendingPath("OpenDyslexic-Bold.otf", isDirectory: false),
+                        style: .normal, weight: .standard(.bold)
+                    ),
+                    CSSFontFace(
+                        file: fonts.appendingPath("OpenDyslexic-BoldItalic.otf", isDirectory: false),
+                        style: .italic, weight: .standard(.bold)
+                    ),
+                ]
+            ).eraseToAnyHTMLFontFamilyDeclaration(),
+        ]
+    )
+)
+```
+
+See [the EPUB fonts guide](Guides/Navigator/EPUB%20Fonts.md) for more details.
+
+#### Saved preferences
+
+`EPUBPreferences` saved as JSON with a previous version of the toolkit are migrated when decoded, so you don't need to migrate them yourself.
+
+* `columnCount`: `"auto"` becomes `nil`, `"1"` and `"2"` become `1` and `2`.
+* `imageFilter`: with the dark theme, `"darken"` becomes `darkenImages = 0.2` and `"invert"` becomes `invertImages = true`. With another theme, the filter is dropped, as it was not applied.
+* `theme`: `"dark"` and `"sepia"` become the colors listed [above](#themes), and `"light"` is dropped. The colors which were saved along with the theme are kept, the theme only fills the missing ones. `"dark"` also sets `invertGaiji = true`, unless `imageFilter` is `"darken"`.
+* `publisherStyles`: when `true`, the preferences it disabled (`hyphens`, `letterSpacing`, `ligatures`, `lineHeight`, `paragraphIndent`, `paragraphSpacing`, `textAlign` and `wordSpacing`) are dropped, as they now apply as soon as they are set. When `false` or missing, they are kept. If your app kept the default `EPUBDefaults.publisherStyles` (`true`), these preferences saved without an explicit `publisherStyles` were ignored and will now be applied.
+* `typeScale` is dropped.
+
+The decoding is also more lenient: an invalid value drops only its preference, instead of failing to decode all of them.
 
 ## 4.0.0-alpha.3
 
@@ -805,33 +965,33 @@ If you integrated the EPUB navigator from a previous version, follow these steps
 
 Please refer to the following table for the correspondence between legacy settings (from `UserSettings`) and new ones (`EPUBPreferences`).
 
-| **Legacy**          | **New**                                                |
-|---------------------|--------------------------------------------------------|
-| `appearance`        | `theme`                                                |
-| `backgroundColor`   | `backgroundColor`                                      |
-| `columnCount`       | `columnCount` (reflowable) and `spread` (fixed-layout) |
-| `fontFamily`        | `fontFamily`                                           |
-| `fontOverride`      | N/A (handled automatically)                            |
-| `fontSize`          | `fontSize`                                             |
-| `hyphens`           | `hyphens`                                              |
-| `letterSpacing`     | `letterSpacing`                                        |
-| `lineHeight`        | `lineHeight`                                           |
-| `pageMargins`       | `pageMargins`                                          |
-| `paragraphMargins`  | `paragraphSpacing`                                     |
-| `publisherDefaults` | `publisherStyles`                                      |
-| `textAlignment`     | `textAlign`                                            |
-| `textColor`         | `textColor`                                            |
-| `verticalScroll`    | `scroll`                                               |
-| `wordSpacing`       | `wordSpacing`                                          |
-| N/A                 | `fontWeight`                                           |
-| N/A                 | `imageFilter`                                          |
-| N/A                 | `language`                                             |
-| N/A                 | `ligatures`                                            |
-| N/A                 | `paragraphIndent`                                      |
-| N/A                 | `readingProgression`                                   |
-| N/A                 | `textNormalization`                                    |
-| N/A                 | `typeScale`                                            |
-| N/A                 | `verticalText`                                         |
+| **Legacy**          | **New**                                                         |
+|---------------------|-----------------------------------------------------------------|
+| `appearance`        | `theme` (replaced by the color preferences in 4.0)              |
+| `backgroundColor`   | `backgroundColor`                                               |
+| `columnCount`       | `columnCount` (reflowable) and `spread` (fixed-layout)          |
+| `fontFamily`        | `fontFamily`                                                    |
+| `fontOverride`      | N/A (handled automatically)                                     |
+| `fontSize`          | `fontSize`                                                      |
+| `hyphens`           | `hyphens`                                                       |
+| `letterSpacing`     | `letterSpacing`                                                 |
+| `lineHeight`        | `lineHeight`                                                    |
+| `pageMargins`       | `pageMargins`                                                   |
+| `paragraphMargins`  | `paragraphSpacing`                                              |
+| `publisherDefaults` | `publisherStyles` (removed in 4.0)                              |
+| `textAlignment`     | `textAlign`                                                     |
+| `textColor`         | `textColor`                                                     |
+| `verticalScroll`    | `scroll`                                                        |
+| `wordSpacing`       | `wordSpacing`                                                   |
+| N/A                 | `fontWeight`                                                    |
+| N/A                 | `imageFilter` (replaced by the image filter preferences in 4.0) |
+| N/A                 | `language`                                                      |
+| N/A                 | `ligatures`                                                     |
+| N/A                 | `paragraphIndent`                                               |
+| N/A                 | `readingProgression`                                            |
+| N/A                 | `textNormalization`                                             |
+| N/A                 | `typeScale` (removed in 4.0)                                    |
+| N/A                 | `verticalText`                                                  |
 
 ### Edge tap and keyboard navigation
 

@@ -53,6 +53,10 @@ export function findNearestInteractiveElement(element) {
 /// Returns the `Locator` object to the first block element that is visible on
 /// the screen.
 export function findFirstVisibleLocator() {
+  // SVG documents have no body.
+  if (!document.body) {
+    return null;
+  }
   const element = findElement(document.body);
   return {
     href: "#",

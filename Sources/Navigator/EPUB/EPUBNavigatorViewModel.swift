@@ -89,34 +89,6 @@ enum EPUBScriptScope {
         assetsBaseURL: any AbsoluteURL,
         formatSniffer: FormatSniffer
     ) {
-        var config = config
-
-        if let fontsDir = Bundle.module.resourceURL?.fileURL?.appendingPath("Assets/Static/fonts", isDirectory: true) {
-            config.fontFamilyDeclarations.append(
-                CSSFontFamilyDeclaration(
-                    fontFamily: .openDyslexic,
-                    fontFaces: [
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Regular.otf", isDirectory: false),
-                            style: .normal, weight: .standard(.normal)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Italic.otf", isDirectory: false),
-                            style: .italic, weight: .standard(.normal)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-Bold.otf", isDirectory: false),
-                            style: .normal, weight: .standard(.bold)
-                        ),
-                        CSSFontFace(
-                            file: fontsDir.appendingPath("OpenDyslexic-BoldItalic.otf", isDirectory: false),
-                            style: .italic, weight: .standard(.bold)
-                        ),
-                    ]
-                ).eraseToAnyHTMLFontFamilyDeclaration()
-            )
-        }
-
         self.publication = publication
         self.readingOrder = EPUBReadingOrder(
             readingOrder: readingOrder,
@@ -137,12 +109,12 @@ enum EPUBScriptScope {
 
         css = ReadiumCSS(
             layout: CSSLayout(),
-            rsProperties: config.readiumCSSRSProperties,
             baseURL: assetsBaseURL.appendingPath("readium-css", isDirectory: true),
-            fontFamilyDeclarations: config.fontFamilyDeclarations
+            fontFamilyDeclarations: config.fontFamilyDeclarations,
+            isEBPAJ: publication.metadata.isEBPAJ
         )
 
-        css.update(with: settings)
+        css.update(with: settings, userInterfaceIdiom: userInterfaceIdiom)
 
         NotificationCenter.default.addObserver(
             self,
@@ -257,8 +229,8 @@ enum EPUBScriptScope {
         settings.readingProgression
     }
 
-    var theme: Theme {
-        settings.theme
+    var backgroundColor: Color {
+        settings.effectiveBackgroundColor
     }
 
     var scroll: Bool {
@@ -281,13 +253,65 @@ enum EPUBScriptScope {
 
     private(set) var spreadEnabled: Bool = false
     private var viewSize: CGSize?
+    /// Insets the margins of the resolved layout can't be smaller than, see
+    /// `viewDidLayout(size:safeAreaInsets:reflowableContentInset:hingeWidth:)`.
+    private var layoutInsets: UIEdgeInsets = .zero
+    /// Width of the vertical hinge splitting the view in two equal sides, on
+    /// a foldable device.
+    private var hingeWidth: Double?
+    private let layoutResolver = LayoutResolver()
 
+    /// Updates the spread for the size the view is about to take.
+    ///
+    /// The CSS layout is not resolved here, as the safe area insets matching
+    /// this size are not known yet. It is resolved once the view is laid out,
+    /// see `viewDidLayout(size:safeAreaInsets:reflowableContentInset:hingeWidth:)`.
     func viewSizeWillChange(_ newSize: CGSize) {
         guard viewSize != newSize else {
             return
         }
         viewSize = newSize
         updateSpread()
+    }
+
+    /// Resolves the CSS layout from the final size and insets of the view, and
+    /// commits it when it changed.
+    ///
+    /// The margins at the ends of the lines can't be smaller than:
+    /// - with horizontal text, the left and right `safeAreaInsets` of the
+    ///   view, which include its `additionalSafeAreaInsets`;
+    /// - with vertical text, the top and bottom `reflowableContentInset`, the
+    ///   content inset of reflowable resources, which the scroll view doesn't
+    ///   apply on this axis. Unlike the safe area of the view, it doesn't
+    ///   include the app's bars.
+    ///
+    /// `hingeWidth` is the width of the vertical hinge splitting the view in
+    /// two equal sides, on a foldable device, or `nil` without one. See
+    /// `LayoutResolver.verticalHingeWidth(divisions:in:tolerance:)`.
+    func viewDidLayout(
+        size: CGSize,
+        safeAreaInsets: UIEdgeInsets,
+        reflowableContentInset: UIEdgeInsets,
+        hingeWidth: Double?
+    ) {
+        viewSizeWillChange(size)
+        self.hingeWidth = hingeWidth
+        layoutInsets = UIEdgeInsets(
+            top: reflowableContentInset.top,
+            left: safeAreaInsets.left,
+            bottom: reflowableContentInset.bottom,
+            right: safeAreaInsets.right
+        )
+
+        // Most layout passes don't change the layout, for example when the
+        // app toggles its bars, which only changes the top and bottom safe
+        // area insets. A pass with the same size and insets can still change
+        // it: right after a foldable device is unfolded, the hinge is only
+        // reported from the second pass.
+        guard resolveLayout(with: settings) != resolvedLayout else {
+            return
+        }
+        updateCSS(with: settings, commitNow: true)
     }
 
     private func updateSpread() {
@@ -313,6 +337,9 @@ enum EPUBScriptScope {
 
     private var css: ReadiumCSS
     private let servedFonts: [FileURL: AbsoluteURL]
+
+    /// Device used to choose the WebKit patch of Readium CSS.
+    private let userInterfaceIdiom = UIDevice.current.userInterfaceIdiom
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
@@ -341,9 +368,30 @@ enum EPUBScriptScope {
         }
     }
 
+    /// Layout of the current CSS, resolved from the view size.
+    private(set) var resolvedLayout: LayoutResolver.Layout?
+
+    private func resolveLayout(with settings: EPUBSettings) -> LayoutResolver.Layout? {
+        viewSize.flatMap { size -> LayoutResolver.Layout? in
+            guard size.width > 0, size.height > 0 else { return nil }
+            return layoutResolver.layout(
+                settings: settings,
+                fontScale: settings.fontSize,
+                viewportSize: size,
+                insets: layoutInsets,
+                hingeWidth: hingeWidth
+            )
+        }
+    }
+
     private func updateCSS(with settings: EPUBSettings, commitNow: Bool) {
         let previous = css
-        css.update(with: settings)
+        resolvedLayout = resolveLayout(with: settings)
+        css.update(
+            with: settings,
+            userInterfaceIdiom: userInterfaceIdiom,
+            resolvedLayout: resolvedLayout
+        )
 
         // HTML resources in the cache have the CSS already injected at the time
         // they were first served. Evict them so that any future resource load

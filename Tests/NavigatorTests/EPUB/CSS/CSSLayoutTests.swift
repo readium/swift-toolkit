@@ -6,13 +6,13 @@
 
 @testable import ReadiumNavigator
 import ReadiumShared
-import XCTest
+import Testing
 
-class CSSLayoutTests: XCTestCase {
-    func testComputeHTMLDiStylesheets() {
-        XCTAssertEqual(CSSLayout.Stylesheets.default.htmlDir, .ltr)
-        XCTAssertEqual(CSSLayout.Stylesheets.rtl.htmlDir, .rtl)
-        XCTAssertEqual(CSSLayout.Stylesheets.cjkVertical.htmlDir, .unspecified)
-        XCTAssertEqual(CSSLayout.Stylesheets.cjkHorizontal.htmlDir, .ltr)
+struct CSSLayoutTests {
+    @Test func computeHTMLDiStylesheets() {
+        #expect(CSSLayout.Stylesheets.default.htmlDir == .ltr)
+        #expect(CSSLayout.Stylesheets.rtl.htmlDir == .rtl)
+        #expect(CSSLayout.Stylesheets.cjkVertical.htmlDir == .unspecified)
+        #expect(CSSLayout.Stylesheets.cjkHorizontal.htmlDir == .ltr)
     }
 }

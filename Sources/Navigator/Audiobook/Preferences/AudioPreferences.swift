@@ -13,13 +13,13 @@ public struct AudioPreferences: ConfigurablePreferences, Sendable {
 
     /// Volume of playback, from 0.0 to 1.0.
     public var volume: Double? {
-        willSet { precondition(volume == nil || 0 ... 1 ~= volume!) }
+        willSet { precondition(newValue == nil || 0 ... 1 ~= newValue!) }
     }
 
     /// Speed of playback.
     /// Normal is 1.0.
     public var speed: Double? {
-        willSet { precondition(speed == nil || speed! >= 0) }
+        willSet { precondition(newValue == nil || newValue! >= 0) }
     }
 
     public init(

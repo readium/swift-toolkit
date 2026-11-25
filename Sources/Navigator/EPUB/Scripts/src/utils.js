@@ -8,6 +8,7 @@
 
 import { TextQuoteAnchor } from "./vendor/hypothesis/anchoring/types";
 import { getCurrentSelection } from "./selection";
+import { virtualColumnCountChange } from "./virtual-columns";
 
 window.addEventListener(
   "error",
@@ -36,42 +37,53 @@ window.addEventListener(
         onScroll();
       });
     });
-    observer.observe(document.body);
+    // SVG documents have no body.
+    if (document.body) {
+      observer.observe(document.body);
+    }
   },
   false
 );
 
 function onViewportWidthChanged() {
   viewportWidth = window.innerWidth;
-  appendVirtualColumnIfNeeded();
+  appendVirtualColumnsIfNeeded();
   snapCurrentPosition();
 }
 
 /**
- * Having an odd number of columns when displaying two columns per screen causes snapping and page
- * turning issues. To fix this, we insert a blank virtual column at the end of the resource.
+ * Having a number of columns which is not a multiple of the number of columns per screen leaves
+ * the last screen partially filled, which causes snapping and page turning issues. To fix this, we
+ * insert blank virtual columns at the end of the resource.
+ *
+ * This is called again when the virtual columns resize the body, so it must not change them when
+ * they are already right.
  */
-function appendVirtualColumnIfNeeded() {
-  const id = "readium-virtual-page";
-  var virtualCol = document.getElementById(id);
-  if (isScrollModeEnabled() || getColumnCountPerScreen() != 2) {
-    virtualCol?.remove();
-  } else {
-    var documentWidth = document.scrollingElement.scrollWidth;
-    var pageWidth = window.innerWidth;
-    var colCount = documentWidth / pageWidth;
-    var hasOddColCount = (Math.round(colCount * 2) / 2) % 1 > 0.1;
-    if (hasOddColCount) {
-      if (virtualCol) {
-        virtualCol.remove();
-      } else {
-        virtualCol = document.createElement("div");
-        virtualCol.setAttribute("id", id);
-        virtualCol.style.breakBefore = "column";
-        virtualCol.innerHTML = "&#8203;"; // zero-width space
-        document.body.appendChild(virtualCol);
-      }
-    }
+function appendVirtualColumnsIfNeeded() {
+  const className = "readium-virtual-page";
+  const virtualCols = Array.from(document.getElementsByClassName(className));
+  const change = virtualColumnCountChange({
+    documentWidth: document.scrollingElement.scrollWidth,
+    pageWidth: window.innerWidth,
+    colCountPerScreen: getColumnCountPerScreen(),
+    virtualColCount: virtualCols.length,
+    scroll: isScrollModeEnabled(),
+  });
+  const targetCount = virtualCols.length + change;
+
+  // Only the extra virtual columns are removed, instead of all of them before
+  // measuring the resource, as shrinking the document could clamp the scroll
+  // position when the last screen is visible.
+  while (virtualCols.length > targetCount) {
+    virtualCols.pop().remove();
+  }
+  while (virtualCols.length < targetCount) {
+    const virtualCol = document.createElement("div");
+    virtualCol.className = className;
+    virtualCol.style.breakBefore = "column";
+    virtualCol.innerHTML = "&#8203;"; // zero-width space
+    document.body.appendChild(virtualCol);
+    virtualCols.push(virtualCol);
   }
 }
 
@@ -109,7 +121,9 @@ function onScroll() {
     const totalContentWidth = root.scrollWidth;
 
     if (isRTL()) {
-      scrollX = Math.abs(scrollX);
+      // `scrollX` is negative in RTL, and positive in the content inset of
+      // the scroll view. The navigator clamps the progressions to [0, 1].
+      scrollX = -scrollX;
     }
     lastKnownProgressions = {
       first: scrollX / totalContentWidth,
@@ -356,6 +370,9 @@ export function setCSSProperties(properties) {
   for (const name in properties) {
     setProperty(name, properties[name]);
   }
+  // Update the virtual columns, as the number of columns per screen can
+  // change without resizing the body.
+  window.requestAnimationFrame(appendVirtualColumnsIfNeeded);
 }
 
 // For setting user setting.
