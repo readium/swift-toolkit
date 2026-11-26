@@ -15,6 +15,7 @@ import ReadiumShared
 /// each book and a part shared by all the books of the same format.
 nonisolated protocol UserSettings: Hashable, Sendable {
     associatedtype Preferences: ConfigurablePreferences
+    associatedtype NavigatorSettings: ConfigurableSettings
     associatedtype BookSettings: UserSettingsPart
     associatedtype SharedSettings: UserSettingsPart
 
@@ -26,12 +27,19 @@ nonisolated protocol UserSettings: Hashable, Sendable {
 
     init(book: BookSettings, shared: SharedSettings)
 
-    /// Creates the settings from navigator preferences, for example the ones
-    /// produced by a preferences editor.
-    init(_ preferences: Preferences)
-
     /// Returns the navigator preferences to submit.
     func preferences() -> Preferences
+
+    /// Resolves the settings the navigator applies to `publication` with
+    /// these user settings, to tell which ones are effective.
+    func navigatorSettings(for publication: Publication) -> NavigatorSettings
+}
+
+nonisolated extension UserSettings {
+    /// Settings with no value set.
+    static var empty: Self {
+        Self(book: BookSettings(), shared: SharedSettings())
+    }
 }
 
 /// A part of `UserSettings`, persisted as JSON.
@@ -43,6 +51,10 @@ nonisolated protocol UserSettingsPart: Codable, Hashable, Sendable {
 
 nonisolated struct EPUBUserSettings: UserSettings {
     static let storageKey = "epub"
+
+    /// Defaults given to the navigator, and to the settings resolved to tell
+    /// which ones are effective.
+    static let defaults = EPUBDefaults()
 
     nonisolated struct BookSettings: UserSettingsPart {
         var language: String?
@@ -90,12 +102,6 @@ nonisolated struct EPUBUserSettings: UserSettings {
         /// Colors which match no other theme, as packed integers.
         case custom(text: Int?, background: Int?, link: Int?, visited: Int?)
 
-        /// Returns the theme matching the given colors.
-        init(text: Color?, background: Color?, link: Color?, visited: Color?) {
-            let custom = Theme.custom(text: text?.rawValue, background: background?.rawValue, link: link?.rawValue, visited: visited?.rawValue)
-            self = [.publisher, .sepia, .dark].first { $0.readerTheme.colors == custom.readerTheme.colors } ?? custom
-        }
-
         var readerTheme: ReaderTheme {
             switch self {
             case .publisher:
@@ -121,49 +127,6 @@ nonisolated struct EPUBUserSettings: UserSettings {
 }
 
 nonisolated extension EPUBUserSettings {
-    init(_ preferences: EPUBPreferences) {
-        book = BookSettings(
-            language: preferences.language?.tag,
-            offsetFirstPage: preferences.offsetFirstPage,
-            readingProgression: preferences.readingProgression?.rawValue,
-            spread: preferences.spread?.rawValue,
-            verticalText: preferences.verticalText
-        )
-        shared = SharedSettings(
-            theme: Theme(
-                text: preferences.textColor,
-                background: preferences.backgroundColor,
-                link: preferences.linkColor,
-                visited: preferences.visitedColor
-            ),
-            blendImages: preferences.blendImages,
-            columnCount: preferences.columnCount,
-            darkenImages: preferences.darkenImages,
-            fit: preferences.fit?.rawValue,
-            fontFamily: preferences.fontFamily?.rawValue,
-            fontSize: preferences.fontSize,
-            fontWeight: preferences.fontWeight,
-            fontWidth: preferences.fontWidth,
-            hyphens: preferences.hyphens,
-            invertGaiji: preferences.invertGaiji,
-            invertImages: preferences.invertImages,
-            letterSpacing: preferences.letterSpacing,
-            ligatures: preferences.ligatures,
-            lineHeight: preferences.lineHeight,
-            maximalLineLength: preferences.maximalLineLength,
-            minimalLineLength: preferences.minimalLineLength,
-            noRuby: preferences.noRuby,
-            optimalLineLength: preferences.optimalLineLength,
-            pageMargins: preferences.pageMargins,
-            paragraphIndent: preferences.paragraphIndent,
-            paragraphSpacing: preferences.paragraphSpacing,
-            scroll: preferences.scroll,
-            textAlign: preferences.textAlign?.rawValue,
-            textNormalization: preferences.textNormalization,
-            wordSpacing: preferences.wordSpacing
-        )
-    }
-
     func preferences() -> EPUBPreferences {
         let colors = shared.theme.readerTheme
         return EPUBPreferences(
@@ -203,12 +166,20 @@ nonisolated extension EPUBUserSettings {
             wordSpacing: shared.wordSpacing
         )
     }
+
+    func navigatorSettings(for publication: Publication) -> EPUBSettings {
+        EPUBSettings(publication: publication, preferences: preferences(), defaults: Self.defaults)
+    }
 }
 
 // MARK: - PDF
 
 nonisolated struct PDFUserSettings: UserSettings {
     static let storageKey = "pdf"
+
+    /// Defaults given to the navigator, and to the settings resolved to tell
+    /// which ones are effective.
+    static let defaults = PDFDefaults()
 
     nonisolated struct BookSettings: UserSettingsPart {
         var offsetFirstPage: Bool?
@@ -230,22 +201,6 @@ nonisolated struct PDFUserSettings: UserSettings {
 }
 
 nonisolated extension PDFUserSettings {
-    init(_ preferences: PDFPreferences) {
-        book = BookSettings(
-            offsetFirstPage: preferences.offsetFirstPage,
-            readingProgression: preferences.readingProgression?.rawValue
-        )
-        shared = SharedSettings(
-            backgroundColor: preferences.backgroundColor?.rawValue,
-            fit: preferences.fit?.rawValue,
-            pageSpacing: preferences.pageSpacing,
-            scroll: preferences.scroll,
-            scrollAxis: preferences.scrollAxis?.rawValue,
-            spread: preferences.spread?.rawValue,
-            visibleScrollbar: preferences.visibleScrollbar
-        )
-    }
-
     func preferences() -> PDFPreferences {
         PDFPreferences(
             backgroundColor: shared.backgroundColor.map(Color.init(rawValue:)),
@@ -259,12 +214,20 @@ nonisolated extension PDFUserSettings {
             visibleScrollbar: shared.visibleScrollbar
         )
     }
+
+    func navigatorSettings(for publication: Publication) -> PDFSettings {
+        PDFSettings(publication: publication, preferences: preferences(), defaults: Self.defaults)
+    }
 }
 
 // MARK: - Audio
 
 nonisolated struct AudioUserSettings: UserSettings {
     static let storageKey = "audio"
+
+    /// Defaults given to the navigator, and to the settings resolved to tell
+    /// which ones are effective.
+    static let defaults = AudioDefaults()
 
     /// The audio navigator has no book-specific preferences.
     nonisolated struct BookSettings: UserSettingsPart {}
@@ -279,12 +242,11 @@ nonisolated struct AudioUserSettings: UserSettings {
 }
 
 nonisolated extension AudioUserSettings {
-    init(_ preferences: AudioPreferences) {
-        book = BookSettings()
-        shared = SharedSettings(volume: preferences.volume, speed: preferences.speed)
-    }
-
     func preferences() -> AudioPreferences {
         AudioPreferences(volume: shared.volume, speed: shared.speed)
+    }
+
+    func navigatorSettings(for publication: Publication) -> AudioSettings {
+        AudioSettings(preferences: preferences(), defaults: Self.defaults)
     }
 }

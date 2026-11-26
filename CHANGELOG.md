@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The `Preferences` types and their values are no longer `Codable`. Persist your own settings model and derive the preferences from it instead, [see the migration guide](docs/Migration%20Guide.md#preferences-are-no-longer-codable).
+* The preferences editors (`EPUBPreferencesEditor`, `PDFPreferencesEditor`, `AudioPreferencesEditor`, `StatefulPreferencesEditor`), `Configurable.editor(of:)` APIs are removed. Edit the preferences in your own settings model, and check which settings are effective with `isEffective(_:)`, [see the migration guide](docs/Migration%20Guide.md#the-preferences-editors-are-removed).
 
 ### Fixed
 

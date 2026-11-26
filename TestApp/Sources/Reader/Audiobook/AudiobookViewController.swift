@@ -31,7 +31,8 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
             publication: publication,
             initialLocation: locator,
             config: AudioNavigator.Configuration(
-                preferences: initialPreferences
+                preferences: initialPreferences,
+                defaults: AudioUserSettings.defaults
             )
         )
 
@@ -81,9 +82,10 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
             let userPrefs = await UserPreferences(
                 model: UserPreferencesViewModel(
                     bookId: bookId,
-                    preferences: try! settingsStore.settings(for: bookId).preferences(),
-                    configurable: navigator,
-                    store: settingsStore
+                    publication: publication,
+                    settings: try! settingsStore.settings(for: bookId),
+                    store: settingsStore,
+                    submit: { [navigator] in navigator.submitPreferences($0) }
                 ),
                 onClose: { [weak self = self] in
                     self?.dismiss(animated: true)

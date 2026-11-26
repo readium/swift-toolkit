@@ -9,50 +9,63 @@ import ReadiumShared
 
 /// Setting values of the `EPUBNavigatorViewController`.
 ///
+/// The navigator resolves them from the submitted `EPUBPreferences`. Use
+/// `init(publication:readingOrder:preferences:defaults:)` to resolve them
+/// yourself, for example to check which settings are effective with
+/// `isEffective(_:)`.
+///
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings, Sendable {
-    public var backgroundColor: Color?
-    public var blendImages: Bool
-    public var columnCount: Int?
-    public var darkenImages: Double?
-    public var fit: Fit
-    public var fontFamily: FontFamily?
-    public var fontSize: Double
-    public var fontWeight: Double?
-    public var fontWidth: Double?
-    public var hyphens: Bool?
-    public var invertGaiji: Bool
-    public var invertImages: Bool
-    public var language: Language?
-    public var letterSpacing: Double?
-    public var ligatures: Bool?
-    public var lineHeight: Double?
-    public var linkColor: Color?
-    public var maximalLineLength: Double?
-    public var minimalLineLength: Double?
-    public var noRuby: Bool
-    public var offsetFirstPage: Bool?
-    public var optimalLineLength: Double
-    public var pageMargins: Double
-    public var paragraphIndent: Double?
-    public var paragraphSpacing: Double?
-    public var readingProgression: ReadingProgression
-    public var scroll: Bool
-    public var spread: Spread
-    public var textAlign: TextAlignment?
-    public var textColor: Color?
-    public var textNormalization: Bool
-    public var verticalText: Bool
-    public var visitedColor: Color?
-    public var wordSpacing: Double?
+    public internal(set) var backgroundColor: Color?
+    public internal(set) var blendImages: Bool
+    public internal(set) var columnCount: Int?
+    public internal(set) var darkenImages: Double?
+    public internal(set) var fit: Fit
+    public internal(set) var fontFamily: FontFamily?
+    public internal(set) var fontSize: Double
+    public internal(set) var fontWeight: Double?
+    public internal(set) var fontWidth: Double?
+    public internal(set) var hyphens: Bool?
+    public internal(set) var invertGaiji: Bool
+    public internal(set) var invertImages: Bool
+    public internal(set) var language: Language?
+    public internal(set) var letterSpacing: Double?
+    public internal(set) var ligatures: Bool?
+    public internal(set) var lineHeight: Double?
+    public internal(set) var linkColor: Color?
+    public internal(set) var maximalLineLength: Double?
+    public internal(set) var minimalLineLength: Double?
+    public internal(set) var noRuby: Bool
+    public internal(set) var offsetFirstPage: Bool?
+    public internal(set) var optimalLineLength: Double
+    public internal(set) var pageMargins: Double
+    public internal(set) var paragraphIndent: Double?
+    public internal(set) var paragraphSpacing: Double?
+    public internal(set) var readingProgression: ReadingProgression
+    public internal(set) var scroll: Bool
+    public internal(set) var spread: Spread
+    public internal(set) var textAlign: TextAlignment?
+    public internal(set) var textColor: Color?
+    public internal(set) var textNormalization: Bool
+    public internal(set) var verticalText: Bool
+    public internal(set) var visitedColor: Color?
+    public internal(set) var wordSpacing: Double?
 
     public var effectiveBackgroundColor: Color {
         backgroundColor ?? ReadiumCSS.defaultBackgroundColor
     }
 
-    let cssLayout: CSSLayout
+    /// Readium CSS layout, derived from the `language`, `readingProgression`
+    /// and `verticalText` settings.
+    var cssLayout: CSSLayout {
+        CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
+    }
 
-    public init(
+    /// Layouts of the resources rendered by the navigator.
+    let layouts: EPUBLayouts
+
+    init(
+        layouts: EPUBLayouts = .reflowable,
         backgroundColor: Color?,
         blendImages: Bool,
         columnCount: Int?,
@@ -122,10 +135,42 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.verticalText = verticalText
         self.visitedColor = visitedColor
         self.wordSpacing = wordSpacing.map { max($0, 0) }
-        cssLayout = CSSLayout(verticalText: verticalText, language: language, readingProgression: readingProgression)
+        self.layouts = layouts
     }
 
-    init(preferences: EPUBPreferences, defaults: EPUBDefaults, metadata: Metadata) {
+    /// Resolves the settings applied by the EPUB navigator to `publication`
+    /// with the given `preferences`.
+    ///
+    /// A preference takes precedence over the publication metadata, which
+    /// takes precedence over the `defaults`. Some settings are also derived
+    /// from others, for example vertical text forces the scroll mode.
+    ///
+    /// - Parameters:
+    ///   - readingOrder: Reading order rendered by the navigator, when it
+    ///     differs from `publication.readingOrder`. This happens when the
+    ///     navigator is created with a custom reading order, or with a
+    ///     `Configuration.preferredResourceVariant`: pass
+    ///     `EPUBNavigatorViewController.readingOrder` then. It determines
+    ///     which settings are effective, since a publication can mix
+    ///     reflowable and fixed-layout resources.
+    ///   - defaults: Default values of the navigator, given in its
+    ///     `EPUBNavigatorViewController.Configuration`.
+    public init(
+        publication: Publication,
+        readingOrder: [Link]? = nil,
+        preferences: EPUBPreferences,
+        defaults: EPUBDefaults = EPUBDefaults()
+    ) {
+        let metadata = publication.metadata
+        self.init(
+            preferences: preferences,
+            defaults: defaults,
+            metadata: metadata,
+            layouts: EPUBLayouts(readingOrder: readingOrder ?? publication.readingOrder, metadata: metadata)
+        )
+    }
+
+    init(preferences: EPUBPreferences, defaults: EPUBDefaults, metadata: Metadata, layouts: EPUBLayouts = .reflowable) {
         // Compute language according to the following rule:
         // preference value > metadata value > default value > null
         let language = preferences.language
@@ -184,6 +229,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let wordSpacing = preferences.wordSpacing ?? defaults.wordSpacing
 
         self.init(
+            layouts: layouts,
             backgroundColor: preferences.backgroundColor,
             blendImages: preferences.blendImages ?? false,
             columnCount: columnCount,
@@ -219,6 +265,82 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
             visitedColor: preferences.visitedColor,
             wordSpacing: wordSpacing
         )
+    }
+}
+
+public extension EPUBSettings {
+    /// Indicates whether the given `setting` would take effect if it was set
+    /// by a preference, with the publication and the other settings.
+    ///
+    /// Use it to disable the controls of the settings which have no effect.
+    /// It doesn't tell whether the setting is set: a setting left unset keeps
+    /// the styles of the publication.
+    ///
+    /// The rules of each setting are:
+    /// - Always effective: `backgroundColor`, `language`,
+    ///   `readingProgression`.
+    /// - When the publication contains fixed-layout resources: `fit`,
+    ///   `spread`, and `offsetFirstPage` when `spread` is not `.never`.
+    /// - When the publication contains reflowable resources, and:
+    ///   - always: `blendImages`, `darkenImages`, `fontFamily`, `fontSize`,
+    ///     `fontWeight`, `fontWidth`, `invertGaiji`, `invertImages`,
+    ///     `lineHeight`, `linkColor`, `maximalLineLength`, `pageMargins`,
+    ///     `paragraphSpacing`, `textColor`, `verticalText`, `visitedColor`.
+    ///   - `columnCount`: when `scroll` is off.
+    ///   - `optimalLineLength`: when `scroll` is off and `columnCount` is
+    ///     `nil` (automatic).
+    ///   - `minimalLineLength`: when `scroll` is off and `columnCount` is
+    ///     greater than 1.
+    ///   - `scroll`: when `verticalText` is off, as vertical text is always
+    ///     scrolled.
+    ///   - `hyphens`, `textNormalization`: with an LTR layout.
+    ///   - `ligatures`, `paragraphIndent`, `textAlign`, `wordSpacing`: with
+    ///     an LTR or RTL layout.
+    ///   - `letterSpacing`: with an LTR or CJK layout.
+    ///   - `noRuby`: with a CJK layout.
+    ///
+    /// The layout (LTR, RTL or CJK) depends on the `language`,
+    /// `readingProgression` and `verticalText` settings.
+    ///
+    /// - Parameter setting: Key path of a stored setting, e.g. `\.hyphens`.
+    ///   Other key paths, such as `\.effectiveBackgroundColor`, are a
+    ///   programming error.
+    func isEffective(_ setting: PartialKeyPath<EPUBSettings>) -> Bool {
+        let reflowable = layouts.contains(.reflowable)
+        let fixed = layouts.contains(.fixed)
+        let stylesheets = cssLayout.stylesheets
+
+        switch setting {
+        case \.backgroundColor, \.language, \.readingProgression:
+            return true
+        case \.fit, \.spread:
+            return fixed
+        case \.offsetFirstPage:
+            return fixed && spread != .never
+        case \.blendImages, \.darkenImages, \.fontFamily, \.fontSize,
+             \.fontWeight, \.fontWidth, \.invertGaiji, \.invertImages,
+             \.lineHeight, \.linkColor, \.maximalLineLength, \.pageMargins,
+             \.paragraphSpacing, \.textColor, \.verticalText, \.visitedColor:
+            return reflowable
+        case \.columnCount:
+            return reflowable && !scroll
+        case \.optimalLineLength:
+            return reflowable && !scroll && columnCount == nil
+        case \.minimalLineLength:
+            return reflowable && !scroll && (columnCount ?? 1) > 1
+        case \.scroll:
+            return reflowable && !verticalText
+        case \.hyphens, \.textNormalization:
+            return reflowable && stylesheets == .default
+        case \.ligatures, \.paragraphIndent, \.textAlign, \.wordSpacing:
+            return reflowable && [.default, .rtl].contains(stylesheets)
+        case \.letterSpacing:
+            return reflowable && [.default, .cjkHorizontal, .cjkVertical].contains(stylesheets)
+        case \.noRuby:
+            return reflowable && stylesheets.isCJK
+        default:
+            preconditionFailure("\(setting) is not a stored setting of EPUBSettings")
+        }
     }
 }
 

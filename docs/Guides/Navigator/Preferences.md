@@ -29,19 +29,13 @@ assert(epubNavigator.settings.fontFamily == .serif)
 
 ### Editing preferences
 
-To assist you in building a preferences user interface or modifying existing preferences, navigators can offer a `PreferencesEditor`. Each implementation includes rules for adjusting preferences, such as the supported values or ranges.
+Your app owns the values chosen by the user. Edit them in your own settings model, then derive the `Preferences` from it before submitting them to the Navigator (see [Save and restore the user preferences](#save-and-restore-the-user-preferences)).
 
 ```swift
-// 1. Create a preferences editor.
-let editor = epubNavigator.editor(of: preferences)
-    
-// 2. Modify the preferences through the editor.
-editor.fontFamily.set(.serif)
-editor.fontSize.increment()
-editor.hyphens.toggle()
+var settings = ReaderSettings()
+settings.fontSize = 1.2
 
-// 3. Submit the edited preferences.
-epubNavigator.submitPreferences(editor.preferences)
+epubNavigator.submitPreferences(settings.preferences())
 ```
 
 ### Preferences are low-level
@@ -52,14 +46,24 @@ For instance, in EPUB, we can simulate two pages side by side using the `columnC
 
 ### Inactive settings
 
-A setting may be inactive if its activation conditions are not met in a set of preferences. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the `hyphens` setting is effective only with a left-to-right layout.
+A setting may be inactive if its activation conditions are not met. The Navigator will ignore inactive settings when updating its presentation. For example, with the EPUB navigator, the `hyphens` setting is effective only with a left-to-right layout, and `columnCount` only in paginated mode.
 
-You can check if a setting is effective for a set of preferences using the `PreferencesEditor`:
+To check if a setting is effective, resolve the settings that the Navigator would apply to the publication with your preferences, then call **`isEffective(_:)`** with the key path of the setting.
 
 ```swift
-let editor = epubNavigator.editor(of: preferences)
-editor.wordSpacing.isEffective
+let settings = EPUBSettings(
+    publication: publication,
+    preferences: preferences,
+    defaults: defaults
+)
+
+settings.isEffective(\.wordSpacing)
 ```
+
+**`isEffective(_:)`** tells whether a setting would take effect if it was set, with this publication and the other settings. It doesn't tell whether the user set it, as your model already knows it. Use it to disable the controls of the inactive settings. **`PDFSettings(publication:preferences:defaults:)`** works the same way, and the audio settings are always effective.
+
+> [!IMPORTANT]
+> Give the same `defaults` as the Navigator configuration. If you give a custom reading order to the EPUB navigator, or a `preferredResourceVariant` in its configuration, the rendered reading order differs from the publication's: give **`EPUBNavigatorViewController.readingOrder`** as the `readingOrder` too, as a publication can mix reflowable and fixed-layout resources. Otherwise, **`isEffective(_:)`** may not match the Navigator. Note that the EPUB navigator also forces the scroll mode when VoiceOver is running, which the resolved settings don't reflect.
 
 ## Setting the initial Navigator preferences and app defaults
 
@@ -84,301 +88,35 @@ The `defaults` are used as fallback values when the default Navigator settings a
 
 ## Build a user settings interface
 
-❓ The following examples use SwiftUI, but could be implemented using UIKit as well.
+❓ The following example uses SwiftUI, but could be implemented using UIKit as well.
 
-### `PreferencesEditor`
-
-Although you could create and modify `Preferences` objects directly before submitting them to the Navigator, a `PreferenceEditor` can assist you by providing helpers for dealing with each preference type when building the user interface.
-
-`PreferencesEditor` implementations are specific to each Navigator, but they all provide `Preference<Value>` properties for every setting (e.g. font size or text color). 
-
-### `UserPreferences` view
-
-You can use the `PreferencesEditor` type to determine which (media type agnostic) view to create.
+A row of your settings screen binds a control to a value of your settings model, and is disabled when the setting is not effective. When the user didn't set the value, the row can display the setting resolved by the Navigator, or a starting value for the optional settings, as suggested in the documentation of each property of the `Preferences` types.
 
 ```swift
-struct UserPreferences<
-    P: ConfigurablePreferences,
-    E: PreferencesEditor
->: View where E.Preferences == P {
+struct ScrollRow: View {
+    @Binding var settings: ReaderSettings
+    let publication: Publication
+    let defaults: EPUBDefaults
 
-    let editor: E
-    let commit: () -> Void
-
-    @ViewBuilder var body: some View {
-        List {
-            Button("Reset") {
-                editor.clear()
-                commit()
-            }
-
-            switch editor {
-            case let editor as PDFPreferencesEditor:
-                fixedLayoutUserPreferences(
-                    commit: commit,
-                    backgroundColor: editor.backgroundColor,
-                    readingProgression: editor.readingProgression,
-                    scroll: editor.scroll,
-                    ...
-                )
-
-            case let editor as EPUBPreferencesEditor:
-                switch editor.defaultLayout {
-                case .reflowable:
-                    reflowableUserPreferences(
-                        commit: commit,
-                        backgroundColor: editor.backgroundColor,
-                        columnCount: editor.columnCount,
-                        fontFamily: editor.fontFamily,
-                        ...
-                    )
-                case .fixed:
-                    fixedLayoutUserPreferences(
-                        commit: commit,
-                        backgroundColor: editor.backgroundColor,
-                        readingProgression: editor.readingProgression,
-                        ...
-                    )
-                }
-
-            default:
-                fatalError("Unsupported preferences editor.")
-            }
-        }
-    }
-}
-```
-
-The `commit` parameter is a closure used to save the edited preferences to the data store, before submitting them to the Navigator.
-
-❓ The individual `PDFPreferencesEditor` properties are passed to `fixedLayoutUserPreferences()` so that it can be reused with other fixed-layout publication types, such as FXL EPUB or comic books. This is useful to reuse the user interface for similar publication types.
-
-### User settings view for fixed-layout publications
-
-This stateless view displays the actual preferences for a fixed-layout publication. The `Preference` parameters are nullable as they might not be available for all publication types. It delegates the rendering of individual preferences to more specific views.
-
-```swift
-@ViewBuilder func fixedLayoutUserPreferences(
-    commit: @escaping () -> Void,
-    scroll: AnyPreference<Bool>? = nil,
-    fit: AnyEnumPreference<ReadiumNavigator.Fit>? = nil,
-    pageSpacing: AnyRangePreference<Double>? = nil
-) -> some View {
-    if let scroll = scroll {
-        toggleRow(
-            title: "Scroll",
-            preference: scroll,
-            commit: commit
+    var body: some View {
+        let navigatorSettings = EPUBSettings(
+            publication: publication,
+            preferences: settings.preferences(),
+            defaults: defaults
         )
-    }
 
-    if let fit = fit {
-        pickerRow(
-            title: "Fit",
-            preference: fit,
-            commit: commit,
-            formatValue: { v in
-                switch v {
-                case .cover: return "Cover"
-                case .contain: return "Contain"
-                case .width: return "Width"
-                case .height: return "Height"
-                }
-            }
-        )
-    }
-
-    if let pageSpacing = pageSpacing {
-        stepperRow(
-            title: "Page spacing",
-            preference: pageSpacing,
-            commit: commit
-        )
-    }
-}
-```
-
-### View for a boolean `Preference`
-
-A `Preference<Bool>` can be represented as a simple toggle button.
-
-```swift
-@ViewBuilder func toggleRow(
-    title: String,
-    preference: AnyPreference<Bool>,
-    commit: @escaping () -> Void
-) -> some View {
-    Toggle(title,
-        isOn: Binding(
-            get: { preference.value ?? preference.effectiveValue },
-            set: { checked in
-                preference.set(checked)
-                commit()
-            }
-        )
-    )
-}
-```
-
-For convenience, you could add a custom extension to create a SwiftUI `Binding` from a `Preference`. 
-
-```swift
-
-Toggle(title,
-    isOn: preference.binding(onSet: commit)
-)
-
-extension Preference {
-
-    /// Creates a SwiftUI binding to modify the preference's value.
-    ///
-    /// This is convenient when paired with a `Toggle` or `Picker`.
-    func binding(onSet: @escaping () -> Void = {}) -> Binding<Value> {
-        Binding(
-            get: { value ?? effectiveValue },
-            set: { set($0); onSet() }
-        )
-    }
-}
-```
-
-### `value` vs `effectiveValue`, which one to use?
-
-In the previous example, you may have noticed the use of `preference.value ?? preference.effectiveValue` for the current value.
-
-* `value` holds the user-selected preference, which may be `nil`.
-* `effectiveValue` is the setting value that will actually be used by the Navigator once the preferences are submitted. It may be different from the user-selected value if it is incompatible or invalid.
-
-This is a common pattern with this API because it is less confusing to display the user-selected value, even if it will not actually be used by the Navigator.
-
-### View for a `RangePreference<Value>`
-
-A `RangePreference<Value>` can be represented as a stepper component with decrement and increment buttons.
-
-```swift
-@ViewBuilder func stepperRow<V: Comparable>(
-    title: String,
-    preference: AnyRangePreference<V>,
-    commit: @escaping () -> Void
-) -> some View {
-    Stepper(
-        onIncrement: {
-            preference.increment()
-            commit()
-        },
-        onDecrement: {
-            preference.decrement()
-            commit()
-        }
-    ) {
-        HStack {
-            Text(title)
-
-            Spacer()
-
-            Text(preference.format(value: preference.value ?? preference.effectiveValue))
-                .font(.caption)
-        }
-    }
-}
-```
-
-This view uses the `increment()` and `decrement()` range helpers of `RangePreference`, but it is also possible to set a value manually.
-
-The current value is displayed after formatting it with the `RangePreference.format(value:)` helper. This will automatically format the value to a human-readable string, such as a percentage or a value with units (e.g. 30px).
-
-### View for an `OptionalRangePreference<Value>`
-
-An `OptionalRangePreference<Value>` is a `Preference<Value?>` whose value is either `nil` or in a range, such as an optional limit where `nil` means "no limit". It can be represented as a toggle to enable it or set it to `nil`, next to a stepper for the value.
-
-```swift
-@ViewBuilder func optionalStepperRow<V: Comparable>(
-    title: String,
-    preference: AnyOptionalRangePreference<V>,
-    commit: @escaping () -> Void
-) -> some View {
-    let value = preference.value ?? preference.effectiveValue
-
-    HStack {
-        Text(title)
-
-        Spacer()
-
-        Toggle(title, isOn: Binding(
-            get: { value != nil },
-            set: { isEnabled in
-                preference.set(isEnabled ? preference.defaultValue : nil)
-                commit()
-            }
+        Toggle("Scroll", isOn: Binding(
+            get: { settings.scroll ?? navigatorSettings.scroll },
+            set: { settings.scroll = $0 }
         ))
-        .labelsHidden()
-
-        Stepper(
-            title,
-            onIncrement: {
-                preference.increment()
-                commit()
-            },
-            onDecrement: {
-                preference.decrement()
-                commit()
-            }
-        )
-        .labelsHidden()
-        .disabled(value == nil)
-
-        Text(preference.format(value: value ?? preference.defaultValue))
-            .font(.caption)
-            .foregroundColor(value == nil ? .gray : nil)
+        .disabled(!navigatorSettings.isEffective(\.scroll))
     }
 }
 ```
 
-`defaultValue` is the value used when both the preference and its effective value are `nil`. The `increment()` and `decrement()` helpers start from it, and the example above uses it when the toggle is turned on.
+When `settings` changes, save it and submit its preferences to the Navigator. Resolving the settings is cheap, so you can do it every time the view is updated.
 
-> [!NOTE]
-> Setting the preference to `nil` unsets it, so the Navigator falls back on its default setting. If the default is not `nil`, the preference can't be disabled.
-
-### View for an `EnumPreference<Value>`
-
-An `EnumPreference<Value>` is a preference accepting a closed set of values. This is a great candidate to use a [`Picker`](https://developer.apple.com/documentation/swiftui/picker) view with different styles depending on the value set.
-
-* a `menu` for a large enum
-* a `radioGroup` or `segmented` buttons for a small one
-
-In the following example, the `Picker` is built with `preference.supportedValues`, which returns the allowed enum members.
-
-```swift
-@ViewBuilder func pickerRow<V: Hashable>(
-    title: String,
-    preference: AnyEnumPreference<V>,
-    commit: @escaping () -> Void,
-    formatValue: @escaping (V) -> String
-) -> some View {
-    Picker(title, selection: preference.binding(onSet: commit)) {
-        ForEach(preference.supportedValues, id: \.self) {
-            Text(formatValue($0)).tag($0)
-        }
-    }
-}
-```
-
-> [!NOTE]
-> Contrarily to a `RangePreference`, there's no intrinsic `format(value:)` helper for an `EnumPreference`. Instead, you must provide your own localized strings for the possible values.
-
-```swift
-pickerRow(
-    title: "Reading progression",
-    preference: readingProgression,
-    commit: commit,
-    formatValue: { v in
-        switch v {
-        case .ltr: return "LTR"
-        case .rtl: return "RTL"
-        }
-    }
-)
-```
+The [Test App](../../../TestApp/Sources/Reader/Common/Preferences/UserPreferences.swift) has a complete settings screen for the EPUB, PDF and audio navigators.
 
 ## Save and restore the user preferences
 
@@ -488,14 +226,15 @@ Bitmaps and SVG documents in the reading order are always rendered as fixed-layo
 | `visitedColor`       | ✅         |              |
 | `wordSpacing`        | ✅         |              |
 
-#### Unset preferences
+#### Optional settings
 
-The following preferences are effective only when explicitly set. When unset, the publisher styles are observed.
+The following settings are `nil` when they are unset in both the preferences and the defaults. The Navigator then observes the publisher styles, whose values are unknown to the toolkit. **`isEffective(_:)`** tells whether they would take effect once set.
 
 * `backgroundColor`
+* `fontFamily`
 * `fontWeight`
 * `fontWidth` (only fonts with a width axis support it, typically variable fonts)
-* `hyphens` (also effective when `textAlign` is `.justify`)
+* `hyphens` (Readium CSS hyphenates the justified text when unset)
 * `letterSpacing`
 * `ligatures`
 * `lineHeight`
@@ -566,16 +305,18 @@ struct ReaderTheme: Equatable {
     )
 }
 
-func apply(_ theme: ReaderTheme, to editor: EPUBPreferencesEditor) {
-    // Setting `nil` clears the preference.
-    editor.textColor.set(theme.textColor)
-    editor.backgroundColor.set(theme.backgroundColor)
-    editor.linkColor.set(theme.linkColor)
-    editor.visitedColor.set(theme.visitedColor)
-
-    // Then save and submit `editor.preferences` once.
+extension EPUBPreferences {
+    /// Sets the colors of the `theme`. `nil` clears a color preference.
+    mutating func apply(_ theme: ReaderTheme) {
+        textColor = theme.textColor
+        backgroundColor = theme.backgroundColor
+        linkColor = theme.linkColor
+        visitedColor = theme.visitedColor
+    }
 }
 ```
+
+Store the theme selected by the user in your settings model, and apply it when deriving the preferences.
 
 #### Image filters
 
@@ -607,10 +348,13 @@ Some preferences are not available for all languages and layout.
 
 Some preferences are available only in scroll or paginated mode (`scroll = false`).
 
-| Preference         | Vertical Scroll | Horizontal Scroll | Paginated |
-|--------------------|-----------------|-------------------|-----------|
-| `offsetFirstPage`  | ✅              |                   | ✅        |
-| `spread`           | ✅              |                   | ✅        |
-| `scrollAxis`       | ✅              | ✅                |           |
-| `visibleScrollbar` | ✅              | ✅                |           |
+| Preference           | Vertical Scroll | Horizontal Scroll | Paginated |
+|----------------------|-----------------|-------------------|-----------|
+| `fit`                | ✅              | ✅                |           |
+| `offsetFirstPage`    | ✅              |                   | ✅        |
+| `readingProgression` |                 |                   | ✅        |
+| `spread`             | ✅              |                   | ✅        |
+| `scrollAxis`         | ✅              | ✅                |           |
+| `visibleScrollbar`   | ✅              | ✅                |           |
 
+`offsetFirstPage` is also inactive when `spread` is `.never`.

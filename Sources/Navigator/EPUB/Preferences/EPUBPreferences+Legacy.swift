@@ -478,32 +478,3 @@ public extension EPUBDefaults {
         fatalError()
     }
 }
-
-// MARK: - Removed editor preferences
-
-public extension EPUBPreferencesEditor {
-    @available(*, unavailable, renamed: "defaultLayout")
-    var layout: EPUBLayout {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Not needed anymore, the preferences take effect as soon as they are set")
-    var publisherStyles: AnyPreference<Bool> {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Removed without replacement")
-    var typeScale: AnyRangePreference<Double> {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use darkenImages or invertImages instead")
-    var imageFilter: AnyEnumPreference<ImageFilter?> {
-        fatalError()
-    }
-
-    @available(*, unavailable, message: "Use textColor, backgroundColor, linkColor and visitedColor instead")
-    var theme: AnyEnumPreference<Theme> {
-        fatalError()
-    }
-}

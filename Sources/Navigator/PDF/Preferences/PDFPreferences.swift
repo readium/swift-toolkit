@@ -25,7 +25,8 @@ public struct PDFPreferences: ConfigurablePreferences, Sendable {
 
     /// Spacing between pages in points.
     ///
-    /// Negative values are replaced with `0`.
+    /// Accepted range: `0.0...`, negative values are replaced with `0.0`.
+    /// Suggested range: `0.0...200.0`, with a step of `4.0`.
     public var pageSpacing: Double?
 
     /// Direction of the horizontal progression across pages.

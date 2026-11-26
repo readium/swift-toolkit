@@ -25,12 +25,10 @@ struct ReadiumCSS {
 }
 
 extension ReadiumCSS {
-    // Default colors of the Readium CSS stylesheets, used when the matching
-    // user colors are unset and the publication doesn't have its own.
-    static let defaultTextColor = Color(rawValue: 0x121212)
+    /// Default background color of the Readium CSS stylesheets, used when the
+    /// user background color is unset and the publication doesn't have its
+    /// own.
     static let defaultBackgroundColor = Color(rawValue: 0xFFFFFF)
-    static let defaultLinkColor = Color(rawValue: 0x0000EE)
-    static let defaultVisitedColor = Color(rawValue: 0x551A8B)
 }
 
 extension ReadiumCSS {

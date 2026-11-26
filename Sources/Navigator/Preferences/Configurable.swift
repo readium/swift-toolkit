@@ -11,7 +11,6 @@ import Foundation
 public protocol Configurable {
     associatedtype Settings: ConfigurableSettings
     associatedtype Preferences: ConfigurablePreferences
-    associatedtype Editor: PreferencesEditor where Editor.Preferences == Preferences
 
     /// Current `Settings` values.
     var settings: Settings { get }
@@ -22,10 +21,6 @@ public protocol Configurable {
     /// ignore some of the provided preferences. They are only used as hints to compute the new
     /// settings.
     func submitPreferences(_ preferences: Preferences)
-
-    /// Creates a `PreferencesEditor` helping build a user interface and modifying the given
-    /// `preferences`.
-    func editor(of preferences: Preferences) -> Editor
 }
 
 /// Marker interface for the setting properties holder.
@@ -46,7 +41,7 @@ public extension ConfigurablePreferences {
 
 public extension Configurable {
     /// Wraps this `Configurable` with a type eraser.
-    func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences, Editor> {
+    func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences> {
         AnyConfigurable(self)
     }
 }
@@ -54,19 +49,16 @@ public extension Configurable {
 /// A type-erasing `Configurable` object.
 public final class AnyConfigurable<
     Settings: ConfigurableSettings,
-    Preferences: ConfigurablePreferences,
-    Editor: PreferencesEditor
->: Configurable where Editor.Preferences == Preferences {
+    Preferences: ConfigurablePreferences
+>: Configurable {
     private let _settings: () -> Settings
     private let _submitPreferences: (Preferences) -> Void
-    private let _editor: (Preferences) -> Editor
 
     init<C: Configurable>(_ configurable: C)
-        where C.Settings == Settings, C.Preferences == Preferences, C.Editor == Editor
+        where C.Settings == Settings, C.Preferences == Preferences
     {
         _settings = { configurable.settings }
         _submitPreferences = configurable.submitPreferences
-        _editor = configurable.editor(of:)
     }
 
     public var settings: Settings {
@@ -75,9 +67,5 @@ public final class AnyConfigurable<
 
     public func submitPreferences(_ preferences: Preferences) {
         _submitPreferences(preferences)
-    }
-
-    public func editor(of preferences: Preferences) -> Editor {
-        _editor(preferences)
     }
 }

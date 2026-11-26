@@ -26,7 +26,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// the viewport size. Values lower than `1` are ignored.
     public var columnCount: Int?
 
-    /// Darkens images by the given percentage (0.0 to 1.0).
+    /// Darkens images by the given percentage, from `0.0` to `1.0`.
+    ///
+    /// Accepted range: `0.0...1.0`, other values are clamped. Suggested step:
+    /// `0.1`. When unset, a control can start from `0.0`.
     public var darkenImages: Double?
 
     /// Method for fitting the content of fixed-layout resources within the
@@ -39,17 +42,27 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Default typeface for the text.
     public var fontFamily: FontFamily?
 
-    /// Base text font size.
+    /// Base text font size, as a factor of the default size.
+    ///
+    /// Suggested range: `0.1...5.0`, with a step of `0.1`.
     public var fontSize: Double?
 
     /// Default boldness for the text.
+    ///
+    /// Accepted range: `0.0...2.5`, other values are clamped. Suggested step:
+    /// `0.25`. When unset, a control can start from `1.0`.
     public var fontWeight: Double?
 
     /// Width of the glyphs, for the fonts which support it (variable fonts
     /// with a `wdth` axis).
+    ///
+    /// Accepted range: `0.5...2.5`, other values are clamped. Suggested step:
+    /// `0.1`. When unset, a control can start from `1.0`.
     public var fontWidth: Double?
 
     /// Enable hyphenation.
+    ///
+    /// When unset, Readium CSS hyphenates the text only when it is justified.
     public var hyphens: Bool?
 
     /// Inverts the colors of the gaiji images when `true`.
@@ -62,12 +75,21 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     public var language: Language?
 
     /// Space between letters.
+    ///
+    /// Accepted range: `0.0...`, negative values are replaced with `0.0`.
+    /// Suggested range: `0.0...1.0`, with a step of `0.1`. When unset, a
+    /// control can start from `0.0`.
     public var letterSpacing: Double?
 
     /// Enable ligatures.
+    ///
+    /// When unset, a control can start from `true`.
     public var ligatures: Bool?
 
     /// Leading line height.
+    ///
+    /// Suggested range: `1.0...2.0`, with a step of `0.1`. When unset, a
+    /// control can start from `1.5`.
     public var lineHeight: Double?
 
     /// Color of the hyperlinks.
@@ -80,6 +102,8 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     ///
     /// It is used only in paginated mode, when `columnCount` is `nil`. Values
     /// lower than or equal to `0` are ignored.
+    ///
+    /// Suggested range: `0.5...2.0`, with a step of `0.1`.
     public var optimalLineLength: Double?
 
     /// Factor applied to the maximal line length of the reflowable resources.
@@ -87,6 +111,9 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// When `nil`, `EPUBDefaults.maximalLineLength` is used. When both are
     /// `nil`, the lines take all the available width. Values lower than or
     /// equal to `0` are ignored.
+    ///
+    /// Suggested range: `0.5...2.0`, with a step of `0.1`. When unset, a
+    /// control can start from `1.0`.
     public var maximalLineLength: Double?
 
     /// Factor applied to the minimal line length of the reflowable resources,
@@ -96,6 +123,9 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// 1. When `nil` and without a default value, the requested number of
     /// columns is always displayed, unless the margins leave no room for the
     /// lines. Values lower than or equal to `0` are ignored.
+    ///
+    /// Suggested range: `0.5...2.0`, with a step of `0.1`. When unset, a
+    /// control can start from `1.0`.
     public var minimalLineLength: Double?
 
     /// Hides the ruby (furigana) annotations when `true`.
@@ -107,17 +137,29 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Indicates whether the first page should be displayed alone and centered
     /// instead of alongside the second page.
     ///
-    /// This is only effective if spreads are enabled.
+    /// This is only effective if spreads are enabled. When `nil` and without
+    /// a default value, it is chosen automatically from the publication
+    /// metadata.
     public var offsetFirstPage: Bool?
 
     /// Factor applied to the minimal margins on each side of the lines (left
     /// and right, or top and bottom with vertical text).
+    ///
+    /// Accepted range: `0.0...`, negative values are replaced with `0.0`.
+    /// Suggested range: `0.0...4.0`, with a step of `0.3`.
     public var pageMargins: Double?
 
     /// Text indentation for paragraphs.
+    ///
+    /// Suggested range: `0.0...3.0`, with a step of `0.2`. When unset, a
+    /// control can start from `0.0`.
     public var paragraphIndent: Double?
 
     /// Vertical margins for paragraphs.
+    ///
+    /// Accepted range: `0.0...`, negative values are replaced with `0.0`.
+    /// Suggested range: `0.0...2.0`, with a step of `0.1`. When unset, a
+    /// control can start from `0.0`.
     public var paragraphSpacing: Double?
 
     /// Direction of the reading progression across resources.
@@ -132,6 +174,9 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     public var spread: Spread?
 
     /// Page text alignment.
+    ///
+    /// When `nil` and without a default value, the text alignment of the
+    /// publication is kept.
     public var textAlign: TextAlignment?
 
     /// Default page text color.
@@ -154,6 +199,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     public var visitedColor: Color?
 
     /// Space between words.
+    ///
+    /// Accepted range: `0.0...`, negative values are replaced with `0.0`.
+    /// Suggested range: `0.0...1.0`, with a step of `0.1`. When unset, a
+    /// control can start from `0.0`.
     public var wordSpacing: Double?
 
     public init(
@@ -229,8 +278,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     }
 }
 
-/// Limits of the preferences, shared with `EPUBDefaults`, `EPUBSettings` and
-/// the `EPUBPreferencesEditor`.
+/// Limits of the preferences, shared with `EPUBDefaults` and `EPUBSettings`.
 extension EPUBPreferences {
     static let fontWeightRange: ClosedRange<Double> = 0.0 ... 2.5
     static let fontWidthRange: ClosedRange<Double> = 0.5 ... 2.5

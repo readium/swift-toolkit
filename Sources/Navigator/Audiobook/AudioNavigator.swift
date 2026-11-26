@@ -1109,11 +1109,9 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
     }
 
+    @available(*, unavailable, message: "Every audio setting is always effective, see the AudioPreferences documentation for the supported values")
     public func editor(of preferences: AudioPreferences) -> AudioPreferencesEditor {
-        AudioPreferencesEditor(
-            initialPreferences: preferences,
-            defaults: config.defaults
-        )
+        fatalError()
     }
 }
 

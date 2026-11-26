@@ -38,6 +38,7 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
             initialLocation: locator,
             config: EPUBNavigatorViewController.Configuration(
                 preferences: initialPreferences,
+                defaults: EPUBUserSettings.defaults,
                 editingActions: EditingAction.defaultActions
                     .appending(EditingAction(
                         title: "Highlight",
@@ -75,9 +76,10 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
             let userPrefs = await UserPreferences(
                 model: UserPreferencesViewModel(
                     bookId: bookId,
-                    preferences: try! settingsStore.settings(for: bookId).preferences(),
-                    configurable: navigator,
-                    store: settingsStore
+                    publication: publication,
+                    settings: try! settingsStore.settings(for: bookId),
+                    store: settingsStore,
+                    submit: { [navigator] in navigator.submitPreferences($0) }
                 ),
                 onClose: { [weak self = self] in
                     self?.dismiss(animated: true)

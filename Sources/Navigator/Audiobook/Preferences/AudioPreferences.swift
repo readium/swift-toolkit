@@ -11,13 +11,18 @@ import ReadiumShared
 public struct AudioPreferences: ConfigurablePreferences, Sendable {
     public static let empty: AudioPreferences = .init()
 
-    /// Volume of playback, from 0.0 to 1.0.
+    /// Volume of playback, from `0.0` to `1.0`.
+    ///
+    /// Accepted range: `0.0...1.0`, other values are a programming error.
+    /// Suggested step: `0.1`.
     public var volume: Double? {
         willSet { precondition(newValue == nil || 0 ... 1 ~= newValue!) }
     }
 
-    /// Speed of playback.
-    /// Normal is 1.0.
+    /// Speed of playback, greater than or equal to `0.0`. Normal is `1.0`.
+    ///
+    /// Accepted range: `0.0...`, negative values are a programming error.
+    /// Suggested range: `0.1...6.0`, with a step of `0.1`.
     public var speed: Double? {
         willSet { precondition(newValue == nil || newValue! >= 0) }
     }

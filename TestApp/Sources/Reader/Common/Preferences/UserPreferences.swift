@@ -10,152 +10,105 @@ import ReadiumNavigator
 import ReadiumShared
 import SwiftUI
 
+/// Edits the `UserSettings` of a book, saves them in the store and submits
+/// their preferences to the navigator.
 @MainActor
-final class UserPreferencesViewModel<
-    S: ConfigurableSettings,
-    P: ConfigurablePreferences,
-    E: PreferencesEditor
->: ObservableObject where E.Preferences == P {
-    @Published private(set) var editor: E
+final class UserPreferencesViewModel<Settings: UserSettings>: ObservableObject {
+    @Published private(set) var settings: Settings
 
-    private let configurable: AnyConfigurable<S, P, E>
-    private let savePreferences: (P) async throws -> Void
+    let publication: Publication
+    private let bookId: Book.Id
+    private let store: UserSettingsStore<Settings>
     private var subscriptions = Set<AnyCancellable>()
 
-    init<C: Configurable, US: UserSettings>(
+    init(
         bookId: Book.Id,
-        preferences: P,
-        configurable: C,
-        store: UserSettingsStore<US>
-    ) where C.Settings == S, C.Preferences == P, C.Editor == E, US.Preferences == P {
-        editor = configurable.editor(of: preferences)
-        self.configurable = configurable.eraseToAnyConfigurable()
-        savePreferences = { preferences in
-            try await store.saveSettings(US(preferences), of: bookId)
-        }
+        publication: Publication,
+        settings: Settings,
+        store: UserSettingsStore<Settings>,
+        submit: @escaping (Settings.Preferences) -> Void
+    ) {
+        self.bookId = bookId
+        self.publication = publication
+        self.settings = settings
+        self.store = store
 
-        let preferences = store.settingsPublisher(for: bookId)
-            .map { $0.preferences() }
+        let settings = store.settingsPublisher(for: bookId)
             .receive(on: DispatchQueue.main)
 
-        preferences
-            .sink { [weak self] prefs in
+        settings
+            .sink { [weak self] settings in
                 // The publisher delivers on the main queue.
                 MainActor.assumeIsolated {
-                    self?.editor = configurable.editor(of: prefs)
+                    self?.settings = settings
                 }
             }
             .store(in: &subscriptions)
 
-        preferences
+        settings
             // First one is dropped to avoid refreshing the navigator when
             // opening the user preferences screen.
             .dropFirst()
-            .sink { prefs in
+            .sink { settings in
                 MainActor.assumeIsolated {
-                    configurable.submitPreferences(prefs)
+                    submit(settings.preferences())
                 }
             }
             .store(in: &subscriptions)
     }
 
-    func commit() {
-        Task {
-            try! await savePreferences(editor.preferences)
+    /// Settings applied by the navigator with the current user settings, to
+    /// tell which ones are effective.
+    var navigatorSettings: Settings.NavigatorSettings {
+        settings.navigatorSettings(for: publication)
+    }
+
+    /// Returns a binding modifying one of the user settings.
+    func binding<Value>(_ keyPath: WritableKeyPath<Settings, Value>) -> Binding<Value> {
+        Binding(
+            get: { self.settings[keyPath: keyPath] },
+            set: { value in self.update { $0[keyPath: keyPath] = value } }
+        )
+    }
+
+    /// Modifies the user settings and saves them.
+    func update(_ change: (inout Settings) -> Void) {
+        var settings = settings
+        change(&settings)
+        guard settings != self.settings else {
+            return
         }
+        self.settings = settings
+
+        Task {
+            try! await store.saveSettings(settings, of: bookId)
+        }
+    }
+
+    /// Clears every user setting.
+    func reset() {
+        update { $0 = .empty }
     }
 }
 
-struct UserPreferences<
-    S: ConfigurableSettings,
-    P: ConfigurablePreferences,
-    E: PreferencesEditor
->: View where E.Preferences == P {
-    @ObservedObject var model: UserPreferencesViewModel<S, P, E>
+struct UserPreferences<Settings: UserSettings>: View {
+    @ObservedObject var model: UserPreferencesViewModel<Settings>
     var onClose: () -> Void
 
-    private let languages: [Language?] = [nil] + Language.all
-        .map(\.primaryLanguage)
-        .removingDuplicates()
-        .sorted { l1, l2 in l1.localizedDescription() <= l2.localizedDescription() }
-
     var body: some View {
-        userPreferences(editor: model.editor, commit: model.commit)
-    }
-
-    func userPreferences<PE: PreferencesEditor>(editor: PE, commit: @escaping () -> Void) -> some View {
         NavigationView {
             List {
-                switch editor {
-                case let editor as PDFPreferencesEditor:
-                    fixedLayoutUserPreferences(
-                        commit: commit,
-                        fit: editor.fit,
-                        offsetFirstPage: editor.offsetFirstPage,
-                        pageSpacing: editor.pageSpacing,
-                        readingProgression: editor.readingProgression,
-                        scroll: editor.scroll,
-                        scrollAxis: editor.scrollAxis,
-                        spread: editor.spread,
-                        visibleScrollbar: editor.visibleScrollbar
-                    )
-
-                case let editor as EPUBPreferencesEditor:
-                    switch editor.defaultLayout {
-                    case .reflowable:
-                        reflowableUserPreferences(
-                            commit: commit,
-                            backgroundColor: editor.backgroundColor,
-                            blendImages: editor.blendImages,
-                            columnCount: editor.columnCount,
-                            darkenImages: editor.darkenImages,
-                            fontFamily: editor.fontFamily,
-                            fontSize: editor.fontSize,
-                            fontWeight: editor.fontWeight,
-                            fontWidth: editor.fontWidth,
-                            hyphens: editor.hyphens,
-                            invertGaiji: editor.invertGaiji,
-                            invertImages: editor.invertImages,
-                            language: editor.language,
-                            letterSpacing: editor.letterSpacing,
-                            ligatures: editor.ligatures,
-                            lineHeight: editor.lineHeight,
-                            linkColor: editor.linkColor,
-                            maximalLineLength: editor.maximalLineLength,
-                            minimalLineLength: editor.minimalLineLength,
-                            noRuby: editor.noRuby,
-                            optimalLineLength: editor.optimalLineLength,
-                            pageMargins: editor.pageMargins,
-                            paragraphIndent: editor.paragraphIndent,
-                            paragraphSpacing: editor.paragraphSpacing,
-                            readingProgression: editor.readingProgression,
-                            scroll: editor.scroll,
-                            textAlign: editor.textAlign,
-                            textColor: editor.textColor,
-                            textNormalization: editor.textNormalization,
-                            verticalText: editor.verticalText,
-                            visitedColor: editor.visitedColor,
-                            wordSpacing: editor.wordSpacing
-                        )
-                    case .fixed:
-                        fixedLayoutUserPreferences(
-                            commit: commit,
-                            backgroundColor: editor.backgroundColor,
-                            fit: editor.fit,
-                            language: editor.language,
-                            nullableOffsetFirstPage: editor.offsetFirstPage,
-                            readingProgression: editor.readingProgression,
-                            spread: editor.spread
-                        )
+                switch model {
+                case let model as UserPreferencesViewModel<EPUBUserSettings>:
+                    if model.publication.metadata.layout == .fixed {
+                        EPUBFixedLayoutPreferences(model: model)
+                    } else {
+                        EPUBReflowablePreferences(model: model)
                     }
-
-                case let editor as AudioPreferencesEditor:
-                    audioUserPreferences(
-                        commit: commit,
-                        volume: editor.volume,
-                        speed: editor.speed
-                    )
-
+                case let model as UserPreferencesViewModel<PDFUserSettings>:
+                    PDFPreferencesForm(model: model)
+                case let model as UserPreferencesViewModel<AudioUserSettings>:
+                    AudioPreferencesForm(model: model)
                 default:
                     Text("No user preferences available.")
                 }
@@ -169,887 +122,843 @@ struct UserPreferences<
                 }
 
                 ToolbarItemGroup(placement: .destructiveAction) {
-                    Button("Reset") {
-                        editor.clear()
-                        commit()
-                    }
+                    Button("Reset", action: model.reset)
                 }
-            }
-        }
-    }
-
-    private func button(_ label: String, action: @escaping () -> Void) -> some View {
-        Button(
-            action: action,
-            label: { Text(label) }
-        ).buttonStyle(.borderless)
-    }
-
-    /// User preferences screen for a publication with a fixed layout, such as
-    /// fixed-layout EPUB, PDF or comic book.
-    @ViewBuilder func fixedLayoutUserPreferences(
-        commit: @escaping () -> Void,
-        backgroundColor: AnyPreference<ReadiumNavigator.Color>? = nil,
-        fit: AnyEnumPreference<ReadiumNavigator.Fit>? = nil,
-        language: AnyPreference<Language?>? = nil,
-        offsetFirstPage: AnyPreference<Bool>? = nil,
-        nullableOffsetFirstPage: AnyPreference<Bool?>? = nil,
-        pageSpacing: AnyRangePreference<Double>? = nil,
-        readingProgression: AnyEnumPreference<ReadiumNavigator.ReadingProgression>? = nil,
-        scroll: AnyPreference<Bool>? = nil,
-        scrollAxis: AnyEnumPreference<ReadiumNavigator.Axis>? = nil,
-        spread: AnyEnumPreference<ReadiumNavigator.Spread>? = nil,
-        visibleScrollbar: AnyPreference<Bool>? = nil
-    ) -> some View {
-        NonEmptySection {
-            if let language = language {
-                languageRow(
-                    title: "Language",
-                    preference: language,
-                    commit: commit
-                )
-            }
-
-            if let readingProgression = readingProgression {
-                pickerRow(
-                    title: "Reading progression",
-                    preference: readingProgression,
-                    commit: commit,
-                    formatValue: { v in
-                        switch v {
-                        case .ltr: return "LTR"
-                        case .rtl: return "RTL"
-                        }
-                    }
-                )
-            }
-        }
-
-        if let backgroundColor = backgroundColor {
-            Section {
-                colorRow(
-                    title: "Background color",
-                    preference: backgroundColor,
-                    commit: commit
-                )
-            }
-        }
-
-        if let scroll = scroll {
-            Section {
-                toggleRow(
-                    title: "Scroll",
-                    preference: scroll,
-                    commit: commit
-                )
-
-                if let scrollAxis = scrollAxis {
-                    pickerRow(
-                        title: "Scroll axis",
-                        preference: scrollAxis,
-                        commit: commit,
-                        formatValue: { v in
-                            switch v {
-                            case .horizontal: return "Horizontal"
-                            case .vertical: return "Vertical"
-                            }
-                        }
-                    )
-                }
-            }
-        }
-
-        if let spread = spread {
-            Section {
-                pickerRow(
-                    title: "Spread",
-                    preference: spread,
-                    commit: commit,
-                    formatValue: { v in
-                        switch v {
-                        case .auto: return "Auto"
-                        case .never: return "Never"
-                        case .always: return "Always"
-                        }
-                    }
-                )
-
-                if let offsetFirstPage = offsetFirstPage {
-                    toggleRow(
-                        title: "Offset first page",
-                        preference: offsetFirstPage,
-                        commit: commit
-                    )
-                }
-
-                if let nullableOffsetFirstPage = nullableOffsetFirstPage {
-                    nullableBoolPickerRow(
-                        title: "Offset first page",
-                        preference: nullableOffsetFirstPage,
-                        commit: commit
-                    )
-                }
-            }
-        }
-
-        if let fit = fit {
-            Section {
-                pickerRow(
-                    title: "Fit",
-                    preference: fit,
-                    commit: commit,
-                    formatValue: { v in
-                        switch v {
-                        case .auto: return "Auto"
-                        case .page: return "Page"
-                        case .width: return "Width"
-                        }
-                    }
-                )
-            }
-        }
-
-        if let pageSpacing = pageSpacing {
-            Section {
-                stepperRow(
-                    title: "Page spacing",
-                    preference: pageSpacing,
-                    commit: commit
-                )
-            }
-        }
-    }
-
-    /// User settings for a publication with adjustable fonts and dimensions,
-    /// such as a reflowable EPUB, HTML document or PDF with reflow mode
-    /// enabled.
-    @ViewBuilder func reflowableUserPreferences(
-        commit: @escaping () -> Void,
-        backgroundColor: AnyPreference<ReadiumNavigator.Color>? = nil,
-        blendImages: AnyPreference<Bool>? = nil,
-        columnCount: AnyEnumPreference<Int?>? = nil,
-        darkenImages: AnyRangePreference<Double>? = nil,
-        fontFamily: AnyPreference<FontFamily?>? = nil,
-        fontSize: AnyRangePreference<Double>? = nil,
-        fontWeight: AnyRangePreference<Double>? = nil,
-        fontWidth: AnyRangePreference<Double>? = nil,
-        hyphens: AnyPreference<Bool>? = nil,
-        invertGaiji: AnyPreference<Bool>? = nil,
-        invertImages: AnyPreference<Bool>? = nil,
-        language: AnyPreference<Language?>? = nil,
-        letterSpacing: AnyRangePreference<Double>? = nil,
-        ligatures: AnyPreference<Bool>? = nil,
-        lineHeight: AnyRangePreference<Double>? = nil,
-        linkColor: AnyPreference<ReadiumNavigator.Color>? = nil,
-        maximalLineLength: AnyOptionalRangePreference<Double>? = nil,
-        minimalLineLength: AnyOptionalRangePreference<Double>? = nil,
-        noRuby: AnyPreference<Bool>? = nil,
-        optimalLineLength: AnyRangePreference<Double>? = nil,
-        pageMargins: AnyRangePreference<Double>? = nil,
-        paragraphIndent: AnyRangePreference<Double>? = nil,
-        paragraphSpacing: AnyRangePreference<Double>? = nil,
-        readingProgression: AnyEnumPreference<ReadiumNavigator.ReadingProgression>? = nil,
-        scroll: AnyPreference<Bool>? = nil,
-        textAlign: AnyEnumPreference<ReadiumNavigator.TextAlignment?>? = nil,
-        textColor: AnyPreference<ReadiumNavigator.Color>? = nil,
-        textNormalization: AnyPreference<Bool>? = nil,
-        verticalText: AnyPreference<Bool>? = nil,
-        visitedColor: AnyPreference<ReadiumNavigator.Color>? = nil,
-        wordSpacing: AnyRangePreference<Double>? = nil
-    ) -> some View {
-        NonEmptySection {
-            if let language = language {
-                languageRow(
-                    title: "Language",
-                    preference: language,
-                    commit: commit
-                )
-            }
-
-            if let readingProgression = readingProgression {
-                pickerRow(
-                    title: "Reading progression",
-                    preference: readingProgression,
-                    commit: commit,
-                    formatValue: { v in
-                        switch v {
-                        case .ltr: return "LTR"
-                        case .rtl: return "RTL"
-                        }
-                    }
-                )
-            }
-
-            if let verticalText = verticalText {
-                toggleRow(
-                    title: "Vertical text",
-                    preference: verticalText,
-                    commit: commit
-                )
-            }
-
-            if let noRuby = noRuby {
-                toggleRow(
-                    title: "Hide ruby annotations",
-                    preference: noRuby,
-                    commit: commit
-                )
-            }
-        }
-
-        NonEmptySection {
-            if let scroll = scroll {
-                toggleRow(
-                    title: "Scroll",
-                    preference: scroll,
-                    commit: commit
-                )
-            }
-
-            if let columnCount = columnCount {
-                pickerRow(
-                    title: "Columns",
-                    preference: columnCount,
-                    commit: commit,
-                    formatValue: { v in
-                        v.map { String($0) } ?? "Auto"
-                    }
-                )
-            }
-
-            if let pageMargins = pageMargins {
-                stepperRow(
-                    title: "Page margins",
-                    preference: pageMargins,
-                    commit: commit
-                )
-            }
-
-            if let optimalLineLength = optimalLineLength {
-                stepperRow(
-                    title: "Optimal line length",
-                    subtitle: "Chooses the number of columns. Applied when paginated with automatic columns.",
-                    preference: optimalLineLength,
-                    commit: commit
-                )
-            }
-
-            if let minimalLineLength = minimalLineLength {
-                optionalStepperRow(
-                    title: "Minimal line length",
-                    subtitle: "Removes columns when the lines would be shorter. Applied when paginated with a fix number of columns (2 or more).",
-                    preference: minimalLineLength,
-                    commit: commit
-                )
-            }
-
-            if let maximalLineLength = maximalLineLength {
-                // No toggle: the default `EPUBDefaults.maximalLineLength` is
-                // not `nil`, so disabling it would fall back on the default.
-                stepperRow(
-                    title: "Maximal line length",
-                    subtitle: "Limits the length of the lines. Applied when scrolled and paginated.",
-                    preference: maximalLineLength,
-                    commit: commit
-                )
-            }
-        }
-
-        NonEmptySection {
-            if
-                let textColor = textColor,
-                let backgroundColor = backgroundColor,
-                let linkColor = linkColor,
-                let visitedColor = visitedColor
-            {
-                themeRow(
-                    title: "Theme",
-                    textColor: textColor,
-                    backgroundColor: backgroundColor,
-                    linkColor: linkColor,
-                    visitedColor: visitedColor,
-                    commit: commit
-                )
-            }
-
-            if let blendImages = blendImages {
-                toggleRow(
-                    title: "Blend images",
-                    preference: blendImages,
-                    commit: commit
-                )
-            }
-
-            if let darkenImages = darkenImages {
-                stepperRow(
-                    title: "Darken images",
-                    preference: darkenImages,
-                    commit: commit
-                )
-            }
-
-            if let invertImages = invertImages {
-                toggleRow(
-                    title: "Invert images",
-                    preference: invertImages,
-                    commit: commit
-                )
-            }
-
-            if let invertGaiji = invertGaiji {
-                toggleRow(
-                    title: "Invert gaiji",
-                    preference: invertGaiji,
-                    commit: commit
-                )
-            }
-
-            if let textColor = textColor {
-                colorRow(
-                    title: "Text color",
-                    preference: textColor,
-                    commit: commit
-                )
-            }
-
-            if let backgroundColor = backgroundColor {
-                colorRow(
-                    title: "Background color",
-                    preference: backgroundColor,
-                    commit: commit
-                )
-            }
-
-            if let linkColor = linkColor {
-                colorRow(
-                    title: "Link color",
-                    preference: linkColor,
-                    commit: commit
-                )
-            }
-
-            if let visitedColor = visitedColor {
-                colorRow(
-                    title: "Visited link color",
-                    preference: visitedColor,
-                    commit: commit
-                )
-            }
-        }
-
-        NonEmptySection {
-            if let fontFamily = fontFamily {
-                pickerRow(
-                    title: "Typeface",
-                    preference: fontFamily
-                        .with(supportedValues: [
-                            nil,
-                            .sansSerif,
-                            .literata,
-                        ])
-                        .eraseToAnyPreference(),
-                    commit: commit,
-                    formatValue: { ff in
-                        if let ff = ff {
-                            switch ff {
-                            case .sansSerif: return "Sans serif"
-                            default: return ff.rawValue
-                            }
-                        } else {
-                            return "Original"
-                        }
-                    }
-                )
-            }
-
-            if let fontSize = fontSize {
-                stepperRow(
-                    title: "Font size",
-                    preference: fontSize,
-                    commit: commit
-                )
-            }
-
-            if let fontWeight = fontWeight {
-                stepperRow(
-                    title: "Font weight",
-                    preference: fontWeight,
-                    commit: commit
-                )
-            }
-
-            if let fontWidth = fontWidth {
-                stepperRow(
-                    title: "Font width",
-                    preference: fontWidth,
-                    commit: commit
-                )
-            }
-
-            if let textNormalization = textNormalization {
-                toggleRow(
-                    title: "Text normalization",
-                    preference: textNormalization,
-                    commit: commit
-                )
-            }
-        }
-
-        NonEmptySection {
-            if let textAlign = textAlign {
-                pickerRow(
-                    title: "Text alignment",
-                    preference: textAlign,
-                    commit: commit,
-                    formatValue: { v in
-                        switch v {
-                        case nil: return "Default"
-                        case .center: return "Center"
-                        case .left: return "Left"
-                        case .right: return "Right"
-                        case .justify: return "Justify"
-                        case .start: return "Start"
-                        case .end: return "End"
-                        }
-                    }
-                )
-            }
-
-            if let lineHeight = lineHeight {
-                stepperRow(
-                    title: "Line height",
-                    preference: lineHeight,
-                    commit: commit
-                )
-            }
-
-            if let paragraphIndent = paragraphIndent {
-                stepperRow(
-                    title: "Paragraph indent",
-                    preference: paragraphIndent,
-                    commit: commit
-                )
-            }
-
-            if let paragraphSpacing = paragraphSpacing {
-                stepperRow(
-                    title: "Paragraph spacing",
-                    preference: paragraphSpacing,
-                    commit: commit
-                )
-            }
-
-            if let wordSpacing = wordSpacing {
-                stepperRow(
-                    title: "Word spacing",
-                    preference: wordSpacing,
-                    commit: commit
-                )
-            }
-
-            if let letterSpacing = letterSpacing {
-                stepperRow(
-                    title: "Letter spacing",
-                    preference: letterSpacing,
-                    commit: commit
-                )
-            }
-
-            if let hyphens = hyphens {
-                toggleRow(
-                    title: "Hyphens",
-                    preference: hyphens,
-                    commit: commit
-                )
-            }
-
-            if let ligatures = ligatures {
-                toggleRow(
-                    title: "Ligatures",
-                    preference: ligatures,
-                    commit: commit
-                )
-            }
-        }
-    }
-
-    /// User preferences screen for an audiobook.
-    func audioUserPreferences(
-        commit: @escaping () -> Void,
-        volume: AnyRangePreference<Double>? = nil,
-        speed: AnyRangePreference<Double>? = nil
-    ) -> some View {
-        Section {
-            if let volume = volume {
-                stepperRow(
-                    title: "Volume",
-                    preference: volume,
-                    commit: commit
-                )
-            }
-
-            if let speed = speed {
-                stepperRow(
-                    title: "Speed",
-                    preference: speed,
-                    commit: commit
-                )
-            }
-        }
-    }
-
-    /// Component for a boolean `Preference` switchable with a `Toggle` button.
-    func toggleRow(
-        title: String,
-        preference: AnyPreference<Bool>,
-        commit: @escaping () -> Void
-    ) -> some View {
-        toggleRow(
-            title: title,
-            value: preference.binding(onSet: commit),
-            isActive: preference.isEffective,
-            onClear: { preference.clear(); commit() }
-        )
-    }
-
-    /// Component for a boolean `Preference` switchable with a `Toggle` button.
-    func toggleRow(
-        title: String,
-        value: Binding<Bool>,
-        isActive: Bool,
-        onClear: @escaping () -> Void
-    ) -> some View {
-        preferenceRow(
-            isActive: isActive,
-            onClear: onClear
-        ) {
-            Toggle(title, isOn: value)
-        }
-    }
-
-    /// Component for a nullable boolean `Preference` displayed in a `Picker` view
-    /// with three options: Auto, Yes, No.
-    func nullableBoolPickerRow(
-        title: String,
-        preference: AnyPreference<Bool?>,
-        commit: @escaping () -> Void
-    ) -> some View {
-        preferenceRow(
-            isActive: preference.isEffective,
-            onClear: { preference.clear(); commit() }
-        ) {
-            Picker(title, selection: Binding(
-                get: { preference.value ?? preference.effectiveValue },
-                set: { preference.set($0); commit() }
-            )) {
-                Text("Auto").tag(nil as Bool?)
-                Text("Yes").tag(true as Bool?)
-                Text("No").tag(false as Bool?)
-            }
-        }
-    }
-
-    /// Component for an `EnumPreference` displayed in a `Picker` view.
-    func pickerRow<V: Hashable>(
-        title: String,
-        preference: AnyEnumPreference<V>,
-        commit: @escaping () -> Void,
-        formatValue: @escaping (V) -> String
-    ) -> some View {
-        pickerRow(
-            title: title,
-            value: preference.binding(onSet: commit),
-            values: preference.supportedValues,
-            isActive: preference.isEffective,
-            onClear: { preference.clear(); commit() },
-            formatValue: formatValue
-        )
-    }
-
-    /// Component for an `EnumPreference` displayed in a `Picker` view.
-    func pickerRow<V: Hashable>(
-        title: String,
-        value: Binding<V>,
-        values: [V],
-        isActive: Bool,
-        onClear: @escaping () -> Void,
-        formatValue: @escaping (V) -> String
-    ) -> some View {
-        preferenceRow(
-            isActive: isActive,
-            onClear: onClear
-        ) {
-            Picker(title, selection: value) {
-                ForEach(values, id: \.self) {
-                    Text(formatValue($0)).tag($0)
-                }
-            }
-        }
-    }
-
-    /// Component for a `RangePreference` modifiable by a `Stepper` view.
-    func stepperRow<V: Comparable>(
-        title: String,
-        subtitle: String? = nil,
-        preference: AnyRangePreference<V>,
-        commit: @escaping () -> Void
-    ) -> some View {
-        stepperRow(
-            title: title,
-            subtitle: subtitle,
-            value: preference.format(value: preference.value ?? preference.effectiveValue),
-            isActive: preference.isEffective,
-            onIncrement: { preference.increment(); commit() },
-            onDecrement: { preference.decrement(); commit() },
-            onClear: { preference.clear(); commit() }
-        )
-    }
-
-    /// Component for an `OptionalRangePreference` modifiable by a `Stepper`
-    /// view, without a toggle to disable it.
-    func stepperRow<V: Comparable>(
-        title: String,
-        subtitle: String? = nil,
-        preference: AnyOptionalRangePreference<V>,
-        commit: @escaping () -> Void
-    ) -> some View {
-        stepperRow(
-            title: title,
-            subtitle: subtitle,
-            value: preference.format(value: (preference.value ?? preference.effectiveValue) ?? preference.defaultValue),
-            isActive: preference.isEffective,
-            onIncrement: { preference.increment(); commit() },
-            onDecrement: { preference.decrement(); commit() },
-            onClear: { preference.clear(); commit() }
-        )
-    }
-
-    /// Row with a `Stepper` view displaying the given formatted value, used by
-    /// the range preference components.
-    func stepperRow(
-        title: String,
-        subtitle: String? = nil,
-        value: String,
-        isActive: Bool,
-        onIncrement: @escaping () -> Void,
-        onDecrement: @escaping () -> Void,
-        onClear: @escaping () -> Void
-    ) -> some View {
-        preferenceRow(
-            isActive: isActive,
-            subtitle: subtitle,
-            onClear: onClear
-        ) {
-            HStack(spacing: 4) {
-                Stepper(title,
-                        onIncrement: onIncrement,
-                        onDecrement: onDecrement)
-
-                stepperValue(value)
-            }
-        }
-    }
-
-    /// Value displayed next to a `Stepper`, with a minimum width so that the
-    /// controls don't move when the value changes.
-    func stepperValue(_ value: String) -> some View {
-        Text(value)
-            .font(.caption)
-            .monospacedDigit()
-            .frame(minWidth: 40, alignment: .trailing)
-    }
-
-    /// Component for an `OptionalRangePreference` with a `Toggle` to enable
-    /// it, and a `Stepper` to modify its value.
-    func optionalStepperRow<V: Comparable>(
-        title: String,
-        subtitle: String? = nil,
-        preference: AnyOptionalRangePreference<V>,
-        commit: @escaping () -> Void
-    ) -> some View {
-        let value = preference.value ?? preference.effectiveValue
-
-        return preferenceRow(
-            isActive: preference.isEffective,
-            subtitle: subtitle,
-            onClear: { preference.clear(); commit() }
-        ) {
-            HStack(spacing: 4) {
-                // Wraps instead of truncating next to the toggle and stepper.
-                Text(title)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Spacer()
-
-                Toggle(title, isOn: Binding(
-                    get: { value != nil },
-                    set: { isEnabled in
-                        preference.set(isEnabled ? preference.defaultValue : nil)
-                        commit()
-                    }
-                ))
-                .labelsHidden()
-
-                Stepper(title,
-                        onIncrement: { preference.increment(); commit() },
-                        onDecrement: { preference.decrement(); commit() })
-                    .labelsHidden()
-                    .disabled(value == nil)
-
-                stepperValue(preference.format(value: value ?? preference.defaultValue))
-                    .foregroundColor(value == nil ? .gray : nil)
-            }
-        }
-    }
-
-    /// Component for a `Preference` holding a `Language` value.
-    func languageRow(
-        title: String,
-        preference: AnyPreference<Language?>,
-        commit: @escaping () -> Void
-    ) -> some View {
-        pickerRow(
-            title: title,
-            value: Binding(
-                get: { preference.value ?? preference.effectiveValue },
-                set: { preference.set($0); commit() }
-            ),
-            values: languages,
-            isActive: preference.isEffective,
-            onClear: { preference.clear(); commit() },
-            formatValue: { language in
-                language?.localizedDescription() ?? "Original"
-            }
-        )
-    }
-
-    /// Component to select a `ReaderTheme`, which sets the color preferences
-    /// together.
-    ///
-    /// The selected theme is not stored: it is the one matching the current
-    /// color preferences, or "Custom" when there is none.
-    func themeRow(
-        title: String,
-        textColor: AnyPreference<ReadiumNavigator.Color>,
-        backgroundColor: AnyPreference<ReadiumNavigator.Color>,
-        linkColor: AnyPreference<ReadiumNavigator.Color>,
-        visitedColor: AnyPreference<ReadiumNavigator.Color>,
-        commit: @escaping () -> Void
-    ) -> some View {
-        let apply: (ReaderTheme) -> Void = { theme in
-            textColor.set(theme.textColor)
-            backgroundColor.set(theme.backgroundColor)
-            linkColor.set(theme.linkColor)
-            visitedColor.set(theme.visitedColor)
-            commit()
-        }
-
-        let selection = ReaderTheme.all.first { theme in
-            textColor.value == theme.textColor
-                && backgroundColor.value == theme.backgroundColor
-                && linkColor.value == theme.linkColor
-                && visitedColor.value == theme.visitedColor
-        }
-
-        // "Custom" is offered only when the colors match no theme.
-        var themes: [ReaderTheme?] = ReaderTheme.all
-        if selection == nil {
-            themes.append(nil)
-        }
-
-        return pickerRow(
-            title: title,
-            value: Binding(
-                get: { selection },
-                set: { theme in
-                    // `nil` is the "Custom" theme, which can't be selected.
-                    if let theme = theme {
-                        apply(theme)
-                    }
-                }
-            ),
-            values: themes,
-            isActive: textColor.isEffective
-                || backgroundColor.isEffective
-                || linkColor.isEffective
-                || visitedColor.isEffective,
-            onClear: { apply(.light) },
-            formatValue: { $0?.name ?? "Custom" }
-        )
-    }
-
-    /// Component for a `Preference` holding a `Color` value.
-    func colorRow(
-        title: String,
-        preference: AnyPreference<ReadiumNavigator.Color>,
-        commit: @escaping () -> Void
-    ) -> some View {
-        colorRow(
-            title: title,
-            value: Binding(
-                get: { (preference.value ?? preference.effectiveValue).color },
-                set: {
-                    preference.set(ReadiumNavigator.Color(color: $0))
-                    commit()
-                }
-            ),
-            isActive: preference.isEffective,
-            onClear: { preference.clear(); commit() }
-        )
-    }
-
-    /// Component for a `Preference` holding a `Color` value.
-    func colorRow(
-        title: String,
-        value: Binding<SwiftUI.Color>,
-        isActive: Bool,
-        onClear: @escaping () -> Void
-    ) -> some View {
-        preferenceRow(
-            isActive: isActive,
-            onClear: onClear
-        ) {
-            ColorPicker(title,
-                        selection: value,
-                        supportsOpacity: false)
-        }
-    }
-
-    /// Layout for a preference row.
-    func preferenceRow<V: View>(
-        isActive: Bool,
-        subtitle: String? = nil,
-        onClear: @escaping () -> Void,
-        content: @escaping () -> V
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 8) {
-                content()
-                    .foregroundColor(isActive ? nil : .gray)
-
-                Button(action: onClear) {
-                    Image(systemName: "delete.left")
-                }
-                .buttonStyle(.plain)
-            }
-
-            if let subtitle {
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
         }
     }
 }
 
-extension Preference {
-    /// Creates a SwiftUI binding to modify the preference's value.
-    ///
-    /// This is convenient when paired with a `Toggle` or `Picker`.
-    func binding(onSet: @escaping () -> Void = {}) -> Binding<Value> {
-        Binding(
-            get: { value ?? effectiveValue },
-            set: { set($0); onSet() }
+// MARK: - EPUB
+
+/// User preferences of a publication with adjustable fonts and dimensions,
+/// such as a reflowable EPUB or an HTML document.
+private struct EPUBReflowablePreferences: View {
+    @ObservedObject var model: UserPreferencesViewModel<EPUBUserSettings>
+
+    var body: some View {
+        // Resolved once per update, as it is used by every row.
+        let settings = model.navigatorSettings
+
+        Section {
+            languageRow(
+                value: model.binding(\.book.language),
+                isActive: settings.isEffective(\.language)
+            )
+
+            readingProgressionRow(
+                value: model.binding(\.book.readingProgression).rawRepresentable(),
+                placeholder: settings.readingProgression,
+                isActive: settings.isEffective(\.readingProgression)
+            )
+
+            toggleRow(
+                "Vertical text",
+                value: model.binding(\.book.verticalText),
+                placeholder: settings.verticalText,
+                isActive: settings.isEffective(\.verticalText)
+            )
+
+            toggleRow(
+                "Hide ruby annotations",
+                value: model.binding(\.shared.noRuby),
+                placeholder: settings.noRuby,
+                isActive: settings.isEffective(\.noRuby)
+            )
+        }
+
+        Section {
+            toggleRow(
+                "Scroll",
+                value: model.binding(\.shared.scroll),
+                placeholder: settings.scroll,
+                isActive: settings.isEffective(\.scroll)
+            )
+
+            pickerRow(
+                "Columns",
+                value: model.binding(\.shared.columnCount),
+                values: [nil, 1, 2],
+                isActive: settings.isEffective(\.columnCount),
+                format: { $0.map { String($0) } ?? "Auto" }
+            )
+
+            stepperRow(
+                "Page margins",
+                value: model.binding(\.shared.pageMargins),
+                spec: .pageMargins,
+                placeholder: settings.pageMargins,
+                isActive: settings.isEffective(\.pageMargins)
+            )
+
+            stepperRow(
+                "Optimal line length",
+                subtitle: "Chooses the number of columns. Applied when paginated with automatic columns.",
+                value: model.binding(\.shared.optimalLineLength),
+                spec: .lineLength,
+                placeholder: settings.optimalLineLength,
+                isActive: settings.isEffective(\.optimalLineLength)
+            )
+
+            optionalStepperRow(
+                "Minimal line length",
+                subtitle: "Removes columns when the lines would be shorter. Applied when paginated with a fix number of columns (2 or more).",
+                value: model.binding(\.shared.minimalLineLength),
+                spec: .lineLength,
+                isActive: settings.isEffective(\.minimalLineLength)
+            )
+
+            // No toggle: the default `EPUBDefaults.maximalLineLength` is not
+            // `nil`, so disabling it would fall back on the default.
+            stepperRow(
+                "Maximal line length",
+                subtitle: "Limits the length of the lines. Applied when scrolled and paginated.",
+                value: model.binding(\.shared.maximalLineLength),
+                spec: .lineLength,
+                placeholder: settings.maximalLineLength,
+                isActive: settings.isEffective(\.maximalLineLength)
+            )
+        }
+
+        Section {
+            themeRow(
+                value: model.binding(\.shared.theme),
+                isActive: settings.isEffective(\.textColor)
+                    || settings.isEffective(\.backgroundColor)
+                    || settings.isEffective(\.linkColor)
+                    || settings.isEffective(\.visitedColor)
+            )
+
+            toggleRow(
+                "Blend images",
+                value: model.binding(\.shared.blendImages),
+                placeholder: settings.blendImages,
+                isActive: settings.isEffective(\.blendImages)
+            )
+
+            stepperRow(
+                "Darken images",
+                value: model.binding(\.shared.darkenImages),
+                spec: .darkenImages,
+                placeholder: settings.darkenImages,
+                isActive: settings.isEffective(\.darkenImages)
+            )
+
+            toggleRow(
+                "Invert images",
+                value: model.binding(\.shared.invertImages),
+                placeholder: settings.invertImages,
+                isActive: settings.isEffective(\.invertImages)
+            )
+
+            toggleRow(
+                "Invert gaiji",
+                value: model.binding(\.shared.invertGaiji),
+                placeholder: settings.invertGaiji,
+                isActive: settings.isEffective(\.invertGaiji)
+            )
+
+            colorRow(
+                "Text color",
+                value: model.binding(\.shared.theme).color(\.textColor),
+                placeholder: .startingText,
+                isActive: settings.isEffective(\.textColor)
+            )
+
+            colorRow(
+                "Background color",
+                value: model.binding(\.shared.theme).color(\.backgroundColor),
+                placeholder: .startingBackground,
+                isActive: settings.isEffective(\.backgroundColor)
+            )
+
+            colorRow(
+                "Link color",
+                value: model.binding(\.shared.theme).color(\.linkColor),
+                placeholder: .startingLink,
+                isActive: settings.isEffective(\.linkColor)
+            )
+
+            colorRow(
+                "Visited link color",
+                value: model.binding(\.shared.theme).color(\.visitedColor),
+                placeholder: .startingVisited,
+                isActive: settings.isEffective(\.visitedColor)
+            )
+        }
+
+        Section {
+            pickerRow(
+                "Typeface",
+                value: model.binding(\.shared.fontFamily).rawRepresentable(),
+                values: [nil, .sansSerif, .literata] as [FontFamily?],
+                isActive: settings.isEffective(\.fontFamily),
+                format: { ff in
+                    switch ff {
+                    case nil: return "Original"
+                    case .sansSerif: return "Sans serif"
+                    case let ff?: return ff.rawValue
+                    }
+                }
+            )
+
+            stepperRow(
+                "Font size",
+                value: model.binding(\.shared.fontSize),
+                spec: .fontSize,
+                placeholder: settings.fontSize,
+                isActive: settings.isEffective(\.fontSize)
+            )
+
+            stepperRow(
+                "Font weight",
+                value: model.binding(\.shared.fontWeight),
+                spec: .fontWeight,
+                placeholder: settings.fontWeight,
+                isActive: settings.isEffective(\.fontWeight)
+            )
+
+            stepperRow(
+                "Font width",
+                value: model.binding(\.shared.fontWidth),
+                spec: .fontWidth,
+                placeholder: settings.fontWidth,
+                isActive: settings.isEffective(\.fontWidth)
+            )
+
+            toggleRow(
+                "Text normalization",
+                value: model.binding(\.shared.textNormalization),
+                placeholder: settings.textNormalization,
+                isActive: settings.isEffective(\.textNormalization)
+            )
+        }
+
+        Section {
+            pickerRow(
+                "Text alignment",
+                value: model.binding(\.shared.textAlign).rawRepresentable(),
+                values: [nil, .start, .left, .right, .justify] as [ReadiumNavigator.TextAlignment?],
+                isActive: settings.isEffective(\.textAlign),
+                format: { v in
+                    switch v {
+                    case nil: return "Default"
+                    case .center: return "Center"
+                    case .left: return "Left"
+                    case .right: return "Right"
+                    case .justify: return "Justify"
+                    case .start: return "Start"
+                    case .end: return "End"
+                    }
+                }
+            )
+
+            stepperRow(
+                "Line height",
+                value: model.binding(\.shared.lineHeight),
+                spec: .lineHeight,
+                placeholder: settings.lineHeight,
+                isActive: settings.isEffective(\.lineHeight)
+            )
+
+            stepperRow(
+                "Paragraph indent",
+                value: model.binding(\.shared.paragraphIndent),
+                spec: .paragraphIndent,
+                placeholder: settings.paragraphIndent,
+                isActive: settings.isEffective(\.paragraphIndent)
+            )
+
+            stepperRow(
+                "Paragraph spacing",
+                value: model.binding(\.shared.paragraphSpacing),
+                spec: .paragraphSpacing,
+                placeholder: settings.paragraphSpacing,
+                isActive: settings.isEffective(\.paragraphSpacing)
+            )
+
+            stepperRow(
+                "Word spacing",
+                value: model.binding(\.shared.wordSpacing),
+                spec: .spacing,
+                placeholder: settings.wordSpacing,
+                isActive: settings.isEffective(\.wordSpacing)
+            )
+
+            stepperRow(
+                "Letter spacing",
+                value: model.binding(\.shared.letterSpacing),
+                spec: .spacing,
+                placeholder: settings.letterSpacing,
+                isActive: settings.isEffective(\.letterSpacing)
+            )
+
+            toggleRow(
+                "Hyphens",
+                value: model.binding(\.shared.hyphens),
+                // Readium CSS hyphenates the justified text.
+                placeholder: settings.hyphens ?? (settings.textAlign == .justify),
+                isActive: settings.isEffective(\.hyphens)
+            )
+
+            toggleRow(
+                "Ligatures",
+                value: model.binding(\.shared.ligatures),
+                placeholder: settings.ligatures ?? true,
+                isActive: settings.isEffective(\.ligatures)
+            )
+        }
+    }
+}
+
+/// User preferences of a fixed-layout EPUB.
+private struct EPUBFixedLayoutPreferences: View {
+    @ObservedObject var model: UserPreferencesViewModel<EPUBUserSettings>
+
+    var body: some View {
+        let settings = model.navigatorSettings
+
+        Section {
+            languageRow(
+                value: model.binding(\.book.language),
+                isActive: settings.isEffective(\.language)
+            )
+
+            readingProgressionRow(
+                value: model.binding(\.book.readingProgression).rawRepresentable(),
+                placeholder: settings.readingProgression,
+                isActive: settings.isEffective(\.readingProgression)
+            )
+        }
+
+        Section {
+            colorRow(
+                "Background color",
+                value: model.binding(\.shared.theme).color(\.backgroundColor),
+                placeholder: .startingBackground,
+                isActive: settings.isEffective(\.backgroundColor)
+            )
+        }
+
+        Section {
+            spreadRow(
+                value: model.binding(\.book.spread).rawRepresentable(),
+                placeholder: settings.spread,
+                isActive: settings.isEffective(\.spread)
+            )
+
+            pickerRow(
+                "Offset first page",
+                value: model.binding(\.book.offsetFirstPage),
+                values: [nil, true, false],
+                isActive: settings.isEffective(\.offsetFirstPage),
+                format: { v in
+                    switch v {
+                    case nil: return "Auto"
+                    case true?: return "Yes"
+                    case false?: return "No"
+                    }
+                }
+            )
+        }
+
+        Section {
+            fitRow(
+                value: model.binding(\.shared.fit).rawRepresentable(),
+                placeholder: settings.fit,
+                isActive: settings.isEffective(\.fit)
+            )
+        }
+    }
+}
+
+// MARK: - PDF
+
+private struct PDFPreferencesForm: View {
+    @ObservedObject var model: UserPreferencesViewModel<PDFUserSettings>
+
+    var body: some View {
+        let settings = model.navigatorSettings
+
+        Section {
+            readingProgressionRow(
+                value: model.binding(\.book.readingProgression).rawRepresentable(),
+                placeholder: settings.readingProgression,
+                isActive: settings.isEffective(\.readingProgression)
+            )
+        }
+
+        Section {
+            toggleRow(
+                "Scroll",
+                value: model.binding(\.shared.scroll),
+                placeholder: settings.scroll,
+                isActive: settings.isEffective(\.scroll)
+            )
+
+            pickerRow(
+                "Scroll axis",
+                value: model.binding(\.shared.scrollAxis).rawRepresentable().or(settings.scrollAxis),
+                values: [.horizontal, .vertical],
+                isActive: settings.isEffective(\.scrollAxis),
+                onClear: { model.update { $0.shared.scrollAxis = nil } },
+                format: { v in
+                    switch v {
+                    case .horizontal: return "Horizontal"
+                    case .vertical: return "Vertical"
+                    }
+                }
+            )
+
+            toggleRow(
+                "Visible scrollbar",
+                value: model.binding(\.shared.visibleScrollbar),
+                placeholder: settings.visibleScrollbar,
+                isActive: settings.isEffective(\.visibleScrollbar)
+            )
+        }
+
+        Section {
+            spreadRow(
+                value: model.binding(\.shared.spread).rawRepresentable(),
+                placeholder: settings.spread,
+                isActive: settings.isEffective(\.spread)
+            )
+
+            toggleRow(
+                "Offset first page",
+                value: model.binding(\.book.offsetFirstPage),
+                placeholder: settings.offsetFirstPage,
+                isActive: settings.isEffective(\.offsetFirstPage)
+            )
+        }
+
+        Section {
+            fitRow(
+                value: model.binding(\.shared.fit).rawRepresentable(),
+                placeholder: settings.fit,
+                isActive: settings.isEffective(\.fit)
+            )
+        }
+
+        Section {
+            stepperRow(
+                "Page spacing",
+                value: model.binding(\.shared.pageSpacing),
+                spec: .pageSpacing,
+                placeholder: settings.pageSpacing,
+                isActive: settings.isEffective(\.pageSpacing)
+            )
+        }
+    }
+}
+
+// MARK: - Audio
+
+/// User preferences of an audiobook. Every audio setting is always
+/// effective.
+private struct AudioPreferencesForm: View {
+    @ObservedObject var model: UserPreferencesViewModel<AudioUserSettings>
+
+    var body: some View {
+        let settings = model.navigatorSettings
+
+        Section {
+            stepperRow(
+                "Volume",
+                value: model.binding(\.shared.volume),
+                spec: .volume,
+                placeholder: settings.volume,
+                isActive: true
+            )
+
+            stepperRow(
+                "Speed",
+                value: model.binding(\.shared.speed),
+                spec: .speed,
+                placeholder: settings.speed,
+                isActive: true
+            )
+        }
+    }
+}
+
+// MARK: - Rows
+
+/// Range, step and starting value of a numeric preference offered by the
+/// Test App, as suggested in the documentation of the `Preferences`
+/// properties.
+struct StepperSpec {
+    let range: ClosedRange<Double>
+    let step: Double
+    /// Value displayed and stepped from when the preference is unset and the
+    /// navigator settings have no value.
+    let start: Double
+    var format: (Double) -> String = { $0.formatted(.percent.precision(.fractionLength(0))) }
+
+    func increment(_ value: Double) -> Double {
+        adjusted(value + step)
+    }
+
+    func decrement(_ value: Double) -> Double {
+        adjusted(value - step)
+    }
+
+    /// Removes the residue of the floating-point additions, and keeps the
+    /// value in the range.
+    private func adjusted(_ value: Double) -> Double {
+        min(max((value * 100_000).rounded() / 100_000, range.lowerBound), range.upperBound)
+    }
+
+    private static let decimal: (Double) -> String = { $0.formatted(.number.precision(.fractionLength(0 ... 5))) }
+
+    static let darkenImages = StepperSpec(range: 0.0 ... 1.0, step: 0.1, start: 0.0)
+    static let fontSize = StepperSpec(range: 0.1 ... 5.0, step: 0.1, start: 1.0)
+    static let fontWeight = StepperSpec(range: 0.0 ... 2.5, step: 0.25, start: 1.0)
+    static let fontWidth = StepperSpec(range: 0.5 ... 2.5, step: 0.1, start: 1.0)
+    static let lineHeight = StepperSpec(range: 1.0 ... 2.0, step: 0.1, start: 1.5, format: decimal)
+    static let lineLength = StepperSpec(range: 0.5 ... 2.0, step: 0.1, start: 1.0)
+    static let pageMargins = StepperSpec(range: 0.0 ... 4.0, step: 0.3, start: 1.0, format: decimal)
+    static let paragraphIndent = StepperSpec(range: 0.0 ... 3.0, step: 0.2, start: 0.0)
+    static let paragraphSpacing = StepperSpec(range: 0.0 ... 2.0, step: 0.1, start: 0.0)
+    /// Letter and word spacing.
+    static let spacing = StepperSpec(range: 0.0 ... 1.0, step: 0.1, start: 0.0)
+
+    static let pageSpacing = StepperSpec(range: 0 ... 200, step: 4, start: 0, format: { String(format: "%.1f pt", $0) })
+
+    static let volume = StepperSpec(range: 0.0 ... 1.0, step: 0.1, start: 1.0)
+    static let speed = StepperSpec(range: 0.1 ... 6.0, step: 0.1, start: 1.0)
+}
+
+/// Colors a color picker starts from when the color is unset, as the actual
+/// color then comes from the publication.
+private extension ReadiumNavigator.Color {
+    static let startingText = ReadiumNavigator.Color(rawValue: 0x121212)
+    static let startingBackground = ReadiumNavigator.Color(rawValue: 0xFFFFFF)
+    static let startingLink = ReadiumNavigator.Color(rawValue: 0x0000EE)
+    static let startingVisited = ReadiumNavigator.Color(rawValue: 0x551A8B)
+}
+
+private let languages: [Language?] = [nil] + Language.all
+    .map(\.primaryLanguage)
+    .removingDuplicates()
+    .sorted { l1, l2 in l1.localizedDescription() <= l2.localizedDescription() }
+
+/// Layout for a preference row, greyed out when the preference is not
+/// effective, with a button to clear its value.
+private func preferenceRow<V: View>(
+    isActive: Bool,
+    subtitle: String? = nil,
+    onClear: @escaping () -> Void,
+    @ViewBuilder content: () -> V
+) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+        HStack(spacing: 8) {
+            content()
+                .foregroundColor(isActive ? nil : .gray)
+
+            Button(action: onClear) {
+                Image(systemName: "delete.left")
+            }
+            .buttonStyle(.plain)
+        }
+
+        if let subtitle {
+            Text(subtitle)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+}
+
+/// Row for a boolean preference switchable with a `Toggle`.
+///
+/// - Parameter placeholder: Value displayed when the preference is unset.
+private func toggleRow(
+    _ title: String,
+    value: Binding<Bool?>,
+    placeholder: Bool,
+    isActive: Bool
+) -> some View {
+    preferenceRow(isActive: isActive, onClear: { value.wrappedValue = nil }) {
+        Toggle(title, isOn: value.or(placeholder))
+    }
+}
+
+/// Row for a preference picked among `values`.
+private func pickerRow<V: Hashable>(
+    _ title: String,
+    value: Binding<V>,
+    values: [V],
+    isActive: Bool,
+    onClear: @escaping () -> Void,
+    format: @escaping (V) -> String
+) -> some View {
+    preferenceRow(isActive: isActive, onClear: onClear) {
+        Picker(title, selection: value) {
+            ForEach(values, id: \.self) {
+                Text(format($0)).tag($0)
+            }
+        }
+    }
+}
+
+/// Row for a preference picked among `values`, where `nil` is one of the
+/// values (e.g. "Auto").
+private func pickerRow<V: Hashable>(
+    _ title: String,
+    value: Binding<V?>,
+    values: [V?],
+    isActive: Bool,
+    format: @escaping (V?) -> String
+) -> some View {
+    pickerRow(
+        title,
+        value: value,
+        values: values,
+        isActive: isActive,
+        onClear: { value.wrappedValue = nil },
+        format: format
+    )
+}
+
+private func readingProgressionRow(
+    value: Binding<ReadiumNavigator.ReadingProgression?>,
+    placeholder: ReadiumNavigator.ReadingProgression,
+    isActive: Bool
+) -> some View {
+    pickerRow(
+        "Reading progression",
+        value: value.or(placeholder),
+        values: [.ltr, .rtl],
+        isActive: isActive,
+        onClear: { value.wrappedValue = nil },
+        format: { v in
+            switch v {
+            case .ltr: return "LTR"
+            case .rtl: return "RTL"
+            }
+        }
+    )
+}
+
+private func spreadRow(
+    value: Binding<Spread?>,
+    placeholder: Spread,
+    isActive: Bool
+) -> some View {
+    pickerRow(
+        "Spread",
+        value: value.or(placeholder),
+        values: [.auto, .never, .always],
+        isActive: isActive,
+        onClear: { value.wrappedValue = nil },
+        format: { v in
+            switch v {
+            case .auto: return "Auto"
+            case .never: return "Never"
+            case .always: return "Always"
+            }
+        }
+    )
+}
+
+private func fitRow(
+    value: Binding<Fit?>,
+    placeholder: Fit,
+    isActive: Bool
+) -> some View {
+    pickerRow(
+        "Fit",
+        value: value.or(placeholder),
+        values: [.auto, .page, .width],
+        isActive: isActive,
+        onClear: { value.wrappedValue = nil },
+        format: { v in
+            switch v {
+            case .auto: return "Auto"
+            case .page: return "Page"
+            case .width: return "Width"
+            }
+        }
+    )
+}
+
+/// Row for the language of the publication, stored as a BCP 47 tag.
+private func languageRow(value: Binding<String?>, isActive: Bool) -> some View {
+    pickerRow(
+        "Language",
+        value: Binding(
+            get: { value.wrappedValue.map { Language($0) } },
+            set: { value.wrappedValue = $0?.tag }
+        ),
+        values: languages,
+        isActive: isActive,
+        format: { $0?.localizedDescription() ?? "Original" }
+    )
+}
+
+/// Row for a numeric preference modified with a `Stepper`.
+///
+/// - Parameter placeholder: Value displayed and stepped from when the
+///   preference is unset, `spec.start` by default.
+private func stepperRow(
+    _ title: String,
+    subtitle: String? = nil,
+    value: Binding<Double?>,
+    spec: StepperSpec,
+    placeholder: Double? = nil,
+    isActive: Bool
+) -> some View {
+    let current = value.wrappedValue ?? placeholder ?? spec.start
+
+    return preferenceRow(
+        isActive: isActive,
+        subtitle: subtitle,
+        onClear: { value.wrappedValue = nil }
+    ) {
+        HStack(spacing: 4) {
+            Stepper(
+                title,
+                onIncrement: { value.wrappedValue = spec.increment(current) },
+                onDecrement: { value.wrappedValue = spec.decrement(current) }
+            )
+
+            stepperValue(spec.format(current))
+        }
+    }
+}
+
+/// Row for an optional numeric preference, with a `Toggle` to enable it and
+/// a `Stepper` to modify its value.
+private func optionalStepperRow(
+    _ title: String,
+    subtitle: String? = nil,
+    value: Binding<Double?>,
+    spec: StepperSpec,
+    isActive: Bool
+) -> some View {
+    let current = value.wrappedValue
+
+    return preferenceRow(
+        isActive: isActive,
+        subtitle: subtitle,
+        onClear: { value.wrappedValue = nil }
+    ) {
+        HStack(spacing: 4) {
+            // Wraps instead of truncating next to the toggle and stepper.
+            Text(title)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+
+            Toggle(title, isOn: Binding(
+                get: { current != nil },
+                set: { value.wrappedValue = $0 ? spec.start : nil }
+            ))
+            .labelsHidden()
+
+            Stepper(
+                title,
+                onIncrement: { value.wrappedValue = spec.increment(current ?? spec.start) },
+                onDecrement: { value.wrappedValue = spec.decrement(current ?? spec.start) }
+            )
+            .labelsHidden()
+            .disabled(current == nil)
+
+            stepperValue(spec.format(current ?? spec.start))
+                .foregroundColor(current == nil ? .gray : nil)
+        }
+    }
+}
+
+/// Value displayed next to a `Stepper`, with a minimum width so that the
+/// controls don't move when the value changes.
+private func stepperValue(_ value: String) -> some View {
+    Text(value)
+        .font(.caption)
+        .monospacedDigit()
+        .frame(minWidth: 40, alignment: .trailing)
+}
+
+/// Row selecting the `Theme`, which sets the color preferences together.
+///
+/// "Custom" is offered only when the colors were edited one by one.
+private func themeRow(value: Binding<EPUBUserSettings.Theme>, isActive: Bool) -> some View {
+    var themes: [EPUBUserSettings.Theme] = [.publisher, .sepia, .dark]
+    if case .custom = value.wrappedValue {
+        themes.append(value.wrappedValue)
+    }
+
+    return pickerRow(
+        "Theme",
+        value: value,
+        values: themes,
+        isActive: isActive,
+        onClear: { value.wrappedValue = .publisher },
+        format: { $0.readerTheme.name }
+    )
+}
+
+/// Row for a color preference.
+///
+/// - Parameter placeholder: Color the picker starts from when the preference
+///   is unset.
+private func colorRow(
+    _ title: String,
+    value: Binding<ReadiumNavigator.Color?>,
+    placeholder: ReadiumNavigator.Color,
+    isActive: Bool
+) -> some View {
+    preferenceRow(isActive: isActive, onClear: { value.wrappedValue = nil }) {
+        ColorPicker(
+            title,
+            selection: Binding(
+                get: { (value.wrappedValue ?? placeholder).color },
+                set: { value.wrappedValue = ReadiumNavigator.Color(color: $0) }
+            ),
+            supportsOpacity: false
+        )
+    }
+}
+
+private extension Binding {
+    /// Reads `placeholder` when the optional value is `nil`.
+    func or<Wrapped>(_ placeholder: Wrapped) -> Binding<Wrapped> where Value == Wrapped? {
+        Binding<Wrapped>(
+            get: { wrappedValue ?? placeholder },
+            set: { wrappedValue = $0 }
+        )
+    }
+
+    /// Converts an optional raw value, as stored in the `UserSettings`.
+    func rawRepresentable<R: RawRepresentable>() -> Binding<R?> where Value == R.RawValue? {
+        Binding<R?>(
+            get: { wrappedValue.flatMap { R(rawValue: $0) } },
+            set: { wrappedValue = $0?.rawValue }
+        )
+    }
+}
+
+private extension Binding where Value == EPUBUserSettings.Theme {
+    /// Binding to one of the colors of the theme. Changing a color switches
+    /// to a custom theme.
+    func color(_ keyPath: WritableKeyPath<ReaderTheme, ReadiumNavigator.Color?>) -> Binding<ReadiumNavigator.Color?> {
+        Binding<ReadiumNavigator.Color?>(
+            get: { wrappedValue.readerTheme[keyPath: keyPath] },
+            set: { color in
+                var colors = wrappedValue.readerTheme
+                colors[keyPath: keyPath] = color
+                let text = colors.textColor?.rawValue
+                let background = colors.backgroundColor?.rawValue
+                let link = colors.linkColor?.rawValue
+                let visited = colors.visitedColor?.rawValue
+                if text == nil, background == nil, link == nil, visited == nil {
+                    wrappedValue = .publisher
+                } else {
+                    wrappedValue = .custom(text: text, background: background, link: link, visited: visited)
+                }
+            }
         )
     }
 }
@@ -1067,11 +976,6 @@ nonisolated struct ReaderTheme: Hashable {
     var linkColor: Color?
     var visitedColor: Color?
 
-    /// Colors of the theme, to compare themes regardless of their name.
-    var colors: [Color?] {
-        [textColor, backgroundColor, linkColor, visitedColor]
-    }
-
     static let light = ReaderTheme(name: "Light")
 
     static let sepia = ReaderTheme(
@@ -1087,20 +991,4 @@ nonisolated struct ReaderTheme: Hashable {
         linkColor: Color(rawValue: 0x63CAFF),
         visitedColor: Color(rawValue: 0x0099E5)
     )
-
-    static let all: [ReaderTheme] = [.light, .sepia, .dark]
-}
-
-/// A `Section` which is not rendered when its content is empty, for example
-/// when none of its optional preference rows are available.
-struct NonEmptySection<Content: View>: View {
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        Group(subviews: content) { subviews in
-            if !subviews.isEmpty {
-                Section { subviews }
-            }
-        }
-    }
 }

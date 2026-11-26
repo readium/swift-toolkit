@@ -14,7 +14,9 @@ public struct AudioSettings: ConfigurableSettings, Sendable {
     public let volume: Double
     public let speed: Double
 
-    init(preferences: AudioPreferences, defaults: AudioDefaults) {
+    /// Resolves the settings applied by the audio navigator with the given
+    /// `preferences`.
+    public init(preferences: AudioPreferences, defaults: AudioDefaults = AudioDefaults()) {
         volume = preferences.volume
             ?? defaults.volume
             ?? 1.0

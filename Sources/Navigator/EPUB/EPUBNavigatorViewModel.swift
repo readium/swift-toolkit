@@ -105,7 +105,12 @@ enum EPUBScriptScope {
         servedFonts = server.serve(config.fontFamilyDeclarations)
 
         preferences = config.preferences
-        settings = EPUBSettings(publication: publication, config: config)
+        settings = EPUBSettings(
+            publication: publication,
+            readingOrder: self.readingOrder.links,
+            preferences: config.preferences,
+            config: config
+        )
 
         css = ReadiumCSS(
             layout: CSSLayout(),
@@ -190,8 +195,9 @@ enum EPUBScriptScope {
     private func applyPreferences() {
         let oldSettings = settings
         let newSettings = EPUBSettings(
-            preferences: preferences,
             publication: publication,
+            readingOrder: readingOrder.links,
+            preferences: preferences,
             config: config
         )
 
@@ -214,15 +220,6 @@ enum EPUBScriptScope {
         if needsInvalidation {
             setNeedsInvalidatePagination()
         }
-    }
-
-    func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
-        EPUBPreferencesEditor(
-            initialPreferences: preferences,
-            publication: publication,
-            readingOrder: readingOrder.links,
-            defaults: config.defaults
-        )
     }
 
     var readingProgression: ReadingProgression {
@@ -455,14 +452,16 @@ enum EPUBScriptScope {
 private extension EPUBSettings {
     @MainActor
     init(
-        preferences: EPUBPreferences? = nil,
         publication: Publication,
+        readingOrder: [Link],
+        preferences: EPUBPreferences,
         config: EPUBNavigatorViewController.Configuration
     ) {
         self.init(
-            preferences: preferences ?? config.preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
+            publication: publication,
+            readingOrder: readingOrder,
+            preferences: preferences,
+            defaults: config.defaults
         )
 
         // Force-enables scroll when VoiceOver is running, because pagination
