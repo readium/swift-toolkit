@@ -32,7 +32,7 @@ final nonisolated class Database {
                 t.column("locator", .text)
                 t.column("progression", .integer).notNull().defaults(to: 0)
                 t.column("created", .datetime).notNull()
-                t.column("preferencesJSON", .text)
+                t.column("settingsJSON", .text)
             }
 
             try db.create(table: "bookmark") { t in

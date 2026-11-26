@@ -11,7 +11,7 @@ import SwiftUI
 import UIKit
 
 final class PDFViewController: VisualReaderViewController<PDFNavigatorViewController> {
-    private let preferencesStore: AnyUserPreferencesStore<PDFPreferences>
+    private let settingsStore: UserSettingsStore<PDFUserSettings>
 
     init(
         publication: Publication,
@@ -21,9 +21,9 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
         bookmarks: BookmarkRepository,
         highlights: HighlightRepository,
         initialPreferences: PDFPreferences,
-        preferencesStore: AnyUserPreferencesStore<PDFPreferences>
+        settingsStore: UserSettingsStore<PDFUserSettings>
     ) throws {
-        self.preferencesStore = preferencesStore
+        self.settingsStore = settingsStore
 
         let navigator = try PDFNavigatorViewController(
             publication: publication,
@@ -43,9 +43,9 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
             let userPrefs = await UserPreferences(
                 model: UserPreferencesViewModel(
                     bookId: bookId,
-                    preferences: try! preferencesStore.preferences(for: bookId),
+                    preferences: try! settingsStore.settings(for: bookId).preferences(),
                     configurable: navigator,
-                    store: preferencesStore
+                    store: settingsStore
                 ),
                 onClose: { [weak self = self] in
                     self?.dismiss(animated: true)

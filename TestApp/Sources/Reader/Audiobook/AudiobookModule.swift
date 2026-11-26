@@ -30,26 +30,17 @@ final class AudiobookModule: ReaderFormatModule {
         highlights: HighlightRepository,
         readium: Readium
     ) async throws -> UIViewController {
-        let preferencesStore = makePreferencesStore(books: books)
+        let settingsStore = UserSettingsStore<AudioUserSettings>(books: books)
         let viewController = try await AudiobookViewController(
             publication: publication,
             locator: locator,
             bookId: bookId,
             books: books,
             bookmarks: bookmarks,
-            initialPreferences: preferencesStore.preferences(for: bookId),
-            preferencesStore: preferencesStore
+            initialPreferences: settingsStore.settings(for: bookId).preferences(),
+            settingsStore: settingsStore
         )
         viewController.moduleDelegate = delegate
         return viewController
-    }
-
-    func makePreferencesStore(books: BookRepository) -> AnyUserPreferencesStore<AudioPreferences> {
-        CompositeUserPreferencesStore(
-            publicationStore: DatabaseUserPreferencesStore(books: books),
-            sharedStore: UserDefaultsUserPreferencesStore(),
-            publicationFilter: { $0.filterPublicationPreferences() },
-            sharedFilter: { $0.filterSharedPreferences() }
-        ).eraseToAnyPreferencesStore()
     }
 }

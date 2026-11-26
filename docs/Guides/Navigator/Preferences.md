@@ -382,42 +382,62 @@ pickerRow(
 
 ## Save and restore the user preferences
 
-Having a user settings screen is not useful if you cannot save and restore the selected preferences for future sessions. All `Preferences` types implement the `Codable` protocol and can be serialized to and from JSON.
+The `Preferences` types are not `Codable`: they are low-level navigator inputs which rarely map 1-1 to the settings of your user interface. Instead, your app owns a settings model, persisted the way you want, from which it derives the `Preferences` before submitting them to the navigator.
 
 ```swift
-let jsonData = try JSONEncoder().encode(preferences)
+struct ReaderSettings: Codable {
+    enum Theme: String, Codable {
+        case light, sepia, dark
+    }
+
+    var theme: Theme = .light
+    var fontSize: Double?
+    var scroll: Bool?
+
+    func preferences() -> EPUBPreferences {
+        let (textColor, backgroundColor): (Color?, Color?) = switch theme {
+        case .light: (nil, nil)
+        case .sepia: (Color(hex: "#121212"), Color(hex: "#FAF4E8"))
+        case .dark: (Color(hex: "#FEFEFE"), Color(hex: "#000000"))
+        }
+
+        return EPUBPreferences(
+            backgroundColor: backgroundColor,
+            fontSize: fontSize,
+            scroll: scroll,
+            textColor: textColor
+        )
+    }
+}
+
+// Save the settings chosen by the user.
+var settings = ReaderSettings()
+settings.theme = .sepia
+let jsonData = try JSONEncoder().encode(settings)
+
+// Later, when opening a publication:
+let restoredSettings = try JSONDecoder().decode(ReaderSettings.self, from: jsonData)
+navigator.submitPreferences(restoredSettings.preferences())
 ```
 
-When you are ready to restore the user preferences, construct a new `Preferences` object from the JSON data.
+Your model decides what is persisted: a theme or a dual-page toggle can drive several preferences, and you are free to rename, add or drop settings without depending on the toolkit's serialization format.
 
-```swift
-let preferences = try JSONDecoder().decode(EPUBPreferences.self, from: jsonData)
-```
+### Preferences specific to a publication
 
-In the Test App, `UserPreferencesViewModel` delegates the preferences persistence to a `UserPreferencesStore`. The preferences are observed from the store to automatically submit updated preferences to the navigator and refresh the user interface.
+The way you store user settings can affect the available features. You could have, for example:
 
-### Splitting and merging preferences
-
-The way you store user preferences can affect the available features. You could have, for example:
-
-* A unique set of preferences for each publication.
-* Preferences shared between publications with the same profile or media type (EPUB, PDF, etc.).
-* Global preferences shared with all publications (e.g. colors).
+* A unique set of settings for each publication.
+* Settings shared between publications with the same profile or media type (EPUB, PDF, etc.).
+* Global settings shared with all publications (e.g. colors).
 * Several user setting profiles/themes that the user can switch between and modify independently.
-* Some settings that are not stored as JSON and will need to be reconstructed (e.g. the publication language).
 
-To assist you, the toolkit provides suggested filters for each `Preferences` type, to extract the preferences intrinsic to a publication.
+Some preferences are closely tied to a specific publication and should never be shared between multiple publications. It is recommended that you store them separately per book:
 
-```swift
-let publicationPrefs = preferences.filterPublicationPreferences()
-let sharedPrefs = preferences.filterSharedPreferences()
-
-// You can reconstruct the original preferences by combining the filtered ones.
-let combinedPrefs = publicationPrefs.merging(sharedPrefs)
-```
-
-> [!TIP]
-> Some preferences are closely tied to a specific publication and should never be shared between multiple publications, such as the language. It is recommended that you store these preferences separately per book, which is what the suggested filters will do if you use them.
+| Navigator | Preferences specific to a publication                                         |
+|-----------|-------------------------------------------------------------------------------|
+| EPUB      | `language`, `offsetFirstPage`, `readingProgression`, `spread`, `verticalText` |
+| PDF       | `offsetFirstPage`, `readingProgression`                                       |
+| Audio     | None                                                                          |
 
 ## Appendix: Preference constraints
 

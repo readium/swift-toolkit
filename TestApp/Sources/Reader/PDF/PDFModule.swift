@@ -30,7 +30,7 @@ final class PDFModule: ReaderFormatModule {
         highlights: HighlightRepository,
         readium: Readium
     ) async throws -> UIViewController {
-        let preferencesStore = makePreferencesStore(books: books)
+        let settingsStore = UserSettingsStore<PDFUserSettings>(books: books)
         let viewController = try await PDFViewController(
             publication: publication,
             locator: locator,
@@ -38,19 +38,10 @@ final class PDFModule: ReaderFormatModule {
             books: books,
             bookmarks: bookmarks,
             highlights: highlights,
-            initialPreferences: preferencesStore.preferences(for: bookId),
-            preferencesStore: preferencesStore
+            initialPreferences: settingsStore.settings(for: bookId).preferences(),
+            settingsStore: settingsStore
         )
         viewController.moduleDelegate = delegate
         return viewController
-    }
-
-    func makePreferencesStore(books: BookRepository) -> AnyUserPreferencesStore<PDFPreferences> {
-        CompositeUserPreferencesStore(
-            publicationStore: DatabaseUserPreferencesStore(books: books),
-            sharedStore: UserDefaultsUserPreferencesStore(),
-            publicationFilter: { $0.filterPublicationPreferences() },
-            sharedFilter: { $0.filterSharedPreferences() }
-        ).eraseToAnyPreferencesStore()
     }
 }

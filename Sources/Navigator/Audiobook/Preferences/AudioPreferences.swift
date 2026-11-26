@@ -32,23 +32,45 @@ public struct AudioPreferences: ConfigurablePreferences, Sendable {
         self.volume = volume
         self.speed = speed
     }
+}
 
-    public func merging(_ other: AudioPreferences) -> AudioPreferences {
-        AudioPreferences(
-            volume: other.volume ?? volume,
-            speed: other.speed ?? speed
-        )
+public extension AudioPreferences {
+    @available(*, unavailable, message: "Store the publication-specific settings in your own settings model, see the migration guide")
+    func filterSharedPreferences() -> AudioPreferences {
+        fatalError()
     }
 
-    /// Returns a new `AudioPreferences` with the publication-specific preferences
-    /// removed.
-    public func filterSharedPreferences() -> AudioPreferences {
-        self
+    @available(*, unavailable, message: "Store the publication-specific settings in your own settings model, see the migration guide")
+    func filterPublicationPreferences() -> AudioPreferences {
+        fatalError()
+    }
+}
+
+/// Decodes the `AudioPreferences` persisted with Readium 3.x, to migrate them
+/// to your own settings model.
+///
+/// This is a snapshot of the 3.x `AudioPreferences`, with the values as they
+/// were saved. The decoding is lenient: an invalid value drops only its
+/// preference. The values are not checked against the ranges supported by
+/// `AudioPreferences`.
+///
+/// It will be removed in a future major version.
+public struct LegacyAudioPreferences: Decodable, Hashable, Sendable {
+    /// Volume of playback, from 0.0 to 1.0.
+    public let volume: Double?
+    /// Speed of playback. Normal is 1.0.
+    public let speed: Double?
+}
+
+public extension LegacyAudioPreferences {
+    private enum CodingKeys: String, CodingKey {
+        case volume
+        case speed
     }
 
-    /// Returns a new `AudioPreferences` keeping only the publication-specific
-    /// preferences.
-    public func filterPublicationPreferences() -> AudioPreferences {
-        AudioPreferences()
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        volume = container.decodeLeniently(Double.self, forKey: .volume)
+        speed = container.decodeLeniently(Double.self, forKey: .speed)
     }
 }

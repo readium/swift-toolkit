@@ -9,13 +9,13 @@ import ReadiumShared
 import UIKit
 
 /// Layout axis.
-public enum Axis: String, Codable, Hashable, Sendable {
+public enum Axis: String, Hashable, Sendable {
     case horizontal
     case vertical
 }
 
 /// Synthetic spread policy.
-public enum Spread: String, Codable, Hashable, Sendable {
+public enum Spread: String, Hashable, Sendable {
     /// The publication should be displayed in a spread if the screen is large
     /// enough.
     case auto
@@ -26,7 +26,7 @@ public enum Spread: String, Codable, Hashable, Sendable {
 }
 
 /// Direction of the reading progression across resources.
-public enum ReadingProgression: String, Codable, Hashable, Sendable {
+public enum ReadingProgression: String, Hashable, Sendable {
     case ltr
     case rtl
 
@@ -49,7 +49,7 @@ extension ReadiumShared.ReadingProgression {
 }
 
 /// Method for fitting the content within the viewport.
-public enum Fit: String, Codable, Hashable, Sendable {
+public enum Fit: String, Hashable, Sendable {
     /// Use the best fitting strategy depending on the current settings and
     /// content.
     case auto
@@ -60,27 +60,27 @@ public enum Fit: String, Codable, Hashable, Sendable {
 }
 
 @available(*, unavailable, message: "Use the textColor, backgroundColor, linkColor and visitedColor preferences instead")
-public enum Theme: String, Codable, Hashable, Sendable {
+public enum Theme: String, Hashable, Sendable {
     case light
     case dark
     case sepia
 }
 
 @available(*, unavailable, message: "Use an Int? instead, where nil means an automatic number of columns")
-public enum ColumnCount: String, Codable, Hashable, Sendable {
+public enum ColumnCount: String, Hashable, Sendable {
     case auto
     case one = "1"
     case two = "2"
 }
 
 @available(*, unavailable, message: "Use darkenImages or invertImages instead")
-public enum ImageFilter: String, Codable, Hashable, Sendable {
+public enum ImageFilter: String, Hashable, Sendable {
     case darken
     case invert
 }
 
 /// Text alignment in a reflowable document.
-public enum TextAlignment: String, Codable, Hashable, Sendable {
+public enum TextAlignment: String, Hashable, Sendable {
     /// Align the text in the center of the page.
     case center
     /// Stretch lines of text that end with a soft line break to fill the width
@@ -97,7 +97,7 @@ public enum TextAlignment: String, Codable, Hashable, Sendable {
 }
 
 /// Represents a color stored as a packed int.
-public struct Color: RawRepresentable, Codable, Hashable, Sendable {
+public struct Color: RawRepresentable, Hashable, Sendable {
     /// Packed int representation.
     public var rawValue: Int
 
@@ -173,7 +173,7 @@ public struct Color: RawRepresentable, Codable, Hashable, Sendable {
 ///
 /// For a list of vetted font families, see
 /// https://readium.org/readium-css/docs/CSS10-libre_fonts.
-public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Codable, Hashable, Sendable {
+public struct FontFamily: RawRepresentable, ExpressibleByStringLiteral, Hashable, Sendable {
     // Generic font families
     // See https://www.w3.org/TR/css-fonts-4/#generic-font-families
 

@@ -18,23 +18,24 @@ final class UserPreferencesViewModel<
 >: ObservableObject where E.Preferences == P {
     @Published private(set) var editor: E
 
-    private let bookId: Book.Id
     private let configurable: AnyConfigurable<S, P, E>
-    private let store: AnyUserPreferencesStore<P>
+    private let savePreferences: (P) async throws -> Void
     private var subscriptions = Set<AnyCancellable>()
 
-    init<C: Configurable, ST: UserPreferencesStore>(
+    init<C: Configurable, US: UserSettings>(
         bookId: Book.Id,
         preferences: P,
         configurable: C,
-        store: ST
-    ) where C.Settings == S, C.Preferences == P, C.Editor == E, ST.Preferences == P {
+        store: UserSettingsStore<US>
+    ) where C.Settings == S, C.Preferences == P, C.Editor == E, US.Preferences == P {
         editor = configurable.editor(of: preferences)
-        self.bookId = bookId
         self.configurable = configurable.eraseToAnyConfigurable()
-        self.store = store.eraseToAnyPreferencesStore()
+        savePreferences = { preferences in
+            try await store.saveSettings(US(preferences), of: bookId)
+        }
 
-        let preferences = store.preferencesPublisher(for: bookId)
+        let preferences = store.settingsPublisher(for: bookId)
+            .map { $0.preferences() }
             .receive(on: DispatchQueue.main)
 
         preferences
@@ -60,7 +61,7 @@ final class UserPreferencesViewModel<
 
     func commit() {
         Task {
-            try! await store.savePreferences(editor.preferences, of: bookId)
+            try! await savePreferences(editor.preferences)
         }
     }
 }
@@ -1057,7 +1058,7 @@ extension Preference {
 ///
 /// The Readium toolkit has no themes: a theme is only a set of color
 /// preferences applied together. `nil` keeps the color of the publication.
-struct ReaderTheme: Hashable {
+nonisolated struct ReaderTheme: Hashable {
     typealias Color = ReadiumNavigator.Color
 
     var name: String
@@ -1065,6 +1066,11 @@ struct ReaderTheme: Hashable {
     var backgroundColor: Color?
     var linkColor: Color?
     var visitedColor: Color?
+
+    /// Colors of the theme, to compare themes regardless of their name.
+    var colors: [Color?] {
+        [textColor, backgroundColor, linkColor, visitedColor]
+    }
 
     static let light = ReaderTheme(name: "Light")
 

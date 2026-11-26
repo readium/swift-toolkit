@@ -30,7 +30,7 @@ final class EPUBModule: ReaderFormatModule {
         highlights: HighlightRepository,
         readium: Readium
     ) async throws -> UIViewController {
-        let preferencesStore = makePreferencesStore(books: books)
+        let settingsStore = UserSettingsStore<EPUBUserSettings>(books: books)
         let epubViewController = try await EPUBViewController(
             publication: publication,
             locator: locator,
@@ -38,19 +38,10 @@ final class EPUBModule: ReaderFormatModule {
             books: books,
             bookmarks: bookmarks,
             highlights: highlights,
-            initialPreferences: preferencesStore.preferences(for: bookId),
-            preferencesStore: preferencesStore
+            initialPreferences: settingsStore.settings(for: bookId).preferences(),
+            settingsStore: settingsStore
         )
         epubViewController.moduleDelegate = delegate
         return epubViewController
-    }
-
-    func makePreferencesStore(books: BookRepository) -> AnyUserPreferencesStore<EPUBPreferences> {
-        CompositeUserPreferencesStore(
-            publicationStore: DatabaseUserPreferencesStore(books: books),
-            sharedStore: UserDefaultsUserPreferencesStore(),
-            publicationFilter: { $0.filterPublicationPreferences() },
-            sharedFilter: { $0.filterSharedPreferences() }
-        ).eraseToAnyPreferencesStore()
     }
 }
