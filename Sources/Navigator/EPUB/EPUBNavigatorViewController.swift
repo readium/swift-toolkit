@@ -36,9 +36,8 @@ import WebKit
     /// In reflowable resources, the insets at the ends of the lines are not
     /// applied around the content, the margins there are set by the
     /// `pageMargins` preference:
-    /// - With horizontal text, the left and right insets are ignored, and the
-    ///   left and right margins are never smaller than the view's safe area
-    ///   insets.
+    /// - With horizontal text, the left and right margins are never smaller
+    ///   than the larger of the left and right insets.
     /// - With vertical text, which is always scrolled, the top and bottom
     ///   margins are never smaller than the larger of the top and bottom
     ///   insets.
@@ -506,7 +505,6 @@ open class EPUBNavigatorViewController: InputObservableViewController,
     private func updateViewModelLayout() {
         viewModel.viewDidLayout(
             size: view.bounds.size,
-            safeAreaInsets: view.safeAreaInsets,
             reflowableContentInset: contentInset(for: .reflowable),
             hingeWidth: currentHingeWidth()
         )

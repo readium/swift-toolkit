@@ -114,9 +114,9 @@ final class EPUBReflowableSpreadView: EPUBSpreadView {
     ///
     /// Only the insets on the scroll axis are kept. On the other axis, the
     /// document is laid out in the full size of the view, and the line length
-    /// resolved by `LayoutResolver` already keeps the text out of the insets:
-    /// the left and right safe area with horizontal text, the top and bottom
-    /// content inset with vertical text.
+    /// resolved by `LayoutResolver` already keeps the text out of the insets
+    /// on this axis: left and right with horizontal text, top and bottom with
+    /// vertical text.
     static func scrollModeContentInset(_ inset: UIEdgeInsets, verticalText: Bool) -> UIEdgeInsets {
         if verticalText {
             return UIEdgeInsets(top: 0, left: inset.left, bottom: 0, right: inset.right)
