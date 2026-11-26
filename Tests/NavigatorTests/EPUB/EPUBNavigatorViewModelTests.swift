@@ -11,12 +11,10 @@ import UIKit
 
 @MainActor struct EPUBNavigatorViewModelTests {
     /// A second layout pass of the view, after a first one with the
-    /// `initial` insets.
+    /// `initialInsets`.
     struct LayoutPass: Sendable, CustomTestStringConvertible {
         let name: String
-        let verticalText: Bool
-        var safeAreaInsets: UIEdgeInsets = initialInsets
-        var reflowableContentInset: UIEdgeInsets = initialInsets
+        let reflowableContentInset: UIEdgeInsets
         /// Whether the CSS properties of the layout are updated.
         let commits: Bool
 
@@ -25,44 +23,23 @@ import UIKit
         }
     }
 
-    /// The vertical text margins come from the top and bottom content inset,
-    /// which doesn't include the app's bars, and the horizontal text margins
-    /// from the left and right safe area insets.
+    /// The margins of horizontal text come from the left and right content
+    /// insets.
     @Test("the CSS layout changes only when the insets at the ends of the lines change", arguments: [
         LayoutPass(
-            name: "vertical text, the app's bars change the safe area",
-            verticalText: true,
-            safeAreaInsets: UIEdgeInsets(top: 150, left: 62, bottom: 120, right: 62),
-            commits: false
-        ),
-        LayoutPass(
-            name: "vertical text, the top content inset changes",
-            verticalText: true,
-            reflowableContentInset: UIEdgeInsets(top: 100, left: 62, bottom: 62, right: 62),
+            name: "the right inset changes",
+            reflowableContentInset: UIEdgeInsets(top: 62, left: 62, bottom: 62, right: 100),
             commits: true
         ),
         LayoutPass(
-            name: "vertical text, the left and right safe area changes",
-            verticalText: true,
-            safeAreaInsets: UIEdgeInsets(top: 62, left: 100, bottom: 62, right: 100),
-            commits: false
-        ),
-        LayoutPass(
-            name: "horizontal text, the left and right safe area changes",
-            verticalText: false,
-            safeAreaInsets: UIEdgeInsets(top: 62, left: 100, bottom: 62, right: 100),
-            commits: true
-        ),
-        LayoutPass(
-            name: "horizontal text, the content inset changes",
-            verticalText: false,
-            reflowableContentInset: UIEdgeInsets(top: 100, left: 100, bottom: 100, right: 100),
+            name: "the top and bottom insets change",
+            reflowableContentInset: UIEdgeInsets(top: 100, left: 62, bottom: 100, right: 62),
             commits: false
         ),
     ])
     func layoutPass(_ test: LayoutPass) {
         let delegate = ViewModelDelegate()
-        let viewModel = makeViewModel(verticalText: test.verticalText)
+        let viewModel = makeViewModel()
         viewModel.delegate = delegate
 
         // A portrait size where the line length isn't limited by the
@@ -70,7 +47,6 @@ import UIKit
         let size = CGSize(width: 400, height: 420)
         viewModel.viewDidLayout(
             size: size,
-            safeAreaInsets: initialInsets,
             reflowableContentInset: initialInsets,
             hingeWidth: nil
         )
@@ -78,7 +54,6 @@ import UIKit
 
         viewModel.viewDidLayout(
             size: size,
-            safeAreaInsets: test.safeAreaInsets,
             reflowableContentInset: test.reflowableContentInset,
             hingeWidth: nil
         )
@@ -98,7 +73,6 @@ import UIKit
         let viewModel = makeViewModel(preferences: EPUBPreferences(fontSize: fontSize))
         viewModel.viewDidLayout(
             size: CGSize(width: 1366, height: 1024),
-            safeAreaInsets: .zero,
             reflowableContentInset: .zero,
             hingeWidth: nil
         )
@@ -112,7 +86,6 @@ import UIKit
         viewModel.delegate = delegate
         viewModel.viewDidLayout(
             size: CGSize(width: 1366, height: 1024),
-            safeAreaInsets: .zero,
             reflowableContentInset: .zero,
             hingeWidth: nil
         )
@@ -133,10 +106,10 @@ import UIKit
         viewModel.delegate = delegate
         let size = CGSize(width: 951, height: 669)
 
-        viewModel.viewDidLayout(size: size, safeAreaInsets: .zero, reflowableContentInset: .zero, hingeWidth: nil)
+        viewModel.viewDidLayout(size: size, reflowableContentInset: .zero, hingeWidth: nil)
         #expect(viewModel.resolvedLayout?.colCount == 1)
 
-        viewModel.viewDidLayout(size: size, safeAreaInsets: .zero, reflowableContentInset: .zero, hingeWidth: 40)
+        viewModel.viewDidLayout(size: size, reflowableContentInset: .zero, hingeWidth: 40)
         #expect(viewModel.resolvedLayout == LayoutResolver.Layout(colCount: 2, lineLength: 415.5))
         #expect(delegate.scripts.count == 2)
         #expect(delegate.scripts.last?.contains(#""--USER__colCount":"2""#) == true)
@@ -147,11 +120,7 @@ import UIKit
 
 private let initialInsets = UIEdgeInsets(top: 62, left: 62, bottom: 62, right: 62)
 
-@MainActor private func makeViewModel(verticalText: Bool) -> EPUBNavigatorViewModel {
-    makeViewModel(preferences: EPUBPreferences(verticalText: verticalText))
-}
-
-@MainActor private func makeViewModel(preferences: EPUBPreferences) -> EPUBNavigatorViewModel {
+@MainActor private func makeViewModel(preferences: EPUBPreferences = EPUBPreferences()) -> EPUBNavigatorViewModel {
     let publication = Publication(
         manifest: Manifest(
             metadata: Metadata(title: "Reflowable"),
