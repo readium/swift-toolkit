@@ -117,6 +117,11 @@ final class EPUBFixedSpreadView: EPUBSpreadView {
             continuation.resume()
         }
         goToContinuations.removeAll()
+
+        // The location of a fixed-layout spread is known as soon as it is
+        // loaded, so it is reported right away instead of once the
+        // preloaded spreads are loaded too.
+        delegate?.spreadViewPagesDidChange(self)
     }
 
     override func evaluateScript(_ script: String, inHREF href: AnyURL? = nil) async -> Result<Any, any Error> {
