@@ -139,169 +139,148 @@ enum EPUBPreferencesTests {
         }
     }
 
-    /// Which editor preferences are effective, depending on the layouts of
-    /// the reading order resources and on the preferences which are set.
-    @Suite("effective preferences") struct EffectivePreferences {
-        private let fixedLayoutPreferences: Set<String> = ["fit", "offsetFirstPage", "spread"]
-        private let layoutIndependentPreferences: Set<String> = ["backgroundColor", "language", "readingProgression"]
+    /// Which settings apply, depending on the layouts of the reading
+    /// order resources.
+    @Suite("applicable settings") struct ApplicableSettings {
+        private let fixedLayoutSettings: Set<String> = ["fit", "offsetFirstPage", "spread"]
+        private let layoutIndependentSettings: Set<String> = ["backgroundColor", "language", "readingProgression"]
 
-        @Test("the tests list every preference")
-        @MainActor func listsEveryPreference() {
-            let editor = makeEditor()
-            #expect(Set(editorPreferences(of: editor).map(\.name)) == allPreferenceNames)
+        @Test("are tested for every setting")
+        func listsEverySetting() {
+            let storedSettings = Set(Mirror(reflecting: settings()).children.compactMap(\.label))
+                .subtracting(["layouts"])
+            #expect(Set(allSettings.map(\.name)) == storedSettings)
+            #expect(storedSettings == allPreferenceNames)
         }
 
-        @Test("every preference is effective in a reflowable publication, except the fixed-layout ones and the ones depending on the language or the columns")
-        @MainActor func reflowablePublication() {
-            let editor = makeEditor(preferences: setOnlyPreferences)
+        @Test("every setting applies in a reflowable publication, except the fixed-layout ones and the ones depending on the language or the columns")
+        func reflowablePublication() {
             #expect(
-                effectivePreferences(of: editor) == allPreferenceNames
-                    .subtracting(fixedLayoutPreferences)
-                    // Effective only with a CJK language, and with several columns.
+                applicableSettings(settings()) == allPreferenceNames
+                    .subtracting(fixedLayoutSettings)
+                    // Applicable only with a CJK language, and with several columns.
                     .subtracting(["noRuby", "minimalLineLength"])
             )
         }
 
-        @Test("the preferences of both layouts are effective in a fixed-layout publication containing a reflowable resource", arguments: ["en", "ja"])
-        @MainActor func fixedLayoutPublicationWithReflowableResource(language: String) {
-            var preferences = setOnlyPreferences
-            preferences.language = Language(language)
+        @Test("the optional settings apply whether they are set or not")
+        func optionalSettingsSetOrNot() {
+            let unset = settings()
+            #expect(unsetProperties(of: unset).isSuperset(of: allPreferenceNames.subtracting(unsetProperties(of: optionalPreferences))))
+            #expect(applicableSettings(unset) == applicableSettings(settings(preferences: optionalPreferences)))
+        }
+
+        @Test("the settings of both layouts apply in a fixed-layout publication containing a reflowable resource", arguments: ["en", "ja"])
+        func fixedLayoutPublicationWithReflowableResource(language: String) {
+            let preferences = EPUBPreferences(language: Language(language))
 
             var reflowable = Link(href: "c2.xhtml", mediaType: .xhtml)
             reflowable.properties.epubLayout = .reflowable
 
-            let editor = makeEditor(
+            let mixed = settings(
                 preferences: preferences,
                 layout: .fixed,
                 readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml), reflowable]
             )
-            let reflowableEditor = makeEditor(preferences: preferences)
-            #expect(editor.defaultLayout == .fixed)
             #expect(
-                effectivePreferences(of: editor)
-                    == effectivePreferences(of: reflowableEditor).union(fixedLayoutPreferences)
+                applicableSettings(mixed)
+                    == applicableSettings(settings(preferences: preferences)).union(fixedLayoutSettings)
             )
         }
 
-        @Test("only the fixed-layout preferences are effective in a fixed-layout publication")
-        @MainActor func fixedLayoutPublication() {
-            let editor = makeEditor(preferences: setOnlyPreferences, layout: .fixed)
-            #expect(effectivePreferences(of: editor) == fixedLayoutPreferences.union(layoutIndependentPreferences))
+        @Test("only the fixed-layout settings apply in a fixed-layout publication")
+        func fixedLayoutPublication() {
+            #expect(applicableSettings(settings(layout: .fixed)) == fixedLayoutSettings.union(layoutIndependentSettings))
         }
 
-        @Test("only the fixed-layout preferences are effective in a reflowable publication containing only fixed-layout resources")
-        @MainActor func reflowablePublicationWithoutReflowableResource() {
+        @Test("only the fixed-layout settings apply in a reflowable publication containing only fixed-layout resources")
+        func reflowablePublicationWithoutReflowableResource() {
+            #expect(applicableSettings(settings(readingOrder: fixedLayoutReadingOrder)) == fixedLayoutSettings.union(layoutIndependentSettings))
+        }
+
+        /// A reading order of fixed-layout resources, in a reflowable
+        /// publication.
+        private var fixedLayoutReadingOrder: [Link] {
             var fixed = Link(href: "c1.xhtml", mediaType: .xhtml)
             fixed.properties.epubLayout = .fixed
-
-            let editor = makeEditor(
-                preferences: setOnlyPreferences,
-                readingOrder: [
-                    fixed,
-                    Link(href: "p2.jpg", mediaType: .jpeg),
-                    Link(href: "p3.svg", mediaType: .svg),
-                ]
-            )
-            #expect(editor.defaultLayout == .reflowable)
-            #expect(effectivePreferences(of: editor) == fixedLayoutPreferences.union(layoutIndependentPreferences))
-        }
-
-        @Test("some preferences are effective only when set")
-        @MainActor func effectiveOnlyWhenSet() {
-            let unsetEditor = makeEditor()
-            let setEditor = makeEditor(preferences: setOnlyPreferences)
-            let setOnly = allPreferenceNames.subtracting(unsetProperties(of: setOnlyPreferences))
-            #expect(effectivePreferences(of: unsetEditor) == effectivePreferences(of: setEditor).subtracting(setOnly))
+            return [
+                fixed,
+                Link(href: "p2.jpg", mediaType: .jpeg),
+                Link(href: "p3.svg", mediaType: .svg),
+            ]
         }
     }
 
-    @Suite("fixed-layout preferences") struct FixedLayout {
-        @Test("offsetFirstPage is not effective when the spread is disabled by a preference or a default")
-        @MainActor func offsetFirstPageWithoutSpread() {
-            let preference = makeEditor(preferences: EPUBPreferences(spread: .never), layout: .fixed)
-            #expect(preference.spread.isEffective)
-            #expect(!preference.offsetFirstPage.isEffective)
+    @Suite("fixed-layout settings") struct FixedLayout {
+        @Test("offsetFirstPage doesn't apply when the spread is disabled by a preference or a default")
+        func offsetFirstPageWithoutSpread() {
+            let withoutSpread = settings(preferences: EPUBPreferences(spread: .never), layout: .fixed)
+            #expect(withoutSpread.isApplicable(\.spread))
+            #expect(!withoutSpread.isApplicable(\.offsetFirstPage))
 
-            let defaults = makeEditor(defaults: EPUBDefaults(spread: .never), layout: .fixed)
-            #expect(!defaults.offsetFirstPage.isEffective)
-
-            let auto = makeEditor(layout: .fixed)
-            #expect(auto.offsetFirstPage.isEffective)
-
-            let always = makeEditor(preferences: EPUBPreferences(spread: .always), layout: .fixed)
-            #expect(always.offsetFirstPage.isEffective)
-        }
-
-        @Test("fit and spread are auto and offsetFirstPage is nil when unset")
-        @MainActor func defaultEffectiveValues() {
-            let editor = makeEditor(layout: .fixed)
-            #expect(editor.fit.value == nil)
-            #expect(editor.fit.effectiveValue == .auto)
-            #expect(editor.spread.value == nil)
-            #expect(editor.spread.effectiveValue == .auto)
-            #expect(editor.offsetFirstPage.value == nil)
-            #expect(editor.offsetFirstPage.effectiveValue == nil)
-        }
-
-        @Test("fit, spread and offsetFirstPage use the defaults as effective value when unset")
-        @MainActor func effectiveValuesFromDefaults() {
-            let editor = makeEditor(defaults: EPUBDefaults(fit: .width, offsetFirstPage: true, spread: .always), layout: .fixed)
-            #expect(editor.fit.effectiveValue == .width)
-            #expect(editor.spread.effectiveValue == .always)
-            #expect(editor.offsetFirstPage.effectiveValue == true)
-        }
-
-        @Test("the editor supports the fit and spread values")
-        @MainActor func supportedValues() {
-            let editor = makeEditor(layout: .fixed)
-            #expect(editor.fit.supportedValues == [.auto, .page, .width])
-            #expect(editor.spread.supportedValues == [.auto, .never, .always])
-        }
-
-        @Test("the editor sets and clears the preferences")
-        @MainActor func setAndClear() {
-            let editor = makeEditor(layout: .fixed)
-            editor.fit.set(.width)
-            editor.spread.set(.always)
-            editor.offsetFirstPage.set(true)
-            #expect(editor.preferences.fit == .width)
-            #expect(editor.preferences.spread == .always)
-            #expect(editor.preferences.offsetFirstPage == true)
-            #expect(editor.fit.effectiveValue == .width)
-            #expect(editor.spread.effectiveValue == .always)
-            #expect(editor.offsetFirstPage.effectiveValue == true)
-
-            editor.fit.clear()
-            editor.spread.clear()
-            editor.offsetFirstPage.clear()
-            #expect(editor.preferences.fit == nil)
-            #expect(editor.preferences.spread == nil)
-            #expect(editor.preferences.offsetFirstPage == nil)
-            #expect(editor.fit.effectiveValue == .auto)
-            #expect(editor.spread.effectiveValue == .auto)
-            #expect(editor.offsetFirstPage.effectiveValue == nil)
+            #expect(!settings(defaults: EPUBDefaults(spread: .never), layout: .fixed).isApplicable(\.offsetFirstPage))
+            #expect(settings(layout: .fixed).isApplicable(\.offsetFirstPage))
         }
     }
 
-    @Suite("language-specific preferences") struct LanguageSpecific {
-        private let languageSpecificPreferences: Set<String> = [
+    @Suite("language-specific settings") struct LanguageSpecific {
+        private let languageSpecificSettings: Set<String> = [
             "hyphens", "letterSpacing", "ligatures", "noRuby", "paragraphIndent", "textAlign", "textNormalization", "wordSpacing",
         ]
 
-        @Test("the editor preferences are effective with the stylesheets supporting them", arguments: [
-            ("en", false, CSSLayout.Stylesheets.default, ["hyphens", "letterSpacing", "ligatures", "paragraphIndent", "textAlign", "textNormalization", "wordSpacing"]),
-            ("ar", false, CSSLayout.Stylesheets.rtl, ["ligatures", "paragraphIndent", "textAlign", "wordSpacing"]),
-            ("ja", false, CSSLayout.Stylesheets.cjkHorizontal, ["letterSpacing", "noRuby"]),
-            ("ja", true, CSSLayout.Stylesheets.cjkVertical, ["letterSpacing", "noRuby"]),
-        ] as [(String, Bool, CSSLayout.Stylesheets, Set<String>)])
-        @MainActor func editorEffective(language: String, verticalText: Bool, stylesheets: CSSLayout.Stylesheets, expected: Set<String>) {
-            var preferences = setOnlyPreferences
-            preferences.language = Language(language)
-            preferences.verticalText = verticalText
-            #expect(settings(preferences: preferences).cssLayout.stylesheets == stylesheets)
+        struct Applicable: Sendable, CustomTestStringConvertible {
+            let name: String
+            let language: String
+            var verticalText: Bool = false
+            let stylesheets: CSSLayout.Stylesheets
+            let expected: Set<String>
 
-            let editor = makeEditor(preferences: preferences)
-            #expect(effectivePreferences(of: editor).intersection(languageSpecificPreferences) == expected)
+            var testDescription: String {
+                name
+            }
+        }
+
+        @Test("the settings apply with the stylesheets supporting them", arguments: [
+            Applicable(
+                name: "LTR",
+                language: "en",
+                stylesheets: .default,
+                expected: ["hyphens", "letterSpacing", "ligatures", "paragraphIndent", "textAlign", "textNormalization", "wordSpacing"]
+            ),
+            Applicable(
+                name: "RTL",
+                language: "ar",
+                stylesheets: .rtl,
+                expected: ["ligatures", "paragraphIndent", "textAlign", "wordSpacing"]
+            ),
+            Applicable(
+                name: "CJK horizontal",
+                language: "ja",
+                stylesheets: .cjkHorizontal,
+                expected: ["letterSpacing", "noRuby"]
+            ),
+            Applicable(
+                name: "CJK vertical",
+                language: "ja",
+                verticalText: true,
+                stylesheets: .cjkVertical,
+                expected: ["letterSpacing", "noRuby"]
+            ),
+        ])
+        func applicable(_ example: Applicable) {
+            let settings = settings(preferences: EPUBPreferences(language: Language(example.language), verticalText: example.verticalText))
+            #expect(settings.cssLayout.stylesheets == example.stylesheets)
+            #expect(applicableSettings(settings).intersection(languageSpecificSettings) == example.expected)
+        }
+
+        @Test("the settings follow a language changed after the resolution")
+        func languageChangedAfterResolution() {
+            var settings = settings(preferences: EPUBPreferences(language: Language("en")))
+            #expect(settings.isApplicable(\.hyphens))
+
+            settings.language = Language("ja")
+            #expect(settings.cssLayout.stylesheets == .cjkHorizontal)
+            #expect(applicableSettings(settings).intersection(languageSpecificSettings) == ["letterSpacing", "noRuby"])
         }
     }
 
@@ -321,185 +300,100 @@ enum EPUBPreferencesTests {
             #expect(EPUBPreferences(columnCount: value).columnCount == value)
             #expect(EPUBDefaults(columnCount: value).columnCount == value)
         }
-
-        @Test("the editor supports auto, 1 and 2 columns")
-        @MainActor func editorSupportedValues() {
-            let editor = makeEditor()
-            #expect(editor.columnCount.supportedValues == [nil, 1, 2])
-            #expect(editor.preferences.columnCount == nil)
-            #expect(editor.columnCount.effectiveValue == nil)
-        }
-
-        @Test("the editor sets and clears the column count")
-        @MainActor func editorSetAndClear() {
-            let editor = makeEditor()
-            editor.columnCount.set(2)
-            #expect(editor.columnCount.value == 2)
-            #expect(editor.columnCount.effectiveValue == 2)
-            #expect(editor.preferences.columnCount == 2)
-
-            editor.columnCount.clear()
-            #expect(editor.preferences.columnCount == nil)
-        }
-
-        @Test("the editor uses the defaults as effective value when unset")
-        @MainActor func editorEffectiveValueFromDefaults() {
-            let editor = makeEditor(defaults: EPUBDefaults(columnCount: 2))
-            #expect(editor.columnCount.value == nil)
-            #expect(editor.columnCount.effectiveValue == 2)
-        }
-
-        @Test("the editor preference is not effective in scroll mode")
-        @MainActor func editorNotEffectiveWhenScrolling() {
-            let editor = makeEditor(preferences: EPUBPreferences(scroll: true))
-            #expect(!editor.columnCount.isEffective)
-        }
     }
 
     @Suite("scroll") struct Scroll {
-        @Test("vertical text is always scrolled, so the editor preference is not effective")
-        @MainActor func verticalText() {
-            let preferences = EPUBPreferences(scroll: false, verticalText: true)
-            #expect(settings(preferences: preferences).scroll)
-
-            let editor = makeEditor(preferences: preferences)
-            #expect(!editor.scroll.isEffective)
+        @Test("vertical text is always scrolled, so the setting doesn't apply")
+        func verticalText() {
+            let settings = settings(preferences: EPUBPreferences(scroll: false, verticalText: true))
+            #expect(settings.scroll)
+            #expect(!settings.isApplicable(\.scroll))
         }
     }
 
     @Suite("line length") struct LineLength {
-        @Test("preferences ignore values lower than or equal to 0", arguments: [0.0, -1.0])
-        func preferencesIgnoreInvalidValues(value: Double) {
-            let prefs = EPUBPreferences(
-                maximalLineLength: value,
-                minimalLineLength: value,
-                optimalLineLength: value
-            )
-            #expect(prefs.maximalLineLength == nil)
-            #expect(prefs.minimalLineLength == nil)
-            #expect(prefs.optimalLineLength == nil)
+        /// A line length given to the initializers, and the minimal line
+        /// length expected, as the other line lengths are ignored.
+        struct InvalidValue: Sendable, CustomTestStringConvertible {
+            let name: String
+            let value: Double
+            let expectedMinimal: Double?
+
+            var testDescription: String {
+                name
+            }
         }
 
-        @Test("defaults ignore values lower than or equal to 0", arguments: [0.0, -1.0])
-        func defaultsIgnoreInvalidValues(value: Double) {
+        @Test("preferences and defaults ignore values lower than or equal to 0, except a minimal line length of 0", arguments: [
+            InvalidValue(name: "0", value: 0, expectedMinimal: 0),
+            InvalidValue(name: "a negative value", value: -1, expectedMinimal: nil),
+        ])
+        func ignoreInvalidValues(_ example: InvalidValue) {
+            let prefs = EPUBPreferences(
+                maximalLineLength: example.value,
+                minimalLineLength: example.value,
+                optimalLineLength: example.value
+            )
+            #expect(prefs.maximalLineLength == nil)
+            #expect(prefs.minimalLineLength == example.expectedMinimal)
+            #expect(prefs.optimalLineLength == nil)
+
             let defaults = EPUBDefaults(
-                maximalLineLength: value,
-                minimalLineLength: value,
-                optimalLineLength: value
+                maximalLineLength: example.value,
+                minimalLineLength: example.value,
+                optimalLineLength: example.value
             )
             #expect(defaults.maximalLineLength == nil)
-            #expect(defaults.minimalLineLength == nil)
+            #expect(defaults.minimalLineLength == example.expectedMinimal)
             #expect(defaults.optimalLineLength == nil)
         }
 
-        @Test("the editor preferences have the same range, starting from 100%")
-        @MainActor func editorRanges() {
-            let editor = makeEditor()
-            #expect(editor.optimalLineLength.supportedRange == 0.5 ... 2.0)
-            #expect(editor.optimalLineLength.effectiveValue == 1.0)
-            #expect(editor.minimalLineLength.supportedRange == 0.5 ... 2.0)
-            #expect(editor.minimalLineLength.defaultValue == 1.0)
-            #expect(editor.minimalLineLength.effectiveValue == nil)
-            #expect(editor.maximalLineLength.supportedRange == 0.5 ... 2.0)
-            #expect(editor.maximalLineLength.defaultValue == 1.0)
-            #expect(editor.maximalLineLength.effectiveValue == 1.0)
+        /// A maximal line length set in the preferences and the defaults, and
+        /// the resolved setting.
+        struct MaximalLineLength: Sendable, CustomTestStringConvertible {
+            let name: String
+            var preference: Double?
+            var defaults: Double?
+            let expected: Double
+
+            var testDescription: String {
+                name
+            }
         }
 
-        @Test("the editor sets and clears the line length limits")
-        @MainActor func editorSetAndClear() {
-            let editor = makeEditor()
-            editor.minimalLineLength.increment()
-            #expect(editor.preferences.minimalLineLength == 1.1)
-            #expect(editor.minimalLineLength.effectiveValue == 1.1)
-
-            editor.minimalLineLength.set(nil)
-            #expect(editor.preferences.minimalLineLength == nil)
-            #expect(editor.minimalLineLength.effectiveValue == nil)
-
-            editor.maximalLineLength.increment()
-            #expect(editor.preferences.maximalLineLength == 1.1)
-            #expect(editor.maximalLineLength.effectiveValue == 1.1)
-
-            // Clearing the preference falls back on the default limit.
-            editor.maximalLineLength.set(nil)
-            #expect(editor.preferences.maximalLineLength == nil)
-            #expect(editor.maximalLineLength.effectiveValue == 1.0)
+        @Test("the maximal line length falls back on the defaults, then on 1.0, and .infinity removes the limit", arguments: [
+            MaximalLineLength(name: "unset", expected: 1.0),
+            MaximalLineLength(name: "a default", defaults: 1.2, expected: 1.2),
+            MaximalLineLength(name: "an infinite preference", preference: .infinity, expected: .infinity),
+            MaximalLineLength(name: "a preference overriding an infinite default", preference: 0.8, defaults: .infinity, expected: 0.8),
+        ])
+        func maximalLineLength(_ example: MaximalLineLength) {
+            let resolved = settings(
+                preferences: EPUBPreferences(maximalLineLength: example.preference),
+                defaults: EPUBDefaults(maximalLineLength: example.defaults)
+            )
+            #expect(resolved.maximalLineLength == example.expected)
         }
 
-        @Test("the lines are limited by default, unless the defaults remove the limit")
-        @MainActor func maximalLineLengthDefault() {
-            #expect(EPUBDefaults().maximalLineLength == 1.0)
-            #expect(settings().maximalLineLength == 1.0)
+        struct Applicable: Sendable, CustomTestStringConvertible {
+            let name: String
+            let preferences: EPUBPreferences
+            let expected: Set<String>
 
-            let defaults = EPUBDefaults(maximalLineLength: nil)
-            #expect(settings(defaults: defaults).maximalLineLength == nil)
-
-            let editor = makeEditor(defaults: defaults)
-            #expect(editor.maximalLineLength.effectiveValue == nil)
-            editor.maximalLineLength.set(1.2)
-            #expect(editor.maximalLineLength.effectiveValue == 1.2)
-            editor.maximalLineLength.set(nil)
-            #expect(editor.maximalLineLength.effectiveValue == nil)
+            var testDescription: String {
+                name
+            }
         }
 
-        @Test("with automatic columns, only the optimal and maximal line lengths are effective")
-        @MainActor func editorEffectiveWithAutoColumns() {
-            let editor = makeEditor()
-            #expect(editor.optimalLineLength.isEffective)
-            #expect(!editor.minimalLineLength.isEffective)
-            #expect(editor.maximalLineLength.isEffective)
-        }
-
-        @Test("with several columns, only the minimal and maximal line lengths are effective")
-        @MainActor func editorEffectiveWithSeveralColumns() {
-            let editor = makeEditor(preferences: EPUBPreferences(columnCount: 2))
-            #expect(!editor.optimalLineLength.isEffective)
-            #expect(editor.minimalLineLength.isEffective)
-            #expect(editor.maximalLineLength.isEffective)
-        }
-
-        @Test("with one column, only the maximal line length is effective")
-        @MainActor func editorEffectiveWithOneColumn() {
-            let editor = makeEditor(preferences: EPUBPreferences(columnCount: 1))
-            #expect(!editor.optimalLineLength.isEffective)
-            #expect(!editor.minimalLineLength.isEffective)
-            #expect(editor.maximalLineLength.isEffective)
-        }
-
-        @Test("in scroll mode, only the maximal line length is effective")
-        @MainActor func editorEffectiveWhenScrolling() {
-            let editor = makeEditor(preferences: EPUBPreferences(columnCount: 2, scroll: true))
-            #expect(!editor.optimalLineLength.isEffective)
-            #expect(!editor.minimalLineLength.isEffective)
-            #expect(editor.maximalLineLength.isEffective)
-        }
-    }
-
-    @Suite("lineHeight") struct LineHeight {
-        @Test("the editor uses the Readium CSS base line height when unset")
-        @MainActor func editorDefaultEffectiveValue() {
-            let editor = makeEditor()
-            #expect(editor.lineHeight.value == nil)
-            #expect(editor.lineHeight.effectiveValue == 1.5)
-        }
-
-        @Test("the editor steps from the Readium CSS base line height when unset")
-        @MainActor func editorStepsFromDefault() {
-            let editor = makeEditor()
-            editor.lineHeight.increment()
-            #expect(editor.preferences.lineHeight == 1.6)
-            #expect(editor.lineHeight.effectiveValue == 1.6)
-
-            editor.lineHeight.clear()
-            editor.lineHeight.decrement()
-            #expect(editor.preferences.lineHeight == 1.4)
-        }
-
-        @Test("the editor uses the defaults as effective value")
-        @MainActor func editorEffectiveValueFromDefaults() {
-            let editor = makeEditor(defaults: EPUBDefaults(lineHeight: 1.8))
-            #expect(editor.preferences.lineHeight == nil)
-            #expect(editor.lineHeight.effectiveValue == 1.8)
+        @Test("the applicable column and line-length settings depend on the columns and the scroll mode", arguments: [
+            Applicable(name: "automatic columns", preferences: EPUBPreferences(), expected: ["columnCount", "optimalLineLength", "maximalLineLength"]),
+            Applicable(name: "several columns", preferences: EPUBPreferences(columnCount: 2), expected: ["columnCount", "minimalLineLength", "maximalLineLength"]),
+            Applicable(name: "one column", preferences: EPUBPreferences(columnCount: 1), expected: ["columnCount", "maximalLineLength"]),
+            Applicable(name: "scroll mode", preferences: EPUBPreferences(columnCount: 2, scroll: true), expected: ["maximalLineLength"]),
+        ])
+        func applicable(_ example: Applicable) {
+            let columnsAndLineLengths: Set = ["columnCount", "optimalLineLength", "minimalLineLength", "maximalLineLength"]
+            #expect(applicableSettings(settings(preferences: example.preferences)).intersection(columnsAndLineLengths) == example.expected)
         }
     }
 
@@ -512,14 +406,6 @@ enum EPUBPreferencesTests {
         func limitValue(value: Double, expected: Double) {
             #expect(EPUBPreferences(fontWeight: value).fontWeight == expected)
             #expect(EPUBDefaults(fontWeight: value).fontWeight == expected)
-        }
-
-        @Test("the editor steps by 25% from 100%, within 0% and 250%")
-        @MainActor func editorSteps() {
-            let editor = makeEditor()
-            #expect(editor.fontWeight.supportedRange == 0.0 ... 2.5)
-            editor.fontWeight.increment()
-            #expect(editor.preferences.fontWeight == 1.25)
         }
 
         @Test("ReadiumCSS emits the weight as a factor of 400 limited to 1 ... 1000", arguments: [
@@ -549,30 +435,6 @@ enum EPUBPreferencesTests {
         func limitValue(value: Double, expected: Double) {
             #expect(EPUBPreferences(fontWidth: value).fontWidth == expected)
             #expect(EPUBDefaults(fontWidth: value).fontWidth == expected)
-        }
-
-        @Test("the editor reads 100% when unset, unless the defaults say otherwise", arguments: [
-            (nil, 1.0),
-            (1.2, 1.2),
-        ] as [(Double?, Double)])
-        @MainActor func editorEffectiveValue(defaults: Double?, expected: Double) {
-            let editor = makeEditor(defaults: EPUBDefaults(fontWidth: defaults))
-            #expect(editor.fontWidth.value == nil)
-            #expect(editor.fontWidth.effectiveValue == expected)
-        }
-
-        @Test("the editor steps by 10% from 100%, within 50% and 250%, and is effective once set")
-        @MainActor func editorSteps() {
-            let editor = makeEditor()
-            #expect(editor.fontWidth.supportedRange == 0.5 ... 2.5)
-            #expect(editor.fontWidth.format(value: 1.5) == "150%")
-            editor.fontWidth.increment()
-            #expect(editor.preferences.fontWidth == 1.1)
-            #expect(editor.fontWidth.effectiveValue == 1.1)
-            #expect(editor.fontWidth.isEffective)
-            editor.fontWidth.clear()
-            editor.fontWidth.decrement()
-            #expect(editor.preferences.fontWidth == 0.9)
         }
     }
 
@@ -663,11 +525,12 @@ enum EPUBPreferencesTests {
             Limit(\.fontSize, "fontSize", -1, "1.4", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.maximalLineLength, "maximalLineLength", 0, "1.0"),
             Limit(\.maximalLineLength, "maximalLineLength", -1, "1.0"),
+            Limit(\.maximalLineLength, "maximalLineLength", .nan, "1.0"),
             Limit(\.maximalLineLength, "maximalLineLength", 0, "1.2", defaults: customDefaults, defaultsDescription: "custom defaults"),
-            Limit(\.maximalLineLength, "maximalLineLength", 0, "nil", defaults: EPUBDefaults(maximalLineLength: nil), defaultsDescription: "no default"),
-            Limit(\.minimalLineLength, "minimalLineLength", 0, "nil"),
+            Limit(\.maximalLineLength, "maximalLineLength", 0, "inf", defaults: EPUBDefaults(maximalLineLength: .infinity), defaultsDescription: "an infinite default"),
             Limit(\.minimalLineLength, "minimalLineLength", -1, "nil"),
-            Limit(\.minimalLineLength, "minimalLineLength", 0, "0.8", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.minimalLineLength, "minimalLineLength", .nan, "nil"),
+            Limit(\.minimalLineLength, "minimalLineLength", -1, "0.8", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.optimalLineLength, "optimalLineLength", 0, "1.0"),
             Limit(\.optimalLineLength, "optimalLineLength", -1, "1.0"),
             Limit(\.optimalLineLength, "optimalLineLength", 0, "1.5", defaults: customDefaults, defaultsDescription: "custom defaults"),
@@ -695,6 +558,9 @@ enum EPUBPreferencesTests {
             Limit(\.darkenImages, "darkenImages", 0.4, "0.4"),
             Limit(\.letterSpacing, "letterSpacing", 0.2, "0.2"),
             Limit(\.maximalLineLength, "maximalLineLength", 0.01, "0.01"),
+            Limit(\.maximalLineLength, "maximalLineLength", .infinity, "inf", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.minimalLineLength, "minimalLineLength", 0, "0.0"),
+            Limit(\.minimalLineLength, "minimalLineLength", 0, "0.0", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.minimalLineLength, "minimalLineLength", 1.5, "1.5"),
             Limit(\.minimalLineLength, "minimalLineLength", 1.5, "1.5", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.optimalLineLength, "optimalLineLength", 1.2, "1.2", defaults: customDefaults, defaultsDescription: "custom defaults"),
@@ -724,7 +590,7 @@ enum EPUBPreferencesTests {
             #expect(settings.fontWeight == 2.5)
             #expect(settings.fontWidth == 0.5)
             #expect(settings.letterSpacing == 0)
-            #expect(settings.maximalLineLength == nil)
+            #expect(settings.maximalLineLength == 1.0)
             #expect(settings.minimalLineLength == nil)
             #expect(settings.optimalLineLength == 1.0)
             #expect(settings.pageMargins == 0)
@@ -742,7 +608,7 @@ enum EPUBPreferencesTests {
                 darkenImages: 1.5,
                 letterSpacing: -1,
                 maximalLineLength: -1,
-                minimalLineLength: 0,
+                minimalLineLength: -1,
                 optimalLineLength: -1,
                 pageMargins: -1,
                 paragraphSpacing: -1,
@@ -755,7 +621,7 @@ enum EPUBPreferencesTests {
                 fontWidth: 2.5,
                 darkenImages: 1,
                 letterSpacing: 0,
-                maximalLineLength: nil,
+                maximalLineLength: 1.0,
                 minimalLineLength: nil,
                 optimalLineLength: 1.0,
                 pageMargins: 0,
@@ -773,8 +639,8 @@ enum EPUBPreferencesTests {
                 fontWidth: 0.5,
                 darkenImages: 0,
                 letterSpacing: 0.2,
-                maximalLineLength: 2,
-                minimalLineLength: 0.01,
+                maximalLineLength: .infinity,
+                minimalLineLength: 0,
                 optimalLineLength: 1.5,
                 pageMargins: 0,
                 paragraphSpacing: 0.5,
@@ -786,8 +652,8 @@ enum EPUBPreferencesTests {
             #expect(settings.fontWidth == 0.5)
             #expect(settings.darkenImages == 0)
             #expect(settings.letterSpacing == 0.2)
-            #expect(settings.maximalLineLength == 2)
-            #expect(settings.minimalLineLength == 0.01)
+            #expect(settings.maximalLineLength == .infinity)
+            #expect(settings.minimalLineLength == 0)
             #expect(settings.optimalLineLength == 1.5)
             #expect(settings.pageMargins == 0)
             #expect(settings.paragraphSpacing == 0.5)
@@ -801,7 +667,7 @@ enum EPUBPreferencesTests {
             fontWidth: Double?,
             darkenImages: Double?,
             letterSpacing: Double?,
-            maximalLineLength: Double?,
+            maximalLineLength: Double,
             minimalLineLength: Double?,
             optimalLineLength: Double,
             pageMargins: Double,
@@ -848,52 +714,9 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("hyphens") struct Hyphens {
-        @Test("the editor reads the hyphens as on when unset, only with justified text", arguments: [
-            (.justify, true),
-            (.left, false),
-        ] as [(TextAlignment?, Bool)])
-        @MainActor func editorFollowsJustifiedText(textAlign: TextAlignment?, expected: Bool) {
-            let editor = makeEditor(preferences: EPUBPreferences(textAlign: textAlign))
-            #expect(editor.hyphens.value == nil)
-            #expect(editor.hyphens.effectiveValue == expected)
-            #expect(editor.hyphens.isEffective == expected)
-        }
-    }
-
-    @Suite("ligatures") struct Ligatures {
-        @Test("the editor reads the ligatures as on when unset, unless the defaults say otherwise", arguments: [
-            (nil, true),
-            (false, false),
-        ])
-        @MainActor func editorEffectiveValue(defaults: Bool?, expected: Bool) {
-            let editor = makeEditor(defaults: EPUBDefaults(ligatures: defaults))
-            #expect(editor.ligatures.value == nil)
-            #expect(editor.ligatures.effectiveValue == expected)
-        }
-    }
-
-    @Suite("blendImages") struct BlendImages {
-        @Test("the editor preference is off when unset")
-        @MainActor func editorDefaultEffectiveValue() {
-            let editor = makeEditor()
-            #expect(editor.blendImages.value == nil)
-            #expect(editor.blendImages.effectiveValue == false)
-        }
-
-        @Test("the editor sets and clears the preference")
-        @MainActor func editorSetAndClear() {
-            let editor = makeEditor()
-            editor.blendImages.set(true)
-            #expect(editor.blendImages.value == true)
-            #expect(editor.blendImages.effectiveValue == true)
-            #expect(editor.preferences.blendImages == true)
-
-            editor.blendImages.clear()
-            #expect(editor.preferences.blendImages == nil)
-            #expect(editor.blendImages.effectiveValue == false)
-
-            editor.blendImages.toggle()
-            #expect(editor.preferences.blendImages == true)
+        @Test("the setting applies with a justified text")
+        func appliesWithJustifiedText() {
+            #expect(settings(preferences: EPUBPreferences(textAlign: .justify)).isApplicable(\.hyphens))
         }
     }
 
@@ -944,124 +767,29 @@ enum EPUBPreferencesTests {
 
         // `--USER__invertGaiji: 0` would replace the whole `filter` of the
         // gaiji, which would not be filtered with the other images.
-        @Test("ReadiumCSS keeps the other filters on the gaiji when invertGaiji is toggled off")
-        @MainActor func cssInvertGaijiToggledOff() {
-            let editor = makeEditor(preferences: EPUBPreferences(darkenImages: 0.2, invertGaiji: true, invertImages: true))
-            editor.invertGaiji.toggle()
-            #expect(editor.preferences.invertGaiji == false)
-
-            let props = cssProperties(preferences: editor.preferences)
+        @Test("ReadiumCSS keeps the other filters on the gaiji when invertGaiji is off")
+        func cssInvertGaijiOff() {
+            let props = cssProperties(preferences: EPUBPreferences(darkenImages: 0.2, invertGaiji: false, invertImages: true))
             #expect(props["--USER__darkenImages"] == "0.80000")
             #expect(props["--USER__invertImages"] == "1.00000")
             #expect(props["--USER__invertGaiji"] == .some(nil))
         }
 
-        @Test("ReadiumCSS doesn't darken the images when stepped down to 0%")
-        @MainActor func cssDarkenImagesSteppedDownToZero() throws {
-            let editor = makeEditor(preferences: EPUBPreferences(darkenImages: 1.0))
-            for _ in 0 ..< 10 {
-                editor.darkenImages.decrement()
-            }
-            // Repeated decrements of 0.1 leave a residue instead of an exact 0.
-            #expect(try editor.darkenImages.format(value: #require(editor.preferences.darkenImages)) == "0%")
-            #expect(cssProperties(preferences: editor.preferences)["--USER__darkenImages"] == .some(nil))
-        }
-
-        @Test("the editor darkens the images by a percentage")
-        @MainActor func editorDarkenImages() {
-            let editor = makeEditor()
-            #expect(editor.darkenImages.value == nil)
-            #expect(editor.darkenImages.effectiveValue == 0)
-            #expect(editor.darkenImages.supportedRange == 0.0 ... 1.0)
-            #expect(editor.darkenImages.format(value: 0.5) == "50%")
-
-            // Steps from 0% when unset.
-            editor.darkenImages.decrement()
-            #expect(editor.preferences.darkenImages == 0)
-            editor.darkenImages.increment()
-            #expect(editor.preferences.darkenImages == 0.1)
-
-            editor.darkenImages.set(0.95)
-            editor.darkenImages.increment()
-            #expect(editor.preferences.darkenImages == 1.0)
-
-            editor.darkenImages.clear()
-            #expect(editor.preferences.darkenImages == nil)
-            #expect(editor.darkenImages.effectiveValue == 0)
-        }
-
-        @Test("the editor toggles the inversions")
-        @MainActor func editorInversionToggles() {
-            let editor = makeEditor()
-            for (filter, preference) in inversions(of: editor) {
-                #expect(filter.value == nil)
-                #expect(filter.effectiveValue == false)
-
-                filter.toggle()
-                #expect(editor.preferences[keyPath: preference] == true)
-                #expect(filter.effectiveValue == true)
-                filter.toggle()
-                #expect(editor.preferences[keyPath: preference] == false)
-                #expect(filter.effectiveValue == false)
-
-                filter.clear()
-                #expect(editor.preferences[keyPath: preference] == nil)
-            }
-        }
-
-        /// The inversion toggles of the `editor`, with their preference.
-        @MainActor private func inversions(
-            of editor: EPUBPreferencesEditor
-        ) -> [(filter: AnyPreference<Bool>, preference: KeyPath<EPUBPreferences, Bool?>)] {
-            [
-                (editor.invertGaiji, \.invertGaiji),
-                (editor.invertImages, \.invertImages),
-            ]
+        /// Repeated steps of 0.1 down to 0% leave a residue instead of an
+        /// exact 0.
+        @Test("ReadiumCSS doesn't darken the images with a residue above 0%", arguments: [1e-16, 0.000001])
+        func cssDarkenImagesResidue(value: Double) {
+            #expect(cssProperties(preferences: EPUBPreferences(darkenImages: value))["--USER__darkenImages"] == .some(nil))
         }
     }
 
     @Suite("colors") struct Colors {
         private let red = Color(rawValue: 0xFF0000)
-        private let green = Color(rawValue: 0x00FF00)
-        private let yellow = Color(rawValue: 0xFFFF00)
 
         @Test("the effective background color is white when unset")
         func effectiveBackgroundColor() {
             #expect(settings().effectiveBackgroundColor == Color(rawValue: 0xFFFFFF))
             #expect(settings(preferences: EPUBPreferences(backgroundColor: red)).effectiveBackgroundColor == red)
-        }
-
-        @Test("the editor uses the Readium CSS default colors when unset")
-        @MainActor func editorDefaultEffectiveValues() {
-            let editor = makeEditor()
-            #expect(editor.textColor.value == nil)
-            #expect(editor.textColor.effectiveValue == Color(rawValue: 0x121212))
-            #expect(editor.backgroundColor.value == nil)
-            #expect(editor.backgroundColor.effectiveValue == Color(rawValue: 0xFFFFFF))
-            #expect(editor.linkColor.value == nil)
-            #expect(editor.linkColor.effectiveValue == Color(rawValue: 0x0000EE))
-            #expect(editor.visitedColor.value == nil)
-            #expect(editor.visitedColor.effectiveValue == Color(rawValue: 0x551A8B))
-        }
-
-        @Test("the editor sets and clears the link colors")
-        @MainActor func editorSetAndClear() {
-            let editor = makeEditor()
-            editor.linkColor.set(green)
-            editor.visitedColor.set(yellow)
-            #expect(editor.preferences.linkColor == green)
-            #expect(editor.linkColor.effectiveValue == green)
-            #expect(editor.linkColor.isEffective)
-            #expect(editor.preferences.visitedColor == yellow)
-            #expect(editor.visitedColor.effectiveValue == yellow)
-            #expect(editor.visitedColor.isEffective)
-
-            editor.linkColor.clear()
-            editor.visitedColor.clear()
-            #expect(editor.preferences.linkColor == nil)
-            #expect(!editor.linkColor.isEffective)
-            #expect(editor.preferences.visitedColor == nil)
-            #expect(!editor.visitedColor.isEffective)
         }
 
         @Test("a color is dark according to its luma", arguments: [
@@ -1292,8 +1020,8 @@ private let allDefaults = EPUBDefaults(
     wordSpacing: 0.8
 )
 
-/// The preferences which are effective in the editor only when they are set.
-private let setOnlyPreferences = EPUBPreferences(
+/// Preferences resolved to optional settings, which are `nil` when unset.
+private let optionalPreferences = EPUBPreferences(
     backgroundColor: Color(rawValue: 0xFF0000),
     fontWeight: 1.5,
     fontWidth: 1.5,
@@ -1330,8 +1058,7 @@ private let cssTable: [(preferences: EPUBPreferences, expected: [String: String?
     (EPUBPreferences(invertGaiji: true), ["--USER__invertGaiji": "1.00000"]),
     (EPUBPreferences(invertImages: true), ["--USER__invertImages": "1.00000"]),
     (EPUBPreferences(language: Language("fr")), [:]),
-    // ReadiumCSS halves the letter spacing.
-    (EPUBPreferences(letterSpacing: 0.2), ["--USER__letterSpacing": "0.10000rem"]),
+    (EPUBPreferences(letterSpacing: 0.2), ["--USER__letterSpacing": "0.20000rem"]),
     (EPUBPreferences(ligatures: true), ["--USER__ligatures": "common-ligatures"]),
     (EPUBPreferences(ligatures: false), ["--USER__ligatures": "none"]),
     (EPUBPreferences(lineHeight: 1.6), ["--USER__lineHeight": "1.60000"]),
@@ -1387,12 +1114,16 @@ private func unwrappedDescription(_ value: Any) -> String {
 
 private func settings(
     preferences: EPUBPreferences = EPUBPreferences(),
-    defaults: EPUBDefaults = EPUBDefaults()
+    defaults: EPUBDefaults = EPUBDefaults(),
+    layout: Layout? = nil,
+    readingOrder: [Link] = [Link(href: "c1.xhtml", mediaType: .xhtml)]
 ) -> EPUBSettings {
-    EPUBSettings(
+    let metadata = Metadata(title: "Test", layout: layout)
+    return EPUBSettings(
         preferences: preferences,
         defaults: defaults,
-        metadata: Metadata(title: "Test")
+        metadata: metadata,
+        layouts: EPUBLayouts(readingOrder: readingOrder, metadata: metadata)
     )
 }
 
@@ -1412,66 +1143,48 @@ private func cssProperties(
     cssProperties(settings(preferences: preferences, defaults: defaults))
 }
 
-@MainActor private func makeEditor(
-    preferences: EPUBPreferences = EPUBPreferences(),
-    defaults: EPUBDefaults = EPUBDefaults(),
-    layout: Layout? = nil,
-    readingOrder: [Link] = [Link(href: "c1.xhtml", mediaType: .xhtml)]
-) -> EPUBPreferencesEditor {
-    EPUBPreferencesEditor(
-        initialPreferences: preferences,
-        publication: Publication(
-            manifest: Manifest(
-                metadata: Metadata(title: "Test", layout: layout),
-                readingOrder: readingOrder
-            )
-        ),
-        defaults: defaults
-    )
+/// Names of the settings which apply.
+private func applicableSettings(_ settings: EPUBSettings) -> Set<String> {
+    Set(allSettings.filter { settings.isApplicable($0.keyPath) }.map(\.name))
 }
 
-/// Names of the preferences which are effective in the `editor`.
-@MainActor private func effectivePreferences(of editor: EPUBPreferencesEditor) -> Set<String> {
-    Set(editorPreferences(of: editor).filter(\.isEffective).map(\.name))
-}
-
-/// Every preference of the `editor`, with whether it is effective.
-@MainActor private func editorPreferences(of editor: EPUBPreferencesEditor) -> [(name: String, isEffective: Bool)] {
+/// Every setting of `EPUBSettings`, with its name.
+private var allSettings: [(name: String, keyPath: PartialKeyPath<EPUBSettings>)] {
     [
-        ("backgroundColor", editor.backgroundColor.isEffective),
-        ("blendImages", editor.blendImages.isEffective),
-        ("columnCount", editor.columnCount.isEffective),
-        ("darkenImages", editor.darkenImages.isEffective),
-        ("fit", editor.fit.isEffective),
-        ("fontFamily", editor.fontFamily.isEffective),
-        ("fontSize", editor.fontSize.isEffective),
-        ("fontWeight", editor.fontWeight.isEffective),
-        ("fontWidth", editor.fontWidth.isEffective),
-        ("hyphens", editor.hyphens.isEffective),
-        ("invertGaiji", editor.invertGaiji.isEffective),
-        ("invertImages", editor.invertImages.isEffective),
-        ("language", editor.language.isEffective),
-        ("letterSpacing", editor.letterSpacing.isEffective),
-        ("ligatures", editor.ligatures.isEffective),
-        ("lineHeight", editor.lineHeight.isEffective),
-        ("linkColor", editor.linkColor.isEffective),
-        ("maximalLineLength", editor.maximalLineLength.isEffective),
-        ("minimalLineLength", editor.minimalLineLength.isEffective),
-        ("noRuby", editor.noRuby.isEffective),
-        ("offsetFirstPage", editor.offsetFirstPage.isEffective),
-        ("optimalLineLength", editor.optimalLineLength.isEffective),
-        ("pageMargins", editor.pageMargins.isEffective),
-        ("paragraphIndent", editor.paragraphIndent.isEffective),
-        ("paragraphSpacing", editor.paragraphSpacing.isEffective),
-        ("readingProgression", editor.readingProgression.isEffective),
-        ("scroll", editor.scroll.isEffective),
-        ("spread", editor.spread.isEffective),
-        ("textAlign", editor.textAlign.isEffective),
-        ("textColor", editor.textColor.isEffective),
-        ("textNormalization", editor.textNormalization.isEffective),
-        ("verticalText", editor.verticalText.isEffective),
-        ("visitedColor", editor.visitedColor.isEffective),
-        ("wordSpacing", editor.wordSpacing.isEffective),
+        ("backgroundColor", \.backgroundColor),
+        ("blendImages", \.blendImages),
+        ("columnCount", \.columnCount),
+        ("darkenImages", \.darkenImages),
+        ("fit", \.fit),
+        ("fontFamily", \.fontFamily),
+        ("fontSize", \.fontSize),
+        ("fontWeight", \.fontWeight),
+        ("fontWidth", \.fontWidth),
+        ("hyphens", \.hyphens),
+        ("invertGaiji", \.invertGaiji),
+        ("invertImages", \.invertImages),
+        ("language", \.language),
+        ("letterSpacing", \.letterSpacing),
+        ("ligatures", \.ligatures),
+        ("lineHeight", \.lineHeight),
+        ("linkColor", \.linkColor),
+        ("maximalLineLength", \.maximalLineLength),
+        ("minimalLineLength", \.minimalLineLength),
+        ("noRuby", \.noRuby),
+        ("offsetFirstPage", \.offsetFirstPage),
+        ("optimalLineLength", \.optimalLineLength),
+        ("pageMargins", \.pageMargins),
+        ("paragraphIndent", \.paragraphIndent),
+        ("paragraphSpacing", \.paragraphSpacing),
+        ("readingProgression", \.readingProgression),
+        ("scroll", \.scroll),
+        ("spread", \.spread),
+        ("textAlign", \.textAlign),
+        ("textColor", \.textColor),
+        ("textNormalization", \.textNormalization),
+        ("verticalText", \.verticalText),
+        ("visitedColor", \.visitedColor),
+        ("wordSpacing", \.wordSpacing),
     ]
 }
 

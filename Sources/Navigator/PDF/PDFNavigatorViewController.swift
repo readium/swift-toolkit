@@ -104,9 +104,9 @@ open class PDFNavigatorViewController:
         )
 
         settings = PDFSettings(
+            publication: publication,
             preferences: config.preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
+            defaults: config.defaults
         )
 
         super.init(nibName: nil, bundle: nil)
@@ -587,11 +587,7 @@ open class PDFNavigatorViewController:
     public private(set) var settings: PDFSettings
 
     public func submitPreferences(_ preferences: PDFPreferences) {
-        let settings = PDFSettings(
-            preferences: preferences,
-            defaults: config.defaults,
-            metadata: publication.metadata
-        )
+        let settings = settings(for: preferences)
         guard settings != self.settings else {
             return
         }
@@ -601,12 +597,17 @@ open class PDFNavigatorViewController:
         delegate?.navigator(self, presentationDidChange: presentation)
     }
 
-    public func editor(of preferences: PDFPreferences) -> PDFPreferencesEditor {
-        PDFPreferencesEditor(
-            initialPreferences: preferences,
-            metadata: publication.metadata,
+    public func settings(for preferences: PDFPreferences) -> PDFSettings {
+        PDFSettings(
+            publication: publication,
+            preferences: preferences,
             defaults: config.defaults
         )
+    }
+
+    @available(*, unavailable, message: "Get the settings with settings(for:) and check PDFSettings.isApplicable(_:), see the migration guide")
+    public func editor(of preferences: PDFPreferences) -> PDFPreferencesEditor {
+        fatalError()
     }
 
     // MARK: - ViewportObservingNavigator

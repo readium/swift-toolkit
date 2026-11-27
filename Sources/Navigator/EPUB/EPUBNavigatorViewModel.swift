@@ -45,6 +45,10 @@ enum EPUBScriptScope {
     /// Reading order rendered by the navigator.
     let readingOrder: EPUBReadingOrder
 
+    /// Layouts of the resources in the `readingOrder`, which determine the
+    /// applicable settings.
+    private let layouts: EPUBLayouts
+
     convenience init(
         publication: Publication,
         readingOrder: ReadingOrder,
@@ -94,6 +98,10 @@ enum EPUBScriptScope {
             readingOrder: readingOrder,
             preferredVariant: config.preferredResourceVariant
         )
+        layouts = EPUBLayouts(
+            readingOrder: self.readingOrder.links,
+            metadata: publication.metadata
+        )
         self.config = config
         editingActions = EditingActionsController(
             actions: config.editingActions,
@@ -105,7 +113,12 @@ enum EPUBScriptScope {
         servedFonts = server.serve(config.fontFamilyDeclarations)
 
         preferences = config.preferences
-        settings = EPUBSettings(publication: publication, config: config)
+        settings = EPUBSettings(
+            preferences: config.preferences,
+            metadata: publication.metadata,
+            layouts: layouts,
+            config: config
+        )
 
         css = ReadiumCSS(
             layout: CSSLayout(),
@@ -187,13 +200,19 @@ enum EPUBScriptScope {
         applyPreferences()
     }
 
-    private func applyPreferences() {
-        let oldSettings = settings
-        let newSettings = EPUBSettings(
+    /// Resolves the settings which would be applied with `preferences`.
+    func settings(for preferences: EPUBPreferences) -> EPUBSettings {
+        EPUBSettings(
             preferences: preferences,
-            publication: publication,
+            metadata: publication.metadata,
+            layouts: layouts,
             config: config
         )
+    }
+
+    private func applyPreferences() {
+        let oldSettings = settings
+        let newSettings = settings(for: preferences)
 
         settings = newSettings
         updateSpread()
@@ -214,15 +233,6 @@ enum EPUBScriptScope {
         if needsInvalidation {
             setNeedsInvalidatePagination()
         }
-    }
-
-    func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
-        EPUBPreferencesEditor(
-            initialPreferences: preferences,
-            publication: publication,
-            readingOrder: readingOrder.links,
-            defaults: config.defaults
-        )
     }
 
     var readingProgression: ReadingProgression {
@@ -444,16 +454,20 @@ enum EPUBScriptScope {
 }
 
 private extension EPUBSettings {
+    /// Resolves the settings applied by the navigator, shared by
+    /// `EPUBNavigatorViewModel.init` and `settings(for:)`.
     @MainActor
     init(
-        preferences: EPUBPreferences? = nil,
-        publication: Publication,
+        preferences: EPUBPreferences,
+        metadata: Metadata,
+        layouts: EPUBLayouts,
         config: EPUBNavigatorViewController.Configuration
     ) {
         self.init(
-            preferences: preferences ?? config.preferences,
+            preferences: preferences,
             defaults: config.defaults,
-            metadata: publication.metadata
+            metadata: metadata,
+            layouts: layouts
         )
 
         // Force-enables scroll when VoiceOver is running, because pagination

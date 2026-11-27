@@ -10,17 +10,20 @@ import ReadiumShared
 /// The set of EPUB layouts used by the resources of a reading order.
 ///
 /// A publication can mix reflowable and fixed-layout resources, so knowing
-/// which layouts are actually rendered is what determines whether a preference
-/// is effective.
-struct EPUBLayouts {
-    /// Layout used by the resources which don't override it.
-    let `default`: EPUBLayout
+/// which layouts are actually rendered is what determines whether a setting
+/// applies.
+struct EPUBLayouts: Hashable, Sendable {
+    /// Layouts of a reading order containing only reflowable resources.
+    static let reflowable = EPUBLayouts(layouts: [.reflowable])
 
     private let layouts: Set<EPUBLayout>
 
     init(readingOrder: [Link], metadata: Metadata) {
-        `default` = metadata.epubLayout
-        layouts = Set(readingOrder.map { metadata.epubLayout(of: $0) })
+        self.init(layouts: Set(readingOrder.map { metadata.epubLayout(of: $0) }))
+    }
+
+    private init(layouts: Set<EPUBLayout>) {
+        self.layouts = layouts
     }
 
     /// Indicates whether the reading order contains at least one resource

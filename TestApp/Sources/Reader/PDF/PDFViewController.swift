@@ -43,8 +43,9 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
             let userPrefs = await UserPreferences(
                 model: UserPreferencesViewModel(
                     bookId: bookId,
-                    preferences: try! settingsStore.settings(for: bookId).preferences(),
-                    configurable: navigator,
+                    publication: publication,
+                    navigator: navigator.eraseToAnyConfigurable(),
+                    settings: try! settingsStore.settings(for: bookId),
                     store: settingsStore
                 ),
                 onClose: { [weak self = self] in

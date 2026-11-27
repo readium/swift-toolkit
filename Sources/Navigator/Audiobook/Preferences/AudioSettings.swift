@@ -14,7 +14,15 @@ public struct AudioSettings: ConfigurableSettings, Sendable {
     public let volume: Double
     public let speed: Double
 
-    init(preferences: AudioPreferences, defaults: AudioDefaults) {
+    /// Resolves the settings applied by the audio navigator with the given
+    /// `preferences`.
+    ///
+    /// A preference takes precedence over the `defaults`.
+    ///
+    /// - Parameters:
+    ///   - defaults: Default values of the navigator, given in its
+    ///     `AudioNavigator.Configuration`.
+    init(preferences: AudioPreferences, defaults: AudioDefaults = AudioDefaults()) {
         volume = preferences.volume
             ?? defaults.volume
             ?? 1.0
@@ -22,6 +30,12 @@ public struct AudioSettings: ConfigurableSettings, Sendable {
         speed = preferences.speed
             ?? defaults.speed
             ?? 1.0
+    }
+
+    /// Every audio setting always applies, see
+    /// `ConfigurableSettings.isApplicable(_:)`.
+    public func isApplicable(_ setting: PartialKeyPath<AudioSettings>) -> Bool {
+        true
     }
 }
 

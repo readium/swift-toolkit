@@ -1095,10 +1095,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
     public private(set) var settings: AudioSettings
 
     public func submitPreferences(_ preferences: AudioPreferences) {
-        settings = AudioSettings(
-            preferences: preferences,
-            defaults: config.defaults
-        )
+        settings = settings(for: preferences)
 
         player.volume = Float(settings.volume)
 
@@ -1109,11 +1106,16 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         }
     }
 
-    public func editor(of preferences: AudioPreferences) -> AudioPreferencesEditor {
-        AudioPreferencesEditor(
-            initialPreferences: preferences,
+    public func settings(for preferences: AudioPreferences) -> AudioSettings {
+        AudioSettings(
+            preferences: preferences,
             defaults: config.defaults
         )
+    }
+
+    @available(*, unavailable, message: "Get the settings with settings(for:) and check AudioSettings.isApplicable(_:), see the migration guide")
+    public func editor(of preferences: AudioPreferences) -> AudioPreferencesEditor {
+        fatalError()
     }
 }
 

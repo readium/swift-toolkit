@@ -25,12 +25,10 @@ struct ReadiumCSS {
 }
 
 extension ReadiumCSS {
-    // Default colors of the Readium CSS stylesheets, used when the matching
-    // user colors are unset and the publication doesn't have its own.
-    static let defaultTextColor = Color(rawValue: 0x121212)
+    /// Default background color of the Readium CSS stylesheets, used when the
+    /// user background color is unset and the publication doesn't have its
+    /// own.
     static let defaultBackgroundColor = Color(rawValue: 0xFFFFFF)
-    static let defaultLinkColor = Color(rawValue: 0x0000EE)
-    static let defaultVisitedColor = Color(rawValue: 0x551A8B)
 }
 
 extension ReadiumCSS {
@@ -112,7 +110,7 @@ extension ReadiumCSS {
             paraSpacing: settings.paragraphSpacing.map { CSSRemLength($0) },
             paraIndent: settings.paragraphIndent.map { CSSRemLength($0) },
             wordSpacing: settings.wordSpacing.map { CSSRemLength($0) },
-            letterSpacing: settings.letterSpacing.map { CSSRemLength($0 / 2) },
+            letterSpacing: settings.letterSpacing.map { CSSRemLength($0) },
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,

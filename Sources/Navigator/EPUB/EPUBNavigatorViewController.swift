@@ -1002,8 +1002,13 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         delegate?.navigator(self, presentationDidChange: presentation)
     }
 
+    public func settings(for preferences: EPUBPreferences) -> EPUBSettings {
+        viewModel.settings(for: preferences)
+    }
+
+    @available(*, unavailable, message: "Get the settings with settings(for:) and check EPUBSettings.isApplicable(_:), see the migration guide")
     public func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
-        viewModel.editor(of: preferences)
+        fatalError()
     }
 
     /// Applies user settings that require native configuration instead of

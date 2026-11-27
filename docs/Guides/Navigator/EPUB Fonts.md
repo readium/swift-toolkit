@@ -31,19 +31,6 @@ epubNavigator.submitPreferences(EPUBPreferences(
 
 For your convenience, a number of [recommended fonts](https://readium.org/readium-css/docs/CSS09-default_fonts) are pre-declared in the `FontFamily` type: Iowan Old Style, Palatino, Athelas, Georgia, Helvetica Neue, Seravek and Arial.
 
-## Setting the available font families in the user interface
-
-If you build your settings user interface with the EPUB Preferences Editor, you can customize the list of available font families using `with(supportedValues:)`.
-
-```swift
-epubPreferencesEditor.fontFamily.with(supportedValues: [
-    nil, // A `nil` value means that the original author font will be used.
-    .palatino,
-    .helveticaNeue,
-    .atkinsonHyperlegible, // A custom font family, see below.
-])
-```
-
 ## How to add custom font families?
 
 To offer more choices to your users, you must embed and declare custom font families. Use the following steps:

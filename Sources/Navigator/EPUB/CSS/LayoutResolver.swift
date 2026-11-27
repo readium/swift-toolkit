@@ -97,7 +97,7 @@ final class LayoutResolver {
         columnCount: Int?,
         optimalLineLength: Double,
         minimalLineLength: Double?,
-        maximalLineLength: Double?,
+        maximalLineLength: Double,
         pageMargins: Double,
         fontScale: Double,
         viewportSize: CGSize,
@@ -107,7 +107,7 @@ final class LayoutResolver {
         // The parameters are factors, these lengths are in points.
         let optimalLength = baseOptimalLineLength * optimalLineLength * fontScale
         let minLength = minimalLineLength.map { baseMinLineLength * $0 * fontScale }
-        let maxLength = maximalLineLength.map { baseMaxLineLength * $0 * fontScale }
+        let maxLength = baseMaxLineLength * maximalLineLength * fontScale
         let insetsMargins = verticalText
             ? max(insets.top, insets.bottom)
             : max(insets.left, insets.right)
@@ -145,15 +145,17 @@ final class LayoutResolver {
         columnLength - min(margins, columnLength / 2) * 2
     }
 
-    /// Returns the `available` length, limited to `maxLength` if any.
-    private func capped(_ available: Double, at maxLength: Double?) -> Double {
-        min(available, maxLength ?? available)
+    /// Returns the `available` length, limited to `maxLength`.
+    ///
+    /// An infinite `maxLength` (no limit) gives the `available` length.
+    private func capped(_ available: Double, at maxLength: Double) -> Double {
+        maxLength < available ? maxLength : available
     }
 
     private func scrolledLayout(
         viewportLength: Double,
         margins: Double,
-        maxLength: Double?
+        maxLength: Double
     ) -> Layout {
         let available = availableLength(in: viewportLength, margins: margins)
         let lineLength = capped(available, at: maxLength)
@@ -169,7 +171,7 @@ final class LayoutResolver {
         requestedColCount: Int?,
         margins: Double,
         optimalLength: Double,
-        maxLength: Double?,
+        maxLength: Double,
         minLength: Double?,
         hingeWidth: Double?
     ) -> Layout {
@@ -207,7 +209,7 @@ final class LayoutResolver {
         margins: Double,
         optimalLength: Double,
         viewportWidth: Double,
-        maxLength: Double?
+        maxLength: Double
     ) -> Layout {
         let optimalLength = min(optimalLength, viewportWidth)
         guard optimalLength > 0 else {
@@ -243,7 +245,7 @@ final class LayoutResolver {
         hingeWidth: Double,
         margins: Double,
         viewportWidth: Double,
-        maxLength: Double?
+        maxLength: Double
     ) -> Layout? {
         let halfHinge = max(hingeWidth, 0) / 2
         let sideWidth = viewportWidth / 2
@@ -274,7 +276,7 @@ final class LayoutResolver {
         margins: Double,
         viewportWidth: Double,
         minLength: Double?,
-        maxLength: Double?
+        maxLength: Double
     ) -> Layout {
         let available = availableLength(in: viewportWidth / Double(colCount), margins: margins)
 

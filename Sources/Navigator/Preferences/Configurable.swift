@@ -11,7 +11,6 @@ import Foundation
 public protocol Configurable {
     associatedtype Settings: ConfigurableSettings
     associatedtype Preferences: ConfigurablePreferences
-    associatedtype Editor: PreferencesEditor where Editor.Preferences == Preferences
 
     /// Current `Settings` values.
     var settings: Settings { get }
@@ -23,13 +22,32 @@ public protocol Configurable {
     /// settings.
     func submitPreferences(_ preferences: Preferences)
 
-    /// Creates a `PreferencesEditor` helping build a user interface and modifying the given
-    /// `preferences`.
-    func editor(of preferences: Preferences) -> Editor
+    /// Returns the `Settings` that this `Configurable` would apply if the
+    /// given `preferences` were submitted.
+    ///
+    /// The settings are resolved with the `Configurable`'s own inputs, such
+    /// as its publication, the reading order it renders and the defaults of
+    /// its configuration, exactly like `submitPreferences(_:)` would do. The
+    /// current `settings` are not affected.
+    ///
+    /// Use it to inspect the settings before, or without, submitting the
+    /// preferences, for example to check which ones apply with
+    /// `isApplicable(_:)` in a user settings interface.
+    func settings(for preferences: Preferences) -> Settings
 }
 
-/// Marker interface for the setting properties holder.
-public protocol ConfigurableSettings: Hashable {}
+/// Setting values of a `Configurable`, resolved from its `Preferences`.
+public protocol ConfigurableSettings: Hashable {
+    /// Indicates whether the given `setting` would apply if it was set by a
+    /// preference, with the current publication and the other settings.
+    ///
+    /// Use it to disable the controls of the settings which don't apply.
+    /// It doesn't tell whether the setting is set, as your own settings model
+    /// already knows it.
+    ///
+    /// - Parameter setting: Key path of a stored setting, e.g. `\.scroll`.
+    func isApplicable(_ setting: PartialKeyPath<Self>) -> Bool
+}
 
 /// Marker interface for the `Preferences` properties holder.
 public protocol ConfigurablePreferences: Hashable {
@@ -46,7 +64,7 @@ public extension ConfigurablePreferences {
 
 public extension Configurable {
     /// Wraps this `Configurable` with a type eraser.
-    func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences, Editor> {
+    func eraseToAnyConfigurable() -> AnyConfigurable<Settings, Preferences> {
         AnyConfigurable(self)
     }
 }
@@ -54,19 +72,18 @@ public extension Configurable {
 /// A type-erasing `Configurable` object.
 public final class AnyConfigurable<
     Settings: ConfigurableSettings,
-    Preferences: ConfigurablePreferences,
-    Editor: PreferencesEditor
->: Configurable where Editor.Preferences == Preferences {
+    Preferences: ConfigurablePreferences
+>: Configurable {
     private let _settings: () -> Settings
     private let _submitPreferences: (Preferences) -> Void
-    private let _editor: (Preferences) -> Editor
+    private let _settingsForPreferences: (Preferences) -> Settings
 
     init<C: Configurable>(_ configurable: C)
-        where C.Settings == Settings, C.Preferences == Preferences, C.Editor == Editor
+        where C.Settings == Settings, C.Preferences == Preferences
     {
         _settings = { configurable.settings }
         _submitPreferences = configurable.submitPreferences
-        _editor = configurable.editor(of:)
+        _settingsForPreferences = configurable.settings(for:)
     }
 
     public var settings: Settings {
@@ -77,7 +94,7 @@ public final class AnyConfigurable<
         _submitPreferences(preferences)
     }
 
-    public func editor(of preferences: Preferences) -> Editor {
-        _editor(preferences)
+    public func settings(for preferences: Preferences) -> Settings {
+        _settingsForPreferences(preferences)
     }
 }

@@ -22,7 +22,9 @@ All migration steps necessary in reading apps to upgrade to major versions of th
 +synthesizer.config.voices[voice.language.primaryLanguage] = voice.id
 ```
 
-### Preferences are no longer `Codable`
+### Changes in the Preferences API
+
+#### Preferences are no longer `Codable`
 
 `EPUBPreferences`, `PDFPreferences`, `AudioPreferences` and their value types (`Color`, `FontFamily`, `Fit`, `Spread`, etc.) are no longer `Codable`. Persisting the navigator preferences made them a storage format, which broke whenever a preference changed in Readium, and they rarely map 1-1 to the settings shown to your users (a theme, a dual-page toggle).
 
@@ -46,7 +48,7 @@ struct ReaderSettings: Codable {
 
 `ConfigurablePreferences.merging(_:)` and the `filterPublicationPreferences()` / `filterSharedPreferences()` methods of the `Preferences` types are removed. Store the preferences specific to a publication in your own model, [see the user guide](Guides/Navigator/Preferences.md#preferences-specific-to-a-publication) for the list.
 
-#### Migrating the saved preferences
+##### Migrating the saved preferences
 
 If you were directly persisting the preferences from Readium 3.x, you will need to migrate them to your own alternative model.
 
@@ -69,6 +71,41 @@ if let data = UserDefaults.standard.data(forKey: "epubPreferences") {
 
 The `Legacy*Preferences` types will be removed in a future major version.
 
+#### The preferences editors are removed
+
+The preferences editors (e.g. `EPUBPreferencesEditor`) are removed, now that `Preferences` are not codable anymore. Your app owns the values chosen by the user in its settings model, so edit them as you see fit. The toolkit only tells which settings apply.
+
+To check if a setting applies, get the settings that the navigator would apply with your preferences with `navigator.settings(for:)`, then call `isApplicable(_:)` on them. The navigator resolves them without changing its presentation. `isApplicable(_:)` on the settings replaces the `isEffective` property of the editors.
+
+For example, a toggle for the scroll mode was built from `editor.scroll`, and its `commit` closure saved and submitted `editor.preferences`. It now edits your settings model, which you save and submit when it changes, and receives the settings resolved once for the whole screen with `navigator.settings(for:)`:
+
+```diff
+ struct ScrollToggle: View {
+-    let preference: AnyPreference<Bool>
+-    let commit: () -> Void
++    @Binding var settings: ReaderSettings
++    let navigatorSettings: EPUBSettings
+ 
+     var body: some View {
+         Toggle("Scroll", isOn: Binding(
+-            get: { preference.value ?? preference.effectiveValue },
+-            set: {
+-                preference.set($0)
+-                commit()
+-            }
++            get: { settings.scroll ?? navigatorSettings.scroll },
++            set: { settings.scroll = $0 }
+         ))
+-        .disabled(!preference.isEffective)
++        .disabled(!navigatorSettings.isApplicable(\.scroll))
+     }
+ }
+```
+
+`isApplicable(_:)` tells whether a setting would apply if it was set. Unlike the `isEffective` property of the editors, it doesn't check whether the preference is set: for example, `textColor` is applicable in a reflowable publication even when unset.
+
+The ranges, steps, supported values and formatting of the editors are choices of your user interface. The documentation of each property of the `Preferences` types suggests a range, a step and a starting value. There's no replacement for the `effectiveValue` of a preference: display the setting resolved by `settings(for:)`, or a starting value when it is `nil`. See [the user guide](Guides/Navigator/Preferences.md#build-a-user-settings-interface) for a complete example.
+
 ### Upgrade to Readium CSS v2
 
 The EPUB navigator now uses Readium CSS v2. Several EPUB preferences are replaced or removed.
@@ -90,18 +127,16 @@ If you customized the Readium CSS reading system properties, use the EPUB prefer
 +preferences.columnCount = 2
 ```
 
-`EPUBPreferencesEditor.columnCount` is now an `AnyEnumPreference<Int?>` supporting the values `nil` (auto), `1` and `2`.
-
 #### Line length and page margins
 
 The EPUB navigator now computes the number of columns and the line length of reflowable resources from the viewport size, the font size and the new `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences. `pageMargins` is now a factor applied to the minimal margins on each side of the lines, which are larger when the line length is limited. See [the Preferences guide](Guides/Navigator/Preferences.md#line-length-and-margins) for details.
 
-By default, the lines are now limited to a maximal length, so wide screens display two columns or larger margins. To let the lines take all the available width when you don't set the `maximalLineLength` preference, set its default value to `nil`:
+By default, the lines are now limited to a maximal length, so wide screens display two columns or larger margins. To let the lines take all the available width when you don't set the `maximalLineLength` preference, set its default value to `.infinity`:
 
 ```swift
 let navigator = try EPUBNavigatorViewController(
     publication: publication,
-    config: .init(defaults: EPUBDefaults(maximalLineLength: nil))
+    config: .init(defaults: EPUBDefaults(maximalLineLength: .infinity))
 )
 ```
 
@@ -127,7 +162,7 @@ To rebuild a theme picker in your app, these are the colors of the legacy themes
 +preferences.visitedColor = Color(hex: "#0099E5")
 ```
 
-See [the Preferences guide](Guides/Navigator/Preferences.md#colors-and-themes) for an example of theme picker built with the `EPUBPreferencesEditor`.
+See [the Preferences guide](Guides/Navigator/Preferences.md#colors-and-themes) for an example of themes applied to the preferences.
 
 The previous dark theme also inverted the gaiji (images used for the characters missing from the fonts in Japanese publications), unless the images were darkened. Set `invertGaiji` to `true` along with your dark colors to keep them readable.
 
@@ -156,7 +191,7 @@ The previous filters were applied only with the dark theme, while the new prefer
 
 The `publisherStyles` preference is removed from `EPUBPreferences`.
 
-The publisher styles are kept as long as the related preferences are unset. Preferences such as `textAlign`, `lineHeight`, or `wordSpacing` take effect as soon as they are set, so you can remove any toggle for the publisher styles from your user interface. To restore the publisher styles, reset these preferences to `nil` (e.g. with `editor.textAlign.clear()`).
+The publisher styles are kept as long as the related preferences are unset. Preferences such as `textAlign`, `lineHeight`, or `wordSpacing` take effect as soon as they are set, so you can remove any toggle for the publisher styles from your user interface. To restore the publisher styles, reset these preferences to `nil`.
 
 ```diff
  let preferences = EPUBPreferences(
@@ -168,9 +203,10 @@ The publisher styles are kept as long as the related preferences are unset. Pref
 #### Other preference changes
 
 * The `typeScale` preference is removed from `EPUBPreferences`, without replacement.
-* `EPUBPreferencesEditor.lineHeight` starts from `1.5` instead of `1.2` when the preference is unset, which is the default line height for Latin scripts.
-* `EPUBPreferencesEditor.ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. When unset, its `effectiveValue` is `true`, as the ligatures are rendered by default.
-* `EPUBPreferencesEditor.letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages.
+* `ligatures` now applies to left-to-right languages too, instead of only right-to-left ones. The ligatures are rendered by default.
+* `letterSpacing` now applies to CJK languages too, and `wordSpacing` to right-to-left languages.
+* The suggested starting value of `lineHeight` is `1.5` instead of `1.2`, which is the default line height for Latin scripts.
+* `letterSpacing` is no longer halved. It is now a length in multiples of the root font size (`rem`), sent as-is to Readium CSS. `1.0` is now `1rem` instead of `0.5rem`, matching the other Readium toolkits.
 
 #### Bundled fonts
 

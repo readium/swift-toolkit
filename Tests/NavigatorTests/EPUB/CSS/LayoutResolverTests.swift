@@ -29,7 +29,7 @@ struct LayoutResolverTests {
             columnCount: nil,
             optimalLineLength: 1.0,
             minimalLineLength: nil,
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
@@ -49,7 +49,7 @@ struct LayoutResolverTests {
             columnCount: nil,
             optimalLineLength: 1.0,
             minimalLineLength: nil,
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
@@ -87,7 +87,7 @@ struct LayoutResolverTests {
             columnCount: nil,
             optimalLineLength: 1.0,
             minimalLineLength: nil,
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
@@ -107,7 +107,7 @@ struct LayoutResolverTests {
             columnCount: nil,
             optimalLineLength: 1.0,
             minimalLineLength: nil,
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 800, height: 600),
@@ -130,7 +130,7 @@ struct LayoutResolverTests {
             columnCount: nil,
             optimalLineLength: 1.0,
             minimalLineLength: nil,
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 390, height: 844),
@@ -150,7 +150,7 @@ struct LayoutResolverTests {
             columnCount: nil,
             optimalLineLength: 1.0,
             minimalLineLength: nil,
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.0,
             fontScale: 1.0,
             viewportSize: CGSize(width: 1400, height: 900),
@@ -191,7 +191,7 @@ struct LayoutResolverTests {
             columnCount: 2,
             optimalLineLength: 1.0,
             minimalLineLength: 1.0, // 440
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 1200, height: 800),
@@ -211,7 +211,7 @@ struct LayoutResolverTests {
             columnCount: 2,
             optimalLineLength: 1.0,
             minimalLineLength: 1.0, // 440
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.0, // 30
             fontScale: 1.0,
             viewportSize: CGSize(width: 600, height: 800),
@@ -241,6 +241,44 @@ struct LayoutResolverTests {
         // available = (2000 - 30 * 2 * 3) / 3 = 606.67 >= 440, clamped to
         // the maximal line length 518, still 3 columns
         #expect(layout == LayoutResolver.Layout(colCount: 3, lineLength: 518))
+    }
+
+    /// Requested columns laid out with a minimal line length of `0`.
+    struct ZeroMinimalLineLength: Sendable, CustomTestStringConvertible {
+        let name: String
+        let columnCount: Int
+        let width: Double
+        var pageMargins: Double = 1.0 // 30
+
+        var testDescription: String {
+            name
+        }
+    }
+
+    @Test("a minimal line length of 0 lays out the requested columns like no minimal line length", arguments: [
+        // (951 - 30 * 2 * 3) / 3 = 257
+        ZeroMinimalLineLength(name: "short lines", columnCount: 3, width: 951),
+        // (2000 - 30 * 2 * 2) / 2 = 940, capped at 740
+        ZeroMinimalLineLength(name: "lines longer than the maximal line length", columnCount: 2, width: 2000),
+        // 390 / 3 = 130 is narrower than the margins 120 * 2
+        ZeroMinimalLineLength(name: "margins leaving no room for the lines", columnCount: 3, width: 390, pageMargins: 4.0),
+    ])
+    func paginatedRequestedColumnsWithZeroMinimalLineLength(_ example: ZeroMinimalLineLength) {
+        let layout = { (minimalLineLength: Double?) in
+            resolver.layout(
+                scroll: false,
+                verticalText: false,
+                columnCount: example.columnCount,
+                optimalLineLength: 1.0,
+                minimalLineLength: minimalLineLength,
+                maximalLineLength: 1.0,
+                pageMargins: example.pageMargins,
+                fontScale: 1.0,
+                viewportSize: CGSize(width: example.width, height: 800)
+            )
+        }
+
+        #expect(layout(0) == layout(nil))
     }
 
     // MARK: - Zero Viewport
@@ -385,17 +423,15 @@ struct LayoutResolverTests {
         #expect(layout == LayoutResolver.Layout(colCount: 1, lineLength: 712))
     }
 
-    @Test("the lines take all the available width without a default maximal line length", arguments: [false, true])
-    func defaultLayoutWithoutMaximalLineLength(scroll: Bool) {
+    @Test("the lines take all the available width with an infinite maximal line length", arguments: [false, true])
+    func layoutWithInfiniteMaximalLineLength(scroll: Bool) {
         let layout = LayoutResolver().layout(
-            settings: defaultSettings(
-                preferences: EPUBPreferences(scroll: scroll),
-                defaults: EPUBDefaults(maximalLineLength: nil)
-            ),
+            settings: defaultSettings(preferences: EPUBPreferences(maximalLineLength: .infinity, scroll: scroll)),
             fontScale: 1.0,
             viewportSize: CGSize(width: 1180, height: 800)
         )
 
+        // 1180 - 2 × 30
         #expect(layout == LayoutResolver.Layout(colCount: 1, lineLength: 1120))
     }
 
@@ -412,7 +448,7 @@ struct LayoutResolverTests {
 
     private func settings(
         columnCount: Int? = nil,
-        maximalLineLength: Double? = nil,
+        maximalLineLength: Double = .infinity,
         minimalLineLength: Double? = nil,
         optimalLineLength: Double = 1.0,
         pageMargins: Double = 1.0
@@ -555,7 +591,7 @@ struct LayoutResolverTests {
             columnCount: 2,
             optimalLineLength: 1.0,
             minimalLineLength: nil,
-            maximalLineLength: nil,
+            maximalLineLength: .infinity,
             pageMargins: 1.5, // 45
             fontScale: 2.0,
             viewportSize: CGSize(width: 1000, height: 800),
@@ -750,7 +786,7 @@ struct LayoutResolverTests {
             var scroll: Bool = false
             var columnCount: Int?
             var minimalLineLength: Double?
-            var maximalLineLength: Double?
+            var maximalLineLength: Double = .infinity
             let pageMargins: Double
             var fontScale: Double = 1.0
             let width: Double
@@ -829,7 +865,7 @@ struct LayoutResolverTests {
                                     columnCount: mode.columnCount,
                                     optimalLineLength: lineLengthFactor ?? 1.0,
                                     minimalLineLength: lineLengthFactor,
-                                    maximalLineLength: lineLengthFactor,
+                                    maximalLineLength: lineLengthFactor ?? .infinity,
                                     pageMargins: pageMargins,
                                     fontScale: fontScale,
                                     viewportSize: CGSize(width: width, height: width),
