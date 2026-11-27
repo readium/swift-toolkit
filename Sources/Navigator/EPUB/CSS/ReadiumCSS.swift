@@ -32,6 +32,22 @@ extension ReadiumCSS {
 }
 
 extension ReadiumCSS {
+    /// Returns the `zoom` Readium CSS applies on `body` to scale the text
+    /// with the `fontSize` setting, on the given device.
+    ///
+    /// The `zoom` also scales the lengths in px and rem, such as the line
+    /// length and the letter spacing. With the iOS patch (iPhone), the text
+    /// is scaled with `-webkit-text-size-adjust` instead, and the `zoom` is
+    /// `1`.
+    static func bodyZoom(fontSize: Double, userInterfaceIdiom: UIUserInterfaceIdiom) -> Double {
+        usesIOSPatch(userInterfaceIdiom) ? 1 : fontSize
+    }
+
+    /// Whether the iOS patch of Readium CSS applies on the given device.
+    private static func usesIOSPatch(_ userInterfaceIdiom: UIUserInterfaceIdiom) -> Bool {
+        userInterfaceIdiom == .phone
+    }
+
     mutating func update(
         with settings: EPUBSettings,
         userInterfaceIdiom: UIUserInterfaceIdiom,
@@ -42,12 +58,11 @@ extension ReadiumCSS {
         // See https://github.com/readium/css/issues/183
         rsProperties = CSSRSProperties(noOverflow: true)
 
-        // Readium CSS applies `--USER__fontSize` with a `zoom` on `body`,
-        // which also scales the line length in px set below. It is divided by
-        // this `zoom` to compensate it, as the resolved line length already
-        // follows the font size, with the same factor, through the width of
-        // a character (see `EPUBNavigatorViewModel.resolveLayout(with:)`).
-        var bodyZoom = settings.fontSize
+        // The `zoom` on `body` also scales the line length in px set below.
+        // It is divided by this `zoom` to compensate it, as the resolved line
+        // length already includes it, through the width of a character (see
+        // `EPUBNavigatorViewModel.characterWidth(with:)`).
+        let bodyZoom = Self.bodyZoom(fontSize: settings.fontSize, userInterfaceIdiom: userInterfaceIdiom)
 
         // Applies the WebKit patch matching the device:
         // - iOSPatch on iPhone. The text is then scaled with
@@ -59,11 +74,8 @@ extension ReadiumCSS {
         // - Nothing for a Mac Catalyst app optimized for the Mac.
         //
         // See https://github.com/readium/css/issues/189
-        let iOSPatch = userInterfaceIdiom == .phone
+        let iOSPatch = Self.usesIOSPatch(userInterfaceIdiom)
         let iPadOSPatch = userInterfaceIdiom == .pad
-        if iOSPatch {
-            bodyZoom = 1
-        }
 
         // The margins around the lines come from the resolved `lineLength`,
         // so `--RS__pageGutter` is not set: `body` is `border-box`, so the

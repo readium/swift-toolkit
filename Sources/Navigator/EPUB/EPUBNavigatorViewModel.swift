@@ -49,10 +49,13 @@ enum EPUBScriptScope {
     /// applicable settings.
     private let layouts: EPUBLayouts
 
+    /// - Parameter userInterfaceIdiom: Device used to choose the WebKit
+    ///   patch of Readium CSS.
     convenience init(
         publication: Publication,
         readingOrder: ReadingOrder,
-        config: EPUBNavigatorViewController.Configuration
+        config: EPUBNavigatorViewController.Configuration,
+        userInterfaceIdiom: UIUserInterfaceIdiom = UIDevice.current.userInterfaceIdiom
     ) {
         let assetsDirectory = Bundle.module.resourceURL!.fileURL!
             .appendingPath("Assets/Static", isDirectory: true)
@@ -69,7 +72,8 @@ enum EPUBScriptScope {
             config: config,
             server: server,
             assetsBaseURL: assetsBaseURL,
-            formatSniffer: formatSniffer
+            formatSniffer: formatSniffer,
+            userInterfaceIdiom: userInterfaceIdiom
         )
 
         if let url = publication.baseURL {
@@ -91,9 +95,11 @@ enum EPUBScriptScope {
         config: EPUBNavigatorViewController.Configuration,
         server: WebViewServer,
         assetsBaseURL: any AbsoluteURL,
-        formatSniffer: FormatSniffer
+        formatSniffer: FormatSniffer,
+        userInterfaceIdiom: UIUserInterfaceIdiom
     ) {
         self.publication = publication
+        self.userInterfaceIdiom = userInterfaceIdiom
         self.readingOrder = EPUBReadingOrder(
             readingOrder: readingOrder,
             preferredVariant: config.preferredResourceVariant
@@ -340,7 +346,7 @@ enum EPUBScriptScope {
     private let servedFonts: [FileURL: AbsoluteURL]
 
     /// Device used to choose the WebKit patch of Readium CSS.
-    private let userInterfaceIdiom = UIDevice.current.userInterfaceIdiom
+    private let userInterfaceIdiom: UIUserInterfaceIdiom
 
     func injectReadiumCSS<HREF: URLConvertible>(in resource: Resource, at href: HREF) -> Resource {
         guard
@@ -380,9 +386,28 @@ enum EPUBScriptScope {
     /// measure 578pt at the 16pt base font size.
     private static let iowanCharacterWidth: Double = 578 / 65 / baseFontSize
 
-    /// Width of one character of the line lengths, in points.
+    /// Width of one character of the line lengths, in points, as rendered
+    /// with the letter spacing.
     private func characterWidth(with settings: EPUBSettings) -> Double {
-        Self.iowanCharacterWidth * Self.baseFontSize * settings.fontSize
+        let fontSize = Self.baseFontSize * settings.fontSize
+        let glyphWidth = settings.cssLayout.stylesheets.isCJK
+            // A full-width ideograph is 1em wide (the CSS `ic` unit).
+            ? fontSize
+            // The width of a `0` (the CSS `ch` unit).
+            : Self.iowanCharacterWidth * fontSize
+
+        // The letter spacing is a rem length, so it follows the `zoom` on
+        // `body` but not the `-webkit-text-size-adjust` of the iOS patch. It
+        // is ignored by the stylesheets where the setting doesn't apply.
+        guard
+            settings.isApplicable(\.letterSpacing),
+            let letterSpacing = settings.letterSpacing,
+            !letterSpacing.isNaN
+        else {
+            return glyphWidth
+        }
+        let bodyZoom = ReadiumCSS.bodyZoom(fontSize: settings.fontSize, userInterfaceIdiom: userInterfaceIdiom)
+        return glyphWidth + letterSpacing * Self.baseFontSize * bodyZoom
     }
 
     private func resolveLayout(with settings: EPUBSettings) -> LayoutResolver.Layout? {

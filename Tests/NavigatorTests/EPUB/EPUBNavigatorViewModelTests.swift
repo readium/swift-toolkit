@@ -64,7 +64,8 @@ import UIKit
     struct ResolvedLayout: Sendable, CustomTestStringConvertible {
         let name: String
         let preferences: EPUBPreferences
-        let colCount: Int
+        var userInterfaceIdiom: UIUserInterfaceIdiom = .pad
+        var colCount: Int = 1
         let lineLength: Double
 
         var testDescription: String {
@@ -74,7 +75,7 @@ import UIKit
         /// Checks the layout resolved in a view of `size`, with a tolerance
         /// for the line length.
         @MainActor func expectLayout(in size: CGSize) throws {
-            let viewModel = makeViewModel(preferences: preferences)
+            let viewModel = makeViewModel(preferences: preferences, userInterfaceIdiom: userInterfaceIdiom)
             viewModel.viewDidLayout(size: size, reflowableContentInset: .zero, hingeWidth: nil)
             let layout = try #require(viewModel.resolvedLayout)
             #expect(layout.colCount == colCount)
@@ -108,6 +109,23 @@ import UIKit
     ])
     func lineLengthsInCharacters(_ example: ResolvedLayout) throws {
         try example.expectLayout(in: CGSize(width: 820, height: 1180))
+    }
+
+    /// Scrolled lines limited by a maximal line length of 40 characters, at
+    /// a 150% font size, in a view larger than them. The letter spacing is a
+    /// rem length, scaled by the `zoom` on `body` on iPad but not on iPhone.
+    @Test("the width of a character counts the letter spacing, and is 1em with a CJK layout", arguments: [
+        ResolvedLayout(name: "no letter spacing", preferences: scrolled(), lineLength: 40 * iowanWidth * 1.5),
+        ResolvedLayout(name: "letter spacing on iPad", preferences: scrolled(letterSpacing: 0.1), lineLength: 40 * (iowanWidth * 1.5 + 0.1 * 16 * 1.5)),
+        ResolvedLayout(name: "letter spacing on iPhone", preferences: scrolled(letterSpacing: 0.1), userInterfaceIdiom: .phone, lineLength: 40 * (iowanWidth * 1.5 + 0.1 * 16)),
+        ResolvedLayout(name: "a NaN letter spacing", preferences: scrolled(letterSpacing: .nan), lineLength: 40 * iowanWidth * 1.5),
+        // The setting doesn't apply with an RTL layout.
+        ResolvedLayout(name: "letter spacing with an RTL layout", preferences: scrolled(language: "ar", letterSpacing: 0.1, readingProgression: .rtl), lineLength: 40 * iowanWidth * 1.5),
+        ResolvedLayout(name: "CJK", preferences: scrolled(language: "ja"), lineLength: 40 * 16 * 1.5),
+        ResolvedLayout(name: "vertical CJK with letter spacing", preferences: scrolled(language: "ja", letterSpacing: 0.1, verticalText: true), lineLength: 40 * (16 * 1.5 + 0.1 * 16 * 1.5)),
+    ])
+    func characterWidth(_ example: ResolvedLayout) throws {
+        try example.expectLayout(in: CGSize(width: 2000, height: 2000))
     }
 
     @Test("the layout is resolved again when the font size changes")
@@ -195,8 +213,33 @@ private let initialInsets = UIEdgeInsets(top: 62, left: 62, bottom: 62, right: 6
 /// 100% font size: 65 of them measure 578pt.
 private let iowanWidth = 578.0 / 65
 
-@MainActor private func makeViewModel(preferences: EPUBPreferences = EPUBPreferences()) -> EPUBNavigatorViewModel {
-    makeViewModel(config: EPUBNavigatorViewController.Configuration(preferences: preferences))
+/// Scrolled preferences at a 150% font size, with a maximal line length of
+/// 40 characters.
+private func scrolled(
+    language: String? = nil,
+    letterSpacing: Double? = nil,
+    readingProgression: ReadiumNavigator.ReadingProgression? = nil,
+    verticalText: Bool? = nil
+) -> EPUBPreferences {
+    EPUBPreferences(
+        fontSize: 1.5,
+        language: language.map { Language($0) },
+        letterSpacing: letterSpacing,
+        maximalLineLength: 40,
+        readingProgression: readingProgression,
+        scroll: true,
+        verticalText: verticalText
+    )
+}
+
+@MainActor private func makeViewModel(
+    preferences: EPUBPreferences = EPUBPreferences(),
+    userInterfaceIdiom: UIUserInterfaceIdiom = .pad
+) -> EPUBNavigatorViewModel {
+    makeViewModel(
+        config: EPUBNavigatorViewController.Configuration(preferences: preferences),
+        userInterfaceIdiom: userInterfaceIdiom
+    )
 }
 
 @MainActor private func makeViewModel(
@@ -206,12 +249,14 @@ private let iowanWidth = 578.0 / 65
             readingOrder: [Link(href: "chapter.html", mediaType: .xhtml)]
         )
     ),
-    config: EPUBNavigatorViewController.Configuration
+    config: EPUBNavigatorViewController.Configuration,
+    userInterfaceIdiom: UIUserInterfaceIdiom = .pad
 ) -> EPUBNavigatorViewModel {
     EPUBNavigatorViewModel(
         publication: publication,
         readingOrder: publication.readingOrder,
-        config: config
+        config: config,
+        userInterfaceIdiom: userInterfaceIdiom
     )
 }
 
