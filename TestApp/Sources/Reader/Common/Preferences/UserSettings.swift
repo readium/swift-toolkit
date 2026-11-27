@@ -51,9 +51,6 @@ nonisolated struct EPUBUserSettings: UserSettings {
 
     typealias NavigatorSettings = EPUBSettings
 
-    /// Defaults given to the navigator configuration.
-    static let defaults = EPUBDefaults()
-
     nonisolated struct BookSettings: UserSettingsPart {
         var language: String?
         var offsetFirstPage: Bool?
@@ -173,9 +170,6 @@ nonisolated struct PDFUserSettings: UserSettings {
 
     typealias NavigatorSettings = PDFSettings
 
-    /// Defaults given to the navigator configuration.
-    static let defaults = PDFDefaults()
-
     nonisolated struct BookSettings: UserSettingsPart {
         var offsetFirstPage: Bool?
         var readingProgression: String?
@@ -217,9 +211,6 @@ nonisolated struct AudioUserSettings: UserSettings {
     static let storageKey = "audio"
 
     typealias NavigatorSettings = AudioSettings
-
-    /// Defaults given to the navigator configuration.
-    static let defaults = AudioDefaults()
 
     /// The audio navigator has no book-specific preferences.
     nonisolated struct BookSettings: UserSettingsPart {}

@@ -54,3 +54,39 @@ public extension AnyConfigurable {
         fatalError()
     }
 }
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public class MappedPreference<OldValue, NewValue> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class MappedEnumPreference<OldValue, NewValue> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class MappedRangePreference<OldValue, NewValue> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class PreferenceWithSupportedValues<Value> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public class ProxyPreference<Value> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class ProxyEnumPreference<Value> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class ProxyRangePreference<Value> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class ProxyOptionalRangePreference<Bound> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public protocol ProgressionStrategy {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class StepsProgressionStrategy<Value> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class IncrementProgressionStrategy<Value> {}
+
+@available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
+public final class AnyProgressionStrategy<Value> {}

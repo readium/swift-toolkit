@@ -40,7 +40,7 @@ All notable changes to this project will be documented in this file. Take a look
     * On foldable devices, one column is displayed on each side of the hinge.
 * Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
 * SVG documents in the reading order of an EPUB are now rendered as fixed-layout pages, even in a reflowable publication.
-* The `letterSpacing` EPUB preference is no longer halved: `1.0` is now `1rem` instead of `0.5rem`, like in the other Readium toolkits, [see the migration guide](docs/Migration%20Guide.md#letterspacing-is-no-longer-halved).
+* The `letterSpacing` EPUB preference is no longer halved: `1.0` is now `1rem` instead of `0.5rem`, like in the other Readium toolkits, [see the migration guide](docs/Migration%20Guide.md#other-preference-changes).
 
 ### Removed
 

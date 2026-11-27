@@ -823,8 +823,10 @@ private func stepperRow(
         HStack(spacing: 4) {
             Stepper(
                 title,
-                onIncrement: { value.wrappedValue = spec.increment(current) },
-                onDecrement: { value.wrappedValue = spec.decrement(current) }
+                // Reads the binding when tapped, as `current` is captured
+                // when the view is built.
+                onIncrement: { value.wrappedValue = spec.increment(value.wrappedValue ?? placeholder ?? spec.start) },
+                onDecrement: { value.wrappedValue = spec.decrement(value.wrappedValue ?? placeholder ?? spec.start) }
             )
 
             stepperValue(spec.format(current))
@@ -863,8 +865,8 @@ private func optionalStepperRow(
 
             Stepper(
                 title,
-                onIncrement: { value.wrappedValue = spec.increment(current ?? spec.start) },
-                onDecrement: { value.wrappedValue = spec.decrement(current ?? spec.start) }
+                onIncrement: { value.wrappedValue = spec.increment(value.wrappedValue ?? spec.start) },
+                onDecrement: { value.wrappedValue = spec.decrement(value.wrappedValue ?? spec.start) }
             )
             .labelsHidden()
             .disabled(current == nil)

@@ -29,8 +29,7 @@ final class PDFViewController: VisualReaderViewController<PDFNavigatorViewContro
             publication: publication,
             initialLocation: locator,
             config: PDFNavigatorViewController.Configuration(
-                preferences: initialPreferences,
-                defaults: PDFUserSettings.defaults
+                preferences: initialPreferences
             )
         )
 

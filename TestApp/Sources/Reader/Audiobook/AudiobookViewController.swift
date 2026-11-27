@@ -31,8 +31,7 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
             publication: publication,
             initialLocation: locator,
             config: AudioNavigator.Configuration(
-                preferences: initialPreferences,
-                defaults: AudioUserSettings.defaults
+                preferences: initialPreferences
             )
         )
 

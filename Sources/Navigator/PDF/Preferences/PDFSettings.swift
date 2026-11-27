@@ -112,7 +112,7 @@ public extension PDFSettings {
         case \.offsetFirstPage:
             return hasSpread && spread != .never
         default:
-            preconditionFailure("\(setting) is not a setting of PDFSettings")
+            preconditionFailure("\(setting) is not a stored setting of PDFSettings")
         }
     }
 }

@@ -448,6 +448,8 @@ The following settings are `nil` when they are unset in both the preferences and
 * `visitedColor`
 * `wordSpacing`
 
+`columnCount`, `darkenImages`, `minimalLineLength` and `offsetFirstPage` are `nil` when unset too, but `nil` has its own meaning: an automatic number of columns, no darkening, no minimal line length and an automatic offset from the publication.
+
 ### PDF
 
 #### Scroll vs paginated

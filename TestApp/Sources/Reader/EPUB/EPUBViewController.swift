@@ -38,7 +38,6 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
             initialLocation: locator,
             config: EPUBNavigatorViewController.Configuration(
                 preferences: initialPreferences,
-                defaults: EPUBUserSettings.defaults,
                 editingActions: EditingAction.defaultActions
                     .appending(EditingAction(
                         title: "Highlight",
