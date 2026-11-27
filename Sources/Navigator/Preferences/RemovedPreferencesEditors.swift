@@ -7,15 +7,15 @@
 import Foundation
 
 // The preferences editors are removed: the app owns the preference values,
-// and the settings tell which ones take effect with `isEffective(_:)`.
+// and the settings tell which ones apply with `isApplicable(_:)`.
 
-@available(*, unavailable, message: "Get the settings with EPUBNavigatorViewController.settings(for:) and check EPUBSettings.isEffective(_:), see the migration guide")
+@available(*, unavailable, message: "Get the settings with EPUBNavigatorViewController.settings(for:) and check EPUBSettings.isApplicable(_:), see the migration guide")
 public final class EPUBPreferencesEditor {}
 
-@available(*, unavailable, message: "Get the settings with PDFNavigatorViewController.settings(for:) and check PDFSettings.isEffective(_:), see the migration guide")
+@available(*, unavailable, message: "Get the settings with PDFNavigatorViewController.settings(for:) and check PDFSettings.isApplicable(_:), see the migration guide")
 public final class PDFPreferencesEditor {}
 
-@available(*, unavailable, message: "Get the settings with AudioNavigator.settings(for:) and check AudioSettings.isEffective(_:), see the migration guide")
+@available(*, unavailable, message: "Get the settings with AudioNavigator.settings(for:) and check AudioSettings.isApplicable(_:), see the migration guide")
 public final class AudioPreferencesEditor {}
 
 @available(*, unavailable, message: "The preferences editors are removed, see the migration guide")
@@ -49,7 +49,7 @@ public final class AnyOptionalRangePreference<Bound> {}
 public class StatefulPreferencesEditor<Preferences, Settings> {}
 
 public extension AnyConfigurable {
-    @available(*, unavailable, message: "Get the settings with settings(for:) and check their isEffective(_:), see the migration guide")
+    @available(*, unavailable, message: "Get the settings with settings(for:) and check their isApplicable(_:), see the migration guide")
     func editor(of preferences: Preferences) -> any PreferencesEditor {
         fatalError()
     }

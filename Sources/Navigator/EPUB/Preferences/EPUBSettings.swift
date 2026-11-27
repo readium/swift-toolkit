@@ -12,7 +12,7 @@ import ReadiumShared
 /// The navigator resolves them from the submitted `EPUBPreferences`. Use
 /// `EPUBNavigatorViewController.settings(for:)` to get the settings resolved
 /// from given preferences without submitting them, for example to check
-/// which settings are effective with `isEffective(_:)`.
+/// which settings apply with `isApplicable(_:)`.
 ///
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings, Sendable {
@@ -243,12 +243,12 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 }
 
 public extension EPUBSettings {
-    /// Indicates whether the given `setting` would take effect if it was set,
-    /// see `ConfigurableSettings.isEffective(_:)`. A setting left unset keeps
+    /// Indicates whether the given `setting` would apply if it was set,
+    /// see `ConfigurableSettings.isApplicable(_:)`. A setting left unset keeps
     /// the styles of the publication.
     ///
     /// The rules of each setting are:
-    /// - Always effective: `backgroundColor`, `language`,
+    /// - Always applicable: `backgroundColor`, `language`,
     ///   `readingProgression`.
     /// - When the publication contains fixed-layout resources: `fit`,
     ///   `spread`, and `offsetFirstPage` when `spread` is not `.never`.
@@ -276,7 +276,7 @@ public extension EPUBSettings {
     /// - Parameter setting: Key path of a stored setting, e.g. `\.hyphens`.
     ///   Other key paths, such as `\.effectiveBackgroundColor`, are a
     ///   programming error.
-    func isEffective(_ setting: PartialKeyPath<EPUBSettings>) -> Bool {
+    func isApplicable(_ setting: PartialKeyPath<EPUBSettings>) -> Bool {
         let reflowable = layouts.contains(.reflowable)
         let fixed = layouts.contains(.fixed)
         let stylesheets = cssLayout.stylesheets

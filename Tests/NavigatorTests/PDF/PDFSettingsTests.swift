@@ -72,7 +72,7 @@ enum PDFSettingsTests {
         }
     }
 
-    @Suite("Effective settings") struct Effective {
+    @Suite("Applicable settings") struct Applicable {
         @Test("are tested for every setting")
         func listsEverySetting() {
             #expect(Set(allSettings.map(\.name)) == Set(Mirror(reflecting: settings()).children.compactMap(\.label)))
@@ -110,9 +110,9 @@ enum PDFSettingsTests {
                 expected: ["backgroundColor", "fit", "offsetFirstPage", "pageSpacing", "scroll", "scrollAxis", "spread", "visibleScrollbar"]
             ),
         ])
-        func effective(_ example: Example) {
+        func applicable(_ example: Example) {
             let settings = settings(example.preferences, defaults: example.defaults)
-            #expect(Set(allSettings.filter { settings.isEffective($0.keyPath) }.map(\.name)) == example.expected)
+            #expect(Set(allSettings.filter { settings.isApplicable($0.keyPath) }.map(\.name)) == example.expected)
         }
     }
 

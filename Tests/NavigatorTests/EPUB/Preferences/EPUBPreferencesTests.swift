@@ -139,9 +139,9 @@ enum EPUBPreferencesTests {
         }
     }
 
-    /// Which settings are effective, depending on the layouts of the reading
+    /// Which settings apply, depending on the layouts of the reading
     /// order resources.
-    @Suite("effective settings") struct EffectiveSettings {
+    @Suite("applicable settings") struct ApplicableSettings {
         private let fixedLayoutSettings: Set<String> = ["fit", "offsetFirstPage", "spread"]
         private let layoutIndependentSettings: Set<String> = ["backgroundColor", "language", "readingProgression"]
 
@@ -153,24 +153,24 @@ enum EPUBPreferencesTests {
             #expect(storedSettings == allPreferenceNames)
         }
 
-        @Test("every setting is effective in a reflowable publication, except the fixed-layout ones and the ones depending on the language or the columns")
+        @Test("every setting applies in a reflowable publication, except the fixed-layout ones and the ones depending on the language or the columns")
         func reflowablePublication() {
             #expect(
-                effectiveSettings(settings()) == allPreferenceNames
+                applicableSettings(settings()) == allPreferenceNames
                     .subtracting(fixedLayoutSettings)
-                    // Effective only with a CJK language, and with several columns.
+                    // Applicable only with a CJK language, and with several columns.
                     .subtracting(["noRuby", "minimalLineLength"])
             )
         }
 
-        @Test("the optional settings are effective whether they are set or not")
+        @Test("the optional settings apply whether they are set or not")
         func optionalSettingsSetOrNot() {
             let unset = settings()
             #expect(unsetProperties(of: unset).isSuperset(of: allPreferenceNames.subtracting(unsetProperties(of: optionalPreferences))))
-            #expect(effectiveSettings(unset) == effectiveSettings(settings(preferences: optionalPreferences)))
+            #expect(applicableSettings(unset) == applicableSettings(settings(preferences: optionalPreferences)))
         }
 
-        @Test("the settings of both layouts are effective in a fixed-layout publication containing a reflowable resource", arguments: ["en", "ja"])
+        @Test("the settings of both layouts apply in a fixed-layout publication containing a reflowable resource", arguments: ["en", "ja"])
         func fixedLayoutPublicationWithReflowableResource(language: String) {
             let preferences = EPUBPreferences(language: Language(language))
 
@@ -183,19 +183,19 @@ enum EPUBPreferencesTests {
                 readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml), reflowable]
             )
             #expect(
-                effectiveSettings(mixed)
-                    == effectiveSettings(settings(preferences: preferences)).union(fixedLayoutSettings)
+                applicableSettings(mixed)
+                    == applicableSettings(settings(preferences: preferences)).union(fixedLayoutSettings)
             )
         }
 
-        @Test("only the fixed-layout settings are effective in a fixed-layout publication")
+        @Test("only the fixed-layout settings apply in a fixed-layout publication")
         func fixedLayoutPublication() {
-            #expect(effectiveSettings(settings(layout: .fixed)) == fixedLayoutSettings.union(layoutIndependentSettings))
+            #expect(applicableSettings(settings(layout: .fixed)) == fixedLayoutSettings.union(layoutIndependentSettings))
         }
 
-        @Test("only the fixed-layout settings are effective in a reflowable publication containing only fixed-layout resources")
+        @Test("only the fixed-layout settings apply in a reflowable publication containing only fixed-layout resources")
         func reflowablePublicationWithoutReflowableResource() {
-            #expect(effectiveSettings(settings(readingOrder: fixedLayoutReadingOrder)) == fixedLayoutSettings.union(layoutIndependentSettings))
+            #expect(applicableSettings(settings(readingOrder: fixedLayoutReadingOrder)) == fixedLayoutSettings.union(layoutIndependentSettings))
         }
 
         /// A reading order of fixed-layout resources, in a reflowable
@@ -212,14 +212,14 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("fixed-layout settings") struct FixedLayout {
-        @Test("offsetFirstPage is not effective when the spread is disabled by a preference or a default")
+        @Test("offsetFirstPage doesn't apply when the spread is disabled by a preference or a default")
         func offsetFirstPageWithoutSpread() {
             let withoutSpread = settings(preferences: EPUBPreferences(spread: .never), layout: .fixed)
-            #expect(withoutSpread.isEffective(\.spread))
-            #expect(!withoutSpread.isEffective(\.offsetFirstPage))
+            #expect(withoutSpread.isApplicable(\.spread))
+            #expect(!withoutSpread.isApplicable(\.offsetFirstPage))
 
-            #expect(!settings(defaults: EPUBDefaults(spread: .never), layout: .fixed).isEffective(\.offsetFirstPage))
-            #expect(settings(layout: .fixed).isEffective(\.offsetFirstPage))
+            #expect(!settings(defaults: EPUBDefaults(spread: .never), layout: .fixed).isApplicable(\.offsetFirstPage))
+            #expect(settings(layout: .fixed).isApplicable(\.offsetFirstPage))
         }
     }
 
@@ -228,7 +228,7 @@ enum EPUBPreferencesTests {
             "hyphens", "letterSpacing", "ligatures", "noRuby", "paragraphIndent", "textAlign", "textNormalization", "wordSpacing",
         ]
 
-        struct Effective: Sendable, CustomTestStringConvertible {
+        struct Applicable: Sendable, CustomTestStringConvertible {
             let name: String
             let language: String
             var verticalText: Bool = false
@@ -240,26 +240,26 @@ enum EPUBPreferencesTests {
             }
         }
 
-        @Test("the settings are effective with the stylesheets supporting them", arguments: [
-            Effective(
+        @Test("the settings apply with the stylesheets supporting them", arguments: [
+            Applicable(
                 name: "LTR",
                 language: "en",
                 stylesheets: .default,
                 expected: ["hyphens", "letterSpacing", "ligatures", "paragraphIndent", "textAlign", "textNormalization", "wordSpacing"]
             ),
-            Effective(
+            Applicable(
                 name: "RTL",
                 language: "ar",
                 stylesheets: .rtl,
                 expected: ["ligatures", "paragraphIndent", "textAlign", "wordSpacing"]
             ),
-            Effective(
+            Applicable(
                 name: "CJK horizontal",
                 language: "ja",
                 stylesheets: .cjkHorizontal,
                 expected: ["letterSpacing", "noRuby"]
             ),
-            Effective(
+            Applicable(
                 name: "CJK vertical",
                 language: "ja",
                 verticalText: true,
@@ -267,20 +267,20 @@ enum EPUBPreferencesTests {
                 expected: ["letterSpacing", "noRuby"]
             ),
         ])
-        func effective(_ example: Effective) {
+        func applicable(_ example: Applicable) {
             let settings = settings(preferences: EPUBPreferences(language: Language(example.language), verticalText: example.verticalText))
             #expect(settings.cssLayout.stylesheets == example.stylesheets)
-            #expect(effectiveSettings(settings).intersection(languageSpecificSettings) == example.expected)
+            #expect(applicableSettings(settings).intersection(languageSpecificSettings) == example.expected)
         }
 
         @Test("the settings follow a language changed after the resolution")
         func languageChangedAfterResolution() {
             var settings = settings(preferences: EPUBPreferences(language: Language("en")))
-            #expect(settings.isEffective(\.hyphens))
+            #expect(settings.isApplicable(\.hyphens))
 
             settings.language = Language("ja")
             #expect(settings.cssLayout.stylesheets == .cjkHorizontal)
-            #expect(effectiveSettings(settings).intersection(languageSpecificSettings) == ["letterSpacing", "noRuby"])
+            #expect(applicableSettings(settings).intersection(languageSpecificSettings) == ["letterSpacing", "noRuby"])
         }
     }
 
@@ -303,11 +303,11 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("scroll") struct Scroll {
-        @Test("vertical text is always scrolled, so the setting is not effective")
+        @Test("vertical text is always scrolled, so the setting doesn't apply")
         func verticalText() {
             let settings = settings(preferences: EPUBPreferences(scroll: false, verticalText: true))
             #expect(settings.scroll)
-            #expect(!settings.isEffective(\.scroll))
+            #expect(!settings.isApplicable(\.scroll))
         }
     }
 
@@ -345,7 +345,7 @@ enum EPUBPreferencesTests {
             #expect(settings(defaults: defaults).maximalLineLength == nil)
         }
 
-        struct Effective: Sendable, CustomTestStringConvertible {
+        struct Applicable: Sendable, CustomTestStringConvertible {
             let name: String
             let preferences: EPUBPreferences
             let expected: Set<String>
@@ -355,15 +355,15 @@ enum EPUBPreferencesTests {
             }
         }
 
-        @Test("the effective column and line-length settings depend on the columns and the scroll mode", arguments: [
-            Effective(name: "automatic columns", preferences: EPUBPreferences(), expected: ["columnCount", "optimalLineLength", "maximalLineLength"]),
-            Effective(name: "several columns", preferences: EPUBPreferences(columnCount: 2), expected: ["columnCount", "minimalLineLength", "maximalLineLength"]),
-            Effective(name: "one column", preferences: EPUBPreferences(columnCount: 1), expected: ["columnCount", "maximalLineLength"]),
-            Effective(name: "scroll mode", preferences: EPUBPreferences(columnCount: 2, scroll: true), expected: ["maximalLineLength"]),
+        @Test("the applicable column and line-length settings depend on the columns and the scroll mode", arguments: [
+            Applicable(name: "automatic columns", preferences: EPUBPreferences(), expected: ["columnCount", "optimalLineLength", "maximalLineLength"]),
+            Applicable(name: "several columns", preferences: EPUBPreferences(columnCount: 2), expected: ["columnCount", "minimalLineLength", "maximalLineLength"]),
+            Applicable(name: "one column", preferences: EPUBPreferences(columnCount: 1), expected: ["columnCount", "maximalLineLength"]),
+            Applicable(name: "scroll mode", preferences: EPUBPreferences(columnCount: 2, scroll: true), expected: ["maximalLineLength"]),
         ])
-        func effective(_ example: Effective) {
+        func applicable(_ example: Applicable) {
             let columnsAndLineLengths: Set = ["columnCount", "optimalLineLength", "minimalLineLength", "maximalLineLength"]
-            #expect(effectiveSettings(settings(preferences: example.preferences)).intersection(columnsAndLineLengths) == example.expected)
+            #expect(applicableSettings(settings(preferences: example.preferences)).intersection(columnsAndLineLengths) == example.expected)
         }
     }
 
@@ -680,9 +680,9 @@ enum EPUBPreferencesTests {
     }
 
     @Suite("hyphens") struct Hyphens {
-        @Test("the setting is effective with a justified text")
-        func effectiveWithJustifiedText() {
-            #expect(settings(preferences: EPUBPreferences(textAlign: .justify)).isEffective(\.hyphens))
+        @Test("the setting applies with a justified text")
+        func appliesWithJustifiedText() {
+            #expect(settings(preferences: EPUBPreferences(textAlign: .justify)).isApplicable(\.hyphens))
         }
     }
 
@@ -1109,9 +1109,9 @@ private func cssProperties(
     cssProperties(settings(preferences: preferences, defaults: defaults))
 }
 
-/// Names of the settings which are effective.
-private func effectiveSettings(_ settings: EPUBSettings) -> Set<String> {
-    Set(allSettings.filter { settings.isEffective($0.keyPath) }.map(\.name))
+/// Names of the settings which apply.
+private func applicableSettings(_ settings: EPUBSettings) -> Set<String> {
+    Set(allSettings.filter { settings.isApplicable($0.keyPath) }.map(\.name))
 }
 
 /// Every setting of `EPUBSettings`, with its name.

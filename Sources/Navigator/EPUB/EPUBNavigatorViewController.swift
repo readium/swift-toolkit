@@ -1008,7 +1008,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         viewModel.settings(for: preferences)
     }
 
-    @available(*, unavailable, message: "Get the settings with settings(for:) and check EPUBSettings.isEffective(_:), see the migration guide")
+    @available(*, unavailable, message: "Get the settings with settings(for:) and check EPUBSettings.isApplicable(_:), see the migration guide")
     public func editor(of preferences: EPUBPreferences) -> EPUBPreferencesEditor {
         fatalError()
     }

@@ -161,13 +161,13 @@ import UIKit
 
             let authored = makeViewModel(publication: publication, config: .init(preferredResourceVariant: .default))
                 .settings(for: EPUBPreferences())
-            #expect(authored.isEffective(\.fontSize))
-            #expect(!authored.isEffective(\.fit))
+            #expect(authored.isApplicable(\.fontSize))
+            #expect(!authored.isApplicable(\.fit))
 
             let images = makeViewModel(publication: publication, config: .init(preferredResourceVariant: .image))
                 .settings(for: EPUBPreferences())
-            #expect(!images.isEffective(\.fontSize))
-            #expect(images.isEffective(\.fit))
+            #expect(!images.isApplicable(\.fontSize))
+            #expect(images.isApplicable(\.fit))
         }
 
         @Test("are applied unchanged by submitting the same preferences")

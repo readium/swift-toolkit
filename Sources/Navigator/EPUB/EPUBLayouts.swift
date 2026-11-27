@@ -11,7 +11,7 @@ import ReadiumShared
 ///
 /// A publication can mix reflowable and fixed-layout resources, so knowing
 /// which layouts are actually rendered is what determines whether a setting
-/// is effective.
+/// applies.
 struct EPUBLayouts: Hashable, Sendable {
     /// Layouts of a reading order containing only reflowable resources.
     static let reflowable = EPUBLayouts(layouts: [.reflowable])

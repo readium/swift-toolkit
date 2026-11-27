@@ -20,7 +20,7 @@ public struct PDFPreferences: ConfigurablePreferences, Sendable {
     /// Indicates whether the first page should be displayed alone instead of
     /// alongside the second page.
     ///
-    /// This is only effective if spreads are enabled.
+    /// This only applies if spreads are enabled.
     public var offsetFirstPage: Bool?
 
     /// Spacing between pages in points.

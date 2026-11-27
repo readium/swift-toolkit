@@ -31,22 +31,22 @@ public protocol Configurable {
     /// current `settings` are not affected.
     ///
     /// Use it to inspect the settings before, or without, submitting the
-    /// preferences, for example to check which ones take effect with
-    /// `isEffective(_:)` in a user settings interface.
+    /// preferences, for example to check which ones apply with
+    /// `isApplicable(_:)` in a user settings interface.
     func settings(for preferences: Preferences) -> Settings
 }
 
 /// Setting values of a `Configurable`, resolved from its `Preferences`.
 public protocol ConfigurableSettings: Hashable {
-    /// Indicates whether the given `setting` would take effect if it was set
-    /// by a preference, with the current publication and the other settings.
+    /// Indicates whether the given `setting` would apply if it was set by a
+    /// preference, with the current publication and the other settings.
     ///
-    /// Use it to disable the controls of the settings which have no effect.
+    /// Use it to disable the controls of the settings which don't apply.
     /// It doesn't tell whether the setting is set, as your own settings model
     /// already knows it.
     ///
     /// - Parameter setting: Key path of a stored setting, e.g. `\.scroll`.
-    func isEffective(_ setting: PartialKeyPath<Self>) -> Bool
+    func isApplicable(_ setting: PartialKeyPath<Self>) -> Bool
 }
 
 /// Marker interface for the `Preferences` properties holder.

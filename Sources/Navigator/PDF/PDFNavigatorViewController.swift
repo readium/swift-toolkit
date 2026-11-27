@@ -605,7 +605,7 @@ open class PDFNavigatorViewController:
         )
     }
 
-    @available(*, unavailable, message: "Get the settings with settings(for:) and check PDFSettings.isEffective(_:), see the migration guide")
+    @available(*, unavailable, message: "Get the settings with settings(for:) and check PDFSettings.isApplicable(_:), see the migration guide")
     public func editor(of preferences: PDFPreferences) -> PDFPreferencesEditor {
         fatalError()
     }

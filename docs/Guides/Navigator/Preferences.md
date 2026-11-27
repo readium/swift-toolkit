@@ -1,6 +1,6 @@
 # Configuring the Navigator
 
-The Readium Navigators can be configured while reading, for example to change the font size, the colors or the scroll mode. This guide explains how to submit the user preferences to a Navigator, how to build a settings screen which tells the user which settings take effect with the current publication, and how to persist the user preferences.
+The Readium Navigators can be configured while reading, for example to change the font size, the colors or the scroll mode. This guide explains how to submit the user preferences to a Navigator, how to build a settings screen which tells the user which settings apply to the current publication, and how to persist the user preferences.
 
 ## Overview
 
@@ -42,8 +42,8 @@ let preferences = EPUBPreferences(
 )
 
 let settings = epubNavigator.settings(for: preferences)
-if settings.isEffective(\.textAlign) {
-    // The text alignment takes effect with this publication.
+if settings.isApplicable(\.textAlign) {
+    // The text alignment applies to this publication.
 }
 
 epubNavigator.submitPreferences(preferences)
@@ -143,7 +143,7 @@ The `defaults` replace the default values of the Navigator when they don't suit 
 
 ## Build a user settings interface
 
-You are responsible for the settings screen: its controls, ranges and formatting are choices of your user interface. The Navigator tells you which settings take effect with the current publication, and which values it would apply.
+You are responsible for the settings screen: its controls, ranges and formatting are choices of your user interface. The Navigator tells you which settings apply to the current publication, and which values it would resolve.
 
 ### Inspect the settings before submitting them
 
@@ -151,18 +151,18 @@ You are responsible for the settings screen: its controls, ranges and formatting
 
 Call it with the preferences derived from your settings model, to inspect the choices of the user before submitting them. `navigator.settings` only reflects the last submitted preferences.
 
-### Inactive settings
+### Settings that don't apply
 
-A setting is inactive when its activation conditions are not met, and the Navigator then ignores it. For example, with the EPUB Navigator, the `hyphens` setting is effective only with a left-to-right layout, and `columnCount` only in paginated mode.
+A setting doesn't apply when its conditions are not met, and the Navigator then ignores it. For example, with the EPUB Navigator, the `hyphens` setting applies only with a left-to-right layout, and `columnCount` only in paginated mode.
 
-To check if a setting is effective, call **`isEffective(_:)`** on the settings with the key path of the setting:
+To check if a setting applies, call **`isApplicable(_:)`** on the settings with the key path of the setting:
 
 ```swift
 let settings = navigator.settings(for: readerSettings.preferences())
-let isEnabled = settings.isEffective(\.wordSpacing)
+let isEnabled = settings.isApplicable(\.wordSpacing)
 ```
 
-**`isEffective(_:)`** tells whether a setting would take effect if it was set, with this publication and the other settings. It doesn't tell whether the user set it, as your settings model already knows it. For example, `textColor` is effective in a reflowable publication even when unset. Use it to disable the controls of the inactive settings.
+**`isApplicable(_:)`** tells whether a setting would apply if it was set, with this publication and the other settings. It doesn't tell whether the user set it, as your settings model already knows it. For example, `textColor` is applicable in a reflowable publication even when unset. Use it to disable the controls of the settings which don't apply.
 
 The [appendix](#appendix-preference-constraints) lists the rules of each setting.
 
@@ -178,7 +178,7 @@ The documentation of each property of the `Preferences` types suggests a range, 
 
 ### Example of settings controls
 
-A control of your settings screen binds to a value of your settings model, and is disabled when the setting is not effective. The following controls receive the settings resolved by the Navigator, which the [view model](#submit-the-changes) resolves once for the whole screen.
+A control of your settings screen binds to a value of your settings model, and is disabled when the setting doesn't apply. The following controls receive the settings resolved by the Navigator, which the [view model](#submit-the-changes) resolves once for the whole screen.
 
 ```swift
 struct ScrollToggle: View {
@@ -190,7 +190,7 @@ struct ScrollToggle: View {
             get: { settings.scroll ?? navigatorSettings.scroll },
             set: { settings.scroll = $0 }
         ))
-        .disabled(!navigatorSettings.isEffective(\.scroll))
+        .disabled(!navigatorSettings.isApplicable(\.scroll))
     }
 }
 ```
@@ -221,7 +221,7 @@ struct LineHeightStepper: View {
             }
             .disabled(settings.lineHeight == nil)
         }
-        .disabled(!navigatorSettings.isEffective(\.lineHeight))
+        .disabled(!navigatorSettings.isApplicable(\.lineHeight))
     }
 }
 ```
@@ -351,7 +351,7 @@ The image filter preferences are applied with any colors. `darkenImages`, `inver
 
 ## Appendix: Preference constraints
 
-**`isEffective(_:)`** implements the following rules, which tell when a preference is ignored by the Navigator.
+**`isApplicable(_:)`** implements the following rules, which tell when a preference is ignored by the Navigator.
 
 ### EPUB
 
@@ -359,7 +359,7 @@ The image filter preferences are applied with any colors. `darkenImages`, `inver
 
 EPUB comes in two very different flavors: **reflowable** which allows a lot of customization, and **fixed-layout** which is similar to a PDF or a comic book. Depending on the EPUB being rendered, the Navigator ignores some of the preferences.
 
-An EPUB can also mix both kinds of resources in a single publication. In this case, a preference is effective as soon as at least one resource of the matching kind is in the reading order rendered by the Navigator, and it applies only to those resources. For example, `fontSize` is effective in a fixed-layout publication containing a reflowable chapter, but it changes only that chapter.
+An EPUB can also mix both kinds of resources in a single publication. In this case, a preference applies as soon as at least one resource of the matching kind is in the reading order rendered by the Navigator, but only to those resources. For example, `fontSize` applies to a fixed-layout publication containing a reflowable chapter, but it changes only that chapter.
 
 Bitmaps and SVG documents in the reading order are always rendered as fixed-layout pages, even in a reflowable publication, so the fixed-layout preferences apply to them and the reflowable ones don't.
 
@@ -411,7 +411,7 @@ Some preferences are available only in paginated mode (`scroll = false`).
 | `minimalLineLength` |        | ✅ (when `columnCount` is greater than 1) |
 | `maximalLineLength` | ✅     | ✅                                        |
 
-Vertical text is always scrolled, so `scroll` is inactive when `verticalText` is `true`.
+Vertical text is always scrolled, so `scroll` doesn't apply when `verticalText` is `true`.
 
 #### Language specific preferences
 
@@ -430,7 +430,7 @@ Some preferences are not available for all languages and layouts. The layout (LT
 
 #### Optional settings
 
-The following settings are `nil` when they are unset in both the preferences and the defaults. The Navigator then keeps the styles of the publication, whose values are unknown to the toolkit. **`isEffective(_:)`** tells whether they would take effect once set.
+The following settings are `nil` when they are unset in both the preferences and the defaults. The Navigator then keeps the styles of the publication, whose values are unknown to the toolkit. **`isApplicable(_:)`** tells whether they would apply once set.
 
 * `backgroundColor`
 * `fontFamily`
@@ -452,7 +452,7 @@ The following settings are `nil` when they are unset in both the preferences and
 
 #### Scroll vs paginated
 
-Some preferences are available only in scroll or paginated mode (`scroll = false`). `backgroundColor`, `pageSpacing` and `scroll` are always effective.
+Some preferences are available only in scroll or paginated mode (`scroll = false`). `backgroundColor`, `pageSpacing` and `scroll` always apply.
 
 | Preference           | Vertical Scroll | Horizontal Scroll | Paginated                          |
 |----------------------|-----------------|-------------------|------------------------------------|
@@ -465,4 +465,4 @@ Some preferences are available only in scroll or paginated mode (`scroll = false
 
 ### Audio
 
-The audio preferences, `volume` and `speed`, are always effective: `isEffective(_:)` returns `true` for both.
+The audio preferences, `volume` and `speed`, always apply: `isApplicable(_:)` returns `true` for both.

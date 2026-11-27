@@ -1113,7 +1113,7 @@ public final class AudioNavigator: Navigator, Configurable, AudioSessionUser, Lo
         )
     }
 
-    @available(*, unavailable, message: "Get the settings with settings(for:) and check AudioSettings.isEffective(_:), see the migration guide")
+    @available(*, unavailable, message: "Get the settings with settings(for:) and check AudioSettings.isApplicable(_:), see the migration guide")
     public func editor(of preferences: AudioPreferences) -> AudioPreferencesEditor {
         fatalError()
     }

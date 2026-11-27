@@ -30,7 +30,7 @@ enum AudioSettingsTests {
         }
     }
 
-    @Suite("Effective settings") struct Effective {
+    @Suite("Applicable settings") struct Applicable {
         private let settings = AudioSettings(preferences: AudioPreferences())
 
         @Test("are tested for every setting")
@@ -39,8 +39,8 @@ enum AudioSettingsTests {
         }
 
         @Test("include every setting")
-        func everySettingIsEffective() {
-            #expect(allSettings.allSatisfy { settings.isEffective($0.keyPath) })
+        func everySettingIsApplicable() {
+            #expect(allSettings.allSatisfy { settings.isApplicable($0.keyPath) })
         }
     }
 

@@ -62,7 +62,7 @@ final class UserPreferencesViewModel<Settings: UserSettings>: ObservableObject {
     }
 
     /// Settings the navigator applies with the current user settings, to
-    /// tell which ones are effective.
+    /// tell which ones are applicable.
     var navigatorSettings: Settings.NavigatorSettings {
         navigator.settings(for: settings.preferences())
     }
@@ -147,27 +147,27 @@ private struct EPUBReflowablePreferences: View {
         Section {
             languageRow(
                 value: model.binding(\.book.language),
-                isActive: settings.isEffective(\.language)
+                isActive: settings.isApplicable(\.language)
             )
 
             readingProgressionRow(
                 value: model.binding(\.book.readingProgression).rawRepresentable(),
                 placeholder: settings.readingProgression,
-                isActive: settings.isEffective(\.readingProgression)
+                isActive: settings.isApplicable(\.readingProgression)
             )
 
             toggleRow(
                 "Vertical text",
                 value: model.binding(\.book.verticalText),
                 placeholder: settings.verticalText,
-                isActive: settings.isEffective(\.verticalText)
+                isActive: settings.isApplicable(\.verticalText)
             )
 
             toggleRow(
                 "Hide ruby annotations",
                 value: model.binding(\.shared.noRuby),
                 placeholder: settings.noRuby,
-                isActive: settings.isEffective(\.noRuby)
+                isActive: settings.isApplicable(\.noRuby)
             )
         }
 
@@ -176,14 +176,14 @@ private struct EPUBReflowablePreferences: View {
                 "Scroll",
                 value: model.binding(\.shared.scroll),
                 placeholder: settings.scroll,
-                isActive: settings.isEffective(\.scroll)
+                isActive: settings.isApplicable(\.scroll)
             )
 
             pickerRow(
                 "Columns",
                 value: model.binding(\.shared.columnCount),
                 values: [nil, 1, 2],
-                isActive: settings.isEffective(\.columnCount),
+                isActive: settings.isApplicable(\.columnCount),
                 format: { $0.map { String($0) } ?? "Auto" }
             )
 
@@ -192,7 +192,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.pageMargins),
                 spec: .pageMargins,
                 placeholder: settings.pageMargins,
-                isActive: settings.isEffective(\.pageMargins)
+                isActive: settings.isApplicable(\.pageMargins)
             )
 
             stepperRow(
@@ -201,7 +201,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.optimalLineLength),
                 spec: .lineLength,
                 placeholder: settings.optimalLineLength,
-                isActive: settings.isEffective(\.optimalLineLength)
+                isActive: settings.isApplicable(\.optimalLineLength)
             )
 
             optionalStepperRow(
@@ -209,7 +209,7 @@ private struct EPUBReflowablePreferences: View {
                 subtitle: "Removes columns when the lines would be shorter. Applied when paginated with a fix number of columns (2 or more).",
                 value: model.binding(\.shared.minimalLineLength),
                 spec: .lineLength,
-                isActive: settings.isEffective(\.minimalLineLength)
+                isActive: settings.isApplicable(\.minimalLineLength)
             )
 
             // No toggle: the default `EPUBDefaults.maximalLineLength` is not
@@ -220,24 +220,24 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.maximalLineLength),
                 spec: .lineLength,
                 placeholder: settings.maximalLineLength,
-                isActive: settings.isEffective(\.maximalLineLength)
+                isActive: settings.isApplicable(\.maximalLineLength)
             )
         }
 
         Section {
             themeRow(
                 value: model.binding(\.shared.theme),
-                isActive: settings.isEffective(\.textColor)
-                    || settings.isEffective(\.backgroundColor)
-                    || settings.isEffective(\.linkColor)
-                    || settings.isEffective(\.visitedColor)
+                isActive: settings.isApplicable(\.textColor)
+                    || settings.isApplicable(\.backgroundColor)
+                    || settings.isApplicable(\.linkColor)
+                    || settings.isApplicable(\.visitedColor)
             )
 
             toggleRow(
                 "Blend images",
                 value: model.binding(\.shared.blendImages),
                 placeholder: settings.blendImages,
-                isActive: settings.isEffective(\.blendImages)
+                isActive: settings.isApplicable(\.blendImages)
             )
 
             stepperRow(
@@ -245,49 +245,49 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.darkenImages),
                 spec: .darkenImages,
                 placeholder: settings.darkenImages,
-                isActive: settings.isEffective(\.darkenImages)
+                isActive: settings.isApplicable(\.darkenImages)
             )
 
             toggleRow(
                 "Invert images",
                 value: model.binding(\.shared.invertImages),
                 placeholder: settings.invertImages,
-                isActive: settings.isEffective(\.invertImages)
+                isActive: settings.isApplicable(\.invertImages)
             )
 
             toggleRow(
                 "Invert gaiji",
                 value: model.binding(\.shared.invertGaiji),
                 placeholder: settings.invertGaiji,
-                isActive: settings.isEffective(\.invertGaiji)
+                isActive: settings.isApplicable(\.invertGaiji)
             )
 
             colorRow(
                 "Text color",
                 value: model.binding(\.shared.theme).color(\.textColor),
                 placeholder: .startingText,
-                isActive: settings.isEffective(\.textColor)
+                isActive: settings.isApplicable(\.textColor)
             )
 
             colorRow(
                 "Background color",
                 value: model.binding(\.shared.theme).color(\.backgroundColor),
                 placeholder: .startingBackground,
-                isActive: settings.isEffective(\.backgroundColor)
+                isActive: settings.isApplicable(\.backgroundColor)
             )
 
             colorRow(
                 "Link color",
                 value: model.binding(\.shared.theme).color(\.linkColor),
                 placeholder: .startingLink,
-                isActive: settings.isEffective(\.linkColor)
+                isActive: settings.isApplicable(\.linkColor)
             )
 
             colorRow(
                 "Visited link color",
                 value: model.binding(\.shared.theme).color(\.visitedColor),
                 placeholder: .startingVisited,
-                isActive: settings.isEffective(\.visitedColor)
+                isActive: settings.isApplicable(\.visitedColor)
             )
         }
 
@@ -296,7 +296,7 @@ private struct EPUBReflowablePreferences: View {
                 "Typeface",
                 value: model.binding(\.shared.fontFamily).rawRepresentable(),
                 values: [nil, .sansSerif, .literata] as [FontFamily?],
-                isActive: settings.isEffective(\.fontFamily),
+                isActive: settings.isApplicable(\.fontFamily),
                 format: { ff in
                     switch ff {
                     case nil: return "Original"
@@ -311,7 +311,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.fontSize),
                 spec: .fontSize,
                 placeholder: settings.fontSize,
-                isActive: settings.isEffective(\.fontSize)
+                isActive: settings.isApplicable(\.fontSize)
             )
 
             stepperRow(
@@ -319,7 +319,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.fontWeight),
                 spec: .fontWeight,
                 placeholder: settings.fontWeight,
-                isActive: settings.isEffective(\.fontWeight)
+                isActive: settings.isApplicable(\.fontWeight)
             )
 
             stepperRow(
@@ -327,14 +327,14 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.fontWidth),
                 spec: .fontWidth,
                 placeholder: settings.fontWidth,
-                isActive: settings.isEffective(\.fontWidth)
+                isActive: settings.isApplicable(\.fontWidth)
             )
 
             toggleRow(
                 "Text normalization",
                 value: model.binding(\.shared.textNormalization),
                 placeholder: settings.textNormalization,
-                isActive: settings.isEffective(\.textNormalization)
+                isActive: settings.isApplicable(\.textNormalization)
             )
         }
 
@@ -343,7 +343,7 @@ private struct EPUBReflowablePreferences: View {
                 "Text alignment",
                 value: model.binding(\.shared.textAlign).rawRepresentable(),
                 values: [nil, .start, .left, .right, .justify] as [ReadiumNavigator.TextAlignment?],
-                isActive: settings.isEffective(\.textAlign),
+                isActive: settings.isApplicable(\.textAlign),
                 format: { v in
                     switch v {
                     case nil: return "Default"
@@ -362,7 +362,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.lineHeight),
                 spec: .lineHeight,
                 placeholder: settings.lineHeight,
-                isActive: settings.isEffective(\.lineHeight)
+                isActive: settings.isApplicable(\.lineHeight)
             )
 
             stepperRow(
@@ -370,7 +370,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.paragraphIndent),
                 spec: .paragraphIndent,
                 placeholder: settings.paragraphIndent,
-                isActive: settings.isEffective(\.paragraphIndent)
+                isActive: settings.isApplicable(\.paragraphIndent)
             )
 
             stepperRow(
@@ -378,7 +378,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.paragraphSpacing),
                 spec: .paragraphSpacing,
                 placeholder: settings.paragraphSpacing,
-                isActive: settings.isEffective(\.paragraphSpacing)
+                isActive: settings.isApplicable(\.paragraphSpacing)
             )
 
             stepperRow(
@@ -386,7 +386,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.wordSpacing),
                 spec: .wordSpacing,
                 placeholder: settings.wordSpacing,
-                isActive: settings.isEffective(\.wordSpacing)
+                isActive: settings.isApplicable(\.wordSpacing)
             )
 
             stepperRow(
@@ -394,7 +394,7 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.letterSpacing),
                 spec: .letterSpacing,
                 placeholder: settings.letterSpacing,
-                isActive: settings.isEffective(\.letterSpacing)
+                isActive: settings.isApplicable(\.letterSpacing)
             )
 
             toggleRow(
@@ -402,14 +402,14 @@ private struct EPUBReflowablePreferences: View {
                 value: model.binding(\.shared.hyphens),
                 // Readium CSS hyphenates the justified text.
                 placeholder: settings.hyphens ?? (settings.textAlign == .justify),
-                isActive: settings.isEffective(\.hyphens)
+                isActive: settings.isApplicable(\.hyphens)
             )
 
             toggleRow(
                 "Ligatures",
                 value: model.binding(\.shared.ligatures),
                 placeholder: settings.ligatures ?? true,
-                isActive: settings.isEffective(\.ligatures)
+                isActive: settings.isApplicable(\.ligatures)
             )
         }
     }
@@ -425,13 +425,13 @@ private struct EPUBFixedLayoutPreferences: View {
         Section {
             languageRow(
                 value: model.binding(\.book.language),
-                isActive: settings.isEffective(\.language)
+                isActive: settings.isApplicable(\.language)
             )
 
             readingProgressionRow(
                 value: model.binding(\.book.readingProgression).rawRepresentable(),
                 placeholder: settings.readingProgression,
-                isActive: settings.isEffective(\.readingProgression)
+                isActive: settings.isApplicable(\.readingProgression)
             )
         }
 
@@ -440,7 +440,7 @@ private struct EPUBFixedLayoutPreferences: View {
                 "Background color",
                 value: model.binding(\.shared.theme).color(\.backgroundColor),
                 placeholder: .startingBackground,
-                isActive: settings.isEffective(\.backgroundColor)
+                isActive: settings.isApplicable(\.backgroundColor)
             )
         }
 
@@ -448,14 +448,14 @@ private struct EPUBFixedLayoutPreferences: View {
             spreadRow(
                 value: model.binding(\.book.spread).rawRepresentable(),
                 placeholder: settings.spread,
-                isActive: settings.isEffective(\.spread)
+                isActive: settings.isApplicable(\.spread)
             )
 
             pickerRow(
                 "Offset first page",
                 value: model.binding(\.book.offsetFirstPage),
                 values: [nil, true, false],
-                isActive: settings.isEffective(\.offsetFirstPage),
+                isActive: settings.isApplicable(\.offsetFirstPage),
                 format: { v in
                     switch v {
                     case nil: return "Auto"
@@ -470,7 +470,7 @@ private struct EPUBFixedLayoutPreferences: View {
             fitRow(
                 value: model.binding(\.shared.fit).rawRepresentable(),
                 placeholder: settings.fit,
-                isActive: settings.isEffective(\.fit)
+                isActive: settings.isApplicable(\.fit)
             )
         }
     }
@@ -488,7 +488,7 @@ private struct PDFPreferencesForm: View {
             readingProgressionRow(
                 value: model.binding(\.book.readingProgression).rawRepresentable(),
                 placeholder: settings.readingProgression,
-                isActive: settings.isEffective(\.readingProgression)
+                isActive: settings.isApplicable(\.readingProgression)
             )
         }
 
@@ -497,14 +497,14 @@ private struct PDFPreferencesForm: View {
                 "Scroll",
                 value: model.binding(\.shared.scroll),
                 placeholder: settings.scroll,
-                isActive: settings.isEffective(\.scroll)
+                isActive: settings.isApplicable(\.scroll)
             )
 
             pickerRow(
                 "Scroll axis",
                 value: model.binding(\.shared.scrollAxis).rawRepresentable().or(settings.scrollAxis),
                 values: [.horizontal, .vertical],
-                isActive: settings.isEffective(\.scrollAxis),
+                isActive: settings.isApplicable(\.scrollAxis),
                 onClear: { model.update { $0.shared.scrollAxis = nil } },
                 format: { v in
                     switch v {
@@ -518,7 +518,7 @@ private struct PDFPreferencesForm: View {
                 "Visible scrollbar",
                 value: model.binding(\.shared.visibleScrollbar),
                 placeholder: settings.visibleScrollbar,
-                isActive: settings.isEffective(\.visibleScrollbar)
+                isActive: settings.isApplicable(\.visibleScrollbar)
             )
         }
 
@@ -526,14 +526,14 @@ private struct PDFPreferencesForm: View {
             spreadRow(
                 value: model.binding(\.shared.spread).rawRepresentable(),
                 placeholder: settings.spread,
-                isActive: settings.isEffective(\.spread)
+                isActive: settings.isApplicable(\.spread)
             )
 
             toggleRow(
                 "Offset first page",
                 value: model.binding(\.book.offsetFirstPage),
                 placeholder: settings.offsetFirstPage,
-                isActive: settings.isEffective(\.offsetFirstPage)
+                isActive: settings.isApplicable(\.offsetFirstPage)
             )
         }
 
@@ -541,7 +541,7 @@ private struct PDFPreferencesForm: View {
             fitRow(
                 value: model.binding(\.shared.fit).rawRepresentable(),
                 placeholder: settings.fit,
-                isActive: settings.isEffective(\.fit)
+                isActive: settings.isApplicable(\.fit)
             )
         }
 
@@ -551,7 +551,7 @@ private struct PDFPreferencesForm: View {
                 value: model.binding(\.shared.pageSpacing),
                 spec: .pageSpacing,
                 placeholder: settings.pageSpacing,
-                isActive: settings.isEffective(\.pageSpacing)
+                isActive: settings.isApplicable(\.pageSpacing)
             )
         }
     }
@@ -572,7 +572,7 @@ private struct AudioPreferencesForm: View {
                 value: model.binding(\.shared.volume),
                 spec: .volume,
                 placeholder: settings.volume,
-                isActive: settings.isEffective(\.volume)
+                isActive: settings.isApplicable(\.volume)
             )
 
             stepperRow(
@@ -580,7 +580,7 @@ private struct AudioPreferencesForm: View {
                 value: model.binding(\.shared.speed),
                 spec: .speed,
                 placeholder: settings.speed,
-                isActive: settings.isEffective(\.speed)
+                isActive: settings.isApplicable(\.speed)
             )
         }
     }
@@ -647,8 +647,8 @@ private let languages: [Language?] = [nil] + Language.all
     .removingDuplicates()
     .sorted { l1, l2 in l1.localizedDescription() <= l2.localizedDescription() }
 
-/// Layout for a preference row, greyed out when the preference is not
-/// effective, with a button to clear its value.
+/// Layout for a preference row, greyed out when the preference doesn't
+/// apply, with a button to clear its value.
 private func preferenceRow<V: View>(
     isActive: Bool,
     subtitle: String? = nil,

@@ -46,7 +46,7 @@ enum EPUBScriptScope {
     let readingOrder: EPUBReadingOrder
 
     /// Layouts of the resources in the `readingOrder`, which determine the
-    /// effective settings.
+    /// applicable settings.
     private let layouts: EPUBLayouts
 
     convenience init(

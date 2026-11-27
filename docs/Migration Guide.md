@@ -73,9 +73,9 @@ The `Legacy*Preferences` types will be removed in a future major version.
 
 #### The preferences editors are removed
 
-The preferences editors (e.g. `EPUBPreferencesEditor`) are removed, now that `Preferences` are not codable anymore. Your app owns the values chosen by the user in its settings model, so edit them as you see fit. The toolkit only tells which settings take effect.
+The preferences editors (e.g. `EPUBPreferencesEditor`) are removed, now that `Preferences` are not codable anymore. Your app owns the values chosen by the user in its settings model, so edit them as you see fit. The toolkit only tells which settings apply.
 
-To check if a setting is effective, get the settings that the navigator would apply with your preferences with `navigator.settings(for:)`, then call `isEffective(_:)` on them. The navigator resolves without changing its presentation.
+To check if a setting applies, get the settings that the navigator would apply with your preferences with `navigator.settings(for:)`, then call `isApplicable(_:)` on them. The navigator resolves them without changing its presentation. `isApplicable(_:)` on the settings replaces the `isEffective` property of the editors.
 
 For example, a toggle for the scroll mode was built from `editor.scroll`, and its `commit` closure saved and submitted `editor.preferences`. It now edits your settings model, which you save and submit when it changes, and receives the settings resolved once for the whole screen with `navigator.settings(for:)`:
 
@@ -97,12 +97,12 @@ For example, a toggle for the scroll mode was built from `editor.scroll`, and it
 +            set: { settings.scroll = $0 }
          ))
 -        .disabled(!preference.isEffective)
-+        .disabled(!navigatorSettings.isEffective(\.scroll))
++        .disabled(!navigatorSettings.isApplicable(\.scroll))
      }
  }
 ```
 
-`isEffective(_:)` tells whether a setting would take effect if it was set. Unlike the editors, it doesn't check whether the preference is set: for example, `textColor` is effective in a reflowable publication even when unset.
+`isApplicable(_:)` tells whether a setting would apply if it was set. Unlike the `isEffective` property of the editors, it doesn't check whether the preference is set: for example, `textColor` is applicable in a reflowable publication even when unset.
 
 The ranges, steps, supported values and formatting of the editors are choices of your user interface. The documentation of each property of the `Preferences` types suggests a range, a step and a starting value. There's no replacement for the `effectiveValue` of a preference: display the setting resolved by `settings(for:)`, or a starting value when it is `nil`. See [the user guide](Guides/Navigator/Preferences.md#build-a-user-settings-interface) for a complete example.
 
@@ -203,8 +203,8 @@ The publisher styles are kept as long as the related preferences are unset. Pref
 #### Other preference changes
 
 * The `typeScale` preference is removed from `EPUBPreferences`, without replacement.
-* `ligatures` is now effective with left-to-right languages too, instead of only right-to-left ones. The ligatures are rendered by default.
-* `letterSpacing` is now effective with CJK languages too, and `wordSpacing` with right-to-left languages.
+* `ligatures` now applies to left-to-right languages too, instead of only right-to-left ones. The ligatures are rendered by default.
+* `letterSpacing` now applies to CJK languages too, and `wordSpacing` to right-to-left languages.
 * The suggested starting value of `lineHeight` is `1.5` instead of `1.2`, which is the default line height for Latin scripts.
 * `letterSpacing` is no longer halved. It is now a length in multiples of the root font size (`rem`), sent as-is to Readium CSS. `1.0` is now `1rem` instead of `0.5rem`, matching the other Readium toolkits.
 

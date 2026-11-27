@@ -32,9 +32,9 @@ public struct AudioSettings: ConfigurableSettings, Sendable {
             ?? 1.0
     }
 
-    /// Every audio setting is always effective, see
-    /// `ConfigurableSettings.isEffective(_:)`.
-    public func isEffective(_ setting: PartialKeyPath<AudioSettings>) -> Bool {
+    /// Every audio setting always applies, see
+    /// `ConfigurableSettings.isApplicable(_:)`.
+    public func isApplicable(_ setting: PartialKeyPath<AudioSettings>) -> Bool {
         true
     }
 }

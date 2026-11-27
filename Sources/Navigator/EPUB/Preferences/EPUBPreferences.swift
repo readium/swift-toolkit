@@ -132,14 +132,14 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     /// Hides the ruby (furigana) annotations when `true`.
     ///
-    /// Only effective with reflowable publications using a CJK layout
+    /// Only applies to reflowable publications using a CJK layout
     /// (horizontal or vertical).
     public var noRuby: Bool?
 
     /// Indicates whether the first page should be displayed alone and centered
     /// instead of alongside the second page.
     ///
-    /// This is only effective if spreads are enabled. When `nil` and without
+    /// This only applies if spreads are enabled. When `nil` and without
     /// a default value, it is chosen automatically from the publication
     /// metadata.
     public var offsetFirstPage: Bool?

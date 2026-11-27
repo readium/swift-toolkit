@@ -12,7 +12,7 @@ import ReadiumShared
 /// The navigator resolves them from the submitted `PDFPreferences`. Use
 /// `PDFNavigatorViewController.settings(for:)` to get the settings resolved
 /// from given preferences without submitting them, for example to check
-/// which settings are effective with `isEffective(_:)`.
+/// which settings apply with `isApplicable(_:)`.
 ///
 /// See `PDFPreferences`
 public struct PDFSettings: ConfigurableSettings, Sendable {
@@ -84,17 +84,17 @@ public struct PDFSettings: ConfigurableSettings, Sendable {
 }
 
 public extension PDFSettings {
-    /// Indicates whether the given `setting` would take effect if it was set,
-    /// see `ConfigurableSettings.isEffective(_:)`.
+    /// Indicates whether the given `setting` would apply if it was set,
+    /// see `ConfigurableSettings.isApplicable(_:)`.
     ///
     /// The rules of each setting are:
-    /// - Always effective: `backgroundColor`, `pageSpacing`, `scroll`.
+    /// - Always applicable: `backgroundColor`, `pageSpacing`, `scroll`.
     /// - `fit`, `scrollAxis`, `visibleScrollbar`: when `scroll` is on.
     /// - `readingProgression`: when `scroll` is off, because of a PDFKit
     ///   limitation.
     /// - `spread`: when `scroll` is off, or with a vertical `scrollAxis`.
     /// - `offsetFirstPage`: like `spread`, and when `spread` is not `.never`.
-    func isEffective(_ setting: PartialKeyPath<PDFSettings>) -> Bool {
+    func isApplicable(_ setting: PartialKeyPath<PDFSettings>) -> Bool {
         let hasSpread = !scroll || scrollAxis == .vertical
 
         switch setting {
