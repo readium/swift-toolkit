@@ -204,16 +204,16 @@ private struct EPUBReflowablePreferences: View {
                 isActive: settings.isApplicable(\.optimalLineLength)
             )
 
-            optionalStepperRow(
+            stepperRow(
                 "Minimal line length",
                 subtitle: "Removes columns when the lines would be shorter. Applied when paginated with a fix number of columns (2 or more).",
                 value: model.binding(\.shared.minimalLineLength),
                 spec: .lineLength,
+                placeholder: settings.minimalLineLength,
                 isActive: settings.isApplicable(\.minimalLineLength)
             )
 
-            // No toggle: an unset preference falls back on `1.0`. This app
-            // doesn't offer `.infinity`, which removes the limit.
+            // This app doesn't offer `.infinity`, which removes the maximum.
             stepperRow(
                 "Maximal line length",
                 subtitle: "Limits the length of the lines. Applied when scrolled and paginated.",
@@ -614,13 +614,14 @@ struct StepperSpec {
     }
 
     private static let decimal: (Double) -> String = { $0.formatted(.number.precision(.fractionLength(0 ... 5))) }
+    private static let characters: (Double) -> String = { "\($0.formatted(.number.precision(.fractionLength(0)))) ch" }
 
     static let darkenImages = StepperSpec(range: 0.0 ... 1.0, step: 0.1, start: 0.0)
     static let fontSize = StepperSpec(range: 0.1 ... 5.0, step: 0.1, start: 1.0)
     static let fontWeight = StepperSpec(range: 0.0 ... 2.5, step: 0.25, start: 1.0)
     static let fontWidth = StepperSpec(range: 0.5 ... 2.5, step: 0.1, start: 1.0)
     static let lineHeight = StepperSpec(range: 1.0 ... 2.0, step: 0.1, start: 1.5, format: decimal)
-    static let lineLength = StepperSpec(range: 0.5 ... 2.0, step: 0.1, start: 1.0)
+    static let lineLength = StepperSpec(range: 20 ... 100, step: 1, start: 65, format: characters)
     static let pageMargins = StepperSpec(range: 0.0 ... 4.0, step: 0.3, start: 1.0, format: decimal)
     static let paragraphIndent = StepperSpec(range: 0.0 ... 3.0, step: 0.2, start: 0.0)
     static let paragraphSpacing = StepperSpec(range: 0.0 ... 2.0, step: 0.1, start: 0.0)
@@ -830,49 +831,6 @@ private func stepperRow(
             )
 
             stepperValue(spec.format(current))
-        }
-    }
-}
-
-/// Row for an optional numeric preference, with a `Toggle` to enable it and
-/// a `Stepper` to modify its value.
-private func optionalStepperRow(
-    _ title: String,
-    subtitle: String? = nil,
-    value: Binding<Double?>,
-    spec: StepperSpec,
-    isActive: Bool
-) -> some View {
-    let current = value.wrappedValue
-
-    return preferenceRow(
-        isActive: isActive,
-        subtitle: subtitle,
-        onClear: { value.wrappedValue = nil }
-    ) {
-        HStack(spacing: 4) {
-            // Wraps instead of truncating next to the toggle and stepper.
-            Text(title)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer()
-
-            Toggle(title, isOn: Binding(
-                get: { current != nil },
-                set: { value.wrappedValue = $0 ? spec.start : nil }
-            ))
-            .labelsHidden()
-
-            Stepper(
-                title,
-                onIncrement: { value.wrappedValue = spec.increment(value.wrappedValue ?? spec.start) },
-                onDecrement: { value.wrappedValue = spec.decrement(value.wrappedValue ?? spec.start) }
-            )
-            .labelsHidden()
-            .disabled(current == nil)
-
-            stepperValue(spec.format(current ?? spec.start))
-                .foregroundColor(current == nil ? .gray : nil)
         }
     }
 }

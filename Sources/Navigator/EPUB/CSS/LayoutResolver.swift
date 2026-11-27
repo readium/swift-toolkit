@@ -19,32 +19,25 @@ final class LayoutResolver {
     }
 
     private let baseMinMargins: Double
-    private let baseOptimalLineLength: Double
-    private let baseMinLineLength: Double
-    private let baseMaxLineLength: Double
 
-    /// The default line lengths are the ones of the Readium TypeScript
-    /// toolkit: the width of 65 (optimal), 40 (minimal) and 80 (maximal)
-    /// "0" characters at 16px in Iowan Old Style. They are the lengths at a
-    /// 100% font size, see the `fontScale` parameter of `layout()`.
-    init(
-        baseMinMargins: Double = 30.0,
-        baseOptimalLineLength: Double = 578.0,
-        baseMinLineLength: Double = 356.0,
-        baseMaxLineLength: Double = 712.0
-    ) {
+    /// Width of a side of a vertical hinge, in points, under which the hinge
+    /// is ignored.
+    ///
+    /// It doesn't follow the font or the margins: it only rules out sides
+    /// too narrow to be pages, such as with a small window. A larger font or
+    /// margins shorten the lines as they do on the screen of a phone.
+    private let minimalSideWidth: Double = 356
+
+    init(baseMinMargins: Double = 30.0) {
         self.baseMinMargins = baseMinMargins
-        self.baseOptimalLineLength = baseOptimalLineLength
-        self.baseMinLineLength = baseMinLineLength
-        self.baseMaxLineLength = baseMaxLineLength
     }
 
     /// Resolves the layout using `EPUBSettings`.
     ///
     /// - Parameters:
-    ///   - fontScale: Font size factor the optimal, minimal and maximal line
-    ///     lengths are multiplied by, usually the `fontSize` setting. Must be
-    ///     above 0. The margins don't follow it.
+    ///   - characterWidth: Width of one character in points, which the
+    ///     optimal, minimal and maximal line lengths are multiplied by. Must
+    ///     be above 0. The margins don't follow it.
     ///   - insets: Insets the margins at the ends of the lines can't be
     ///     smaller than: left and right with horizontal text, top and bottom
     ///     with vertical text.
@@ -53,7 +46,7 @@ final class LayoutResolver {
     ///     `verticalHingeWidth(divisions:in:tolerance:)`.
     func layout(
         settings: EPUBSettings,
-        fontScale: Double,
+        characterWidth: Double,
         viewportSize: CGSize,
         insets: UIEdgeInsets = .zero,
         hingeWidth: Double? = nil
@@ -66,7 +59,7 @@ final class LayoutResolver {
             minimalLineLength: settings.minimalLineLength,
             maximalLineLength: settings.maximalLineLength,
             pageMargins: settings.pageMargins,
-            fontScale: fontScale,
+            characterWidth: characterWidth,
             viewportSize: viewportSize,
             insets: insets,
             hingeWidth: hingeWidth
@@ -76,12 +69,17 @@ final class LayoutResolver {
     /// Resolves the layout using individual layout parameters.
     ///
     /// - Parameters:
+    ///   - optimalLineLength: Number of characters of the optimal line
+    ///     length, used with automatic columns.
+    ///   - minimalLineLength: Number of characters under which the requested
+    ///     columns are reduced. `0` disables the minimum.
+    ///   - maximalLineLength: Number of characters the lines can't exceed.
+    ///     `.infinity` disables the maximum.
     ///   - pageMargins: Factor the base minimal margins are multiplied by,
     ///     usually the `pageMargins` setting.
-    ///   - fontScale: Font size factor the optimal, minimal and maximal line
-    ///     lengths are multiplied by, so that a line holds about the same
-    ///     number of characters at any font size. Must be above 0. The
-    ///     margins don't follow it.
+    ///   - characterWidth: Width of one character in points, which the line
+    ///     lengths are multiplied by. Must be above 0. The margins don't
+    ///     follow it.
     ///   - insets: Insets the margins at the ends of the lines can't be
     ///     smaller than: left and right with horizontal text, top and bottom
     ///     with vertical text.
@@ -96,18 +94,19 @@ final class LayoutResolver {
         verticalText: Bool,
         columnCount: Int?,
         optimalLineLength: Double,
-        minimalLineLength: Double?,
+        minimalLineLength: Double,
         maximalLineLength: Double,
         pageMargins: Double,
-        fontScale: Double,
+        characterWidth: Double,
         viewportSize: CGSize,
         insets: UIEdgeInsets = .zero,
         hingeWidth: Double? = nil
     ) -> Layout {
-        // The parameters are factors, these lengths are in points.
-        let optimalLength = baseOptimalLineLength * optimalLineLength * fontScale
-        let minLength = minimalLineLength.map { baseMinLineLength * $0 * fontScale }
-        let maxLength = baseMaxLineLength * maximalLineLength * fontScale
+        // The parameters are numbers of characters, these lengths are in
+        // points. An infinite maximal line length stays infinite.
+        let optimalLength = optimalLineLength * characterWidth
+        let minLength = minimalLineLength * characterWidth
+        let maxLength = maximalLineLength * characterWidth
         let insetsMargins = verticalText
             ? max(insets.top, insets.bottom)
             : max(insets.left, insets.right)
@@ -172,7 +171,7 @@ final class LayoutResolver {
         margins: Double,
         optimalLength: Double,
         maxLength: Double,
-        minLength: Double?,
+        minLength: Double,
         hingeWidth: Double?
     ) -> Layout {
         guard let requestedColCount, requestedColCount > 0 else {
@@ -237,8 +236,8 @@ final class LayoutResolver {
     /// margins, more columns would also have the margins of the hinge away
     /// from it.
     ///
-    /// Returns `nil` when a side, outside of the hinge, is narrower than the
-    /// base minimal line length, or when the margins leave no room for the
+    /// Returns `nil` when a side, outside of the hinge, is narrower than
+    /// `minimalSideWidth`, or when the margins leave no room for the
     /// lines. Like in auto mode without a hinge, the minimal line length
     /// setting doesn't apply.
     private func paginatedLayoutAroundHinge(
@@ -249,11 +248,7 @@ final class LayoutResolver {
     ) -> Layout? {
         let halfHinge = max(hingeWidth, 0) / 2
         let sideWidth = viewportWidth / 2
-        // This minimum doesn't follow the font size or the margins: it only
-        // rules out sides too narrow to be pages, such as with a small
-        // window. A larger font or margins shorten the lines as they do on
-        // the screen of a phone.
-        guard sideWidth - halfHinge >= baseMinLineLength else {
+        guard sideWidth - halfHinge >= minimalSideWidth else {
             return nil
         }
 
@@ -270,17 +265,18 @@ final class LayoutResolver {
     /// for their lines or when the lines would be shorter than `minLength`.
     ///
     /// The same `minLength` applies to every number of columns. When even a
-    /// single column is shorter, it takes all the available length.
+    /// single column is shorter, it takes all the available length. A
+    /// `minLength` of 0 disables the minimum.
     private func paginatedLayoutNColumns(
         colCount: Int,
         margins: Double,
         viewportWidth: Double,
-        minLength: Double?,
+        minLength: Double,
         maxLength: Double
     ) -> Layout {
         let available = availableLength(in: viewportWidth / Double(colCount), margins: margins)
 
-        let isTooShort = available <= 0 || minLength.map { available < $0 } ?? false
+        let isTooShort = available <= 0 || available < minLength
         if isTooShort, colCount > 1 {
             return paginatedLayoutNColumns(
                 colCount: colCount - 1,

@@ -69,11 +69,11 @@ enum EPUBPreferencesTests {
                 ligatures: nil,
                 lineHeight: nil,
                 linkColor: nil,
-                maximalLineLength: 1.0,
-                minimalLineLength: nil,
+                maximalLineLength: 80,
+                minimalLineLength: 40,
                 noRuby: false,
                 offsetFirstPage: nil,
-                optimalLineLength: 1.0,
+                optimalLineLength: 65,
                 pageMargins: 1.0,
                 paragraphIndent: nil,
                 paragraphSpacing: nil,
@@ -348,31 +348,37 @@ enum EPUBPreferencesTests {
             #expect(defaults.optimalLineLength == nil)
         }
 
-        /// A maximal line length set in the preferences and the defaults, and
-        /// the resolved setting.
-        struct MaximalLineLength: Sendable, CustomTestStringConvertible {
+        /// Minimal and maximal line lengths set in the preferences and the
+        /// defaults, and the resolved settings.
+        struct Resolution: Sendable, CustomTestStringConvertible {
             let name: String
-            var preference: Double?
-            var defaults: Double?
-            let expected: Double
+            var preferences = EPUBPreferences()
+            let defaults: EPUBDefaults
+            let minimal: Double
+            let maximal: Double
 
             var testDescription: String {
                 name
             }
         }
 
-        @Test("the maximal line length falls back on the defaults, then on 1.0, and .infinity removes the limit", arguments: [
-            MaximalLineLength(name: "unset", expected: 1.0),
-            MaximalLineLength(name: "a default", defaults: 1.2, expected: 1.2),
-            MaximalLineLength(name: "an infinite preference", preference: .infinity, expected: .infinity),
-            MaximalLineLength(name: "a preference overriding an infinite default", preference: 0.8, defaults: .infinity, expected: 0.8),
+        @Test("0 and .infinity remove the limits in the defaults, and the preferences can set them again", arguments: [
+            Resolution(
+                name: "limits removed by the defaults",
+                defaults: EPUBDefaults(maximalLineLength: .infinity, minimalLineLength: 0),
+                minimal: 0, maximal: .infinity
+            ),
+            Resolution(
+                name: "limits set by the preferences, overriding the defaults removing them",
+                preferences: EPUBPreferences(maximalLineLength: 70, minimalLineLength: 30),
+                defaults: EPUBDefaults(maximalLineLength: .infinity, minimalLineLength: 0),
+                minimal: 30, maximal: 70
+            ),
         ])
-        func maximalLineLength(_ example: MaximalLineLength) {
-            let resolved = settings(
-                preferences: EPUBPreferences(maximalLineLength: example.preference),
-                defaults: EPUBDefaults(maximalLineLength: example.defaults)
-            )
-            #expect(resolved.maximalLineLength == example.expected)
+        func resolution(_ example: Resolution) {
+            let resolved = settings(preferences: example.preferences, defaults: example.defaults)
+            #expect(resolved.minimalLineLength == example.minimal)
+            #expect(resolved.maximalLineLength == example.maximal)
         }
 
         struct Applicable: Sendable, CustomTestStringConvertible {
@@ -511,7 +517,7 @@ enum EPUBPreferencesTests {
             }
         }
 
-        static let customDefaults = EPUBDefaults(columnCount: 2, fontSize: 1.4, maximalLineLength: 1.2, minimalLineLength: 0.8, optimalLineLength: 1.5)
+        static let customDefaults = EPUBDefaults(columnCount: 2, fontSize: 1.4, maximalLineLength: 90, minimalLineLength: 30, optimalLineLength: 60)
 
         static let limits: [Limit] = [
             // Out of range, falling back on the defaults.
@@ -523,17 +529,17 @@ enum EPUBPreferencesTests {
             Limit(\.fontSize, "fontSize", .nan, "1.0"),
             Limit(\.fontSize, "fontSize", 0, "1.4", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.fontSize, "fontSize", -1, "1.4", defaults: customDefaults, defaultsDescription: "custom defaults"),
-            Limit(\.maximalLineLength, "maximalLineLength", 0, "1.0"),
-            Limit(\.maximalLineLength, "maximalLineLength", -1, "1.0"),
-            Limit(\.maximalLineLength, "maximalLineLength", .nan, "1.0"),
-            Limit(\.maximalLineLength, "maximalLineLength", 0, "1.2", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.maximalLineLength, "maximalLineLength", 0, "80.0"),
+            Limit(\.maximalLineLength, "maximalLineLength", -1, "80.0"),
+            Limit(\.maximalLineLength, "maximalLineLength", .nan, "80.0"),
+            Limit(\.maximalLineLength, "maximalLineLength", 0, "90.0", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.maximalLineLength, "maximalLineLength", 0, "inf", defaults: EPUBDefaults(maximalLineLength: .infinity), defaultsDescription: "an infinite default"),
-            Limit(\.minimalLineLength, "minimalLineLength", -1, "nil"),
-            Limit(\.minimalLineLength, "minimalLineLength", .nan, "nil"),
-            Limit(\.minimalLineLength, "minimalLineLength", -1, "0.8", defaults: customDefaults, defaultsDescription: "custom defaults"),
-            Limit(\.optimalLineLength, "optimalLineLength", 0, "1.0"),
-            Limit(\.optimalLineLength, "optimalLineLength", -1, "1.0"),
-            Limit(\.optimalLineLength, "optimalLineLength", 0, "1.5", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.minimalLineLength, "minimalLineLength", -1, "40.0"),
+            Limit(\.minimalLineLength, "minimalLineLength", .nan, "40.0"),
+            Limit(\.minimalLineLength, "minimalLineLength", -1, "30.0", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.optimalLineLength, "optimalLineLength", 0, "65.0"),
+            Limit(\.optimalLineLength, "optimalLineLength", -1, "65.0"),
+            Limit(\.optimalLineLength, "optimalLineLength", 0, "60.0", defaults: customDefaults, defaultsDescription: "custom defaults"),
 
             // Out of range, limited.
             Limit(\.fontWeight, "fontWeight", -1, "0.0"),
@@ -561,9 +567,9 @@ enum EPUBPreferencesTests {
             Limit(\.maximalLineLength, "maximalLineLength", .infinity, "inf", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.minimalLineLength, "minimalLineLength", 0, "0.0"),
             Limit(\.minimalLineLength, "minimalLineLength", 0, "0.0", defaults: customDefaults, defaultsDescription: "custom defaults"),
-            Limit(\.minimalLineLength, "minimalLineLength", 1.5, "1.5"),
-            Limit(\.minimalLineLength, "minimalLineLength", 1.5, "1.5", defaults: customDefaults, defaultsDescription: "custom defaults"),
-            Limit(\.optimalLineLength, "optimalLineLength", 1.2, "1.2", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.minimalLineLength, "minimalLineLength", 25, "25.0"),
+            Limit(\.minimalLineLength, "minimalLineLength", 25, "25.0", defaults: customDefaults, defaultsDescription: "custom defaults"),
+            Limit(\.optimalLineLength, "optimalLineLength", 50, "50.0", defaults: customDefaults, defaultsDescription: "custom defaults"),
             Limit(\.pageMargins, "pageMargins", 0, "0.0"),
             Limit(\.paragraphSpacing, "paragraphSpacing", 0.5, "0.5"),
             Limit(\.wordSpacing, "wordSpacing", 0.3, "0.3"),
@@ -578,7 +584,7 @@ enum EPUBPreferencesTests {
             defaults.fontWidth = 0.1
             defaults.letterSpacing = -1
             defaults.maximalLineLength = 0
-            defaults.minimalLineLength = -1
+            defaults.minimalLineLength = .nan
             defaults.optimalLineLength = 0
             defaults.pageMargins = -1
             defaults.paragraphSpacing = -1
@@ -590,9 +596,9 @@ enum EPUBPreferencesTests {
             #expect(settings.fontWeight == 2.5)
             #expect(settings.fontWidth == 0.5)
             #expect(settings.letterSpacing == 0)
-            #expect(settings.maximalLineLength == 1.0)
-            #expect(settings.minimalLineLength == nil)
-            #expect(settings.optimalLineLength == 1.0)
+            #expect(settings.maximalLineLength == 80)
+            #expect(settings.minimalLineLength == 40)
+            #expect(settings.optimalLineLength == 65)
             #expect(settings.pageMargins == 0)
             #expect(settings.paragraphSpacing == 0)
             #expect(settings.wordSpacing == 0)
@@ -621,9 +627,9 @@ enum EPUBPreferencesTests {
                 fontWidth: 2.5,
                 darkenImages: 1,
                 letterSpacing: 0,
-                maximalLineLength: 1.0,
-                minimalLineLength: nil,
-                optimalLineLength: 1.0,
+                maximalLineLength: 80,
+                minimalLineLength: 40,
+                optimalLineLength: 65,
                 pageMargins: 0,
                 paragraphSpacing: 0,
                 wordSpacing: 0
@@ -641,7 +647,7 @@ enum EPUBPreferencesTests {
                 letterSpacing: 0.2,
                 maximalLineLength: .infinity,
                 minimalLineLength: 0,
-                optimalLineLength: 1.5,
+                optimalLineLength: 50,
                 pageMargins: 0,
                 paragraphSpacing: 0.5,
                 wordSpacing: 0.3
@@ -654,7 +660,7 @@ enum EPUBPreferencesTests {
             #expect(settings.letterSpacing == 0.2)
             #expect(settings.maximalLineLength == .infinity)
             #expect(settings.minimalLineLength == 0)
-            #expect(settings.optimalLineLength == 1.5)
+            #expect(settings.optimalLineLength == 50)
             #expect(settings.pageMargins == 0)
             #expect(settings.paragraphSpacing == 0.5)
             #expect(settings.wordSpacing == 0.3)
@@ -668,7 +674,7 @@ enum EPUBPreferencesTests {
             darkenImages: Double?,
             letterSpacing: Double?,
             maximalLineLength: Double,
-            minimalLineLength: Double?,
+            minimalLineLength: Double,
             optimalLineLength: Double,
             pageMargins: Double,
             paragraphSpacing: Double?,
@@ -972,11 +978,11 @@ private let otherPreferences = EPUBPreferences(
     ligatures: true,
     lineHeight: 1.1,
     linkColor: Color(hex: "#FFFF00"),
-    maximalLineLength: 1.9,
-    minimalLineLength: 0.6,
+    maximalLineLength: 100,
+    minimalLineLength: 25,
     noRuby: false,
     offsetFirstPage: false,
-    optimalLineLength: 0.7,
+    optimalLineLength: 50,
     pageMargins: 0.5,
     paragraphIndent: 2.0,
     paragraphSpacing: 1.0,
@@ -1004,11 +1010,11 @@ private let allDefaults = EPUBDefaults(
     letterSpacing: 0.4,
     ligatures: false,
     lineHeight: 1.7,
-    maximalLineLength: 1.6,
-    minimalLineLength: 0.9,
+    maximalLineLength: 90,
+    minimalLineLength: 30,
     noRuby: true,
     offsetFirstPage: true,
-    optimalLineLength: 1.1,
+    optimalLineLength: 60,
     pageMargins: 2.5,
     paragraphIndent: 0.6,
     paragraphSpacing: 0.7,
@@ -1063,11 +1069,11 @@ private let cssTable: [(preferences: EPUBPreferences, expected: [String: String?
     (EPUBPreferences(ligatures: false), ["--USER__ligatures": "none"]),
     (EPUBPreferences(lineHeight: 1.6), ["--USER__lineHeight": "1.60000"]),
     (EPUBPreferences(linkColor: Color(rawValue: 0x00FF00)), ["--USER__linkColor": "#00FF00"]),
-    (EPUBPreferences(maximalLineLength: 1.2), [:]),
-    (EPUBPreferences(minimalLineLength: 0.8), [:]),
+    (EPUBPreferences(maximalLineLength: 90), [:]),
+    (EPUBPreferences(minimalLineLength: 30), [:]),
     (EPUBPreferences(noRuby: true), ["--USER__noRuby": "readium-noRuby-on"]),
     (EPUBPreferences(offsetFirstPage: true), [:]),
-    (EPUBPreferences(optimalLineLength: 1.2), [:]),
+    (EPUBPreferences(optimalLineLength: 50), [:]),
     (EPUBPreferences(pageMargins: 1.5), [:]),
     (EPUBPreferences(paragraphIndent: 1.2), ["--USER__paraIndent": "1.20000rem"]),
     (EPUBPreferences(paragraphSpacing: 0.5), ["--USER__paraSpacing": "0.50000rem"]),

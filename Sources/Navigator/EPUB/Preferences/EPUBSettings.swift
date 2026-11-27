@@ -34,7 +34,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     public internal(set) var lineHeight: Double?
     public internal(set) var linkColor: Color?
     public internal(set) var maximalLineLength: Double
-    public internal(set) var minimalLineLength: Double?
+    public internal(set) var minimalLineLength: Double
     public internal(set) var noRuby: Bool
     public internal(set) var offsetFirstPage: Bool?
     public internal(set) var optimalLineLength: Double
@@ -64,6 +64,12 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
     /// Layouts of the resources rendered by the navigator.
     let layouts: EPUBLayouts
 
+    /// Line lengths, in characters, used when neither the preferences nor
+    /// the defaults set them.
+    private static let fallbackOptimalLineLength: Double = 65
+    private static let fallbackMinimalLineLength: Double = 40
+    private static let fallbackMaximalLineLength: Double = 80
+
     init(
         layouts: EPUBLayouts = .reflowable,
         backgroundColor: Color?,
@@ -84,7 +90,7 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         lineHeight: Double?,
         linkColor: Color?,
         maximalLineLength: Double,
-        minimalLineLength: Double?,
+        minimalLineLength: Double,
         noRuby: Bool,
         offsetFirstPage: Bool?,
         optimalLineLength: Double,
@@ -118,11 +124,11 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.ligatures = ligatures
         self.lineHeight = lineHeight
         self.linkColor = linkColor
-        self.maximalLineLength = maximalLineLength.positiveOrNil ?? 1.0
-        self.minimalLineLength = minimalLineLength?.nonNegativeOrNil
+        self.maximalLineLength = maximalLineLength.positiveOrNil ?? Self.fallbackMaximalLineLength
+        self.minimalLineLength = minimalLineLength.nonNegativeOrNil ?? Self.fallbackMinimalLineLength
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
-        self.optimalLineLength = optimalLineLength.positiveOrNil ?? 1.0
+        self.optimalLineLength = optimalLineLength.positiveOrNil ?? Self.fallbackOptimalLineLength
         self.pageMargins = max(pageMargins, 0)
         self.paragraphIndent = paragraphIndent
         self.paragraphSpacing = paragraphSpacing.map { max($0, 0) }
@@ -189,11 +195,11 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         let letterSpacing = preferences.letterSpacing ?? defaults.letterSpacing
         let ligatures = preferences.ligatures ?? defaults.ligatures
         let lineHeight = preferences.lineHeight ?? defaults.lineHeight
-        let maximalLineLength = preferences.maximalLineLength?.positiveOrNil ?? defaults.maximalLineLength ?? 1.0
-        let minimalLineLength = preferences.minimalLineLength?.nonNegativeOrNil ?? defaults.minimalLineLength
+        let maximalLineLength = preferences.maximalLineLength?.positiveOrNil ?? defaults.maximalLineLength ?? Self.fallbackMaximalLineLength
+        let minimalLineLength = preferences.minimalLineLength?.nonNegativeOrNil ?? defaults.minimalLineLength ?? Self.fallbackMinimalLineLength
         let noRuby = preferences.noRuby ?? defaults.noRuby ?? false
         let offsetFirstPage = preferences.offsetFirstPage ?? defaults.offsetFirstPage
-        let optimalLineLength = preferences.optimalLineLength?.positiveOrNil ?? defaults.optimalLineLength ?? 1.0
+        let optimalLineLength = preferences.optimalLineLength?.positiveOrNil ?? defaults.optimalLineLength ?? Self.fallbackOptimalLineLength
         let pageMargins = preferences.pageMargins ?? defaults.pageMargins ?? 1.0
         let paragraphIndent = preferences.paragraphIndent ?? defaults.paragraphIndent
         let paragraphSpacing = preferences.paragraphSpacing ?? defaults.paragraphSpacing
@@ -332,12 +338,18 @@ public struct EPUBDefaults: Sendable {
     public var letterSpacing: Double?
     public var ligatures: Bool?
     public var lineHeight: Double?
-    /// Set it to `.infinity` to let the lines take all the available width.
-    /// When `nil`, the settings fall back on `1.0`.
+    /// Number of characters, see `EPUBPreferences.maximalLineLength`. Set it
+    /// to `.infinity` to let the lines take all the available width. When
+    /// `nil`, the settings fall back on `80`.
     public var maximalLineLength: Double?
+    /// Number of characters, see `EPUBPreferences.minimalLineLength`. Set it
+    /// to `0` to remove the minimum. When `nil`, the settings fall back on
+    /// `40`.
     public var minimalLineLength: Double?
     public var noRuby: Bool?
     public var offsetFirstPage: Bool?
+    /// Number of characters, see `EPUBPreferences.optimalLineLength`. When
+    /// `nil`, the settings fall back on `65`.
     public var optimalLineLength: Double?
     public var pageMargins: Double?
     public var paragraphIndent: Double?

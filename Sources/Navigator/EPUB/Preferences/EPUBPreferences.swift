@@ -99,35 +99,44 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// When `nil`, the link color of the publication is kept.
     public var linkColor: Color?
 
-    /// Factor applied to the optimal line length of the reflowable resources,
+    /// Optimal number of characters per line in the reflowable resources,
     /// used to determine the best number of columns automatically.
     ///
-    /// It is used only in paginated mode, when `columnCount` is `nil`. Values
-    /// lower than or equal to `0` are ignored.
-    ///
-    /// Suggested range: `0.5...2.0`, with a step of `0.1`.
-    public var optimalLineLength: Double?
-
-    /// Factor applied to the maximal line length of the reflowable resources.
-    ///
-    /// `.infinity` lets the lines take all the available width. When `nil`,
-    /// `EPUBDefaults.maximalLineLength` is used, and `1.0` when both are
+    /// It is used only in paginated mode, when `columnCount` is `nil`. When
+    /// `nil`, `EPUBDefaults.optimalLineLength` is used, and `65` when both are
     /// `nil`. Values lower than or equal to `0` are ignored.
     ///
-    /// Suggested range: `0.5...2.0`, with a step of `0.1`.
+    /// This is an approximate count: depending on the font and the text, a line
+    /// can hold a few more or fewer characters.
+    ///
+    /// Suggested range: `20...100`, with a step of `1`.
+    public var optimalLineLength: Double?
+
+    /// Maximal number of characters per line in the reflowable resources.
+    ///
+    /// `.infinity` lets the lines take all the available width. When `nil`,
+    /// `EPUBDefaults.maximalLineLength` is used, and `80` when both are
+    /// `nil`. Values lower than or equal to `0` are ignored.
+    ///
+    /// This is an approximate count: depending on the font and the text, a line
+    /// can hold a few more or fewer characters.
+    ///
+    /// Suggested range: `20...100`, with a step of `1`.
     public var maximalLineLength: Double?
 
-    /// Factor applied to the minimal line length of the reflowable resources,
+    /// Minimal number of characters per line in the reflowable resources,
     /// under which the number of columns is reduced.
     ///
     /// It is used only in paginated mode, when `columnCount` is greater than
-    /// 1. When `0`, or when `nil` and without a default value, the requested
-    /// number of columns is always displayed, unless the margins leave no
-    /// room for the lines. A `0` overrides a minimum set in
-    /// `EPUBDefaults.minimalLineLength`. Negative values are ignored.
+    /// 1. When `nil`, `EPUBDefaults.minimalLineLength` is used, and `40` when
+    /// both are `nil`. `0` removes the minimum, so the requested number of
+    /// columns is always displayed, unless the margins leave no room for the
+    /// lines. Negative values are ignored.
     ///
-    /// Suggested range: `0.5...2.0`, with a step of `0.1`. When unset, a
-    /// control can start from `1.0`.
+    /// This is an approximate count: depending on the font and the text, a line
+    /// can hold a few more or fewer characters.
+    ///
+    /// Suggested range: `20...100`, with a step of `1`.
     public var minimalLineLength: Double?
 
     /// Hides the ruby (furigana) annotations when `true`.

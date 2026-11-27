@@ -372,12 +372,25 @@ enum EPUBScriptScope {
     /// Layout of the current CSS, resolved from the view size.
     private(set) var resolvedLayout: LayoutResolver.Layout?
 
+    /// Font size of the text at a 100% `fontSize` setting, in points. A CSS
+    /// px is a point in the web views.
+    private static let baseFontSize: Double = 16
+
+    /// Width of a `0` character in Iowan Old Style, in ems: 65 of them
+    /// measure 578pt at the 16pt base font size.
+    private static let iowanCharacterWidth: Double = 578 / 65 / baseFontSize
+
+    /// Width of one character of the line lengths, in points.
+    private func characterWidth(with settings: EPUBSettings) -> Double {
+        Self.iowanCharacterWidth * Self.baseFontSize * settings.fontSize
+    }
+
     private func resolveLayout(with settings: EPUBSettings) -> LayoutResolver.Layout? {
         viewSize.flatMap { size -> LayoutResolver.Layout? in
             guard size.width > 0, size.height > 0 else { return nil }
             return layoutResolver.layout(
                 settings: settings,
-                fontScale: settings.fontSize,
+                characterWidth: characterWidth(with: settings),
                 viewportSize: size,
                 insets: reflowableContentInset,
                 hingeWidth: hingeWidth

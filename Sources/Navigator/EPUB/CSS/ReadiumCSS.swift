@@ -45,7 +45,8 @@ extension ReadiumCSS {
         // Readium CSS applies `--USER__fontSize` with a `zoom` on `body`,
         // which also scales the line length in px set below. It is divided by
         // this `zoom` to compensate it, as the resolved line length already
-        // follows the font size, with the same factor (see `LayoutResolver`).
+        // follows the font size, with the same factor, through the width of
+        // a character (see `EPUBNavigatorViewModel.resolveLayout(with:)`).
         var bodyZoom = settings.fontSize
 
         // Applies the WebKit patch matching the device:

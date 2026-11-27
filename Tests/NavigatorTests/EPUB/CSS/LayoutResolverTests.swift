@@ -10,15 +10,27 @@ import ReadiumShared
 import Testing
 import UIKit
 
+/// Width of a `0` in Iowan Old Style at 16pt, the width of a character used
+/// by the navigator at a 100% font size: 65 of them measure 578pt.
+private let iowanWidth = 578.0 / 65
+
+/// Checks the number of columns of `layout`, and its line length with a
+/// tolerance for the floating-point errors.
+private func expectLayout(
+    _ layout: LayoutResolver.Layout,
+    _ expected: LayoutResolver.Layout,
+    sourceLocation: SourceLocation = #_sourceLocation
+) {
+    #expect(layout.colCount == expected.colCount, sourceLocation: sourceLocation)
+    #expect(abs(layout.lineLength - expected.lineLength) < 0.001, sourceLocation: sourceLocation)
+}
+
 struct LayoutResolverTests {
-    /// Fixture lengths, different from the default ones, which are tested
-    /// below with `LayoutResolver()`.
-    let resolver = LayoutResolver(
-        baseMinMargins: 30.0,
-        baseOptimalLineLength: 640.0,
-        baseMinLineLength: 440.0,
-        baseMaxLineLength: 740.0
-    )
+    let resolver = LayoutResolver()
+
+    /// Fixture width of a character, so that the line lengths in points are
+    /// ten times the numbers of characters.
+    let characterWidth = 10.0
 
     // MARK: - Scrolled Layout
 
@@ -27,11 +39,11 @@ struct LayoutResolverTests {
             scroll: true,
             verticalText: false,
             columnCount: nil,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
             maximalLineLength: .infinity,
             pageMargins: 1.0,
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 800, height: 600),
             insets: .zero
         )
@@ -47,11 +59,11 @@ struct LayoutResolverTests {
             scroll: true,
             verticalText: true,
             columnCount: nil,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
             maximalLineLength: .infinity,
             pageMargins: 1.0,
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 800, height: 600),
             insets: .zero
         )
@@ -66,18 +78,18 @@ struct LayoutResolverTests {
             scroll: true,
             verticalText: false,
             columnCount: nil,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
-            maximalLineLength: 0.8, // 740 * 0.8 = 592
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
+            maximalLineLength: 60, // 600
             pageMargins: 1.0,
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 1000, height: 800),
             insets: .zero
         )
 
         #expect(layout.colCount == 1)
-        // available = 1000 - 60 = 940, clamped to max 592
-        #expect(layout.lineLength == 592.0)
+        // available = 1000 - 60 = 940, clamped to max 600
+        #expect(layout.lineLength == 600.0)
     }
 
     @Test func scrolledLayoutWithSafeAreaInsets() {
@@ -85,11 +97,11 @@ struct LayoutResolverTests {
             scroll: true,
             verticalText: false,
             columnCount: nil,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
             maximalLineLength: .infinity,
             pageMargins: 1.0, // 30
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 800, height: 600),
             insets: UIEdgeInsets(top: 10, left: 50, bottom: 10, right: 40)
         )
@@ -105,11 +117,11 @@ struct LayoutResolverTests {
             scroll: true,
             verticalText: true,
             columnCount: nil,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
             maximalLineLength: .infinity,
             pageMargins: 1.0, // 30
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 800, height: 600),
             insets: UIEdgeInsets(top: 50, left: 100, bottom: 40, right: 100)
         )
@@ -128,11 +140,11 @@ struct LayoutResolverTests {
             scroll: false,
             verticalText: false,
             columnCount: nil,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
             maximalLineLength: .infinity,
             pageMargins: 1.0,
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 390, height: 844),
             insets: .zero
         )
@@ -148,11 +160,11 @@ struct LayoutResolverTests {
             scroll: false,
             verticalText: false,
             columnCount: nil,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
             maximalLineLength: .infinity,
             pageMargins: 1.0,
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 1400, height: 900),
             insets: .zero
         )
@@ -168,18 +180,18 @@ struct LayoutResolverTests {
             scroll: false,
             verticalText: false,
             columnCount: nil,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
-            maximalLineLength: 0.8, // 740 * 0.8 = 592
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
+            maximalLineLength: 60, // 600
             pageMargins: 1.0,
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 1400, height: 900),
             insets: .zero
         )
 
         #expect(layout.colCount == 2)
-        // available = (1400 - 120) / 2 = 640, clamped to max 592
-        #expect(layout.lineLength == 592.0)
+        // available = (1400 - 120) / 2 = 640, clamped to max 600
+        #expect(layout.lineLength == 600.0)
     }
 
     // MARK: - Paginated Layout N Columns
@@ -189,11 +201,11 @@ struct LayoutResolverTests {
             scroll: false,
             verticalText: false,
             columnCount: 2,
-            optimalLineLength: 1.0,
-            minimalLineLength: 1.0, // 440
+            optimalLineLength: 64, // 640
+            minimalLineLength: 44, // 440
             maximalLineLength: .infinity,
             pageMargins: 1.0, // 30
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 1200, height: 800),
             insets: .zero
         )
@@ -209,11 +221,11 @@ struct LayoutResolverTests {
             scroll: false,
             verticalText: false,
             columnCount: 2,
-            optimalLineLength: 1.0,
-            minimalLineLength: 1.0, // 440
+            optimalLineLength: 64, // 640
+            minimalLineLength: 44, // 440
             maximalLineLength: .infinity,
             pageMargins: 1.0, // 30
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 600, height: 800),
             insets: .zero
         )
@@ -229,18 +241,18 @@ struct LayoutResolverTests {
             scroll: false,
             verticalText: false,
             columnCount: 3,
-            optimalLineLength: 1.0,
-            minimalLineLength: 1.0, // 440
-            maximalLineLength: 0.7, // 518
+            optimalLineLength: 64, // 640
+            minimalLineLength: 44, // 440
+            maximalLineLength: 52, // 520
             pageMargins: 1.0, // 30
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 2000, height: 800),
             insets: .zero
         )
 
         // available = (2000 - 30 * 2 * 3) / 3 = 606.67 >= 440, clamped to
-        // the maximal line length 518, still 3 columns
-        #expect(layout == LayoutResolver.Layout(colCount: 3, lineLength: 518))
+        // the maximal line length 520, still 3 columns
+        #expect(layout == LayoutResolver.Layout(colCount: 3, lineLength: 520))
     }
 
     /// Requested columns laid out with a minimal line length of `0`.
@@ -249,36 +261,36 @@ struct LayoutResolverTests {
         let columnCount: Int
         let width: Double
         var pageMargins: Double = 1.0 // 30
+        let expected: LayoutResolver.Layout
 
         var testDescription: String {
             name
         }
     }
 
-    @Test("a minimal line length of 0 lays out the requested columns like no minimal line length", arguments: [
+    @Test("a minimal line length of 0 lays out the requested columns, unless the margins leave no room for the lines", arguments: [
         // (951 - 30 * 2 * 3) / 3 = 257
-        ZeroMinimalLineLength(name: "short lines", columnCount: 3, width: 951),
+        ZeroMinimalLineLength(name: "short lines", columnCount: 3, width: 951, expected: .init(colCount: 3, lineLength: 257)),
         // (2000 - 30 * 2 * 2) / 2 = 940, capped at 740
-        ZeroMinimalLineLength(name: "lines longer than the maximal line length", columnCount: 2, width: 2000),
-        // 390 / 3 = 130 is narrower than the margins 120 * 2
-        ZeroMinimalLineLength(name: "margins leaving no room for the lines", columnCount: 3, width: 390, pageMargins: 4.0),
+        ZeroMinimalLineLength(name: "lines longer than the maximal line length", columnCount: 2, width: 2000, expected: .init(colCount: 2, lineLength: 740)),
+        // 390 / 3 = 130 and 390 / 2 = 195 are narrower than the margins
+        // 120 * 2, one column of 390 - 120 * 2 = 150 remains
+        ZeroMinimalLineLength(name: "margins leaving no room for the lines", columnCount: 3, width: 390, pageMargins: 4.0, expected: .init(colCount: 1, lineLength: 150)),
     ])
     func paginatedRequestedColumnsWithZeroMinimalLineLength(_ example: ZeroMinimalLineLength) {
-        let layout = { (minimalLineLength: Double?) in
-            resolver.layout(
-                scroll: false,
-                verticalText: false,
-                columnCount: example.columnCount,
-                optimalLineLength: 1.0,
-                minimalLineLength: minimalLineLength,
-                maximalLineLength: 1.0,
-                pageMargins: example.pageMargins,
-                fontScale: 1.0,
-                viewportSize: CGSize(width: example.width, height: 800)
-            )
-        }
+        let layout = resolver.layout(
+            scroll: false,
+            verticalText: false,
+            columnCount: example.columnCount,
+            optimalLineLength: 64, // 640
+            minimalLineLength: 0,
+            maximalLineLength: 74, // 740
+            pageMargins: example.pageMargins,
+            characterWidth: characterWidth,
+            viewportSize: CGSize(width: example.width, height: 800)
+        )
 
-        #expect(layout(0) == layout(nil))
+        #expect(layout == example.expected)
     }
 
     // MARK: - Zero Viewport
@@ -308,11 +320,11 @@ struct LayoutResolverTests {
                 scroll: test.scroll,
                 verticalText: verticalText,
                 columnCount: test.columnCount,
-                optimalLineLength: 1.0,
-                minimalLineLength: 1.0,
-                maximalLineLength: 1.0,
+                optimalLineLength: 64, // 640
+                minimalLineLength: 44, // 440
+                maximalLineLength: 74, // 740
                 pageMargins: 1.0,
-                fontScale: 1.0,
+                characterWidth: characterWidth,
                 viewportSize: .zero,
                 insets: UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
             )
@@ -326,7 +338,7 @@ struct LayoutResolverTests {
     @Test func layoutWithEPUBSettings() {
         let layout = resolver.layout(
             settings: settings(),
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 1400, height: 900)
         )
 
@@ -336,26 +348,25 @@ struct LayoutResolverTests {
 
     @Test func layoutWithEPUBSettingsUsesOptimalLineLengthAndPageMargins() {
         let layout = resolver.layout(
-            settings: settings(optimalLineLength: 0.5, pageMargins: 2.0),
-            fontScale: 1.0,
+            settings: settings(optimalLineLength: 32, pageMargins: 2.0),
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 1400, height: 900)
         )
 
-        // optimal: 640 * 0.5 = 320, margins: 30 * 2 = 60
+        // optimal: 32 * 10 = 320, margins: 30 * 2 = 60
         // floating colCount: (1400 - 381.8) / 320 = 3.2 -> 3
         // lineLength = (1400 - 60 * 2 * 3) / 3 = 346.67
-        #expect(layout.colCount == 3)
-        #expect(abs(layout.lineLength - 346.667) < 0.001)
+        expectLayout(layout, .init(colCount: 3, lineLength: (1400 - 60 * 2 * 3) / 3))
     }
 
     @Test func layoutWithEPUBSettingsUsesMinimalAndMaximalLineLengths() {
         let layout = resolver.layout(
             settings: settings(
                 columnCount: 2,
-                maximalLineLength: 1.0, // 740
-                minimalLineLength: 1.0 // 440
+                maximalLineLength: 74, // 740
+                minimalLineLength: 44 // 440
             ),
-            fontScale: 1.0,
+            characterWidth: characterWidth,
             viewportSize: CGSize(width: 900, height: 600)
         )
 
@@ -368,7 +379,8 @@ struct LayoutResolverTests {
     // MARK: - Default Line Lengths
 
     /// Layout with the default line lengths and settings, on the screens of
-    /// the devices in points.
+    /// the devices in points, with the width of a character at a 100% font
+    /// size.
     struct DeviceLayout: Sendable, CustomTestStringConvertible {
         let name: String
         let width: Double
@@ -383,28 +395,29 @@ struct LayoutResolverTests {
     }
 
     @Test("layout with the default settings", arguments: [
-        // Two columns of the optimal line length need 2 × (578 + 2 × 30).
-        DeviceLayout(name: "below the 2 columns threshold", width: 1275, colCount: 1, lineLength: 712),
+        // Two columns of the optimal line length need 2 × (65 × 8.89 + 2 × 30),
+        // and the maximal line length is 80 × 8.89 = 711.38.
+        DeviceLayout(name: "below the 2 columns threshold", width: 1275, colCount: 1, lineLength: 80 * iowanWidth),
         DeviceLayout(name: "at the 2 columns threshold", width: 1276, colCount: 2, lineLength: 578),
         DeviceLayout(name: "iPhone 17 Pro portrait", width: 402, colCount: 1, lineLength: 342),
-        DeviceLayout(name: "iPhone 17 Pro landscape", width: 874, safeArea: 62, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPhone 17 Pro landscape", width: 874, safeArea: 62, colCount: 1, lineLength: 80 * iowanWidth),
         DeviceLayout(name: "iPad mini portrait", width: 744, colCount: 1, lineLength: 684),
-        DeviceLayout(name: "iPad mini landscape", width: 1133, colCount: 1, lineLength: 712),
-        DeviceLayout(name: "iPad Air 11-inch portrait", width: 820, colCount: 1, lineLength: 712),
-        DeviceLayout(name: "iPad Air 11-inch landscape", width: 1180, colCount: 1, lineLength: 712),
-        DeviceLayout(name: "iPad Pro 11-inch landscape", width: 1210, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad mini landscape", width: 1133, colCount: 1, lineLength: 80 * iowanWidth),
+        DeviceLayout(name: "iPad Air 11-inch portrait", width: 820, colCount: 1, lineLength: 80 * iowanWidth),
+        DeviceLayout(name: "iPad Air 11-inch landscape", width: 1180, colCount: 1, lineLength: 80 * iowanWidth),
+        DeviceLayout(name: "iPad Pro 11-inch landscape", width: 1210, colCount: 1, lineLength: 80 * iowanWidth),
         DeviceLayout(name: "iPad Air 13-inch landscape", width: 1366, colCount: 2, lineLength: 623),
-        DeviceLayout(name: "iPad Pro 13-inch portrait", width: 1032, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPad Pro 13-inch portrait", width: 1032, colCount: 1, lineLength: 80 * iowanWidth),
         DeviceLayout(name: "iPad Pro 13-inch landscape", width: 1376, colCount: 2, lineLength: 628),
         DeviceLayout(name: "iPhone 17 Pro portrait", width: 402, scroll: true, colCount: 1, lineLength: 342),
-        DeviceLayout(name: "iPhone 17 Pro landscape", width: 874, safeArea: 62, scroll: true, colCount: 1, lineLength: 712),
-        DeviceLayout(name: "iPad Air 11-inch landscape", width: 1180, scroll: true, colCount: 1, lineLength: 712),
-        DeviceLayout(name: "iPad Pro 13-inch landscape", width: 1376, scroll: true, colCount: 1, lineLength: 712),
+        DeviceLayout(name: "iPhone 17 Pro landscape", width: 874, safeArea: 62, scroll: true, colCount: 1, lineLength: 80 * iowanWidth),
+        DeviceLayout(name: "iPad Air 11-inch landscape", width: 1180, scroll: true, colCount: 1, lineLength: 80 * iowanWidth),
+        DeviceLayout(name: "iPad Pro 13-inch landscape", width: 1376, scroll: true, colCount: 1, lineLength: 80 * iowanWidth),
     ])
     func defaultLayout(device: DeviceLayout) {
-        let layout = LayoutResolver().layout(
+        let layout = resolver.layout(
             settings: defaultSettings(preferences: EPUBPreferences(scroll: device.scroll)),
-            fontScale: 1.0,
+            characterWidth: iowanWidth,
             viewportSize: CGSize(width: device.width, height: 800),
             insets: UIEdgeInsets(top: 0, left: device.safeArea, bottom: 0, right: device.safeArea)
         )
@@ -414,20 +427,20 @@ struct LayoutResolverTests {
 
     @Test("the default maximal line length limits the height of the vertical lines")
     func defaultLayoutWithVerticalText() {
-        let layout = LayoutResolver().layout(
+        let layout = resolver.layout(
             settings: defaultSettings(preferences: EPUBPreferences(verticalText: true)),
-            fontScale: 1.0,
+            characterWidth: iowanWidth,
             viewportSize: CGSize(width: 820, height: 1180)
         )
 
-        #expect(layout == LayoutResolver.Layout(colCount: 1, lineLength: 712))
+        #expect(layout == LayoutResolver.Layout(colCount: 1, lineLength: 80 * iowanWidth))
     }
 
     @Test("the lines take all the available width with an infinite maximal line length", arguments: [false, true])
     func layoutWithInfiniteMaximalLineLength(scroll: Bool) {
-        let layout = LayoutResolver().layout(
+        let layout = resolver.layout(
             settings: defaultSettings(preferences: EPUBPreferences(maximalLineLength: .infinity, scroll: scroll)),
-            fontScale: 1.0,
+            characterWidth: iowanWidth,
             viewportSize: CGSize(width: 1180, height: 800)
         )
 
@@ -449,8 +462,8 @@ struct LayoutResolverTests {
     private func settings(
         columnCount: Int? = nil,
         maximalLineLength: Double = .infinity,
-        minimalLineLength: Double? = nil,
-        optimalLineLength: Double = 1.0,
+        minimalLineLength: Double = 0,
+        optimalLineLength: Double = 64, // 640
         pageMargins: Double = 1.0
     ) -> EPUBSettings {
         EPUBSettings(
@@ -491,109 +504,96 @@ struct LayoutResolverTests {
         )
     }
 
-    // MARK: - Font Scale
+    // MARK: - Character Width
 
-    /// Layout with the default settings at a font size.
-    struct FontScaleLayout: Sendable, CustomTestStringConvertible {
+    /// Layout with the default settings, with the width of a character at
+    /// another font size than 100%.
+    struct CharacterWidthLayout: Sendable, CustomTestStringConvertible {
         let name: String
-        let fontScale: Double
+        let characterWidth: Double
         let width: Double
         var scroll: Bool = false
         let colCount: Int
         let lineLength: Double
 
         var testDescription: String {
-            "\(name) at \(Int((fontScale * 100).rounded()))%" + (scroll ? ", scrolled" : "")
+            scroll ? "\(name), scrolled" : name
         }
     }
 
-    @Test("the line lengths follow the font size, but not the margins", arguments: [
+    @Test("the line lengths follow the width of a character, but not the margins", arguments: [
         // Two columns of the optimal line length need 2 × (578 × scale + 2 × 30).
-        // At 80%: 1044.8pt, the maximal line length is 569.6pt.
-        FontScaleLayout(name: "below the 2 columns threshold", fontScale: 0.8, width: 1044, colCount: 1, lineLength: 569.6),
-        FontScaleLayout(name: "above the 2 columns threshold", fontScale: 0.8, width: 1045, colCount: 2, lineLength: 462.5),
-        FontScaleLayout(name: "iPad mini landscape", fontScale: 0.8, width: 1133, colCount: 2, lineLength: 506.5),
-        FontScaleLayout(name: "iPad Air 13-inch landscape", fontScale: 0.8, width: 1366, colCount: 2, lineLength: 569.6),
-        // At 100%: 1276pt, the maximal line length is 712pt.
-        FontScaleLayout(name: "below the 2 columns threshold", fontScale: 1.0, width: 1275, colCount: 1, lineLength: 712),
-        FontScaleLayout(name: "at the 2 columns threshold", fontScale: 1.0, width: 1276, colCount: 2, lineLength: 578),
-        // At 120%: 1507.2pt, the maximal line length is 854.4pt.
-        FontScaleLayout(name: "iPad Air 13-inch landscape", fontScale: 1.2, width: 1366, colCount: 1, lineLength: 854.4),
-        FontScaleLayout(name: "below the 2 columns threshold", fontScale: 1.2, width: 1507, colCount: 1, lineLength: 854.4),
-        FontScaleLayout(name: "above the 2 columns threshold", fontScale: 1.2, width: 1508, colCount: 2, lineLength: 694),
-        // At 150%, the maximal line length is 1068pt.
-        FontScaleLayout(name: "iPad Air 13-inch landscape", fontScale: 1.5, width: 1366, colCount: 1, lineLength: 1068),
-        FontScaleLayout(name: "iPad mini landscape", fontScale: 1.5, width: 1133, colCount: 1, lineLength: 1068),
+        // At 80%: 1044.8pt.
+        CharacterWidthLayout(name: "80%, below the 2 columns threshold", characterWidth: iowanWidth * 0.8, width: 1044, colCount: 1, lineLength: 80 * iowanWidth * 0.8),
+        CharacterWidthLayout(name: "80%, above the 2 columns threshold", characterWidth: iowanWidth * 0.8, width: 1045, colCount: 2, lineLength: 462.5),
+        // At 120%: 1507.2pt.
+        CharacterWidthLayout(name: "120%, below the 2 columns threshold", characterWidth: iowanWidth * 1.2, width: 1507, colCount: 1, lineLength: 80 * iowanWidth * 1.2),
+        CharacterWidthLayout(name: "120%, above the 2 columns threshold", characterWidth: iowanWidth * 1.2, width: 1508, colCount: 2, lineLength: 694),
         // The margins stay 30pt.
-        FontScaleLayout(name: "iPhone 17 Pro portrait", fontScale: 1.5, width: 402, colCount: 1, lineLength: 342),
-        FontScaleLayout(name: "iPad mini landscape", fontScale: 2.0, width: 1133, colCount: 1, lineLength: 1073),
+        CharacterWidthLayout(name: "150%, iPhone 17 Pro portrait", characterWidth: iowanWidth * 1.5, width: 402, colCount: 1, lineLength: 342),
+        CharacterWidthLayout(name: "200%, iPad mini landscape", characterWidth: iowanWidth * 2, width: 1133, colCount: 1, lineLength: 1073),
+        CharacterWidthLayout(name: "200%, iPad mini landscape", characterWidth: iowanWidth * 2, width: 1133, scroll: true, colCount: 1, lineLength: 1073),
         // The maximal line length limits the scrolled lines.
-        FontScaleLayout(name: "iPad Air 13-inch landscape", fontScale: 0.8, width: 1366, scroll: true, colCount: 1, lineLength: 569.6),
-        FontScaleLayout(name: "iPad Air 13-inch landscape", fontScale: 1.0, width: 1366, scroll: true, colCount: 1, lineLength: 712),
-        FontScaleLayout(name: "iPad Air 13-inch landscape", fontScale: 1.5, width: 1366, scroll: true, colCount: 1, lineLength: 1068),
-        FontScaleLayout(name: "iPad mini landscape", fontScale: 2.0, width: 1133, scroll: true, colCount: 1, lineLength: 1073),
-        FontScaleLayout(name: "iPhone 17 Pro portrait", fontScale: 1.5, width: 402, scroll: true, colCount: 1, lineLength: 342),
+        CharacterWidthLayout(name: "150%, iPad Air 13-inch landscape", characterWidth: iowanWidth * 1.5, width: 1366, scroll: true, colCount: 1, lineLength: 80 * iowanWidth * 1.5),
     ])
-    func fontScaleLayout(_ test: FontScaleLayout) {
-        let layout = LayoutResolver().layout(
+    func characterWidthLayout(_ test: CharacterWidthLayout) {
+        let layout = resolver.layout(
             settings: defaultSettings(preferences: EPUBPreferences(scroll: test.scroll)),
-            fontScale: test.fontScale,
+            characterWidth: test.characterWidth,
             viewportSize: CGSize(width: test.width, height: 800)
         )
 
-        #expect(layout.colCount == test.colCount)
-        #expect(abs(layout.lineLength - test.lineLength) < 0.001)
+        expectLayout(layout, .init(colCount: test.colCount, lineLength: test.lineLength))
     }
 
     /// Two columns of (1000 - 4 × 30) / 2 = 440pt are requested, with the
-    /// minimal line length of 356pt at 100%.
-    @Test("the minimal line length of the requested columns follows the font size", arguments: [
-        FontScaleLayout(name: "2 requested columns", fontScale: 1.0, width: 1000, colCount: 2, lineLength: 440),
-        FontScaleLayout(name: "2 requested columns", fontScale: 1.2, width: 1000, colCount: 2, lineLength: 440),
-        // 356 × 1.25 = 445pt, one column of 1000 - 2 × 30 = 940pt.
-        FontScaleLayout(name: "2 requested columns", fontScale: 1.25, width: 1000, colCount: 1, lineLength: 940),
+    /// default minimal line length of 40 characters.
+    @Test("the minimal line length of the requested columns follows the width of a character", arguments: [
+        // 40 × 8.89 × 1.2 = 426.8pt.
+        CharacterWidthLayout(name: "120%", characterWidth: iowanWidth * 1.2, width: 1000, colCount: 2, lineLength: 440),
+        // 40 × 8.89 × 1.25 = 444.6pt, one column of 1000 - 2 × 30 = 940pt.
+        CharacterWidthLayout(name: "125%", characterWidth: iowanWidth * 1.25, width: 1000, colCount: 1, lineLength: 940),
     ])
-    func fontScaleMinimalLineLength(_ test: FontScaleLayout) {
-        let layout = LayoutResolver().layout(
+    func characterWidthMinimalLineLength(_ test: CharacterWidthLayout) {
+        let layout = resolver.layout(
             settings: defaultSettings(
-                preferences: EPUBPreferences(columnCount: 2, maximalLineLength: 2.0, minimalLineLength: 1.0)
+                preferences: EPUBPreferences(columnCount: 2, maximalLineLength: .infinity)
             ),
-            fontScale: test.fontScale,
+            characterWidth: test.characterWidth,
             viewportSize: CGSize(width: test.width, height: 800)
         )
 
-        #expect(layout == LayoutResolver.Layout(colCount: test.colCount, lineLength: test.lineLength))
+        expectLayout(layout, .init(colCount: test.colCount, lineLength: test.lineLength))
     }
 
-    /// One column is requested, limited by the maximal line length of 712pt
-    /// at 100%.
-    @Test("the maximal line length of the requested columns follows the font size", arguments: [
-        FontScaleLayout(name: "1 requested column", fontScale: 0.5, width: 1366, colCount: 1, lineLength: 356),
-        FontScaleLayout(name: "1 requested column", fontScale: 1.0, width: 1366, colCount: 1, lineLength: 712),
-        FontScaleLayout(name: "1 requested column", fontScale: 1.5, width: 1366, colCount: 1, lineLength: 1068),
-        FontScaleLayout(name: "1 requested column", fontScale: 2.0, width: 1366, colCount: 1, lineLength: 1306),
+    /// One column is requested, with the default maximal line length of 80
+    /// characters.
+    @Test("the maximal line length of the requested columns follows the width of a character", arguments: [
+        CharacterWidthLayout(name: "50%", characterWidth: iowanWidth * 0.5, width: 1366, colCount: 1, lineLength: 80 * iowanWidth * 0.5),
+        // 80 × 8.89 × 2 = 1422.8pt is longer than 1366 - 2 × 30.
+        CharacterWidthLayout(name: "200%", characterWidth: iowanWidth * 2, width: 1366, colCount: 1, lineLength: 1306),
     ])
-    func fontScaleMaximalLineLength(_ test: FontScaleLayout) {
-        let layout = LayoutResolver().layout(
+    func characterWidthMaximalLineLength(_ test: CharacterWidthLayout) {
+        let layout = resolver.layout(
             settings: defaultSettings(preferences: EPUBPreferences(columnCount: 1)),
-            fontScale: test.fontScale,
+            characterWidth: test.characterWidth,
             viewportSize: CGSize(width: test.width, height: 800)
         )
 
-        #expect(layout == LayoutResolver.Layout(colCount: test.colCount, lineLength: test.lineLength))
+        expectLayout(layout, .init(colCount: test.colCount, lineLength: test.lineLength))
     }
 
-    @Test("the margins don't follow the font size", arguments: [false, true])
-    func fontScaleDoesNotScaleMargins(scroll: Bool) {
-        let layout = LayoutResolver().layout(
+    @Test("the margins don't follow the width of a character", arguments: [false, true])
+    func characterWidthDoesNotScaleMargins(scroll: Bool) {
+        let layout = resolver.layout(
             scroll: scroll,
             verticalText: false,
             columnCount: 2,
-            optimalLineLength: 1.0,
-            minimalLineLength: nil,
+            optimalLineLength: 65,
+            minimalLineLength: 0,
             maximalLineLength: .infinity,
             pageMargins: 1.5, // 45
-            fontScale: 2.0,
+            characterWidth: iowanWidth * 2,
             viewportSize: CGSize(width: 1000, height: 800),
             insets: .zero
         )
@@ -607,29 +607,33 @@ struct LayoutResolverTests {
         }
     }
 
-    @Test("the maximal line length of the vertical lines follows the font size")
-    func fontScaleWithVerticalText() {
-        let layout = LayoutResolver().layout(
+    @Test("the maximal line length of the vertical lines follows the width of a character")
+    func characterWidthWithVerticalText() {
+        let layout = resolver.layout(
             settings: defaultSettings(preferences: EPUBPreferences(scroll: true, verticalText: true)),
-            fontScale: 1.5,
+            characterWidth: iowanWidth * 1.5,
             viewportSize: CGSize(width: 820, height: 1180)
         )
 
-        // 712 × 1.5, below 1180 - 2 × 30
-        #expect(layout == LayoutResolver.Layout(colCount: 1, lineLength: 1068))
+        // 80 × 8.89 × 1.5 = 1067.08, below 1180 - 2 × 30
+        expectLayout(layout, .init(colCount: 1, lineLength: 80 * iowanWidth * 1.5))
     }
 
     /// Layout with the default line lengths around the vertical hinge of an
     /// iPhone Duo unfolded in landscape (951 x 669pt, 40pt band).
     @Suite("With a vertical hinge") struct Hinge {
+        let resolver = LayoutResolver()
+
         struct HingeLayout: Sendable, CustomTestStringConvertible {
             let name: String
             var scroll: Bool = false
             var verticalText: Bool = false
             var columnCount: Int?
-            var minimalLineLength: Double?
+            /// No minimum by default, to show the layout of the requested
+            /// columns.
+            var minimalLineLength: Double = 0
             var pageMargins: Double = 1.0
-            var fontScale: Double = 1.0
+            var characterWidth: Double = iowanWidth
             var width: Double = 951
             var hingeWidth: Double? = 40
             let expected: LayoutResolver.Layout
@@ -642,75 +646,79 @@ struct LayoutResolverTests {
         @Test("each side of the hinge gets its own column, in auto mode only", arguments: [
             // Each 475.5pt side holds one column: 475.5 - 2 × 30.
             HingeLayout(name: "two columns", expected: .init(colCount: 2, lineLength: 415.5)),
-            HingeLayout(name: "one column without a hinge", hingeWidth: nil, expected: .init(colCount: 1, lineLength: 712)),
+            HingeLayout(name: "one column without a hinge", hingeWidth: nil, expected: .init(colCount: 1, lineLength: 80 * iowanWidth)),
             HingeLayout(name: "a hinge line without a band", hingeWidth: 0, expected: .init(colCount: 2, lineLength: 415.5)),
             // The lines are shorter than the optimal one at 100% already.
-            HingeLayout(name: "a larger font", fontScale: 2.0, expected: .init(colCount: 2, lineLength: 415.5)),
-            HingeLayout(name: "a smaller font, limited by the maximal line length", fontScale: 0.5, expected: .init(colCount: 2, lineLength: 356)),
+            HingeLayout(name: "a larger font", characterWidth: iowanWidth * 2, expected: .init(colCount: 2, lineLength: 415.5)),
+            HingeLayout(name: "a smaller font, limited by the maximal line length", characterWidth: iowanWidth * 0.5, expected: .init(colCount: 2, lineLength: 80 * iowanWidth * 0.5)),
             // Without the hinge, 3 columns with the middle one on the hinge.
-            HingeLayout(name: "instead of three columns", fontScale: 0.4, expected: .init(colCount: 2, lineLength: 284.8)),
+            HingeLayout(name: "instead of three columns", characterWidth: iowanWidth * 0.4, expected: .init(colCount: 2, lineLength: 80 * iowanWidth * 0.4)),
             // Without the hinge, 4 columns. The pagination scripts only fill
             // the last screen with two columns per screen.
-            HingeLayout(name: "instead of four columns", fontScale: 0.3, expected: .init(colCount: 2, lineLength: 213.6)),
+            HingeLayout(name: "instead of four columns", characterWidth: iowanWidth * 0.3, expected: .init(colCount: 2, lineLength: 80 * iowanWidth * 0.3)),
             // Margins of half the band, 20pt.
             HingeLayout(name: "no page margins", pageMargins: 0, expected: .init(colCount: 2, lineLength: 435.5)),
             HingeLayout(name: "larger page margins", pageMargins: 2, expected: .init(colCount: 2, lineLength: 355.5)),
-            // 356 × 1.2 is above 415.5, but it only applies to the requested columns.
-            HingeLayout(name: "a minimal line length", minimalLineLength: 1.2, expected: .init(colCount: 2, lineLength: 415.5)),
-            // 350 - 20 is below the 356pt base minimal line length.
+            // 48 × 8.89 = 426.8 is above 415.5, but it only applies to the
+            // requested columns.
+            HingeLayout(name: "a minimal line length", minimalLineLength: 48, expected: .init(colCount: 2, lineLength: 415.5)),
+            // 350 - 20 is below the 356pt minimal side width.
             HingeLayout(name: "sides too narrow", width: 700, expected: .init(colCount: 1, lineLength: 640)),
+            // 376 - 20 is the 356pt minimal side width: 376 - 2 × 30.
+            HingeLayout(name: "sides at the minimal side width", width: 752, expected: .init(colCount: 2, lineLength: 316)),
+            // 375 - 20 is 1pt below the minimal side width: 750 - 2 × 30.
+            HingeLayout(name: "sides 1pt narrower than the minimal side width", width: 750, expected: .init(colCount: 1, lineLength: 690)),
             HingeLayout(name: "already two columns", width: 1366, expected: .init(colCount: 2, lineLength: 623)),
-            HingeLayout(name: "one requested column", columnCount: 1, expected: .init(colCount: 1, lineLength: 712)),
+            HingeLayout(name: "one requested column", columnCount: 1, expected: .init(colCount: 1, lineLength: 80 * iowanWidth)),
             HingeLayout(name: "three requested columns", columnCount: 3, expected: .init(colCount: 3, lineLength: 257)),
-            HingeLayout(name: "scroll mode", scroll: true, expected: .init(colCount: 1, lineLength: 712)),
+            HingeLayout(name: "scroll mode", scroll: true, expected: .init(colCount: 1, lineLength: 80 * iowanWidth)),
             // Not reachable, vertical text is always scrolled.
-            HingeLayout(name: "vertical text", verticalText: true, expected: .init(colCount: 1, lineLength: 712)),
+            HingeLayout(name: "vertical text", verticalText: true, expected: .init(colCount: 1, lineLength: 80 * iowanWidth)),
         ])
         func layoutAroundHinge(_ test: HingeLayout) {
-            let layout = LayoutResolver().layout(
+            let layout = resolver.layout(
                 scroll: test.scroll,
                 verticalText: test.verticalText,
                 columnCount: test.columnCount,
-                optimalLineLength: 1.0,
+                optimalLineLength: 65,
                 minimalLineLength: test.minimalLineLength,
-                maximalLineLength: 1.0,
+                maximalLineLength: 80,
                 pageMargins: test.pageMargins,
-                fontScale: test.fontScale,
+                characterWidth: test.characterWidth,
                 viewportSize: CGSize(width: test.width, height: 669),
                 hingeWidth: test.hingeWidth
             )
 
-            #expect(layout.colCount == test.expected.colCount)
-            #expect(abs(layout.lineLength - test.expected.lineLength) < 0.0001)
+            expectLayout(layout, test.expected)
         }
 
         struct HingeMargins: Sendable, CustomTestStringConvertible {
             let pageMargins: Double
-            let fontScale: Double
+            let characterWidth: Double
             let insets: UIEdgeInsets
 
             var testDescription: String {
-                "page margins \(pageMargins), font scale \(fontScale), insets \(insets.left) and \(insets.right)"
+                "page margins \(pageMargins), character width \(String(format: "%.2f", characterWidth)), insets \(insets.left) and \(insets.right)"
             }
         }
 
         @Test("no text is on the hinge", arguments: [0.0, 0.5, 1.0, 2.0, 4.0].flatMap { pageMargins in
-            [0.5, 1.0, 2.0].flatMap { fontScale in
+            [iowanWidth * 0.5, iowanWidth, iowanWidth * 2].flatMap { characterWidth in
                 [UIEdgeInsets.zero, UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 84), UIEdgeInsets(top: 0, left: 62, bottom: 0, right: 62)].map { insets in
-                    HingeMargins(pageMargins: pageMargins, fontScale: fontScale, insets: insets)
+                    HingeMargins(pageMargins: pageMargins, characterWidth: characterWidth, insets: insets)
                 }
             }
         })
         func noTextOnHinge(_ test: HingeMargins) {
-            let layout = LayoutResolver().layout(
+            let layout = resolver.layout(
                 scroll: false,
                 verticalText: false,
                 columnCount: nil,
-                optimalLineLength: 1.0,
-                minimalLineLength: nil,
-                maximalLineLength: 1.0,
+                optimalLineLength: 65,
+                minimalLineLength: 0,
+                maximalLineLength: 80,
                 pageMargins: test.pageMargins,
-                fontScale: test.fontScale,
+                characterWidth: test.characterWidth,
                 viewportSize: CGSize(width: 951, height: 669),
                 insets: test.insets,
                 hingeWidth: 40
@@ -779,16 +787,18 @@ struct LayoutResolverTests {
     }
 
     /// Layout with the default line lengths, with large margins or line
-    /// length factors.
+    /// lengths.
     @Suite("With extreme settings") struct Extremes {
+        let resolver = LayoutResolver()
+
         struct ExtremeLayout: Sendable, CustomTestStringConvertible {
             let name: String
             var scroll: Bool = false
             var columnCount: Int?
-            var minimalLineLength: Double?
+            var minimalLineLength: Double = 0
             var maximalLineLength: Double = .infinity
             let pageMargins: Double
-            var fontScale: Double = 1.0
+            var characterWidth: Double = iowanWidth
             let width: Double
             let expected: LayoutResolver.Layout
 
@@ -798,37 +808,37 @@ struct LayoutResolverTests {
         }
 
         @Test("resolves extreme settings", arguments: [
-            // The maximal line length 712 × 0.5 × 0.4 = 142.4 is below the
+            // The maximal line length 40 × 8.89 × 0.4 = 142.28 is below the
             // 2 × 120pt margins.
-            ExtremeLayout(name: "a maximal line length shorter than the margins, scrolled", scroll: true, maximalLineLength: 0.5, pageMargins: 4, fontScale: 0.4, width: 1000, expected: .init(colCount: 1, lineLength: 142.4)),
-            ExtremeLayout(name: "a maximal line length shorter than the margins, one requested column", columnCount: 1, maximalLineLength: 0.5, pageMargins: 4, fontScale: 0.4, width: 1000, expected: .init(colCount: 1, lineLength: 142.4)),
+            ExtremeLayout(name: "a maximal line length shorter than the margins, scrolled", scroll: true, maximalLineLength: 40, pageMargins: 4, characterWidth: iowanWidth * 0.4, width: 1000, expected: .init(colCount: 1, lineLength: 40 * iowanWidth * 0.4)),
+            ExtremeLayout(name: "a maximal line length shorter than the margins, one requested column", columnCount: 1, maximalLineLength: 40, pageMargins: 4, characterWidth: iowanWidth * 0.4, width: 1000, expected: .init(colCount: 1, lineLength: 40 * iowanWidth * 0.4)),
             // The 120pt margins take each 195pt column, one column remains.
             ExtremeLayout(name: "margins wider than the requested columns", columnCount: 2, pageMargins: 4, width: 390, expected: .init(colCount: 1, lineLength: 150)),
-            ExtremeLayout(name: "margins wider than the requested columns, with a minimal line length", columnCount: 2, minimalLineLength: 1.0, pageMargins: 4, width: 390, expected: .init(colCount: 1, lineLength: 150)),
+            ExtremeLayout(name: "margins wider than the requested columns, with a minimal line length", columnCount: 2, minimalLineLength: 40, pageMargins: 4, width: 390, expected: .init(colCount: 1, lineLength: 150)),
             ExtremeLayout(name: "margins wider than the viewport, scrolled", scroll: true, pageMargins: 4, width: 200, expected: .init(colCount: 1, lineLength: 0)),
             ExtremeLayout(name: "margins wider than the viewport, auto", pageMargins: 4, width: 200, expected: .init(colCount: 1, lineLength: 0)),
-            // Two columns of (600 - 4 × 90) / 2 = 120pt are below the 356pt
-            // minimal line length, even though three columns have less room.
-            ExtremeLayout(name: "the minimal line length of the requested columns is kept when reducing them", columnCount: 3, minimalLineLength: 1.0, pageMargins: 3, width: 600, expected: .init(colCount: 1, lineLength: 420)),
+            // Two columns of (600 - 4 × 90) / 2 = 120pt are below the
+            // 355.69pt minimal line length, even though three columns have
+            // less room.
+            ExtremeLayout(name: "the minimal line length of the requested columns is kept when reducing them", columnCount: 3, minimalLineLength: 40, pageMargins: 3, width: 600, expected: .init(colCount: 1, lineLength: 420)),
             // The single column of 600 - 2 × 120 = 360pt is limited by the
-            // maximal line length 712 × 0.5 × 0.4 = 142.4.
-            ExtremeLayout(name: "the maximal line length of the requested columns is kept when reducing them", columnCount: 3, minimalLineLength: 1.0, maximalLineLength: 0.5, pageMargins: 4, fontScale: 0.4, width: 600, expected: .init(colCount: 1, lineLength: 142.4)),
+            // maximal line length 40 × 8.89 × 0.4 = 142.28.
+            ExtremeLayout(name: "the maximal line length of the requested columns is kept when reducing them", columnCount: 3, minimalLineLength: 40, maximalLineLength: 40, pageMargins: 4, characterWidth: iowanWidth * 0.4, width: 600, expected: .init(colCount: 1, lineLength: 40 * iowanWidth * 0.4)),
         ])
         func extremeLayout(_ test: ExtremeLayout) {
-            let layout = LayoutResolver().layout(
+            let layout = resolver.layout(
                 scroll: test.scroll,
                 verticalText: false,
                 columnCount: test.columnCount,
-                optimalLineLength: 1.0,
+                optimalLineLength: 65,
                 minimalLineLength: test.minimalLineLength,
                 maximalLineLength: test.maximalLineLength,
                 pageMargins: test.pageMargins,
-                fontScale: test.fontScale,
+                characterWidth: test.characterWidth,
                 viewportSize: CGSize(width: test.width, height: 800)
             )
 
-            #expect(layout.colCount == test.expected.colCount)
-            #expect(abs(layout.lineLength - test.expected.lineLength) < 0.0001)
+            expectLayout(layout, test.expected)
         }
 
         struct Mode: Sendable, CustomTestStringConvertible {
@@ -856,24 +866,24 @@ struct LayoutResolverTests {
             // have the same room with vertical text.
             for verticalText in [false, true] {
                 for pageMargins in [0.0, 4.0] {
-                    for fontScale in [0.1, 5.0] {
-                        for lineLengthFactor in [nil, 0.5, 2.0] {
+                    for characterWidth in [iowanWidth * 0.1, iowanWidth * 5] {
+                        for lineLength in [nil, 30.0, 130.0] {
                             for inset in [0.0, 300.0] {
-                                let layout = LayoutResolver().layout(
+                                let layout = resolver.layout(
                                     scroll: mode.scroll,
                                     verticalText: verticalText,
                                     columnCount: mode.columnCount,
-                                    optimalLineLength: lineLengthFactor ?? 1.0,
-                                    minimalLineLength: lineLengthFactor,
-                                    maximalLineLength: lineLengthFactor ?? .infinity,
+                                    optimalLineLength: lineLength ?? 65,
+                                    minimalLineLength: lineLength ?? 0,
+                                    maximalLineLength: lineLength ?? .infinity,
                                     pageMargins: pageMargins,
-                                    fontScale: fontScale,
+                                    characterWidth: characterWidth,
                                     viewportSize: CGSize(width: width, height: width),
                                     insets: UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset),
                                     hingeWidth: mode.hingeWidth
                                 )
 
-                                let context: Comment = "verticalText: \(verticalText), pageMargins: \(pageMargins), fontScale: \(fontScale), lineLengthFactor: \(String(describing: lineLengthFactor)), inset: \(inset)"
+                                let context: Comment = "verticalText: \(verticalText), pageMargins: \(pageMargins), characterWidth: \(characterWidth), lineLength: \(String(describing: lineLength)), inset: \(inset)"
                                 #expect(layout.colCount >= 1, context)
                                 #expect(layout.lineLength >= 0, context)
                                 #expect(layout.colCount == 1 || layout.lineLength > 0, context)

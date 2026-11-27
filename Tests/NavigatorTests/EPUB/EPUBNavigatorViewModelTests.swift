@@ -60,23 +60,54 @@ import UIKit
         #expect(delegate.scripts.count == (test.commits ? 2 : 1))
     }
 
+    /// Layout expected with the given preferences.
+    struct ResolvedLayout: Sendable, CustomTestStringConvertible {
+        let name: String
+        let preferences: EPUBPreferences
+        let colCount: Int
+        let lineLength: Double
+
+        var testDescription: String {
+            name
+        }
+
+        /// Checks the layout resolved in a view of `size`, with a tolerance
+        /// for the line length.
+        @MainActor func expectLayout(in size: CGSize) throws {
+            let viewModel = makeViewModel(preferences: preferences)
+            viewModel.viewDidLayout(size: size, reflowableContentInset: .zero, hingeWidth: nil)
+            let layout = try #require(viewModel.resolvedLayout)
+            #expect(layout.colCount == colCount)
+            #expect(abs(layout.lineLength - lineLength) < 0.001)
+        }
+    }
+
     /// An iPad Air 13-inch in landscape gets two columns only up to a 100%
-    /// font size, and the lines are limited by the maximal line length
-    /// multiplied by the font size. A font size of 0 is laid out like 100%.
+    /// font size, and the lines are limited by the maximal line length of 80
+    /// characters, whose width follows the font size. A font size of 0 is
+    /// laid out like 100%.
     @Test("the layout follows the font size", arguments: [
-        (0.0, LayoutResolver.Layout(colCount: 2, lineLength: 623)),
-        (0.8, LayoutResolver.Layout(colCount: 2, lineLength: 712 * 0.8)),
-        (1.0, LayoutResolver.Layout(colCount: 2, lineLength: 623)),
-        (1.2, LayoutResolver.Layout(colCount: 1, lineLength: 712 * 1.2)),
+        ResolvedLayout(name: "0%", preferences: EPUBPreferences(fontSize: 0), colCount: 2, lineLength: 623),
+        ResolvedLayout(name: "80%", preferences: EPUBPreferences(fontSize: 0.8), colCount: 2, lineLength: 80 * iowanWidth * 0.8),
+        ResolvedLayout(name: "100%", preferences: EPUBPreferences(fontSize: 1.0), colCount: 2, lineLength: 623),
+        ResolvedLayout(name: "120%", preferences: EPUBPreferences(fontSize: 1.2), colCount: 1, lineLength: 80 * iowanWidth * 1.2),
     ])
-    func layoutFollowsFontSize(fontSize: Double, expected: LayoutResolver.Layout) {
-        let viewModel = makeViewModel(preferences: EPUBPreferences(fontSize: fontSize))
-        viewModel.viewDidLayout(
-            size: CGSize(width: 1366, height: 1024),
-            reflowableContentInset: .zero,
-            hingeWidth: nil
-        )
-        #expect(viewModel.resolvedLayout == expected)
+    func layoutFollowsFontSize(_ example: ResolvedLayout) throws {
+        try example.expectLayout(in: CGSize(width: 1366, height: 1024))
+    }
+
+    /// Two columns requested on an iPad Air 11-inch in portrait, with
+    /// 350pt lines.
+    @Test("the line lengths are counted in characters, and 0 and .infinity remove the limits", arguments: [
+        // Below the default minimum of 40 characters (355.69pt), one column
+        // limited by the default maximum of 80 characters.
+        ResolvedLayout(name: "the default limits", preferences: EPUBPreferences(columnCount: 2), colCount: 1, lineLength: 80 * iowanWidth),
+        ResolvedLayout(name: "a lower minimum", preferences: EPUBPreferences(columnCount: 2, minimalLineLength: 39), colCount: 2, lineLength: 350),
+        ResolvedLayout(name: "no minimum", preferences: EPUBPreferences(columnCount: 2, minimalLineLength: 0), colCount: 2, lineLength: 350),
+        ResolvedLayout(name: "no maximum", preferences: EPUBPreferences(columnCount: 2, maximalLineLength: .infinity), colCount: 1, lineLength: 760),
+    ])
+    func lineLengthsInCharacters(_ example: ResolvedLayout) throws {
+        try example.expectLayout(in: CGSize(width: 820, height: 1180))
     }
 
     @Test("the layout is resolved again when the font size changes")
@@ -159,6 +190,10 @@ import UIKit
 // MARK: - Helpers
 
 private let initialInsets = UIEdgeInsets(top: 62, left: 62, bottom: 62, right: 62)
+
+/// Width of a `0` in Iowan Old Style at 16pt, the width of a character at a
+/// 100% font size: 65 of them measure 578pt.
+private let iowanWidth = 578.0 / 65
 
 @MainActor private func makeViewModel(preferences: EPUBPreferences = EPUBPreferences()) -> EPUBNavigatorViewModel {
     makeViewModel(config: EPUBNavigatorViewController.Configuration(preferences: preferences))
