@@ -94,6 +94,10 @@ public struct VisualNavigatorPresentation: Sendable {
     /// Consider the view's safe area insets to prevent notches, the status bar,
     /// or other overlays from obscuring the content.
     ///
+    /// The EPUB navigator doesn't apply the insets at the ends of the lines of
+    /// reflowable resources, see
+    /// `EPUBNavigatorDelegate.navigator(_:contentInsetFor:)`.
+    ///
     /// - Returns: The insets to apply, or `nil` to use the navigator’s default behavior.
     func navigatorContentInset(_ navigator: VisualNavigator) -> UIEdgeInsets?
 
