@@ -223,6 +223,14 @@ class LCPClientAdapter: ReadiumLCP.LCPClient {
     func findOneValidPassphrase(jsonLicense: String, hashedPassphrases: [LCPPassphraseHash]) -> LCPPassphraseHash? {
         R2LCPClient.findOneValidPassphrase(jsonLicense: jsonLicense, hashedPassphrases: hashedPassphrases)
     }
+
+    func decryptField(field: Data, using context: LCPClientContext) -> Data? {
+        R2LCPClient.decryptField(field: field, using: context as! DRMContext)
+    }
+
+    func getSupportedLCPProfileURIs() -> [String] {
+        R2LCPClient.getSupportedLCPProfileURIs() ?? []
+    }
 }
 ```
 
@@ -414,6 +422,18 @@ case .failure(let error):
     // Display the error.
 }
 ```
+
+Some user fields may be encrypted with the user key in the License Document, as listed in `license.user.encrypted`. Use `lcpLicense.decipheredUser()` to get the user information with these fields deciphered.
+
+```swift
+let user = try lcpLicense.decipheredUser()
+if let name = user.name, !user.encrypted.contains("name") {
+    print("The publication was acquired by \(name)")
+}
+```
+
+> [!NOTE]
+> Deciphering the user fields requires an `R2LCPClient` version providing `decryptField()` (starting from 4.3.0), forwarded in your `LCPClient` facade. Fields that cannot be deciphered are left untouched and still listed in `user.encrypted`.
 
 If you have already opened a `Publication` with the `PublicationOpener`, you can directly obtain the `LCPLicense` using `publication.lcpLicense`.
 
