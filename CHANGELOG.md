@@ -34,7 +34,7 @@ All notable changes to this project will be documented in this file. Take a look
     * `columnCount` is now an `Int?`, where `nil` means an automatic number of columns.
     * `pageMargins` is now a factor applied to the minimal margins on each side of the lines.
 * The EPUB navigator now adapts the number of columns and the length of the lines to the screen and font sizes:
-    * The lines are limited to a maximal length by default. Set `EPUBDefaults.maximalLineLength` to `nil` to let them take all the available width.
+    * The lines are limited to a maximal length by default. Set `maximalLineLength` to `.infinity` to let them take all the available width.
     * In automatic mode (`columnCount = nil`), as many columns as the screen can hold are displayed, instead of at most two.
     * The line lengths follow the font size, so a larger font displays fewer columns with about the same number of characters per line.
     * On foldable devices, one column is displayed on each side of the hinge.

@@ -110,21 +110,21 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
 
     /// Factor applied to the maximal line length of the reflowable resources.
     ///
-    /// When `nil`, `EPUBDefaults.maximalLineLength` is used. When both are
-    /// `nil`, the lines take all the available width. Values lower than or
-    /// equal to `0` are ignored.
+    /// `.infinity` lets the lines take all the available width. When `nil`,
+    /// `EPUBDefaults.maximalLineLength` is used, and `1.0` when both are
+    /// `nil`. Values lower than or equal to `0` are ignored.
     ///
-    /// Suggested range: `0.5...2.0`, with a step of `0.1`. When unset, a
-    /// control can start from `1.0`.
+    /// Suggested range: `0.5...2.0`, with a step of `0.1`.
     public var maximalLineLength: Double?
 
     /// Factor applied to the minimal line length of the reflowable resources,
     /// under which the number of columns is reduced.
     ///
     /// It is used only in paginated mode, when `columnCount` is greater than
-    /// 1. When `nil` and without a default value, the requested number of
-    /// columns is always displayed, unless the margins leave no room for the
-    /// lines. Values lower than or equal to `0` are ignored.
+    /// 1. When `0`, or when `nil` and without a default value, the requested
+    /// number of columns is always displayed, unless the margins leave no
+    /// room for the lines. A `0` overrides a minimum set in
+    /// `EPUBDefaults.minimalLineLength`. Negative values are ignored.
     ///
     /// Suggested range: `0.5...2.0`, with a step of `0.1`. When unset, a
     /// control can start from `1.0`.
@@ -263,7 +263,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
         self.lineHeight = lineHeight
         self.linkColor = linkColor
         self.maximalLineLength = maximalLineLength?.positiveOrNil
-        self.minimalLineLength = minimalLineLength?.positiveOrNil
+        self.minimalLineLength = minimalLineLength?.nonNegativeOrNil
         self.noRuby = noRuby
         self.offsetFirstPage = offsetFirstPage
         self.optimalLineLength = optimalLineLength?.positiveOrNil

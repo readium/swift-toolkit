@@ -286,8 +286,8 @@ The EPUB Navigator chooses the number of columns and the length of the lines fro
 You can adjust this layout with the following preferences. The line length preferences are factors of reference lengths chosen by the Navigator, so `1.0` keeps the reference length.
 
 * `optimalLineLength` is the target line length used to choose the number of columns, in automatic mode. Increase it to display fewer and wider columns.
-* `maximalLineLength` limits the length of the lines, in both scroll and paginated modes. The remaining space is added to the margins. It is `1.0` by default. To let the lines take all the available width, set `EPUBDefaults.maximalLineLength` to `nil`.
-* `minimalLineLength` prevents the lines from becoming too short when you request several columns with `columnCount`: fewer columns are displayed if the lines would be shorter. When `nil` (the default), the requested number of columns is always displayed.
+* `maximalLineLength` limits the length of the lines, in both scroll and paginated modes. The remaining space is added to the margins. It is `1.0` by default. To let the lines take all the available width, set it to `.infinity`, in the preferences or in the `EPUBDefaults`.
+* `minimalLineLength` prevents the lines from becoming too short when you request several columns with `columnCount`: fewer columns are displayed if the lines would be shorter. When `nil` (the default), the requested number of columns is always displayed. Set it to `0` to remove a minimum set in the `EPUBDefaults`.
 * `pageMargins` scales the minimal margins on each side of the lines. The margins are larger when the line length is limited, and never smaller than the safe area insets.
 
 With vertical text, the line length is the height of the lines, and the margins are at the top and bottom.

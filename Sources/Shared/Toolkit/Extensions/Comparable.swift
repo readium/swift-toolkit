@@ -17,4 +17,9 @@ package extension Comparable where Self: AdditiveArithmetic {
     var positiveOrNil: Self? {
         self > .zero ? self : nil
     }
+
+    /// Returns the value, or `nil` if it is below zero (NaN included).
+    var nonNegativeOrNil: Self? {
+        self >= .zero ? self : nil
+    }
 }

@@ -131,12 +131,12 @@ If you customized the Readium CSS reading system properties, use the EPUB prefer
 
 The EPUB navigator now computes the number of columns and the line length of reflowable resources from the viewport size, the font size and the new `optimalLineLength`, `minimalLineLength` and `maximalLineLength` preferences. `pageMargins` is now a factor applied to the minimal margins on each side of the lines, which are larger when the line length is limited. See [the Preferences guide](Guides/Navigator/Preferences.md#line-length-and-margins) for details.
 
-By default, the lines are now limited to a maximal length, so wide screens display two columns or larger margins. To let the lines take all the available width when you don't set the `maximalLineLength` preference, set its default value to `nil`:
+By default, the lines are now limited to a maximal length, so wide screens display two columns or larger margins. To let the lines take all the available width when you don't set the `maximalLineLength` preference, set its default value to `.infinity`:
 
 ```swift
 let navigator = try EPUBNavigatorViewController(
     publication: publication,
-    config: .init(defaults: EPUBDefaults(maximalLineLength: nil))
+    config: .init(defaults: EPUBDefaults(maximalLineLength: .infinity))
 )
 ```
 

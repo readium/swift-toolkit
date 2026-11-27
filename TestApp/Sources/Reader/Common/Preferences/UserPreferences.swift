@@ -212,8 +212,8 @@ private struct EPUBReflowablePreferences: View {
                 isActive: settings.isApplicable(\.minimalLineLength)
             )
 
-            // No toggle: the default `EPUBDefaults.maximalLineLength` is not
-            // `nil`, so disabling it would fall back on the default.
+            // No toggle: an unset preference falls back on `1.0`. This app
+            // doesn't offer `.infinity`, which removes the limit.
             stepperRow(
                 "Maximal line length",
                 subtitle: "Limits the length of the lines. Applied when scrolled and paginated.",
