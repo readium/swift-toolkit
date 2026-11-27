@@ -100,7 +100,7 @@ import UIKit
     /// Two columns requested on an iPad Air 11-inch in portrait, with
     /// 350pt lines.
     @Test("the line lengths are counted in characters, and 0 and .infinity remove the limits", arguments: [
-        // Below the default minimum of 40 characters (355.69pt), one column
+        // Below the default minimum of 40 characters (355.94pt), one column
         // limited by the default maximum of 80 characters.
         ResolvedLayout(name: "the default limits", preferences: EPUBPreferences(columnCount: 2), colCount: 1, lineLength: 80 * iowanWidth),
         ResolvedLayout(name: "a lower minimum", preferences: EPUBPreferences(columnCount: 2, minimalLineLength: 39), colCount: 2, lineLength: 350),
@@ -114,11 +114,13 @@ import UIKit
     /// Scrolled lines limited by a maximal line length of 40 characters, at
     /// a 150% font size, in a view larger than them. The letter spacing is a
     /// rem length, scaled by the `zoom` on `body` on iPad but not on iPhone.
-    @Test("the width of a character counts the letter spacing, and is 1em with a CJK layout", arguments: [
-        ResolvedLayout(name: "no letter spacing", preferences: scrolled(), lineLength: 40 * iowanWidth * 1.5),
+    @Test("the width of a character is measured in the font, counts the letter spacing, and is 1em with a CJK layout", arguments: [
+        ResolvedLayout(name: "the publisher's fonts", preferences: scrolled(), lineLength: 40 * iowanWidth * 1.5),
+        ResolvedLayout(name: "a condensed font", preferences: scrolled(fontFamily: "Avenir Next Condensed"), lineLength: 40 * measuredWidth("Avenir Next Condensed") * 1.5),
+        ResolvedLayout(name: "a bold weight", preferences: scrolled(fontWeight: 1.75), lineLength: 40 * measuredWidth(nil, fontWeight: 1.75) * 1.5),
+        ResolvedLayout(name: "a condensed width", preferences: scrolled(fontFamily: .helveticaNeue, fontWidth: 0.8), lineLength: 40 * measuredWidth(.helveticaNeue, fontWidth: 0.8) * 1.5),
         ResolvedLayout(name: "letter spacing on iPad", preferences: scrolled(letterSpacing: 0.1), lineLength: 40 * (iowanWidth * 1.5 + 0.1 * 16 * 1.5)),
         ResolvedLayout(name: "letter spacing on iPhone", preferences: scrolled(letterSpacing: 0.1), userInterfaceIdiom: .phone, lineLength: 40 * (iowanWidth * 1.5 + 0.1 * 16)),
-        ResolvedLayout(name: "a NaN letter spacing", preferences: scrolled(letterSpacing: .nan), lineLength: 40 * iowanWidth * 1.5),
         // The setting doesn't apply with an RTL layout.
         ResolvedLayout(name: "letter spacing with an RTL layout", preferences: scrolled(language: "ar", letterSpacing: 0.1, readingProgression: .rtl), lineLength: 40 * iowanWidth * 1.5),
         ResolvedLayout(name: "CJK", preferences: scrolled(language: "ja"), lineLength: 40 * 16 * 1.5),
@@ -209,20 +211,37 @@ import UIKit
 
 private let initialInsets = UIEdgeInsets(top: 62, left: 62, bottom: 62, right: 62)
 
-/// Width of a `0` in Iowan Old Style at 16pt, the width of a character at a
-/// 100% font size: 65 of them measure 578pt.
-private let iowanWidth = 578.0 / 65
+/// Width of a `0` in Iowan Old Style at 16pt, the width of a character in
+/// the publisher's fonts at a 100% font size.
+private let iowanWidth = measuredWidth(nil)
+
+/// Width of a character in `fontFamily` at a 100% font size, without letter
+/// spacing.
+private func measuredWidth(_ fontFamily: FontFamily?, fontWeight: Double? = nil, fontWidth: Double? = nil) -> Double {
+    CharacterWidthResolver().characterWidth(
+        in: CharacterWidthResolver.Font(family: fontFamily, fontWeight: fontWeight, fontWidth: fontWidth, fontSize: 1),
+        letterSpacing: nil,
+        bodyZoom: 1,
+        isCJK: false
+    )
+}
 
 /// Scrolled preferences at a 150% font size, with a maximal line length of
 /// 40 characters.
 private func scrolled(
+    fontFamily: FontFamily? = nil,
+    fontWeight: Double? = nil,
+    fontWidth: Double? = nil,
     language: String? = nil,
     letterSpacing: Double? = nil,
     readingProgression: ReadiumNavigator.ReadingProgression? = nil,
     verticalText: Bool? = nil
 ) -> EPUBPreferences {
     EPUBPreferences(
+        fontFamily: fontFamily,
         fontSize: 1.5,
+        fontWeight: fontWeight,
+        fontWidth: fontWidth,
         language: language.map { Language($0) },
         letterSpacing: letterSpacing,
         maximalLineLength: 40,

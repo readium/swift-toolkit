@@ -117,6 +117,7 @@ enum EPUBScriptScope {
         self.assetsBaseURL = assetsBaseURL
         self.formatSniffer = formatSniffer
         servedFonts = server.serve(config.fontFamilyDeclarations)
+        characterWidthResolver = CharacterWidthResolver(fontFamilyDeclarations: config.fontFamilyDeclarations)
 
         preferences = config.preferences
         settings = EPUBSettings(
@@ -378,36 +379,24 @@ enum EPUBScriptScope {
     /// Layout of the current CSS, resolved from the view size.
     private(set) var resolvedLayout: LayoutResolver.Layout?
 
-    /// Font size of the text at a 100% `fontSize` setting, in points. A CSS
-    /// px is a point in the web views.
-    private static let baseFontSize: Double = 16
-
-    /// Width of a `0` character in Iowan Old Style, in ems: 65 of them
-    /// measure 578pt at the 16pt base font size.
-    private static let iowanCharacterWidth: Double = 578 / 65 / baseFontSize
+    private let characterWidthResolver: CharacterWidthResolver
 
     /// Width of one character of the line lengths, in points, as rendered
     /// with the letter spacing.
     private func characterWidth(with settings: EPUBSettings) -> Double {
-        let fontSize = Self.baseFontSize * settings.fontSize
-        let glyphWidth = settings.cssLayout.stylesheets.isCJK
-            // A full-width ideograph is 1em wide (the CSS `ic` unit).
-            ? fontSize
-            // The width of a `0` (the CSS `ch` unit).
-            : Self.iowanCharacterWidth * fontSize
-
-        // The letter spacing is a rem length, so it follows the `zoom` on
-        // `body` but not the `-webkit-text-size-adjust` of the iOS patch. It
-        // is ignored by the stylesheets where the setting doesn't apply.
-        guard
-            settings.isApplicable(\.letterSpacing),
-            let letterSpacing = settings.letterSpacing,
-            !letterSpacing.isNaN
-        else {
-            return glyphWidth
-        }
-        let bodyZoom = ReadiumCSS.bodyZoom(fontSize: settings.fontSize, userInterfaceIdiom: userInterfaceIdiom)
-        return glyphWidth + letterSpacing * Self.baseFontSize * bodyZoom
+        characterWidthResolver.characterWidth(
+            in: CharacterWidthResolver.Font(
+                family: settings.fontFamily,
+                fontWeight: settings.fontWeight,
+                fontWidth: settings.fontWidth,
+                fontSize: settings.fontSize
+            ),
+            // The letter spacing is ignored by the stylesheets where the
+            // setting doesn't apply.
+            letterSpacing: settings.isApplicable(\.letterSpacing) ? settings.letterSpacing : nil,
+            bodyZoom: ReadiumCSS.bodyZoom(fontSize: settings.fontSize, userInterfaceIdiom: userInterfaceIdiom),
+            isCJK: settings.cssLayout.stylesheets.isCJK
+        )
     }
 
     private func resolveLayout(with settings: EPUBSettings) -> LayoutResolver.Layout? {

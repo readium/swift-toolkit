@@ -10,8 +10,9 @@ import ReadiumShared
 import Testing
 import UIKit
 
-/// Width of a `0` in Iowan Old Style at 16pt, the width of a character used
-/// by the navigator at a 100% font size: 65 of them measure 578pt.
+/// Width of a `0` in Iowan Old Style at 16pt, close to the width of a
+/// character measured by the navigator at a 100% font size: 65 of them
+/// measure 578pt.
 private let iowanWidth = 578.0 / 65
 
 /// Checks the number of columns of `layout`, and its line length with a

@@ -43,6 +43,32 @@ extension ReadiumCSS {
         usesIOSPatch(userInterfaceIdiom) ? 1 : fontSize
     }
 
+    /// Returns the CSS `font-weight` of the `fontWeight` setting, or `nil`
+    /// when it is unset or not a number.
+    static func fontWeight(_ fontWeight: Double?) -> Int? {
+        fontWeight
+            .map { Double(CSSStandardFontWeight.normal.rawValue) * $0 }
+            .takeIf { !$0.isNaN }
+            .map { Int($0.clamped(to: 1 ... 1000).rounded()) }
+    }
+
+    /// Returns the font families of the CSS `font-family` stack for
+    /// `fontFamily`, followed by the alternates of its declaration.
+    static func resolveFontStack(
+        of fontFamily: FontFamily,
+        declarations: [AnyHTMLFontFamilyDeclaration]
+    ) -> [String] {
+        var fonts: [String] = [fontFamily.rawValue]
+
+        let alternates = declarations
+            .first { $0.fontFamily == fontFamily }?
+            .alternates ?? []
+
+        fonts.append(contentsOf: alternates.flatMap { resolveFontStack(of: $0, declarations: declarations) })
+
+        return fonts
+    }
+
     /// Whether the iOS patch of Readium CSS applies on the given device.
     private static func usesIOSPatch(_ userInterfaceIdiom: UIUserInterfaceIdiom) -> Bool {
         userInterfaceIdiom == .phone
@@ -103,12 +129,9 @@ extension ReadiumCSS {
             backgroundColor: settings.backgroundColor.map { CSSIntColor($0.rawValue) },
             linkColor: settings.linkColor.map { CSSIntColor($0.rawValue) },
             visitedColor: settings.visitedColor.map { CSSIntColor($0.rawValue) },
-            fontFamily: settings.fontFamily.map(resolveFontStack),
+            fontFamily: settings.fontFamily.map { Self.resolveFontStack(of: $0, declarations: fontFamilyDeclarations) },
             fontSize: CSSPercentLength(settings.fontSize),
-            fontWeight: settings.fontWeight
-                .map { Double(CSSStandardFontWeight.normal.rawValue) * $0 }
-                .takeIf { !$0.isNaN }
-                .map { Int($0.clamped(to: 1 ... 1000).rounded()) },
+            fontWeight: Self.fontWeight(settings.fontWeight),
             fontWidth: settings.fontWidth.map { CSSPercentLength($0) },
             textAlign: {
                 switch settings.textAlign {
@@ -131,18 +154,6 @@ extension ReadiumCSS {
             iOSPatch: iOSPatch,
             iPadOSPatch: iPadOSPatch
         )
-    }
-
-    func resolveFontStack(of fontFamily: FontFamily) -> [String] {
-        var fonts: [String] = [fontFamily.rawValue]
-
-        let alternates = fontFamilyDeclarations
-            .first { $0.fontFamily == fontFamily }?
-            .alternates ?? []
-
-        fonts.append(contentsOf: alternates.flatMap(resolveFontStack))
-
-        return fonts
     }
 }
 
