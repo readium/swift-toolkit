@@ -54,7 +54,9 @@ All notable changes to this project will be documented in this file. Take a look
 #### Navigator
 
 * The `AudioNavigator` now resumes by itself after the network stalls, instead of stopping until the app returns to the foreground when it is in the background.
-
+* Fixed the audio session of the `AudioNavigator` at the end of a resource, in the background:
+    * The audio session is no longer deactivated when the navigator moves on to the next resource, which removed the Now Playing controls from the lock screen.
+    * The audio session is now deactivated when the playback stops at the end of a resource, held by `navigator(_:shouldPlayNextResource:)` or at the end of the publication.
 
 ## [4.0.0-alpha.3] - 2026-11-16
 
