@@ -94,6 +94,9 @@ let package = Package(
             path: "Tests/NavigatorTests",
             exclude: [
                 "UITests",
+            ],
+            resources: [
+                .copy("Fixtures"),
             ]
         ),
 
