@@ -45,6 +45,10 @@ enum EPUBScriptScope {
     /// Reading order rendered by the navigator.
     let readingOrder: EPUBReadingOrder
 
+    /// Layouts of the resources in the `readingOrder`, which determine the
+    /// effective settings.
+    private let layouts: EPUBLayouts
+
     convenience init(
         publication: Publication,
         readingOrder: ReadingOrder,
@@ -94,6 +98,10 @@ enum EPUBScriptScope {
             readingOrder: readingOrder,
             preferredVariant: config.preferredResourceVariant
         )
+        layouts = EPUBLayouts(
+            readingOrder: self.readingOrder.links,
+            metadata: publication.metadata
+        )
         self.config = config
         editingActions = EditingActionsController(
             actions: config.editingActions,
@@ -106,9 +114,9 @@ enum EPUBScriptScope {
 
         preferences = config.preferences
         settings = EPUBSettings(
-            publication: publication,
-            readingOrder: self.readingOrder.links,
             preferences: config.preferences,
+            metadata: publication.metadata,
+            layouts: layouts,
             config: config
         )
 
@@ -192,14 +200,19 @@ enum EPUBScriptScope {
         applyPreferences()
     }
 
-    private func applyPreferences() {
-        let oldSettings = settings
-        let newSettings = EPUBSettings(
-            publication: publication,
-            readingOrder: readingOrder.links,
+    /// Resolves the settings which would be applied with `preferences`.
+    func settings(for preferences: EPUBPreferences) -> EPUBSettings {
+        EPUBSettings(
             preferences: preferences,
+            metadata: publication.metadata,
+            layouts: layouts,
             config: config
         )
+    }
+
+    private func applyPreferences() {
+        let oldSettings = settings
+        let newSettings = settings(for: preferences)
 
         settings = newSettings
         updateSpread()
@@ -450,18 +463,20 @@ enum EPUBScriptScope {
 }
 
 private extension EPUBSettings {
+    /// Resolves the settings applied by the navigator, shared by
+    /// `EPUBNavigatorViewModel.init` and `settings(for:)`.
     @MainActor
     init(
-        publication: Publication,
-        readingOrder: [Link],
         preferences: EPUBPreferences,
+        metadata: Metadata,
+        layouts: EPUBLayouts,
         config: EPUBNavigatorViewController.Configuration
     ) {
         self.init(
-            publication: publication,
-            readingOrder: readingOrder,
             preferences: preferences,
-            defaults: config.defaults
+            defaults: config.defaults,
+            metadata: metadata,
+            layouts: layouts
         )
 
         // Force-enables scroll when VoiceOver is running, because pagination

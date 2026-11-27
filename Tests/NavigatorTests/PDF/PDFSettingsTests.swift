@@ -115,6 +115,43 @@ enum PDFSettingsTests {
             #expect(Set(allSettings.filter { settings.isEffective($0.keyPath) }.map(\.name)) == example.expected)
         }
     }
+
+    @Suite("Settings resolved by the navigator") @MainActor struct NavigatorResolution {
+        @Test("use the publication metadata and the defaults of the configuration")
+        func usesPublicationAndDefaults() throws {
+            let navigator = try makeNavigator(defaults: PDFDefaults(pageSpacing: 8, scroll: true))
+            let settings = navigator.settings(for: PDFPreferences(scroll: false))
+            #expect(settings.readingProgression == .rtl)
+            #expect(settings.pageSpacing == 8)
+            #expect(settings.scroll == false)
+
+            // The type-erased navigator forwards the call.
+            #expect(navigator.eraseToAnyConfigurable().settings(for: PDFPreferences(scroll: false)) == settings)
+        }
+
+        @Test("are applied unchanged by submitting the same preferences")
+        func appliedBySubmitting() throws {
+            let navigator = try makeNavigator(defaults: PDFDefaults(pageSpacing: 8))
+            let preferences = PDFPreferences(fit: .width, scroll: true, spread: .never)
+            let resolved = navigator.settings(for: preferences)
+            #expect(navigator.settings != resolved)
+
+            navigator.submitPreferences(preferences)
+            #expect(navigator.settings == resolved)
+        }
+    }
+}
+
+@MainActor
+private func makeNavigator(defaults: PDFDefaults) throws -> PDFNavigatorViewController {
+    try PDFNavigatorViewController(
+        publication: Publication(manifest: Manifest(
+            metadata: Metadata(title: "Test", readingProgression: .rtl),
+            readingOrder: [Link(href: "doc.pdf", mediaType: .pdf)]
+        )),
+        initialLocation: nil,
+        config: .init(defaults: defaults)
+    )
 }
 
 private func settings(

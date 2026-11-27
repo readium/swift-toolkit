@@ -47,14 +47,16 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Suggested range: `0.1...5.0`, with a step of `0.1`.
     public var fontSize: Double?
 
-    /// Default boldness for the text.
+    /// Default boldness for the text, as a factor of the normal weight (400),
+    /// so `1.0` is normal.
     ///
     /// Accepted range: `0.0...2.5`, other values are clamped. Suggested step:
     /// `0.25`. When unset, a control can start from `1.0`.
     public var fontWeight: Double?
 
-    /// Width of the glyphs, for the fonts which support it (variable fonts
-    /// with a `wdth` axis).
+    /// Width of the glyphs, as a factor of the normal width, so `1.0` is
+    /// normal. Only for the fonts which support it (variable fonts with a
+    /// `wdth` axis).
     ///
     /// Accepted range: `0.5...2.5`, other values are clamped. Suggested step:
     /// `0.1`. When unset, a control can start from `1.0`.
@@ -74,10 +76,10 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Language of the publication content.
     public var language: Language?
 
-    /// Space between letters.
+    /// Space between letters, in multiples of the root font size (`rem`).
     ///
     /// Accepted range: `0.0...`, negative values are replaced with `0.0`.
-    /// Suggested range: `0.0...1.0`, with a step of `0.1`. When unset, a
+    /// Suggested range: `0.0...0.5`, with a step of `0.05`. When unset, a
     /// control can start from `0.0`.
     public var letterSpacing: Double?
 
@@ -86,7 +88,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// When unset, a control can start from `true`.
     public var ligatures: Bool?
 
-    /// Leading line height.
+    /// Leading line height, as a multiple of the font size.
     ///
     /// Suggested range: `1.0...2.0`, with a step of `0.1`. When unset, a
     /// control can start from `1.5`.
@@ -149,13 +151,15 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// Suggested range: `0.0...4.0`, with a step of `0.3`.
     public var pageMargins: Double?
 
-    /// Text indentation for paragraphs.
+    /// Text indentation for paragraphs, in multiples of the root font size
+    /// (`rem`).
     ///
     /// Suggested range: `0.0...3.0`, with a step of `0.2`. When unset, a
     /// control can start from `0.0`.
     public var paragraphIndent: Double?
 
-    /// Vertical margins for paragraphs.
+    /// Vertical margins for paragraphs, in multiples of the root font size
+    /// (`rem`).
     ///
     /// Accepted range: `0.0...`, negative values are replaced with `0.0`.
     /// Suggested range: `0.0...2.0`, with a step of `0.1`. When unset, a
@@ -198,7 +202,7 @@ public struct EPUBPreferences: ConfigurablePreferences, Sendable {
     /// When `nil`, the visited link color of the publication is kept.
     public var visitedColor: Color?
 
-    /// Space between words.
+    /// Space between words, in multiples of the root font size (`rem`).
     ///
     /// Accepted range: `0.0...`, negative values are replaced with `0.0`.
     /// Suggested range: `0.0...1.0`, with a step of `0.1`. When unset, a

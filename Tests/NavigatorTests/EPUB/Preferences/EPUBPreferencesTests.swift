@@ -198,16 +198,6 @@ enum EPUBPreferencesTests {
             #expect(effectiveSettings(settings(readingOrder: fixedLayoutReadingOrder)) == fixedLayoutSettings.union(layoutIndependentSettings))
         }
 
-        @Test("the layouts come from the given reading order rather than the publication's")
-        func customReadingOrder() {
-            let publication = Publication(manifest: Manifest(
-                metadata: Metadata(title: "Test"),
-                readingOrder: [Link(href: "c1.xhtml", mediaType: .xhtml)]
-            ))
-            let settings = EPUBSettings(publication: publication, readingOrder: fixedLayoutReadingOrder, preferences: EPUBPreferences())
-            #expect(effectiveSettings(settings) == fixedLayoutSettings.union(layoutIndependentSettings))
-        }
-
         /// A reading order of fixed-layout resources, in a reflowable
         /// publication.
         private var fixedLayoutReadingOrder: [Link] {
@@ -1034,8 +1024,7 @@ private let cssTable: [(preferences: EPUBPreferences, expected: [String: String?
     (EPUBPreferences(invertGaiji: true), ["--USER__invertGaiji": "1.00000"]),
     (EPUBPreferences(invertImages: true), ["--USER__invertImages": "1.00000"]),
     (EPUBPreferences(language: Language("fr")), [:]),
-    // ReadiumCSS halves the letter spacing.
-    (EPUBPreferences(letterSpacing: 0.2), ["--USER__letterSpacing": "0.10000rem"]),
+    (EPUBPreferences(letterSpacing: 0.2), ["--USER__letterSpacing": "0.20000rem"]),
     (EPUBPreferences(ligatures: true), ["--USER__ligatures": "common-ligatures"]),
     (EPUBPreferences(ligatures: false), ["--USER__ligatures": "none"]),
     (EPUBPreferences(lineHeight: 1.6), ["--USER__lineHeight": "1.60000"]),
@@ -1095,15 +1084,12 @@ private func settings(
     layout: Layout? = nil,
     readingOrder: [Link] = [Link(href: "c1.xhtml", mediaType: .xhtml)]
 ) -> EPUBSettings {
-    EPUBSettings(
-        publication: Publication(
-            manifest: Manifest(
-                metadata: Metadata(title: "Test", layout: layout),
-                readingOrder: readingOrder
-            )
-        ),
+    let metadata = Metadata(title: "Test", layout: layout)
+    return EPUBSettings(
         preferences: preferences,
-        defaults: defaults
+        defaults: defaults,
+        metadata: metadata,
+        layouts: EPUBLayouts(readingOrder: readingOrder, metadata: metadata)
     )
 }
 

@@ -4,7 +4,8 @@
 //  available in the top-level LICENSE file of the project.
 //
 
-import ReadiumNavigator
+@testable import ReadiumNavigator
+import ReadiumShared
 import Testing
 
 enum AudioSettingsTests {
@@ -28,4 +29,54 @@ enum AudioSettingsTests {
             #expect(fromPreferences.speed == 2.0)
         }
     }
+
+    @Suite("Effective settings") struct Effective {
+        private let settings = AudioSettings(preferences: AudioPreferences())
+
+        @Test("are tested for every setting")
+        func listsEverySetting() {
+            #expect(Set(allSettings.map(\.name)) == Set(Mirror(reflecting: settings).children.compactMap(\.label)))
+        }
+
+        @Test("include every setting")
+        func everySettingIsEffective() {
+            #expect(allSettings.allSatisfy { settings.isEffective($0.keyPath) })
+        }
+    }
+
+    @Suite("Settings resolved by the navigator") @MainActor struct NavigatorResolution {
+        private let navigator = AudioNavigator(
+            publication: Publication(manifest: Manifest(
+                metadata: Metadata(conformsTo: [.audiobook], title: "Audiobook"),
+                readingOrder: [Link(href: "track.wav", mediaType: .wav)]
+            )),
+            config: .init(defaults: AudioDefaults(volume: 0.5, speed: 1.5)),
+            audioSession: NoopAudioSessionManager()
+        )
+
+        @Test("use the defaults of the configuration")
+        func usesDefaults() {
+            let settings = navigator.settings(for: AudioPreferences(speed: 2.0))
+            #expect(settings.volume == 0.5)
+            #expect(settings.speed == 2.0)
+        }
+
+        @Test("are applied unchanged by submitting the same preferences")
+        func appliedBySubmitting() {
+            let preferences = AudioPreferences(volume: 0.8)
+            let resolved = navigator.settings(for: preferences)
+            #expect(navigator.settings != resolved)
+
+            navigator.submitPreferences(preferences)
+            #expect(navigator.settings == resolved)
+        }
+    }
+}
+
+/// Every setting of `AudioSettings`, with its name.
+private var allSettings: [(name: String, keyPath: PartialKeyPath<AudioSettings>)] {
+    [
+        ("speed", \.speed),
+        ("volume", \.volume),
+    ]
 }

@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. Take a look
     * `blendImages`, `darkenImages`, `invertGaiji` and `invertImages` filter the images, [see the user guide](docs/Guides/Navigator/Preferences.md#image-filters).
     * `fontWidth` changes the width of the glyphs, with the fonts supporting it.
     * `noRuby` hides the ruby (furigana) annotations in CJK publications.
+* New `settings(for:)` API on the navigators (`Configurable`) to get the settings they would apply with given preferences, without submitting them. Check which settings take effect with the current publication with `isEffective(_:)`, e.g. to disable the controls of a settings screen, [see the user guide](docs/Guides/Navigator/Preferences.md#build-a-user-settings-interface).
 * Japanese publications following the EBPAJ EPUB 3 production guide are now rendered with the iOS fonts, such as Hiragino Mincho and Hiragino Sans, instead of the Windows fonts they reference.
 
 ### Changed
@@ -39,13 +40,14 @@ All notable changes to this project will be documented in this file. Take a look
     * On foldable devices, one column is displayed on each side of the hinge.
 * Removed the OpenDyslexic, AccessibleDfA and iA Writer Duospace fonts bundled with the toolkit, [see the migration guide](docs/Migration%20Guide.md#bundled-fonts).
 * SVG documents in the reading order of an EPUB are now rendered as fixed-layout pages, even in a reflowable publication.
+* The `letterSpacing` EPUB preference is no longer halved: `1.0` is now `1rem` instead of `0.5rem`, like in the other Readium toolkits, [see the migration guide](docs/Migration%20Guide.md#letterspacing-is-no-longer-halved).
 
 ### Removed
 
 #### Navigator
 
 * The `Preferences` types and their values are no longer `Codable`. Persist your own settings model and derive the preferences from it instead, [see the migration guide](docs/Migration%20Guide.md#preferences-are-no-longer-codable).
-* The preferences editors (`EPUBPreferencesEditor`, `PDFPreferencesEditor`, `AudioPreferencesEditor`, `StatefulPreferencesEditor`), `Configurable.editor(of:)` APIs are removed. Edit the preferences in your own settings model, and check which settings are effective with `isEffective(_:)`, [see the migration guide](docs/Migration%20Guide.md#the-preferences-editors-are-removed).
+* The preferences editors (e.g. `EPUBPreferencesEditor`) are removed. Edit the preferences in your own settings model, and check which settings are effective with `navigator.settings(for:)` and `isEffective(_:)`, [see the migration guide](docs/Migration%20Guide.md#the-preferences-editors-are-removed).
 
 ### Fixed
 

@@ -587,11 +587,7 @@ open class PDFNavigatorViewController:
     public private(set) var settings: PDFSettings
 
     public func submitPreferences(_ preferences: PDFPreferences) {
-        let settings = PDFSettings(
-            publication: publication,
-            preferences: preferences,
-            defaults: config.defaults
-        )
+        let settings = settings(for: preferences)
         guard settings != self.settings else {
             return
         }
@@ -601,7 +597,15 @@ open class PDFNavigatorViewController:
         delegate?.navigator(self, presentationDidChange: presentation)
     }
 
-    @available(*, unavailable, message: "Build the settings with PDFSettings(publication:preferences:defaults:) and check PDFSettings.isEffective(_:), see the migration guide")
+    public func settings(for preferences: PDFPreferences) -> PDFSettings {
+        PDFSettings(
+            publication: publication,
+            preferences: preferences,
+            defaults: config.defaults
+        )
+    }
+
+    @available(*, unavailable, message: "Get the settings with settings(for:) and check PDFSettings.isEffective(_:), see the migration guide")
     public func editor(of preferences: PDFPreferences) -> PDFPreferencesEditor {
         fatalError()
     }

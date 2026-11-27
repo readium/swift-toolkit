@@ -10,8 +10,9 @@ import ReadiumShared
 /// Setting values of the `PDFNavigatorViewController`.
 ///
 /// The navigator resolves them from the submitted `PDFPreferences`. Use
-/// `init(publication:preferences:defaults:)` to resolve them yourself, for
-/// example to check which settings are effective with `isEffective(_:)`.
+/// `PDFNavigatorViewController.settings(for:)` to get the settings resolved
+/// from given preferences without submitting them, for example to check
+/// which settings are effective with `isEffective(_:)`.
 ///
 /// See `PDFPreferences`
 public struct PDFSettings: ConfigurableSettings, Sendable {
@@ -30,7 +31,11 @@ public struct PDFSettings: ConfigurableSettings, Sendable {
     ///
     /// A preference takes precedence over the publication metadata, which
     /// takes precedence over the `defaults`.
-    public init(
+    ///
+    /// - Parameters:
+    ///   - defaults: Default values of the navigator, given in its
+    ///     `PDFNavigatorViewController.Configuration`.
+    init(
         publication: Publication,
         preferences: PDFPreferences,
         defaults: PDFDefaults = PDFDefaults()
@@ -79,10 +84,8 @@ public struct PDFSettings: ConfigurableSettings, Sendable {
 }
 
 public extension PDFSettings {
-    /// Indicates whether the given `setting` would take effect if it was set
-    /// by a preference, with the other settings.
-    ///
-    /// Use it to disable the controls of the settings which have no effect.
+    /// Indicates whether the given `setting` would take effect if it was set,
+    /// see `ConfigurableSettings.isEffective(_:)`.
     ///
     /// The rules of each setting are:
     /// - Always effective: `backgroundColor`, `pageSpacing`, `scroll`.
@@ -91,9 +94,6 @@ public extension PDFSettings {
     ///   limitation.
     /// - `spread`: when `scroll` is off, or with a vertical `scrollAxis`.
     /// - `offsetFirstPage`: like `spread`, and when `spread` is not `.never`.
-    ///
-    /// - Parameter setting: Key path of a setting, e.g. `\.scrollAxis`.
-    ///   Other key paths are a programming error.
     func isEffective(_ setting: PartialKeyPath<PDFSettings>) -> Bool {
         let hasSpread = !scroll || scrollAxis == .vertical
 

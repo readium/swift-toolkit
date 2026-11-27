@@ -83,9 +83,9 @@ class AudiobookViewController: ReaderViewController<AudioNavigator>, AudioNaviga
                 model: UserPreferencesViewModel(
                     bookId: bookId,
                     publication: publication,
+                    navigator: navigator.eraseToAnyConfigurable(),
                     settings: try! settingsStore.settings(for: bookId),
-                    store: settingsStore,
-                    submit: { [navigator] in navigator.submitPreferences($0) }
+                    store: settingsStore
                 ),
                 onClose: { [weak self = self] in
                     self?.dismiss(animated: true)

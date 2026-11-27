@@ -110,7 +110,7 @@ extension ReadiumCSS {
             paraSpacing: settings.paragraphSpacing.map { CSSRemLength($0) },
             paraIndent: settings.paragraphIndent.map { CSSRemLength($0) },
             wordSpacing: settings.wordSpacing.map { CSSRemLength($0) },
-            letterSpacing: settings.letterSpacing.map { CSSRemLength($0 / 2) },
+            letterSpacing: settings.letterSpacing.map { CSSRemLength($0) },
             bodyHyphens: settings.hyphens.map { $0 ? .auto : .none },
             ligatures: settings.ligatures.map { $0 ? .common : .none },
             a11yNormalize: settings.textNormalization,

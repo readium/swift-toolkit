@@ -10,9 +10,9 @@ import ReadiumShared
 /// Setting values of the `EPUBNavigatorViewController`.
 ///
 /// The navigator resolves them from the submitted `EPUBPreferences`. Use
-/// `init(publication:readingOrder:preferences:defaults:)` to resolve them
-/// yourself, for example to check which settings are effective with
-/// `isEffective(_:)`.
+/// `EPUBNavigatorViewController.settings(for:)` to get the settings resolved
+/// from given preferences without submitting them, for example to check
+/// which settings are effective with `isEffective(_:)`.
 ///
 /// See `EPUBPreferences`
 public struct EPUBSettings: ConfigurableSettings, Sendable {
@@ -138,38 +138,12 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
         self.layouts = layouts
     }
 
-    /// Resolves the settings applied by the EPUB navigator to `publication`
-    /// with the given `preferences`.
+    /// Resolves the settings from the given `preferences`, with the
+    /// publication `metadata` and the `layouts` of the rendered reading order.
     ///
     /// A preference takes precedence over the publication metadata, which
     /// takes precedence over the `defaults`. Some settings are also derived
     /// from others, for example vertical text forces the scroll mode.
-    ///
-    /// - Parameters:
-    ///   - readingOrder: Reading order rendered by the navigator, when it
-    ///     differs from `publication.readingOrder`. This happens when the
-    ///     navigator is created with a custom reading order, or with a
-    ///     `Configuration.preferredResourceVariant`: pass
-    ///     `EPUBNavigatorViewController.readingOrder` then. It determines
-    ///     which settings are effective, since a publication can mix
-    ///     reflowable and fixed-layout resources.
-    ///   - defaults: Default values of the navigator, given in its
-    ///     `EPUBNavigatorViewController.Configuration`.
-    public init(
-        publication: Publication,
-        readingOrder: [Link]? = nil,
-        preferences: EPUBPreferences,
-        defaults: EPUBDefaults = EPUBDefaults()
-    ) {
-        let metadata = publication.metadata
-        self.init(
-            preferences: preferences,
-            defaults: defaults,
-            metadata: metadata,
-            layouts: EPUBLayouts(readingOrder: readingOrder ?? publication.readingOrder, metadata: metadata)
-        )
-    }
-
     init(preferences: EPUBPreferences, defaults: EPUBDefaults, metadata: Metadata, layouts: EPUBLayouts = .reflowable) {
         // Compute language according to the following rule:
         // preference value > metadata value > default value > null
@@ -269,11 +243,8 @@ public struct EPUBSettings: ConfigurableSettings, Sendable {
 }
 
 public extension EPUBSettings {
-    /// Indicates whether the given `setting` would take effect if it was set
-    /// by a preference, with the publication and the other settings.
-    ///
-    /// Use it to disable the controls of the settings which have no effect.
-    /// It doesn't tell whether the setting is set: a setting left unset keeps
+    /// Indicates whether the given `setting` would take effect if it was set,
+    /// see `ConfigurableSettings.isEffective(_:)`. A setting left unset keeps
     /// the styles of the publication.
     ///
     /// The rules of each setting are:

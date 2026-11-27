@@ -15,6 +15,7 @@ import ReadiumShared
 /// each book and a part shared by all the books of the same format.
 nonisolated protocol UserSettings: Hashable, Sendable {
     associatedtype Preferences: ConfigurablePreferences
+    /// Settings of the navigator, resolved from the `Preferences`.
     associatedtype NavigatorSettings: ConfigurableSettings
     associatedtype BookSettings: UserSettingsPart
     associatedtype SharedSettings: UserSettingsPart
@@ -29,10 +30,6 @@ nonisolated protocol UserSettings: Hashable, Sendable {
 
     /// Returns the navigator preferences to submit.
     func preferences() -> Preferences
-
-    /// Resolves the settings the navigator applies to `publication` with
-    /// these user settings, to tell which ones are effective.
-    func navigatorSettings(for publication: Publication) -> NavigatorSettings
 }
 
 nonisolated extension UserSettings {
@@ -52,8 +49,9 @@ nonisolated protocol UserSettingsPart: Codable, Hashable, Sendable {
 nonisolated struct EPUBUserSettings: UserSettings {
     static let storageKey = "epub"
 
-    /// Defaults given to the navigator, and to the settings resolved to tell
-    /// which ones are effective.
+    typealias NavigatorSettings = EPUBSettings
+
+    /// Defaults given to the navigator configuration.
     static let defaults = EPUBDefaults()
 
     nonisolated struct BookSettings: UserSettingsPart {
@@ -166,10 +164,6 @@ nonisolated extension EPUBUserSettings {
             wordSpacing: shared.wordSpacing
         )
     }
-
-    func navigatorSettings(for publication: Publication) -> EPUBSettings {
-        EPUBSettings(publication: publication, preferences: preferences(), defaults: Self.defaults)
-    }
 }
 
 // MARK: - PDF
@@ -177,8 +171,9 @@ nonisolated extension EPUBUserSettings {
 nonisolated struct PDFUserSettings: UserSettings {
     static let storageKey = "pdf"
 
-    /// Defaults given to the navigator, and to the settings resolved to tell
-    /// which ones are effective.
+    typealias NavigatorSettings = PDFSettings
+
+    /// Defaults given to the navigator configuration.
     static let defaults = PDFDefaults()
 
     nonisolated struct BookSettings: UserSettingsPart {
@@ -214,10 +209,6 @@ nonisolated extension PDFUserSettings {
             visibleScrollbar: shared.visibleScrollbar
         )
     }
-
-    func navigatorSettings(for publication: Publication) -> PDFSettings {
-        PDFSettings(publication: publication, preferences: preferences(), defaults: Self.defaults)
-    }
 }
 
 // MARK: - Audio
@@ -225,8 +216,9 @@ nonisolated extension PDFUserSettings {
 nonisolated struct AudioUserSettings: UserSettings {
     static let storageKey = "audio"
 
-    /// Defaults given to the navigator, and to the settings resolved to tell
-    /// which ones are effective.
+    typealias NavigatorSettings = AudioSettings
+
+    /// Defaults given to the navigator configuration.
     static let defaults = AudioDefaults()
 
     /// The audio navigator has no book-specific preferences.
@@ -244,9 +236,5 @@ nonisolated struct AudioUserSettings: UserSettings {
 nonisolated extension AudioUserSettings {
     func preferences() -> AudioPreferences {
         AudioPreferences(volume: shared.volume, speed: shared.speed)
-    }
-
-    func navigatorSettings(for publication: Publication) -> AudioSettings {
-        AudioSettings(preferences: preferences(), defaults: Self.defaults)
     }
 }

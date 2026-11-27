@@ -14,22 +14,26 @@ import SwiftUI
 /// their preferences to the navigator.
 @MainActor
 final class UserPreferencesViewModel<Settings: UserSettings>: ObservableObject {
+    typealias Navigator = AnyConfigurable<Settings.NavigatorSettings, Settings.Preferences>
+
     @Published private(set) var settings: Settings
 
     let publication: Publication
     private let bookId: Book.Id
+    private let navigator: Navigator
     private let store: UserSettingsStore<Settings>
     private var subscriptions = Set<AnyCancellable>()
 
     init(
         bookId: Book.Id,
         publication: Publication,
+        navigator: Navigator,
         settings: Settings,
-        store: UserSettingsStore<Settings>,
-        submit: @escaping (Settings.Preferences) -> Void
+        store: UserSettingsStore<Settings>
     ) {
         self.bookId = bookId
         self.publication = publication
+        self.navigator = navigator
         self.settings = settings
         self.store = store
 
@@ -51,16 +55,16 @@ final class UserPreferencesViewModel<Settings: UserSettings>: ObservableObject {
             .dropFirst()
             .sink { settings in
                 MainActor.assumeIsolated {
-                    submit(settings.preferences())
+                    navigator.submitPreferences(settings.preferences())
                 }
             }
             .store(in: &subscriptions)
     }
 
-    /// Settings applied by the navigator with the current user settings, to
+    /// Settings the navigator applies with the current user settings, to
     /// tell which ones are effective.
     var navigatorSettings: Settings.NavigatorSettings {
-        settings.navigatorSettings(for: publication)
+        navigator.settings(for: settings.preferences())
     }
 
     /// Returns a binding modifying one of the user settings.
@@ -380,7 +384,7 @@ private struct EPUBReflowablePreferences: View {
             stepperRow(
                 "Word spacing",
                 value: model.binding(\.shared.wordSpacing),
-                spec: .spacing,
+                spec: .wordSpacing,
                 placeholder: settings.wordSpacing,
                 isActive: settings.isEffective(\.wordSpacing)
             )
@@ -388,7 +392,7 @@ private struct EPUBReflowablePreferences: View {
             stepperRow(
                 "Letter spacing",
                 value: model.binding(\.shared.letterSpacing),
-                spec: .spacing,
+                spec: .letterSpacing,
                 placeholder: settings.letterSpacing,
                 isActive: settings.isEffective(\.letterSpacing)
             )
@@ -555,8 +559,7 @@ private struct PDFPreferencesForm: View {
 
 // MARK: - Audio
 
-/// User preferences of an audiobook. Every audio setting is always
-/// effective.
+/// User preferences of an audiobook.
 private struct AudioPreferencesForm: View {
     @ObservedObject var model: UserPreferencesViewModel<AudioUserSettings>
 
@@ -569,7 +572,7 @@ private struct AudioPreferencesForm: View {
                 value: model.binding(\.shared.volume),
                 spec: .volume,
                 placeholder: settings.volume,
-                isActive: true
+                isActive: settings.isEffective(\.volume)
             )
 
             stepperRow(
@@ -577,7 +580,7 @@ private struct AudioPreferencesForm: View {
                 value: model.binding(\.shared.speed),
                 spec: .speed,
                 placeholder: settings.speed,
-                isActive: true
+                isActive: settings.isEffective(\.speed)
             )
         }
     }
@@ -621,8 +624,8 @@ struct StepperSpec {
     static let pageMargins = StepperSpec(range: 0.0 ... 4.0, step: 0.3, start: 1.0, format: decimal)
     static let paragraphIndent = StepperSpec(range: 0.0 ... 3.0, step: 0.2, start: 0.0)
     static let paragraphSpacing = StepperSpec(range: 0.0 ... 2.0, step: 0.1, start: 0.0)
-    /// Letter and word spacing.
-    static let spacing = StepperSpec(range: 0.0 ... 1.0, step: 0.1, start: 0.0)
+    static let wordSpacing = StepperSpec(range: 0.0 ... 1.0, step: 0.1, start: 0.0)
+    static let letterSpacing = StepperSpec(range: 0.0 ... 0.5, step: 0.05, start: 0.0)
 
     static let pageSpacing = StepperSpec(range: 0 ... 200, step: 4, start: 0, format: { String(format: "%.1f pt", $0) })
 

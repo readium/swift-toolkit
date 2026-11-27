@@ -141,6 +141,46 @@ import UIKit
         #expect(delegate.scripts.count == 2)
         #expect(delegate.scripts.last?.contains(#""--USER__colCount":"2""#) == true)
     }
+
+    @Suite("Settings resolved for given preferences") @MainActor struct SettingsForPreferences {
+        @Test("use the defaults of the configuration")
+        func usesDefaults() {
+            let viewModel = makeViewModel(config: .init(defaults: EPUBDefaults(fontSize: 1.5, scroll: true)))
+            let settings = viewModel.settings(for: EPUBPreferences(fontSize: 2))
+            #expect(settings.fontSize == 2)
+            #expect(settings.scroll)
+        }
+
+        /// The publication is reflowable, but its resources have bitmap
+        /// alternates rendered as fixed-layout with the `.image` variant.
+        @Test("use the layouts of the reading order rendered by the navigator")
+        func usesRenderedReadingOrder() {
+            var page = Link(href: "page.xhtml", mediaType: .xhtml)
+            page.alternates = [Link(href: "page.jpg", mediaType: .jpeg)]
+            let publication = Publication(manifest: Manifest(metadata: Metadata(title: "Test"), readingOrder: [page]))
+
+            let authored = makeViewModel(publication: publication, config: .init(preferredResourceVariant: .default))
+                .settings(for: EPUBPreferences())
+            #expect(authored.isEffective(\.fontSize))
+            #expect(!authored.isEffective(\.fit))
+
+            let images = makeViewModel(publication: publication, config: .init(preferredResourceVariant: .image))
+                .settings(for: EPUBPreferences())
+            #expect(!images.isEffective(\.fontSize))
+            #expect(images.isEffective(\.fit))
+        }
+
+        @Test("are applied unchanged by submitting the same preferences")
+        func appliedBySubmitting() {
+            let viewModel = makeViewModel(config: .init(defaults: EPUBDefaults(columnCount: 2, pageMargins: 1.5)))
+            let preferences = EPUBPreferences(fontSize: 1.4, language: Language("ja"), textAlign: .justify)
+            let resolved = viewModel.settings(for: preferences)
+            #expect(viewModel.settings != resolved)
+
+            viewModel.submitPreferences(preferences)
+            #expect(viewModel.settings == resolved)
+        }
+    }
 }
 
 // MARK: - Helpers
@@ -152,18 +192,22 @@ private let initialInsets = UIEdgeInsets(top: 62, left: 62, bottom: 62, right: 6
 }
 
 @MainActor private func makeViewModel(preferences: EPUBPreferences) -> EPUBNavigatorViewModel {
-    let publication = Publication(
+    makeViewModel(config: EPUBNavigatorViewController.Configuration(preferences: preferences))
+}
+
+@MainActor private func makeViewModel(
+    publication: Publication = Publication(
         manifest: Manifest(
             metadata: Metadata(title: "Reflowable"),
             readingOrder: [Link(href: "chapter.html", mediaType: .xhtml)]
         )
-    )
-    return EPUBNavigatorViewModel(
+    ),
+    config: EPUBNavigatorViewController.Configuration
+) -> EPUBNavigatorViewModel {
+    EPUBNavigatorViewModel(
         publication: publication,
         readingOrder: publication.readingOrder,
-        config: EPUBNavigatorViewController.Configuration(
-            preferences: preferences
-        )
+        config: config
     )
 }
 
